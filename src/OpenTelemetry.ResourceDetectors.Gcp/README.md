@@ -26,16 +26,46 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 ## Resource Attributes
 
-The following OpenTelemetry semantic conventions will be detected:
+The following OpenTelemetry semantic conventions will be detected depending on
+which Google Cloud Platform environment an application is running in.
 
-|-------------------------|------|------|------|------|
-| Resource Attribute      | GKE  | GAE  | GCR  | GCE  |
-| cloud.provider          | gcp  | gcp  | gcp  | gcp  |
-| cloud.platform          | gcp_kubernetes_engine | gcp_app_engine | gcp_cloud_run | gcp_compute_engine |
-| cloud.account.id        | auto | auto | auto | auto |
-| cloud.availability_zone | auto |      | auto | auto |
-| cloud.region            |      |      | auto |      |
-| host.id                 | auto |      |      | auto |
-| k8s.cluster.name        | auto |      |      |      |
-| k8s.namespace.name      | auto |      |      |      |
-| k8s.pod.name            | auto |      |      |      |
+### Google Kubernetes Engine
+
+|-------------------------|-----------------------|
+| Attribute               | Value                 |
+| cloud.provider          | gcp                   |
+| cloud.platform          | gcp_kubernetes_engine |
+| cloud.account.id        | auto                  |
+| cloud.availability_zone | auto                  |
+| host.id                 | auto                  |
+| k8s.cluster.name        | auto                  |
+| k8s.namespace.name      | auto                  |
+| k8s.pod.name            | auto                  |
+
+### Google App Engine
+
+|-------------------------|----------------|
+| Attribute               | Value          |
+| cloud.provider          | gcp            |
+| cloud.platform          | gcp_app_engine |
+| cloud.account.id        | auto           |
+
+### Google Cloud Run
+
+|-------------------------|---------------|
+| Attribute               | Value         |
+| cloud.provider          | gcp           |
+| cloud.platform          | gcp_cloud_run |
+| cloud.account.id        | auto          |
+| cloud.availability_zone | auto          |
+| cloud.region            | auto          |
+
+### Google Compute Engine
+
+|-------------------------|--------------------|
+| Attribute               | Value              |
+| cloud.provider          | gcp                |
+| cloud.platform          | gcp_compute_engine |
+| cloud.account.id        | auto               |
+| cloud.availability_zone | auto               |
+| host.id                 | auto               |
