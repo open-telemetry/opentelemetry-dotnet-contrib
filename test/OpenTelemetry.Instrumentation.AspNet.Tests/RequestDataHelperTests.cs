@@ -2,13 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
-using OpenTelemetry.Instrumentation.AspNet.Implementation;
+using System.Collections.Generic;
+using OpenTelemetry.Internal;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class RequestDataHelperTests : IDisposable
 {
+    public static IEnumerable<object[]> MappingVersionProtocolToVersionData =>
+        new List<object[]>
+        {
+            new object[] { new Version(1, 0), "1.0" },
+            new object[] { new Version(1, 1), "1.1" },
+            new object[] { new Version(2, 0), "2" },
+            new object[] { new Version(3, 0), "3" },
+            new object[] { new Version(7, 6, 5), "7.6.5" },
+        };
+
     [Theory]
     [InlineData("GET", "GET")]
     [InlineData("POST", "POST")]
@@ -55,6 +66,14 @@ public class RequestDataHelperTests : IDisposable
     [InlineData("HTTP/3", "3")]
     [InlineData("Unknown", "Unknown")]
     public void MappingProtocolToVersion(string protocolVersion, string expected)
+    {
+        var actual = RequestDataHelper.GetHttpProtocolVersion(protocolVersion);
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(MappingVersionProtocolToVersionData))]
+    public void MappingVersionProtocolToVersion(Version protocolVersion, string expected)
     {
         var actual = RequestDataHelper.GetHttpProtocolVersion(protocolVersion);
         Assert.Equal(expected, actual);

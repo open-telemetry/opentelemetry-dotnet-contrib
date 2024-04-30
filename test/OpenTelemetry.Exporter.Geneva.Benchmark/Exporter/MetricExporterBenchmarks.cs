@@ -574,6 +574,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith3Dimensions()
     {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        this.counterMetricPointWith3Dimensions.TryGetExemplars(out var exemplars);
+#endif
         this.tlvMetricsExporter.SerializeMetricWithTLV(
             MetricEventType.ULongMetric,
             this.counterMetricWith3Dimensions.Name,
@@ -581,7 +584,8 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith3Dimensions.Tags,
             this.counterMetricDataWith3Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            MetricType.LongSum,
+            exemplars,
 #endif
             out _,
             out _);
@@ -590,6 +594,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith4Dimensions()
     {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        this.counterMetricPointWith4Dimensions.TryGetExemplars(out var exemplars);
+#endif
         this.tlvMetricsExporter.SerializeMetricWithTLV(
             MetricEventType.ULongMetric,
             this.counterMetricWith4Dimensions.Name,
@@ -597,7 +604,8 @@ public class MetricExporterBenchmarks
             this.counterMetricPointWith4Dimensions.Tags,
             this.counterMetricDataWith4Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            MetricType.LongSum,
+            exemplars,
 #endif
             out _,
             out _);
@@ -618,6 +626,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions()
     {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        this.histogramMetricPointWith3Dimensions.TryGetExemplars(out var exemplars);
+#endif
         this.tlvMetricsExporter.SerializeHistogramMetricWithTLV(
             this.histogramMetricWith3Dimensions.Name,
             this.histogramMetricPointWith3Dimensions.EndTime.ToFileTime(),
@@ -628,7 +639,8 @@ public class MetricExporterBenchmarks
             this.histogramMinWith3Dimensions,
             this.histogramMaxWith3Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            MetricType.Histogram,
+            exemplars,
 #endif
             out _,
             out _);
@@ -637,6 +649,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith4Dimensions()
     {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        this.histogramMetricPointWith4Dimensions.TryGetExemplars(out var exemplars);
+#endif
         this.tlvMetricsExporter.SerializeHistogramMetricWithTLV(
             this.histogramMetricWith4Dimensions.Name,
             this.histogramMetricPointWith4Dimensions.EndTime.ToFileTime(),
@@ -647,7 +662,8 @@ public class MetricExporterBenchmarks
             this.histogramMinWith4Dimensions,
             this.histogramMaxWith4Dimensions,
 #if EXPOSE_EXPERIMENTAL_FEATURES
-            Array.Empty<Exemplar>(),
+            MetricType.Histogram,
+            exemplars,
 #endif
             out _,
             out _);

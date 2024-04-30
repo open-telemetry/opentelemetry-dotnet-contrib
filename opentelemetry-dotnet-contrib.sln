@@ -1,4 +1,4 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 15.0.26124.0
@@ -53,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.EventCounters.yml = .github\workflows\package-Instrumentation.EventCounters.yml
 		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
 		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
+		.github\workflows\package-Instrumentation.Http.yml = .github\workflows\package-Instrumentation.Http.yml
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
 		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
 		.github\workflows\package-Instrumentation.Process.yml = .github\workflows\package-Instrumentation.Process.yml
@@ -321,6 +322,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.Extensions.proj = build\Projects\OpenTelemetry.Extensions.proj
 		build\Projects\OpenTelemetry.Instrumentation.AspNet.proj = build\Projects\OpenTelemetry.Instrumentation.AspNet.proj
 		build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj = build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj
+		build\Projects\OpenTelemetry.Instrumentation.Http.proj = build\Projects\OpenTelemetry.Instrumentation.Http.proj
 		build\Projects\OpenTelemetry.Instrumentation.Owin.proj = build\Projects\OpenTelemetry.Instrumentation.Owin.proj
 		build\Projects\OpenTelemetry.Instrumentation.Process.proj = build\Projects\OpenTelemetry.Instrumentation.Process.proj
 		build\Projects\OpenTelemetry.Instrumentation.Runtime.proj = build\Projects\OpenTelemetry.Instrumentation.Runtime.proj
@@ -353,11 +355,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Gcp.Tests", "test\OpenTelemetry.ResourceDetectors.Gcp.Tests\OpenTelemetry.ResourceDetectors.Gcp.Tests.csproj", "{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.SqlClient", "src\OpenTelemetry.Instrumentation.SqlClient\OpenTelemetry.Instrumentation.SqlClient.csproj", "{737D1A9E-5A1A-4F4F-830B-E98ED100994C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.SqlClient", "src\OpenTelemetry.Instrumentation.SqlClient\OpenTelemetry.Instrumentation.SqlClient.csproj", "{737D1A9E-5A1A-4F4F-830B-E98ED100994C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Instrumentation.SqlClient.Tests", "test\OpenTelemetry.Instrumentation.SqlClient.Tests\OpenTelemetry.Instrumentation.SqlClient.Tests.csproj", "{9C996130-74D7-4FB7-8277-2EE6EBA2BFA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.SqlClient.Tests", "test\OpenTelemetry.Instrumentation.SqlClient.Tests\OpenTelemetry.Instrumentation.SqlClient.Tests.csproj", "{9C996130-74D7-4FB7-8277-2EE6EBA2BFA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SemanticConventions", "src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj", "{BC1959E3-164E-42AE-AE1C-DE2E3046E27C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.SemanticConventions", "src\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj", "{BC1959E3-164E-42AE-AE1C-DE2E3046E27C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http", "src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj", "{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Tests", "test\OpenTelemetry.Instrumentation.Http.Tests\OpenTelemetry.Instrumentation.Http.Tests.csproj", "{7371E920-ECD0-403A-A009-7A1A301D9763}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Benchmark", "test\OpenTelemetry.Instrumentation.Http.Benchmark\OpenTelemetry.Instrumentation.Http.Benchmark.csproj", "{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -717,6 +725,18 @@ Global
 		{BC1959E3-164E-42AE-AE1C-DE2E3046E27C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC1959E3-164E-42AE-AE1C-DE2E3046E27C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC1959E3-164E-42AE-AE1C-DE2E3046E27C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7371E920-ECD0-403A-A009-7A1A301D9763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7371E920-ECD0-403A-A009-7A1A301D9763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7371E920-ECD0-403A-A009-7A1A301D9763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7371E920-ECD0-403A-A009-7A1A301D9763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBC6D677-D1FF-470E-A244-477E8616A245}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -831,6 +851,9 @@ Global
 		{737D1A9E-5A1A-4F4F-830B-E98ED100994C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9C996130-74D7-4FB7-8277-2EE6EBA2BFA6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{BC1959E3-164E-42AE-AE1C-DE2E3046E27C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{7371E920-ECD0-403A-A009-7A1A301D9763} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{CBC6D677-D1FF-470E-A244-477E8616A245} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection

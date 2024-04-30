@@ -8,6 +8,9 @@
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
+* Add Baggage Activity Processor.
+  ([#1659](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1659))
+
 ## 1.0.0-beta.4
 
 Released 2023-Feb-27
