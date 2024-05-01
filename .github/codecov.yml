@@ -63,6 +63,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.EventCounters
 
+  unittests-Instrumentation.Http:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Http
+
   unittests-Instrumentation.Owin:
     carryforward: true
     paths:

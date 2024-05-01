@@ -30,6 +30,7 @@ jobs:
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
+          http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
@@ -64,6 +65,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
             '!examples/owin/**',
             '!*/OpenTelemetry.PersistentStorage*/**',
+            '!*/OpenTelemetry.Instrumentation.Http*/**',
             '!*/OpenTelemetry.Instrumentation.Process*/**',
             '!examples/process-instrumentation/**',
             '!*/OpenTelemetry.Instrumentation.SqlClient*/**',
@@ -159,6 +161,17 @@ jobs:
     with:
       project-name: OpenTelemetry.ResourceDetectors.Host
       code-cov-name: ResourceDetectors.Host
+
+  build-test-http:
+        needs: detect-changes
+        if: |
+          contains(needs.detect-changes.outputs.changes, 'http')
+          || contains(needs.detect-changes.outputs.changes, 'build')
+          || contains(needs.detect-changes.outputs.changes, 'shared')
+        uses: ./.github/workflows/Component.BuildTest.yml
+        with:
+          project-name: OpenTelemetry.Instrumentation.Http
+          code-cov-name: Instrumentation.Http
 
   build-test-onecollector:
     needs: detect-changes
@@ -326,6 +339,7 @@ jobs:
             OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
             OpenTelemetry.Instrumentation.EventCounters.Tests.csproj,
+            OpenTelemetry.Instrumentation.Http.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
             OpenTelemetry.Instrumentation.Runtime.Tests.csproj,
@@ -383,6 +397,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'host')
+      || contains(needs.detect-changes.outputs.changes, 'http')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
       || contains(needs.detect-changes.outputs.changes, 'resourcedetectors')
@@ -408,6 +423,7 @@ jobs:
       build-test-extensions,
       build-test-geneva,
       build-test-host,
+      build-test-http,
       build-test-onecollector,
       build-test-owin,
       build-test-persistentstorage,

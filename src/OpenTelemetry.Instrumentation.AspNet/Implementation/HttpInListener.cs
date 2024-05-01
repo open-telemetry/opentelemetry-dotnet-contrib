@@ -69,8 +69,7 @@ internal sealed class HttpInListener : IDisposable
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
             var originalHttpMethod = request.HttpMethod;
-            var normalizedHttpMethod = this.requestDataHelper.GetNormalizedHttpMethod(originalHttpMethod);
-            activity.DisplayName = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
+            this.requestDataHelper.SetActivityDisplayName(activity, originalHttpMethod);
 
             var url = request.Url;
             activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
@@ -79,7 +78,7 @@ internal sealed class HttpInListener : IDisposable
 
             this.requestDataHelper.SetHttpMethodTag(activity, originalHttpMethod);
 
-            var protocolVersion = RequestDataHelper.GetHttpProtocolVersion(request);
+            var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
             if (!string.IsNullOrEmpty(protocolVersion))
             {
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
@@ -130,7 +129,7 @@ internal sealed class HttpInListener : IDisposable
             if (!string.IsNullOrEmpty(template))
             {
                 // Override the name that was previously set to the normalized HTTP method/HTTP
-                activity.DisplayName = $"{activity.DisplayName} {template!}";
+                this.requestDataHelper.SetActivityDisplayName(activity, context.Request.HttpMethod, template);
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, template);
             }
 
