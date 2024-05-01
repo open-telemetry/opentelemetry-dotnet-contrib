@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Google.Api.Gax;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Gcp;
