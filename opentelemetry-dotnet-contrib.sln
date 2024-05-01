@@ -331,6 +331,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.Instrumentation.Wcf.proj = build\Projects\OpenTelemetry.Instrumentation.Wcf.proj
 		build\Projects\OpenTelemetry.PersistentStorage.proj = build\Projects\OpenTelemetry.PersistentStorage.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj = build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj
+		build\Projects\OpenTelemetry.ResourceDetectors.Gcp.proj = build\Projects\OpenTelemetry.ResourceDetectors.Gcp.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Host.proj = build\Projects\OpenTelemetry.ResourceDetectors.Host.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.Process.proj = build\Projects\OpenTelemetry.ResourceDetectors.Process.proj
 		build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj = build\Projects\OpenTelemetry.ResourceDetectors.ProcessRuntime.proj
