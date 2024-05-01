@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Gcp\OpenTelemetry.ResourceDetectors.Gcp.csproj" />
-    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.ResourceDetectors.Gcp.Tests\OpenTelemetry.ResourceDetectors.Gcp.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Resources.Gcp\OpenTelemetry.Resources.Gcp.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Resources.Gcp.Tests\OpenTelemetry.Resources.Gcp.Tests.csproj" />
 
-    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Gcp\OpenTelemetry.ResourceDetectors.Gcp.csproj" />
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Resources.Gcp\OpenTelemetry.Resources.Gcp.csproj" />
 
-    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.ResourceDetectors.Gcp.Tests\OpenTelemetry.ResourceDetectors.Gcp.Tests.csproj" />
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Resources.Gcp.Tests\OpenTelemetry.Resources.Gcp.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

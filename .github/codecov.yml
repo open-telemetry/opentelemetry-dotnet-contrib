@@ -112,7 +112,7 @@ flags:
   unittests-ResourceDetectors.Gcp:
     carryforward: true
     paths:
-      - src/OpenTelemetry.ResourceDetectors.Gcp
+      - src/OpenTelemetry.Resources.Gcp
 
   unittests-ResourceDetectors.Host:
     carryforward: true

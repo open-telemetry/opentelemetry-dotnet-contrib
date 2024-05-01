@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Internal;
-using OpenTelemetry.ResourceDetectors.Gcp;
+using OpenTelemetry.Resources.Gcp;
 
 namespace OpenTelemetry.Resources;
 

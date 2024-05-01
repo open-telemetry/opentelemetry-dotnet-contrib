@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.ResourceDetectors.Gcp
+name: Pack OpenTelemetry.Resources.Gcp
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'ResourceDetectors.Gcp-*' # trigger when we create a tag with prefix "ResourceDetectors.Gcp-"
+      - 'Resources.Gcp-*' # trigger when we create a tag with prefix "Resources.Gcp-"
 
 jobs:
   call-build-test-pack:
@@ -17,5 +17,5 @@ jobs:
       contents: write
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Gcp
+      project-name: OpenTelemetry.Resources.Gcp
     secrets: inherit

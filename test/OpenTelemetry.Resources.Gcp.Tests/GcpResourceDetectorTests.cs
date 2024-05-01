@@ -5,7 +5,7 @@ using System.Linq;
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.ResourceDetectors.Gcp.Tests;
+namespace OpenTelemetry.Resources.Gcp.Tests;
 
 public class GcpResourceDetectorTests
 {

@@ -29,7 +29,7 @@ jobs:
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
-          gcp: ['*/OpenTelemetry.ResourceDetectors.Gcp*/**', '!**/*.md']
+          gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
@@ -52,12 +52,12 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNet*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
-            '!*/OpenTelemetry.ResourceDetectors.Gcp*/**',
             '!*/OpenTelemetry.ResourceDetectors.Host*/**',
             '!*/OpenTelemetry.ResourceDetectors.Process/**',
             '!*/OpenTelemetry.ResourceDetectors.Process.Tests/**',
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**',
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**',
+            '!*/OpenTelemetry.Resources.Gcp*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions/**',
@@ -161,8 +161,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Gcp
-      code-cov-name: ResourceDetectors.Gcp
+      project-name: OpenTelemetry.Resources.Gcp
+      code-cov-name: Resources.Gcp
 
   build-test-host:
     needs: detect-changes
@@ -361,10 +361,10 @@ jobs:
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Gcp.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Process.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
+            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj,
+            OpenTelemetry.Resources.Gcp.Tests.csproj
 
         $failedProjects = @()
 

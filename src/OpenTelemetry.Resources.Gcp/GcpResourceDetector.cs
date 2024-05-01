@@ -6,7 +6,7 @@ using Google.Api.Gax;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.ResourceDetectors.Gcp;
+namespace OpenTelemetry.Resources.Gcp;
 
 /// <summary>
 /// Resource detector for Google Cloud Platform (GCP).

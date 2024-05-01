@@ -1,0 +1,5 @@
+OpenTelemetry.Resources.Gcp.GcpResourceDetector
+OpenTelemetry.Resources.Gcp.GcpResourceDetector.GcpResourceDetector() -> void
+OpenTelemetry.Resources.Gcp.GcpResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
+OpenTelemetry.Resources.GcpResourceBuilderExtensions
+static OpenTelemetry.Resources.GcpResourceBuilderExtensions.AddGcpDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
