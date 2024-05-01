@@ -17,10 +17,25 @@ dotnet add package --prerelease OpenTelemetry.Resources.Gcp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
     // other configurations
     .ConfigureResource(resource => resource.AddGcpDetector())
     .Build();
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    // other configurations
+    .ConfigureResource(resource => resource.AddGcpDetector())
+    .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder
+            .CreateDefault()
+            .AddGcpDetector());
+    });
+});
 ```
 
 ## Resource Attributes
