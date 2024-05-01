@@ -171,6 +171,9 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 return;
             }
 
+            // remove sensitive information like user and password information
+            uri = UriHelper.ScrubUserInfo(uri);
+
             ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
             ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
 
@@ -210,7 +213,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 activity.SetTag(AttributeDbMethod, method.ToString());
             }
 
-            activity.SetTag(SemanticConventions.AttributeDbUrl, uri.OriginalString);
+            activity.SetTag(SemanticConventions.AttributeUrlFull, uri.OriginalString);
 
             try
             {

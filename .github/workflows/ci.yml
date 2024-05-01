@@ -30,6 +30,7 @@ jobs:
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
+          http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
@@ -39,6 +40,8 @@ jobs:
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
+          semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
+          sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           solution: [
             'src/**',
@@ -62,12 +65,15 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
             '!examples/owin/**',
             '!*/OpenTelemetry.PersistentStorage*/**',
+            '!*/OpenTelemetry.Instrumentation.Http*/**',
             '!*/OpenTelemetry.Instrumentation.Process*/**',
             '!examples/process-instrumentation/**',
+            '!*/OpenTelemetry.Instrumentation.SqlClient*/**',
             '!*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**',
             '!examples/redis/**',
             '!*/OpenTelemetry.Instrumentation.Runtime*/**',
             '!examples/runtime-instrumentation/**',
+            '!*/OpenTelemetry.SemanticConventions*/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
             '!**/*.md'
@@ -155,6 +161,17 @@ jobs:
     with:
       project-name: OpenTelemetry.ResourceDetectors.Host
       code-cov-name: ResourceDetectors.Host
+
+  build-test-http:
+        needs: detect-changes
+        if: |
+          contains(needs.detect-changes.outputs.changes, 'http')
+          || contains(needs.detect-changes.outputs.changes, 'build')
+          || contains(needs.detect-changes.outputs.changes, 'shared')
+        uses: ./.github/workflows/Component.BuildTest.yml
+        with:
+          project-name: OpenTelemetry.Instrumentation.Http
+          code-cov-name: Instrumentation.Http
 
   build-test-onecollector:
     needs: detect-changes
@@ -254,6 +271,28 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Runtime
       code-cov-name: Instrumentation.Runtime
 
+  build-test-semanticconventions:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'semanticconventions')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.SemanticConventions
+      code-cov-name: SemanticConventions
+
+  build-test-sqlclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'sqlclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.SqlClient
+      code-cov-name: Instrumentation.SqlClient
+
   build-test-wcf:
     needs: detect-changes
     if: |
@@ -300,9 +339,11 @@ jobs:
             OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
             OpenTelemetry.Instrumentation.EventCounters.Tests.csproj,
+            OpenTelemetry.Instrumentation.Http.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
             OpenTelemetry.Instrumentation.Runtime.Tests.csproj,
+            OpenTelemetry.Instrumentation.SqlClient.Tests.csproj,
             OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
@@ -356,6 +397,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'host')
+      || contains(needs.detect-changes.outputs.changes, 'http')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
       || contains(needs.detect-changes.outputs.changes, 'processruntime')
       || contains(needs.detect-changes.outputs.changes, 'resourcedetectors')
@@ -365,6 +407,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'geneva')
       || contains(needs.detect-changes.outputs.changes, 'onecollector')
       || contains(needs.detect-changes.outputs.changes, 'redis')
+      || contains(needs.detect-changes.outputs.changes, 'sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/verifyaotcompat.yml
 
@@ -380,6 +423,7 @@ jobs:
       build-test-extensions,
       build-test-geneva,
       build-test-host,
+      build-test-http,
       build-test-onecollector,
       build-test-owin,
       build-test-persistentstorage,
@@ -389,6 +433,8 @@ jobs:
       build-test-redis,
       build-test-redis-integration,
       build-test-runtime,
+      build-test-semanticconventions,
+      build-test-sqlclient,
       build-test-wcf,
       build-test-solution,
       verify-aot-compat

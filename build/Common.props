@@ -32,7 +32,9 @@
     <MinVerPkgVer>[5.0.0,6.0)</MinVerPkgVer>
     <MicrosoftExtensionsConfigurationBinderPkgVer>[8.0.1,)</MicrosoftExtensionsConfigurationBinderPkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
+    <MicrosoftExtensionsConfigurationPkgVer>8.0.0</MicrosoftExtensionsConfigurationPkgVer>
     <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
+    <MicrosoftExtensionsOptions8PkgVer>8.0.0</MicrosoftExtensionsOptions8PkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.11.0-beta1.23525.2]</MicrosoftPublicApiAnalyzersPkgVer>

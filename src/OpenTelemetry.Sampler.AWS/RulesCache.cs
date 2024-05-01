@@ -37,7 +37,7 @@ internal class RulesCache : IDisposable
 
     internal List<SamplingRuleApplier> RuleAppliers { get; set; }
 
-    internal DateTime UpdatedAt { get; set; }
+    internal DateTimeOffset UpdatedAt { get; set; }
 
     public bool Expired()
     {
@@ -96,7 +96,7 @@ internal class RulesCache : IDisposable
         return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 
-    public List<SamplingStatisticsDocument> Snapshot(DateTime now)
+    public List<SamplingStatisticsDocument> Snapshot(DateTimeOffset now)
     {
         List<SamplingStatisticsDocument> snapshots = new List<SamplingStatisticsDocument>();
         foreach (var ruleApplier in this.RuleAppliers)
@@ -135,7 +135,7 @@ internal class RulesCache : IDisposable
         }
     }
 
-    public DateTime NextTargetFetchTime()
+    public DateTimeOffset NextTargetFetchTime()
     {
         var defaultPollingTime = this.Clock.Now().AddSeconds(AWSXRayRemoteSampler.DefaultTargetInterval.TotalSeconds);
 
@@ -162,7 +162,7 @@ internal class RulesCache : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal DateTime GetUpdatedAt()
+    internal DateTimeOffset GetUpdatedAt()
     {
         this.rwLock.EnterReadLock();
         try

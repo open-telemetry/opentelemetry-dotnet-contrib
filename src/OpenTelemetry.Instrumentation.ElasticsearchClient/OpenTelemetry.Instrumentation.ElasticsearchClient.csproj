@@ -28,5 +28,6 @@
     <Compile Include="$(RepoRoot)\src\Shared\MultiTypePropertyFetcher.cs" Link="Includes\MultiTypePropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\UriHelper.cs" Link="Includes\UriHelper.cs" />
   </ItemGroup>
 </Project>
