@@ -79,6 +79,8 @@ components:
   src/OpenTelemetry.ResourceDetectors.ProcessRuntime/:
     - Kielek
     - lachmatt
+  src/OpenTelemetry.Resources.Gcp/:
+    - matt-hensley
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
