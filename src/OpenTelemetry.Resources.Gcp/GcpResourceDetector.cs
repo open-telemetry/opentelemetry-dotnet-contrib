@@ -10,7 +10,7 @@ namespace OpenTelemetry.Resources.Gcp;
 /// <summary>
 /// Resource detector for Google Cloud Platform (GCP).
 /// </summary>
-public sealed class GcpResourceDetector : IResourceDetector
+internal sealed class GcpResourceDetector : IResourceDetector
 {
     /// <inheritdoc/>
     public Resource Detect()
