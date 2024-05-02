@@ -8,7 +8,6 @@
 
     <ItemGroup>
         <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
-        <PackageReference Include="Grpc.Core.Api" Version="2.62.0" />
         <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
         <PackageReference Include="System.Text.Json" Version="4.7.2" />
     </ItemGroup>
