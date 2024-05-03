@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Xunit;
 using OtlpCollector = OpenTelemetry.Proto.Collector.Metrics.V1;
 using OtlpCommon = OpenTelemetry.Proto.Common.V1;
@@ -28,6 +29,29 @@ public class OtlpProtobufMetricExporterTests
         { "Dim2", 2 },
         { "Dim3", 3 },
     };
+
+    private static readonly string[] TagKeys = new[]
+    {
+        "boolKey",
+        "doubleKey",
+        "intKey",
+        "longKey",
+        "negativeDoubleKey",
+        "negativeIntKey",
+        "negativeLongKey",
+        "negativeSbyteKey",
+        "negativeShortKey",
+        "sByteKey",
+        "shortKey",
+        "stringValueAsciiKey",
+        "stringValueMixAsciiAndUnicodeKey",
+        "stringValueUnicodeKey",
+        "uintKey",
+        "ulongKey",
+        "ushortKey",
+    };
+
+    private TagList filteredTagList;
 
     public OtlpProtobufMetricExporterTests()
     {
@@ -69,27 +93,86 @@ public class OtlpProtobufMetricExporterTests
         this.TagList.Add(new("uintKey", uintValue));
         this.TagList.Add(new("ulongKey", ulongValue));
         this.TagList.Add(new("ushortKey", ushortValue));
+
+        this.filteredTagList = this.TagList;
+        this.filteredTagList.Add(new("zfilteredKey1", "zfilteredValue1"));
     }
 
     [Theory]
-    [InlineData("longcounter", 123L, null, true, true)]
-    [InlineData("longcounter", 123L, null, true, false)]
-    [InlineData("longcounter", 123L, null, false, true)]
-    [InlineData("longcounter", 123L, null, false, false)]
-    [InlineData("doublecounter", null, 123.45, true, true)]
-    [InlineData("doublecounter", null, 123.45, true, false)]
-    [InlineData("doublecounter", null, 123.45, false, true)]
-    [InlineData("doublecounter", null, 123.45, false, false)]
-    [InlineData("longcounter", -123L, null, true, true)]
-    [InlineData("longcounter", -123L, null, true, false)]
-    [InlineData("longcounter", -123L, null, false, true)]
-    [InlineData("longcounter", -123L, null, false, false)]
-    [InlineData("doublecounter", null, -123.45, true, true)]
-    [InlineData("doublecounter", null, -123.45, true, false)]
-    [InlineData("doublecounter", null, -123.45, false, true)]
-    [InlineData("doublecounter", null, -123.45, false, false)]
-    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
+    [InlineData("longcounter", 123L, null, true, true, true, true)]
+    [InlineData("longcounter", 123L, null, true, true, true, false)]
+    [InlineData("longcounter", 123L, null, true, true, false, true)]
+    [InlineData("longcounter", 123L, null, true, true, false, false)]
+    [InlineData("longcounter", 123L, null, true, false, true, true)]
+    [InlineData("longcounter", 123L, null, true, false, true, false)]
+    [InlineData("longcounter", 123L, null, true, false, false, true)]
+    [InlineData("longcounter", 123L, null, true, false, false, false)]
+    [InlineData("longcounter", 123L, null, false, true, true, true)]
+    [InlineData("longcounter", 123L, null, false, true, true, false)]
+    [InlineData("longcounter", 123L, null, false, true, false, true)]
+    [InlineData("longcounter", 123L, null, false, true, false, false)]
+    [InlineData("longcounter", 123L, null, false, false, true, true)]
+    [InlineData("longcounter", 123L, null, false, false, true, false)]
+    [InlineData("longcounter", 123L, null, false, false, false, true)]
+    [InlineData("longcounter", 123L, null, false, false, false, false)]
+    [InlineData("doublecounter", null, 123.45, true, true, true, true)]
+    [InlineData("doublecounter", null, 123.45, true, true, true, false)]
+    [InlineData("doublecounter", null, 123.45, true, true, false, true)]
+    [InlineData("doublecounter", null, 123.45, true, true, false, false)]
+    [InlineData("doublecounter", null, 123.45, true, false, true, true)]
+    [InlineData("doublecounter", null, 123.45, true, false, true, false)]
+    [InlineData("doublecounter", null, 123.45, true, false, false, true)]
+    [InlineData("doublecounter", null, 123.45, true, false, false, false)]
+    [InlineData("doublecounter", null, 123.45, false, true, true, true)]
+    [InlineData("doublecounter", null, 123.45, false, true, true, false)]
+    [InlineData("doublecounter", null, 123.45, false, true, false, true)]
+    [InlineData("doublecounter", null, 123.45, false, true, false, false)]
+    [InlineData("doublecounter", null, 123.45, false, false, true, true)]
+    [InlineData("doublecounter", null, 123.45, false, false, true, false)]
+    [InlineData("doublecounter", null, 123.45, false, false, false, true)]
+    [InlineData("doublecounter", null, 123.45, false, false, false, false)]
+    [InlineData("longcounter", -123L, null, true, true, true, true)]
+    [InlineData("longcounter", -123L, null, true, true, true, false)]
+    [InlineData("longcounter", -123L, null, true, true, false, true)]
+    [InlineData("longcounter", -123L, null, true, true, false, false)]
+    [InlineData("longcounter", -123L, null, true, false, true, true)]
+    [InlineData("longcounter", -123L, null, true, false, true, false)]
+    [InlineData("longcounter", -123L, null, true, false, false, true)]
+    [InlineData("longcounter", -123L, null, true, false, false, false)]
+    [InlineData("longcounter", -123L, null, false, true, true, true)]
+    [InlineData("longcounter", -123L, null, false, true, true, false)]
+    [InlineData("longcounter", -123L, null, false, true, false, true)]
+    [InlineData("longcounter", -123L, null, false, true, false, false)]
+    [InlineData("longcounter", -123L, null, false, false, true, true)]
+    [InlineData("longcounter", -123L, null, false, false, true, false)]
+    [InlineData("longcounter", -123L, null, false, false, false, true)]
+    [InlineData("longcounter", -123L, null, false, false, false, false)]
+    [InlineData("doublecounter", null, -123.45, true, true, true, true)]
+    [InlineData("doublecounter", null, -123.45, true, true, true, false)]
+    [InlineData("doublecounter", null, -123.45, true, true, false, true)]
+    [InlineData("doublecounter", null, -123.45, true, true, false, false)]
+    [InlineData("doublecounter", null, -123.45, true, false, true, true)]
+    [InlineData("doublecounter", null, -123.45, true, false, true, false)]
+    [InlineData("doublecounter", null, -123.45, true, false, false, true)]
+    [InlineData("doublecounter", null, -123.45, true, false, false, false)]
+    [InlineData("doublecounter", null, -123.45, false, true, true, true)]
+    [InlineData("doublecounter", null, -123.45, false, true, true, false)]
+    [InlineData("doublecounter", null, -123.45, false, true, false, true)]
+    [InlineData("doublecounter", null, -123.45, false, true, false, false)]
+    [InlineData("doublecounter", null, -123.45, false, false, true, true)]
+    [InlineData("doublecounter", null, -123.45, false, false, true, false)]
+    [InlineData("doublecounter", null, -123.45, false, false, false, true)]
+    [InlineData("doublecounter", null, -123.45, false, false, false, false)]
+    public void CounterSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace, bool isExemplarsEnabled, bool isTracingEnabled)
     {
+        Activity activity = null;
+
+        if (isTracingEnabled)
+        {
+            activity = new Activity("Custom Activity");
+            activity.Start();
+        }
+
         using var meter = new Meter(nameof(this.CounterSerializationSingleMetricPoint), "0.0.1");
 
         var exportedItems = new List<Metric>();
@@ -115,21 +198,44 @@ public class OtlpProtobufMetricExporterTests
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
             .AddAttributes(resourceAttributes);
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
+            .SetExemplarFilter(ExemplarFilterType.AlwaysOn)
             .AddMeter(nameof(this.CounterSerializationSingleMetricPoint))
-            .AddReader(inMemoryReader)
-        .Build();
+            .AddReader(inMemoryReader);
+        if (isExemplarsEnabled)
+        {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+            meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
+            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = TagKeys });
+#endif
+        }
+
+        var meterProvider = meterProviderBuilder.Build();
 
         if (longValue != null)
         {
             var counter = meter.CreateCounter<long>(instrumentName);
-            counter.Add(longValue.Value, this.TagList);
+            if (isExemplarsEnabled)
+            {
+                counter.Add(longValue.Value, this.filteredTagList);
+            }
+            else
+            {
+                counter.Add(longValue.Value, this.TagList);
+            }
         }
         else
         {
             var counter = meter.CreateCounter<double>(instrumentName);
-            counter.Add(doubleValue.Value, this.TagList);
+            if (isExemplarsEnabled)
+            {
+                counter.Add(doubleValue.Value, this.filteredTagList);
+            }
+            else
+            {
+                counter.Add(doubleValue.Value, this.TagList);
+            }
         }
 
         meterProvider.ForceFlush();
@@ -187,6 +293,40 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(doubleValue, dataPoint.AsDouble);
         }
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        if (isExemplarsEnabled)
+        {
+            Assert.Single(dataPoint.Exemplars);
+
+            var exemplar = dataPoint.Exemplars[0];
+            if (isTracingEnabled)
+            {
+                var spanIdBytes = new byte[8];
+                activity.SpanId.CopyTo(spanIdBytes);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    Assert.Equal(spanIdBytes[i], exemplar.SpanId[i]);
+                }
+
+                var traceIdBytes = new byte[16];
+                activity.TraceId.CopyTo(traceIdBytes);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    Assert.Equal(traceIdBytes[i], exemplar.TraceId[i]);
+                }
+            }
+            else
+            {
+                Assert.Equal(ByteString.Empty, exemplar.SpanId);
+                Assert.Equal(ByteString.Empty, exemplar.TraceId);
+            }
+
+            AssertOtlpAttributes([new KeyValuePair<string, object>("zfilteredKey1", "zfilteredValue1")], exemplar.FilteredAttributes);
+        }
+#endif
+
         // Assert time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
@@ -196,14 +336,13 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
+        IEnumerable<KeyValuePair<string, object>> expectedAttributes = this.TagList;
         if (addPrepopulatedDimensions)
         {
-            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+            expectedAttributes = expectedAttributes.Concat(prepopulatedMetricDimensions);
         }
-        else
-        {
-            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
-        }
+
+        AssertOtlpAttributes(expectedAttributes, dataPoint.Attributes);
     }
 
     [Theory]
