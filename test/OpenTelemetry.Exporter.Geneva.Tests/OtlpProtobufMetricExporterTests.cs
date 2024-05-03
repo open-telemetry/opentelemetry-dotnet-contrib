@@ -299,6 +299,15 @@ public class OtlpProtobufMetricExporterTests
             Assert.Single(dataPoint.Exemplars);
 
             var exemplar = dataPoint.Exemplars[0];
+            if (longValue != null)
+            {
+                Assert.Equal(longValue.Value, exemplar.AsInt);
+            }
+            else
+            {
+                Assert.Equal(doubleValue.Value, exemplar.AsDouble);
+            }
+
             if (isTracingEnabled)
             {
                 var spanIdBytes = new byte[8];
