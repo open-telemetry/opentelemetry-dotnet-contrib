@@ -321,7 +321,7 @@ public class OtlpProtobufMetricExporterTests
                 var traceIdBytes = new byte[16];
                 activity.TraceId.CopyTo(traceIdBytes);
 
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 16; i++)
                 {
                     Assert.Equal(traceIdBytes[i], exemplar.TraceId[i]);
                 }
