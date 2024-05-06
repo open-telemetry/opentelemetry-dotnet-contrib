@@ -21,6 +21,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.GrpcNetClient" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Http" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.SqlClient" />
