@@ -298,6 +298,9 @@ public class OtlpProtobufMetricExporterTests
             Assert.Single(dataPoint.Exemplars);
 
             var exemplar = dataPoint.Exemplars[0];
+
+            Assert.NotEqual(default, exemplar.TimeUnixNano);
+
             if (longValue != null)
             {
                 Assert.Equal(longValue.Value, exemplar.AsInt);
@@ -312,18 +315,12 @@ public class OtlpProtobufMetricExporterTests
                 var spanIdBytes = new byte[8];
                 activity.SpanId.CopyTo(spanIdBytes);
 
-                for (int i = 0; i < 8; i++)
-                {
-                    Assert.Equal(spanIdBytes[i], exemplar.SpanId[i]);
-                }
+                Assert.True(spanIdBytes.SequenceEqual(exemplar.SpanId));
 
                 var traceIdBytes = new byte[16];
                 activity.TraceId.CopyTo(traceIdBytes);
 
-                for (int i = 0; i < 16; i++)
-                {
-                    Assert.Equal(traceIdBytes[i], exemplar.TraceId[i]);
-                }
+                Assert.True(traceIdBytes.SequenceEqual(exemplar.TraceId));
             }
             else
             {
@@ -332,6 +329,10 @@ public class OtlpProtobufMetricExporterTests
             }
 
             AssertOtlpAttributes([new KeyValuePair<string, object>("zfilteredKey1", "zfilteredValue1")], exemplar.FilteredAttributes);
+        }
+        else
+        {
+            Assert.Empty(dataPoint.Exemplars);
         }
 #endif
 
@@ -900,6 +901,8 @@ public class OtlpProtobufMetricExporterTests
 
             var exemplar = dataPoint.Exemplars[0];
 
+            Assert.NotEqual(default, exemplar.TimeUnixNano);
+
             Assert.Equal(doubleValue, exemplar.AsDouble);
 
             if (isTracingEnabled)
@@ -907,18 +910,12 @@ public class OtlpProtobufMetricExporterTests
                 var spanIdBytes = new byte[8];
                 activity.SpanId.CopyTo(spanIdBytes);
 
-                for (int i = 0; i < 8; i++)
-                {
-                    Assert.Equal(spanIdBytes[i], exemplar.SpanId[i]);
-                }
+                Assert.True(spanIdBytes.SequenceEqual(exemplar.SpanId));
 
                 var traceIdBytes = new byte[16];
                 activity.TraceId.CopyTo(traceIdBytes);
 
-                for (int i = 0; i < 16; i++)
-                {
-                    Assert.Equal(traceIdBytes[i], exemplar.TraceId[i]);
-                }
+                Assert.True(traceIdBytes.SequenceEqual(exemplar.TraceId));
             }
             else
             {
@@ -927,6 +924,10 @@ public class OtlpProtobufMetricExporterTests
             }
 
             AssertOtlpAttributes([new KeyValuePair<string, object>("zfilteredKey1", "zfilteredValue1")], exemplar.FilteredAttributes);
+        }
+        else
+        {
+            Assert.Empty(dataPoint.Exemplars);
         }
 #endif
     }
