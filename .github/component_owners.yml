@@ -171,6 +171,8 @@ components:
   test/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/:
     - Kielek
     - lachmatt
+  test/OpenTelemetry.Resources.Gcp.Tests/:
+    - matt-hensley
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43
