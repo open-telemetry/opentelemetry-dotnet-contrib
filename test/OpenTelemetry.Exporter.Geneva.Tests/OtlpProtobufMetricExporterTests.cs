@@ -1080,6 +1080,172 @@ public class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Theory]
+    [InlineData("doubleexponentialhistogram", null, 123.45, true, true)]
+    [InlineData("doubleexponentialhistogram", null, 123.45, true, false)]
+    [InlineData("doubleexponentialhistogram", null, 123.45, false, true)]
+    [InlineData("doubleexponentialhistogram", null, 123.45, false, false)]
+    [InlineData("doubleexponentialhistogram", null, -123.45, true, true)]
+    [InlineData("doubleexponentialhistogram", null, -123.45, true, false)]
+    [InlineData("doubleexponentialhistogram", null, -123.45, false, true)]
+    [InlineData("doubleexponentialhistogram", null, -123.45, false, false)]
+    [InlineData("longexponentialhistogram", 123L, null, true, true)]
+    [InlineData("longexponentialhistogram", 123L, null, true, false)]
+    [InlineData("longexponentialhistogram", 123L, null, false, true)]
+    [InlineData("longexponentialhistogram", 123L, null, false, false)]
+    [InlineData("longexponentialhistogram", -123L, null, true, true)]
+    [InlineData("longexponentialhistogram", -123L, null, true, false)]
+    [InlineData("longexponentialhistogram", -123L, null, false, true)]
+    [InlineData("longexponentialhistogram", -123L, null, false, false)]
+    public void ExponentialHistogramSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
+    {
+        using var meter = new Meter(nameof(this.ExponentialHistogramSerializationSingleMetricPoint), "0.0.1");
+
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        {
+            { "TestResourceKey", "TestResourceValue" },
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
+        };
+
+        string expectedAccount = "TestAccount";
+        string expectedNamespace = "TestNameSpace";
+        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        {
+            { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
+            { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
+        };
+
+        var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
+            .AddAttributes(resourceAttributes);
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddMeter(nameof(this.ExponentialHistogramSerializationSingleMetricPoint))
+            .AddReader(inMemoryReader)
+            .AddView(instrument =>
+            {
+                return new Base2ExponentialBucketHistogramConfiguration();
+            })
+            .Build();
+
+        if (longValue.HasValue)
+        {
+            var histogram = meter.CreateHistogram<long>(instrumentName);
+            histogram.Record(longValue.Value, this.TagList);
+            histogram.Record(0, this.TagList);
+        }
+        else
+        {
+            var histogram = meter.CreateHistogram<double>(instrumentName);
+            histogram.Record(doubleValue.Value, this.TagList);
+            histogram.Record(0, this.TagList);
+        }
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+
+        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+
+        Assert.Single(testTransport.ExportedItems);
+
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        request.MergeFrom(testTransport.ExportedItems[0]);
+
+        Assert.Single(request.ResourceMetrics);
+
+        Assert.NotNull(request.ResourceMetrics[0].Resource);
+
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
+
+        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+
+        Assert.Equal(meter.Name, scope.Scope.Name);
+
+        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
+
+        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+
+        Assert.Equal(instrumentName, metric.Name);
+
+        Assert.NotNull(metric.ExponentialHistogram);
+
+        Assert.Single(metric.ExponentialHistogram.DataPoints);
+
+        var dataPoint = metric.ExponentialHistogram.DataPoints[0];
+        Assert.True(dataPoint.StartTimeUnixNano > 0);
+        Assert.True(dataPoint.TimeUnixNano > 0);
+
+        Assert.Equal(20, dataPoint.Scale);
+        Assert.Equal(1UL, dataPoint.ZeroCount);
+        if (longValue > 0 || doubleValue > 0)
+        {
+            Assert.Equal(2UL, dataPoint.Count);
+        }
+        else
+        {
+            Assert.Equal(1UL, dataPoint.Count);
+        }
+
+        if (longValue.HasValue)
+        {
+            if (longValue > 0)
+            {
+                Assert.Equal((double)longValue, dataPoint.Sum);
+                Assert.Null(dataPoint.Negative);
+                Assert.True(dataPoint.Positive.Offset > 0);
+                Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
+            }
+            else
+            {
+                Assert.Equal(0, dataPoint.Sum);
+                Assert.Null(dataPoint.Negative);
+                Assert.True(dataPoint.Positive.Offset == 0);
+                Assert.Empty(dataPoint.Positive.BucketCounts);
+            }
+        }
+        else
+        {
+            if (doubleValue > 0)
+            {
+                Assert.Equal(doubleValue, dataPoint.Sum);
+                Assert.Null(dataPoint.Negative);
+                Assert.True(dataPoint.Positive.Offset > 0);
+                Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
+            }
+            else
+            {
+                Assert.Equal(0, dataPoint.Sum);
+                Assert.Null(dataPoint.Negative);
+                Assert.True(dataPoint.Positive.Offset == 0);
+                Assert.Empty(dataPoint.Positive.BucketCounts);
+            }
+        }
+
+        if (addPrepopulatedDimensions)
+        {
+            AssertOtlpAttributes(this.TagList.Concat(prepopulatedMetricDimensions), dataPoint.Attributes);
+        }
+        else
+        {
+            AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
+        }
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
