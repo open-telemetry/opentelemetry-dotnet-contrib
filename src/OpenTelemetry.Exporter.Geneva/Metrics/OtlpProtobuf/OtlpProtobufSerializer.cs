@@ -484,8 +484,6 @@ internal sealed class OtlpProtobufSerializer
 
         this.SerializeExemplarTags(buffer, ref cursor, exemplar.FilteredTags);
 
-        // ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_int, (ulong)value);
-
         if (typeof(T) == typeof(long))
         {
             // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
