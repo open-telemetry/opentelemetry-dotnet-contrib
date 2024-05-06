@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\CustomTextMapPropagator.cs" Link="/Includes/CustomTextMapPropagator.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\EventSourceTestHelper.cs" Link="/Includes/EventSourceTestHelper.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\InMemoryEventListener.cs" Link="/Includes/InMemoryEventListener.cs" />

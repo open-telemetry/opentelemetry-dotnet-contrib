@@ -9,7 +9,6 @@ using OpenTelemetry.Instrumentation.StackExchangeRedis.Tests;
 #if !NETFRAMEWORK
 using System.Net.Sockets;
 #endif
-using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using Xunit;
