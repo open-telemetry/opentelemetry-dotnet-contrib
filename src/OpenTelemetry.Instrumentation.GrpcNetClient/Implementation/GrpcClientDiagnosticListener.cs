@@ -7,7 +7,6 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Reflection;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Instrumentation.Http;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
