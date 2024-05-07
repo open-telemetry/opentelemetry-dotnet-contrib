@@ -46,7 +46,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             {
                 builder.ConfigureTestServices((IServiceCollection services) =>
                 {
-                    services.AddSingleton<TestCallbackMiddleware>(new TestTestCallbackMiddleware(statusCode, reasonPhrase));
+                    services.AddSingleton<TestCallbackMiddleware>(new ExceptionTestCallbackMiddleware(statusCode, reasonPhrase));
                     services.AddOpenTelemetry()
                         .WithTracing(builder => builder
                             .AddAspNetCoreInstrumentation(options =>
@@ -143,12 +143,12 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         }
     }
 
-    public class TestTestCallbackMiddleware : TestCallbackMiddleware
+    internal class ExceptionTestCallbackMiddleware : TestCallbackMiddleware
     {
         private readonly int statusCode;
         private readonly string reasonPhrase;
 
-        public TestTestCallbackMiddleware(int statusCode, string reasonPhrase)
+        public ExceptionTestCallbackMiddleware(int statusCode, string reasonPhrase)
         {
             this.statusCode = statusCode;
             this.reasonPhrase = reasonPhrase;
