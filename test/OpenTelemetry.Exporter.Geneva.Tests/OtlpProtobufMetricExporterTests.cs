@@ -292,6 +292,15 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(doubleValue, dataPoint.AsDouble);
         }
 
+        // Assert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
+
+        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
+
 #if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
@@ -299,7 +308,15 @@ public class OtlpProtobufMetricExporterTests
 
             var exemplar = dataPoint.Exemplars[0];
 
-            Assert.NotEqual(default, exemplar.TimeUnixNano);
+            metricPoint.TryGetExemplars(out var exemplars);
+
+            var exemplarsEnumerator = exemplars.GetEnumerator();
+
+            exemplarsEnumerator.MoveNext();
+
+            var actualExemplar = exemplarsEnumerator.Current;
+
+            Assert.Equal((ulong)actualExemplar.Timestamp.ToUnixTimeNanoseconds(), exemplar.TimeUnixNano);
 
             if (longValue != null)
             {
@@ -335,15 +352,6 @@ public class OtlpProtobufMetricExporterTests
             Assert.Empty(dataPoint.Exemplars);
         }
 #endif
-
-        // Assert time
-        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
-        metricPointsEnumerator.MoveNext();
-        var metricPoint = metricPointsEnumerator.Current;
-
-        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
-
-        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
         if (addPrepopulatedDimensions)
         {
@@ -901,7 +909,15 @@ public class OtlpProtobufMetricExporterTests
 
             var exemplar = dataPoint.Exemplars[0];
 
-            Assert.NotEqual(default, exemplar.TimeUnixNano);
+            metricPoint.TryGetExemplars(out var exemplars);
+
+            var exemplarsEnumerator = exemplars.GetEnumerator();
+
+            exemplarsEnumerator.MoveNext();
+
+            var actualExemplar = exemplarsEnumerator.Current;
+
+            Assert.Equal((ulong)actualExemplar.Timestamp.ToUnixTimeNanoseconds(), exemplar.TimeUnixNano);
 
             Assert.Equal(doubleValue, exemplar.AsDouble);
 
