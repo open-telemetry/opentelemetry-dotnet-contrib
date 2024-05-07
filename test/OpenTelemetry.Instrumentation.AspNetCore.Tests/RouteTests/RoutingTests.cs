@@ -31,7 +31,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task TestHttpRoute(RoutingTestCases.TestCase testCase)
+    public async Task TestHttpRoute(TestCase testCase)
     {
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation()

@@ -40,7 +40,9 @@ public class ActionDescriptorInfo
     public string? AttributeRouteInfo { get; set; }
 
     [JsonPropertyName("Parameters")]
+#pragma warning disable CA2227
     public IList<string>? ActionParameters { get; set; }
+#pragma warning restore CA2227
 
     [JsonPropertyName("ControllerActionDescriptor")]
     public ControllerActionDescriptorInfo? ControllerActionDescriptorSummary { get; set; }

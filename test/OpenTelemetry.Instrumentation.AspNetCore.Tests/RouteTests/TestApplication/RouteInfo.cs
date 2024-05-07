@@ -28,7 +28,9 @@ public class RouteInfo
     public string? RouteDiagnosticMetadata { get; set; }
 
     [JsonPropertyName("HttpContext.GetRouteData()")]
+#pragma warning disable CA2227
     public IDictionary<string, string?>? RouteData { get; set; }
+#pragma warning restore CA2227
 
     public ActionDescriptorInfo? ActionDescriptor { get; set; }
 

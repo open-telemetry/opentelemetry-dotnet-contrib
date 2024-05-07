@@ -24,7 +24,7 @@ public class RoutingTestResult
     public RouteInfo RouteInfo { get; set; } = new RouteInfo();
 
     [JsonIgnore]
-    public RoutingTestCases.TestCase TestCase { get; set; } = new RoutingTestCases.TestCase();
+    public TestCase TestCase { get; set; } = new TestCase();
 
     public override string ToString()
     {
