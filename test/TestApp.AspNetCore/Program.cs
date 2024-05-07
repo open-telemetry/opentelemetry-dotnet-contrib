@@ -23,10 +23,10 @@ public class Program
         builder.Services.AddSingleton<HttpClient>();
 
         builder.Services.AddSingleton(
-            new CallbackMiddleware.CallbackMiddlewareImpl());
+            new TestCallbackMiddleware());
 
         builder.Services.AddSingleton(
-            new ActivityMiddleware.ActivityMiddlewareImpl());
+            new TestActivityMiddleware());
 
         var app = builder.Build();
 

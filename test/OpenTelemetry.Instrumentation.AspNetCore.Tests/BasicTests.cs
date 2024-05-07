@@ -591,7 +591,7 @@ public sealed class BasicTests
 
         void ConfigureTestServices(IServiceCollection services)
         {
-            services.AddSingleton<ActivityMiddleware.ActivityMiddlewareImpl>(new TestActivityMiddlewareImpl(activitySourceName, activityName));
+            services.AddSingleton<TestActivityMiddleware>(new TestTestActivityMiddleware(activitySourceName, activityName));
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddAspNetCoreInstrumentation()
                 .AddSource(activitySourceName)
@@ -701,7 +701,7 @@ public sealed class BasicTests
             {
                 builder.ConfigureTestServices((IServiceCollection services) =>
                 {
-                    services.AddSingleton<ActivityMiddleware.ActivityMiddlewareImpl>(new TestNullHostActivityMiddlewareImpl(activitySourceName, activityName));
+                    services.AddSingleton<TestActivityMiddleware>(new TestNullHostActivityMiddlewareImpl(activitySourceName, activityName));
                     services.AddOpenTelemetry()
                         .WithTracing(builder => builder
                             .AddAspNetCoreInstrumentation()
@@ -1232,7 +1232,7 @@ public sealed class BasicTests
         }
     }
 
-    private class TestNullHostActivityMiddlewareImpl(string activitySourceName, string activityName) : ActivityMiddleware.ActivityMiddlewareImpl
+    private class TestNullHostActivityMiddlewareImpl(string activitySourceName, string activityName) : TestActivityMiddleware
     {
         private readonly ActivitySource activitySource = new(activitySourceName);
         private readonly string activityName = activityName;
@@ -1254,7 +1254,7 @@ public sealed class BasicTests
         }
     }
 
-    private class TestActivityMiddlewareImpl(string activitySourceName, string activityName) : ActivityMiddleware.ActivityMiddlewareImpl
+    private class TestTestActivityMiddleware(string activitySourceName, string activityName) : TestActivityMiddleware
     {
         private readonly ActivitySource activitySource = new(activitySourceName);
         private readonly string activityName = activityName;

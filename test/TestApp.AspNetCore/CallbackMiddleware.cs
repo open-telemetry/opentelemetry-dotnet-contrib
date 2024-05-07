@@ -5,28 +5,20 @@ namespace TestApp.AspNetCore;
 
 public class CallbackMiddleware
 {
-    private readonly CallbackMiddlewareImpl impl;
+    private readonly TestCallbackMiddleware testCallbackMiddleware;
     private readonly RequestDelegate next;
 
-    public CallbackMiddleware(RequestDelegate next, CallbackMiddlewareImpl impl)
+    public CallbackMiddleware(RequestDelegate next, TestCallbackMiddleware testCallbackMiddleware)
     {
         this.next = next;
-        this.impl = impl;
+        this.testCallbackMiddleware = testCallbackMiddleware;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (this.impl == null || await this.impl.ProcessAsync(context))
+        if (this.testCallbackMiddleware == null || await this.testCallbackMiddleware.ProcessAsync(context))
         {
             await this.next(context);
-        }
-    }
-
-    public class CallbackMiddlewareImpl
-    {
-        public virtual async Task<bool> ProcessAsync(HttpContext context)
-        {
-            return await Task.FromResult(true);
         }
     }
 }
