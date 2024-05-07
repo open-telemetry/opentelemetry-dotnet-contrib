@@ -27,7 +27,7 @@ public static class RoutingTestCases
         return GetArgumentsFromTestCaseObject(input!);
     }
 
-    private static IEnumerable<object[]> GetArgumentsFromTestCaseObject(IEnumerable<TestCase> input)
+    private static List<object[]> GetArgumentsFromTestCaseObject(IEnumerable<TestCase> input)
     {
         var result = new List<object[]>();
 
