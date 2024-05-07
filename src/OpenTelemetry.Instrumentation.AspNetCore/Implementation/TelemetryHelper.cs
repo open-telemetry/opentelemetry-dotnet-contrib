@@ -1,11 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Internal;
+
 namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 
 internal static class TelemetryHelper
 {
     public static readonly object[] BoxedStatusCodes = InitializeBoxedStatusCodes();
+    internal static readonly RequestDataHelper RequestDataHelper = new();
 
     public static object GetBoxedStatusCode(int statusCode)
     {

@@ -177,7 +177,7 @@ internal class HttpInListener : ListenerHandler
             }
 
             var path = (request.PathBase.HasValue || request.Path.HasValue) ? (request.PathBase + request.Path).ToString() : "/";
-            RequestMethodHelper.SetActivityDisplayName(activity, request.Method);
+            TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method);
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
 
@@ -203,11 +203,11 @@ internal class HttpInListener : ListenerHandler
                 }
             }
 
-            RequestMethodHelper.SetHttpMethodTag(activity, request.Method);
+            TelemetryHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method);
 
             activity.SetTag(SemanticConventions.AttributeUrlScheme, request.Scheme);
             activity.SetTag(SemanticConventions.AttributeUrlPath, path);
-            activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, HttpTagHelper.GetFlavorTagValueFromProtocol(request.Protocol));
+            activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(request.Protocol));
 
             if (request.Headers.TryGetValue("User-Agent", out var values))
             {
@@ -247,7 +247,7 @@ internal class HttpInListener : ListenerHandler
                     context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
             if (!string.IsNullOrEmpty(routePattern))
             {
-                RequestMethodHelper.SetActivityDisplayName(activity, context.Request.Method, routePattern);
+                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, context.Request.Method, routePattern);
                 activity.SetTag(SemanticConventions.AttributeHttpRoute, routePattern);
             }
 #endif

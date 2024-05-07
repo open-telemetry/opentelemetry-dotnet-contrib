@@ -50,7 +50,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
 
         // Note: Warm-up the status code and method mapping.
         _ = TelemetryHelper.BoxedStatusCodes;
-        _ = RequestMethodHelper.KnownMethods;
+        _ = TelemetryHelper.RequestDataHelper;
 
         name ??= Options.DefaultName;
 

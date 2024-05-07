@@ -29,6 +29,7 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 #else
         // Note: Warm-up the status code and method mapping.
         _ = TelemetryHelper.BoxedStatusCodes;
+        _ = TelemetryHelper.RequestDataHelper;
 
         builder.AddMeter(HttpInMetricsListener.InstrumentationName);
 
