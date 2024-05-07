@@ -27,7 +27,7 @@ public sealed class BasicTests
     : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> factory;
-    private TracerProvider tracerProvider = null;
+    private TracerProvider tracerProvider;
 
     public BasicTests(WebApplicationFactory<Program> factory)
     {
