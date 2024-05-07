@@ -7,6 +7,11 @@
   `PrivatePreviewEnableOtlpProtobufEncoding=true` in the connection string.
   ([#1703](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1703))
 
+* Add support for exporting
+  exponential histograms when OTLP protobuf encoding is enabled via
+  `PrivatePreviewEnableOtlpProtobufEncoding=true` in the connection string.
+  ([#1705](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1705))
+
 ## 1.8.0-rc.1
 
 Released 2024-May-02

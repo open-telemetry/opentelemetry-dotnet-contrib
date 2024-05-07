@@ -494,7 +494,15 @@ internal sealed class OtlpProtobufSerializer
                             // Write exponentialhistogramdatapoint {Repeated field}
                             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.ExponentialHistogram_data_points, WireType.LEN);
 
-                            // TODO: exemplars.
+#if EXPOSE_EXPERIMENTAL_FEATURES
+                            if (metricPoint.TryGetExemplars(out var exemplars))
+                            {
+                                foreach (ref readonly var exemplar in exemplars)
+                                {
+                                    this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.ExponentialHistogramDataPoint_exemplars);
+                                }
+                            }
+#endif
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);

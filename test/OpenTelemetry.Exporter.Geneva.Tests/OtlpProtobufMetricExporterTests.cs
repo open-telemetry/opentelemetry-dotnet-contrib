@@ -1436,8 +1436,14 @@ public class OtlpProtobufMetricExporterTests
         Assert.Single(metric.ExponentialHistogram.DataPoints);
 
         var dataPoint = metric.ExponentialHistogram.DataPoints[0];
-        Assert.True(dataPoint.StartTimeUnixNano > 0);
-        Assert.True(dataPoint.TimeUnixNano > 0);
+
+        // Assert time
+        var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
+        metricPointsEnumerator.MoveNext();
+        var metricPoint = metricPointsEnumerator.Current;
+
+        Assert.Equal((ulong)metricPoint.StartTime.ToUnixTimeNanoseconds(), dataPoint.StartTimeUnixNano);
+        Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
         Assert.Equal(20, dataPoint.Scale);
         Assert.Equal(1UL, dataPoint.ZeroCount);
@@ -1454,6 +1460,8 @@ public class OtlpProtobufMetricExporterTests
         {
             if (longValue > 0)
             {
+                Assert.Equal((double)longValue, dataPoint.Max);
+                Assert.Equal(0, dataPoint.Min);
                 Assert.Equal((double)longValue, dataPoint.Sum);
                 Assert.Null(dataPoint.Negative);
                 Assert.True(dataPoint.Positive.Offset > 0);
@@ -1461,6 +1469,8 @@ public class OtlpProtobufMetricExporterTests
             }
             else
             {
+                Assert.Equal(0, dataPoint.Min);
+                Assert.Equal(0, dataPoint.Max);
                 Assert.Equal(0, dataPoint.Sum);
                 Assert.Null(dataPoint.Negative);
                 Assert.True(dataPoint.Positive.Offset == 0);
@@ -1471,6 +1481,8 @@ public class OtlpProtobufMetricExporterTests
         {
             if (doubleValue > 0)
             {
+                Assert.Equal(doubleValue, dataPoint.Max);
+                Assert.Equal(0, dataPoint.Min);
                 Assert.Equal(doubleValue, dataPoint.Sum);
                 Assert.Null(dataPoint.Negative);
                 Assert.True(dataPoint.Positive.Offset > 0);
@@ -1478,6 +1490,8 @@ public class OtlpProtobufMetricExporterTests
             }
             else
             {
+                Assert.Equal(0, dataPoint.Min);
+                Assert.Equal(0, dataPoint.Max);
                 Assert.Equal(0, dataPoint.Sum);
                 Assert.Null(dataPoint.Negative);
                 Assert.True(dataPoint.Positive.Offset == 0);
