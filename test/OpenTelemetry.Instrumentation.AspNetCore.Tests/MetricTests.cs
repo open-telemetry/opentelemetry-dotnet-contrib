@@ -27,8 +27,6 @@ namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 public class MetricTests(WebApplicationFactory<Program> factory)
         : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
-    private const int StandardTagsCount = 6;
-
     private readonly WebApplicationFactory<Program> factory = factory;
     private MeterProvider meterProvider;
 
