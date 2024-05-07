@@ -52,6 +52,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.EntityFrameworkCore.yml = .github\workflows\package-Instrumentation.EntityFrameworkCore.yml
 		.github\workflows\package-Instrumentation.EventCounters.yml = .github\workflows\package-Instrumentation.EventCounters.yml
 		.github\workflows\package-Instrumentation.GrpcCore.yml = .github\workflows\package-Instrumentation.GrpcCore.yml
+		.github\workflows\package-Instrumentation.GrpcNetClient.yml = .github\workflows\package-Instrumentation.GrpcNetClient.yml
 		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
 		.github\workflows\package-Instrumentation.Http.yml = .github\workflows\package-Instrumentation.Http.yml
 		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
@@ -323,6 +324,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.Extensions.proj = build\Projects\OpenTelemetry.Extensions.proj
 		build\Projects\OpenTelemetry.Instrumentation.AspNet.proj = build\Projects\OpenTelemetry.Instrumentation.AspNet.proj
 		build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj = build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj
+		build\Projects\OpenTelemetry.Instrumentation.GrpcNetClient.proj = build\Projects\OpenTelemetry.Instrumentation.GrpcNetClient.proj
 		build\Projects\OpenTelemetry.Instrumentation.Http.proj = build\Projects\OpenTelemetry.Instrumentation.Http.proj
 		build\Projects\OpenTelemetry.Instrumentation.Owin.proj = build\Projects\OpenTelemetry.Instrumentation.Owin.proj
 		build\Projects\OpenTelemetry.Instrumentation.Process.proj = build\Projects\OpenTelemetry.Instrumentation.Process.proj
@@ -363,6 +365,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Tests", "test\OpenTelemetry.Instrumentation.Http.Tests\OpenTelemetry.Instrumentation.Http.Tests.csproj", "{7371E920-ECD0-403A-A009-7A1A301D9763}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Benchmark", "test\OpenTelemetry.Instrumentation.Http.Benchmark\OpenTelemetry.Instrumentation.Http.Benchmark.csproj", "{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcNetClient", "src\OpenTelemetry.Instrumentation.GrpcNetClient\OpenTelemetry.Instrumentation.GrpcNetClient.csproj", "{0156E342-CE63-46F5-992D-691A7CCB50F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcNetClient.Tests", "test\OpenTelemetry.Instrumentation.GrpcNetClient.Tests\OpenTelemetry.Instrumentation.GrpcNetClient.Tests.csproj", "{2E1A5759-1431-4724-8885-3E9447FBF617}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -734,6 +740,14 @@ Global
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E1A5759-1431-4724-8885-3E9447FBF617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E1A5759-1431-4724-8885-3E9447FBF617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E1A5759-1431-4724-8885-3E9447FBF617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E1A5759-1431-4724-8885-3E9447FBF617}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -843,6 +857,8 @@ Global
 		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{7371E920-ECD0-403A-A009-7A1A301D9763} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{0156E342-CE63-46F5-992D-691A7CCB50F8} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{2E1A5759-1431-4724-8885-3E9447FBF617} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

@@ -5,7 +5,7 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Tests;
+namespace OpenTelemetry.Trace;
 
 internal static class ActivityHelperExtensions
 {
