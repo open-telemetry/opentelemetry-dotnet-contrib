@@ -12,16 +12,18 @@ namespace RouteTests;
 
 public static class RoutingTestCases
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() },
+    };
+
     public static IEnumerable<object[]> GetTestCases()
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<TestCase[]>(
             assembly.GetManifestResourceStream("RoutingTestCases.json")!,
-            new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                Converters = { new JsonStringEnumConverter() },
-            });
+            JsonSerializerOptions);
         return GetArgumentsFromTestCaseObject(input!);
     }
 
