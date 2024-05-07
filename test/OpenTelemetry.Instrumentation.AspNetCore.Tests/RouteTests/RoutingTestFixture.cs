@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using RouteTests.TestApplication;
@@ -98,11 +99,11 @@ public class RoutingTestFixture : IDisposable
                 {
                     '-' => '-',
                     ' ' => '-',
-                    _ => char.ToLower(c),
+                    _ => char.ToLower(c, CultureInfo.InvariantCulture),
                 })
                 .ToArray();
 
-            return $"#{scenario.ToString().ToLower()}-{new string(chars)}";
+            return $"#{scenario.ToString().ToLower(CultureInfo.CurrentCulture)}-{new string(chars)}";
         }
     }
 }
