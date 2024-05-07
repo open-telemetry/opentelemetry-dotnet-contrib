@@ -38,7 +38,7 @@ public class RoutingTestFixture : IDisposable
         var app = this.apps[scenario];
         var baseUrl = app.Urls.First();
         var url = $"{baseUrl}{path}";
-        await HttpClient.GetAsync(url);
+        await HttpClient.GetAsync(new Uri(url));
     }
 
     public void AddTestResult(RoutingTestResult result)

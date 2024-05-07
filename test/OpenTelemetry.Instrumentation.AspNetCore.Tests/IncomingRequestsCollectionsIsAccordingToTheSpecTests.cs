@@ -73,7 +73,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
                     path += query;
                 }
 
-                using var response = await client.GetAsync(path);
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
             }
             catch (Exception)
             {

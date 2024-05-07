@@ -61,7 +61,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         var portNumber = url.Substring(url.LastIndexOf(':') + 1);
 
         using var client = new HttpClient();
-        var res = await client.GetAsync($"http://localhost:{portNumber}/");
+        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"));
         Assert.True(res.IsSuccessStatusCode);
 
         // We need to let metric callback execute as it is executed AFTER response was returned.
@@ -144,7 +144,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         var portNumber = url.Substring(url.LastIndexOf(':') + 1);
 
         using var client = new HttpClient();
-        var res = await client.GetAsync($"http://localhost:{portNumber}/");
+        var res = await client.GetAsync(new Uri($"http://localhost:{portNumber}/"));
         Assert.NotNull(res);
 
         // We need to let metric callback execute as it is executed AFTER response was returned.
@@ -199,7 +199,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         {
             try
             {
-                using var response = await client.GetAsync(api);
+                using var response = await client.GetAsync(new Uri(api, UriKind.Relative));
                 response.EnsureSuccessStatusCode();
             }
             catch

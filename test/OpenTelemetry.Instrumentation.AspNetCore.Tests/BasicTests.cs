@@ -19,6 +19,7 @@ using OpenTelemetry.Trace;
 using TestApp.AspNetCore;
 using TestApp.AspNetCore.Filters;
 using Xunit;
+using Uri = System.Uri;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
@@ -68,7 +69,7 @@ public sealed class BasicTests
             .CreateClient())
         {
             // Act
-            using var response = await client.GetAsync("/api/values");
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -115,7 +116,7 @@ public sealed class BasicTests
             .CreateClient())
         {
             // Act
-            using var response = await client.GetAsync("/api/values");
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -222,7 +223,7 @@ public sealed class BasicTests
                     }))
             {
                 using var client = testFactory.CreateClient();
-                using var response = await client.GetAsync("/api/values/2");
+                using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
                 response.EnsureSuccessStatusCode(); // Status Code 200-299
 
                 WaitForActivityExport(exportedItems, 1);
@@ -272,8 +273,8 @@ public sealed class BasicTests
             using var client = testFactory.CreateClient();
 
             // Act
-            using var response1 = await client.GetAsync("/api/values");
-            using var response2 = await client.GetAsync("/api/values/2");
+            using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
 
             // Assert
             response1.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -324,8 +325,8 @@ public sealed class BasicTests
             // Act
             using (var inMemoryEventListener = new InMemoryEventListener(AspNetCoreInstrumentationEventSource.Log))
             {
-                using var response1 = await client.GetAsync("/api/values");
-                using var response2 = await client.GetAsync("/api/values/2");
+                using var response1 = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+                using var response2 = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
 
                 response1.EnsureSuccessStatusCode(); // Status Code 200-299
                 response2.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -573,7 +574,7 @@ public sealed class BasicTests
             .CreateClient();
 
         // Act
-        using var response = await client.GetAsync("/api/values");
+        using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
 
         // Assert
         Assert.Equal(shouldFilterBeCalled, filterCalled);
@@ -608,7 +609,7 @@ public sealed class BasicTests
             })
             .CreateClient())
         {
-            using var response = await client.GetAsync("/api/values/2");
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -712,7 +713,7 @@ public sealed class BasicTests
             })
             .CreateClient())
         {
-            using var response = await client.GetAsync("/api/values/2");
+            using var response = await client.GetAsync(new Uri("/api/values/2", UriKind.Relative));
             response.EnsureSuccessStatusCode();
             WaitForActivityExport(exportedItems, 2);
         }
@@ -761,7 +762,7 @@ public sealed class BasicTests
             .CreateClient())
         {
             // Act
-            using var response = await client.GetAsync("/api/values");
+            using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
@@ -794,7 +795,7 @@ public sealed class BasicTests
             .CreateClient())
         {
             // Act
-            using var response = await client.GetAsync("/api/error");
+            using var response = await client.GetAsync(new Uri("/api/error", UriKind.Relative));
 
             WaitForActivityExport(exportedItems, 1);
         }
@@ -1109,7 +1110,7 @@ public sealed class BasicTests
         {
             try
             {
-                using var response = await client.GetAsync(path);
+                using var response = await client.GetAsync(new Uri(path, UriKind.Relative));
             }
             catch (Exception)
             {
