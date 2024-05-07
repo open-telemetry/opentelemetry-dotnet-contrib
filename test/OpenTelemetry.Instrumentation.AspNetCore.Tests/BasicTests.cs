@@ -1016,7 +1016,6 @@ public sealed class BasicTests
         Assert.True(exceptionHandled);
     }
 
-#if NET6_0_OR_GREATER
     [Fact]
     public async Task NoSiblingActivityCreatedWhenTraceFlagsNone()
     {
@@ -1051,7 +1050,6 @@ public sealed class BasicTests
         // Confirm that Activity.Current and IHttpActivityFeature activity are same
         Assert.True(result);
     }
-#endif
 
     [Theory]
     [InlineData("?a", "?a", false)]
