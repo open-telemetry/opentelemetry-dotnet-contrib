@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Internal;
 
 #if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;

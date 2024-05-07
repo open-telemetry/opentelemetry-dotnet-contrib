@@ -88,8 +88,10 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
     {
         builder.AddAspNetCoreInstrumentationSources();
 
+#pragma warning disable CA2000
         return builder.AddInstrumentation(
             new AspNetCoreInstrumentation(listener));
+#pragma warning restore CA2000
     }
 
     private static void AddAspNetCoreInstrumentationSources(

@@ -28,7 +28,7 @@ internal class HttpInListener : ListenerHandler
     internal const string OnUnHandledDiagnosticsExceptionEvent = "Microsoft.AspNetCore.Diagnostics.UnhandledException";
 
     // https://github.com/dotnet/aspnetcore/blob/8d6554e655b64da75b71e0e20d6db54a3ba8d2fb/src/Hosting/Hosting/src/GenericHost/GenericWebHostBuilder.cs#L85
-    internal static readonly string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
+    internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
     internal static readonly string ActivitySourceName = AssemblyName.Name;
@@ -261,7 +261,7 @@ internal class HttpInListener : ListenerHandler
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
-                activity.SetStatus(SpanHelper.ResolveSpanStatusForHttpStatusCode(activity.Kind, response.StatusCode));
+                activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
             try

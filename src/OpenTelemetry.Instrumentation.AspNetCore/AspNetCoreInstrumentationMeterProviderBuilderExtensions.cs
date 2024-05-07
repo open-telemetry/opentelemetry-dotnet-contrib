@@ -29,11 +29,12 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 #else
         // Note: Warm-up the status code and method mapping.
         _ = TelemetryHelper.BoxedStatusCodes;
-        _ = RequestMethodHelper.KnownMethods;
 
         builder.AddMeter(HttpInMetricsListener.InstrumentationName);
 
+#pragma warning disable CA2000
         builder.AddInstrumentation(new AspNetCoreMetrics());
+#pragma warning restore CA2000
 
         return builder;
 #endif
