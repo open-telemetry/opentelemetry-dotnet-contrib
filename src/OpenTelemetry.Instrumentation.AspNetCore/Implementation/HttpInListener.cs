@@ -129,7 +129,9 @@ internal class HttpInListener : ListenerHandler
                 }
                 else
                 {
+#pragma warning disable CA2000
                     newOne = new Activity(ActivityOperationName);
+#pragma warning restore CA2000
                     newOne.SetParentId(ctx.ActivityContext.TraceId, ctx.ActivityContext.SpanId, ctx.ActivityContext.TraceFlags);
                 }
 
