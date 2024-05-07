@@ -7,10 +7,11 @@ using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using RouteTests.TestApplication;
+using Xunit;
 
 namespace RouteTests;
 
-public class RoutingTestFixture : IDisposable
+public class RoutingTestFixture : IAsyncLifetime
 {
     private static readonly HttpClient HttpClient = new();
     private readonly Dictionary<TestApplicationScenario, WebApplication> apps = new();
@@ -34,6 +35,24 @@ public class RoutingTestFixture : IDisposable
         }
     }
 
+    public Task InitializeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        foreach (var app in this.apps)
+        {
+            await app.Value.DisposeAsync();
+        }
+
+        HttpClient.Dispose();
+        this.diagnostics.Dispose();
+
+        this.GenerateReadme();
+    }
+
     public async Task MakeRequest(TestApplicationScenario scenario, string path)
     {
         var app = this.apps[scenario];
@@ -45,19 +64,6 @@ public class RoutingTestFixture : IDisposable
     public void AddTestResult(RoutingTestResult result)
     {
         this.testResults.Add(result);
-    }
-
-    public void Dispose()
-    {
-        foreach (var app in this.apps)
-        {
-            app.Value.DisposeAsync().GetAwaiter().GetResult();
-        }
-
-        HttpClient.Dispose();
-        this.diagnostics.Dispose();
-
-        this.GenerateReadme();
     }
 
     private void GenerateReadme()
