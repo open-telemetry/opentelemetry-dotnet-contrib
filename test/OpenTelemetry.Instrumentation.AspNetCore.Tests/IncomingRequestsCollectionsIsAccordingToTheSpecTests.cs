@@ -160,7 +160,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = this.reasonPhrase;
             await context.Response.WriteAsync("empty");
 
-            if (context.Request.Path.Value.EndsWith("exception"))
+            if (context.Request.Path.Value.EndsWith("exception", StringComparison.Ordinal))
             {
                 throw new Exception("exception description");
             }
