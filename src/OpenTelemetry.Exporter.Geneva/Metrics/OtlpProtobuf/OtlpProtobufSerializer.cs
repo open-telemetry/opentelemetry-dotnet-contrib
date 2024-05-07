@@ -489,11 +489,6 @@ internal sealed class OtlpProtobufSerializer
                             // write Bucket
                             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref positiveBucketIndex, cursor - positiveBucketValueIndex, FieldNumberConstants.ExponentialHistogramDataPoint_positive, WireType.LEN);
 
-                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
-
-                            // Write exponentialhistogramdatapoint {Repeated field}
-                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.ExponentialHistogram_data_points, WireType.LEN);
-
 #if EXPOSE_EXPERIMENTAL_FEATURES
                             if (metricPoint.TryGetExemplars(out var exemplars))
                             {
@@ -503,6 +498,11 @@ internal sealed class OtlpProtobufSerializer
                                 }
                             }
 #endif
+
+                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
+
+                            // Write exponentialhistogramdatapoint {Repeated field}
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.ExponentialHistogram_data_points, WireType.LEN);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
