@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+* **Experimental (pre-release builds only)**: Add support for exporting
+  exemplars when OTLP protobuf encoding is enabled via
+  `PrivatePreviewEnableOtlpProtobufEncoding=true` in the connection string.
+  ([#1703](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1703))
+
 ## 1.8.0-rc.1
 
 Released 2024-May-02
