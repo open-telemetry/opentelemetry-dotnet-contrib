@@ -101,6 +101,14 @@ internal static class FieldNumberConstants
     internal const int InstrumentationScope_attributes = 3;
     internal const int InstrumentationScope_dropped_attributes_count = 4;
 
+    // Exemplar
+    internal const int Exemplar_attributes = 7;
+    internal const int Exemplar_time_unix_nano = 2;
+    internal const int Exemplar_as_double = 3;
+    internal const int Exemplar_as_int = 6;
+    internal const int Exemplar_span_id = 4;
+    internal const int Exemplar_trace_id = 5;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetMetricTypeFieldNumber(MetricType metricType)
     {
