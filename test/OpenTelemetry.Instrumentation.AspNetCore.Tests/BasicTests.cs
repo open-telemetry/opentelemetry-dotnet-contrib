@@ -1019,7 +1019,7 @@ public sealed class BasicTests
     [Fact]
     public async Task NoSiblingActivityCreatedWhenTraceFlagsNone()
     {
-        this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using var localTracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation()
             .Build();
