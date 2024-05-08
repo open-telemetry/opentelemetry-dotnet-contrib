@@ -377,6 +377,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp.AspNetCore", "test\TestApp.AspNetCore\TestApp.AspNetCore.csproj", "{1E743561-B1D4-4100-B6AD-1FD25FA8659B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNetCore.Benchmark", "test\OpenTelemetry.Instrumentation.AspNetCore.Benchmark\OpenTelemetry.Instrumentation.AspNetCore.Benchmark.csproj", "{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -767,6 +769,10 @@ Global
 		{1E743561-B1D4-4100-B6AD-1FD25FA8659B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E743561-B1D4-4100-B6AD-1FD25FA8659B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E743561-B1D4-4100-B6AD-1FD25FA8659B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -881,6 +887,7 @@ Global
 		{A8FF0DEB-F371-42FC-8A53-A8C25FE408FC} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{917AEC46-816C-4E05-913E-F0F44C24C437} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{1E743561-B1D4-4100-B6AD-1FD25FA8659B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
