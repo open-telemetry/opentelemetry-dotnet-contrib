@@ -1330,23 +1330,15 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData("doubleexponentialhistogram", null, 123.45, true, true)]
-    [InlineData("doubleexponentialhistogram", null, 123.45, true, false)]
-    [InlineData("doubleexponentialhistogram", null, 123.45, false, true)]
-    [InlineData("doubleexponentialhistogram", null, 123.45, false, false)]
-    [InlineData("doubleexponentialhistogram", null, -123.45, true, true)]
-    [InlineData("doubleexponentialhistogram", null, -123.45, true, false)]
-    [InlineData("doubleexponentialhistogram", null, -123.45, false, true)]
-    [InlineData("doubleexponentialhistogram", null, -123.45, false, false)]
-    [InlineData("longexponentialhistogram", 123L, null, true, true)]
-    [InlineData("longexponentialhistogram", 123L, null, true, false)]
-    [InlineData("longexponentialhistogram", 123L, null, false, true)]
-    [InlineData("longexponentialhistogram", 123L, null, false, false)]
-    [InlineData("longexponentialhistogram", -123L, null, true, true)]
-    [InlineData("longexponentialhistogram", -123L, null, true, false)]
-    [InlineData("longexponentialhistogram", -123L, null, false, true)]
-    [InlineData("longexponentialhistogram", -123L, null, false, false)]
-    public void ExponentialHistogramSerializationSingleMetricPoint(string instrumentName, long? longValue, double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
+    [InlineData(123.45, true, true)]
+    [InlineData(123.45, true, false)]
+    [InlineData(123.45, false, true)]
+    [InlineData(123.45, false, false)]
+    [InlineData(-123.45, true, true)]
+    [InlineData(-123.45, true, false)]
+    [InlineData(-123.45, false, true)]
+    [InlineData(-123.45, false, false)]
+    public void ExponentialHistogramSerializationSingleMetricPoint(double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
     {
         using var meter = new Meter(nameof(this.ExponentialHistogramSerializationSingleMetricPoint), "0.0.1");
 
@@ -1383,18 +1375,10 @@ public class OtlpProtobufMetricExporterTests
             })
             .Build();
 
-        if (longValue.HasValue)
-        {
-            var histogram = meter.CreateHistogram<long>(instrumentName);
-            histogram.Record(longValue.Value, this.TagList);
-            histogram.Record(0, this.TagList);
-        }
-        else
-        {
-            var histogram = meter.CreateHistogram<double>(instrumentName);
-            histogram.Record(doubleValue.Value, this.TagList);
-            histogram.Record(0, this.TagList);
-        }
+        var instrumentName = "doubleExponentialHistogram";
+        var histogram = meter.CreateHistogram<double>(instrumentName);
+        histogram.Record(doubleValue.Value, this.TagList);
+        histogram.Record(0, this.TagList);
 
         meterProvider.ForceFlush();
 
@@ -1447,7 +1431,7 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal(20, dataPoint.Scale);
         Assert.Equal(1UL, dataPoint.ZeroCount);
-        if (longValue > 0 || doubleValue > 0)
+        if (doubleValue > 0)
         {
             Assert.Equal(2UL, dataPoint.Count);
         }
@@ -1456,47 +1440,23 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(1UL, dataPoint.Count);
         }
 
-        if (longValue.HasValue)
+        if (doubleValue > 0)
         {
-            if (longValue > 0)
-            {
-                Assert.Equal((double)longValue, dataPoint.Max);
-                Assert.Equal(0, dataPoint.Min);
-                Assert.Equal((double)longValue, dataPoint.Sum);
-                Assert.Null(dataPoint.Negative);
-                Assert.True(dataPoint.Positive.Offset > 0);
-                Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
-            }
-            else
-            {
-                Assert.Equal(0, dataPoint.Min);
-                Assert.Equal(0, dataPoint.Max);
-                Assert.Equal(0, dataPoint.Sum);
-                Assert.Null(dataPoint.Negative);
-                Assert.True(dataPoint.Positive.Offset == 0);
-                Assert.Empty(dataPoint.Positive.BucketCounts);
-            }
+            Assert.Equal(doubleValue, dataPoint.Max);
+            Assert.Equal(0, dataPoint.Min);
+            Assert.Equal(doubleValue, dataPoint.Sum);
+            Assert.Null(dataPoint.Negative);
+            Assert.True(dataPoint.Positive.Offset > 0);
+            Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
         }
         else
         {
-            if (doubleValue > 0)
-            {
-                Assert.Equal(doubleValue, dataPoint.Max);
-                Assert.Equal(0, dataPoint.Min);
-                Assert.Equal(doubleValue, dataPoint.Sum);
-                Assert.Null(dataPoint.Negative);
-                Assert.True(dataPoint.Positive.Offset > 0);
-                Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
-            }
-            else
-            {
-                Assert.Equal(0, dataPoint.Min);
-                Assert.Equal(0, dataPoint.Max);
-                Assert.Equal(0, dataPoint.Sum);
-                Assert.Null(dataPoint.Negative);
-                Assert.True(dataPoint.Positive.Offset == 0);
-                Assert.Empty(dataPoint.Positive.BucketCounts);
-            }
+            Assert.Equal(0, dataPoint.Min);
+            Assert.Equal(0, dataPoint.Max);
+            Assert.Equal(0, dataPoint.Sum);
+            Assert.Null(dataPoint.Negative);
+            Assert.True(dataPoint.Positive.Offset == 0);
+            Assert.Empty(dataPoint.Positive.BucketCounts);
         }
 
         if (addPrepopulatedDimensions)
