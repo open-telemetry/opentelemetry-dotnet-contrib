@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 

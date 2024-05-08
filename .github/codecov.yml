@@ -68,6 +68,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Http
 
+  unittests-Instrumentation.GrpcNetClient:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.GrpcNetClient
+
   unittests-Instrumentation.Owin:
     carryforward: true
     paths:

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />

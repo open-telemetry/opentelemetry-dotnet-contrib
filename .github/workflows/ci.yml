@@ -30,6 +30,7 @@ jobs:
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
+          grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
@@ -67,6 +68,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.Owin*/**',
             '!examples/owin/**',
             '!*/OpenTelemetry.PersistentStorage*/**',
+            '!*/OpenTelemetry.Instrumentation.GrpcNetClient*/**',
             '!*/OpenTelemetry.Instrumentation.Http*/**',
             '!*/OpenTelemetry.Instrumentation.Process*/**',
             '!examples/process-instrumentation/**',
@@ -163,6 +165,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Resources.Gcp
       code-cov-name: Resources.Gcp
+
+  build-test-grpcnetclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'grpcnetclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.GrpcNetClient
+      code-cov-name: Instrumentation.GrpcNetClient
 
   build-test-host:
     needs: detect-changes
@@ -352,6 +365,7 @@ jobs:
             OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
             OpenTelemetry.Instrumentation.EventCounters.Tests.csproj,
+            OpenTelemetry.Instrumentation.GrpcNetClient.Tests.csproj,
             OpenTelemetry.Instrumentation.Http.Tests.csproj,
             OpenTelemetry.Instrumentation.Owin.Tests.csproj,
             OpenTelemetry.Instrumentation.Process.Tests.csproj,
@@ -411,6 +425,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'gcp')
+      || contains(needs.detect-changes.outputs.changes, 'grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'http')
       || contains(needs.detect-changes.outputs.changes, 'processdetector')
@@ -438,6 +453,7 @@ jobs:
       build-test-extensions,
       build-test-geneva,
       build-test-gcp,
+      build-test-grpcnetclient,
       build-test-host,
       build-test-http,
       build-test-onecollector,

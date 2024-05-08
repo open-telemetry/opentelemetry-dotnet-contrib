@@ -5,7 +5,7 @@
 using System.Net.Http;
 #endif
 
-namespace OpenTelemetry.Instrumentation.Http;
+namespace OpenTelemetry.Instrumentation;
 
 internal static class HttpRequestMessageContextPropagation
 {
