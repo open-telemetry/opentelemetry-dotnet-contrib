@@ -81,6 +81,7 @@ components:
     - lachmatt
   src/OpenTelemetry.Resources.Gcp/:
     - matt-hensley
+    - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
@@ -173,6 +174,7 @@ components:
     - lachmatt
   test/OpenTelemetry.Resources.Gcp.Tests/:
     - matt-hensley
+    - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43
