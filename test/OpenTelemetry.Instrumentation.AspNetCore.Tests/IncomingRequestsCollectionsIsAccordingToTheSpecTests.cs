@@ -15,6 +15,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
+[Collection("AspNetCore")]
 public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
     : IClassFixture<WebApplicationFactory<Program>>
 {

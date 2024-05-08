@@ -23,6 +23,7 @@ using Uri = System.Uri;
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
 // See https://github.com/aspnet/Docs/tree/master/aspnetcore/test/integration-tests/samples/2.x/IntegrationTestsSample
+[Collection("AspNetCore")]
 public sealed class BasicTests
     : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {

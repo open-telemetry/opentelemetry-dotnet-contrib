@@ -10,6 +10,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
+[Collection("AspNetCore")]
 public class DependencyInjectionConfigTests
     : IClassFixture<WebApplicationFactory<Program>>
 {

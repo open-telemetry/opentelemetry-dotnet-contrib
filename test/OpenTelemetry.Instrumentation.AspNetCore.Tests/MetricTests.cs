@@ -24,6 +24,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Tests;
 
+[Collection("AspNetCore")]
 public class MetricTests(WebApplicationFactory<Program> factory)
         : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {

@@ -12,6 +12,7 @@ using Xunit;
 
 namespace RouteTests;
 
+[Collection("AspNetCore")]
 public class RoutingTests : IClassFixture<RoutingTestFixture>
 {
     private const string HttpStatusCode = "http.response.status_code";
