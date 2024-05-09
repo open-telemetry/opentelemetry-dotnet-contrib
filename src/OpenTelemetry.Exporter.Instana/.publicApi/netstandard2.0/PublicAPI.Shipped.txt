@@ -1,2 +1,0 @@
-OpenTelemetry.Exporter.Instana.TracerProviderBuilderExtensions
-static OpenTelemetry.Exporter.Instana.TracerProviderBuilderExtensions.AddInstanaExporter(this OpenTelemetry.Trace.TracerProviderBuilder options) -> OpenTelemetry.Trace.TracerProviderBuilder
