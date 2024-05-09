@@ -44,7 +44,7 @@ jobs:
       uses: actions/setup-dotnet@v4
 
     - name: dotnet restore build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj /p:EnablePackageValidation=true
 
     - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
       run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore
