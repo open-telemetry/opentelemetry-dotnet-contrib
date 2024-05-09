@@ -36,7 +36,7 @@ jobs:
       run: dotnet test build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
 
     - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
+      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build /p:EnablePackageValidation=true
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4

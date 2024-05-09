@@ -50,6 +50,9 @@ jobs:
     - name: dotnet test build/Projects/${{ inputs.project-name }}.proj
       run: dotnet test build/Projects/${{ inputs.project-name }}.proj --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
 
+    - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build /p:EnablePackageValidation=true
+
     - name: Install coverage tool
       run: dotnet tool install -g dotnet-coverage
 
