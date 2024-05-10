@@ -4,6 +4,8 @@
 
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Remove NuGet reference to `System.Net.Http`
+  ([#1713](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1713))
 
 ## 1.3.0-beta.1
 
