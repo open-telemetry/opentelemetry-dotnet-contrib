@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.Process;
+namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
 ///     Process detector.

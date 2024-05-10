@@ -37,7 +37,7 @@ jobs:
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
-          processdetector: ['*/OpenTelemetry.ResourceDetectors.Process/**', '*/OpenTelemetry.ResourceDetectors.Process.Tests/**', '!**/*.md']
+          processdetector: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
           processruntime: ['*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**', '*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
@@ -55,10 +55,10 @@ jobs:
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
             '!*/OpenTelemetry.ResourceDetectors.Host*/**',
-            '!*/OpenTelemetry.ResourceDetectors.Process/**',
-            '!*/OpenTelemetry.ResourceDetectors.Process.Tests/**',
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**',
             '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**',
+            '!*/OpenTelemetry.Resources.Process/**',
+            '!*/OpenTelemetry.Resources.Process.Tests/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions/**',
@@ -254,8 +254,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Process
-      code-cov-name: ResourceDetectors.Process
+      project-name: OpenTelemetry.Resources.Process
+      code-cov-name: Resources.Process
 
   build-test-processruntime:
     needs: detect-changes
@@ -378,8 +378,8 @@ jobs:
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Process.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj
+            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj,
+            OpenTelemetry.Resources.Process.Tests.csproj
 
         $failedProjects = @()
 

@@ -1,10 +1,10 @@
 ---
-name: OpenTelemetry.ResourceDetectors.Process
-about: OpenTelemetry.ResourceDetectors.Process
-labels: comp:resourcedetectors.process
+name: OpenTelemetry.Resources.Process
+about: OpenTelemetry.Resources.Process
+labels: comp:resources.process
 ---
 
-# Issue with OpenTelemetry.ResourceDetectors.Process
+# Issue with OpenTelemetry.Resources.Process
 
 List of [all OpenTelemetry NuGet
 packages](https://www.nuget.org/profiles/OpenTelemetry) and version that you are
