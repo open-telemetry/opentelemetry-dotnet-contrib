@@ -6,6 +6,13 @@
     <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
+
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.9.0)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />

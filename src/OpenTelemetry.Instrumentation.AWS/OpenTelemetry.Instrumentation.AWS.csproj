@@ -8,6 +8,12 @@
 	  <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="AWSSDK.Core" Version="3.7.300" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.300" />
