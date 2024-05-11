@@ -6,6 +6,13 @@
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
     <Nullable>disable</Nullable>
   </PropertyGroup>
+
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="[3.15.0,4.0)" />
     <PackageReference Include="Grpc.Core.Api" Version="[2.23.0,3.0)" />

@@ -27,16 +27,16 @@ jobs:
       uses: actions/setup-dotnet@v4
 
     - name: dotnet restore build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj
+      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj -p:EnablePackageValidation=true
 
     - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true
+      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
 
     - name: dotnet test build/Projects/${{ inputs.project-name }}.proj
       run: dotnet test build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
 
     - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
+      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
