@@ -244,8 +244,9 @@ the main branch. The workflow file should be named as
   [`PROJECT`](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/workflows/package-Instrumentation.AspNet.yml#L18)
   with "OpenTelemetry.Instrumentation.FooBar".
 
-* Add your component name to the issue templates in your PR. The maintainer will
-  help to create a new ["comp:"
+* Add your component name to the [issue
+  templates](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/.github/ISSUE_TEMPLATE/)
+  in your PR. The maintainer will help to create a new ["comp:"
   label](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/labels?q=comp%3A)
   once the PR is merged.
 
