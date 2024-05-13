@@ -1,19 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
-        <Description>OpenTelemetry Resource Detectors for Google Cloud Platform environments</Description>
-        <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
-        <MinVerTagPrefix>Resources.Gcp-</MinVerTagPrefix>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <Description>OpenTelemetry Resource Detectors for Google Cloud Platform environments</Description>
+    <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
+    <MinVerTagPrefix>Resources.Gcp-</MinVerTagPrefix>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
-        <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-        <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    </ItemGroup>
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-        <Compile Include="$(RepoRoot)\src\Shared\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
+    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs" />
+  </ItemGroup>
 </Project>
