@@ -1330,16 +1330,48 @@ public class OtlpProtobufMetricExporterTests
     }
 
     [Theory]
-    [InlineData(123.45, true, true)]
-    [InlineData(123.45, true, false)]
-    [InlineData(123.45, false, true)]
-    [InlineData(123.45, false, false)]
-    [InlineData(-123.45, true, true)]
-    [InlineData(-123.45, true, false)]
-    [InlineData(-123.45, false, true)]
-    [InlineData(-123.45, false, false)]
-    public void ExponentialHistogramSerializationSingleMetricPoint(double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace)
+    [InlineData(123.45, true, true, true, true)]
+    [InlineData(123.45, true, true, true, false)]
+    [InlineData(123.45, true, true, false, true)]
+    [InlineData(123.45, true, true, false, false)]
+    [InlineData(123.45, true, false, true, true)]
+    [InlineData(123.45, true, false, true, false)]
+    [InlineData(123.45, true, false, false, true)]
+    [InlineData(123.45, true, false, false, false)]
+    [InlineData(123.45, false, true, true, true)]
+    [InlineData(123.45, false, true, true, false)]
+    [InlineData(123.45, false, true, false, true)]
+    [InlineData(123.45, false, true, false, false)]
+    [InlineData(123.45, false, false, true, true)]
+    [InlineData(123.45, false, false, true, false)]
+    [InlineData(123.45, false, false, false, true)]
+    [InlineData(123.45, false, false, false, false)]
+    [InlineData(-123.45, true, true, true, true)]
+    [InlineData(-123.45, true, true, true, false)]
+    [InlineData(-123.45, true, true, false, true)]
+    [InlineData(-123.45, true, true, false, false)]
+    [InlineData(-123.45, true, false, true, true)]
+    [InlineData(-123.45, true, false, true, false)]
+    [InlineData(-123.45, true, false, false, true)]
+    [InlineData(-123.45, true, false, false, false)]
+    [InlineData(-123.45, false, true, true, true)]
+    [InlineData(-123.45, false, true, true, false)]
+    [InlineData(-123.45, false, true, false, true)]
+    [InlineData(-123.45, false, true, false, false)]
+    [InlineData(-123.45, false, false, true, true)]
+    [InlineData(-123.45, false, false, true, false)]
+    [InlineData(-123.45, false, false, false, true)]
+    [InlineData(-123.45, false, false, false, false)]
+    public void ExponentialHistogramSerializationSingleMetricPoint(double? doubleValue, bool addPrepopulatedDimensions, bool addAccountAndNamespace, bool isExemplarsEnabled, bool isTracingEnabled)
     {
+        Activity activity = null;
+
+        if (isTracingEnabled)
+        {
+            activity = new Activity("Custom Activity");
+            activity.Start();
+        }
+
         using var meter = new Meter(nameof(this.ExponentialHistogramSerializationSingleMetricPoint), "0.0.1");
 
         var exportedItems = new List<Metric>();
@@ -1365,20 +1397,42 @@ public class OtlpProtobufMetricExporterTests
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
             .AddAttributes(resourceAttributes);
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.ExponentialHistogramSerializationSingleMetricPoint))
-            .AddReader(inMemoryReader)
-            .AddView(instrument =>
-            {
-                return new Base2ExponentialBucketHistogramConfiguration();
-            })
-            .Build();
+            .AddReader(inMemoryReader);
+
+        if (isExemplarsEnabled)
+        {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+            meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
+#endif
+        }
+
+        meterProviderBuilder.AddView(instrument =>
+        {
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        return new Base2ExponentialBucketHistogramConfiguration() { TagKeys = TagKeys };
+#else
+            return new Base2ExponentialBucketHistogramConfiguration();
+#endif
+        });
+
+        var meterProvider = meterProviderBuilder.Build();
 
         var instrumentName = "doubleExponentialHistogram";
         var histogram = meter.CreateHistogram<double>(instrumentName);
-        histogram.Record(doubleValue.Value, this.TagList);
-        histogram.Record(0, this.TagList);
+
+        if (isExemplarsEnabled)
+        {
+            histogram.Record(doubleValue.Value, this.exemplarTagList);
+            histogram.Record(0, this.exemplarTagList);
+        }
+        else
+        {
+            histogram.Record(doubleValue.Value, this.TagList);
+            histogram.Record(0, this.TagList);
+        }
 
         meterProvider.ForceFlush();
 
@@ -1447,6 +1501,7 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(doubleValue, dataPoint.Sum);
             Assert.Null(dataPoint.Negative);
             Assert.True(dataPoint.Positive.Offset > 0);
+            Assert.Single(dataPoint.Positive.BucketCounts);
             Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
         }
         else
@@ -1467,6 +1522,66 @@ public class OtlpProtobufMetricExporterTests
         {
             AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
         }
+
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        if (isExemplarsEnabled)
+        {
+            // Exemplars are only emitted for positive/0 values.
+            if (doubleValue.Value > 0)
+            {
+                Assert.Equal(2, dataPoint.Exemplars.Count);
+            }
+            else
+            {
+                Assert.Single(dataPoint.Exemplars);
+            }
+
+            metricPoint.TryGetExemplars(out var exemplars);
+
+            var exemplarsEnumerator = exemplars.GetEnumerator();
+
+            double[] exemplarValues = doubleValue.Value > 0 ? new double[] { doubleValue.Value, 0 } : new double[] { 0 };
+
+            int exemplarValuesIndex = 0;
+
+            foreach (var exemplar in dataPoint.Exemplars)
+            {
+                exemplarsEnumerator.MoveNext();
+
+                var actualExemplar = exemplarsEnumerator.Current;
+
+                Assert.Equal((ulong)actualExemplar.Timestamp.ToUnixTimeNanoseconds(), exemplar.TimeUnixNano);
+
+                Assert.Equal(exemplarValues[exemplarValuesIndex], exemplar.AsDouble);
+
+                if (isTracingEnabled)
+                {
+                    var spanIdBytes = new byte[8];
+                    activity.SpanId.CopyTo(spanIdBytes);
+
+                    Assert.True(spanIdBytes.SequenceEqual(exemplar.SpanId));
+
+                    var traceIdBytes = new byte[16];
+                    activity.TraceId.CopyTo(traceIdBytes);
+
+                    Assert.True(traceIdBytes.SequenceEqual(exemplar.TraceId));
+                }
+                else
+                {
+                    Assert.Equal(ByteString.Empty, exemplar.SpanId);
+                    Assert.Equal(ByteString.Empty, exemplar.TraceId);
+                }
+
+                AssertOtlpAttributes([new KeyValuePair<string, object>("zfilteredKey1", "zfilteredValue1")], exemplar.FilteredAttributes);
+
+                exemplarValuesIndex++;
+            }
+        }
+        else
+        {
+            Assert.Empty(dataPoint.Exemplars);
+        }
+#endif
     }
 
     internal static void AssertOtlpAttributes(
