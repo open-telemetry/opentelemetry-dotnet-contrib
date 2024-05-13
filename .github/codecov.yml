@@ -58,6 +58,11 @@ flags:
       - src/OpenTelemetry.Instrumentation.AspNet
       - src/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 
+  unittests-Instrumentation.AspNetCore:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.AspNetCore
+
   unittests-Instrumentation.EventCounters:
     carryforward: true
     paths:
