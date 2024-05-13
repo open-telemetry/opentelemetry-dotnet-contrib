@@ -18,6 +18,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Exporter.OneCollector" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AspNetCore" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />

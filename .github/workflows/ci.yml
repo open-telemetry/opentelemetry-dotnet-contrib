@@ -23,7 +23,8 @@ jobs:
           code: ['**.cs', '**.csproj', '.editorconfig']
           aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
-          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet*/**', 'examples/AspNet/**', '!**/*.md']
+          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet.*/**', 'examples/AspNet/**', '!**/*.md']
+          aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
           aws: ['*/OpenTelemetry.*.AWS*/**', '!**/*.md']
           azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
@@ -50,7 +51,8 @@ jobs:
             'test/**',
             'examples/**',
             '!test/OpenTelemetry.AotCompatibility.TestApp/**',
-            '!*/OpenTelemetry.Instrumentation.AspNet*/**',
+            '!*/OpenTelemetry.Instrumentation.AspNet.*/**',
+            '!*/OpenTelemetry.Instrumentation.AspNetCore*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
             '!*/OpenTelemetry.ResourceDetectors.Host*/**',
@@ -109,6 +111,18 @@ jobs:
       code-cov-name: Instrumentation.AspNet
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+
+  build-test-aspnetcore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.AspNetCore
+      code-cov-name: Instrumentation.AspNetCore
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
 
   build-test-azure:
     needs: detect-changes
@@ -364,6 +378,7 @@ jobs:
             OpenTelemetry.Extensions.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
             OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
+            OpenTelemetry.Instrumentation.AspNetCore.Tests.csproj,
             OpenTelemetry.Instrumentation.EventCounters.Tests.csproj,
             OpenTelemetry.Instrumentation.GrpcNetClient.Tests.csproj,
             OpenTelemetry.Instrumentation.Http.Tests.csproj,
@@ -421,6 +436,7 @@ jobs:
     if: |
       contains(needs.detect-changes.outputs.changes, 'eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'runtime')
+      || contains(needs.detect-changes.outputs.changes, 'aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'aws')
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
@@ -448,6 +464,7 @@ jobs:
       lint-md,
       lint-dotnet-format,
       build-test-aspnet,
+      build-test-aspnetcore,
       build-test-azure,
       build-test-eventcounters,
       build-test-extensions,

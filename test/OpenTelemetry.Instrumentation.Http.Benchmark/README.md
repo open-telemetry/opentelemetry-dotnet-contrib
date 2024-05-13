@@ -1,4 +1,4 @@
-# OpenTelemetry GenevaExporter Benchmarks
+# OpenTelemetry HTTP Instrumentation Benchmarks
 
 Navigate to `./test/OpenTelemetry.Instrumentation.Http.Benchmark` directory and run
 the following command:
