@@ -8,8 +8,6 @@
     <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
 
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- this is temporary. will remove in future PR. -->
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -29,13 +29,13 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> factory = factory;
-    private MeterProvider meterProvider;
+    private MeterProvider? meterProvider;
 
     [Fact]
     public void AddAspNetCoreInstrumentation_BadArgs()
     {
-        MeterProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(builder.AddAspNetCoreInstrumentation);
+        MeterProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(builder!.AddAspNetCoreInstrumentation);
     }
 
 #if NET8_0_OR_GREATER
@@ -151,7 +151,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         // giving some breezing room for the callbacks to complete
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        this.meterProvider.Dispose();
+        this.meterProvider?.Dispose();
 
         var activeRequestLeasesMetric = exportedItems
             .Where(item => item.Name == "aspnetcore.rate_limiting.active_request_leases")
@@ -292,13 +292,13 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         var mp = metricPoints[0];
 
         // Inspect Metric Attributes
-        var attributes = new Dictionary<string, object>();
+        var attributes = new Dictionary<string, object?>();
         foreach (var tag in mp.Tags)
         {
             attributes[tag.Key] = tag.Value;
         }
 
-        Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value.ToString() == expectedMethod);
+        Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value?.ToString() == expectedMethod);
 
         Assert.DoesNotContain(attributes, t => t.Key == SemanticConventions.AttributeHttpRequestMethodOriginal);
     }
@@ -338,7 +338,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
             {
                 foreach (var tag in mp.Tags)
                 {
-                    if (tag.Key == SemanticConventions.AttributeHttpRoute && tag.Value.ToString() == expectedRoute)
+                    if (tag.Key == SemanticConventions.AttributeHttpRoute && tag.Value?.ToString() == expectedRoute)
                     {
                         metricPoint = mp;
                     }
@@ -369,7 +369,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.Equal(1L, count);
         Assert.True(sum > 0);
 
-        var attributes = new KeyValuePair<string, object>[metricPoint.Tags.Count];
+        var attributes = new KeyValuePair<string, object?>[metricPoint.Tags.Count];
         int i = 0;
         foreach (var tag in metricPoint.Tags)
         {
@@ -379,11 +379,11 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         // Inspect Attributes
         Assert.Equal(expectedTagsCount, attributes.Length);
 
-        var method = new KeyValuePair<string, object>(SemanticConventions.AttributeHttpRequestMethod, "GET");
-        var scheme = new KeyValuePair<string, object>(SemanticConventions.AttributeUrlScheme, "http");
-        var statusCode = new KeyValuePair<string, object>(SemanticConventions.AttributeHttpResponseStatusCode, expectedStatusCode);
-        var flavor = new KeyValuePair<string, object>(SemanticConventions.AttributeNetworkProtocolVersion, "1.1");
-        var route = new KeyValuePair<string, object>(SemanticConventions.AttributeHttpRoute, expectedRoute);
+        var method = new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, "GET");
+        var scheme = new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlScheme, "http");
+        var statusCode = new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpResponseStatusCode, expectedStatusCode);
+        var flavor = new KeyValuePair<string, object?>(SemanticConventions.AttributeNetworkProtocolVersion, "1.1");
+        var route = new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRoute, expectedRoute);
         Assert.Contains(method, attributes);
         Assert.Contains(scheme, attributes);
         Assert.Contains(statusCode, attributes);
@@ -392,7 +392,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         if (expectedErrorType != null)
         {
-            var errorType = new KeyValuePair<string, object>(SemanticConventions.AttributeErrorType, expectedErrorType);
+            var errorType = new KeyValuePair<string, object?>(SemanticConventions.AttributeErrorType, expectedErrorType);
 
             Assert.Contains(errorType, attributes);
         }

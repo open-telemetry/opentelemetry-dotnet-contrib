@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
@@ -18,7 +20,7 @@ internal static class GrpcTagHelper
 
     private static readonly Regex GrpcMethodRegex = new(@"^/?(?<service>.*)/(?<method>.*)$", RegexOptions.Compiled);
 
-    public static string GetGrpcMethodFromActivity(Activity activity)
+    public static string? GetGrpcMethodFromActivity(Activity activity)
     {
         return activity.GetTagValue(GrpcMethodTagName) as string;
     }
