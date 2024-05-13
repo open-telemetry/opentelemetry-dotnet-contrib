@@ -15,6 +15,7 @@
     <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
+    <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">false</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,13 +29,23 @@
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
+    <!-- Note: $(BuildNumber) is typically only set for builds initiated by the
+    publish workflow. -->
     <PropertyGroup>
-      <RevisionNumber>0</RevisionNumber>
-      <RevisionNumber Condition="$(MinVerVersion.Split(`.`).Length) == 4">$(MinVerVersion.Split(`.`)[3])</RevisionNumber>
+      <RevisionNumber>$(BuildNumber)</RevisionNumber>
+      <RevisionNumber Condition="'$(BuildNumber)' == ''">0</RevisionNumber>
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</AssemblyVersion>
       <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</Version>
       <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</FileVersion>
     </PropertyGroup>
+
+    <!-- Note: The '$(TargetFramework)' != '' check here is to reduce log spam
+    in builds like dotnet pack which fire MinVer but don't resolve the actual
+    TargetFramework -->
+    <Message
+      Condition="'$(TargetFramework)' != '' AND '$(BuildNumber)' != ''"
+      Importance="high"
+      Text="**AssemblyVersionDebug** TargetFramework: $(TargetFramework), MinVerVersion: $(MinVerVersion), BuildNumber: $(BuildNumber), AssemblyVersion: $(AssemblyVersion), FileVersion: $(FileVersion)" />
   </Target>
 
   <PropertyGroup Label="SourceLink">
@@ -51,6 +62,12 @@
   <PropertyGroup Condition="'$(Deterministic)'=='true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <Target Name="EnsurePackageValidationBaselineVersion"
+          BeforeTargets="RunPackageValidation"
+          Condition="'$(DisablePackageBaselineValidation)' != 'true' AND '$(PackageValidationBaselineVersion)' == '' AND '$(MinVerTagPrefix)' != 'coreunstable-'">
+    <Error Text="Cannot perform package validation without a baseline package version." />
+  </Target>
 
   <ItemGroup Condition="'$(EnablePublicApi)'!='false'">
     <!-- Note: This includes all the PublicApiAnalyzers files in projects to make editing easier in the IDE -->

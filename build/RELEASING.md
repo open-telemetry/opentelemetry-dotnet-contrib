@@ -75,3 +75,6 @@ release page.
 successfully published to nuget.org under OpenTelemetry owner.
 
 4. Validate that the new version was published in GitHub.
+
+5. If you released stable package, update `PackageValidationBaselineVersion`
+   in corresponding `csproj` file.
