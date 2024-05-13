@@ -1412,9 +1412,9 @@ public class OtlpProtobufMetricExporterTests
         meterProviderBuilder.AddView(instrument =>
         {
 #if EXPOSE_EXPERIMENTAL_FEATURES
-        return new Base2ExponentialBucketHistogramConfiguration() { TagKeys = TagKeys };
+            return new Base2ExponentialBucketHistogramConfiguration() { TagKeys = TagKeys };
 #else
-        return new Base2ExponentialBucketHistogramConfiguration();
+            return new Base2ExponentialBucketHistogramConfiguration();
 #endif
         });
 
