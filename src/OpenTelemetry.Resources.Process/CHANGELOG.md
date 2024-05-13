@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Process`
+  to `OpenTelemetry.Resources.Process`.
+  ([#1717](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1717))
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
