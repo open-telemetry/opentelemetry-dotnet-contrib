@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
 #endif
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Instrumentation.GrpcNetClient;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 

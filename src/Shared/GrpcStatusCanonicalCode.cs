@@ -3,7 +3,7 @@
 
 #nullable enable
 
-namespace OpenTelemetry.Instrumentation.GrpcNetClient;
+namespace OpenTelemetry.Instrumentation;
 
 /// <summary>
 /// Canonical result code of span execution.
@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.GrpcNetClient;
 /// This follows the standard GRPC codes.
 /// https://github.com/grpc/grpc/blob/master/doc/statuscodes.md.
 /// </remarks>
-internal enum StatusCanonicalCode
+internal enum GrpcStatusCanonicalCode
 {
     /// <summary>
     /// The operation completed successfully.

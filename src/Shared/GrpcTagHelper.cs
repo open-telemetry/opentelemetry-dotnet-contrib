@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.GrpcNetClient;
+namespace OpenTelemetry.Instrumentation;
 
 internal static class GrpcTagHelper
 {
@@ -64,11 +64,11 @@ internal static class GrpcTagHelper
     {
         var status = ActivityStatusCode.Error;
 
-        if (typeof(StatusCanonicalCode).IsEnumDefined(statusCode))
+        if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
         {
-            status = ((StatusCanonicalCode)statusCode) switch
+            status = ((GrpcStatusCanonicalCode)statusCode) switch
             {
-                StatusCanonicalCode.Ok => ActivityStatusCode.Unset,
+                GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
                 _ => ActivityStatusCode.Error,
             };
         }
