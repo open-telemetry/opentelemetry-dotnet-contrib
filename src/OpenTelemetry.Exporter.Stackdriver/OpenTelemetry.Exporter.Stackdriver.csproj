@@ -7,6 +7,12 @@
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
   </PropertyGroup>
 
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Cloud.Monitoring.V3" Version="[3.4.0,4.0)" />
     <PackageReference Include="Google.Cloud.Trace.V2" Version="[3.3.0,4.0)" />
