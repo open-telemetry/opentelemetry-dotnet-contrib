@@ -14,40 +14,81 @@ exporters to improve the reliability of data delivery.
 dotnet add package OpenTelemetry.PersistentStorage.FileSystem
 ```
 
+## File Details
+
+### File naming
+
+Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
+configured [path](#setup-fileblobprovider). Each file that is created has unique
+name in the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends
+on the operation. When creating a blob, the file is stored with the `.blob`
+extension. If a lease is acquired on an existing file or on the file being
+created, the file extension is changed to `.lock`, along with the lease
+expiration time appended to its name in the format
+`@yyyy-MM-ddTHHmmss.fffffffZ`. The `.tmp` extension is used for files while data
+writing is in process.
+
+### File Access
+
+Access to the stored files is controlled by the underlying file system
+permissions set on the directory where the files are stored.
+
+### Data format
+
+The data contained within the file is stored in its original, unprocessed format
+provided in the byte array.
+
+### Data retention
+
+A blob stored on disk persists until it is explicitly deleted using the
+[TryDelete](#delete) operation or is removed during the [maintenance
+job](#maintenanceperiodinmilliseconds) upon the expiration of its
+[retention](#retentionperiodinmilliseconds) period.
+
 ## Basic Usage
 
 ### Setup FileBlobProvider
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider("@C:\temp");
 ```
+
+#### Configuration
 
 Following is the complete list of configurable options that can be used to set
 up FileBlobProvider:
 
-* `path`: Sets folder location where blobs are stored.
+##### path
 
-* `maxSizeInBytes`: Maximum allowed folder size. Default is 50 MB.
+Sets folder location where blobs are stored.
 
-* `maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
-Default is 2 minutes. Maintenance event performs the following tasks:
+#### maxSizeInBytes
 
-  * Removes `*.blob` files for which the retention period has expired.
-  * Removes `*.tmp` files for which the write timeout period has expired.
-  * Updates `*.lock` files to `*.blob` for which the lease period has expired.
-  * Updates `directorySize`.
+Maximum allowed folder size. Default is `50 MB`.
 
-* `retentionPeriodInMilliseconds`: Retention period in milliseconds for the blob.
-Default is 2 days.
+#### maintenancePeriodInMilliseconds
 
-* `writeTimeoutInMilliseconds`: Controls the timeout when writing a buffer to
-blob. Default is 1 minute.
+Maintenance event runs at specified interval. Default is `2 minutes`. Maintenance
+event performs the following tasks:
+
+* Removes `*.blob` files for which the retention period has expired.
+* Removes `*.tmp` files for which the write timeout period has expired.
+* Updates `*.lock` files to `*.blob` for which the lease period has expired.
+* Updates `directorySize`.
+
+#### retentionPeriodInMilliseconds
+
+Retention period in milliseconds for the blob. Default is `2 days`.
+
+#### writeTimeoutInMilliseconds
+
+Controls the timeout when writing a buffer to blob. Default is `1 minute`.
 
 ### CreateBlob
 
 `TryCreateBlob(byte[] buffer, out PersistentBlob blob)` or `TryCreateBlob(byte[]
 buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` can be used
-to store data on disk in case of failures. The file stored will have `.blob`
+to create a blob (single file). The file stored will have `.blob`
 extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
