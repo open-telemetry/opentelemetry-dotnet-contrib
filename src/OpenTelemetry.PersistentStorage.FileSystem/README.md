@@ -62,11 +62,11 @@ up FileBlobProvider:
 
 Sets folder location where blobs are stored.
 
-#### maxSizeInBytes
+##### maxSizeInBytes
 
 Maximum allowed folder size. Default is `50 MB`.
 
-#### maintenancePeriodInMilliseconds
+##### maintenancePeriodInMilliseconds
 
 Maintenance event runs at specified interval. Default is `2 minutes`. During
 this event, the following tasks are performed:
@@ -76,11 +76,11 @@ this event, the following tasks are performed:
 * Updates `*.lock` files to `*.blob` for which the lease period has expired.
 * Updates `directorySize`.
 
-#### retentionPeriodInMilliseconds
+##### retentionPeriodInMilliseconds
 
 Retention period in milliseconds for the blob. Default is `2 days`.
 
-#### writeTimeoutInMilliseconds
+##### writeTimeoutInMilliseconds
 
 Controls the timeout when writing a buffer to blob. Default is `1 minute`.
 
