@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Threading;
 using Google.Protobuf;
 using Grpc.Core;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
 
@@ -184,7 +183,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
             if (statusDescription != null)
             {
-                this.activity.SetStatus(Trace.Status.Error.WithDescription(statusDescription));
+                this.activity.SetStatus(ActivityStatusCode.Error, statusDescription);
             }
 
             this.activity.Stop();
