@@ -63,6 +63,15 @@ internal static class ProtobufSerializerHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void WriteSInt32WithTag(byte[] buffer, ref int cursor, int fieldNumber, int value)
+    {
+        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
+
+        // https://protobuf.dev/programming-guides/encoding/#signed-ints
+        WriteVarint32(buffer, ref cursor, (uint)((value << 1) ^ (value >> 31)));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteDoubleWithTag(byte[] buffer, ref int cursor, int fieldNumber, double value)
     {
         WriteTag(buffer, ref cursor, fieldNumber, WireType.I64);
