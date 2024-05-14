@@ -60,12 +60,7 @@ internal class HttpInListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        var activity = Activity.Current;
-
-        if (activity == null)
-        {
-            return;
-        }
+        var activity = Activity.Current!;
 
         switch (name)
         {
