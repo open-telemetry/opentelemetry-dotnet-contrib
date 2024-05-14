@@ -19,7 +19,7 @@ dotnet add package OpenTelemetry.PersistentStorage.FileSystem
 ### File naming
 
 Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
-configured [path](#setup-fileblobprovider). Each file that is created has unique
+configured [directory path](#path). Each file that is created has unique
 name in the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends
 on the operation. When creating a blob, the file is stored with the `.blob`
 extension. If a lease is acquired on an existing file or on the file being
