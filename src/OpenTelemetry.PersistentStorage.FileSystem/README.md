@@ -14,37 +14,6 @@ exporters to improve the reliability of data delivery.
 dotnet add package OpenTelemetry.PersistentStorage.FileSystem
 ```
 
-## File Details
-
-### File naming
-
-Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
-configured [directory path](#path). Each file that is created has unique
-name in the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends
-on the operation. When creating a blob, the file is stored with the `.blob`
-extension. If a lease is acquired on an existing file or on the file being
-created, the file extension is changed to `.lock`, along with the lease
-expiration time appended to its name in the format
-`@yyyy-MM-ddTHHmmss.fffffffZ`. The `.tmp` extension is used for files while data
-writing is in process.
-
-### File Access
-
-Access to the stored files is controlled by the underlying file system
-permissions set on the directory where the files are stored.
-
-### Data format
-
-The data contained within the file is stored in its original, unprocessed format
-provided in the byte array.
-
-### Data retention
-
-A blob stored on disk persists until it is explicitly deleted using the
-[TryDelete](#delete) operation or is removed during the [maintenance
-job](#maintenanceperiodinmilliseconds) upon the expiration of its
-[retention](#retentionperiodinmilliseconds) period.
-
 ## Usage
 
 ### Setup FileBlobProvider
@@ -182,3 +151,34 @@ if (persistentBlobProvider.TryGetBlob(out var blob))
     }
 }
 ```
+
+## File Details
+
+### File naming
+
+Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
+configured [directory path](#path). Each file that is created has unique
+name in the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends
+on the operation. When creating a blob, the file is stored with the `.blob`
+extension. If a lease is acquired on an existing file or on the file being
+created, the file extension is changed to `.lock`, along with the lease
+expiration time appended to its name in the format
+`@yyyy-MM-ddTHHmmss.fffffffZ`. The `.tmp` extension is used for files while data
+writing is in process.
+
+### File Access
+
+Access to the stored files is controlled by the underlying file system
+permissions set on the directory where the files are stored.
+
+### Data format
+
+The data contained within the file is stored in its original, unprocessed format
+provided in the byte array.
+
+### Data retention
+
+A blob stored on disk persists until it is explicitly deleted using the
+[TryDelete](#delete) operation or is removed during the [maintenance
+job](#maintenanceperiodinmilliseconds) upon the expiration of its
+[retention](#retentionperiodinmilliseconds) period.
