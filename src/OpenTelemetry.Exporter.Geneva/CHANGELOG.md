@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.8.0-rc.2
+
+Released 2024-May-13
+
 * **Experimental (pre-release builds only)**: Add support for exporting
   exemplars when OTLP protobuf encoding is enabled via
   `PrivatePreviewEnableOtlpProtobufEncoding=true` in the connection string.
