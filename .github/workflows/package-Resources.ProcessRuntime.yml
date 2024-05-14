@@ -1,4 +1,4 @@
-name: Pack OpenTelemetry.ResourceDetectors.ProcessRuntime
+name: Pack OpenTelemetry.Resources.ProcessRuntime
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         default: 'warning'
   push:
     tags:
-      - 'ResourceDetectors.ProcessRuntime-*' # trigger when we create a tag with prefix "ResourceDetectors.ProcessRuntime-"
+      - 'Resources.ProcessRuntime-*' # trigger when we create a tag with prefix "Resources.ProcessRuntime-"
 
 jobs:
   call-build-test-pack:
@@ -17,5 +17,5 @@ jobs:
       contents: write
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.ProcessRuntime
+      project-name: OpenTelemetry.Resources.ProcessRuntime
     secrets: inherit

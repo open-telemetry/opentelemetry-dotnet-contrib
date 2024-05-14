@@ -76,7 +76,7 @@ components:
   src/OpenTelemetry.ResourceDetectors.Process/:
     - Kielek
     - lachmatt
-  src/OpenTelemetry.ResourceDetectors.ProcessRuntime/:
+  src/OpenTelemetry.Resources.ProcessRuntime/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Sampler.AWS/:
@@ -166,7 +166,7 @@ components:
   test/OpenTelemetry.ResourceDetectors.Process.Tests/:
     - Kielek
     - lachmatt
-  test/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/:
+  test/OpenTelemetry.Resources.ProcessRuntime.Tests/:
     - Kielek
     - lachmatt
   test/OpenTelemetry.Sampler.AWS.Tests/:

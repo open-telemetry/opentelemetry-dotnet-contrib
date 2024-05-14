@@ -11,7 +11,7 @@ using Microsoft.Win32;
 #endif
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.ProcessRuntime;
+namespace OpenTelemetry.Resources.ProcessRuntime;
 
 /// <summary>
 /// Process runtime detector.

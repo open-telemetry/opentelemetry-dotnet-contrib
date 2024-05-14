@@ -1,3 +1,0 @@
-OpenTelemetry.ResourceDetectors.ProcessRuntime.ProcessRuntimeDetector
-OpenTelemetry.ResourceDetectors.ProcessRuntime.ProcessRuntimeDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.ResourceDetectors.ProcessRuntime.ProcessRuntimeDetector.ProcessRuntimeDetector() -> void

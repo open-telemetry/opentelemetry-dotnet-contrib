@@ -5,7 +5,7 @@ using System.Linq;
 using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests;
+namespace OpenTelemetry.Resources.ProcessRuntime.Tests;
 
 public class ProcessRuntimeDetectorTests
 {

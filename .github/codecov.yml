@@ -129,10 +129,10 @@ flags:
     paths:
       - src/OpenTelemetry.ResourceDetectors.Process
 
-  unittests-ResourceDetectors.ProcessRuntime:
+  unittests-Resources.ProcessRuntime:
     carryforward: true
     paths:
-      - src/OpenTelemetry.ResourceDetectors.ProcessRuntime
+      - src/OpenTelemetry.Resources.ProcessRuntime
 
   unittests-SemanticConventions:
     carryforward: true

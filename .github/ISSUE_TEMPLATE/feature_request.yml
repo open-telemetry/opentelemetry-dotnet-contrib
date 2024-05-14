@@ -53,7 +53,7 @@ body:
         - OpenTelemetry.ResourceDetectors.Container
         - OpenTelemetry.ResourceDetectors.Host
         - OpenTelemetry.ResourceDetectors.Process
-        - OpenTelemetry.ResourceDetectors.ProcessRuntime
+        - OpenTelemetry.Resources.ProcessRuntime
         - OpenTelemetry.Sampler.AWS
         - OpenTelemetry.SemanticConventions
 
