@@ -54,6 +54,7 @@ body:
         - OpenTelemetry.ResourceDetectors.Host
         - OpenTelemetry.ResourceDetectors.Process
         - OpenTelemetry.ResourceDetectors.ProcessRuntime
+        - OpenTelemetry.Resources.Gcp
         - OpenTelemetry.Sampler.AWS
         - OpenTelemetry.SemanticConventions
     validations:
