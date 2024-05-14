@@ -30,6 +30,7 @@ public class OtlpProtobufMetricExporterTests
         { "Dim3", 3 },
     };
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
     private static readonly string[] TagKeys = new[]
     {
         "boolKey",
@@ -50,6 +51,7 @@ public class OtlpProtobufMetricExporterTests
         "ulongKey",
         "ushortKey",
     };
+#endif
 
     private TagList exemplarTagList;
 
