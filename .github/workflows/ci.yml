@@ -30,6 +30,7 @@ jobs:
           eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
           http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
@@ -59,6 +60,7 @@ jobs:
             '!*/OpenTelemetry.ResourceDetectors.Process.Tests/**',
             '!*/OpenTelemetry.Resources.ProcessRuntime/**',
             '!*/OpenTelemetry.Resources.ProcessRuntime.Tests/**',
+            '!*/OpenTelemetry.Resources.Gcp*/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions/**',
@@ -166,6 +168,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Exporter.Geneva
       code-cov-name: Exporter.Geneva
+
+  build-test-gcp:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'gcp')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Resources.Gcp
+      code-cov-name: Resources.Gcp
 
   build-test-grpcnetclient:
     needs: detect-changes
@@ -379,6 +392,7 @@ jobs:
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Process.Tests.csproj,
+            OpenTelemetry.Resources.Gcp.Tests.csproj,
             OpenTelemetry.Resources.ProcessRuntime.Tests.csproj
 
         $failedProjects = @()
@@ -426,6 +440,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'aws')
       || contains(needs.detect-changes.outputs.changes, 'azure')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
+      || contains(needs.detect-changes.outputs.changes, 'gcp')
       || contains(needs.detect-changes.outputs.changes, 'grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'host')
       || contains(needs.detect-changes.outputs.changes, 'http')
@@ -454,6 +469,7 @@ jobs:
       build-test-eventcounters,
       build-test-extensions,
       build-test-geneva,
+      build-test-gcp,
       build-test-grpcnetclient,
       build-test-host,
       build-test-http,

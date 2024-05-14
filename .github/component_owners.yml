@@ -79,6 +79,9 @@ components:
   src/OpenTelemetry.Resources.ProcessRuntime/:
     - Kielek
     - lachmatt
+  src/OpenTelemetry.Resources.Gcp/:
+    - matt-hensley
+    - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
@@ -169,6 +172,9 @@ components:
   test/OpenTelemetry.Resources.ProcessRuntime.Tests/:
     - Kielek
     - lachmatt
+  test/OpenTelemetry.Resources.Gcp.Tests/:
+    - matt-hensley
+    - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43
