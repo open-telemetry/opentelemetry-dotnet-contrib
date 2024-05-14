@@ -68,8 +68,8 @@ Maximum allowed folder size. Default is `50 MB`.
 
 #### maintenancePeriodInMilliseconds
 
-Maintenance event runs at specified interval. Default is `2 minutes`. Maintenance
-event performs the following tasks:
+Maintenance event runs at specified interval. Default is `2 minutes`. During
+this event, the following tasks are performed:
 
 * Removes `*.blob` files for which the retention period has expired.
 * Removes `*.tmp` files for which the write timeout period has expired.
@@ -84,7 +84,9 @@ Retention period in milliseconds for the blob. Default is `2 days`.
 
 Controls the timeout when writing a buffer to blob. Default is `1 minute`.
 
-### CreateBlob
+### Blob Operations
+
+#### CreateBlob
 
 `TryCreateBlob(byte[] buffer, out PersistentBlob blob)` or `TryCreateBlob(byte[]
 buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` can be used
@@ -99,7 +101,7 @@ persistentBlobProvider.TryCreateBlob(data, out var blob);
 persistentBlobProvider.TryCreateBlob(data, 1000, out var blob);
 ```
 
-### GetBlob and GetBlobs
+#### GetBlob and GetBlobs
 
 `TryGetBlob` can be used to read single blob or `GetBlobs` can be used to get list
 of all blobs stored on disk. The result will only include files with `.blob`
@@ -116,7 +118,7 @@ foreach (var blobItem in persistentBlobProvider.GetBlobs())
 }
 ```
 
-### Lease
+#### Lease
 
 When reading data back from disk, `TryLease(int leasePeriodMilliseconds)` method
 should be used first to acquire lease on blob. This prevents it to be read
@@ -127,7 +129,7 @@ extension to `.lock`.
 blob.TryLease(1000);
 ```
 
-### Read
+#### Read
 
 Once the lease is acquired on the blob, the data can be read using
 `TryRead(out var data)` method.
@@ -136,7 +138,7 @@ Once the lease is acquired on the blob, the data can be read using
 blob.TryRead(out var data);
 ```
 
-### Delete
+#### Delete
 
 `TryDelete` method can be used to delete the blob.
 
@@ -144,7 +146,7 @@ blob.TryRead(out var data);
 blob.TryDelete();
 ```
 
-## Example
+### Example
 
 ```csharp
 using var persistentBlobProvider = new FileBlobProvider("test");
