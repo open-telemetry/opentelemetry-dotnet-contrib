@@ -45,7 +45,7 @@ A blob stored on disk persists until it is explicitly deleted using the
 job](#maintenanceperiodinmilliseconds) upon the expiration of its
 [retention](#retentionperiodinmilliseconds) period.
 
-## Basic Usage
+## Usage
 
 ### Setup FileBlobProvider
 
@@ -149,7 +149,7 @@ blob.TryDelete();
 ### Example
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider("@C:\temp");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
