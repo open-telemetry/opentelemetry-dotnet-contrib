@@ -133,6 +133,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             }
         }
 
+        ExporterEventSource.Log.ExportSuccess(nameof(MsgPackLogExporter));
+
         return result;
     }
 
