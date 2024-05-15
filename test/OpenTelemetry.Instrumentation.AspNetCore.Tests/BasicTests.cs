@@ -28,7 +28,7 @@ public sealed class BasicTests
     : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly WebApplicationFactory<Program> factory;
-    private TracerProvider tracerProvider;
+    private TracerProvider? tracerProvider;
 
     public BasicTests(WebApplicationFactory<Program> factory)
     {
@@ -38,8 +38,8 @@ public sealed class BasicTests
     [Fact]
     public void AddAspNetCoreInstrumentation_BadArgs()
     {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddAspNetCoreInstrumentation());
+        TracerProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder!.AddAspNetCoreInstrumentation());
     }
 
     [Theory]
@@ -375,6 +375,7 @@ public sealed class BasicTests
 
             response.EnsureSuccessStatusCode();
 
+            Assert.NotNull(childActivityTraceContext);
             Assert.Equal(expectedTraceId.ToString(), childActivityTraceContext["TraceId"]);
             Assert.Equal(expectedTraceState, childActivityTraceContext["TraceState"]);
             Assert.NotEqual(expectedParentSpanId.ToString(), childActivityTraceContext["ParentSpanId"]); // there is a new activity created in instrumentation therefore the ParentSpanId is different that what is provided in the headers
@@ -387,6 +388,7 @@ public sealed class BasicTests
 
             response.EnsureSuccessStatusCode();
 
+            Assert.NotNull(childActivityBaggageContext);
             Assert.Single(childActivityBaggageContext, item => item.Key == "key1" && item.Value == "value1");
             Assert.Single(childActivityBaggageContext, item => item.Key == "key2" && item.Value == "value2");
         }
@@ -445,6 +447,7 @@ public sealed class BasicTests
 
             response.EnsureSuccessStatusCode();
 
+            Assert.NotNull(childActivityTraceContext);
             Assert.Equal(expectedTraceId.ToString(), childActivityTraceContext["TraceId"]);
             Assert.Equal(expectedTraceState, childActivityTraceContext["TraceState"]);
             Assert.NotEqual(expectedParentSpanId.ToString(), childActivityTraceContext["ParentSpanId"]); // there is a new activity created in instrumentation therefore the ParentSpanId is different that what is provided in the headers
@@ -457,6 +460,7 @@ public sealed class BasicTests
 
             response.EnsureSuccessStatusCode();
 
+            Assert.NotNull(childActivityBaggageContext);
             Assert.Single(childActivityBaggageContext, item => item.Key == "key1" && item.Value == "value1");
             Assert.Single(childActivityBaggageContext, item => item.Key == "key2" && item.Value == "value2");
         }
@@ -1087,7 +1091,7 @@ public sealed class BasicTests
         var exportedItems = new List<Activity>();
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string> { ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION"] = disableQueryRedaction.ToString() })
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION"] = disableQueryRedaction.ToString() })
             .Build();
 
         var path = "/api/values" + urlQuery;
@@ -1148,6 +1152,7 @@ public sealed class BasicTests
         Assert.Equal(ActivityKind.Server, activityToValidate.Kind);
 #if NET7_0_OR_GREATER
         Assert.Equal(HttpInListener.AspNetCoreActivitySourceName, activityToValidate.Source.Name);
+        Assert.NotNull(activityToValidate.Source.Version);
         Assert.Empty(activityToValidate.Source.Version);
 #else
         Assert.Equal(HttpInListener.ActivitySourceName, activityToValidate.Source.Name);
@@ -1208,22 +1213,27 @@ public sealed class BasicTests
         }
     }
 
-    private class TestSampler(SamplingDecision samplingDecision, IEnumerable<KeyValuePair<string, object>> attributes = null) : Sampler
+    private class TestSampler(SamplingDecision samplingDecision, IEnumerable<KeyValuePair<string, object>>? attributes = null) : Sampler
     {
         private readonly SamplingDecision samplingDecision = samplingDecision;
-        private readonly IEnumerable<KeyValuePair<string, object>> attributes = attributes;
+        private readonly IEnumerable<KeyValuePair<string, object>>? attributes = attributes;
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
-            return new SamplingResult(this.samplingDecision, this.attributes);
+            if (this.attributes != null)
+            {
+                return new SamplingResult(this.samplingDecision, this.attributes);
+            }
+
+            return new SamplingResult(this.samplingDecision);
         }
     }
 
     private class TestHttpInListener(AspNetCoreTraceInstrumentationOptions options) : HttpInListener(options)
     {
-        public Action<string, object> OnEventWrittenCallback;
+        public Action<string, object?>? OnEventWrittenCallback;
 
-        public override void OnEventWritten(string name, object payload)
+        public override void OnEventWritten(string name, object? payload)
         {
             base.OnEventWritten(name, payload);
 
@@ -1235,7 +1245,7 @@ public sealed class BasicTests
     {
         private readonly ActivitySource activitySource = new(activitySourceName);
         private readonly string activityName = activityName;
-        private Activity activity;
+        private Activity? activity;
 
         public override void PreProcess(HttpContext context)
         {
@@ -1257,7 +1267,7 @@ public sealed class BasicTests
     {
         private readonly ActivitySource activitySource = new(activitySourceName);
         private readonly string activityName = activityName;
-        private Activity activity;
+        private Activity? activity;
 
         public override void PreProcess(HttpContext context)
         {
