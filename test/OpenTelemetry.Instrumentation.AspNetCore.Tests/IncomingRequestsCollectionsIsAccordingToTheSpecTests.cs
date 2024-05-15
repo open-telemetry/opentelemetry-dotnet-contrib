@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,16 +26,15 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
     }
 
     [Theory]
-    [InlineData("/api/values", null, "user-agent", 200, null)]
-    [InlineData("/api/values", null, null, 200, null)]
-    [InlineData("/api/exception", null, null, 503, null)]
-    [InlineData("/api/exception", null, null, 503, null, true)]
+    [InlineData("/api/values", null, "user-agent", 200)]
+    [InlineData("/api/values", null, null, 200)]
+    [InlineData("/api/exception", null, null, 503)]
+    [InlineData("/api/exception", null, null, 503, true)]
     public async Task SuccessfulTemplateControllerCallGeneratesASpan_New(
         string urlPath,
         string query,
         string userAgent,
         int statusCode,
-        string reasonPhrase,
         bool recordException = false)
     {
         var exportedItems = new List<Activity>();
@@ -47,7 +45,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
             {
                 builder.ConfigureTestServices((IServiceCollection services) =>
                 {
-                    services.AddSingleton<TestCallbackMiddleware>(new ExceptionTestCallbackMiddleware(statusCode, reasonPhrase));
+                    services.AddSingleton<TestCallbackMiddleware>(new ExceptionTestCallbackMiddleware(statusCode));
                     services.AddOpenTelemetry()
                         .WithTracing(builder => builder
                             .AddAspNetCoreInstrumentation(options =>
@@ -147,21 +145,18 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
     internal class ExceptionTestCallbackMiddleware : TestCallbackMiddleware
     {
         private readonly int statusCode;
-        private readonly string reasonPhrase;
 
-        public ExceptionTestCallbackMiddleware(int statusCode, string reasonPhrase)
+        public ExceptionTestCallbackMiddleware(int statusCode)
         {
             this.statusCode = statusCode;
-            this.reasonPhrase = reasonPhrase;
         }
 
         public override async Task<bool> ProcessAsync(HttpContext context)
         {
             context.Response.StatusCode = this.statusCode;
-            context.Response.HttpContext.Features.Get<IHttpResponseFeature>().ReasonPhrase = this.reasonPhrase;
             await context.Response.WriteAsync("empty");
 
-            if (context.Request.Path.Value.EndsWith("exception", StringComparison.Ordinal))
+            if (context.Request.Path.HasValue && context.Request.Path!.Value.EndsWith("exception", StringComparison.Ordinal))
             {
                 throw new Exception("exception description");
             }
