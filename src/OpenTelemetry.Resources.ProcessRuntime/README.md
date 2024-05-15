@@ -24,12 +24,12 @@ the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.Resources.ProcessRuntime;
+using OpenTelemetry.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .ConfigureResource(resource => resource
-                            .AddDetector(new ProcessRuntimeDetector()))
+                            .AddProcessRuntimeDetector())
                         .Build();
 ```
 
