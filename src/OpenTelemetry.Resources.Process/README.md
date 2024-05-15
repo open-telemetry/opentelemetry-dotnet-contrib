@@ -1,7 +1,7 @@
 # Process Resource Detectors
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Process)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Process)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Process)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Process)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Process)](https://www.nuget.org/packages/OpenTelemetry.Resources.Process)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Process)](https://www.nuget.org/packages/OpenTelemetry.Resources.Process)
 
 > [!IMPORTANT]
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/process.md#process).
@@ -10,11 +10,11 @@
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.ResourceDetectors.Process` package to be able to use the
+`OpenTelemetry.Resources.Process` package to be able to use the
 Process Runtime Resource Detectors.
 
 ```shell
-dotnet add package OpenTelemetry.ResourceDetectors.Process --prerelease
+dotnet add package OpenTelemetry.Resources.Process --prerelease
 ```
 
 ## Usage
@@ -24,12 +24,11 @@ the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.ResourceDetectors.Process;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .ConfigureResource(resource => resource
-                            .AddDetector(new ProcessDetector()))
+                            .AddProcessDetector())
                         .Build();
 ```
 

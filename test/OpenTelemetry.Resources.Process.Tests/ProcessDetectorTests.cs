@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Linq;
-using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.ResourceDetectors.Process.Tests;
+namespace OpenTelemetry.Resources.Process.Tests;
 
 public class ProcessDetectorTests
 {
