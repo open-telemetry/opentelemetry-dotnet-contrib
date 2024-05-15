@@ -238,6 +238,8 @@ internal sealed class TlvMetricExporter : IDisposable
             }
         }
 
+        ExporterEventSource.Log.ExportSuccess(nameof(TlvMetricExporter));
+
         return result;
     }
 
