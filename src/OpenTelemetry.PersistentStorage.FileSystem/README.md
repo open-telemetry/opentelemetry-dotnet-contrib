@@ -164,14 +164,16 @@ if (persistentBlobProvider.TryGetBlob(out var blob))
 ### File naming
 
 Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
-configured [directory path](#path). Each file that is created has unique
-name in the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends
-on the operation. When creating a blob, the file is stored with the `.blob`
-extension. If a lease is acquired on an existing file or on the file being
-created, the file extension is changed to `.lock`, along with the lease
-expiration time appended to its name in the format
-`@yyyy-MM-ddTHHmmss.fffffffZ`. The `.tmp` extension is used for files while data
-writing is in process.
+configured [directory path](#path). Each file that is created has unique name in
+the format `yyyy-MM-ddTHHmmss.fffffffZ-GUID`. The file extension depends on the
+operation. When creating a blob, the file is stored with the `.blob`
+extension(e.g. `2024-05-15T174825.3027972Z-40386ee02b8a47f1b04afc281f33d712.blob
+`). If a lease is acquired on an existing file or on the file being created, the
+file extension is changed to `.lock`, along with the lease expiration time
+appended to its name in the format `@yyyy-MM-ddTHHmmss.fffffffZ` (e.g.
+`2024-05-15T174825.3027972Z-40386ee02b8a47f1b04afc281f33d712.blob@2024-05-15T203551.2932278Z.lock`).
+The `.tmp` extension is used for files while data writing is in process (e.g.
+`2024-05-15T175941.2228167Z-6649ff8ce55144b88a99c440a0b9feea.blob.tmp`).
 
 ### File Access
 
