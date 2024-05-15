@@ -105,8 +105,8 @@ internal sealed class ExporterEventSource : EventSource
         this.WriteEvent(EVENT_ID_OTLP_PROTOBUF_METRIC, metricName, error);
     }
 
-    [Event(EVENT_ID_SUCCESSFUL_EXPORT, Message = "'{0}' successfully exported data.", Level = EventLevel.Informational)]
-    public void ExportSuccess(string exporterName)
+    [Event(EVENT_ID_SUCCESSFUL_EXPORT, Message = "'{0}' completed data export.", Level = EventLevel.Informational)]
+    public void ExportCompleted(string exporterName)
     {
         this.WriteEvent(EVENT_ID_SUCCESSFUL_EXPORT, exporterName);
     }
