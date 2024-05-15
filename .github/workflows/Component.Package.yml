@@ -3,7 +3,7 @@ name: Pack Component
 on:
   workflow_call:
     inputs:
-      project-name:
+      project:
         required: true
         type: string
 
@@ -23,22 +23,22 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
 
-    - name: dotnet restore build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet restore build/Projects/${{ inputs.project-name }}.proj -p:EnablePackageValidation=true
+    - name: dotnet restore ${{ inputs.project }}
+      run: dotnet restore ${{ inputs.project }} -p:EnablePackageValidation=true
 
-    - name: dotnet build build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet build build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+    - name: dotnet build ${{ inputs.project }}
+      run: dotnet build ${{ inputs.project }} --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
 
-    - name: dotnet test build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet test build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build
+    - name: dotnet test ${{ inputs.project }}
+      run: dotnet test ${{ inputs.project }} --configuration Release --no-restore --no-build
 
-    - name: dotnet pack build/Projects/${{ inputs.project-name }}.proj
-      run: dotnet pack build/Projects/${{ inputs.project-name }}.proj --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
+    - name: dotnet pack ${{ inputs.project }}
+      run: dotnet pack ${{ inputs.project }} --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.project-name }}.proj-packages
+        name: ${{ github.ref_name }}-packages
         path: 'src/*/bin/Release/*.*nupkg'
 
     - name: Publish NuGets

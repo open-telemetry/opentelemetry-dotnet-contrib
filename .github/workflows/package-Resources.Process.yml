@@ -15,5 +15,5 @@ jobs:
   call-build-test-pack:
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.Resources.Process
+      project: build/Projects/OpenTelemetry.Resources.Process.proj
     secrets: inherit

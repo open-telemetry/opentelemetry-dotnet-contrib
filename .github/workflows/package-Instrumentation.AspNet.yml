@@ -17,5 +17,5 @@ jobs:
   call-build-test-pack:
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.AspNet
+      project: build/Projects/OpenTelemetry.Instrumentation.AspNet.proj
     secrets: inherit

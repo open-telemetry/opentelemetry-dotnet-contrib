@@ -17,5 +17,5 @@ jobs:
   call-build-test-pack:
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.PersistentStorage
+      project: build/Projects/OpenTelemetry.PersistentStorage.proj
     secrets: inherit

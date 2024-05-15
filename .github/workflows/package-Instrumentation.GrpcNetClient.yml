@@ -15,5 +15,5 @@ jobs:
   call-build-test-pack:
     uses: ./.github/workflows/Component.Package.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.GrpcNetClient
+      project: build/Projects/OpenTelemetry.Instrumentation.GrpcNetClient.proj
     secrets: inherit
