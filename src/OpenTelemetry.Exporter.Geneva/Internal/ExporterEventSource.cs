@@ -16,7 +16,6 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_METRIC = 3; // Failed to send Metric
     private const int EVENT_ID_ERROR = 4; // Other common exporter exceptions
     private const int EVENT_ID_OTLP_PROTOBUF_METRIC = 5; // Failed to serialize metric
-    private const int EVENT_ID_SUCCESSFUL_EXPORT = 6; // Successful export
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -104,10 +103,5 @@ internal sealed class ExporterEventSource : EventSource
     {
         this.WriteEvent(EVENT_ID_OTLP_PROTOBUF_METRIC, metricName, error);
     }
-
-    [Event(EVENT_ID_SUCCESSFUL_EXPORT, Message = "'{0}' successfully exported data.", Level = EventLevel.Informational)]
-    public void ExportSuccess(string exporterName)
-    {
-        this.WriteEvent(EVENT_ID_SUCCESSFUL_EXPORT, exporterName);
-    }
 }
+
