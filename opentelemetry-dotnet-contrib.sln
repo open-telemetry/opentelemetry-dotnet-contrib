@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{1A06
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{43CAFE52-F329-4431-87DA-7FEE1454D9A9}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\add-labels.yml = .github\workflows\add-labels.yml
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
@@ -56,7 +57,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-Instrumentation.GrpcNetClient.yml = .github\workflows\package-Instrumentation.GrpcNetClient.yml
 		.github\workflows\package-Instrumentation.Hangfire.yml = .github\workflows\package-Instrumentation.Hangfire.yml
 		.github\workflows\package-Instrumentation.Http.yml = .github\workflows\package-Instrumentation.Http.yml
-		.github\workflows\package-Instrumentation.MassTransit.yml = .github\workflows\package-Instrumentation.MassTransit.yml
 		.github\workflows\package-Instrumentation.Owin.yml = .github\workflows\package-Instrumentation.Owin.yml
 		.github\workflows\package-Instrumentation.Process.yml = .github\workflows\package-Instrumentation.Process.yml
 		.github\workflows\package-Instrumentation.Quartz.yml = .github\workflows\package-Instrumentation.Quartz.yml
@@ -69,8 +69,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\package-ResourceDetectors.Azure.yml = .github\workflows\package-ResourceDetectors.Azure.yml
 		.github\workflows\package-ResourceDetectors.Container.yml = .github\workflows\package-ResourceDetectors.Container.yml
 		.github\workflows\package-ResourceDetectors.Host.yml = .github\workflows\package-ResourceDetectors.Host.yml
-		.github\workflows\package-ResourceDetectors.Process.yml = .github\workflows\package-ResourceDetectors.Process.yml
 		.github\workflows\package-ResourceDetectors.ProcessRuntime.yml = .github\workflows\package-ResourceDetectors.ProcessRuntime.yml
+		.github\workflows\package-Resources.Gcp.yml = .github\workflows\package-Resources.Gcp.yml
+		.github\workflows\package-Resources.Process.yml = .github\workflows\package-Resources.Process.yml
 		.github\workflows\package-Sampler.AWS.yml = .github\workflows\package-Sampler.AWS.yml
 		.github\workflows\package-SemanticConventions.yml = .github\workflows\package-SemanticConventions.yml
 		.github\workflows\sanitycheck.yml = .github\workflows\sanitycheck.yml
@@ -91,9 +92,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
-		build\sanitycheck.py = build\sanitycheck.py
 		build\stylecop.json = build\stylecop.json
-		build\test-aot-compatibility.ps1 = build\test-aot-compatibility.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0112BD4F-B7A6-4E43-AB23-B6E961E27A49}"
@@ -346,9 +345,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests", "test\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj", "{B6157646-8EBA-464C-99B9-C386D474CB12}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Process", "src\OpenTelemetry.ResourceDetectors.Process\OpenTelemetry.ResourceDetectors.Process.csproj", "{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process", "src\OpenTelemetry.Resources.Process\OpenTelemetry.Resources.Process.csproj", "{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Process.Tests", "test\OpenTelemetry.ResourceDetectors.Process.Tests\OpenTelemetry.ResourceDetectors.Process.Tests.csproj", "{A5EF701C-439E-407F-8BB4-394166000C6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process.Tests", "test\OpenTelemetry.Resources.Process.Tests\OpenTelemetry.Resources.Process.Tests.csproj", "{A5EF701C-439E-407F-8BB4-394166000C6D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host", "src\OpenTelemetry.ResourceDetectors.Host\OpenTelemetry.ResourceDetectors.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
 EndProject
@@ -383,6 +382,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp.AspNetCore", "test\TestApp.AspNetCore\TestApp.AspNetCore.csproj", "{1E743561-B1D4-4100-B6AD-1FD25FA8659B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNetCore.Benchmark", "test\OpenTelemetry.Instrumentation.AspNetCore.Benchmark\OpenTelemetry.Instrumentation.AspNetCore.Benchmark.csproj", "{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{45D29DAA-0DB9-4808-B879-1AECC37EF366}"
+	ProjectSection(SolutionItems) = preProject
+		build\scripts\add-labels.ps1 = build\scripts\add-labels.ps1
+		build\scripts\finalize-publicapi.ps1 = build\scripts\finalize-publicapi.ps1
+		build\scripts\post-release.psm1 = build\scripts\post-release.psm1
+		build\scripts\sanitycheck.py = build\scripts\sanitycheck.py
+		build\scripts\test-aot-compatibility.ps1 = build\scripts\test-aot-compatibility.ps1
+		build\scripts\update-changelogs.ps1 = build\scripts\update-changelogs.ps1
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -730,6 +739,14 @@ Global
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBC6D677-D1FF-470E-A244-477E8616A245}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBC6D677-D1FF-470E-A244-477E8616A245}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{737D1A9E-5A1A-4F4F-830B-E98ED100994C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{737D1A9E-5A1A-4F4F-830B-E98ED100994C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{737D1A9E-5A1A-4F4F-830B-E98ED100994C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -754,14 +771,6 @@ Global
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBC6D677-D1FF-470E-A244-477E8616A245}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBC6D677-D1FF-470E-A244-477E8616A245}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBC6D677-D1FF-470E-A244-477E8616A245}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0156E342-CE63-46F5-992D-691A7CCB50F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -884,25 +893,24 @@ Global
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{B6157646-8EBA-464C-99B9-C386D474CB12} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{36271347-2055-438E-9659-B71542A17A73} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{CBC6D677-D1FF-470E-A244-477E8616A245} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{737D1A9E-5A1A-4F4F-830B-E98ED100994C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{9C996130-74D7-4FB7-8277-2EE6EBA2BFA6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{BC1959E3-164E-42AE-AE1C-DE2E3046E27C} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{BE92357F-DE09-477D-AFDB-6AD1D7AC7BA1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{7371E920-ECD0-403A-A009-7A1A301D9763} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{CBC6D677-D1FF-470E-A244-477E8616A245} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{EECE8D5F-C319-42E8-B37C-A41D6FF43E4A} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{0156E342-CE63-46F5-992D-691A7CCB50F8} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{2E1A5759-1431-4724-8885-3E9447FBF617} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A8FF0DEB-F371-42FC-8A53-A8C25FE408FC} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{917AEC46-816C-4E05-913E-F0F44C24C437} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{1E743561-B1D4-4100-B6AD-1FD25FA8659B} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{92CD1B60-74B8-4E6E-9E7F-83AC3C792980} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{45D29DAA-0DB9-4808-B879-1AECC37EF366} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

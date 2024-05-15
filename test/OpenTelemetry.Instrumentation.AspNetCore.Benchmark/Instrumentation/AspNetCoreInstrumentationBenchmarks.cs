@@ -67,10 +67,10 @@ namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmark.Instrumentation;
 
 public class AspNetCoreInstrumentationBenchmarks
 {
-    private HttpClient httpClient;
-    private WebApplication app;
-    private TracerProvider tracerProvider;
-    private MeterProvider meterProvider;
+    private HttpClient? httpClient;
+    private WebApplication? app;
+    private TracerProvider? tracerProvider;
+    private MeterProvider? meterProvider;
 
     [Flags]
     public enum EnableInstrumentationOption
@@ -81,12 +81,12 @@ public class AspNetCoreInstrumentationBenchmarks
         None = 0,
 
         /// <summary>
-        /// Instrumentation is enbled only for Traces.
+        /// Instrumentation is enabled only for Traces.
         /// </summary>
         Traces = 1,
 
         /// <summary>
-        /// Instrumentation is enbled only for Metrics.
+        /// Instrumentation is enabled only for Metrics.
         /// </summary>
         Metrics = 2,
     }
@@ -141,35 +141,49 @@ public class AspNetCoreInstrumentationBenchmarks
     {
         if (this.EnableInstrumentation == EnableInstrumentationOption.None)
         {
-            this.httpClient.Dispose();
-            await this.app.DisposeAsync();
+            this.httpClient?.Dispose();
+            if (this.app != null)
+            {
+                await this.app.DisposeAsync();
+            }
         }
         else if (this.EnableInstrumentation == EnableInstrumentationOption.Traces)
         {
-            this.httpClient.Dispose();
-            await this.app.DisposeAsync();
-            this.tracerProvider.Dispose();
+            this.httpClient?.Dispose();
+            if (this.app != null)
+            {
+                await this.app.DisposeAsync();
+            }
+
+            this.tracerProvider?.Dispose();
         }
         else if (this.EnableInstrumentation == EnableInstrumentationOption.Metrics)
         {
-            this.httpClient.Dispose();
-            await this.app.DisposeAsync();
-            this.meterProvider.Dispose();
+            this.httpClient?.Dispose();
+            if (this.app != null)
+            {
+                await this.app.DisposeAsync();
+            }
+
+            this.meterProvider?.Dispose();
         }
         else if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces) &&
             this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
-            this.httpClient.Dispose();
-            await this.app.DisposeAsync();
-            this.tracerProvider.Dispose();
-            this.meterProvider.Dispose();
+            this.httpClient?.Dispose();
+            if (this.app != null)
+            {
+                await this.app.DisposeAsync();
+            }
+
+            this.meterProvider?.Dispose();
         }
     }
 
     [Benchmark]
     public async Task GetRequestForAspNetCoreApp()
     {
-        var httpResponse = await this.httpClient.GetAsync(new Uri("http://localhost:5000")).ConfigureAwait(false);
+        var httpResponse = await this.httpClient!.GetAsync(new Uri("http://localhost:5000")).ConfigureAwait(false);
         httpResponse.EnsureSuccessStatusCode();
     }
 

@@ -1,11 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.GrpcNetClient;
+namespace OpenTelemetry.Instrumentation;
 
 internal static class GrpcTagHelper
 {
@@ -18,7 +20,7 @@ internal static class GrpcTagHelper
 
     private static readonly Regex GrpcMethodRegex = new(@"^/?(?<service>.*)/(?<method>.*)$", RegexOptions.Compiled);
 
-    public static string GetGrpcMethodFromActivity(Activity activity)
+    public static string? GetGrpcMethodFromActivity(Activity activity)
     {
         return activity.GetTagValue(GrpcMethodTagName) as string;
     }
@@ -62,11 +64,11 @@ internal static class GrpcTagHelper
     {
         var status = ActivityStatusCode.Error;
 
-        if (typeof(StatusCanonicalCode).IsEnumDefined(statusCode))
+        if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
         {
-            status = ((StatusCanonicalCode)statusCode) switch
+            status = ((GrpcStatusCanonicalCode)statusCode) switch
             {
-                StatusCanonicalCode.Ok => ActivityStatusCode.Unset,
+                GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
                 _ => ActivityStatusCode.Error,
             };
         }
