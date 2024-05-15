@@ -104,4 +104,3 @@ internal sealed class ExporterEventSource : EventSource
         this.WriteEvent(EVENT_ID_OTLP_PROTOBUF_METRIC, metricName, error);
     }
 }
-
