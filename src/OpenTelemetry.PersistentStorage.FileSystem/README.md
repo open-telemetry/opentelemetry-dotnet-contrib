@@ -29,7 +29,7 @@ accepts to control its configuration:
 
 ##### path
 
-Sets folder location where blobs are stored. `Required`.
+Sets directory location where blobs are stored. `Required`.
 
 ##### maxSizeInBytes
 
