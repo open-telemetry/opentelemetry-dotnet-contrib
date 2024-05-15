@@ -19,39 +19,46 @@ dotnet add package OpenTelemetry.PersistentStorage.FileSystem
 ### Setup FileBlobProvider
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("@C:\temp");
+using var persistentBlobProvider = new FileBlobProvider(@"C:\temp");
 ```
 
 #### Configuration
 
-Following is the complete list of configurable options that can be used to set
-up FileBlobProvider:
+Following is the complete list of parameters that `FileBlobProvider` constructor
+accepts to control its configuration:
 
 ##### path
 
-Sets folder location where blobs are stored.
+Sets folder location where blobs are stored. `Required`.
 
 ##### maxSizeInBytes
 
-Maximum allowed folder size. Default is `50 MB`.
+Maximum allowed folder size. `Optional`. Default if not specified: `52428800`
+bytes.
+
+New blobs are dropped after the folder size reaches maximum limit.
 
 ##### maintenancePeriodInMilliseconds
 
-Maintenance event runs at specified interval. Default is `2 minutes`. During
-this event, the following tasks are performed:
+Maintenance event runs at specified interval. `Optional`. Default if not
+specified: `120000`ms.
 
-* Removes `*.blob` files for which the retention period has expired.
-* Removes `*.tmp` files for which the write timeout period has expired.
-* Updates `*.lock` files to `*.blob` for which the lease period has expired.
-* Updates `directorySize`.
+During this event, the following tasks are performed:
+
+* Remove `*.blob` files for which the retention period has expired.
+* Remove `*.tmp` files for which the write timeout period has expired.
+* Update `*.lock` files to `*.blob` for which the lease period has expired.
+* Update available folder space.
 
 ##### retentionPeriodInMilliseconds
 
-Retention period in milliseconds for the blob. Default is `2 days`.
+File retention period in milliseconds for the blob. `Optional`. Default if not
+specified: `172800000`ms.
 
 ##### writeTimeoutInMilliseconds
 
-Controls the timeout when writing a buffer to blob. Default is `1 minute`.
+Controls the timeout when writing a buffer to blob. `Optional`. Default is
+`60000`ms.
 
 ### Blob Operations
 
@@ -118,7 +125,7 @@ blob.TryDelete();
 ### Example
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("@C:\temp");
+using var persistentBlobProvider = new FileBlobProvider(@"C:\temp");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
