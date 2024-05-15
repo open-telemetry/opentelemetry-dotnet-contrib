@@ -166,10 +166,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        if (result == ExportResult.Success)
-        {
-            ExporterEventSource.Log.ExportCompleted(nameof(MsgPackTraceExporter));
-        }
+        ExporterEventSource.Log.ExportCompleted(nameof(MsgPackTraceExporter));
 
         return result;
     }
