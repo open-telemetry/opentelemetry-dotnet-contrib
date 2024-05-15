@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Http.Implementation;
 /// </summary>
 internal static class HttpTagHelper
 {
-    internal static readonly RequestDataHelper RequestDataHelper = new();
+    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
 
     /// <summary>
     /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.

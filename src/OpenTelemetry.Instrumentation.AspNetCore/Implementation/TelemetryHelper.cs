@@ -8,7 +8,7 @@ namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 internal static class TelemetryHelper
 {
     public static readonly object[] BoxedStatusCodes = InitializeBoxedStatusCodes();
-    internal static readonly RequestDataHelper RequestDataHelper = new();
+    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
 
     public static object GetBoxedStatusCode(int statusCode)
     {

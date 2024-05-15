@@ -6,10 +6,6 @@
   * Update `OpenTelemetry.Api` to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
-* Add support for `OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS` defined in
-  [semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.25.0/docs/http/http-spans.md#common-attributes).
-  ([#1707](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1707))
-
 ## 1.8.1
 
 Released 2024-Apr-12
