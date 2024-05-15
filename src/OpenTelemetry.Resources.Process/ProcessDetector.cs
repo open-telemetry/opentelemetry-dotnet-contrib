@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.Process;
+namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
 ///     Process detector.
 /// </summary>
-public sealed class ProcessDetector : IResourceDetector
+internal sealed class ProcessDetector : IResourceDetector
 {
     /// <summary>
     ///     Detects the resource attributes for process.
