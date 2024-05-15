@@ -52,9 +52,9 @@ body:
         - OpenTelemetry.ResourceDetectors.Azure
         - OpenTelemetry.ResourceDetectors.Container
         - OpenTelemetry.ResourceDetectors.Host
-        - OpenTelemetry.ResourceDetectors.Process
         - OpenTelemetry.ResourceDetectors.ProcessRuntime
         - OpenTelemetry.Resources.Gcp
+        - OpenTelemetry.Resources.Process
         - OpenTelemetry.Sampler.AWS
         - OpenTelemetry.SemanticConventions
 

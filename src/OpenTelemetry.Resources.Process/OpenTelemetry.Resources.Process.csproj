@@ -4,7 +4,7 @@
     <TargetFrameworks>net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Process Resource Detector.</Description>
-    <MinVerTagPrefix>ResourceDetectors.Process-</MinVerTagPrefix>
+    <MinVerTagPrefix>Resources.Process-</MinVerTagPrefix>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
@@ -15,5 +15,9 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>
