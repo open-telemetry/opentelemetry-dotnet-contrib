@@ -33,10 +33,10 @@ internal sealed class RequestDataHelper
     private readonly Dictionary<string, string> knownHttpMethods;
 #endif
 
-    public RequestDataHelper()
+    public RequestDataHelper(bool configureByHttpKnownMethodsEnvironmentalVariable)
     {
-        var suppliedKnownMethods = Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
-            ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries);
+        var suppliedKnownMethods = configureByHttpKnownMethodsEnvironmentalVariable ? Environment.GetEnvironmentVariable(KnownHttpMethodsEnvironmentVariable)
+            ?.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries) : null;
         var knownMethodSet = suppliedKnownMethods?.Length > 0
             ? suppliedKnownMethods.ToDictionary(x => x, x => x, StringComparer.OrdinalIgnoreCase)
             : new(StringComparer.OrdinalIgnoreCase)

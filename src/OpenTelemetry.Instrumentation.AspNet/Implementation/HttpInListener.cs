@@ -14,7 +14,7 @@ internal sealed class HttpInListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly AspNetTraceInstrumentationOptions options;
-    private readonly RequestDataHelper requestDataHelper = new();
+    private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
 
     public HttpInListener(AspNetTraceInstrumentationOptions options)
     {

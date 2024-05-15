@@ -34,7 +34,7 @@ public class RequestDataHelperTests : IDisposable
     [InlineData("invalid", "_OTHER")]
     public void MethodMappingWorksForKnownMethods(string method, string expected)
     {
-        var requestHelper = new RequestDataHelper();
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: true);
         var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
     }
@@ -55,9 +55,18 @@ public class RequestDataHelperTests : IDisposable
     public void MethodMappingWorksForEnvironmentVariables(string method, string expected)
     {
         Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
-        var requestHelper = new RequestDataHelper();
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: true);
         var actual = requestHelper.GetNormalizedHttpMethod(method);
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void MethodMappingWorksIfEnvironmentalVariableConfigurationIsDisabled()
+    {
+        Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+        var actual = requestHelper.GetNormalizedHttpMethod("CONNECT");
+        Assert.Equal("CONNECT", actual);
     }
 
     [Theory]
