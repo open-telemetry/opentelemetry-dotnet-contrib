@@ -10,6 +10,9 @@
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update `OpenTelemetry.Api` to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Use `SetStatus(ActivityStatusCode, desc)` from `Activity` instead of
+  `SetStatus(StatusCode)` from `ActivityExtensions`.
+  ([#1799](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1799))
 
 ## 1.0.0-beta.5
 
