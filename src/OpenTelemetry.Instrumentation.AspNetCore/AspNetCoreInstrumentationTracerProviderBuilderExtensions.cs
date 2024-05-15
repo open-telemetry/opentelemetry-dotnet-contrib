@@ -31,7 +31,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAspNetCoreInstrumentation(
         this TracerProviderBuilder builder,
-        Action<AspNetCoreTraceInstrumentationOptions> configureAspNetCoreTraceInstrumentationOptions)
+        Action<AspNetCoreTraceInstrumentationOptions>? configureAspNetCoreTraceInstrumentationOptions)
         => AddAspNetCoreInstrumentation(builder, name: null, configureAspNetCoreTraceInstrumentationOptions);
 
     /// <summary>
@@ -43,8 +43,8 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddAspNetCoreInstrumentation(
         this TracerProviderBuilder builder,
-        string name,
-        Action<AspNetCoreTraceInstrumentationOptions> configureAspNetCoreTraceInstrumentationOptions)
+        string? name,
+        Action<AspNetCoreTraceInstrumentationOptions>? configureAspNetCoreTraceInstrumentationOptions)
     {
         Guard.ThrowIfNull(builder);
 
@@ -96,7 +96,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
 
     private static void AddAspNetCoreInstrumentationSources(
         this TracerProviderBuilder builder,
-        IServiceProvider serviceProvider = null)
+        IServiceProvider? serviceProvider = null)
     {
         // For .NET7.0 onwards activity will be created using activitySource.
         // https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L327
