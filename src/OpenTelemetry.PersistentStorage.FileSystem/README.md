@@ -57,8 +57,8 @@ specified: `172800000`ms.
 
 ##### writeTimeoutInMilliseconds
 
-Controls the timeout when writing a buffer to blob. `Optional`. Default is
-`60000`ms.
+Controls the timeout when writing a buffer to blob. `Optional`. Default if not
+specified: `60000`ms.
 
 ### Blob Operations
 
