@@ -18,5 +18,4 @@ jobs:
     uses: ./.github/workflows/Component.Package.yml
     with:
       project-name: OpenTelemetry.PersistentStorage
-      release-name: 'OpenTelemetry Persistent Storage Packages'
     secrets: inherit

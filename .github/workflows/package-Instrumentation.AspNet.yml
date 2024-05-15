@@ -18,5 +18,4 @@ jobs:
     uses: ./.github/workflows/Component.Package.yml
     with:
       project-name: OpenTelemetry.Instrumentation.AspNet
-      release-name: 'OpenTelemetry Asp.Net Instrumentation Packages'
     secrets: inherit

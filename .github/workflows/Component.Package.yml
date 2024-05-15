@@ -6,10 +6,6 @@ on:
       project-name:
         required: true
         type: string
-      release-name:
-        required: false
-        type: string
-        default: ''
 
 jobs:
   build-test-pack:
