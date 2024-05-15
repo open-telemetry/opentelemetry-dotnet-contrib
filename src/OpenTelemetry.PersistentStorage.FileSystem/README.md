@@ -50,6 +50,9 @@ During this event, the following tasks are performed:
 * Update `*.lock` files to `*.blob` for which the lease period has expired.
 * Update available folder space.
 
+For more details on file extensions(.blob, .tmp, .lock) see [File
+naming](#file-naming) section below.
+
 ##### retentionPeriodInMilliseconds
 
 File retention period in milliseconds for the blob. `Optional`. Default if not
@@ -175,15 +178,13 @@ appended to its name in the format `@yyyy-MM-ddTHHmmss.fffffffZ` (e.g.
 The `.tmp` extension is used for files while data writing is in process (e.g.
 `2024-05-15T175941.2228167Z-6649ff8ce55144b88a99c440a0b9feea.blob.tmp`).
 
-### File Access
+### Data format and security
 
-Access to the stored files is controlled by the underlying file system
-permissions set on the directory where the files are stored.
-
-### Data format
-
-The data contained within the file is stored in its original, unprocessed format
-provided in the byte array.
+The data contained within the file(blob) is unencrypted and stored in its original,
+unprocessed format provided in the byte array. If specific security requirements
+need to be met, it's crucial to configure the [directory](#path) to restrict
+access (ensuring that the process running your application has write access to
+this directory), thus preventing unauthorized users from reading its contents.
 
 ### Data retention
 
