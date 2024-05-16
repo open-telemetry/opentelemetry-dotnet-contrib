@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
-    <MinVerTagPrefix>ResourceDetectors.ProcessRuntime-</MinVerTagPrefix>
+    <MinVerTagPrefix>Resources.ProcessRuntime-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
