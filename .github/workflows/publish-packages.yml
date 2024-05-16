@@ -107,8 +107,8 @@ jobs:
 
     - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects
       if: |
-        (github.ref_type == 'tag' && startsWith(github.ref_name, 'core-') && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc'))
-        || (inputs.tag && startsWith(inputs.tag, 'core-') && !contains(inputs.tag, '-alpha') && !contains(inputs.tag, '-beta') && !contains(inputs.tag, '-rc'))
+        (github.ref_type == 'tag' && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc'))
+        || (inputs.tag && !contains(inputs.tag, '-alpha') && !contains(inputs.tag, '-beta') && !contains(inputs.tag, '-rc'))
       shell: pwsh
       run: |
         Import-Module .\build\scripts\post-release.psm1
