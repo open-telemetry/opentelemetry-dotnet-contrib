@@ -184,11 +184,12 @@ Example file names:
 ### Data format and security
 
 The data contained within the file(blob) is unencrypted and stored in its
-original, unprocessed format provided in the byte array. If specific security
-requirements need to be met, application owners SHOULD configure the
-[directory](#path) to restrict access (ensuring that the process running your
-application has write access to this directory), thus preventing unauthorized
-users from reading its contents.
+original, unprocessed format provided in the byte array. If there is a privacy
+concern, application owners SHOULD review and restrict the collection of private
+data. If specific security requirements need to be met, application owners
+SHOULD configure the [directory](#path) to restrict access (ensuring that the
+process running your application has write access to this directory), thus
+preventing unauthorized users from reading its contents.
 
 ### Data retention
 
