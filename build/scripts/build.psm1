@@ -6,8 +6,8 @@ function ResolveProjectForTag {
   if ([string]::IsNullOrEmpty($tag))
   {
       # Scheduled builds. No tag, build solution.
-      echo "title=opentelemetry-dotnet-contrib.sln" >> $env:GITHUB_OUTPUT
-      echo "project=opentelemetry-dotnet-contrib.sln" >> $env:GITHUB_OUTPUT
+      echo "title=opentelemetry-dotnet-contrib.proj" >> $env:GITHUB_OUTPUT
+      echo "project=opentelemetry-dotnet-contrib.proj" >> $env:GITHUB_OUTPUT
   }
   else {
       $match = [regex]::Match($tag, '^(.*?-)(.*)$')
