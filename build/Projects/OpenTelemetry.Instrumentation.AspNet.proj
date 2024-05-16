@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
+    <MinVerTagPrefix>Instrumentation.AspNet-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,8 @@
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.csproj" />
     <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet\OpenTelemetry.Instrumentation.AspNet.csproj" />
 
-    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet*.Tests\*.Tests.csproj" />
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests\OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj" />
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.AspNet.Tests\OpenTelemetry.Instrumentation.AspNet.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

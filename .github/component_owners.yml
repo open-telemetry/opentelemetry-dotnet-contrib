@@ -73,7 +73,7 @@ components:
   src/OpenTelemetry.ResourceDetectors.Host/:
     - Kielek
     - lachmatt
-  src/OpenTelemetry.ResourceDetectors.Process/:
+  src/OpenTelemetry.Resources.Process/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.ProcessRuntime/:
@@ -166,7 +166,7 @@ components:
   test/OpenTelemetry.ResourceDetectors.Host.Tests/:
     - Kielek
     - lachmatt
-  test/OpenTelemetry.ResourceDetectors.Process.Tests/:
+  test/OpenTelemetry.Resources.Process.Tests/:
     - Kielek
     - lachmatt
   test/OpenTelemetry.Resources.ProcessRuntime.Tests/:
