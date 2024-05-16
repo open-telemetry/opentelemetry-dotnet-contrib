@@ -14,7 +14,7 @@
 
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundFactAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundFactAttribute.cs" />
   </ItemGroup>
 
   <ItemGroup>
