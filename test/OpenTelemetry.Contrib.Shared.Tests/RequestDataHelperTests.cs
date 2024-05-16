@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTelemetry.Internal;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.AspNet.Tests;
+namespace OpenTelemetry.Internal.Tests;
 
 public class RequestDataHelperTests : IDisposable
 {

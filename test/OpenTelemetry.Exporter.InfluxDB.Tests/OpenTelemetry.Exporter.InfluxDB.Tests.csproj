@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IsExternalInit.cs" Link="Includes\IsExternalInit.cs" />
   </ItemGroup>
 
