@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
-    <MinVerTagPrefix>ResourceDetectors.ProcessRuntime-</MinVerTagPrefix>
+    <MinVerTagPrefix>Resources.ProcessRuntime-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj" />
-    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Resources.ProcessRuntime\OpenTelemetry.Resources.ProcessRuntime.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Resources.ProcessRuntime.Tests\OpenTelemetry.Resources.ProcessRuntime.Tests.csproj" />
 
-    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj" />
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Resources.ProcessRuntime\OpenTelemetry.Resources.ProcessRuntime.csproj" />
 
-    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests\OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj" />
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Resources.ProcessRuntime.Tests\OpenTelemetry.Resources.ProcessRuntime.Tests.csproj" />
   </ItemGroup>
 
   <Target Name="Build">

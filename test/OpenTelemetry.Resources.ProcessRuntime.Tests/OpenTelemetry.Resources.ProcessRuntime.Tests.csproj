@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.ProcessRuntime\OpenTelemetry.ResourceDetectors.ProcessRuntime.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Resources.ProcessRuntime\OpenTelemetry.Resources.ProcessRuntime.csproj" />
   </ItemGroup>
 
 </Project>
