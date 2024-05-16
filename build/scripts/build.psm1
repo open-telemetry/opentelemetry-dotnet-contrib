@@ -1,6 +1,6 @@
 function ResolveProjectForTag {
   param(
-    [Parameter(Mandatory=$true)][string]$tag
+    [Parameter()][string]$tag
   )
 
   if ([string]::IsNullOrEmpty($tag))
