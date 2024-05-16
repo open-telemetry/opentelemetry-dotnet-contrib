@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.ResourceDetectors.ProcessRuntime;
+namespace OpenTelemetry.Resources.ProcessRuntime;
 
 internal static class ProcessRuntimeSemanticConventions
 {

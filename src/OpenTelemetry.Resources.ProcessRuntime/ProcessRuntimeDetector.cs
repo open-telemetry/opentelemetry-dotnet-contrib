@@ -9,14 +9,13 @@ using System.Runtime.InteropServices;
 #if NETFRAMEWORK
 using Microsoft.Win32;
 #endif
-using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.ProcessRuntime;
+namespace OpenTelemetry.Resources.ProcessRuntime;
 
 /// <summary>
 /// Process runtime detector.
 /// </summary>
-public sealed class ProcessRuntimeDetector : IResourceDetector
+internal sealed class ProcessRuntimeDetector : IResourceDetector
 {
     /// <summary>
     /// Detects the resource attributes from .NET runtime.
