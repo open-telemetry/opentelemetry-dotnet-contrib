@@ -30,6 +30,7 @@ public class OtlpProtobufMetricExporterTests
         { "Dim3", 3 },
     };
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
     private static readonly string[] TagKeys = new[]
     {
         "boolKey",
@@ -50,6 +51,7 @@ public class OtlpProtobufMetricExporterTests
         "ulongKey",
         "ushortKey",
     };
+#endif
 
     private TagList exemplarTagList;
 
@@ -215,6 +217,7 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateCounter<long>(instrumentName);
+#if EXPOSE_EXPERIMENTAL_FEATURES
             if (isExemplarsEnabled)
             {
                 counter.Add(longValue.Value, this.exemplarTagList);
@@ -223,10 +226,14 @@ public class OtlpProtobufMetricExporterTests
             {
                 counter.Add(longValue.Value, this.TagList);
             }
+#else
+            counter.Add(longValue.Value, this.TagList);
+#endif
         }
         else
         {
             var counter = meter.CreateCounter<double>(instrumentName);
+#if EXPOSE_EXPERIMENTAL_FEATURES
             if (isExemplarsEnabled)
             {
                 counter.Add(doubleValue.Value, this.exemplarTagList);
@@ -235,6 +242,9 @@ public class OtlpProtobufMetricExporterTests
             {
                 counter.Add(doubleValue.Value, this.TagList);
             }
+#else
+            counter.Add(doubleValue.Value, this.TagList);
+#endif
         }
 
         meterProvider.ForceFlush();
@@ -805,6 +815,7 @@ public class OtlpProtobufMetricExporterTests
         var meterProvider = meterProviderBuilder.Build();
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
+#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             histogram.Record(doubleValue, this.exemplarTagList);
@@ -813,6 +824,9 @@ public class OtlpProtobufMetricExporterTests
         {
             histogram.Record(doubleValue, this.TagList);
         }
+#else
+        histogram.Record(doubleValue, this.TagList);
+#endif
 
         meterProvider.ForceFlush();
 
@@ -1423,6 +1437,7 @@ public class OtlpProtobufMetricExporterTests
         var instrumentName = "doubleExponentialHistogram";
         var histogram = meter.CreateHistogram<double>(instrumentName);
 
+#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             histogram.Record(doubleValue.Value, this.exemplarTagList);
@@ -1433,6 +1448,10 @@ public class OtlpProtobufMetricExporterTests
             histogram.Record(doubleValue.Value, this.TagList);
             histogram.Record(0, this.TagList);
         }
+#else
+        histogram.Record(doubleValue.Value, this.TagList);
+        histogram.Record(0, this.TagList);
+#endif
 
         meterProvider.ForceFlush();
 

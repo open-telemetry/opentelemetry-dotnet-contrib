@@ -5,7 +5,7 @@ using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.Grpc.Tests;
+namespace OpenTelemetry.Instrumentation.Tests;
 
 public class GrpcTagHelperTests
 {
