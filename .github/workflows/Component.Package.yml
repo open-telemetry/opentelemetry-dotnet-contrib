@@ -6,15 +6,12 @@ on:
       project-name:
         required: true
         type: string
-      release-name:
-        required: false
-        type: string
-        default: ''
 
 jobs:
   build-test-pack:
     permissions:
       contents: write
+      pull-requests: write
 
     runs-on: windows-latest
 
@@ -57,6 +54,18 @@ jobs:
         Import-Module .\build\scripts\post-release.psm1
 
         CreateRelease `
+          -tag '${{ github.ref_name }}'
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+    - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects
+      if: |
+        !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc')
+      shell: pwsh
+      run: |
+        Import-Module .\build\scripts\post-release.psm1
+
+        CreatePackageValidationBaselineVersionUpdatePullRequest `
           -tag '${{ github.ref_name }}'
       env:
         GH_TOKEN: ${{ github.token }}
