@@ -282,6 +282,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{048509D6-FB49-4B84-832A-90E55520B97B}"
 	ProjectSection(SolutionItems) = preProject
 		build\Projects\Component.proj = build\Projects\Component.proj
+		build\Projects\OpenTelemetry.Contrib.Shared.Tests.proj = build\Projects\OpenTelemetry.Contrib.Shared.Tests.proj
 		build\Projects\OpenTelemetry.Exporter.Geneva.proj = build\Projects\OpenTelemetry.Exporter.Geneva.proj
 		build\Projects\OpenTelemetry.Exporter.OneCollector.proj = build\Projects\OpenTelemetry.Exporter.OneCollector.proj
 		build\Projects\OpenTelemetry.Extensions.proj = build\Projects\OpenTelemetry.Extensions.proj
