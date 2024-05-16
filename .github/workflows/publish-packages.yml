@@ -90,9 +90,7 @@ jobs:
     - name: Publish NuGets
       env:
         NUGET_TOKEN_EXISTS: ${{ secrets.NUGET_TOKEN != '' }}
-      if: |
-        (github.ref_type == 'tag' || inputs.tag) # Skip NuGet publish for scheduled nightly builds
-        && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish if run on a fork without the secret
+      if: (github.ref_type == 'tag' || inputs.tag) && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
       run: |
         nuget push src\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
 
