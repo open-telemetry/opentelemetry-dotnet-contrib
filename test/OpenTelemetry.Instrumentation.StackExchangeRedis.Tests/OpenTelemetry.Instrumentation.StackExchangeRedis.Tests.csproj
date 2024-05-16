@@ -9,8 +9,8 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
   </ItemGroup>
 
   <ItemGroup>
