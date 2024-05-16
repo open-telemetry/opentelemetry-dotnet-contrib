@@ -168,12 +168,12 @@ if (persistentBlobProvider.TryGetBlob(out var blob))
 
 Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
 configured [directory path](#path). Each file that is created has unique name in
-the format `datetimestamp(ISO 8601)-GUID` with current datetime. The file extension depends on the
-operation. When creating a blob, the file is stored with the `.blob` extension.
-If a lease is acquired on an existing file or on the file being created, the
-file extension is changed to `.lock`, along with the lease expiration time
-appended to its name in the format `@datetimestamp(ISO 8601)`. The `.tmp`
-extension is used for files while data writing is in process.
+the format `datetimestamp(ISO 8601)-GUID` with current datetime. The file
+extension depends on the operation. When creating a blob, the file is stored
+with the `.blob` extension. If a lease is acquired on an existing file or on the
+file being created, the file extension is changed to `.lock`, along with the
+lease expiration time appended to its name in the format `@datetimestamp(ISO
+8601)`. The `.tmp` extension is used for files while data writing is in process.
 
 Example file names:
 
@@ -185,7 +185,7 @@ Example file names:
 
 The data contained within the file(blob) is unencrypted and stored in its
 original, unprocessed format provided in the byte array. If specific security
-requirements need to be met, application owners MUST configure the
+requirements need to be met, application owners SHOULD configure the
 [directory](#path) to restrict access (ensuring that the process running your
 application has write access to this directory), thus preventing unauthorized
 users from reading its contents.
