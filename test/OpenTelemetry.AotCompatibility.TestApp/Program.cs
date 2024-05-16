@@ -1,6 +1,17 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
+using OpenTelemetry.AotCompatibility.TestApp;
 
-Console.WriteLine("Hello, World!");
+try
+{
+    PropertyFetcherAotTest.Test();
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex);
+    return -1;
+}
+
+Console.WriteLine("Passed.");
+return 0;
