@@ -19,7 +19,8 @@ jobs:
         filters: |
           md: [ '**.md' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
-          shared: ['src/Shared/**']
+          shared: ['src/Shared/**', 'test/Shared/**']
+          sharedtests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
@@ -82,6 +83,7 @@ jobs:
             '!*/OpenTelemetry.SemanticConventions*/**',
             '!*/OpenTelemetry.Instrumentation.Wcf*/**',
             '!examples/wcf/**',
+            '!*/OpenTelemetry.Contrib.Shared.Tests/**',
             '!**/*.md'
             ]
 
@@ -344,6 +346,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
 
+  build-test-sharedtests:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'sharedtests')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Contrib.Shared.Tests
+      code-cov-name: Contrib.Shared.Tests
+
   build-test-solution:
     needs: detect-changes
     if: |
@@ -373,6 +386,7 @@ jobs:
         $projects = Get-ChildItem `
           -Path test/*.Tests/*.csproj `
           -Exclude `
+            OpenTelemetry.Contrib.Shared.Tests.csproj,
             OpenTelemetry.Exporter.Geneva.Tests.csproj,
             OpenTelemetry.Exporter.OneCollector.Tests.csproj,
             OpenTelemetry.Extensions.Tests.csproj,
@@ -486,6 +500,7 @@ jobs:
       build-test-sqlclient,
       build-test-wcf,
       build-test-solution,
+      build-test-sharedtests,
       verify-aot-compat
       ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
