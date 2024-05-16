@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +11,6 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
 #endif
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Instrumentation.GrpcNetClient;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
@@ -31,8 +28,8 @@ internal class HttpInListener : ListenerHandler
     internal const string AspNetCoreActivitySourceName = "Microsoft.AspNetCore";
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpInListener).Assembly.GetName();
-    internal static readonly string ActivitySourceName = AssemblyName.Name;
-    internal static readonly Version Version = AssemblyName.Version;
+    internal static readonly string ActivitySourceName = AssemblyName.Name!;
+    internal static readonly Version Version = AssemblyName.Version!;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
     internal static readonly bool Net7OrGreater = Environment.Version.Major >= 7;
 
@@ -61,33 +58,35 @@ internal class HttpInListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnEventWritten(string name, object payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        var activity = Activity.Current!;
+
         switch (name)
         {
             case OnStartEvent:
                 {
-                    this.OnStartActivity(Activity.Current, payload);
+                    this.OnStartActivity(activity, payload);
                 }
 
                 break;
             case OnStopEvent:
                 {
-                    this.OnStopActivity(Activity.Current, payload);
+                    this.OnStopActivity(activity, payload);
                 }
 
                 break;
             case OnUnhandledHostingExceptionEvent:
             case OnUnHandledDiagnosticsExceptionEvent:
                 {
-                    this.OnException(Activity.Current, payload);
+                    this.OnException(activity, payload);
                 }
 
                 break;
         }
     }
 
-    public void OnStartActivity(Activity activity, object payload)
+    public void OnStartActivity(Activity activity, object? payload)
     {
         // The overall flow of what AspNetCore library does is as below:
         // Activity.Start()
@@ -120,7 +119,7 @@ internal class HttpInListener : ListenerHandler
                 // Create a new activity with its parent set from the extracted context.
                 // This makes the new activity as a "sibling" of the activity created by
                 // Asp.Net Core.
-                Activity newOne;
+                Activity? newOne;
                 if (Net7OrGreater)
                 {
                     // For NET7.0 onwards activity is created using ActivitySource so,
@@ -135,7 +134,7 @@ internal class HttpInListener : ListenerHandler
                     newOne.SetParentId(ctx.ActivityContext.TraceId, ctx.ActivityContext.SpanId, ctx.ActivityContext.TraceFlags);
                 }
 
-                newOne.TraceStateString = ctx.ActivityContext.TraceState;
+                newOne!.TraceStateString = ctx.ActivityContext.TraceState;
 
                 newOne.SetTag("IsCreatedByInstrumentation", bool.TrueString);
 
@@ -201,7 +200,7 @@ internal class HttpInListener : ListenerHandler
                 }
                 else
                 {
-                    activity.SetTag(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value));
+                    activity.SetTag(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value!));
                 }
             }
 
@@ -231,12 +230,11 @@ internal class HttpInListener : ListenerHandler
         }
     }
 
-    public void OnStopActivity(Activity activity, object payload)
+    public void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
-            HttpContext context = payload as HttpContext;
-            if (context == null)
+            if (payload is not HttpContext context)
             {
                 AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName);
                 return;
@@ -276,7 +274,7 @@ internal class HttpInListener : ListenerHandler
             }
         }
 
-        object tagValue;
+        object? tagValue;
         if (Net7OrGreater)
         {
             tagValue = activity.GetTagValue("IsCreatedByInstrumentation");
@@ -306,12 +304,12 @@ internal class HttpInListener : ListenerHandler
         }
     }
 
-    public void OnException(Activity activity, object payload)
+    public void OnException(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
             // We need to use reflection here as the payload type is not a defined public type.
-            if (!TryFetchException(payload, out Exception exc))
+            if (!TryFetchException(payload, out Exception? exc))
             {
                 AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnException), activity.OperationName);
                 return;
@@ -342,12 +340,12 @@ internal class HttpInListener : ListenerHandler
 #if NET6_0_OR_GREATER
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
-        static bool TryFetchException(object payload, out Exception exc)
+        static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
             => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryGetGrpcMethod(Activity activity, out string grpcMethod)
+    private static bool TryGetGrpcMethod(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
     {
         grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
         return !string.IsNullOrEmpty(grpcMethod);

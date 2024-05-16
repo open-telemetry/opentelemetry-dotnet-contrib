@@ -13,7 +13,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 internal sealed class HttpInMetricsListener : IDisposable
 {
     private readonly HttpRequestRouteHelper routeHelper = new();
-    private readonly RequestDataHelper requestDataHelper = new();
+    private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
     private readonly Histogram<double> httpServerDuration;
     private readonly AspNetMetricsInstrumentationOptions options;
 
