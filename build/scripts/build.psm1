@@ -3,7 +3,7 @@ function ResolveProjectForTag {
     [Parameter()][string]$tag,
     [Parameter()][ref]$title,
     [Parameter()][ref]$project,
-    [Parameter()][ref]$component,
+    [Parameter()][ref]$component
   )
 
   # Scheduled builds. No tag, build solution.
@@ -63,7 +63,7 @@ function ResolveProject {
     [Parameter(Mandatory=$true)][string]$projectNameOrComponentData,
     [Parameter()][ref]$title,
     [Parameter()][ref]$project,
-    [Parameter()][ref]$component,
+    [Parameter()][ref]$component
   )
 
   $match = [regex]::Match($projectNameOrComponentData, '^Component\[(.*)\]$')
