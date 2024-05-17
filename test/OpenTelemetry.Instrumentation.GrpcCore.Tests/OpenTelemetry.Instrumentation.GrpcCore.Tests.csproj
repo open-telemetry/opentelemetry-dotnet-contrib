@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Tests.Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
   </ItemGroup>
 
 </Project>
