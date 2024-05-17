@@ -14,40 +14,64 @@ exporters to improve the reliability of data delivery.
 dotnet add package OpenTelemetry.PersistentStorage.FileSystem
 ```
 
-## Basic Usage
+## Usage
 
 ### Setup FileBlobProvider
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider(@"C:\temp");
 ```
 
-Following is the complete list of configurable options that can be used to set
-up FileBlobProvider:
+#### Configuration
 
-* `path`: Sets folder location where blobs are stored.
+Following is the complete list of parameters that `FileBlobProvider` constructor
+accepts to control its configuration:
 
-* `maxSizeInBytes`: Maximum allowed folder size. Default is 50 MB.
+##### path
 
-* `maintenancePeriodInMilliseconds`: Maintenance event runs at specified interval.
-Default is 2 minutes. Maintenance event performs the following tasks:
+Sets directory location where blobs are stored. `Required`.
 
-  * Removes `*.blob` files for which the retention period has expired.
-  * Removes `*.tmp` files for which the write timeout period has expired.
-  * Updates `*.lock` files to `*.blob` for which the lease period has expired.
-  * Updates `directorySize`.
+##### maxSizeInBytes
 
-* `retentionPeriodInMilliseconds`: Retention period in milliseconds for the blob.
-Default is 2 days.
+Maximum allowed folder size. `Optional`. Default if not specified: `52428800`
+bytes.
 
-* `writeTimeoutInMilliseconds`: Controls the timeout when writing a buffer to
-blob. Default is 1 minute.
+New blobs are dropped after the folder size reaches maximum limit. A log message
+is written if blobs cannot be written. See [Troubleshooting](#troubleshooting)
+for more information.
 
-### CreateBlob
+##### maintenancePeriodInMilliseconds
+
+Maintenance event runs at specified interval. `Optional`. Default if not
+specified: `120000`ms.
+
+During this event, the following tasks are performed:
+
+* Remove `*.blob` files for which the retention period has expired.
+* Remove `*.tmp` files for which the write timeout period has expired.
+* Update `*.lock` files to `*.blob` for which the lease period has expired.
+* Update available folder space.
+
+For more details on file extensions(.blob, .tmp, .lock) see [File
+naming](#file-naming) section below.
+
+##### retentionPeriodInMilliseconds
+
+File retention period in milliseconds for the blob. `Optional`. Default if not
+specified: `172800000`ms.
+
+##### writeTimeoutInMilliseconds
+
+Controls the timeout when writing a buffer to blob. `Optional`. Default if not
+specified: `60000`ms.
+
+### Blob Operations
+
+#### CreateBlob
 
 `TryCreateBlob(byte[] buffer, out PersistentBlob blob)` or `TryCreateBlob(byte[]
 buffer, int leasePeriodMilliseconds = 0, out PersistentBlob blob)` can be used
-to store data on disk in case of failures. The file stored will have `.blob`
+to create a blob (single file). The file stored will have `.blob`
 extension. If acquiring lease, the file will have `.lock` extension.
 
 ```csharp
@@ -58,7 +82,7 @@ persistentBlobProvider.TryCreateBlob(data, out var blob);
 persistentBlobProvider.TryCreateBlob(data, 1000, out var blob);
 ```
 
-### GetBlob and GetBlobs
+#### GetBlob and GetBlobs
 
 `TryGetBlob` can be used to read single blob or `GetBlobs` can be used to get list
 of all blobs stored on disk. The result will only include files with `.blob`
@@ -75,7 +99,7 @@ foreach (var blobItem in persistentBlobProvider.GetBlobs())
 }
 ```
 
-### Lease
+#### Lease
 
 When reading data back from disk, `TryLease(int leasePeriodMilliseconds)` method
 should be used first to acquire lease on blob. This prevents it to be read
@@ -86,7 +110,7 @@ extension to `.lock`.
 blob.TryLease(1000);
 ```
 
-### Read
+#### Read
 
 Once the lease is acquired on the blob, the data can be read using
 `TryRead(out var data)` method.
@@ -95,7 +119,7 @@ Once the lease is acquired on the blob, the data can be read using
 blob.TryRead(out var data);
 ```
 
-### Delete
+#### Delete
 
 `TryDelete` method can be used to delete the blob.
 
@@ -103,10 +127,10 @@ blob.TryRead(out var data);
 blob.TryDelete();
 ```
 
-## Example
+### Example
 
 ```csharp
-using var persistentBlobProvider = new FileBlobProvider("test");
+using var persistentBlobProvider = new FileBlobProvider(@"C:\temp");
 
 var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -139,3 +163,48 @@ if (persistentBlobProvider.TryGetBlob(out var blob))
     }
 }
 ```
+
+## File Details
+
+### File naming
+
+Each call to [CreateBlob](#createblob) methods create a single file(blob) at the
+configured [directory path](#path). Each file that is created has unique name in
+the format `datetimestamp(ISO 8601)-GUID` with current datetime. The file
+extension depends on the operation. When creating a blob, the file is stored
+with the `.blob` extension. If a lease is acquired on an existing file or on the
+file being created, the file extension is changed to `.lock`, along with the
+lease expiration time appended to its name in the format `@datetimestamp(ISO
+8601)`. The `.tmp` extension is used for files while data writing is in process.
+
+Example file names:
+
+* `2024-05-15T174825.3027972Z-40386ee02b8a47f1b04afc281f33d712.blob`
+* `2024-05-15T174825.3027972Z-40386ee02b8a47f1b04afc281f33d712.blob@2024-05-15T203551.2932278Z.lock`
+* `2024-05-15T175941.2228167Z-6649ff8ce55144b88a99c440a0b9feea.blob.tmp`
+
+### Data format and security
+
+The data contained within the file(blob) is unencrypted and stored in its
+original, unprocessed format provided in the byte array. If there is a privacy
+concern, application owners SHOULD review and restrict the collection of private
+data. If specific security requirements need to be met, application owners
+SHOULD configure the [directory](#path) to restrict access (ensuring that the
+process running your application has write access to this directory), thus
+preventing unauthorized users from reading its contents.
+
+### Data retention
+
+A blob stored on disk persists until it is explicitly deleted using the
+[TryDelete](#delete) operation or is removed during the [maintenance
+job](#maintenanceperiodinmilliseconds) upon the expiration of its
+[retention](#retentionperiodinmilliseconds) period.
+
+## Troubleshooting
+
+This component uses an
+[EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
+with the name "OpenTelemetry-PersistentStorage-FileSystem" for its internal
+logging. Please follow the [troubleshooting guide for OpenTelemetry
+.NET](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
+for instructions on how to capture the logs.
