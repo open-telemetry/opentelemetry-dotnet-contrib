@@ -25,6 +25,11 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     private readonly bool recordMessageEvents;
 
     /// <summary>
+    /// The record exception as ActivityEvent flag.
+    /// </summary>
+    private readonly bool recordException;
+
+    /// <summary>
     /// The RPC activity.
     /// </summary>
     private Activity activity;
@@ -49,10 +54,12 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// </summary>
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
-    protected RpcScope(string fullServiceName, bool recordMessageEvents)
+    /// <param name="recordException">If set to <c>true</c> [record exception].</param>
+    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordException)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
+        this.recordException = recordException;
     }
 
     /// <summary>
@@ -117,16 +124,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
-        var description = exception.Message;
-
-        if (exception is RpcException rpcException)
-        {
-            grpcStatusCode = rpcException.StatusCode;
-            description = rpcException.Message;
-        }
-
-        this.StopActivity((int)grpcStatusCode, description);
+        this.StopActivity(exception);
     }
 
     /// <inheritdoc/>
@@ -175,19 +173,58 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// Stops the activity.
     /// </summary>
     /// <param name="statusCode">The status code.</param>
-    /// <param name="statusDescription">The description, if any.</param>
-    private void StopActivity(int statusCode, string statusDescription = null)
+    /// <param name="markAsCompleted">If set to <c>true</c> [mark as completed].</param>
+    private void StopActivity(int statusCode, bool markAsCompleted = true)
     {
-        if (Interlocked.CompareExchange(ref this.complete, 1, 0) == 0)
+        if (markAsCompleted && !this.TryMarkAsCompleted())
         {
-            this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
-            if (statusDescription != null)
-            {
-                this.activity.SetStatus(ActivityStatusCode.Error, statusDescription);
-            }
-
-            this.activity.Stop();
+            return;
         }
+
+        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity.Stop();
+    }
+
+    /// <summary>
+    /// Stops the activity.
+    /// </summary>
+    /// <param name="exception">The exception.</param>
+    private void StopActivity(Exception exception)
+    {
+        if (!this.TryMarkAsCompleted())
+        {
+            return;
+        }
+
+        var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
+        var description = exception.Message;
+
+        if (exception is RpcException rpcException)
+        {
+            grpcStatusCode = rpcException.StatusCode;
+            description = rpcException.Message;
+        }
+
+        if (!string.IsNullOrEmpty(description))
+        {
+            this.activity.SetStatus(ActivityStatusCode.Error, description);
+        }
+
+        if (this.activity.IsAllDataRequested && this.recordException)
+        {
+            this.activity.RecordException(exception);
+        }
+
+        this.StopActivity((int)grpcStatusCode, markAsCompleted: false);
+    }
+
+    /// <summary>
+    /// Tries to mark <see cref="RpcScope{TRequest, TResponse}"/> as completed.
+    /// </summary>
+    /// <returns>Returns <c>true</c> if marked as completed successfully.</returns>
+    private bool TryMarkAsCompleted()
+    {
+        return Interlocked.CompareExchange(ref this.complete, 1, 0) == 0;
     }
 
     /// <summary>
