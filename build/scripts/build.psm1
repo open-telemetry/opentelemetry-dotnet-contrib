@@ -52,7 +52,7 @@ function ResolveProjectForTag {
   }
 
   $component.value = [System.IO.Path]::GetFileNameWithoutExtension($projects[0].Path)
-  $title.value = "Component.proj for ${component.value}"
+  $title.value = "Component.proj for $($component.value)"
   $project.value = "./build/Projects/Component.proj"
 }
 
@@ -75,7 +75,7 @@ function ResolveProject {
   }
 
   $component.value = $match.Groups[1].Value
-  $title.value = "Component.proj for ${component.value}"
+  $title.value = "Component.proj for $($component.value)"
   $project.value = "./build/Projects/Component.proj"
 }
 
