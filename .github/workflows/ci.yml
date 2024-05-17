@@ -40,7 +40,7 @@ jobs:
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           processdetector: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
-          processruntime: ['*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**', '*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**', '!**/*.md']
+          processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
           runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
@@ -57,11 +57,11 @@ jobs:
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
             '!*/OpenTelemetry.ResourceDetectors.Host*/**',
-            '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime/**',
-            '!*/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/**',
             '!*/OpenTelemetry.Resources.Gcp*/**',
             '!*/OpenTelemetry.Resources.Process/**',
             '!*/OpenTelemetry.Resources.Process.Tests/**',
+            '!*/OpenTelemetry.Resources.ProcessRuntime/**',
+            '!*/OpenTelemetry.Resources.ProcessRuntime.Tests/**',
             '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
             '!examples/event-counters/**',
             '!*/OpenTelemetry.Extensions/**',
@@ -280,8 +280,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.ProcessRuntime
-      code-cov-name: ResourceDetectors.ProcessRuntime
+      project-name: OpenTelemetry.Resources.ProcessRuntime
+      code-cov-name: Resources.ProcessRuntime
 
   build-test-redis:
     needs: detect-changes
@@ -405,9 +405,9 @@ jobs:
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests.csproj,
             OpenTelemetry.Resources.Gcp.Tests.csproj,
-            OpenTelemetry.Resources.Process.Tests.csproj
+            OpenTelemetry.Resources.Process.Tests.csproj,
+            OpenTelemetry.Resources.ProcessRuntime.Tests.csproj
 
         $failedProjects = @()
 
