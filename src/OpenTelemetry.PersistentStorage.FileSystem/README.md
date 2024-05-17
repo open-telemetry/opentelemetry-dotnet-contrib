@@ -36,7 +36,9 @@ Sets directory location where blobs are stored. `Required`.
 Maximum allowed folder size. `Optional`. Default if not specified: `52428800`
 bytes.
 
-New blobs are dropped after the folder size reaches maximum limit.
+New blobs are dropped after the folder size reaches maximum limit. A log message
+is written if blobs cannot be written. See [Troubleshooting](#troubleshooting)
+for more information.
 
 ##### maintenancePeriodInMilliseconds
 
@@ -197,3 +199,12 @@ A blob stored on disk persists until it is explicitly deleted using the
 [TryDelete](#delete) operation or is removed during the [maintenance
 job](#maintenanceperiodinmilliseconds) upon the expiration of its
 [retention](#retentionperiodinmilliseconds) period.
+
+## Troubleshooting
+
+This component uses an
+[EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
+with the name "OpenTelemetry-PersistentStorage-FileSystem" for its internal
+logging. Please follow the [troubleshooting guide for OpenTelemetry
+.NET](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry#troubleshooting)
+for instructions on how to capture the logs.
