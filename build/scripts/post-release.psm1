@@ -181,7 +181,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $body =
 @"
-Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/Component.Package.yml).
+Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/publish-packages.yml).
 
 Merge once packages are available on NuGet and the build passes.
 
@@ -199,3 +199,98 @@ Merge once packages are available on NuGet and the build passes.
 }
 
 Export-ModuleMember -Function CreatePackageValidationBaselineVersionUpdatePullRequest
+
+function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
+  param(
+    [Parameter(Mandatory=$true)][string]$tag,
+    [Parameter()][string]$gitUserName=$gitHubBotUserName,
+    [Parameter()][string]$gitUserEmail=$gitHubBotEmail,
+    [Parameter()][string]$targetBranch="main"
+  )
+
+  $match = [regex]::Match($tag, '^(.*?-)(.*)$')
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse prefix from tag'
+  }
+
+  $tagPrefix = $match.Groups[1].Value
+  if ($tagPrefix.StartsWith('core-') -eq $false)
+  {
+    Return
+  }
+
+  $version = $match.Groups[2].Value
+  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+
+  $branch="release/post-core-${version}-update"
+
+  git config user.name $gitUserName
+  git config user.email $gitUserEmail
+
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git switch failure'
+  }
+
+  $propertyName = "OpenTelemetryCoreLatestVersion"
+  $propertyVersion = "[$version,2.0)"
+  if ($isPrerelease -eq $true)
+  {
+   $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
+   $propertyVersion = "[$version]"
+  }
+
+  (Get-Content build/Common.props) `
+      -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
+    Set-Content build/Common.props
+
+  git add build/Common.props 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git add failure'
+  }
+
+  git commit -m "Update $propertyName in Common.props to $version." 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git commit failure'
+  }
+
+  git push -u origin $branch 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git push failure'
+  }
+
+  $body =
+@"
+Note: This PR was opened automatically by the [core version update workflow](https://github.com/$gitRepository/actions/workflows/core-version-update.yml).
+
+Merge once packages are available on NuGet and the build passes.
+
+## Changes
+
+* Sets ``$propertyName`` in ``Common.props`` to ``$version``.
+"@
+
+  $createPullRequestResponse = gh pr create `
+    --title "[repo] Core release $packageVersion updates" `
+    --body $body `
+    --base $targetBranch `
+    --head $branch `
+    --label infra
+
+  $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse pull request number from gh pr create response'
+  }
+
+  $pullRequestNumber = $match.Groups[1].Value
+
+  #todo: Update CHANGELOGs
+}
+
+Export-ModuleMember -Function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest
