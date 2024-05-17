@@ -19,8 +19,8 @@ function ResolveProjectForTag {
       $tagPrefix = $match.Groups[1].Value
       $version = $match.Groups[2].Value
 
-      # Step 1: Look for a .proj file in build\Projects with a matching MinVerTagPrefix
-      $buildProjects = @(Get-ChildItem -Path build\Projects\*.proj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
+      # Step 1: Look for a .proj file in build/Projects with a matching MinVerTagPrefix
+      $buildProjects = @(Get-ChildItem -Path build/Projects/*.proj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
 
       if ($buildProjects.Length -gt 1)
       {
@@ -31,12 +31,12 @@ function ResolveProjectForTag {
         $buildProject = [System.IO.Path]::GetFileNameWithoutExtension($buildProjects[0].Path)
 
         echo "title=$buildProject.proj" >> $env:GITHUB_OUTPUT
-        echo "project=.\build\Projects\$buildProject.proj" >> $env:GITHUB_OUTPUT
+        echo "project=./build/Projects/$buildProject.proj" >> $env:GITHUB_OUTPUT
         Return
       }
 
       # Step 2: If no .proj file found use component build for the csproj found matching MinVerTagPrefix
-      $projects = @(Get-ChildItem -Path src\**\*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
+      $projects = @(Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
 
       if ($projects.Length -gt 1)
       {
@@ -50,7 +50,7 @@ function ResolveProjectForTag {
       $project = [System.IO.Path]::GetFileNameWithoutExtension($projects[0].Path)
 
       echo "title=Component.proj[$project]" >> $env:GITHUB_OUTPUT
-      echo "project=.\build\Projects\Component.proj" >> $env:GITHUB_OUTPUT
+      echo "project=./build/Projects/Component.proj" >> $env:GITHUB_OUTPUT
       echo "BUILD_COMPONENT=$project" >> $env:GITHUB_ENV
   }
 }
@@ -66,14 +66,14 @@ function ResolveProject {
   if ($match.Success -eq $false)
   {
     echo "title=$projectName.proj" >> $env:GITHUB_OUTPUT
-    echo "project=.\build\Projects\$projectName.proj" >> $env:GITHUB_OUTPUT
+    echo "project=./build/Projects/$projectName.proj" >> $env:GITHUB_OUTPUT
     Return
   }
 
   $project = $match.Groups[1].Value
 
   echo "title=Component.proj[$project]" >> $env:GITHUB_OUTPUT
-  echo "project=.\build\Projects\Component.proj" >> $env:GITHUB_OUTPUT
+  echo "project=./build/Projects/Component.proj" >> $env:GITHUB_OUTPUT
   echo "BUILD_COMPONENT=$project" >> $env:GITHUB_ENV
 }
 
