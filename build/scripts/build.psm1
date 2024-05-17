@@ -56,3 +56,25 @@ function ResolveProjectForTag {
 }
 
 Export-ModuleMember -Function ResolveProjectForTag
+
+function ResolveProject {
+  param(
+    [Parameter(Mandatory=$true)][string]$projectName
+  )
+
+  $match = [regex]::Match($tag, '^Component\[(.*)\]$')
+  if ($match.Success -eq $false)
+  {
+    echo "title=$projectName.proj" >> $env:GITHUB_OUTPUT
+    echo "project=.\build\Projects\$projectName.proj" >> $env:GITHUB_OUTPUT
+    Return
+  }
+
+  $project = $match.Groups[1].Value
+
+  echo "title=Component.proj[$project]" >> $env:GITHUB_OUTPUT
+  echo "project=.\build\Projects\Component.proj" >> $env:GITHUB_OUTPUT
+  echo "BUILD_COMPONENT=$project" >> $env:GITHUB_ENV
+}
+
+Export-ModuleMember -Function ResolveProject
