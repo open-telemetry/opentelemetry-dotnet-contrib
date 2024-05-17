@@ -61,9 +61,9 @@ jobs:
         # Component.proj for simple projects (where a single csproj has
         # MinVerTagPrefix matching the tag).
 
-        $title = "" # Used for friendly names in action UI
-        $project = "" # Actual project passed to dotnet
-        $component = "" # Used to tell Component.proj what to build
+        $title = '' # Used for friendly names in action UI
+        $project = '' # Actual project passed to dotnet
+        $component = '' # Used to tell Component.proj what to build
 
         ResolveProjectForTag `
           -tag '${{ github.ref_type == 'tag' && github.ref_name || inputs.tag || '' }}' `

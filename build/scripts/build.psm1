@@ -9,8 +9,8 @@ function ResolveProjectForTag {
   # Scheduled builds. No tag, build solution.
   if ([string]::IsNullOrEmpty($tag))
   {
-      $title = "opentelemetry-dotnet-contrib.proj"
-      $project = "opentelemetry-dotnet-contrib.proj"
+      $title.value = "opentelemetry-dotnet-contrib.proj"
+      $project.value = "opentelemetry-dotnet-contrib.proj"
       Return
   }
 
@@ -34,8 +34,8 @@ function ResolveProjectForTag {
   {
     $buildProject = [System.IO.Path]::GetFileNameWithoutExtension($buildProjects[0].Path)
 
-    $title = "$buildProject.proj"
-    $project = "./build/Projects/$buildProject.proj"
+    $title.value = "$buildProject.proj"
+    $project.value = "./build/Projects/$buildProject.proj"
     Return
   }
 
@@ -51,9 +51,9 @@ function ResolveProjectForTag {
       throw 'No project file found matching tag prefix'
   }
 
-  $component = [System.IO.Path]::GetFileNameWithoutExtension($projects[0].Path)
-  $title = "Component.proj for $component"
-  $project = "./build/Projects/Component.proj"
+  $component.value = [System.IO.Path]::GetFileNameWithoutExtension($projects[0].Path)
+  $title.value = "Component.proj for ${component.value}"
+  $project.value = "./build/Projects/Component.proj"
 }
 
 Export-ModuleMember -Function ResolveProjectForTag
@@ -69,14 +69,14 @@ function ResolveProject {
   $match = [regex]::Match($projectNameOrComponentData, '^Component\[(.*)\]$')
   if ($match.Success -eq $false)
   {
-    $title = "$projectNameOrComponentData.proj"
-    $project = "./build/Projects/$projectNameOrComponentData.proj"
+    $title.value = "$projectNameOrComponentData.proj"
+    $project.value = "./build/Projects/$projectNameOrComponentData.proj"
     Return
   }
 
-  $component = $match.Groups[1].Value
-  $title = "Component.proj for $component"
-  $project = "./build/Projects/Component.proj"
+  $component.value = $match.Groups[1].Value
+  $title.value = "Component.proj for ${component.value}"
+  $project.value = "./build/Projects/Component.proj"
 }
 
 Export-ModuleMember -Function ResolveProject

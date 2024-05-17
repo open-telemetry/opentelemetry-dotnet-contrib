@@ -54,9 +54,9 @@ jobs:
         # Component[component_name]. The ResolveProject call here parses
         # inputs.project-name into variables we need for build.
 
-        $title = "" # Used for friendly names in action UI
-        $project = "" # Actual project passed to dotnet
-        $component = "" # Used to tell Component.proj what to build
+        $title = '' # Used for friendly names in action UI
+        $project = '' # Actual project passed to dotnet
+        $component = '' # Used to tell Component.proj what to build
 
         ResolveProject `
           -projectNameOrComponentData '${{ inputs.project-name }}' `
