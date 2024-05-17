@@ -7,9 +7,14 @@
     <MinVerTagPrefix>Extensions.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 
+  <!--Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">

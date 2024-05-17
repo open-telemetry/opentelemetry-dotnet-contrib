@@ -306,10 +306,12 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="activity">The activity.</param>
     /// <param name="expectedStatusCode">The expected status code.</param>
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
+    /// <param name="recordedExceptions">if set to <c>true</c> [recorded exceptions].</param>
     internal static void ValidateCommonActivityTags(
         Activity activity,
         StatusCode expectedStatusCode = StatusCode.OK,
-        bool recordedMessages = false)
+        bool recordedMessages = false,
+        bool recordedExceptions = false)
     {
         Assert.NotNull(activity);
         Assert.NotNull(activity.Tags);
@@ -354,6 +356,18 @@ public class GrpcCoreClientInterceptorTests
             ValidateCommonEventAttributes(responseMessage);
             Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string)t.Value == "RECEIVED");
             Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int)t.Value == FoobarService.DefaultResponseMessageSize);
+        }
+
+        if (recordedExceptions)
+        {
+            Assert.NotNull(activity.Events);
+            Assert.Single(activity.Events, e => e.Name == SemanticConventions.AttributeExceptionEventName);
+
+            var exceptionEvent = activity.Events.First(e => e.Name == SemanticConventions.AttributeExceptionEventName);
+            Assert.NotNull(exceptionEvent.Tags);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionType && (string)t.Value == typeof(RpcException).FullName);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionMessage);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionStacktrace);
         }
     }
 
@@ -472,21 +486,21 @@ public class GrpcCoreClientInterceptorTests
         string serverUriString = null)
     {
         using var server = FoobarService.Start();
-        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
+        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
-            new ClientTracingInterceptor(clientInterceptorOptions),
+            new ClientTracingInterceptor(interceptorOptions),
             new List<Metadata.Entry>
             {
                 new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
                 new(FoobarService.RequestHeaderErrorDescription, "fubar"),
             });
 
-        using var activityListener = new InterceptorActivityListener(clientInterceptorOptions.ActivityIdentifierValue);
+        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
-        ValidateCommonActivityTags(activity, statusCode, false);
+        ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
 
         if (validateErrorDescription)
         {

@@ -7,7 +7,12 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <EventSourceSupport>true</EventSourceSupport>
     <SelfContained>true</SelfContained>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <!--
@@ -18,6 +23,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Exporter.OneCollector" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AspNetCore" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.EventCounters" />
@@ -30,8 +36,8 @@
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Host" />
-    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Process" />
-    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.ProcessRuntime" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />

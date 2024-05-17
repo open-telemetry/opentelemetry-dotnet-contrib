@@ -76,6 +76,26 @@ internal static class FieldNumberConstants
     internal const int HistogramDataPoint_min = 11;
     internal const int HistogramDataPoint_max = 12;
 
+    // ExponentialHistogramDataPoint
+    internal const int ExponentialHistogramDataPoint_attributes = 1;
+    internal const int ExponentialHistogramDataPoint_start_time_unix_nano = 2;
+    internal const int ExponentialHistogramDataPoint_time_unix_nano = 3;
+    internal const int ExponentialHistogramDataPoint_count = 4;
+    internal const int ExponentialHistogramDataPoint_sum = 5;
+    internal const int ExponentialHistogramDataPoint_scale = 6;
+    internal const int ExponentialHistogramDataPoint_zero_count = 7;
+    internal const int ExponentialHistogramDataPoint_positive = 8;
+    internal const int ExponentialHistogramDataPoint_negative = 9;
+    internal const int ExponentialHistogramDataPoint_flags = 10;
+    internal const int ExponentialHistogramDataPoint_exemplars = 11;
+    internal const int ExponentialHistogramDataPoint_min = 12;
+    internal const int ExponentialHistogramDataPoint_max = 13;
+    internal const int ExponentialHistogramDataPoint_zero_threshold = 14;
+
+    // Buckets
+    internal const int Bucket_offset = 1;
+    internal const int Bucket_bucket_counts = 2;
+
     // AnyValue
     internal const int AnyValue_string_value = 1;
     internal const int AnyValue_bool_value = 2;
@@ -100,6 +120,14 @@ internal static class FieldNumberConstants
     internal const int InstrumentationScope_version = 2;
     internal const int InstrumentationScope_attributes = 3;
     internal const int InstrumentationScope_dropped_attributes_count = 4;
+
+    // Exemplar
+    internal const int Exemplar_attributes = 7;
+    internal const int Exemplar_time_unix_nano = 2;
+    internal const int Exemplar_as_double = 3;
+    internal const int Exemplar_as_int = 6;
+    internal const int Exemplar_span_id = 4;
+    internal const int Exemplar_trace_id = 5;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetMetricTypeFieldNumber(MetricType metricType)

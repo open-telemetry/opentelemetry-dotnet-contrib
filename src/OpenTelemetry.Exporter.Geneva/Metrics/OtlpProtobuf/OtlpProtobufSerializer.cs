@@ -27,6 +27,10 @@ internal sealed class OtlpProtobufSerializer
 
     private readonly int prepopulatedHistogramDataPointAttributesLength;
 
+    private readonly byte[] prepopulatedExponentialHistogramDataPointAttributes;
+
+    private readonly int prepopulatedExponentialHistogramDataPointAttributesLength;
+
     private int resourceMetricTagAndLengthIndex;
 
     private int scopeMetricsTagAndLengthIndex;
@@ -73,7 +77,11 @@ internal sealed class OtlpProtobufSerializer
             Array.Copy(temp, this.prepopulatedHistogramDataPointAttributes, cursor);
             this.prepopulatedHistogramDataPointAttributesLength = cursor;
 
-            // TODO: exponential histogram.
+            cursor = 0;
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+            this.prepopulatedExponentialHistogramDataPointAttributes = new byte[cursor];
+            Array.Copy(temp, this.prepopulatedExponentialHistogramDataPointAttributes, cursor);
+            this.prepopulatedExponentialHistogramDataPointAttributesLength = cursor;
         }
 
         try
@@ -386,7 +394,15 @@ internal sealed class OtlpProtobufSerializer
                                 }
                             }
 
-                            // TODO: exemplars.
+#if EXPOSE_EXPERIMENTAL_FEATURES
+                            if (metricPoint.TryGetExemplars(out var exemplars))
+                            {
+                                foreach (ref readonly var exemplar in exemplars)
+                                {
+                                    this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.HistogramDataPoint_exemplars);
+                                }
+                            }
+#endif
 
                             var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
@@ -411,7 +427,96 @@ internal sealed class OtlpProtobufSerializer
 
             case MetricType.ExponentialHistogram:
                 {
-                    // TODO
+                    cursor = this.instrumentValueIndex;
+
+                    // Write aggregationTemporality tag
+                    ProtobufSerializerHelper.WriteEnumWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogram_aggregation_temporality, metric.Temporality == AggregationTemporality.Cumulative ? 2 : 1);
+
+                    this.metricPointTagAndLengthIndex = cursor;
+                    this.metricPointValueIndex = cursor + TagAndLengthSize;
+
+                    foreach (var metricPoint in metric.GetMetricPoints())
+                    {
+                        try
+                        {
+                            // Reset cursor to write new metricPoint
+                            cursor = this.metricPointValueIndex;
+
+                            var startTime = (ulong)metricPoint.StartTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_start_time_unix_nano, startTime);
+
+                            var endTime = (ulong)metricPoint.EndTime.ToUnixTimeNanoseconds();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_time_unix_nano, endTime);
+
+                            SerializeTags(buffer, ref cursor, metricPoint.Tags, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+
+                            if (this.prepopulatedExponentialHistogramDataPointAttributes != null)
+                            {
+                                Array.Copy(this.prepopulatedExponentialHistogramDataPointAttributes, 0, buffer, cursor, this.prepopulatedExponentialHistogramDataPointAttributesLength);
+                                cursor += this.prepopulatedExponentialHistogramDataPointAttributesLength;
+                            }
+
+                            var sum = metricPoint.GetHistogramSum();
+
+                            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_sum, sum);
+
+                            var count = (ulong)metricPoint.GetHistogramCount();
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_count, count);
+
+                            if (metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                            {
+                                ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_min, min);
+                                ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_max, max);
+                            }
+
+                            var exponentialHistogramData = metricPoint.GetExponentialHistogramData();
+
+                            ProtobufSerializerHelper.WriteSInt32WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_scale, exponentialHistogramData.Scale);
+
+                            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_zero_count, (ulong)exponentialHistogramData.ZeroCount);
+
+                            var positiveBucketIndex = cursor;
+                            cursor += TagAndLengthSize;
+                            var positiveBucketValueIndex = cursor;
+
+                            ProtobufSerializerHelper.WriteSInt32WithTag(buffer, ref cursor, FieldNumberConstants.Bucket_offset, exponentialHistogramData.PositiveBuckets.Offset);
+
+                            foreach (var bucketCount in exponentialHistogramData.PositiveBuckets)
+                            {
+                                ProtobufSerializerHelper.WriteInt64WithTag(buffer, ref cursor, FieldNumberConstants.Bucket_bucket_counts, (ulong)bucketCount);
+                            }
+
+                            // write Bucket
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref positiveBucketIndex, cursor - positiveBucketValueIndex, FieldNumberConstants.ExponentialHistogramDataPoint_positive, WireType.LEN);
+
+#if EXPOSE_EXPERIMENTAL_FEATURES
+                            if (metricPoint.TryGetExemplars(out var exemplars))
+                            {
+                                foreach (ref readonly var exemplar in exemplars)
+                                {
+                                    this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.ExponentialHistogramDataPoint_exemplars);
+                                }
+                            }
+#endif
+
+                            var metricPointStartPosition = this.metricPointTagAndLengthIndex;
+
+                            // Write exponentialhistogramdatapoint {Repeated field}
+                            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, FieldNumberConstants.ExponentialHistogram_data_points, WireType.LEN);
+
+                            // Finish writing current batch
+                            this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
+
+                            // Send metricPoint
+                            this.SendMetricPoint(buffer, ref cursor);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.metricExportResult = ExportResult.Failure;
+                            ExporterEventSource.Log.FailedToSerializeMetric(metric.Name, ex);
+                        }
+                    }
+
                     break;
                 }
         }
@@ -444,13 +549,75 @@ internal sealed class OtlpProtobufSerializer
             cursor += this.prepopulatedNumberDataPointAttributesLength;
         }
 
-        // TODO: exemplars.
+#if EXPOSE_EXPERIMENTAL_FEATURES
+        if (metricPoint.TryGetExemplars(out var exemplars))
+        {
+            foreach (ref readonly var exemplar in exemplars)
+            {
+                if (typeof(T) == typeof(long))
+                {
+                    this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.LongValue, FieldNumberConstants.NumberDataPoint_exemplars);
+                }
+                else if (typeof(T) == typeof(double))
+                {
+                    this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.NumberDataPoint_exemplars);
+                }
+            }
+        }
+#endif
 
         var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
         // Write numberdatapoint {Repeated field}
         ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, fieldNumber, WireType.LEN);
     }
+
+#if EXPOSE_EXPERIMENTAL_FEATURES
+    private void SerializeExemplar<T>(byte[] buffer, ref int cursor, in Exemplar exemplar, T value, int fieldNumber)
+    {
+        int exemplarTagAndLengthIndex = cursor;
+        cursor += TagAndLengthSize;
+        int valueIndex = cursor;
+
+        this.SerializeExemplarTags(buffer, ref cursor, exemplar.FilteredTags);
+
+        if (typeof(T) == typeof(long))
+        {
+            // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
+            // The difference would in the way the bit representation is interpreted on decoding side (signed versus unsigned)
+            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_int, (ulong)(long)(object)value);
+        }
+        else if (typeof(T) == typeof(double))
+        {
+            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_double, (double)(object)value);
+        }
+
+        var time = (ulong)exemplar.Timestamp.ToUnixTimeNanoseconds();
+        ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_time_unix_nano, time);
+
+        if (exemplar.SpanId != default)
+        {
+            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref cursor, 16, FieldNumberConstants.Exemplar_trace_id, WireType.LEN);
+            var traceBytes = new Span<byte>(buffer, cursor, 16);
+            exemplar.TraceId.CopyTo(traceBytes);
+            cursor += 16;
+            ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref cursor, 8, FieldNumberConstants.Exemplar_span_id, WireType.LEN);
+            var spanBytes = new Span<byte>(buffer, cursor, 8);
+            exemplar.SpanId.CopyTo(spanBytes);
+            cursor += 8;
+        }
+
+        ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref exemplarTagAndLengthIndex, cursor - valueIndex, fieldNumber, WireType.LEN);
+    }
+
+    private void SerializeExemplarTags(byte[] buffer, ref int cursor, ReadOnlyFilteredTagCollection tags)
+    {
+        foreach (var tag in tags)
+        {
+            SerializeTag(buffer, ref cursor, tag.Key, tag.Value, FieldNumberConstants.Exemplar_attributes);
+        }
+    }
+#endif
 
     private void WriteIndividualMessageTagsAndLength(byte[] buffer, ref int cursor, MetricType metricType)
     {

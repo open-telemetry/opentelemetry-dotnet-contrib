@@ -73,12 +73,15 @@ components:
   src/OpenTelemetry.ResourceDetectors.Host/:
     - Kielek
     - lachmatt
-  src/OpenTelemetry.ResourceDetectors.Process/:
+  src/OpenTelemetry.Resources.Process/:
     - Kielek
     - lachmatt
-  src/OpenTelemetry.ResourceDetectors.ProcessRuntime/:
+  src/OpenTelemetry.Resources.ProcessRuntime/:
     - Kielek
     - lachmatt
+  src/OpenTelemetry.Resources.Gcp/:
+    - matt-hensley
+    - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - atshaw43
@@ -163,12 +166,15 @@ components:
   test/OpenTelemetry.ResourceDetectors.Host.Tests/:
     - Kielek
     - lachmatt
-  test/OpenTelemetry.ResourceDetectors.Process.Tests/:
+  test/OpenTelemetry.Resources.Process.Tests/:
     - Kielek
     - lachmatt
-  test/OpenTelemetry.ResourceDetectors.ProcessRuntime.Tests/:
+  test/OpenTelemetry.Resources.ProcessRuntime.Tests/:
     - Kielek
     - lachmatt
+  test/OpenTelemetry.Resources.Gcp.Tests/:
+    - matt-hensley
+    - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - atshaw43

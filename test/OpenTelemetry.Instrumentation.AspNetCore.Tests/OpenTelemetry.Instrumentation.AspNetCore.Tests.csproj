@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Unit test project for OpenTelemetry ASP.NET Core instrumentation</Description>
+    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'" >
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.21" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.21"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'" >
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.9"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'" >
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNetCore\OpenTelemetry.Instrumentation.AspNetCore.csproj" />
+    <ProjectReference Include="$(RepoRoot)\test\TestApp.AspNetCore\TestApp.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\CustomTextMapPropagator.cs" Link="Includes\CustomTextMapPropagator.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\InMemoryEventListener.cs" Link="Includes\InMemoryEventListener.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="RouteTests\RoutingTestCases.json">
+      <LogicalName>RoutingTestCases.json</LogicalName>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
