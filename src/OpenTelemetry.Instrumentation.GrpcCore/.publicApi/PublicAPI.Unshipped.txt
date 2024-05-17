@@ -3,12 +3,16 @@ OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptor.ClientTracingInt
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.ClientTracingInterceptorOptions() -> void
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.Propagator.get -> OpenTelemetry.Context.Propagation.TextMapPropagator
+OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.RecordException.get -> bool
+OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.RecordMessageEvents.get -> bool
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.RecordMessageEvents.set -> void
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptor
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptor.ServerTracingInterceptor(OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions options) -> void
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.Propagator.get -> OpenTelemetry.Context.Propagation.TextMapPropagator
+OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.RecordException.get -> bool
+OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.RecordMessageEvents.get -> bool
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.RecordMessageEvents.set -> void
 OpenTelemetry.Instrumentation.GrpcCore.ServerTracingInterceptorOptions.ServerTracingInterceptorOptions() -> void
