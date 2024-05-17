@@ -62,7 +62,7 @@ function ResolveProject {
     [Parameter(Mandatory=$true)][string]$projectName
   )
 
-  $match = [regex]::Match($tag, '^Component\[(.*)\]$')
+  $match = [regex]::Match($projectName, '^Component\[(.*)\]$')
   if ($match.Success -eq $false)
   {
     echo "title=$projectName.proj" >> $env:GITHUB_OUTPUT

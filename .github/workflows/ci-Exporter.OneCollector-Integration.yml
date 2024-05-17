@@ -13,7 +13,7 @@ on:
     - '!**.md'
 
 env:
-  PROJECT: OpenTelemetry.Exporter.OneCollector
+  BUILD_COMPONENT: OpenTelemetry.Exporter.OneCollector
 
 jobs:
   authorize:
@@ -46,13 +46,13 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
 
-    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
-      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
+    - name: dotnet restore Component.proj[${{ env.BUILD_COMPONENT }}]
+      run: dotnet restore build/Projects/Component.proj
 
-    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
-      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore
+    - name: dotnet build Component.proj[${{ env.BUILD_COMPONENT }}]
+      run: dotnet build build/Projects/Component.proj --configuration Release --no-restore
 
-    - name: dotnet test test/${{env.PROJECT}}.Tests
-      run: dotnet test test/${{env.PROJECT}}.Tests --filter CategoryName=OneCollectorIntegrationTests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+    - name: dotnet test Component.proj[${{ env.BUILD_COMPONENT }}]
+      run: dotnet test build/Projects/Component.proj --filter CategoryName=OneCollectorIntegrationTests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
       env:
         OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}
