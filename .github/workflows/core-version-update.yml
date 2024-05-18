@@ -25,7 +25,7 @@ jobs:
         # retrieve them all.
         fetch-depth: 0
 
-    - name: Create GitHub Pull Request to update OpenTelemetryCoreLatestVersion and update CHANGELOGs in projects
+    - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
       shell: pwsh
       run: |
         Import-Module .\build\scripts\post-release.psm1
