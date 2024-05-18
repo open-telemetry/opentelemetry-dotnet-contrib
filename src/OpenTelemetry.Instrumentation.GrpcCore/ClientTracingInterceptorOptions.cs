@@ -17,6 +17,11 @@ public class ClientTracingInterceptorOptions
     public bool RecordMessageEvents { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the exception will be recorded as ActivityEvent or not.
+    /// </summary>
+    public bool RecordException { get; set; }
+
+    /// <summary>
     /// Gets the propagator.
     /// </summary>
     public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;

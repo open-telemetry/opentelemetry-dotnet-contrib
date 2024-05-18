@@ -10,6 +10,8 @@
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 * Update `OpenTelemetry.Api` to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* `RecordException` option for both client and server interceptors.
+  ([#1648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1648))
 
 ## 1.0.0-beta.5
 
