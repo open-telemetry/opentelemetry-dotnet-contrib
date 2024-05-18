@@ -28,7 +28,6 @@ function CreateRelease {
 
       $changelogContent = Get-Content -Path "src/$packageName/CHANGELOG.md"
 
-      $headingWritten = $false
       $started = $false
       $content = ""
 
@@ -290,7 +289,93 @@ Merge once packages are available on NuGet and the build passes.
 
   $pullRequestNumber = $match.Groups[1].Value
 
-  #todo: Update CHANGELOGs
+  $projectsUsingVersion = @(Get-ChildItem -Path src/*/*.* | Select-String "\$\($propertyName\)" -List | Select Path | Split-Path -Parent)
+
+  if ($projectsUsingVersion.Length -lt 1)
+  {
+    Return
+  }
+
+  $entry = @"
+* Updated OpenTelemetry SDK version to ``$version``.
+  ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
+
+
+"@
+
+  $lastLineBlank = $true
+
+  foreach ($projectUsingVersion in $projectsUsingVersion)
+  {
+      $path = Join-Path -Path $projectUsingVersion -ChildPath "CHANGELOG.md"
+
+      $changelogContent = Get-Content -Path $path
+
+      $started = $false
+      $isRemoving = $false
+      $content = ""
+
+      foreach ($line in $changelogContent)
+      {
+          if ($line -like "## Unreleased" -and $started -ne $true)
+          {
+              $started = $true
+          }
+          elseif ($line -like "## *" -and $started -eq $true)
+          {
+              $content += $entry
+              $started = $false
+              $isRemoving = $false
+          }
+          elseif ($line -like '*Update* OpenTelemetry SDK version to*' -and $started -eq $true)
+          {
+              $isRemoving = $true
+              continue
+          }
+
+          if ($line.StartsWith('* '))
+          {
+              if ($isRemoving -eq $true)
+              {
+                  $isRemoving = $false
+              }
+
+              if ($lastLineBlank -eq $false)
+              {
+                  $content += "`r`n"
+              }
+          }
+
+          if ($isRemoving -eq $true)
+          {
+              continue
+          }
+
+          $content += $line + "`r`n"
+
+          $lastLineBlank = [string]::IsNullOrWhitespace($line)
+      }
+
+      Set-Content -Path $path -Value $content
+
+      git add $path 2>&1 | % ToString
+      if ($LASTEXITCODE -gt 0)
+      {
+          throw 'git add failure'
+      }
+  }
+
+  git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git commit failure'
+  }
+
+  git push -u origin $branch 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git push failure'
+  }
 }
 
 Export-ModuleMember -Function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest

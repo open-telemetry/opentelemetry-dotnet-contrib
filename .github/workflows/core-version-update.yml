@@ -1,0 +1,26 @@
+name: Core version update
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        description: 'Core version tag'
+        type: string
+
+permissions:
+  pull-requests: write
+
+jobs:
+  core-version-update:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Update core version
+      shell: pwsh
+      run: |
+        Import-Module .\build\scripts\post-release.psm1
+
+        CreateOpenTelemetryCoreLatestVersionUpdatePullRequest `
+          -tag '${{ inputs.tag }}'
