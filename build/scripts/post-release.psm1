@@ -377,6 +377,10 @@ $entry = @"
       if ($started -eq $true)
       {
         # Note: If we never wrote the entry it means the file ended in the unreleased section
+        if ($lastLineBlank -eq $false)
+        {
+            $content += "`r`n"
+        }
         $content += $entry
       }
 
