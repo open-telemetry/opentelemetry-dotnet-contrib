@@ -321,7 +321,7 @@ $entry = @"
 
   foreach ($projectDir in $changedProjects.Keys)
   {
-      $path = Join-Path -Path $projectUsingVersion -ChildPath "CHANGELOG.md"
+      $path = Join-Path -Path $projectDir -ChildPath "CHANGELOG.md"
 
       $changelogContent = Get-Content -Path $path
 
@@ -395,7 +395,7 @@ $entry = @"
 Export-ModuleMember -Function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest
 
 function GetCoreDependenciesForProjects {
-    $projects = @(Get-ChildItem -Path src/*/*.csproj)
+    $projects = @(Get-ChildItem -Path 'src/*/*.csproj')
 
     $projectsAndDependencies = @{}
 
