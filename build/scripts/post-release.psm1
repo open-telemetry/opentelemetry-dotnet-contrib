@@ -310,6 +310,11 @@ Merge once packages are available on NuGet and the build passes.
 
   $pullRequestNumber = $match.Groups[1].Value
 
+  if ($changedProjects.Count -eq 0)
+  {
+    Return
+  }
+
 $entry = @"
 * Updated OpenTelemetry core component version(s) to ``$version``.
   ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
