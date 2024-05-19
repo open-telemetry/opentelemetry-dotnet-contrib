@@ -219,19 +219,12 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
+  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
+
   $version = $match.Groups[2].Value
   $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
 
   $branch="release/post-core-${version}-update"
-
-  git config user.name $gitUserName
-  git config user.email $gitUserEmail
-
-  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git switch failure'
-  }
 
   $propertyName = "OpenTelemetryCoreLatestVersion"
   $propertyVersion = "[$version,2.0)"
@@ -244,6 +237,34 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
   (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
     Set-Content build/Common.props
+
+  $projectsAndDependenciesAfter = GetCoreDependenciesForProjects
+
+  $changedProjects = @{}
+
+  $projectsAndDependenciesBefore.GetEnumerator() | ForEach-Object {
+    $projectDir = $_.Key
+    $projectDependenciesBefore = $_.Value
+    $projectDependenciesAfter = $projectsAndDependenciesAfter[$projectDir]
+
+    $projectDependenciesBefore.GetEnumerator() | ForEach-Object {
+      $packageName = $_.Key
+      $packageVersionBefore = $_.Value
+      if ($projectDependenciesAfter[$packageName] -ne $packageVersionBefore)
+      {
+          $changedProjects[$projectDir] = $true
+      }
+    }
+  }
+
+  git config user.name $gitUserName
+  git config user.email $gitUserEmail
+
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git switch failure'
+  }
 
   git add build/Common.props 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -289,15 +310,8 @@ Merge once packages are available on NuGet and the build passes.
 
   $pullRequestNumber = $match.Groups[1].Value
 
-  $projectsUsingVersion = @(Get-ChildItem -Path src/*/*.* | Select-String "\$\($propertyName\)" -List | Select Path | Split-Path -Parent)
-
-  if ($projectsUsingVersion.Length -lt 1)
-  {
-    Return
-  }
-
-  $entry = @"
-* Updated OpenTelemetry SDK version to ``$version``.
+$entry = @"
+* Updated OpenTelemetry core component version(s) to ``$version``.
   ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
 
 
@@ -305,7 +319,7 @@ Merge once packages are available on NuGet and the build passes.
 
   $lastLineBlank = $true
 
-  foreach ($projectUsingVersion in $projectsUsingVersion)
+  foreach ($projectDir in $changedProjects.Keys)
   {
       $path = Join-Path -Path $projectUsingVersion -ChildPath "CHANGELOG.md"
 
@@ -379,3 +393,38 @@ Merge once packages are available on NuGet and the build passes.
 }
 
 Export-ModuleMember -Function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest
+
+function GetCoreDependenciesForProjects {
+    $projects = @(Get-ChildItem -Path src/*/*.csproj)
+
+    $projectsAndDependencies = @{}
+
+    foreach ($project in $projects)
+    {
+        # Note: dotnet restore may fail if the core packages aren't available yet but that is fine, we just want to generate project.assets.json for these projects.
+        $output = dotnet restore $project
+
+        $projectDir = $project | Split-Path -Parent
+
+        $content = (Get-Content "$projectDir/obj/project.assets.json" -Raw)
+
+        $projectDependencies = @{}
+
+        $matches = [regex]::Matches($content, '"(OpenTelemetry(?:.*))?": {[\S\s]*?"target": "Package",[\S\s]*?"version": "(.*)"[\S\s]*?}')
+        foreach ($match in $matches)
+        {
+            $packageName = $match.Groups[1].Value
+            $packageVersion = $match.Groups[2].Value
+            if ($packageName -eq 'OpenTelemetry' -or
+                $packageName -eq 'OpenTelemetry.Api' -or
+                $packageName -eq 'OpenTelemetry.Api.ProviderBuilderExtensions' -or
+                $packageName -eq 'OpenTelemetry.Extensions.Hosting')
+            {
+                $projectDependencies[$packageName.ToString()] = $packageVersion.ToString()
+            }
+        }
+        $projectsAndDependencies[$projectDir.ToString()] = $projectDependencies
+    }
+
+    return $projectsAndDependencies
+}

@@ -25,6 +25,9 @@ jobs:
         # retrieve them all.
         fetch-depth: 0
 
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+
     - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
       shell: pwsh
       run: |
