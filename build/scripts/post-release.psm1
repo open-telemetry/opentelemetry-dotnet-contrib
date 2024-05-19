@@ -337,6 +337,10 @@ $entry = @"
           }
           elseif ($line -like "## *" -and $started -eq $true)
           {
+              if ($lastLineBlank -eq $false)
+              {
+                  $content += "`r`n"
+              }
               $content += $entry
               $started = $false
               $isRemoving = $false
@@ -370,7 +374,13 @@ $entry = @"
           $lastLineBlank = [string]::IsNullOrWhitespace($line)
       }
 
-      Set-Content -Path $path -Value $content
+      if ($started -eq $true)
+      {
+        # Note: If we never wrote the entry it means the file ended in the unreleased section
+        $content += $entry
+      }
+
+      Set-Content -Path $path -Value $content.TrimEnd()
 
       git add $path 2>&1 | % ToString
       if ($LASTEXITCODE -gt 0)
