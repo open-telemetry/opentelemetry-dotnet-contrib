@@ -303,9 +303,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Pro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process.Tests", "test\OpenTelemetry.Resources.Process.Tests\OpenTelemetry.Resources.Process.Tests.csproj", "{A5EF701C-439E-407F-8BB4-394166000C6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host", "src\OpenTelemetry.ResourceDetectors.Host\OpenTelemetry.ResourceDetectors.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resourcess", "src\OpenTelemetry.Resources.Host\OpenTelemetry.Resources.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Host.Tests", "test\OpenTelemetry.Resources.Host.Tests\OpenTelemetry.Resources.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.PersistentStorage.Abstractions.Tests", "test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj", "{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}"
 EndProject

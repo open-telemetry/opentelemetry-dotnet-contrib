@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.ResourceDetectors.Host;
+namespace OpenTelemetry.Resources.Host;
 
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-Host")]
 internal class HostResourceEventSource : EventSource

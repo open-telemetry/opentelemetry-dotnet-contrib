@@ -7,7 +7,7 @@ using System.Linq;
 using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.ResourceDetectors.Host.Tests;
+namespace OpenTelemetry.Resources.Host.Tests;
 
 public class HostDetectorTests
 {

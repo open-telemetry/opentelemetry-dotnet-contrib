@@ -70,7 +70,7 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.ResourceDetectors.Container/:
     - iskiselev
-  src/OpenTelemetry.ResourceDetectors.Host/:
+  src/OpenTelemetry.Resources.Host/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.Process/:
@@ -163,7 +163,7 @@ components:
     - vishweshbankwar
   test/OpenTelemetry.ResourceDetectors.Container.Tests/:
     - iskiselev
-  test/OpenTelemetry.ResourceDetectors.Host.Tests/:
+  test/OpenTelemetry.Resources.Host.Tests/:
     - Kielek
     - lachmatt
   test/OpenTelemetry.Resources.Process.Tests/:

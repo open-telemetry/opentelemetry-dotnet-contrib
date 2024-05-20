@@ -7,9 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.Host;
+namespace OpenTelemetry.Resources.Host;
 
 /// <summary>
 /// Host detector.

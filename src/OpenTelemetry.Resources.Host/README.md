@@ -1,7 +1,7 @@
 # Host Resource Detectors
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Host)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Host)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Host)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Host)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Host)](https://www.nuget.org/packages/OpenTelemetry.Resources.Host)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Host)](https://www.nuget.org/packages/OpenTelemetry.Resources.Host)
 
 > [!IMPORTANT]
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/host.md).
@@ -10,11 +10,11 @@
 ## Getting Started
 
 You need to install the
-`OpenTelemetry.ResourceDetectors.Host` package to be able to use the
+`OpenTelemetry.Resources.Host` package to be able to use the
 Host Resource Detectors.
 
 ```shell
-dotnet add package OpenTelemetry.ResourceDetectors.Host --prerelease
+dotnet add package OpenTelemetry.Resources.Host --prerelease
 ```
 
 ## Usage
@@ -24,12 +24,12 @@ the `TracerProvider` with the following example below.
 
 ```csharp
 using OpenTelemetry;
-using OpenTelemetry.ResourceDetectors.Host;
+using OpenTelemetry.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
                         .ConfigureResource(resource => resource
-                            .AddDetector(new HostDetector()))
+                            .AddHostDetector())
                         .Build();
 ```
 
