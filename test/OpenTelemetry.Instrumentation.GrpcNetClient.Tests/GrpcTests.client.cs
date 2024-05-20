@@ -428,8 +428,8 @@ public partial class GrpcTests
     [Fact]
     public void Grpc_BadArgs()
     {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddGrpcClientInstrumentation());
+        TracerProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder!.AddGrpcClientInstrumentation());
     }
 
     private static void ValidateGrpcActivity(Activity activityToValidate)
