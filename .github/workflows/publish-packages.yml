@@ -54,8 +54,29 @@ jobs:
       run: |
         Import-Module .\build\scripts\build.psm1
 
+        # Note: The ResolveProjectForTag call here figures out the .proj file to
+        # use for the build. It will be either opentelemetry-dotnet-contrib.proj
+        # (for manual/scheduled builds), a .proj file in .\build\Projects\ (if
+        # one is defined with MinVerTagPrefix matching the tag), or
+        # Component.proj for simple projects (where a single csproj has
+        # MinVerTagPrefix matching the tag).
+
+        $title = '' # Used for friendly names in action UI
+        $project = '' # Actual project passed to dotnet
+        $component = '' # Used to tell Component.proj what to build
+
         ResolveProjectForTag `
-          -tag '${{ github.ref_type == 'tag' && github.ref_name || inputs.tag || '' }}'
+          -tag '${{ github.ref_type == 'tag' && github.ref_name || inputs.tag || '' }}' `
+          -title ([ref]$title) `
+          -project ([ref]$project) `
+          -component ([ref]$component)
+
+        echo "title=$title" >> $env:GITHUB_OUTPUT
+        echo "project=$project" >> $env:GITHUB_OUTPUT
+
+        # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
+        # used if $project ends up Component.proj.
+        echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
