@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.0.0-beta.6
+
 * Make the context propagation extraction case insensitive.
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 * Update minimal supported  version of `Google.Protobuf` to `3.15.0`.
