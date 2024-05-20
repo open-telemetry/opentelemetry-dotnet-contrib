@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.Host;
 /// <summary>
 /// Host detector.
 /// </summary>
-public sealed class HostDetector : IResourceDetector
+internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";

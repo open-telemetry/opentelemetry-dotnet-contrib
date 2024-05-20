@@ -7,7 +7,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources.Host;
 
-[EventSource(Name = "OpenTelemetry-ResourceDetectors-Host")]
+[EventSource(Name = "OpenTelemetry-Resources-Host")]
 internal class HostResourceEventSource : EventSource
 {
     public static HostResourceEventSource Log = new();
