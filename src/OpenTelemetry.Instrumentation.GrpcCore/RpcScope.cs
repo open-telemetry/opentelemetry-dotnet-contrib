@@ -8,6 +8,7 @@ using System.Threading;
 using Google.Protobuf;
 using Grpc.Core;
 using OpenTelemetry.Trace;
+using StatusCode = Grpc.Core.StatusCode;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
 
@@ -111,7 +112,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         }
 
         // The overall Span status should remain unset however the grpc status code attribute is required
-        this.StopActivity((int)Grpc.Core.StatusCode.OK);
+        this.StopActivity((int)StatusCode.OK);
     }
 
     /// <summary>
@@ -137,7 +138,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         }
 
         // If not already completed this will mark the Activity as cancelled.
-        this.StopActivity((int)Grpc.Core.StatusCode.Cancelled);
+        this.StopActivity((int)StatusCode.Cancelled);
     }
 
     /// <summary>
@@ -197,7 +198,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        var grpcStatusCode = Grpc.Core.StatusCode.Unknown;
+        var grpcStatusCode = StatusCode.Unknown;
         var description = exception.Message;
 
         if (exception is RpcException rpcException)
@@ -208,7 +209,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (!string.IsNullOrEmpty(description))
         {
-            this.activity.SetStatus(Trace.Status.Error.WithDescription(description));
+            this.activity.SetStatus(ActivityStatusCode.Error, description);
         }
 
         if (this.activity.IsAllDataRequested && this.recordException)
