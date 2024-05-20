@@ -17,8 +17,6 @@ internal static class SemanticConventions
     public const string AttributeMessageID = "message.id";
     public const string AttributeMessageCompressedSize = "message.compressed_size";
     public const string AttributeMessageUncompressedSize = "message.uncompressed_size";
-    public const string AttributeOtelStatusCode = "otel.status_code";
-    public const string AttributeOtelStatusDescription = "otel.status_description";
 
     // Used for unit testing only.
     internal const string AttributeActivityIdentifier = "activityidentifier";

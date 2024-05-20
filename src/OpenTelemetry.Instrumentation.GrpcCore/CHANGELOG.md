@@ -12,6 +12,9 @@
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 * `RecordException` option for both client and server interceptors.
   ([#1648](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1648))
+* Use `Activity.Status` and `Activity.StatusDescription`
+  instead of `otel.status_code` and `otel.status_description` tags.
+  ([#1799](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1799))
 
 ## 1.0.0-beta.5
 
