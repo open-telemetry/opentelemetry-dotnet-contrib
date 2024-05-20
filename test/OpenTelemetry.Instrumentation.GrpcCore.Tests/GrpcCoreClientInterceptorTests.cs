@@ -10,7 +10,9 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
 using Xunit;
+using StatusCode = Grpc.Core.StatusCode;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
@@ -237,7 +239,8 @@ public class GrpcCoreClientInterceptorTests
                 return metadata;
             });
 
-        var interceptorOptions = new ClientTracingInterceptorOptions { ActivityIdentifierValue = Guid.NewGuid() };
+        var guid = Guid.NewGuid();
+        var interceptorOptions = new ClientTracingInterceptorOptions { CustomTags = new Dictionary<string, object> { } };
         callInvoker = callInvoker.Intercept(new ClientTracingInterceptor(interceptorOptions));
         var client = new Foobar.FoobarClient(callInvoker);
 
@@ -343,7 +346,7 @@ public class GrpcCoreClientInterceptorTests
             {
                 Assert.NotNull(activityEvent.Tags);
                 Assert.Contains(activityEvent.Tags, t => t.Key == "name" && (string)t.Value == "message");
-                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageID && (int)t.Value == 1);
+                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageId && (int)t.Value == 1);
             }
 
             Assert.NotEqual(default, requestMessage);
@@ -403,15 +406,16 @@ public class GrpcCoreClientInterceptorTests
         };
 
         using var server = FoobarService.Start();
+        var guid = Guid.NewGuid();
         var interceptorOptions = new ClientTracingInterceptorOptions
         {
             Propagator = propagator,
             RecordMessageEvents = true,
-            ActivityIdentifierValue = Guid.NewGuid(),
+            CustomTags = new Dictionary<string, object>() { [Consts.TestActivityTag] = guid.ToString() },
         };
 
         // No Activity parent
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(guid))
         {
             var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
@@ -446,7 +450,7 @@ public class GrpcCoreClientInterceptorTests
         capturedPropagationContext = default;
 
         // Activity has a parent
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(guid))
         {
             using var parentActivity = new Activity("foo");
             parentActivity.SetIdFormat(ActivityIdFormat.W3C);
@@ -486,7 +490,8 @@ public class GrpcCoreClientInterceptorTests
         string serverUriString = null)
     {
         using var server = FoobarService.Start();
-        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
+        var guid = Guid.NewGuid();
+        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), CustomTags = new Dictionary<string, object> { [Consts.TestActivityTag] = guid.ToString()}, RecordException = true };
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
             new ClientTracingInterceptor(interceptorOptions),
@@ -496,7 +501,7 @@ public class GrpcCoreClientInterceptorTests
                 new(FoobarService.RequestHeaderErrorDescription, "fubar"),
             });
 
-        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
+        using var activityListener = new InterceptorActivityListener(guid);
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
@@ -515,8 +520,9 @@ public class GrpcCoreClientInterceptorTests
     private void TestActivityIsCancelledWhenHandlerDisposed(Action<Foobar.FoobarClient> clientRequestAction)
     {
         using var server = FoobarService.Start();
-        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
-        using var activityListener = new InterceptorActivityListener(clientInterceptorOptions.ActivityIdentifierValue);
+        var guid = Guid.NewGuid();
+        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), CustomTags = new Dictionary<string, object> { [Consts.TestActivityTag] = guid.ToString() } };
+        using var activityListener = new InterceptorActivityListener(guid);
         var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
         clientRequestAction(client);
 

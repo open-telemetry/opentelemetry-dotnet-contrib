@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
+using System.Collections.Generic;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore;
@@ -29,5 +29,5 @@ public class ClientTracingInterceptorOptions
     /// <summary>
     /// Gets or sets a custom identifier used during unit testing.
     /// </summary>
-    internal Guid ActivityIdentifierValue { get; set; }
+    internal IDictionary<string, object> CustomTags { get; set; }
 }
