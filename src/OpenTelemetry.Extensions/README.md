@@ -53,7 +53,8 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-Alternatively, you can provide a custom baggage key predicate to select which baggage keys you want to copy.
+Alternatively, you can provide a custom baggage key predicate to select which baggage keys
+you want to copy.
 
 For example, to only copy baggage entries that start with `my-key`:
 
