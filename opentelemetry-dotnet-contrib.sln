@@ -283,26 +283,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 	ProjectSection(SolutionItems) = preProject
 		build\Projects\Component.proj = build\Projects\Component.proj
 		build\Projects\OpenTelemetry.Contrib.Shared.Tests.proj = build\Projects\OpenTelemetry.Contrib.Shared.Tests.proj
-		build\Projects\OpenTelemetry.Exporter.Geneva.proj = build\Projects\OpenTelemetry.Exporter.Geneva.proj
-		build\Projects\OpenTelemetry.Exporter.OneCollector.proj = build\Projects\OpenTelemetry.Exporter.OneCollector.proj
-		build\Projects\OpenTelemetry.Extensions.proj = build\Projects\OpenTelemetry.Extensions.proj
 		build\Projects\OpenTelemetry.Instrumentation.AspNet.proj = build\Projects\OpenTelemetry.Instrumentation.AspNet.proj
 		build\Projects\OpenTelemetry.Instrumentation.AspNetCore.proj = build\Projects\OpenTelemetry.Instrumentation.AspNetCore.proj
 		build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj = build\Projects\OpenTelemetry.Instrumentation.EventCounters.proj
-		build\Projects\OpenTelemetry.Instrumentation.GrpcNetClient.proj = build\Projects\OpenTelemetry.Instrumentation.GrpcNetClient.proj
-		build\Projects\OpenTelemetry.Instrumentation.Http.proj = build\Projects\OpenTelemetry.Instrumentation.Http.proj
 		build\Projects\OpenTelemetry.Instrumentation.Owin.proj = build\Projects\OpenTelemetry.Instrumentation.Owin.proj
 		build\Projects\OpenTelemetry.Instrumentation.Process.proj = build\Projects\OpenTelemetry.Instrumentation.Process.proj
 		build\Projects\OpenTelemetry.Instrumentation.Runtime.proj = build\Projects\OpenTelemetry.Instrumentation.Runtime.proj
-		build\Projects\OpenTelemetry.Instrumentation.SqlClient.proj = build\Projects\OpenTelemetry.Instrumentation.SqlClient.proj
 		build\Projects\OpenTelemetry.Instrumentation.StackExchangeRedis.proj = build\Projects\OpenTelemetry.Instrumentation.StackExchangeRedis.proj
 		build\Projects\OpenTelemetry.Instrumentation.Wcf.proj = build\Projects\OpenTelemetry.Instrumentation.Wcf.proj
 		build\Projects\OpenTelemetry.PersistentStorage.proj = build\Projects\OpenTelemetry.PersistentStorage.proj
-		build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj = build\Projects\OpenTelemetry.ResourceDetectors.Azure.proj
-		build\Projects\OpenTelemetry.ResourceDetectors.Host.proj = build\Projects\OpenTelemetry.ResourceDetectors.Host.proj
-		build\Projects\OpenTelemetry.Resources.Gcp.proj = build\Projects\OpenTelemetry.Resources.Gcp.proj
-		build\Projects\OpenTelemetry.Resources.Process.proj = build\Projects\OpenTelemetry.Resources.Process.proj
-		build\Projects\OpenTelemetry.Resources.ProcessRuntime.proj = build\Projects\OpenTelemetry.Resources.ProcessRuntime.proj
 		build\Projects\OpenTelemetry.SemanticConventions.proj = build\Projects\OpenTelemetry.SemanticConventions.proj
 	EndProjectSection
 EndProject
@@ -874,8 +863,6 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
-		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{B6157646-8EBA-464C-99B9-C386D474CB12} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
