@@ -45,10 +45,18 @@ and adds the baggage keys and values to the `Activity` as tags (attributes) on s
 
 Add this activity processor to a tracer provider.
 
-Example of adding BaggageActivityProcessor to `TracerProvider`:
+For example, to add all baggage entries to new activities:
 
 ```cs
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddBaggageActivityProcessor()
+    .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
     .Build();
+```
+
+Alternatively, you can provide a custom baggage key predicate to select which baggage keys you want to copy.
+
+For example, to only copy baggage entries that start with `my-key`:
+
+```cs
+new AddBaggageActivityProcessor(baggageKey => baggageKey.StartWith("my-key"))
 ```
