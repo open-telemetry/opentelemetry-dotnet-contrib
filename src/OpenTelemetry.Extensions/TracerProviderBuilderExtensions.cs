@@ -53,14 +53,16 @@ public static class TracerProviderBuilderExtensions
     /// Adds the <see cref="BaggageActivityProcessor"/> to the <see cref="TracerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageActivityProcessor"/> to.</param>
+    /// <param name="baggageKeyPredicate">Predicate to determine which baggage keys should be added to the activity.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddBaggageActivityProcessor(
-        this TracerProviderBuilder builder)
+        this TracerProviderBuilder builder,
+        Predicate<string> baggageKeyPredicate)
     {
         Guard.ThrowIfNull(builder);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        return builder.AddProcessor(new BaggageActivityProcessor());
+        return builder.AddProcessor(new BaggageActivityProcessor(baggageKeyPredicate));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }
