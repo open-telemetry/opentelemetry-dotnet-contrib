@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update BaggageActivityProcessor to use baggage key predicate.
+  ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
+
 ## 1.0.0-beta.5
 
 Released 2024-May-08
