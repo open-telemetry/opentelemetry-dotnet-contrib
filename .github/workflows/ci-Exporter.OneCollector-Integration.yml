@@ -12,9 +12,6 @@ on:
     - 'build/**'
     - '!**.md'
 
-env:
-  PROJECT: OpenTelemetry.Exporter.OneCollector
-
 jobs:
   authorize:
     environment: # Run external PRs from forks on the "external"" environment which requires approval
@@ -46,13 +43,13 @@ jobs:
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
 
-    - name: dotnet restore build/Projects/${{env.PROJECT}}.proj
-      run: dotnet restore build/Projects/${{env.PROJECT}}.proj
+    - name: dotnet restore Component.proj for OpenTelemetry.Exporter.OneCollector
+      run: dotnet restore build/Projects/Component.proj -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector
 
-    - name: dotnet build build/Projects/${{env.PROJECT}}.proj
-      run: dotnet build build/Projects/${{env.PROJECT}}.proj --configuration Release --no-restore
+    - name: dotnet build Component.proj for OpenTelemetry.Exporter.OneCollector
+      run: dotnet build build/Projects/Component.proj --configuration Release --no-restore -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector
 
-    - name: dotnet test test/${{env.PROJECT}}.Tests
-      run: dotnet test test/${{env.PROJECT}}.Tests --filter CategoryName=OneCollectorIntegrationTests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+    - name: dotnet test Component.proj for OpenTelemetry.Exporter.OneCollector
+      run: dotnet test build/Projects/Component.proj --filter CategoryName=OneCollectorIntegrationTests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector --logger:"console;verbosity=detailed"
       env:
         OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}

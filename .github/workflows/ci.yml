@@ -134,7 +134,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Azure
+      project-name: Component[OpenTelemetry.ResourceDetectors.Azure]
       code-cov-name: ResourceDetectors.Azure
 
   build-test-eventcounters:
@@ -157,7 +157,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Extensions
+      project-name: Component[OpenTelemetry.Extensions]
       code-cov-name: Extensions
 
   build-test-geneva:
@@ -168,7 +168,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Exporter.Geneva
+      project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
 
   build-test-gcp:
@@ -179,7 +179,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.Gcp
+      project-name: Component[OpenTelemetry.Resources.Gcp]
       code-cov-name: Resources.Gcp
 
   build-test-grpcnetclient:
@@ -190,7 +190,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.GrpcNetClient
+      project-name: Component[OpenTelemetry.Instrumentation.GrpcNetClient]
       code-cov-name: Instrumentation.GrpcNetClient
 
   build-test-host:
@@ -201,19 +201,19 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Host
+      project-name: Component[OpenTelemetry.ResourceDetectors.Host]
       code-cov-name: ResourceDetectors.Host
 
   build-test-http:
-        needs: detect-changes
-        if: |
-          contains(needs.detect-changes.outputs.changes, 'http')
-          || contains(needs.detect-changes.outputs.changes, 'build')
-          || contains(needs.detect-changes.outputs.changes, 'shared')
-        uses: ./.github/workflows/Component.BuildTest.yml
-        with:
-          project-name: OpenTelemetry.Instrumentation.Http
-          code-cov-name: Instrumentation.Http
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'http')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Http]
+      code-cov-name: Instrumentation.Http
 
   build-test-onecollector:
     needs: detect-changes
@@ -223,7 +223,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Exporter.OneCollector
+      project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
 
   build-test-owin:
@@ -269,7 +269,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.Process
+      project-name: Component[OpenTelemetry.Resources.Process]
       code-cov-name: Resources.Process
 
   build-test-processruntime:
@@ -280,7 +280,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.ProcessRuntime
+      project-name: Component[OpenTelemetry.Resources.ProcessRuntime]
       code-cov-name: Resources.ProcessRuntime
 
   build-test-redis:
@@ -332,7 +332,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.SqlClient
+      project-name: Component[OpenTelemetry.Instrumentation.SqlClient]
       code-cov-name: Instrumentation.SqlClient
 
   build-test-wcf:
