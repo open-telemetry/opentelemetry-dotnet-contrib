@@ -3,7 +3,7 @@
 
 using BenchmarkDotNet.Running;
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 internal class Program
 {

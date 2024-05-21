@@ -49,7 +49,7 @@ BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3296/23H2/2023Update/SunValley3
 | ExportHistogramMetricItemWith4Dimensions_Otlp            | 513.72 ns | 7.481 ns | 6.998 ns | 0.0038 |      48 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
 public class MetricExporterBenchmarks

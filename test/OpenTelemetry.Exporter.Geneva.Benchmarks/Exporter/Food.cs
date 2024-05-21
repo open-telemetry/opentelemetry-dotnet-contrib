@@ -3,7 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 public static partial class Food
 {

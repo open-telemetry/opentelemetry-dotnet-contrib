@@ -1,7 +1,7 @@
-# OpenTelemetry GenevaExporter Benchmarks
+# OpenTelemetry HTTP Instrumentation Benchmarks
 
-Navigate to `./test/OpenTelemetry.Exporter.Geneva.Benchmark` directory and run
-the following command:
+Navigate to `./test/OpenTelemetry.Instrumentation.Http.Benchmarks` directory
+and run the following command:
 
 ```sh
 dotnet run -c Release -f net8.0 -- -m

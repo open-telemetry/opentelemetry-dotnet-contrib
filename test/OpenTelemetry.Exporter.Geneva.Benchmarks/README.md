@@ -1,7 +1,7 @@
-# OpenTelemetry ASP.NET Core Instrumentation Benchmarks
+# OpenTelemetry GenevaExporter Benchmarks
 
-Navigate to `./test/OpenTelemetry.Instrumentation.AspNetCore.Benchmark` directory
-and run the following command:
+Navigate to `./test/OpenTelemetry.Exporter.Geneva.Benchmarks` directory and run
+the following command:
 
 ```sh
 dotnet run -c Release -f net8.0 -- -m
