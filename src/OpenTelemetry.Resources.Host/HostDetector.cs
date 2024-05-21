@@ -7,14 +7,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
-using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.Host;
+namespace OpenTelemetry.Resources.Host;
 
 /// <summary>
 /// Host detector.
 /// </summary>
-public sealed class HostDetector : IResourceDetector
+internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
