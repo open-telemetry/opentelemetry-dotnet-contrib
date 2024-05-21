@@ -404,8 +404,8 @@ jobs:
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
-            OpenTelemetry.Resources.Host.Tests.csproj,
             OpenTelemetry.Resources.Gcp.Tests.csproj,
+            OpenTelemetry.Resources.Host.Tests.csproj,
             OpenTelemetry.Resources.Process.Tests.csproj,
             OpenTelemetry.Resources.ProcessRuntime.Tests.csproj
 
