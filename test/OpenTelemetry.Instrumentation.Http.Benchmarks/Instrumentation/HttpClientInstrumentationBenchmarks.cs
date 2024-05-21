@@ -24,7 +24,7 @@ Intel Core i7-8850H CPU 2.60GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical 
 | HttpClientRequest |       Traces, Metrics | 175.6 us | 1.96 us | 1.83 us | 0.4883 |   4.28 KB |
 */
 
-namespace OpenTelemetry.Instrumentation.Http.Benchmark.Instrumentation;
+namespace OpenTelemetry.Instrumentation.Http.Benchmarks.Instrumentation;
 
 public class HttpClientInstrumentationBenchmarks
 {

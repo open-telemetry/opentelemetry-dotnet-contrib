@@ -65,7 +65,7 @@ Baseline = 2.45 KB
 With Traces and Metrics = Baseline + With Traces + (With Metrics - (Activity creation + `Acitivity.Stop()`)) (they use the same activity)
                         = 2.45 + (1032 + 64) / 1024 = 2.45 + 1.07 = ~3.52KB
 */
-namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmark.Instrumentation;
+namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmarks.Instrumentation;
 
 public class AspNetCoreInstrumentationNewBenchmarks
 {

@@ -21,7 +21,7 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 | CreateActivityWithGenevaExporter | 1,066.0 ns | 20.98 ns | 56.35 ns | 0.0648 |     416 B |
 */
 
-namespace OpenTelemetry.Exporter.Geneva.Benchmark;
+namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
 public class TraceExporterBenchmarks
