@@ -3,7 +3,7 @@
 
 using BenchmarkDotNet.Running;
 
-namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmark;
+namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmarks;
 
 internal class Program
 {
