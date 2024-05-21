@@ -56,8 +56,19 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Alternatively, you can provide a custom baggage key predicate to select which
 baggage keys you want to copy.
 
-For example, to only copy baggage entries that start with `my-key`:
+For example, to only copy baggage entries that start with `my-key` using a
+regular expression:
 
 ```cs
-new AddBaggageActivityProcessor(baggageKey => baggageKey.StartWith("my-key"))
+  .AddBaggageActivityProcessor("^my-key")
 ```
+
+For example, to only copy baggage entries that start with `my-key` using a
+custom function:
+
+```cs
+  .AddBaggageActivityProcessor(baggageKey => baggageKey.StartWith("my-key"))
+```
+
+Warning: The baggage key predicate is executed for every started activity.
+Do not use slow or intensive operations.
