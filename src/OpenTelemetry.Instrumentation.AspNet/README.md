@@ -164,35 +164,32 @@ and the `Filter` option does the filtering *before* the Sampler is invoked.
 
 ### Trace Enrich
 
-This option allows one to enrich the activity with additional information from
-the raw `HttpRequest`, `HttpResponse` objects. The `Enrich` action is called
+This instrumentation library provides `EnrichWithHttpRequest`,
+`EnrichWithHttpResponse` and `EnrichWithException` options that can be used to
+enrich the activity with additional information from the raw `HttpRequest`,
+`HttpResponse` and `Exception` objects respectively. These actions are called
 only when `activity.IsAllDataRequested` is `true`. It contains the activity
-itself (which can be enriched), the name of the event, and the actual raw
-object. For event name "OnStartActivity", the actual object will be
-`HttpRequest`. For event name "OnStopActivity", the actual object will be
-`HttpResponse`
+itself (which can be enriched) and the actual raw object.
 
-The following code snippet shows how to add additional tags using `Enrich`.
+The following code snippet shows how to enrich the activity using all 3
+different options.
 
 ```csharp
 this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddAspNetInstrumentation((options) => options.Enrich
-        = (activity, eventName, rawObject) =>
+    .AddAspNetCoreInstrumentation(o =>
     {
-        if (eventName.Equals("OnStartActivity"))
+        o.EnrichWithHttpRequest = (activity, httpRequest) =>
         {
-            if (rawObject is HttpRequest httpRequest)
-            {
-                activity.SetTag("physicalPath", httpRequest.PhysicalPath);
-            }
-        }
-        else if (eventName.Equals("OnStopActivity"))
+            activity.SetTag("physicalPath", httpRequest.PhysicalPath);
+        };
+        o.EnrichWithHttpResponse = (activity, httpResponse) =>
         {
-            if (rawObject is HttpResponse httpResponse)
-            {
-                activity.SetTag("responseType", httpResponse.ContentType);
-            }
-        }
+            activity.SetTag("responseType", httpResponse.ContentType);
+        };
+        o.EnrichWithException = (activity, exception) =>
+        {
+            activity.SetTag("exceptionType", exception.GetType().ToString());
+        };
     })
     .Build();
 ```
