@@ -33,7 +33,7 @@ jobs:
           geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
-          host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
+          host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
           http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
           onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
           owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
@@ -56,7 +56,7 @@ jobs:
             '!*/OpenTelemetry.Instrumentation.AspNetCore*/**',
             '!examples/AspNet/**',
             '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
-            '!*/OpenTelemetry.ResourceDetectors.Host*/**',
+            '!*/OpenTelemetry.Resources.Host*/**',
             '!*/OpenTelemetry.Resources.Gcp*/**',
             '!*/OpenTelemetry.Resources.Process/**',
             '!*/OpenTelemetry.Resources.Process.Tests/**',
@@ -201,8 +201,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.ResourceDetectors.Host]
-      code-cov-name: ResourceDetectors.Host
+      project-name: Component[OpenTelemetry.Resources.Host]
+      code-cov-name: Resources.Host
 
   build-test-http:
     needs: detect-changes
@@ -404,8 +404,8 @@ jobs:
             OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
             OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
             OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
             OpenTelemetry.Resources.Gcp.Tests.csproj,
+            OpenTelemetry.Resources.Host.Tests.csproj,
             OpenTelemetry.Resources.Process.Tests.csproj,
             OpenTelemetry.Resources.ProcessRuntime.Tests.csproj
 

@@ -12,9 +12,6 @@ benchmark[s] and stress test csprojs are also supported. -->
     <SolutionProjects Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Tests\$(BUILD_COMPONENT).Tests.csproj" />
 
     <SolutionProjects
-      Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmark\$(BUILD_COMPONENT).Benchmark.csproj')"
-      Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmark\$(BUILD_COMPONENT).Benchmark.csproj" />
-    <SolutionProjects
       Condition="Exists('$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmarks\$(BUILD_COMPONENT).Benchmarks.csproj')"
       Include="$(RepoRoot)\test\$(BUILD_COMPONENT).Benchmarks\$(BUILD_COMPONENT).Benchmarks.csproj" />
     <SolutionProjects

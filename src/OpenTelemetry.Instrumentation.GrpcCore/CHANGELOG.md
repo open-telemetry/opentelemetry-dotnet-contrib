@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.6
+
+Released 2024-May-21
+
 * Make the context propagation extraction case insensitive.
   ([#483](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/483))
 * Update minimal supported  version of `Google.Protobuf` to `3.15.0`.
@@ -18,10 +22,14 @@
 
 ## 1.0.0-beta.5
 
+Released 2022-Mar-25
+
 * Switched Grpc.Core package dependency to Grpc.Core.Api in the same range.
   No functional change, just less exposure to unnecessary packages.
 
 ## 1.0.0-beta.4
+
+Released 2022-Mar-18
 
 * Going forward the NuGet package will be
   [`OpenTelemetry.Instrumentation.GrpcCore`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore).
@@ -37,6 +45,8 @@
 
 ## 1.0.0-beta3
 
+Released 2021-Jun-11
+
 * Updated OpenTelemetry SDK package version to 1.1.0-beta1
   ([#100](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/100))
 
@@ -44,6 +54,8 @@
   ([#143](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/143))
 
 ## 1.0.0-beta2
+
+Released 2021-Mar-17
 
 * This is the first release of `OpenTelemetry.Contrib.Instrumentation.GrpcCore`
   package.

@@ -33,6 +33,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\Component.BuildTest.yml = .github\workflows\Component.BuildTest.yml
+		.github\workflows\core-version-update.yml = .github\workflows\core-version-update.yml
 		.github\workflows\dotnet-format.yml = .github\workflows\dotnet-format.yml
 		.github\workflows\integration.yml = .github\workflows\integration.yml
 		.github\workflows\markdownlint.yml = .github\workflows\markdownlint.yml
@@ -146,7 +147,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva", "src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj", "{1105C814-31DA-4214-BEA8-6DB5FC12C808}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Benchmark", "test\OpenTelemetry.Exporter.Geneva.Benchmark\OpenTelemetry.Exporter.Geneva.Benchmark.csproj", "{F53FD7F5-DBC0-4FA5-83BA-B4C07A5BD248}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Benchmarks", "test\OpenTelemetry.Exporter.Geneva.Benchmarks\OpenTelemetry.Exporter.Geneva.Benchmarks.csproj", "{F53FD7F5-DBC0-4FA5-83BA-B4C07A5BD248}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva.Stress", "test\OpenTelemetry.Exporter.Geneva.Stress\OpenTelemetry.Exporter.Geneva.Stress.csproj", "{F632DFB6-38AD-4356-8997-8CCC0492619C}"
 EndProject
@@ -295,17 +296,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{04
 		build\Projects\OpenTelemetry.SemanticConventions.proj = build\Projects\OpenTelemetry.SemanticConventions.proj
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.ProcessRuntime", "src\OpenTelemetry.Resources.ProcessRuntime\OpenTelemetry.Resources.ProcessRuntime.csproj", "{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.ProcessRuntime", "src\OpenTelemetry.Resources.ProcessRuntime\OpenTelemetry.Resources.ProcessRuntime.csproj", "{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.ProcessRuntime.Tests", "test\OpenTelemetry.Resources.ProcessRuntime.Tests\OpenTelemetry.Resources.ProcessRuntime.Tests.csproj", "{B6157646-8EBA-464C-99B9-C386D474CB12}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.ProcessRuntime.Tests", "test\OpenTelemetry.Resources.ProcessRuntime.Tests\OpenTelemetry.Resources.ProcessRuntime.Tests.csproj", "{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process", "src\OpenTelemetry.Resources.Process\OpenTelemetry.Resources.Process.csproj", "{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process.Tests", "test\OpenTelemetry.Resources.Process.Tests\OpenTelemetry.Resources.Process.Tests.csproj", "{A5EF701C-439E-407F-8BB4-394166000C6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host", "src\OpenTelemetry.ResourceDetectors.Host\OpenTelemetry.ResourceDetectors.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Host", "src\OpenTelemetry.Resources.Host\OpenTelemetry.Resources.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Host.Tests", "test\OpenTelemetry.ResourceDetectors.Host.Tests\OpenTelemetry.ResourceDetectors.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Host.Tests", "test\OpenTelemetry.Resources.Host.Tests\OpenTelemetry.Resources.Host.Tests.csproj", "{36271347-2055-438E-9659-B71542A17A73}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.PersistentStorage.Abstractions.Tests", "test\OpenTelemetry.PersistentStorage.Abstractions.Tests\OpenTelemetry.PersistentStorage.Abstractions.Tests.csproj", "{7AD707F9-DC6D-430A-8834-D5DCD517BF6E}"
 EndProject
@@ -323,7 +324,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Tests", "test\OpenTelemetry.Instrumentation.Http.Tests\OpenTelemetry.Instrumentation.Http.Tests.csproj", "{7371E920-ECD0-403A-A009-7A1A301D9763}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Benchmark", "test\OpenTelemetry.Instrumentation.Http.Benchmark\OpenTelemetry.Instrumentation.Http.Benchmark.csproj", "{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Http.Benchmarks", "test\OpenTelemetry.Instrumentation.Http.Benchmarks\OpenTelemetry.Instrumentation.Http.Benchmarks.csproj", "{1156D564-2E3C-47D6-97C1-FF3ADEDC41C8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.GrpcNetClient", "src\OpenTelemetry.Instrumentation.GrpcNetClient\OpenTelemetry.Instrumentation.GrpcNetClient.csproj", "{0156E342-CE63-46F5-992D-691A7CCB50F8}"
 EndProject
@@ -335,7 +336,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp.AspNetCore", "test\TestApp.AspNetCore\TestApp.AspNetCore.csproj", "{1E743561-B1D4-4100-B6AD-1FD25FA8659B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNetCore.Benchmark", "test\OpenTelemetry.Instrumentation.AspNetCore.Benchmark\OpenTelemetry.Instrumentation.AspNetCore.Benchmark.csproj", "{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.AspNetCore.Benchmarks", "test\OpenTelemetry.Instrumentation.AspNetCore.Benchmarks\OpenTelemetry.Instrumentation.AspNetCore.Benchmarks.csproj", "{92CD1B60-74B8-4E6E-9E7F-83AC3C792980}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Shared.Tests", "test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj", "{B13394D6-D3D7-453E-B91A-24C199F41C5E}"
 EndProject
@@ -680,14 +681,14 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{95372E82-CA5B-4C61-BD6C-74E6AB1970D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6157646-8EBA-464C-99B9-C386D474CB12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6157646-8EBA-464C-99B9-C386D474CB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6157646-8EBA-464C-99B9-C386D474CB12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -863,6 +864,8 @@ Global
 		{23AA75F6-403F-4867-BF0E-BAF0A44F9A7A} = {73474960-8F91-4EE5-8E3E-F7E7ADA99238}
 		{9B30F5FD-3309-49CB-9CAD-D3372FAFD796} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
 		{048509D6-FB49-4B84-832A-90E55520B97B} = {824BD1DE-3FA8-4FE0-823A-FD365EAC78AF}
+		{7EDD3E93-6C86-4199-B3D2-44C0DF1EA3F6} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
