@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 
 internal static class ClientTestHelpers
 {
-    public static HttpClient CreateTestClient(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync, Uri baseAddress = null)
+    public static HttpClient CreateTestClient(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync, Uri? baseAddress = null)
     {
         var handler = TestHttpMessageHandler.Create(sendAsync);
         var httpClient = new HttpClient(handler);
@@ -21,13 +21,13 @@ internal static class ClientTestHelpers
         return httpClient;
     }
 
-    public static Task<StreamContent> CreateResponseContent<TResponse>(TResponse response, ICompressionProvider compressionProvider = null)
+    public static Task<StreamContent> CreateResponseContent<TResponse>(TResponse response, ICompressionProvider? compressionProvider = null)
         where TResponse : IMessage<TResponse>
     {
         return CreateResponseContentCore(new[] { response }, compressionProvider);
     }
 
-    public static async Task WriteResponseAsync<TResponse>(Stream ms, TResponse response, ICompressionProvider compressionProvider)
+    public static async Task WriteResponseAsync<TResponse>(Stream ms, TResponse response, ICompressionProvider? compressionProvider)
         where TResponse : IMessage<TResponse>
     {
         var compress = false;
@@ -59,7 +59,7 @@ internal static class ClientTestHelpers
 #endif
     }
 
-    private static async Task<StreamContent> CreateResponseContentCore<TResponse>(TResponse[] responses, ICompressionProvider compressionProvider)
+    private static async Task<StreamContent> CreateResponseContentCore<TResponse>(TResponse[] responses, ICompressionProvider? compressionProvider)
         where TResponse : IMessage<TResponse>
     {
         var ms = new MemoryStream();
