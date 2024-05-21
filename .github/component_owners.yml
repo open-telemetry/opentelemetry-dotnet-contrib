@@ -82,7 +82,7 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - ppittle
-  test/OpenTelemetry.Exporter.Geneva.Benchmark/:
+  test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - cijothomas
     - codeblanch
     - reyang

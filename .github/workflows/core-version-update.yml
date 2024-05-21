@@ -1,0 +1,39 @@
+name: Core version update
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        description: 'Release tag'
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  core-version-update:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Note: By default GitHub only fetches 1 commit. MinVer needs to find
+        # the version tag which is typically NOT on the first commit so we
+        # retrieve them all.
+        fetch-depth: 0
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v4
+
+    - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
+      shell: pwsh
+      run: |
+        Import-Module .\build\scripts\post-release.psm1
+
+        CreateOpenTelemetryCoreLatestVersionUpdatePullRequest `
+          -tag '${{ inputs.tag }}'
+      env:
+        GH_TOKEN: ${{ github.token }}

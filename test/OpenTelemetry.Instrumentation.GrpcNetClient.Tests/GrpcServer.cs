@@ -15,7 +15,7 @@ public class GrpcServer<TService> : IDisposable
 {
     private static readonly Random GlobalRandom = new();
 
-    private readonly IHost host;
+    private readonly IHost? host;
 
     public GrpcServer()
     {
@@ -38,7 +38,7 @@ public class GrpcServer<TService> : IDisposable
             catch (IOException)
             {
                 retryCount--;
-                this.host.Dispose();
+                this.host?.Dispose();
             }
         }
     }
@@ -47,8 +47,8 @@ public class GrpcServer<TService> : IDisposable
 
     public void Dispose()
     {
-        this.host.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
-        this.host.Dispose();
+        this.host?.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
+        this.host?.Dispose();
         GC.SuppressFinalize(this);
     }
 
