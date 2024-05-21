@@ -24,7 +24,7 @@ jobs:
           code: ['**.cs', '**.csproj', '.editorconfig']
           aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
-          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet.*/**', 'examples/AspNet/**', '!**/*.md']
+          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/**', 'examples/AspNet/**', '!**/*.md']
           aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
           aws: ['*/OpenTelemetry.*.AWS*/**', '!**/*.md']
           azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
