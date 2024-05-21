@@ -5,7 +5,7 @@ on:
     inputs:
       tag:
         required: true
-        description: 'Core version tag'
+        description: 'Release tag'
         type: string
 
 permissions:
