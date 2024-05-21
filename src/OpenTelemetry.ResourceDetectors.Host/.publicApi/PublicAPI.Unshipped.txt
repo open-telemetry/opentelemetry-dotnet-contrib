@@ -1,3 +1,0 @@
-OpenTelemetry.ResourceDetectors.Host.HostDetector
-OpenTelemetry.ResourceDetectors.Host.HostDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.ResourceDetectors.Host.HostDetector.HostDetector() -> void
