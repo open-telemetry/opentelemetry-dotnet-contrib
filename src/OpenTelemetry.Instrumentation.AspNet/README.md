@@ -176,7 +176,7 @@ different options.
 
 ```csharp
 this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddAspNetCoreInstrumentation(o =>
+    .AddAspNetInstrumentation(o =>
     {
         o.EnrichWithHttpRequest = (activity, httpRequest) =>
         {
