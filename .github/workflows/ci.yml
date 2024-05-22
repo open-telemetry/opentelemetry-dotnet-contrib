@@ -94,7 +94,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.Exporter.InfluxDB]
+      project-name: OpenTelemetry.Exporter.InfluxDB
       code-cov-name: Exporter.InfluxDB
 
   build-test-exporter-instana:
@@ -160,7 +160,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.Extensions.Enrichment]
+      project-name: OpenTelemetry.Extensions.Enrichment
       code-cov-name: Extensions.Enrichment
 
   build-test-instrumentation-aspnet:
@@ -264,7 +264,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.Instrumentation.GrpcCore]
+      project-name: OpenTelemetry.Instrumentation.GrpcCore
       code-cov-name: Instrumentation.GrpcCore
 
   build-test-instrumentation-grpcnetclient:
