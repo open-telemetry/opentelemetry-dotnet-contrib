@@ -13,6 +13,7 @@ using System.Text.Json;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Xunit;
+using OperationCanceledException = System.OperationCanceledException;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -171,6 +172,42 @@ public partial class HttpClientTests
         }
     }
 #endif
+
+    [Fact]
+    public async Task HttpCancellationLogsError()
+    {
+        var activities = new List<Activity>();
+
+        Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        try
+        {
+            using var c = new HttpClient();
+            using var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{this.url}/slow"),
+                Method = new HttpMethod("GET"),
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource(100);
+            await c.SendAsync(request, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // we expect this to be thrown here
+        }
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("Operation Canceled", activity.StatusDescription);
+
+        var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value.ToString());
+        Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "System.OperationCanceledException");
+    }
 
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,

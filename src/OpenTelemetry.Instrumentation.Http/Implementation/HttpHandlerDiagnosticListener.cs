@@ -181,7 +181,9 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 {
                     if (currentStatusCode == ActivityStatusCode.Unset)
                     {
-                        activity.SetStatus(ActivityStatusCode.Error);
+                        // Task cancellation won't trigger the OnException so set the span error information here
+                        activity.SetStatus(ActivityStatusCode.Error, "Operation Canceled");
+                        activity.SetTag(SemanticConventions.AttributeErrorType, typeof(OperationCanceledException).FullName);
                     }
                 }
                 else if (requestTaskStatus != TaskStatus.Faulted)
