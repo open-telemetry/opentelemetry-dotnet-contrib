@@ -5,8 +5,12 @@ OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.Enrich.
 OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichFunc
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.AspNetTraceInstrumentationOptions() -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, object!>?
-OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Enrich.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithException.get -> System.Action<System.Diagnostics.Activity!, System.Exception!>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithException.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpRequest.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpRequest!>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpRequest.set -> void
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpResponse.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpResponse!>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpResponse.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Filter.get -> System.Func<System.Web.HttpContext!, bool>?
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.RecordException.get -> bool
