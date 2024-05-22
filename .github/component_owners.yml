@@ -41,6 +41,7 @@ components:
     - hananiel
     - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - IliaBrahinets
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
@@ -135,6 +136,7 @@ components:
     - hananiel
     - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - IliaBrahinets
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
