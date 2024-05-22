@@ -87,9 +87,8 @@ internal sealed class TlvMetricExporter : IDisposable
             {
                 try
                 {
-#if EXPOSE_EXPERIMENTAL_FEATURES
                     metricPoint.TryGetExemplars(out var exemplars);
-#endif
+
                     var metricType = metric.MetricType;
                     switch (metricType)
                     {
@@ -103,10 +102,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
                                     metricPoint.Tags,
                                     metricData,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -126,10 +123,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -149,10 +144,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -170,10 +163,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -190,10 +181,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     metricPoint.EndTime.ToFileTime(),
                                     metricPoint.Tags,
                                     metricData,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -219,10 +208,8 @@ internal sealed class TlvMetricExporter : IDisposable
                                     count,
                                     min,
                                     max,
-#if EXPOSE_EXPERIMENTAL_FEATURES
                                     metricType,
                                     exemplars,
-#endif
                                     out monitoringAccount,
                                     out metricNamespace);
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
@@ -271,10 +258,8 @@ internal sealed class TlvMetricExporter : IDisposable
         long timestamp,
         in ReadOnlyTagCollection tags,
         MetricData value,
-#if EXPOSE_EXPERIMENTAL_FEATURES
         MetricType metricType,
         ReadOnlyExemplarCollection exemplars,
-#endif
         out string monitoringAccount,
         out string metricNamespace)
     {
@@ -301,9 +286,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 out monitoringAccount,
                 out metricNamespace);
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
             SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
-#endif
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -336,10 +319,8 @@ internal sealed class TlvMetricExporter : IDisposable
         uint count,
         double min,
         double max,
-#if EXPOSE_EXPERIMENTAL_FEATURES
         MetricType metricType,
         ReadOnlyExemplarCollection exemplars,
-#endif
         out string monitoringAccount,
         out string metricNamespace)
     {
@@ -366,9 +347,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 out monitoringAccount,
                 out metricNamespace);
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
             SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
-#endif
 
             SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
 
@@ -413,7 +392,6 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeString(buffer, ref bufferIndex, monitoringAccount);
     }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeExemplars(in ReadOnlyExemplarCollection exemplars, MetricType metricType, byte[] buffer, ref int bufferIndex)
     {
@@ -516,7 +494,6 @@ internal sealed class TlvMetricExporter : IDisposable
         var exemplarLength = bufferIndex - bufferIndexForLength + 1;
         MetricSerializer.SerializeByte(buffer, ref bufferIndexForLength, (byte)exemplarLength);
     }
-#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeNonHistogramMetricData(MetricEventType eventType, MetricData value, long timestamp, byte[] buffer, ref int bufferIndex)
