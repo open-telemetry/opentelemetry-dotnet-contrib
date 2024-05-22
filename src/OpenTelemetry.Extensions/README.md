@@ -49,12 +49,12 @@ For example, to add all baggage entries to new activities:
 
 ```cs
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
+    .AddBaggageActivityProcessor("*")
     .Build();
 ```
 
-Alternatively, you can provide a custom baggage key predicate to select which
-baggage keys you want to copy.
+Alternatively, you can select which baggage keys you want to copy using
+a regular expression or custom predicate function.
 
 For example, to only copy baggage entries that start with `my-key` using a
 regular expression:

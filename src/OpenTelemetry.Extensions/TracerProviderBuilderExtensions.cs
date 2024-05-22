@@ -79,8 +79,15 @@ public static class TracerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNullOrEmpty(expr);
-        var regex = new Regex(expr, RegexOptions.Compiled);
 
+        if (expr == "*")
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            return builder.AddProcessor(new BaggageActivityProcessor(_ => true));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        }
+
+        var regex = new Regex(expr, RegexOptions.Compiled);
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return builder.AddProcessor(new BaggageActivityProcessor(regex.IsMatch));
 #pragma warning restore CA2000 // Dispose objects before losing scope

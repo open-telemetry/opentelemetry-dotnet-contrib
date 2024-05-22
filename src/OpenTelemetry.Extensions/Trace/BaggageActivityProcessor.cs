@@ -11,18 +11,13 @@ namespace OpenTelemetry.Trace;
 /// </summary>
 internal sealed class BaggageActivityProcessor : BaseProcessor<Activity>
 {
-    /// <summary>
-    /// A predicate that allows all baggage keys.
-    /// </summary>
-    public static readonly Predicate<string> AllowAllBaggageKeys = _ => true;
-
     private readonly Predicate<string> baggageKeyPredicate;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaggageActivityProcessor"/> class.
     /// </summary>
     /// <param name="baggageKeyPredicate">Predicate to determine which baggage keys should be added to the activity.</param>
-    public BaggageActivityProcessor(Predicate<string> baggageKeyPredicate)
+    internal BaggageActivityProcessor(Predicate<string> baggageKeyPredicate)
     {
         this.baggageKeyPredicate = baggageKeyPredicate ?? throw new ArgumentNullException(nameof(baggageKeyPredicate));
     }
