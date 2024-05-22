@@ -26,7 +26,7 @@ jobs:
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           exporter-infuxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
-          exporter-onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
+          exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           extensions-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '!**/*.md']
