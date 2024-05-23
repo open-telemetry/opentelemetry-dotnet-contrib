@@ -30,7 +30,6 @@ public class OtlpProtobufMetricExporterTests
         { "Dim3", 3 },
     };
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
     private static readonly string[] TagKeys = new[]
     {
         "boolKey",
@@ -51,7 +50,6 @@ public class OtlpProtobufMetricExporterTests
         "ulongKey",
         "ushortKey",
     };
-#endif
 
     private TagList exemplarTagList;
 
@@ -206,10 +204,8 @@ public class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader);
         if (isExemplarsEnabled)
         {
-#if EXPOSE_EXPERIMENTAL_FEATURES
             meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
             meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = TagKeys });
-#endif
         }
 
         var meterProvider = meterProviderBuilder.Build();
@@ -217,7 +213,6 @@ public class OtlpProtobufMetricExporterTests
         if (longValue != null)
         {
             var counter = meter.CreateCounter<long>(instrumentName);
-#if EXPOSE_EXPERIMENTAL_FEATURES
             if (isExemplarsEnabled)
             {
                 counter.Add(longValue.Value, this.exemplarTagList);
@@ -226,14 +221,10 @@ public class OtlpProtobufMetricExporterTests
             {
                 counter.Add(longValue.Value, this.TagList);
             }
-#else
-            counter.Add(longValue.Value, this.TagList);
-#endif
         }
         else
         {
             var counter = meter.CreateCounter<double>(instrumentName);
-#if EXPOSE_EXPERIMENTAL_FEATURES
             if (isExemplarsEnabled)
             {
                 counter.Add(doubleValue.Value, this.exemplarTagList);
@@ -242,9 +233,6 @@ public class OtlpProtobufMetricExporterTests
             {
                 counter.Add(doubleValue.Value, this.TagList);
             }
-#else
-            counter.Add(doubleValue.Value, this.TagList);
-#endif
         }
 
         meterProvider.ForceFlush();
@@ -311,7 +299,6 @@ public class OtlpProtobufMetricExporterTests
 
         Assert.Equal((ulong)metricPoint.EndTime.ToUnixTimeNanoseconds(), dataPoint.TimeUnixNano);
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             Assert.Single(dataPoint.Exemplars);
@@ -361,7 +348,6 @@ public class OtlpProtobufMetricExporterTests
         {
             Assert.Empty(dataPoint.Exemplars);
         }
-#endif
 
         if (addPrepopulatedDimensions)
         {
@@ -806,16 +792,14 @@ public class OtlpProtobufMetricExporterTests
            .AddReader(inMemoryReader);
         if (isExemplarsEnabled)
         {
-#if EXPOSE_EXPERIMENTAL_FEATURES
             meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
             meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = TagKeys });
-#endif
         }
 
         var meterProvider = meterProviderBuilder.Build();
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
-#if EXPOSE_EXPERIMENTAL_FEATURES
+
         if (isExemplarsEnabled)
         {
             histogram.Record(doubleValue, this.exemplarTagList);
@@ -824,9 +808,6 @@ public class OtlpProtobufMetricExporterTests
         {
             histogram.Record(doubleValue, this.TagList);
         }
-#else
-        histogram.Record(doubleValue, this.TagList);
-#endif
 
         meterProvider.ForceFlush();
 
@@ -916,7 +897,6 @@ public class OtlpProtobufMetricExporterTests
             AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
         }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             Assert.Single(dataPoint.Exemplars);
@@ -959,7 +939,6 @@ public class OtlpProtobufMetricExporterTests
         {
             Assert.Empty(dataPoint.Exemplars);
         }
-#endif
     }
 
     [Theory]
@@ -1418,18 +1397,12 @@ public class OtlpProtobufMetricExporterTests
 
         if (isExemplarsEnabled)
         {
-#if EXPOSE_EXPERIMENTAL_FEATURES
             meterProviderBuilder.SetExemplarFilter(ExemplarFilterType.AlwaysOn);
-#endif
         }
 
         meterProviderBuilder.AddView(instrument =>
         {
-#if EXPOSE_EXPERIMENTAL_FEATURES
             return new Base2ExponentialBucketHistogramConfiguration() { TagKeys = TagKeys };
-#else
-            return new Base2ExponentialBucketHistogramConfiguration();
-#endif
         });
 
         var meterProvider = meterProviderBuilder.Build();
@@ -1437,7 +1410,6 @@ public class OtlpProtobufMetricExporterTests
         var instrumentName = "doubleExponentialHistogram";
         var histogram = meter.CreateHistogram<double>(instrumentName);
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             histogram.Record(doubleValue.Value, this.exemplarTagList);
@@ -1448,10 +1420,6 @@ public class OtlpProtobufMetricExporterTests
             histogram.Record(doubleValue.Value, this.TagList);
             histogram.Record(0, this.TagList);
         }
-#else
-        histogram.Record(doubleValue.Value, this.TagList);
-        histogram.Record(0, this.TagList);
-#endif
 
         meterProvider.ForceFlush();
 
@@ -1542,7 +1510,6 @@ public class OtlpProtobufMetricExporterTests
             AssertOtlpAttributes(this.TagList, dataPoint.Attributes);
         }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
         if (isExemplarsEnabled)
         {
             // Exemplars are only emitted for positive/0 values.
@@ -1600,7 +1567,6 @@ public class OtlpProtobufMetricExporterTests
         {
             Assert.Empty(dataPoint.Exemplars);
         }
-#endif
     }
 
     internal static void AssertOtlpAttributes(
