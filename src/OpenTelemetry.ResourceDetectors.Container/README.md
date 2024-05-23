@@ -35,6 +35,7 @@ your application is running:
 - **ContainerResourceDetector**: container.id.
 
 ## Kubernetes
+
 When running in a Kubernetes environment, the Container resource detector
 requires permissions to access pod information in order
 to extract the container ID.
