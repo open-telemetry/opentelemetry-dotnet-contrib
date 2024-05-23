@@ -102,7 +102,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.Enrich?.Invoke(activity, "OnStartActivity", request);
+                this.options.EnrichWithHttpRequest?.Invoke(activity, request);
             }
             catch (Exception ex)
             {
@@ -135,7 +135,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.Enrich?.Invoke(activity, "OnStopActivity", response);
+                this.options.EnrichWithHttpResponse?.Invoke(activity, response);
             }
             catch (Exception ex)
             {
@@ -158,7 +158,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.Enrich?.Invoke(activity, "OnException", exception);
+                this.options.EnrichWithException?.Invoke(activity, exception);
             }
             catch (Exception ex)
             {

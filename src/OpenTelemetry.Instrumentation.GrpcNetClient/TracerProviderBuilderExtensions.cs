@@ -31,7 +31,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddGrpcClientInstrumentation(
         this TracerProviderBuilder builder,
-        Action<GrpcClientTraceInstrumentationOptions> configure)
+        Action<GrpcClientTraceInstrumentationOptions>? configure)
         => AddGrpcClientInstrumentation(builder, name: null, configure);
 
     /// <summary>
@@ -43,8 +43,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddGrpcClientInstrumentation(
         this TracerProviderBuilder builder,
-        string name,
-        Action<GrpcClientTraceInstrumentationOptions> configure)
+        string? name,
+        Action<GrpcClientTraceInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 

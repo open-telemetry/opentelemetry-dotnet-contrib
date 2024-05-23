@@ -329,7 +329,7 @@ public class GrpcCoreClientInterceptorTests
         // Cancelled is not an error.
         if (expectedStatusCode != StatusCode.OK && expectedStatusCode != StatusCode.Cancelled)
         {
-            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeOtelStatusCode && (string)t.Value == "ERROR");
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
         }
 
         if (recordedMessages)
@@ -504,7 +504,7 @@ public class GrpcCoreClientInterceptorTests
 
         if (validateErrorDescription)
         {
-            Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeOtelStatusDescription && ((string)t.Value).Contains("fubar"));
+            Assert.Contains("fubar", activity.StatusDescription);
         }
     }
 

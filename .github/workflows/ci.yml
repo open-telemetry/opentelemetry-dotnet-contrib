@@ -20,72 +20,46 @@ jobs:
           md: [ '**.md' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
           shared: ['src/Shared/**', 'test/Shared/**']
-          sharedtests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
+          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
-          aot: ['src/OpenTelemetry.Extensions.Enrichment/**']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
-          aspnet: ['*/OpenTelemetry.Instrumentation.AspNet.*/**', 'examples/AspNet/**', '!**/*.md']
-          aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
-          aws: ['*/OpenTelemetry.*.AWS*/**', '!**/*.md']
-          azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
-          eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
+          exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
+          exporter-infuxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
+          exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
+          exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
+          exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
-          geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
-          gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
-          grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
-          host: ['*/OpenTelemetry.ResourceDetectors.Host*/**', '!**/*.md']
-          http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
-          onecollector: ['*/OpenTelemetry.Instrumentation.OneCollector*/**', '!**/*.md']
-          owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
+          extensions-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '!**/*.md']
+          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
+          instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
+          instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
+          instrumentation-aws: ['*/OpenTelemetry.Instrumentation.AWS/**', '*/OpenTelemetry.Instrumentation.AWS.Tests/**', '!**/*.md']
+          instrumentation-aws-lambda: ['*/OpenTelemetry.Instrumentation.AWSLambda/**', '*/OpenTelemetry.Instrumentation.AWSLambda.Tests/**', '!**/*.md']
+          instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
+          instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
+          instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '!**/*.md']
+          instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
+          instrumentation-grpccore: ['*/OpenTelemetry.Instrumentation.GrpcCore*/**', '!**/*.md']
+          instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
+          instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
+          instrumentation-http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
+          instrumentation-owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
+          instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
+          instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
+          instrumentation-runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
+          instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
+          instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
+          instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
-          process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
-          processdetector: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
-          processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
-          redis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
-          resourcedetectors: ['*/OpenTelemetry.ResourceDetectors.*/**', '!**/*.md']
-          runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
+          resourcedetectors-aws: ['*/OpenTelemetry.ResourceDetectors.AWS*/**', '!**/*.md']
+          resourcedetectors-azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
+          resourcedetectors-container: ['*/OpenTelemetry.ResourceDetectors.Container*/**', '!**/*.md']
+          resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
+          resources-host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
+          resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
+          resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
+          sampler-aws: ['*/OpenTelemetry.Sampler.AWS**/**', '!**/*.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
-          sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
-          wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
-          solution: [
-            'src/**',
-            'test/**',
-            'examples/**',
-            '!test/OpenTelemetry.AotCompatibility.TestApp/**',
-            '!*/OpenTelemetry.Instrumentation.AspNet.*/**',
-            '!*/OpenTelemetry.Instrumentation.AspNetCore*/**',
-            '!examples/AspNet/**',
-            '!*/OpenTelemetry.ResourceDetectors.Azure*/**',
-            '!*/OpenTelemetry.ResourceDetectors.Host*/**',
-            '!*/OpenTelemetry.Resources.Gcp*/**',
-            '!*/OpenTelemetry.Resources.Process/**',
-            '!*/OpenTelemetry.Resources.Process.Tests/**',
-            '!*/OpenTelemetry.Resources.ProcessRuntime/**',
-            '!*/OpenTelemetry.Resources.ProcessRuntime.Tests/**',
-            '!*/OpenTelemetry.Instrumentation.EventCounters*/**',
-            '!examples/event-counters/**',
-            '!*/OpenTelemetry.Extensions/**',
-            '!*/OpenTelemetry.Extensions.Tests/**',
-            '!*/OpenTelemetry.Exporter.Geneva*/**',
-            '!*/OpenTelemetry.Exporter.OneCollector*/**',
-            '!*/OpenTelemetry.Instrumentation.Owin*/**',
-            '!examples/owin/**',
-            '!*/OpenTelemetry.PersistentStorage*/**',
-            '!*/OpenTelemetry.Instrumentation.GrpcNetClient*/**',
-            '!*/OpenTelemetry.Instrumentation.Http*/**',
-            '!*/OpenTelemetry.Instrumentation.Process*/**',
-            '!examples/process-instrumentation/**',
-            '!*/OpenTelemetry.Instrumentation.SqlClient*/**',
-            '!*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**',
-            '!examples/redis/**',
-            '!*/OpenTelemetry.Instrumentation.Runtime*/**',
-            '!examples/runtime-instrumentation/**',
-            '!*/OpenTelemetry.SemanticConventions*/**',
-            '!*/OpenTelemetry.Instrumentation.Wcf*/**',
-            '!examples/wcf/**',
-            '!*/OpenTelemetry.Contrib.Shared.Tests/**',
-            '!**/*.md'
-            ]
 
   lint-md:
     needs: detect-changes
@@ -101,53 +75,60 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/dotnet-format.yml
 
-  build-test-aspnet:
+  build-test-exporter-geneva:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'aspnet')
+      contains(needs.detect-changes.outputs.changes, 'exporter-geneva')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.AspNet
-      code-cov-name: Instrumentation.AspNet
-      os-list: '[ "windows-latest" ]'
-      tfm-list: '[ "net462" ]'
+      project-name: Component[OpenTelemetry.Exporter.Geneva]
+      code-cov-name: Exporter.Geneva
 
-  build-test-aspnetcore:
+  build-test-exporter-influxdb:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'aspnetcore')
+      contains(needs.detect-changes.outputs.changes, 'exporter-influxdb')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.AspNetCore
-      code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      project-name: OpenTelemetry.Exporter.InfluxDB
+      code-cov-name: Exporter.InfluxDB
 
-  build-test-azure:
+  build-test-exporter-instana:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'azure')
+      contains(needs.detect-changes.outputs.changes, 'exporter-instana')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Azure
-      code-cov-name: ResourceDetectors.Azure
+      project-name: Component[OpenTelemetry.Exporter.Instana]
+      code-cov-name: Exporter.Instana
 
-  build-test-eventcounters:
+  build-test-exporter-onecollector:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'eventcounters')
+      contains(needs.detect-changes.outputs.changes, 'exporter-onecollector')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.EventCounters
-      code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      project-name: Component[OpenTelemetry.Exporter.OneCollector]
+      code-cov-name: Exporter.OneCollector
+
+  build-test-exporter-stackdriver:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'exporter-stackdriver')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Exporter.Stackdriver]
+      code-cov-name: Exporter.Stackdriver
 
   build-test-extensions:
     needs: detect-changes
@@ -157,79 +138,172 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Extensions
+      project-name: Component[OpenTelemetry.Extensions]
       code-cov-name: Extensions
 
-  build-test-geneva:
+  build-test-extensions-aws:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'geneva')
+      contains(needs.detect-changes.outputs.changes, 'extensions-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Exporter.Geneva
-      code-cov-name: Exporter.Geneva
+      project-name: Component[OpenTelemetry.Extensions.AWS]
+      code-cov-name: Extensions.AWS
 
-  build-test-gcp:
+  build-test-extensions-enrichment:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'gcp')
+      contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.Gcp
-      code-cov-name: Resources.Gcp
+      project-name: OpenTelemetry.Extensions.Enrichment
+      code-cov-name: Extensions.Enrichment
 
-  build-test-grpcnetclient:
+  build-test-instrumentation-aspnet:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'grpcnetclient')
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnet')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.GrpcNetClient
+      project-name: OpenTelemetry.Instrumentation.AspNet
+      code-cov-name: Instrumentation.AspNet
+      os-list: '[ "windows-latest" ]'
+      tfm-list: '[ "net462" ]'
+
+  build-test-instrumentation-aspnetcore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.AspNetCore
+      code-cov-name: Instrumentation.AspNetCore
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+
+  build-test-instrumentation-aws:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.AWS]
+      code-cov-name: Instrumentation.AWS
+
+  build-test-instrumentation-awslambda:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-awslambda')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.AWSLambda]
+      code-cov-name: Instrumentation.AWSLambda
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+
+  build-test-instrumentation-cassandra:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-cassandra')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
+      code-cov-name: Instrumentation.Cassandra
+
+  build-test-instrumentation-elasticsearchclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-elasticsearchclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.ElasticsearchClient]
+      code-cov-name: Instrumentation.ElasticsearchClient
+
+  build-test-instrumentation-entityframeworkcore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-entityframeworkcore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.EntityFrameworkCore]
+      code-cov-name: Instrumentation.EntityFrameworkCore
+
+  build-test-instrumentation-eventcounters:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.EventCounters
+      code-cov-name: Instrumentation.EventCounters
+      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+
+  build-test-instrumentation-grpccore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-grpccore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.GrpcCore
+      code-cov-name: Instrumentation.GrpcCore
+
+  build-test-instrumentation-grpcnetclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.GrpcNetClient]
       code-cov-name: Instrumentation.GrpcNetClient
 
-  build-test-host:
+  build-test-instrumentation-hangfire:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'host')
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-hangfire')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.ResourceDetectors.Host
-      code-cov-name: ResourceDetectors.Host
+      project-name: Component[OpenTelemetry.Instrumentation.Hangfire]
+      code-cov-name: Instrumentation.Hangfire
 
-  build-test-http:
-        needs: detect-changes
-        if: |
-          contains(needs.detect-changes.outputs.changes, 'http')
-          || contains(needs.detect-changes.outputs.changes, 'build')
-          || contains(needs.detect-changes.outputs.changes, 'shared')
-        uses: ./.github/workflows/Component.BuildTest.yml
-        with:
-          project-name: OpenTelemetry.Instrumentation.Http
-          code-cov-name: Instrumentation.Http
-
-  build-test-onecollector:
+  build-test-instrumentation-http:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'onecollector')
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Exporter.OneCollector
-      code-cov-name: Exporter.OneCollector
+      project-name: Component[OpenTelemetry.Instrumentation.Http]
+      code-cov-name: Instrumentation.Http
 
-  build-test-owin:
+  build-test-instrumentation-owin:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'owin')
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-owin')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
@@ -238,6 +312,80 @@ jobs:
       code-cov-name: Instrumentation.Owin
       os-list: '[ "windows-latest" ]'
       tfm-list: '[ "net462" ]'
+
+  build-test-instrumentation-process:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-process')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Process
+      code-cov-name: Instrumentation.Process
+
+  build-test-instrumentation-quartz:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-quartz')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.Quartz]
+      code-cov-name: Instrumentation.Quartz
+
+  build-test-instrumentation-runtime:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Runtime
+      code-cov-name: Instrumentation.Runtime
+
+  build-test-instrumentation-sqlclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.SqlClient]
+      code-cov-name: Instrumentation.SqlClient
+
+  build-test-instrumentation-stackexchangeredis:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
+      code-cov-name: Instrumentation.StackExchangeRedis
+
+  build-test-instrumentation-stackexchangeredis-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+
+  build-test-instrumentation-wcf:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-wcf')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Instrumentation.Wcf
+      code-cov-name: Instrumentation.Wcf
 
   build-test-persistentstorage:
     needs: detect-changes
@@ -250,68 +398,93 @@ jobs:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
 
-  build-test-process:
+  build-test-resourcedetectors-aws:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'process')
+      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.Process
-      code-cov-name: Instrumentation.Process
+      project-name: Component[OpenTelemetry.ResourceDetectors.AWS]
+      code-cov-name: ResourceDetectors.AWS
 
-  build-test-processdetector:
+  build-test-resourcedetectors-azure:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'processdetector')
+      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-azure')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.Process
+      project-name: Component[OpenTelemetry.ResourceDetectors.Azure]
+      code-cov-name: ResourceDetectors.Azure
+
+  build-test-resourcedetectors-container:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-container')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.ResourceDetectors.Container]
+      code-cov-name: ResourceDetectors.Container
+
+  build-test-resources-gcp:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-gcp')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.Gcp]
+      code-cov-name: Resources.Gcp
+
+  build-test-resources-host:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-host')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.Host]
+      code-cov-name: Resources.Host
+
+  build-test-resources-process:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-process')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.Process]
       code-cov-name: Resources.Process
 
-  build-test-processruntime:
+  build-test-resources-processruntime:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'processruntime')
+      contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Resources.ProcessRuntime
+      project-name: Component[OpenTelemetry.Resources.ProcessRuntime]
       code-cov-name: Resources.ProcessRuntime
 
-  build-test-redis:
+  build-test-sampler-aws:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'redis')
+      contains(needs.detect-changes.outputs.changes, 'resources-sampler-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.StackExchangeRedis
-      code-cov-name: Instrumentation.StackExchangeRedis
-
-  build-test-redis-integration:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'redis')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/integration.yml
-
-  build-test-runtime:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'runtime')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: OpenTelemetry.Instrumentation.Runtime
-      code-cov-name: Instrumentation.Runtime
+      project-name: Component[OpenTelemetry.Sampler.AWS]
+      code-cov-name: Sampler.AWS
 
   build-test-semanticconventions:
     needs: detect-changes
@@ -324,32 +497,10 @@ jobs:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
 
-  build-test-sqlclient:
+  build-test-contrib-shared-tests:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'sqlclient')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: OpenTelemetry.Instrumentation.SqlClient
-      code-cov-name: Instrumentation.SqlClient
-
-  build-test-wcf:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'wcf')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: OpenTelemetry.Instrumentation.Wcf
-      code-cov-name: Instrumentation.Wcf
-
-  build-test-sharedtests:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'sharedtests')
+      contains(needs.detect-changes.outputs.changes, 'contrib-shared-tests')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
@@ -357,117 +508,32 @@ jobs:
       project-name: OpenTelemetry.Contrib.Shared.Tests
       code-cov-name: Contrib.Shared.Tests
 
-  build-test-solution:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'solution')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-
-    strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
-      matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        version: [ net462, net6.0, net7.0, net8.0 ]
-        exclude:
-        - os: ubuntu-latest
-          version: net462
-
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
-
-    - name: Restore, Build, & Test ${{ matrix.version }}
-      shell: pwsh
-      run: |
-        $projects = Get-ChildItem `
-          -Path test/*.Tests/*.csproj `
-          -Exclude `
-            OpenTelemetry.Contrib.Shared.Tests.csproj,
-            OpenTelemetry.Exporter.Geneva.Tests.csproj,
-            OpenTelemetry.Exporter.OneCollector.Tests.csproj,
-            OpenTelemetry.Extensions.Tests.csproj,
-            OpenTelemetry.Instrumentation.AspNet.Tests.csproj,
-            OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Tests.csproj,
-            OpenTelemetry.Instrumentation.AspNetCore.Tests.csproj,
-            OpenTelemetry.Instrumentation.EventCounters.Tests.csproj,
-            OpenTelemetry.Instrumentation.GrpcNetClient.Tests.csproj,
-            OpenTelemetry.Instrumentation.Http.Tests.csproj,
-            OpenTelemetry.Instrumentation.Owin.Tests.csproj,
-            OpenTelemetry.Instrumentation.Process.Tests.csproj,
-            OpenTelemetry.Instrumentation.Runtime.Tests.csproj,
-            OpenTelemetry.Instrumentation.SqlClient.Tests.csproj,
-            OpenTelemetry.Instrumentation.StackExchangeRedis.Tests.csproj,
-            OpenTelemetry.Instrumentation.Wcf.Tests.csproj,
-            OpenTelemetry.PersistentStorage.FileSystem.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Azure.Tests.csproj,
-            OpenTelemetry.ResourceDetectors.Host.Tests.csproj,
-            OpenTelemetry.Resources.Gcp.Tests.csproj,
-            OpenTelemetry.Resources.Process.Tests.csproj,
-            OpenTelemetry.Resources.ProcessRuntime.Tests.csproj
-
-        $failedProjects = @()
-
-        ForEach ($project in $projects)
-        {
-          dotnet test $project.FullName --collect:"Code Coverage" --results-directory:"TestResults" --framework ${{ matrix.version }} --configuration Release --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
-
-          if ($LASTEXITCODE -ne 0)
-          {
-              $failedProjects = $failedProjects + $project
-          }
-        }
-
-        if ($failedProjects.Count -gt 0)
-        {
-            throw "dotnet test failed on '$failedProjects' project(s)"
-        }
-
-    - name: Install coverage tool
-      run: dotnet tool install -g dotnet-coverage
-
-    - name: Merging test results
-      run: dotnet-coverage merge -r -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/*.coverage
-
-    - uses: codecov/codecov-action@v4
-      continue-on-error: true # Note: Don't fail for upload failures
-      env:
-        OS: ${{ matrix.os }}
-        TFM: ${{ matrix.version }}
-        token: ${{ secrets.CODECOV_TOKEN }}
-      with:
-        file: TestResults/Cobertura.xml
-        env_vars: OS,TFM
-        flags: unittests-Solution
-        name: Code Coverage for solution on [${{ matrix.os }}.${{ matrix.version }}]
-        codecov_yml_path: .github/codecov.yml
-
   verify-aot-compat:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'eventcounters')
-      || contains(needs.detect-changes.outputs.changes, 'runtime')
-      || contains(needs.detect-changes.outputs.changes, 'aspnetcore')
-      || contains(needs.detect-changes.outputs.changes, 'aws')
-      || contains(needs.detect-changes.outputs.changes, 'azure')
+      contains(needs.detect-changes.outputs.changes, 'exporter-geneva')
+      || contains(needs.detect-changes.outputs.changes, 'exporter-onecollector')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
-      || contains(needs.detect-changes.outputs.changes, 'gcp')
-      || contains(needs.detect-changes.outputs.changes, 'grpcnetclient')
-      || contains(needs.detect-changes.outputs.changes, 'host')
-      || contains(needs.detect-changes.outputs.changes, 'http')
-      || contains(needs.detect-changes.outputs.changes, 'processdetector')
-      || contains(needs.detect-changes.outputs.changes, 'processruntime')
-      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors')
+      || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-awslambda')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
+      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-azure')
+      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-container')
+      || contains(needs.detect-changes.outputs.changes, 'resources-host')
+      || contains(needs.detect-changes.outputs.changes, 'resources-process')
+      || contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
+      || contains(needs.detect-changes.outputs.changes, 'sampler-aws')
       || contains(needs.detect-changes.outputs.changes, 'aot')
       || contains(needs.detect-changes.outputs.changes, 'aottestapp')
       || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'geneva')
-      || contains(needs.detect-changes.outputs.changes, 'onecollector')
-      || contains(needs.detect-changes.outputs.changes, 'redis')
-      || contains(needs.detect-changes.outputs.changes, 'sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/verifyaotcompat.yml
 
@@ -477,30 +543,45 @@ jobs:
       detect-changes,
       lint-md,
       lint-dotnet-format,
-      build-test-aspnet,
-      build-test-aspnetcore,
-      build-test-azure,
-      build-test-eventcounters,
+      build-test-exporter-geneva,
+      build-test-exporter-influxdb,
+      build-test-exporter-instana,
+      build-test-exporter-onecollector,
+      build-test-exporter-stackdriver,
       build-test-extensions,
-      build-test-geneva,
-      build-test-gcp,
-      build-test-grpcnetclient,
-      build-test-host,
-      build-test-http,
-      build-test-onecollector,
-      build-test-owin,
+      build-test-extensions-aws,
+      build-test-extensions-enrichment,
+      build-test-instrumentation-aspnet,
+      build-test-instrumentation-aspnetcore,
+      build-test-instrumentation-aws,
+      build-test-instrumentation-awslambda,
+      build-test-instrumentation-cassandra,
+      build-test-instrumentation-elasticsearchclient,
+      build-test-instrumentation-entityframeworkcore,
+      build-test-instrumentation-eventcounters,
+      build-test-instrumentation-grpccore,
+      build-test-instrumentation-grpcnetclient,
+      build-test-instrumentation-hangfire,
+      build-test-instrumentation-http,
+      build-test-instrumentation-owin,
+      build-test-instrumentation-process,
+      build-test-instrumentation-quartz,
+      build-test-instrumentation-runtime,
+      build-test-instrumentation-sqlclient,
+      build-test-instrumentation-stackexchangeredis,
+      build-test-instrumentation-stackexchangeredis-integration,
+      build-test-instrumentation-wcf,
       build-test-persistentstorage,
-      build-test-process,
-      build-test-processdetector,
-      build-test-processruntime,
-      build-test-redis,
-      build-test-redis-integration,
-      build-test-runtime,
+      build-test-resourcedetectors-azure,
+      build-test-resourcedetectors-aws,
+      build-test-resourcedetectors-container,
+      build-test-resources-gcp,
+      build-test-resources-host,
+      build-test-resources-process,
+      build-test-resources-processruntime,
+      build-test-sampler-aws,
       build-test-semanticconventions,
-      build-test-sqlclient,
-      build-test-wcf,
-      build-test-solution,
-      build-test-sharedtests,
+      build-test-contrib-shared-tests,
       verify-aot-compat
       ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')

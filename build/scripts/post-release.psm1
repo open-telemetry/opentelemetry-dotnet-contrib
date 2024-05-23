@@ -28,7 +28,6 @@ function CreateRelease {
 
       $changelogContent = Get-Content -Path "src/$packageName/CHANGELOG.md"
 
-      $headingWritten = $false
       $started = $false
       $content = ""
 
@@ -181,7 +180,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $body =
 @"
-Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/Component.Package.yml).
+Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/publish-packages.yml).
 
 Merge once packages are available on NuGet and the build passes.
 
@@ -199,3 +198,252 @@ Merge once packages are available on NuGet and the build passes.
 }
 
 Export-ModuleMember -Function CreatePackageValidationBaselineVersionUpdatePullRequest
+
+function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
+  param(
+    [Parameter(Mandatory=$true)][string]$tag,
+    [Parameter()][string]$gitUserName=$gitHubBotUserName,
+    [Parameter()][string]$gitUserEmail=$gitHubBotEmail,
+    [Parameter()][string]$targetBranch="main"
+  )
+
+  $match = [regex]::Match($tag, '^(.*?-)(.*)$')
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse prefix from tag'
+  }
+
+  $tagPrefix = $match.Groups[1].Value
+  if ($tagPrefix.StartsWith('core-') -eq $false)
+  {
+    Return
+  }
+
+  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
+
+  $version = $match.Groups[2].Value
+  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+
+  $branch="release/post-core-${version}-update"
+
+  $propertyName = "OpenTelemetryCoreLatestVersion"
+  $propertyVersion = "[$version,2.0)"
+  if ($isPrerelease -eq $true)
+  {
+   $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
+   $propertyVersion = "[$version]"
+  }
+
+  (Get-Content build/Common.props) `
+      -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
+    Set-Content build/Common.props
+
+  $projectsAndDependenciesAfter = GetCoreDependenciesForProjects
+
+  $changedProjects = @{}
+
+  $projectsAndDependenciesBefore.GetEnumerator() | ForEach-Object {
+    $projectDir = $_.Key
+    $projectDependenciesBefore = $_.Value
+    $projectDependenciesAfter = $projectsAndDependenciesAfter[$projectDir]
+
+    $projectDependenciesBefore.GetEnumerator() | ForEach-Object {
+      $packageName = $_.Key
+      $packageVersionBefore = $_.Value
+      if ($projectDependenciesAfter[$packageName] -ne $packageVersionBefore)
+      {
+          $changedProjects[$projectDir] = $true
+      }
+    }
+  }
+
+  git config user.name $gitUserName
+  git config user.email $gitUserEmail
+
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git switch failure'
+  }
+
+  git add build/Common.props 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git add failure'
+  }
+
+  git commit -m "Update $propertyName in Common.props to $version." 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git commit failure'
+  }
+
+  git push -u origin $branch 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git push failure'
+  }
+
+  $body =
+@"
+Note: This PR was opened automatically by the [core version update workflow](https://github.com/$gitRepository/actions/workflows/core-version-update.yml).
+
+Merge once packages are available on NuGet and the build passes.
+
+## Changes
+
+* Sets ``$propertyName`` in ``Common.props`` to ``$version``.
+"@
+
+  $createPullRequestResponse = gh pr create `
+    --title "[repo] Core release $version updates" `
+    --body $body `
+    --base $targetBranch `
+    --head $branch `
+    --label infra
+
+  $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse pull request number from gh pr create response'
+  }
+
+  $pullRequestNumber = $match.Groups[1].Value
+
+  if ($changedProjects.Count -eq 0)
+  {
+    Return
+  }
+
+$entry = @"
+* Updated OpenTelemetry core component version(s) to ``$version``.
+  ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
+
+
+"@
+
+  $lastLineBlank = $true
+
+  foreach ($projectDir in $changedProjects.Keys)
+  {
+      $path = Join-Path -Path $projectDir -ChildPath "CHANGELOG.md"
+
+      $changelogContent = Get-Content -Path $path
+
+      $started = $false
+      $isRemoving = $false
+      $content = ""
+
+      foreach ($line in $changelogContent)
+      {
+          if ($line -like "## Unreleased" -and $started -ne $true)
+          {
+              $started = $true
+          }
+          elseif ($line -like "## *" -and $started -eq $true)
+          {
+              if ($lastLineBlank -eq $false)
+              {
+                  $content += "`r`n"
+              }
+              $content += $entry
+              $started = $false
+              $isRemoving = $false
+          }
+          elseif ($line -like '*Update* OpenTelemetry SDK version to*' -and $started -eq $true)
+          {
+              $isRemoving = $true
+              continue
+          }
+
+          if ($line.StartsWith('* '))
+          {
+              if ($isRemoving -eq $true)
+              {
+                  $isRemoving = $false
+              }
+
+              if ($lastLineBlank -eq $false)
+              {
+                  $content += "`r`n"
+              }
+          }
+
+          if ($isRemoving -eq $true)
+          {
+              continue
+          }
+
+          $content += $line + "`r`n"
+
+          $lastLineBlank = [string]::IsNullOrWhitespace($line)
+      }
+
+      if ($started -eq $true)
+      {
+        # Note: If we never wrote the entry it means the file ended in the unreleased section
+        if ($lastLineBlank -eq $false)
+        {
+            $content += "`r`n"
+        }
+        $content += $entry
+      }
+
+      Set-Content -Path $path -Value $content.TrimEnd()
+
+      git add $path 2>&1 | % ToString
+      if ($LASTEXITCODE -gt 0)
+      {
+          throw 'git add failure'
+      }
+  }
+
+  git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git commit failure'
+  }
+
+  git push -u origin $branch 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git push failure'
+  }
+}
+
+Export-ModuleMember -Function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest
+
+function GetCoreDependenciesForProjects {
+    $projects = @(Get-ChildItem -Path 'src/*/*.csproj')
+
+    $projectsAndDependencies = @{}
+
+    foreach ($project in $projects)
+    {
+        # Note: dotnet restore may fail if the core packages aren't available yet but that is fine, we just want to generate project.assets.json for these projects.
+        $output = dotnet restore $project
+
+        $projectDir = $project | Split-Path -Parent
+
+        $content = (Get-Content "$projectDir/obj/project.assets.json" -Raw)
+
+        $projectDependencies = @{}
+
+        $matches = [regex]::Matches($content, '"(OpenTelemetry(?:.*))?": {[\S\s]*?"target": "Package",[\S\s]*?"version": "(.*)"[\S\s]*?}')
+        foreach ($match in $matches)
+        {
+            $packageName = $match.Groups[1].Value
+            $packageVersion = $match.Groups[2].Value
+            if ($packageName -eq 'OpenTelemetry' -or
+                $packageName -eq 'OpenTelemetry.Api' -or
+                $packageName -eq 'OpenTelemetry.Api.ProviderBuilderExtensions' -or
+                $packageName -eq 'OpenTelemetry.Extensions.Hosting')
+            {
+                $projectDependencies[$packageName.ToString()] = $packageVersion.ToString()
+            }
+        }
+        $projectsAndDependencies[$projectDir.ToString()] = $projectDependencies
+    }
+
+    return $projectsAndDependencies
+}
