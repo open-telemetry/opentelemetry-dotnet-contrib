@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Resources.Azure;
@@ -11,7 +10,7 @@ namespace OpenTelemetry.Resources.Azure;
 /// <summary>
 /// Resource detector for Azure Container Apps environment.
 /// </summary>
-public sealed class AzureContainerAppsResourceDetector : IResourceDetector
+internal sealed class AzureContainerAppsResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AzureContainerResourceAttributes = new Dictionary<string, string>
     {
