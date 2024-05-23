@@ -7,8 +7,14 @@
     <Nullabe>enable</Nullabe>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <None Update="k8s\pod-response.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Container\OpenTelemetry.ResourceDetectors.Container.csproj" />
   </ItemGroup>
-
 </Project>

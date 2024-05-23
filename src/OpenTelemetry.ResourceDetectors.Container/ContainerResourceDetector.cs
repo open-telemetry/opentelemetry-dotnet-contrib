@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using OpenTelemetry.ResourceDetectors.Container.Models;
 using OpenTelemetry.ResourceDetectors.Container.Utils;
@@ -21,34 +20,25 @@ public class ContainerResourceDetector : IResourceDetector
     private const string Filepath = "/proc/self/cgroup";
     private const string FilepathV2 = "/proc/self/mountinfo";
     private const string Hostname = "hostname";
-    private const string K8sServiceHostKey = "KUBERNETES_SERVICE_HOST";
-    private const string K8sServicePortKey = "KUBERNETES_SERVICE_PORT_HTTPS";
-    private const string K8sHostnameKey = "HOSTNAME";
-    private const string K8sPodNameKey = "KUBERNETES_POD_NAME";
-    private const string K8sContainerNameKey = "KUBERNETES_CONTAINER_NAME";
-    private const string K8sNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
     private const string K8sCertificatePath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
-    private const string K8sCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
+
+    private readonly IK8sMetadataFetcher k8sMetadataFetcher;
 
     /// <summary>
-    /// CGroup Parse Versions.
+    /// Initializes a new instance of the <see cref="ContainerResourceDetector"/> class.
     /// </summary>
-    internal enum ParseMode
+    public ContainerResourceDetector()
+        : this(new K8sMetadataFetcher())
     {
-        /// <summary>
-        /// Represents CGroupV1.
-        /// </summary>
-        V1,
+    }
 
-        /// <summary>
-        /// Represents CGroupV2.
-        /// </summary>
-        V2,
-
-        /// <summary>
-        /// Represents Kubernetes.
-        /// </summary>
-        K8s,
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContainerResourceDetector"/> class for testing.
+    /// </summary>
+    /// <param name="k8sMetadataFetcher">The <see cref="IK8sMetadataFetcher"/>.</param>
+    internal ContainerResourceDetector(IK8sMetadataFetcher k8sMetadataFetcher)
+    {
+        this.k8sMetadataFetcher = k8sMetadataFetcher;
     }
 
     /// <summary>
@@ -153,17 +143,16 @@ public class ContainerResourceDetector : IResourceDetector
         return input.Substring(startIndex, endIndex - startIndex);
     }
 
-    private static string? ExtractK8sContainerId()
+    private string? ExtractK8sContainerId()
     {
         try
         {
-            var host = Environment.GetEnvironmentVariable(K8sServiceHostKey);
-            var port = Environment.GetEnvironmentVariable(K8sServicePortKey);
-            var @namespace = File.ReadAllText(K8sNamespacePath);
-            var hostname = Environment.GetEnvironmentVariable(K8sPodNameKey) ?? Environment.GetEnvironmentVariable(K8sHostnameKey);
-            var containerName = Environment.GetEnvironmentVariable(K8sContainerNameKey);
-            var url = $"https://{host}:{port}/api/v1/namespaces/{@namespace}/pods/{hostname}";
-            var credentials = GetK8sCredentials(K8sCredentialPath);
+            var baseUrl = this.k8sMetadataFetcher.GetServiceBaseUrl();
+            var @namespace = this.k8sMetadataFetcher.GetNamespace();
+            var hostname = this.k8sMetadataFetcher.GetPodName() ?? this.k8sMetadataFetcher.GetHostname();
+            var containerName = this.k8sMetadataFetcher.GetContainerName();
+            var url = $"{baseUrl}/api/v1/namespaces/{@namespace}/pods/{hostname}";
+            var credentials = this.k8sMetadataFetcher.GetApiCredential();
             if (string.IsNullOrEmpty(credentials))
             {
                 return string.Empty;
@@ -194,30 +183,6 @@ public class ContainerResourceDetector : IResourceDetector
 
         return null;
 
-        static string? GetK8sCredentials(string path)
-        {
-            try
-            {
-                var stringBuilder = new StringBuilder("Bearer ");
-
-                using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
-                {
-                    while (!streamReader.EndOfStream)
-                    {
-                        stringBuilder.Append(streamReader.ReadLine()?.Trim());
-                    }
-                }
-
-                return stringBuilder.ToString();
-            }
-            catch (Exception ex)
-            {
-                ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)}: Failed to load client token", ex);
-            }
-
-            return null;
-        }
-
         static K8sPod? DeserializeK8sResponse(string response)
         {
 #if NET6_0_OR_GREATER
@@ -240,7 +205,7 @@ public class ContainerResourceDetector : IResourceDetector
         {
             if (parseMode == ParseMode.K8s)
             {
-                return ExtractK8sContainerId();
+                return this.ExtractK8sContainerId();
             }
             else
             {
