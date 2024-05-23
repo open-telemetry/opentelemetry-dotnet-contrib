@@ -1,0 +1,9 @@
+OpenTelemetry.Resources.Azure.AppServiceResourceDetector
+OpenTelemetry.Resources.Azure.AppServiceResourceDetector.AppServiceResourceDetector() -> void
+OpenTelemetry.Resources.Azure.AppServiceResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
+OpenTelemetry.Resources.Azure.AzureContainerAppsResourceDetector
+OpenTelemetry.Resources.Azure.AzureContainerAppsResourceDetector.AzureContainerAppsResourceDetector() -> void
+OpenTelemetry.Resources.Azure.AzureContainerAppsResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
+OpenTelemetry.Resources.Azure.AzureVMResourceDetector
+OpenTelemetry.Resources.Azure.AzureVMResourceDetector.AzureVMResourceDetector() -> void
+OpenTelemetry.Resources.Azure.AzureVMResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
