@@ -11,13 +11,13 @@
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 * **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.AWS`
   to `OpenTelemetry.Resources.AWS`.
-  ([#1820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
-* **Breaking Change**: `AWSEBSResourceDetector`, `AWSEC2ResourceDetector`,
-`AWSECSResourceDetector` and `AWSEKSResourceDetector` types are now internal,
-use `ResourceBuilder` extension methods `AddAWSEBSResourceDetector`,
-`AddAWSEC2ResourceDetector`, `AddAWSECSResourceDetector`
-and `AddAWSEKSResourceDetector` respectively to enable the detectors.
-  ([#1820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
+  ([#1839](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
+* **Breaking Change**: `AWSEBSDetector`, `AWSEC2Detector`,
+`AWSECSDetector` and `AWSEKSDetector` types are now internal,
+use `ResourceBuilder` extension methods `AddAWSEBSDetector`,
+`AddAWSEC2Detector`, `AddAWSECSDetector`
+and `AddAWSEKSDetector` respectively to enable the detectors.
+  ([#1839](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
 
 ## 1.4.0-beta.1
 

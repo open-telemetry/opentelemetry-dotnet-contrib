@@ -17,13 +17,13 @@ using Xunit;
 
 namespace OpenTelemetry.Resources.AWS.Tests;
 
-public class AWSECSResourceDetectorTests : IDisposable
+public class AWSECSDetectorTests : IDisposable
 {
     private const string AWSECSMetadataFilePath = "SampleMetadataFiles/testcgroup";
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
-    public AWSECSResourceDetectorTests()
+    public AWSECSDetectorTests()
     {
         this.ResetEnvironment();
     }
@@ -36,7 +36,7 @@ public class AWSECSResourceDetectorTests : IDisposable
     [Fact]
     public void TestNotOnEcs()
     {
-        var ecsResourceDetector = new AWSECSResourceDetector();
+        var ecsResourceDetector = new AWSECSDetector();
         var resourceAttributes = ecsResourceDetector.Detect();
 
         Assert.NotNull(resourceAttributes);
@@ -46,7 +46,7 @@ public class AWSECSResourceDetectorTests : IDisposable
     [Fact]
     public void TestGetECSContainerId()
     {
-        Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", AWSECSResourceDetector.GetECSContainerId(AWSECSMetadataFilePath));
+        Assert.Equal("a4d00c9dd675d67f866c786181419e1b44832d4696780152e61afd44a3e02856", AWSECSDetector.GetECSContainerId(AWSECSMetadataFilePath));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class AWSECSResourceDetectorTests : IDisposable
     {
         Environment.SetEnvironmentVariable(AWSECSMetadataURLKey, "TestECSURIKey");
 
-        var resourceAttributes = new AWSECSResourceDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
         Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
@@ -69,7 +69,7 @@ public class AWSECSResourceDetectorTests : IDisposable
         await using (var metadataEndpoint = new MockEcsMetadataEndpoint("ecs_metadata/metadatav4-response-container-ec2.json", "ecs_metadata/metadatav4-response-task-ec2.json"))
         {
             Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, metadataEndpoint.Address.ToString());
-            var resourceAttributes = new AWSECSResourceDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
@@ -101,7 +101,7 @@ public class AWSECSResourceDetectorTests : IDisposable
         {
             Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, metadataEndpoint.Address.ToString());
 
-            var resourceAttributes = new AWSECSResourceDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
             Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");

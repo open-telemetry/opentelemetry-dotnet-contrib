@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// <summary>
 /// Resource detector for application running in AWS Elastic Beanstalk environment.
 /// </summary>
-internal sealed class AWSEBSResourceDetector : IResourceDetector
+internal sealed class AWSEBSDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
 #if NET6_0_OR_GREATER
@@ -48,7 +48,7 @@ internal sealed class AWSEBSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSEBSDetector), ex);
         }
 
         return Resource.Empty;

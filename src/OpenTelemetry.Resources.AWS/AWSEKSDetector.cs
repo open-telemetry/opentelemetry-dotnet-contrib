@@ -13,7 +13,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// <summary>
 /// Resource detector for application running in AWS EKS.
 /// </summary>
-internal sealed class AWSEKSResourceDetector : IResourceDetector
+internal sealed class AWSEKSDetector : IResourceDetector
 {
     private const string AWSEKSCertificatePath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
     private const string AWSEKSCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
@@ -81,7 +81,7 @@ internal sealed class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to load client token", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSDetector)} : Failed to load client token", ex);
         }
 
         return null;
@@ -105,7 +105,7 @@ internal sealed class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get Container Id", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSDetector)} : Failed to get Container Id", ex);
         }
 
         return null;
@@ -129,7 +129,7 @@ internal sealed class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get cluster information", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSDetector)} : Failed to get cluster information", ex);
         }
 
         return null;
@@ -144,7 +144,7 @@ internal sealed class AWSEKSResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSResourceDetector)} : Failed to get EKS information", ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException($"{nameof(AWSEKSDetector)} : Failed to get EKS information", ex);
         }
 
         return !string.IsNullOrEmpty(awsAuth);

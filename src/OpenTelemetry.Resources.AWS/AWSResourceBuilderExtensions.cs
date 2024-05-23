@@ -16,10 +16,10 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAWSEBSResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEBSResourceDetector());
+        return builder.AddDetector(new AWSEBSDetector());
     }
 
     /// <summary>
@@ -27,10 +27,10 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAWSEC2ResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEC2ResourceDetector());
+        return builder.AddDetector(new AWSEC2Detector());
     }
 
 #if !NETFRAMEWORK
@@ -39,10 +39,10 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAWSECSResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSECSResourceDetector());
+        return builder.AddDetector(new AWSECSDetector());
     }
 
     /// <summary>
@@ -50,10 +50,10 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAWSEKSResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEKSResourceDetector());
+        return builder.AddDetector(new AWSEKSDetector());
     }
 #endif
 }

@@ -10,7 +10,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// <summary>
 /// Resource detector for application running on AWS EC2 instance.
 /// </summary>
-internal sealed class AWSEC2ResourceDetector : IResourceDetector
+internal sealed class AWSEC2Detector : IResourceDetector
 {
     private const string AWSEC2MetadataTokenTTLHeader = "X-aws-ec2-metadata-token-ttl-seconds";
     private const string AWSEC2MetadataTokenHeader = "X-aws-ec2-metadata-token";
@@ -34,7 +34,7 @@ internal sealed class AWSEC2ResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2ResourceDetector), ex);
+            AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSEC2Detector), ex);
         }
 
         return Resource.Empty;

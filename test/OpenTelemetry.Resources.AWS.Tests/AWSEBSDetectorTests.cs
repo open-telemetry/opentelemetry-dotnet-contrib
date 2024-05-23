@@ -6,14 +6,14 @@ using Xunit;
 
 namespace OpenTelemetry.Resources.AWS.Tests;
 
-public class AWSEBSResourceDetectorTests
+public class AWSEBSDetectorTests
 {
     private const string AWSEBSMetadataFilePath = "SampleMetadataFiles/environment.conf";
 
     [Fact]
     public void TestDetect()
     {
-        Assert.Empty(new AWSEBSResourceDetector().Detect().Attributes); // will be null as it's not in ebs environment
+        Assert.Empty(new AWSEBSDetector().Detect().Attributes); // will be null as it's not in ebs environment
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class AWSEBSResourceDetectorTests
     {
         var sampleModel = new SampleAWSEBSMetadataModel();
 
-        var resourceAttributes = AWSEBSResourceDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = AWSEBSDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_elastic_beanstalk", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
@@ -34,7 +34,7 @@ public class AWSEBSResourceDetectorTests
     [Fact]
     public void TestGetEBSMetadata()
     {
-        var ebsMetadata = AWSEBSResourceDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
+        var ebsMetadata = AWSEBSDetector.GetEBSMetadata(AWSEBSMetadataFilePath);
 
         Assert.NotNull(ebsMetadata);
         Assert.Equal("1234567890", ebsMetadata.DeploymentId);

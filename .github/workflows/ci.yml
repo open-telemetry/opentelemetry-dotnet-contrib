@@ -524,9 +524,9 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
-      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
       || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-azure')
       || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-container')
+      || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-host')
       || contains(needs.detect-changes.outputs.changes, 'resources-process')
       || contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
@@ -573,8 +573,8 @@ jobs:
       build-test-instrumentation-wcf,
       build-test-persistentstorage,
       build-test-resourcedetectors-azure,
-      build-test-resourcedetectors-aws,
       build-test-resourcedetectors-container,
+      build-test-resources-aws,
       build-test-resources-gcp,
       build-test-resources-host,
       build-test-resources-process,
