@@ -2,6 +2,7 @@
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.Resources.ProcessRuntime)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.ProcessRuntime)](https://www.nuget.org/packages/OpenTelemetry.Resources.ProcessRuntime)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.ProcessRuntime)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.ProcessRuntime)
 
 > [!IMPORTANT]
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/process.md#process-runtimes).

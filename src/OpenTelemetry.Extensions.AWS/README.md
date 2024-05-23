@@ -1,7 +1,8 @@
 # Tracing with AWS Distro for OpenTelemetry .Net SDK
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Contrib.Extensions.AWSXRay)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.AWSXRay)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Contrib.Extensions.AWSXRay)](https://www.nuget.org/packages/OpenTelemetry.Contrib.Extensions.AWSXRay)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Extensions.AWS)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Extensions.AWS)
 
 If you want to send the traces to AWS X-Ray, you can do so
 by using AWS Distro with the OpenTelemetry SDK.
