@@ -36,11 +36,12 @@ your application is running:
 
 ## Kubernetes
 When running in a Kubernetes environment, the Container resource detector
-requires permissions to access pod information in order to extract the container ID.
+requires permissions to access pod information in order
+to extract the container ID.
 This is achieved using Kubernetes Role-Based Access Control (RBAC).
 
-You will need to create a Role and RoleBinding to grant the necessary permissions
-to the service account used by your application.
+You will need to create a Role and RoleBinding to grant
+the necessary permissions to the service account used by your application.
 Below is an example of how to configure these RBAC resources:
 
 ```yaml
