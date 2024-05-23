@@ -394,7 +394,6 @@ internal sealed class OtlpProtobufSerializer
                                 }
                             }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
                             if (metricPoint.TryGetExemplars(out var exemplars))
                             {
                                 foreach (ref readonly var exemplar in exemplars)
@@ -402,7 +401,6 @@ internal sealed class OtlpProtobufSerializer
                                     this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.HistogramDataPoint_exemplars);
                                 }
                             }
-#endif
 
                             var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
@@ -489,7 +487,6 @@ internal sealed class OtlpProtobufSerializer
                             // write Bucket
                             ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref positiveBucketIndex, cursor - positiveBucketValueIndex, FieldNumberConstants.ExponentialHistogramDataPoint_positive, WireType.LEN);
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
                             if (metricPoint.TryGetExemplars(out var exemplars))
                             {
                                 foreach (ref readonly var exemplar in exemplars)
@@ -497,7 +494,6 @@ internal sealed class OtlpProtobufSerializer
                                     this.SerializeExemplar(buffer, ref cursor, in exemplar, exemplar.DoubleValue, FieldNumberConstants.ExponentialHistogramDataPoint_exemplars);
                                 }
                             }
-#endif
 
                             var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
@@ -549,7 +545,6 @@ internal sealed class OtlpProtobufSerializer
             cursor += this.prepopulatedNumberDataPointAttributesLength;
         }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
         if (metricPoint.TryGetExemplars(out var exemplars))
         {
             foreach (ref readonly var exemplar in exemplars)
@@ -564,7 +559,6 @@ internal sealed class OtlpProtobufSerializer
                 }
             }
         }
-#endif
 
         var metricPointStartPosition = this.metricPointTagAndLengthIndex;
 
@@ -572,7 +566,6 @@ internal sealed class OtlpProtobufSerializer
         ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref metricPointStartPosition, cursor - this.metricPointValueIndex, fieldNumber, WireType.LEN);
     }
 
-#if EXPOSE_EXPERIMENTAL_FEATURES
     private void SerializeExemplar<T>(byte[] buffer, ref int cursor, in Exemplar exemplar, T value, int fieldNumber)
     {
         int exemplarTagAndLengthIndex = cursor;
@@ -617,7 +610,6 @@ internal sealed class OtlpProtobufSerializer
             SerializeTag(buffer, ref cursor, tag.Key, tag.Value, FieldNumberConstants.Exemplar_attributes);
         }
     }
-#endif
 
     private void WriteIndividualMessageTagsAndLength(byte[] buffer, ref int cursor, MetricType metricType)
     {
