@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.8.0-beta.3
+
+Released 2024-May-23
+
 * **Breaking change** The `Enrich` callback option has been removed.
   For better usability, it has been replaced by three separate options:
   `EnrichWithHttpRequest`, `EnrichWithHttpResponse` and `EnrichWithException`.
