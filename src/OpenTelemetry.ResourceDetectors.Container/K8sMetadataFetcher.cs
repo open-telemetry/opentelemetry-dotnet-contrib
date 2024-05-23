@@ -65,6 +65,12 @@ internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
     {
         var serviceHost = Environment.GetEnvironmentVariable(KubernetesServiceHostKey);
         var servicePort = Environment.GetEnvironmentVariable(KubernetesServicePortKey);
+
+        if (string.IsNullOrWhiteSpace(serviceHost) || string.IsNullOrWhiteSpace(servicePort))
+        {
+            return null;
+        }
+
         return $"https://{serviceHost}:{servicePort}";
     }
 }
