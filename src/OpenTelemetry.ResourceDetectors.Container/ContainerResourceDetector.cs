@@ -23,9 +23,10 @@ public class ContainerResourceDetector : IResourceDetector
     private const string Hostname = "hostname";
     private const string K8sServiceHostKey = "KUBERNETES_SERVICE_HOST";
     private const string K8sServicePortKey = "KUBERNETES_SERVICE_PORT_HTTPS";
-    private const string K8sNamespaceKey = "KUBERNETES_NAMESPACE";
     private const string K8sHostnameKey = "HOSTNAME";
+    private const string K8sPodNameKey = "KUBERNETES_POD_NAME";
     private const string K8sContainerNameKey = "KUBERNETES_CONTAINER_NAME";
+    private const string K8sNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
     private const string K8sCertificatePath = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt";
     private const string K8sCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
 
@@ -158,8 +159,8 @@ public class ContainerResourceDetector : IResourceDetector
         {
             var host = Environment.GetEnvironmentVariable(K8sServiceHostKey);
             var port = Environment.GetEnvironmentVariable(K8sServicePortKey);
-            var @namespace = Environment.GetEnvironmentVariable(K8sNamespaceKey);
-            var hostname = Environment.GetEnvironmentVariable(K8sHostnameKey);
+            var @namespace = File.ReadAllText(K8sNamespacePath);
+            var hostname = Environment.GetEnvironmentVariable(K8sPodNameKey) ?? Environment.GetEnvironmentVariable(K8sHostnameKey);
             var containerName = Environment.GetEnvironmentVariable(K8sContainerNameKey);
             var url = $"https://{host}:{port}/api/v1/namespaces/{@namespace}/pods/{hostname}";
             var credentials = GetK8sCredentials(K8sCredentialPath);
