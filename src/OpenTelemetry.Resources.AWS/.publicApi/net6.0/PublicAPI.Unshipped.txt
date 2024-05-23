@@ -1,0 +1,2 @@
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSECSResourceDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEKSResourceDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!

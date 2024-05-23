@@ -9,7 +9,7 @@ using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
-namespace OpenTelemetry.ResourceDetectors;
+namespace OpenTelemetry.Resources;
 
 internal class ServerCertificateValidationProvider
 {

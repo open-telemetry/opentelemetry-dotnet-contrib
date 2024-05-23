@@ -51,9 +51,9 @@ jobs:
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
-          resourcedetectors-aws: ['*/OpenTelemetry.ResourceDetectors.AWS*/**', '!**/*.md']
           resourcedetectors-azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           resourcedetectors-container: ['*/OpenTelemetry.ResourceDetectors.Container*/**', '!**/*.md']
+          resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           resources-host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
@@ -398,17 +398,6 @@ jobs:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
 
-  build-test-resourcedetectors-aws:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.ResourceDetectors.AWS]
-      code-cov-name: ResourceDetectors.AWS
-
   build-test-resourcedetectors-azure:
     needs: detect-changes
     if: |
@@ -430,6 +419,17 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.ResourceDetectors.Container]
       code-cov-name: ResourceDetectors.Container
+
+  build-test-resources-aws:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-aws')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.AWS]
+      code-cov-name: Resources.AWS
 
   build-test-resources-gcp:
     needs: detect-changes

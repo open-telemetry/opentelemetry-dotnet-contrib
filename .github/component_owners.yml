@@ -59,14 +59,14 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.AWS/:
-    - srprash
-    - ppittle
   src/OpenTelemetry.ResourceDetectors.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
   src/OpenTelemetry.ResourceDetectors.Container/:
     - iskiselev
+  src/OpenTelemetry.Resources.AWS/:
+    - srprash
+    - ppittle
   src/OpenTelemetry.Resources.Host/:
     - Kielek
     - lachmatt
@@ -149,14 +149,14 @@ components:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
-    - srprash
-    - ppittle
   test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
   test/OpenTelemetry.ResourceDetectors.Container.Tests/:
     - iskiselev
+  test/OpenTelemetry.Resources.AWS.Tests/:
+    - srprash
+    - ppittle
   test/OpenTelemetry.Resources.Host.Tests/:
     - Kielek
     - lachmatt
