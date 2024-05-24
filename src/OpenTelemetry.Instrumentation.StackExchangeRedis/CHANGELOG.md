@@ -4,8 +4,6 @@
 
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
-* Fix StackExchangeRedisInstrumentationOptions xml documentation.
-  ([#1842](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1842))
 
 ## 1.0.0-rc9.14
 
