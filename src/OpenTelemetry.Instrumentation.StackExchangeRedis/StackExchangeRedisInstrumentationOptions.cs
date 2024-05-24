@@ -18,7 +18,7 @@ public class StackExchangeRedisInstrumentationOptions
     public TimeSpan FlushInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed <see cref="SemanticConventions.AttributeDbStatement"/> tag values. Default value: False.
+    /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should use reflection to get more detailed <see cref="SemanticConventions.AttributeDbStatement"/> tag values. Default value: <see langword="false"/>.
     /// </summary>
     public bool SetVerboseDatabaseStatements { get; set; }
 
@@ -32,7 +32,7 @@ public class StackExchangeRedisInstrumentationOptions
     public Action<Activity, IProfiledCommand>? Enrich { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="StackExchangeRedisConnectionInstrumentation"/> should enrich Activity with <see cref="ActivityEvent"/> entries about the Redis command processing/lifetime. Defaults to <see cref="bool">true</see>.
+    /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should enrich Activity with <see cref="ActivityEvent"/> entries about the Redis command processing/lifetime. Defaults to <see langword="true"/>.
     /// </summary>
     public bool EnrichActivityWithTimingEvents { get; set; } = true;
 }
