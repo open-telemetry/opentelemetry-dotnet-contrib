@@ -27,7 +27,7 @@ public static class AzureResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAzureVMResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAzureVMDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new AzureVMResourceDetector());
@@ -38,7 +38,7 @@ public static class AzureResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAzureContainerAppsResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAzureContainerAppsDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new AzureContainerAppsResourceDetector());
