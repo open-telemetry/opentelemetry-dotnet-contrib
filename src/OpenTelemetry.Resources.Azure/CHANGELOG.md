@@ -6,7 +6,7 @@
   to `OpenTelemetry.Resources.Azure`.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
 * **Breaking Change**: `AppServiceResourceDetector` type is now internal, use `ResourceBuilder`
-  extension method `AddAppServiceResourceDetector` to enable the detector.
+  extension method `AddAppServiceDetector` to enable the detector.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
 * **Breaking Change**: `AzureVMResourceDetector` type is now internal, use `ResourceBuilder`
   extension method `AddAzureVMResourceDetector` to enable the detector.

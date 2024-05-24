@@ -16,7 +16,7 @@ public static class AzureResourceBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAppServiceResourceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAppServiceDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new AppServiceResourceDetector());
