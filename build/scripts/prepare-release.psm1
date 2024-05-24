@@ -192,7 +192,7 @@ function PostPackagesReadyNotice {
 
   $body =
 @"
-The packages for [$tag](https://github.com/$gitRepository/releases/tag/$tag) are now available: $packagesUrl.
+The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet shortly.
 
 Have a nice day!
 "@
