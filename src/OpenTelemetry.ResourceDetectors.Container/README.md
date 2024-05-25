@@ -36,14 +36,13 @@ your application is running:
 
 ## Kubernetes
 
-When running in a Kubernetes environment, the Container resource detector
-requires permissions to access pod information in order
-to extract the container ID.
-This is achieved using Kubernetes Role-Based Access Control (RBAC).
+To make container ID resolution work, container and pod name should be provided through KUBERNETES_CONTAINER_NAME and KUBERNETES_POD_NAME environment variable respectively and pod should have at least get permission to kubernetes resource pods.
+It can be done by utilizing YAML anchoring, downwards API and RBAC (Role-Based Access Control).
 
-You will need to create a Role and RoleBinding to grant
-the necessary permissions to the service account used by your application.
-Below is an example of how to configure these RBAC resources:
+If KUBERNETES_POD_NAME is not provided, detector will use HOSTNAME as a fallback, but it may not work in some environments or if hostname was overridden in pod spec.
+
+Below is an example of how to configure sample pod to make container ID resolution working:
+
 
 ```yaml
 apiVersion: v1
@@ -92,6 +91,10 @@ spec:
     env:
     - name: KUBERNETES_CONTAINER_NAME
       value: *container_name
+    - name: KUBERNETES_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
 ```
 
 ## References
