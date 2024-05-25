@@ -70,7 +70,6 @@ public class ContainerResourceDetector : IResourceDetector
     internal Resource BuildResource(string path, ParseMode parseMode)
     {
         var containerId = this.ExtractContainerId(path, parseMode);
-
         if (string.IsNullOrEmpty(containerId))
         {
             return Resource.Empty;
@@ -134,7 +133,6 @@ public class ContainerResourceDetector : IResourceDetector
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {
         startIndex = (startIndex == -1) ? 0 : startIndex + 1;
-
         if (endIndex == -1)
         {
             endIndex = input.Length;
@@ -148,6 +146,11 @@ public class ContainerResourceDetector : IResourceDetector
         try
         {
             var baseUrl = this.k8sMetadataFetcher.GetServiceBaseUrl();
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return null;
+            }
+
             var @namespace = this.k8sMetadataFetcher.GetNamespace();
             var hostname = this.k8sMetadataFetcher.GetPodName() ?? this.k8sMetadataFetcher.GetHostname();
             var containerName = this.k8sMetadataFetcher.GetContainerName();
