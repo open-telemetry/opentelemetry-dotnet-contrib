@@ -50,7 +50,6 @@ or if hostname was overridden in pod spec.
 Below is an example of how to configure sample pod
 to make container ID resolution working:
 
-
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
