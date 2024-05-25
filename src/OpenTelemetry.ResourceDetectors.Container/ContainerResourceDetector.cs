@@ -146,14 +146,14 @@ public class ContainerResourceDetector : IResourceDetector
         try
         {
             var baseUrl = this.k8sMetadataFetcher.GetServiceBaseUrl();
-            if (string.IsNullOrEmpty(baseUrl))
+            var containerName = this.k8sMetadataFetcher.GetContainerName();
+            if (string.IsNullOrEmpty(baseUrl) && string.IsNullOrEmpty(containerName))
             {
                 return null;
             }
 
             var @namespace = this.k8sMetadataFetcher.GetNamespace();
             var hostname = this.k8sMetadataFetcher.GetPodName() ?? this.k8sMetadataFetcher.GetHostname();
-            var containerName = this.k8sMetadataFetcher.GetContainerName();
             var url = $"{baseUrl}/api/v1/namespaces/{@namespace}/pods/{hostname}";
             var credentials = this.k8sMetadataFetcher.GetApiCredential();
             if (string.IsNullOrEmpty(credentials))
