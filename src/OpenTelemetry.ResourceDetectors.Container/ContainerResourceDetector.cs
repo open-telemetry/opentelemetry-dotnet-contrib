@@ -146,7 +146,7 @@ public class ContainerResourceDetector : IResourceDetector
         try
         {
             var baseUrl = this.k8sMetadataFetcher.GetServiceBaseUrl();
-            if (string.IsNullOrWhiteSpace(baseUrl))
+            if (string.IsNullOrEmpty(baseUrl))
             {
                 return null;
             }
