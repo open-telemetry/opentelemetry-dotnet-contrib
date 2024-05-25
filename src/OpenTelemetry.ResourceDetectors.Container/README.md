@@ -36,12 +36,19 @@ your application is running:
 
 ## Kubernetes
 
-To make container ID resolution work, container and pod name should be provided through KUBERNETES_CONTAINER_NAME and KUBERNETES_POD_NAME environment variable respectively and pod should have at least get permission to kubernetes resource pods.
-It can be done by utilizing YAML anchoring, downwards API and RBAC (Role-Based Access Control).
+To make container ID resolution work, container and pod name should be provided
+through KUBERNETES_CONTAINER_NAME and KUBERNETES_POD_NAME environment variable
+respectively and pod should have at least
+get permission to kubernetes resource pods.
+It can be done by utilizing YAML anchoring, downwards API
+and RBAC (Role-Based Access Control).
 
-If KUBERNETES_POD_NAME is not provided, detector will use HOSTNAME as a fallback, but it may not work in some environments or if hostname was overridden in pod spec.
+If KUBERNETES_POD_NAME is not provided, detector will use HOSTNAME
+as a fallback, but it may not work in some environments
+or if hostname was overridden in pod spec.
 
-Below is an example of how to configure sample pod to make container ID resolution working:
+Below is an example of how to configure sample pod
+to make container ID resolution working:
 
 
 ```yaml
