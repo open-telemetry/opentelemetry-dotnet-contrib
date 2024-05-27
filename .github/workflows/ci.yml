@@ -51,9 +51,9 @@ jobs:
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
-          resourcedetectors-azure: ['*/OpenTelemetry.ResourceDetectors.Azure*/**', '!**/*.md']
           resourcedetectors-container: ['*/OpenTelemetry.ResourceDetectors.Container*/**', '!**/*.md']
           resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
+          resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
           resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           resources-host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
@@ -398,17 +398,6 @@ jobs:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
 
-  build-test-resourcedetectors-azure:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-azure')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.ResourceDetectors.Azure]
-      code-cov-name: ResourceDetectors.Azure
-
   build-test-resourcedetectors-container:
     needs: detect-changes
     if: |
@@ -430,6 +419,17 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.AWS]
       code-cov-name: Resources.AWS
+
+  build-test-resources-azure:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-azure')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.Azure]
+      code-cov-name: Resources.Azure
 
   build-test-resources-gcp:
     needs: detect-changes
@@ -524,9 +524,9 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
-      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-azure')
       || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-container')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
+      || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-host')
       || contains(needs.detect-changes.outputs.changes, 'resources-process')
       || contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
@@ -572,9 +572,9 @@ jobs:
       build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
       build-test-persistentstorage,
-      build-test-resourcedetectors-azure,
       build-test-resourcedetectors-container,
       build-test-resources-aws,
+      build-test-resources-azure,
       build-test-resources-gcp,
       build-test-resources-host,
       build-test-resources-process,

@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.ResourceDetectors.Azure.Tests;
+namespace OpenTelemetry.Resources.Azure.Tests;
 
 public class AzureResourceDetectorTests : IDisposable
 {
