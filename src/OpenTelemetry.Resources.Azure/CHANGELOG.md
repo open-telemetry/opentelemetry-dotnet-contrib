@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Azure`
+  to `OpenTelemetry.Resources.Azure`.
+  ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+* **Breaking Change**: `AppServiceResourceDetector` type is now internal, use `ResourceBuilder`
+  extension method `AddAppServiceDetector` to enable the detector.
+  ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+* **Breaking Change**: `AzureVMResourceDetector` type is now internal, use `ResourceBuilder`
+  extension method `AddAzureVMResourceDetector` to enable the detector.
+  ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+* **Breaking Change**: `AzureContainerAppsResourceDetector` type is now
+  internal, use `ResourceBuilder` extension method `AddAzureContainerAppsResourceDetector`
+  to enable the detector.
+  ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
