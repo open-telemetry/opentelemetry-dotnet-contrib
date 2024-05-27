@@ -2,6 +2,7 @@
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.ResourceDetectors.Container)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Container)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.ResourceDetectors.Container)](https://www.nuget.org/packages/OpenTelemetry.ResourceDetectors.Container)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-ResourceDetectors.Container)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-ResourceDetectors.Container)
 
 ## Getting Started
 
