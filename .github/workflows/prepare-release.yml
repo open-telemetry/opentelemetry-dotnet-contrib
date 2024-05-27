@@ -155,6 +155,7 @@ jobs:
     uses: ./.github/workflows/publish-packages.yml
     with:
       tag: ${{ needs.create-release-tag-unlock-pr-post-notice.outputs.tag }}
+    secrets: inherit
 
   post-packages-ready-notice:
     needs:
