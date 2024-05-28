@@ -204,9 +204,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.Cassandra.Tests", "test\OpenTelemetry.Instrumentation.Cassandra.Tests\OpenTelemetry.Instrumentation.Cassandra.Tests.csproj", "{FB48DC44-8C56-4329-9988-AEDF931E81E8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure", "src\OpenTelemetry.ResourceDetectors.Azure\OpenTelemetry.ResourceDetectors.Azure.csproj", "{B07DC3CB-F724-40A5-889A-DA6601F462F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Azure", "src\OpenTelemetry.Resources.Azure\OpenTelemetry.Resources.Azure.csproj", "{B07DC3CB-F724-40A5-889A-DA6601F462F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Azure.Tests", "test\OpenTelemetry.ResourceDetectors.Azure.Tests\OpenTelemetry.ResourceDetectors.Azure.Tests.csproj", "{DFC6A4A9-5262-4507-B747-CC6B814205E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Azure.Tests", "test\OpenTelemetry.Resources.Azure.Tests\OpenTelemetry.Resources.Azure.Tests.csproj", "{DFC6A4A9-5262-4507-B747-CC6B814205E6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.OneCollector", "src\OpenTelemetry.Exporter.OneCollector\OpenTelemetry.Exporter.OneCollector.csproj", "{73C10993-03AC-42F4-85BB-96EAAA8212D9}"
 EndProject

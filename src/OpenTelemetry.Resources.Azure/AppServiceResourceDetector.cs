@@ -3,15 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.ResourceDetectors.Azure;
+namespace OpenTelemetry.Resources.Azure;
 
 /// <summary>
 /// Resource detector for Azure AppService environment.
 /// </summary>
-public sealed class AppServiceResourceDetector : IResourceDetector
+internal sealed class AppServiceResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
