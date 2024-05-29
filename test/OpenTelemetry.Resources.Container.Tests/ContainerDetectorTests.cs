@@ -117,7 +117,7 @@ public class ContainerDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                ContainerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V1),
+                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V1),
                 Resource.Empty);
         }
 
@@ -126,12 +126,12 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(ContainerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
+            Assert.Equal(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
         }
 
         // test invalid file
-        Assert.Equal(ContainerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V1), Resource.Empty);
-        Assert.Equal(ContainerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V2), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V1), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ContainerDetector.ParseMode.V2), Resource.Empty);
     }
 
     private static string GetContainerId(Resource resource)
