@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Resources.Container.Tests;
@@ -84,7 +83,7 @@ public class ContainerDetectorTests
     [Fact]
     public void TestValidContainer()
     {
-        var ContainerDetector = new ContainerDetector();
+        var containerDetector = new ContainerDetector();
         var allValidTestCases = this.testValidCasesV1.Concat(this.testValidCasesV2);
 
         foreach (var testCase in allValidTestCases)
@@ -93,14 +92,14 @@ public class ContainerDetectorTests
             tempFile.Write(testCase.Line);
             Assert.Equal(
                 testCase.ExpectedContainerId,
-                GetContainerId(ContainerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
+                GetContainerId(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
         }
     }
 
     [Fact]
     public void TestInvalidContainer()
     {
-        var ContainerDetector = new ContainerDetector();
+        var containerDetector = new ContainerDetector();
 
         // Valid in cgroupv1 is not valid in cgroupv2
         foreach (var testCase in this.testValidCasesV1)
@@ -108,7 +107,7 @@ public class ContainerDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                ContainerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V2),
+                containerDetector.BuildResource(tempFile.FilePath, ContainerDetector.ParseMode.V2),
                 Resource.Empty);
         }
 
