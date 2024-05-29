@@ -2,6 +2,7 @@
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Owin)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Owin)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/glossary.md#instrumentation-library),
