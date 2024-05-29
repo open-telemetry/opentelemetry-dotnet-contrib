@@ -5,9 +5,9 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
-[EventSource(Name = "OpenTelemetry-ResourceDetectors-Container")]
+[EventSource(Name = "OpenTelemetry-Resources-Container")]
 internal class ContainerExtensionsEventSource : EventSource
 {
     public static ContainerExtensionsEventSource Log = new();

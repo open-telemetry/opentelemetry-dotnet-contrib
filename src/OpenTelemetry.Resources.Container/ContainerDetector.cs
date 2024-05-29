@@ -5,15 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using OpenTelemetry.ResourceDetectors.Container.Utils;
+using OpenTelemetry.Resources.Container.Utils;
 using OpenTelemetry.Resources;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
 /// <summary>
 /// Resource detector for application running in Container environment.
 /// </summary>
-public class ContainerResourceDetector : IResourceDetector
+internal sealed class ContainerDetector : IResourceDetector
 {
     private const string Filepath = "/proc/self/cgroup";
     private const string FilepathV2 = "/proc/self/mountinfo";
@@ -170,7 +170,7 @@ public class ContainerResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            ContainerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)} : Failed to extract Container id from path", ex);
+            ContainerExtensionsEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)} : Failed to extract Container id from path", ex);
         }
 
         return null;

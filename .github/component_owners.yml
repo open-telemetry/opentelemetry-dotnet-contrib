@@ -63,11 +63,11 @@ components:
   src/OpenTelemetry.ResourceDetectors.AWS/:
     - srprash
     - ppittle
-  src/OpenTelemetry.ResourceDetectors.Container/:
-    - iskiselev
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
+  src/OpenTelemetry.Resources.Container/:
+    - iskiselev
   src/OpenTelemetry.Resources.Host/:
     - Kielek
     - lachmatt
@@ -154,11 +154,11 @@ components:
   test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
     - srprash
     - ppittle
-  test/OpenTelemetry.ResourceDetectors.Container.Tests/:
-    - iskiselev
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
+  test/OpenTelemetry.Resources.Container.Tests/:
+    - iskiselev
   test/OpenTelemetry.Resources.Host.Tests/:
     - Kielek
     - lachmatt

@@ -1,0 +1,2 @@
+OpenTelemetry.Resources.Container.ContainerDetector
+OpenTelemetry.Resources.Container.ContainerDetector.Detect() -> OpenTelemetry.Resources.Resource!
