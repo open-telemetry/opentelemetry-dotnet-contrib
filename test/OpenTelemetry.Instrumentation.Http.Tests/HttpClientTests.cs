@@ -173,6 +173,7 @@ public partial class HttpClientTests
     }
 #endif
 
+#if NET8_0_OR_GREATER
     [Fact]
     public async Task HttpCancellationLogsError()
     {
@@ -208,6 +209,7 @@ public partial class HttpClientTests
         var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value.ToString());
         Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "System.OperationCanceledException");
     }
+#endif
 
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,
