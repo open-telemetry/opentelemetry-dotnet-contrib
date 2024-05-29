@@ -18,6 +18,10 @@ use `ResourceBuilder` extension methods `AddAWSEBSDetector`,
 `AddAWSEC2Detector`, `AddAWSECSDetector`
 and `AddAWSEKSDetector` respectively to enable the detectors.
   ([#1839](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
+* **Breaking Change**: Renamed EventSource
+from `OpenTelemetry-ResourceDetectors-AWS`
+to `OpenTelemetry-Resources-AWS`.
+  ([#1839](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1839))
 
 ## 1.4.0-beta.1
 

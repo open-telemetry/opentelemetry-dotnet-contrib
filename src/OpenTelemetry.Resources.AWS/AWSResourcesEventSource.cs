@@ -7,7 +7,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources.AWS;
 
-[EventSource(Name = "OpenTelemetry-ResourceDetectors-AWS")]
+[EventSource(Name = "OpenTelemetry-Resources-AWS")]
 internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateValidationEventSource
 {
     public static AWSResourcesEventSource Log = new();
