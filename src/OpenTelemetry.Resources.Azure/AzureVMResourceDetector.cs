@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Generic;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.ResourceDetectors.Azure;
+namespace OpenTelemetry.Resources.Azure;
 
 /// <summary>
 /// Resource detector for Azure VM environment.
 /// </summary>
-public sealed class AzureVMResourceDetector : IResourceDetector
+internal sealed class AzureVMResourceDetector : IResourceDetector
 {
     internal static readonly IReadOnlyCollection<string> ExpectedAzureAmsFields = new string[]
     {
