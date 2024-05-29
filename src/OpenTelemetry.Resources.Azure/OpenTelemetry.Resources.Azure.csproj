@@ -3,7 +3,7 @@
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
     <Description>OpenTelemetry Resource Detectors for Azure cloud environments</Description>
     <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
-    <MinVerTagPrefix>ResourceDetectors.Azure-</MinVerTagPrefix>
+    <MinVerTagPrefix>Resources.Azure-</MinVerTagPrefix>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.

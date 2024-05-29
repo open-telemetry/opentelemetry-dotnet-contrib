@@ -33,7 +33,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.SqlClient" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.AWS" />
-    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Azure" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Host" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
