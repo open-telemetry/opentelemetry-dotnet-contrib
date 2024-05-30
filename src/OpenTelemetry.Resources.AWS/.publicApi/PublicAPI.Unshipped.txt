@@ -1,0 +1,3 @@
+OpenTelemetry.Resources.AWSResourceBuilderExtensions
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEBSDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEC2Detector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!

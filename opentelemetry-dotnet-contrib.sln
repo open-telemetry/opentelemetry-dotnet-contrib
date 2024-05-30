@@ -259,9 +259,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\UriHelper.cs = src\Shared\UriHelper.cs
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.AWS", "src\OpenTelemetry.ResourceDetectors.AWS\OpenTelemetry.ResourceDetectors.AWS.csproj", "{71BABAC0-E299-48BF-93E2-C11C3840B037}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.AWS", "src\OpenTelemetry.Resources.AWS\OpenTelemetry.Resources.AWS.csproj", "{71BABAC0-E299-48BF-93E2-C11C3840B037}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.AWS.Tests", "test\OpenTelemetry.ResourceDetectors.AWS.Tests\OpenTelemetry.ResourceDetectors.AWS.Tests.csproj", "{DE898A1E-920E-476F-B0DB-A98AFD6E3BF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.AWS.Tests", "test\OpenTelemetry.Resources.AWS.Tests\OpenTelemetry.Resources.AWS.Tests.csproj", "{DE898A1E-920E-476F-B0DB-A98AFD6E3BF4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.InfluxDB", "src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj", "{FD5E9AC8-DC05-4C64-BDC6-D26F5552808E}"
 EndProject
