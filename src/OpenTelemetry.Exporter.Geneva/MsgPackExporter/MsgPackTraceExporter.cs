@@ -268,6 +268,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "traceState");
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.TraceStateString);
+            cntFields += 1;
+        }
+
         // TODO: The current approach is to iterate twice over TagObjects so that all
         // env_properties can be added the very end. This avoids speculating the size
         // and preallocating a separate buffer for it.

@@ -290,6 +290,8 @@ public class GenevaTraceExporterTests
                         ActivityTraceFlags.Recorded)),
                 };
 
+                parentActivity.TraceStateString = "some=state";
+
                 using (var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links))
                 {
                     activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
@@ -684,6 +686,11 @@ public class GenevaTraceExporterTests
             Assert.DoesNotContain(mapping, m => m.Key as string == "links");
         }
         #endregion
+
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            Assert.Equal(activity.TraceStateString, mapping["traceState"])
+        }
 
         #region Assert Activity Tags
         _ = mapping.TryGetValue("env_properties", out object envProprties);
