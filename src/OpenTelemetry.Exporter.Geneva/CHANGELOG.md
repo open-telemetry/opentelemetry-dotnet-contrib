@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add TraceState support.
+  ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
+
 ## 1.9.0-alpha.1
 
 Released 2024-May-22
