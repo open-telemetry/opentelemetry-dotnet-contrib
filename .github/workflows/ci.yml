@@ -51,7 +51,7 @@ jobs:
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
-          resourcedetectors-aws: ['*/OpenTelemetry.ResourceDetectors.AWS*/**', '!**/*.md']
+          resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
           resources-container: ['*/OpenTelemetry.Resources.Container*/**', '!**/*.md']
           resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
@@ -398,16 +398,16 @@ jobs:
       project-name: OpenTelemetry.PersistentStorage
       code-cov-name: PersistentStorage
 
-  build-test-resourcedetectors-aws:
+  build-test-resources-aws:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
+      contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.ResourceDetectors.AWS]
-      code-cov-name: ResourceDetectors.AWS
+      project-name: Component[OpenTelemetry.Resources.AWS]
+      code-cov-name: Resources.AWS
 
   build-test-resources-azure:
     needs: detect-changes
@@ -524,7 +524,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
-      || contains(needs.detect-changes.outputs.changes, 'resourcedetectors-aws')
+      || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
       || contains(needs.detect-changes.outputs.changes, 'resources-host')
@@ -572,7 +572,7 @@ jobs:
       build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
       build-test-persistentstorage,
-      build-test-resourcedetectors-aws,
+      build-test-resources-aws,
       build-test-resources-azure,
       build-test-resources-container,
       build-test-resources-gcp,

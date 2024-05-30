@@ -60,7 +60,7 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.AWS/:
+  src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
   src/OpenTelemetry.Resources.Azure/:
@@ -151,7 +151,7 @@ components:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
+  test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
   test/OpenTelemetry.Resources.Azure.Tests/:

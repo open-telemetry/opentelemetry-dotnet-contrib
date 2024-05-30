@@ -33,7 +33,7 @@ var serviceName = "MyServiceName";
 var resourceBuilder = ResourceBuilder
     .CreateDefault()
     .AddService(serviceName: serviceName)
-    .AddDetector(new AWSEC2ResourceDetector());
+    .AddAWSEC2Detector();
 
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddSource(serviceName)
