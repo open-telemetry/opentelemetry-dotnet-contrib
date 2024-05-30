@@ -48,8 +48,8 @@ body:
         - OpenTelemetry.Instrumentation.Wcf
         - OpenTelemetry.PersistentStorage.Abstractions
         - OpenTelemetry.PersistentStorage.FileSystem
-        - OpenTelemetry.ResourceDetectors.AWS
         - OpenTelemetry.ResourceDetectors.Container
+        - OpenTelemetry.Resources.AWS
         - OpenTelemetry.Resources.Azure
         - OpenTelemetry.Resources.Gcp
         - OpenTelemetry.Resources.Host
