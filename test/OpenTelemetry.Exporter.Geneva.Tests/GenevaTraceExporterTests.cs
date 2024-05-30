@@ -278,6 +278,8 @@ public class GenevaTraceExporterTests
                 var linkedtraceId2 = ActivityTraceId.CreateFromString("e8ea7e9ac72de94e91fabc613f9686a2".AsSpan());
                 var linkedSpanId2 = ActivitySpanId.CreateFromString("888915b6286b9c02".AsSpan());
 
+                parentActivity.TraceStateString = "some=state";
+
                 var links = new[]
                 {
                     new ActivityLink(new ActivityContext(
@@ -289,8 +291,6 @@ public class GenevaTraceExporterTests
                         linkedSpanId2,
                         ActivityTraceFlags.Recorded)),
                 };
-
-                parentActivity.TraceStateString = "some=state";
 
                 using (var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links))
                 {
@@ -661,6 +661,11 @@ public class GenevaTraceExporterTests
             Assert.Equal(activity.ParentSpanId.ToHexString(), mapping["parentId"]);
         }
 
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            Assert.Equal(activity.TraceStateString, mapping["traceState"]);
+        }
+
         #region Assert Activity Links
         if (activity.Links.Any())
         {
@@ -686,11 +691,6 @@ public class GenevaTraceExporterTests
             Assert.DoesNotContain(mapping, m => m.Key as string == "links");
         }
         #endregion
-
-        if (!string.IsNullOrEmpty(activity.TraceStateString))
-        {
-            Assert.Equal(activity.TraceStateString, mapping["traceState"]);
-        }
 
         #region Assert Activity Tags
         _ = mapping.TryGetValue("env_properties", out object envProprties);

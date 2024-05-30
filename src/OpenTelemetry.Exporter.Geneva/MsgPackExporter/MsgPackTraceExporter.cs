@@ -243,6 +243,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
+        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "traceState");
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.TraceStateString);
+            cntFields += 1;
+        }
+
         var linkEnumerator = activity.EnumerateLinks();
         if (linkEnumerator.MoveNext())
         {
@@ -265,13 +272,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             while (linkEnumerator.MoveNext());
 
             MessagePackSerializer.WriteUInt16(buffer, idxLinkPatch, cntLink);
-            cntFields += 1;
-        }
-
-        if (!string.IsNullOrEmpty(activity.TraceStateString))
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "traceState");
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.TraceStateString);
             cntFields += 1;
         }
 
