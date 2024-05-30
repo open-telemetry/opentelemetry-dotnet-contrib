@@ -689,7 +689,7 @@ public class GenevaTraceExporterTests
 
         if (!string.IsNullOrEmpty(activity.TraceStateString))
         {
-            Assert.Equal(activity.TraceStateString, mapping["traceState"])
+            Assert.Equal(activity.TraceStateString, mapping["traceState"]);
         }
 
         #region Assert Activity Tags
