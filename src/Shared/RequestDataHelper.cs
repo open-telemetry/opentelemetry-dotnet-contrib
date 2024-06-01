@@ -5,6 +5,7 @@
 
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
+using System.Collections.Concurrent;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
@@ -26,6 +27,7 @@ internal sealed class RequestDataHelper
     private const string OtherHttpMethod = "_OTHER";
 
     private static readonly char[] SplitChars = new[] { ',' };
+    private static readonly ConcurrentDictionary<string, string> DisplayNameCache = new ConcurrentDictionary<string, string>();
 
 #if NET8_0_OR_GREATER
     private readonly FrozenDictionary<string, string> knownHttpMethods;
@@ -84,7 +86,7 @@ internal sealed class RequestDataHelper
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
         var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : $"{namePrefix} {httpRoute}";
+        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}");
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion)
