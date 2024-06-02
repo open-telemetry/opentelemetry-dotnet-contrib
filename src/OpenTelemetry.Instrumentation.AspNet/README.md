@@ -189,7 +189,13 @@ this.tracerProvider = Sdk.CreateTracerProviderBuilder()
         };
         o.EnrichWithException = (activity, exception) =>
         {
-            activity.SetTag("exceptionType", exception.GetType().ToString());
+            // If there is an inner exception, capture its details as well
+            if (exception.InnerException != null)
+            {
+                activity.SetTag("exception.inner.type", exception.InnerException.GetType().FullName);
+                activity.SetTag("exception.inner.message", exception.InnerException.Message);
+                activity.SetTag("exception.inner.stacktrace", exception.InnerException.StackTrace);
+            }
         };
     })
     .Build();
