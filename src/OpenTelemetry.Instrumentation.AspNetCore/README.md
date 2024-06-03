@@ -257,7 +257,10 @@ services.AddOpenTelemetry()
             };
             o.EnrichWithException = (activity, exception) =>
             {
-                activity.SetTag("exceptionType", exception.GetType().ToString());
+                if (exception.Source != null)
+                {
+                    activity.SetTag("exception.source", exception.Source);
+                }
             };
         }));
 ```
