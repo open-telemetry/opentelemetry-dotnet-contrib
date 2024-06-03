@@ -257,12 +257,9 @@ services.AddOpenTelemetry()
             };
             o.EnrichWithException = (activity, exception) =>
             {
-                // If there is an inner exception, capture its details as well
-                if (exception.InnerException != null)
+                if (exception.Source != null)
                 {
-                    activity.SetTag("exception.inner.type", exception.InnerException.GetType().FullName);
-                    activity.SetTag("exception.inner.message", exception.InnerException.Message);
-                    activity.SetTag("exception.inner.stacktrace", exception.InnerException.StackTrace);
+                    activity.SetTag("exception.source", exception.Source);
                 }
             };
         }));
