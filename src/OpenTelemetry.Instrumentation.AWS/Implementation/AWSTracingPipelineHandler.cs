@@ -233,6 +233,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
             activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+
+            // Follow: https://opentelemetry.io/docs/specs/otel/trace/semantic_conventions/instrumentation/aws-sdk/#common-attributes
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCSystem, "aws-api");
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCService, service);
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCMethod, operation);
             var client = executionContext.RequestContext.ClientConfig;
             if (client != null)
             {
