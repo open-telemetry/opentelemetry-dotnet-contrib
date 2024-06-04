@@ -429,7 +429,7 @@ jobs:
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
       project-name: Component[OpenTelemetry.Resources.Container]
-      code-cov-name: ResourceDetectors.Container
+      code-cov-name: Resources.Container
 
   build-test-resources-gcp:
     needs: detect-changes
