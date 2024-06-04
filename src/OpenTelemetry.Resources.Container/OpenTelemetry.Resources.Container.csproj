@@ -3,7 +3,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
-    <MinVerTagPrefix>ResourceDetectors.Container-</MinVerTagPrefix>
+    <MinVerTagPrefix>Resources.Container-</MinVerTagPrefix>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
@@ -18,5 +18,6 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 </Project>

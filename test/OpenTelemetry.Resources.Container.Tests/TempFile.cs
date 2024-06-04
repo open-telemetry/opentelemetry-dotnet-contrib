@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace OpenTelemetry.ResourceDetectors.Container.Tests;
+namespace OpenTelemetry.Resources.Container.Tests;
 
 internal class TempFile : IDisposable
 {

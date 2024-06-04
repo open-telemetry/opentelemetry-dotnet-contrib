@@ -4,6 +4,17 @@
 
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Container`
+  to `OpenTelemetry.Resources.Container`.
+  ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+* **Breaking Change**: `ContainerResourceDetector` type is now internal,
+use `ResourceBuilder` extension method `AddContainerDetector`
+to enable the detector.
+  ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+* **Breaking Change**: Renamed EventSource
+from `OpenTelemetry-ResourceDetectors-Container`
+to `OpenTelemetry-Resources-Container`.
+  ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
 
 ## 1.0.0-beta.7
 

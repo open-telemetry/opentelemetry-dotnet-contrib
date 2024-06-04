@@ -9,7 +9,6 @@ on:
       - 'Extensions-*'
       - 'Instrumentation.*-*'
       - 'PersistentStorage-*'
-      - 'ResourceDetectors.*-*'
       - 'Resources.*-*'
       - 'Sampler.*-*'
       - 'SemanticConventions-*'

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace OpenTelemetry.ResourceDetectors.Container.Utils;
+namespace OpenTelemetry.Resources.Container.Utils;
 
 internal class EncodingUtils
 {
