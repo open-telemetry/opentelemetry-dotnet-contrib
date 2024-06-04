@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-beta.1
+
+Released 2024-Jun-04
+
 * **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.ProcessRuntime`
   to `OpenTelemetry.Resources.ProcessRuntime`.
   ([#1767](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1767))
