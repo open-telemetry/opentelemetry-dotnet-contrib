@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add Kubernetes support.
+  ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
+
 ## 1.0.0-beta.8
 
 Released 2024-Jun-04
@@ -19,9 +22,6 @@ to enable the detector.
 from `OpenTelemetry-ResourceDetectors-Container`
 to `OpenTelemetry-Resources-Container`.
   ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
-
-* Add Kubernetes support.
-  ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
 
 ## 1.0.0-beta.7
 
