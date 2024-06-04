@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
 [EventSource(Name = "OpenTelemetry-ResourceDetectors-Container")]
 internal class ContainerResourceEventSource : EventSource, IServerCertificateValidationEventSource

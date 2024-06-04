@@ -11,12 +11,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.ResourceDetectors.Container.Tests;
+namespace OpenTelemetry.Resources.Container.Tests;
 
-public class ContainerResourceDetectorTests
+public class ContainerDetectorTests
 {
     private readonly List<TestCase> testValidCasesV1 = new()
     {
@@ -91,7 +90,7 @@ public class ContainerResourceDetectorTests
     [Fact]
     public void TestValidContainer()
     {
-        var containerResourceDetector = new ContainerResourceDetector();
+        var containerDetector = new ContainerDetector();
         var allValidTestCases = this.testValidCasesV1.Concat(this.testValidCasesV2);
 
         foreach (var testCase in allValidTestCases)
@@ -100,14 +99,14 @@ public class ContainerResourceDetectorTests
             tempFile.Write(testCase.Line);
             Assert.Equal(
                 testCase.ExpectedContainerId,
-                GetContainerId(containerResourceDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
+                GetContainerId(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
         }
     }
 
     [Fact]
     public void TestInvalidContainer()
     {
-        var containerResourceDetector = new ContainerResourceDetector();
+        var containerDetector = new ContainerDetector();
 
         // Valid in cgroupv1 is not valid in cgroupv2
         foreach (var testCase in this.testValidCasesV1)
@@ -115,7 +114,7 @@ public class ContainerResourceDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                containerResourceDetector.BuildResource(tempFile.FilePath, ParseMode.V2),
+                containerDetector.BuildResource(tempFile.FilePath, ParseMode.V2),
                 Resource.Empty);
         }
 
@@ -125,7 +124,7 @@ public class ContainerResourceDetectorTests
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
             Assert.Equal(
-                containerResourceDetector.BuildResource(tempFile.FilePath, ParseMode.V1),
+                containerDetector.BuildResource(tempFile.FilePath, ParseMode.V1),
                 Resource.Empty);
         }
 
@@ -134,12 +133,12 @@ public class ContainerResourceDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(containerResourceDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
+            Assert.Equal(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
         }
 
         // test invalid file
-        Assert.Equal(containerResourceDetector.BuildResource(Path.GetTempPath(), ParseMode.V1), Resource.Empty);
-        Assert.Equal(containerResourceDetector.BuildResource(Path.GetTempPath(), ParseMode.V2), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ParseMode.V1), Resource.Empty);
+        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ParseMode.V2), Resource.Empty);
     }
 
     [Fact]
@@ -147,7 +146,7 @@ public class ContainerResourceDetectorTests
     {
         await using (_ = new MockK8sEndpoint("k8s/pod-response.json"))
         {
-            var resourceAttributes = new ContainerResourceDetector(new MockK8sMetadataFetcher()).Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var resourceAttributes = new ContainerDetector(new MockK8sMetadataFetcher()).Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
             Assert.Equal(resourceAttributes[ContainerSemanticConventions.AttributeContainerId], "96724c05fa1be8d313f6db0e9872ca542b076839c4fd51ea4912a670ef538cbd");
         }

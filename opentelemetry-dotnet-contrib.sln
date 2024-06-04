@@ -29,6 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\add-labels.yml = .github\workflows\add-labels.yml
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
+		.github\workflows\automation.yml = .github\workflows\automation.yml
 		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
@@ -142,9 +143,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Extensions.Tests", "test\OpenTelemetry.Extensions.Tests\OpenTelemetry.Extensions.Tests.csproj", "{2117F4E3-6612-4E4D-A757-27271EEB7783}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Container", "src\OpenTelemetry.ResourceDetectors.Container\OpenTelemetry.ResourceDetectors.Container.csproj", "{498A6808-C0DF-441F-A764-51A3BC4B8FC5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Container", "src\OpenTelemetry.Resources.Container\OpenTelemetry.Resources.Container.csproj", "{498A6808-C0DF-441F-A764-51A3BC4B8FC5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.ResourceDetectors.Container.Tests", "test\OpenTelemetry.ResourceDetectors.Container.Tests\OpenTelemetry.ResourceDetectors.Container.Tests.csproj", "{FB41E19E-2682-4D07-BA59-FD5205AFA71E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Container.Tests", "test\OpenTelemetry.Resources.Container.Tests\OpenTelemetry.Resources.Container.Tests.csproj", "{FB41E19E-2682-4D07-BA59-FD5205AFA71E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Geneva", "src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj", "{1105C814-31DA-4214-BEA8-6DB5FC12C808}"
 EndProject

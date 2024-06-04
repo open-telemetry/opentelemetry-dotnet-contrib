@@ -3,9 +3,9 @@
 
 #if NET6_0_OR_GREATER
 using System.Text.Json.Serialization;
-using OpenTelemetry.ResourceDetectors.Container.Models;
+using OpenTelemetry.Resources.Container.Models;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
 /// <summary>
 /// "Source Generation" is feature added to System.Text.Json in .NET 6.0.

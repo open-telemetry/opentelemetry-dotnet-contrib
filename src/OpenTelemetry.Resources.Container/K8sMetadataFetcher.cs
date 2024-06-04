@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
 internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
 {
@@ -35,7 +35,7 @@ internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
         }
         catch (Exception ex)
         {
-            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)}: Failed to load client token", ex);
+            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)}: Failed to load client token", ex);
         }
 
         return null;

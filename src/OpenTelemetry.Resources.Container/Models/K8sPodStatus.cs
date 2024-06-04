@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.ResourceDetectors.Container.Models;
+namespace OpenTelemetry.Resources.Container.Models;
 
 internal sealed class K8sPodStatus
 {

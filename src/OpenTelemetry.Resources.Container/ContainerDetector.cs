@@ -6,16 +6,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using OpenTelemetry.ResourceDetectors.Container.Models;
-using OpenTelemetry.ResourceDetectors.Container.Utils;
-using OpenTelemetry.Resources;
+using OpenTelemetry.Resources.Container.Models;
+using OpenTelemetry.Resources.Container.Utils;
 
-namespace OpenTelemetry.ResourceDetectors.Container;
+namespace OpenTelemetry.Resources.Container;
 
 /// <summary>
 /// Resource detector for application running in Container environment.
 /// </summary>
-public class ContainerResourceDetector : IResourceDetector
+internal sealed class ContainerDetector : IResourceDetector
 {
     private const string Filepath = "/proc/self/cgroup";
     private const string FilepathV2 = "/proc/self/mountinfo";
@@ -25,18 +24,18 @@ public class ContainerResourceDetector : IResourceDetector
     private readonly IK8sMetadataFetcher k8sMetadataFetcher;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ContainerResourceDetector"/> class.
+    /// Initializes a new instance of the <see cref="ContainerDetector"/> class.
     /// </summary>
-    public ContainerResourceDetector()
+    public ContainerDetector()
         : this(new K8sMetadataFetcher())
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ContainerResourceDetector"/> class for testing.
+    /// Initializes a new instance of the <see cref="ContainerDetector"/> class for testing.
     /// </summary>
     /// <param name="k8sMetadataFetcher">The <see cref="IK8sMetadataFetcher"/>.</param>
-    internal ContainerResourceDetector(IK8sMetadataFetcher k8sMetadataFetcher)
+    internal ContainerDetector(IK8sMetadataFetcher k8sMetadataFetcher)
     {
         this.k8sMetadataFetcher = k8sMetadataFetcher;
     }
@@ -181,7 +180,7 @@ public class ContainerResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)}: Failed to extract container id", ex);
+            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)}: Failed to extract container id", ex);
         }
 
         return null;
@@ -241,7 +240,7 @@ public class ContainerResourceDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerResourceDetector)} : Failed to extract Container id from path", ex);
+            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)} : Failed to extract Container id from path", ex);
         }
 
         return null;

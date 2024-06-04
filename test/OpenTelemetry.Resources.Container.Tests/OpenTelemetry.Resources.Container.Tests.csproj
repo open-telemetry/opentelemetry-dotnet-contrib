@@ -15,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.ResourceDetectors.Container\OpenTelemetry.ResourceDetectors.Container.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Resources.Container\OpenTelemetry.Resources.Container.csproj" />
   </ItemGroup>
 </Project>
