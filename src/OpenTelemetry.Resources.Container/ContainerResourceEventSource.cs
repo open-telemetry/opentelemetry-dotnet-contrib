@@ -30,7 +30,7 @@ internal class ContainerResourceEventSource : EventSource, IServerCertificateVal
     [Event(EventIdFailedToExtractResourceAttributes, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Error)]
     public void FailedToExtractResourceAttributes(string format, string exception)
     {
-        this.WriteEvent(1, format, exception);
+        this.WriteEvent(EventIdFailedToExtractResourceAttributes, format, exception);
     }
 
     [Event(EventIdFailedToValidateCertificate, Message = "Failed to validate certificate. Details: '{0}'", Level = EventLevel.Warning)]

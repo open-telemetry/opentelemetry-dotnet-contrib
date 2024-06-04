@@ -146,7 +146,7 @@ internal sealed class ContainerDetector : IResourceDetector
         {
             var baseUrl = this.k8sMetadataFetcher.GetServiceBaseUrl();
             var containerName = this.k8sMetadataFetcher.GetContainerName();
-            if (string.IsNullOrEmpty(baseUrl) && string.IsNullOrEmpty(containerName))
+            if (string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(containerName))
             {
                 return null;
             }
