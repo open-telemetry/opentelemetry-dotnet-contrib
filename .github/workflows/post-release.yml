@@ -35,16 +35,6 @@ jobs:
         ref: ${{ github.event.repository.default_branch }}
         token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
-    - name: Post notice when release is published
-      shell: pwsh
-      run: |
-        Import-Module .\build\scripts\post-release.psm1
-
-        TryPostReleasePublishedNoticeOnPrepareReleasePullRequest `
-          -gitRepository '${{ github.repository }}' `
-          -botUserName '${{ needs.automation.outputs.username }}' `
-          -tag '${{ inputs.tag || github.ref_name }}'
-
     - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects
       if: |
         (github.ref_type == 'tag' && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc'))
