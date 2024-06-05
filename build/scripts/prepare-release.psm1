@@ -158,7 +158,7 @@ function CreateReleaseTagAndPostNoticeOnPullRequest {
     git config user.email $gitUserEmail
   }
 
-  git tag -a $tagValue -m "$tag" $commit 2>&1 | % ToString
+  git tag -a $tag -m "$tag" $commit 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git tag failure'
