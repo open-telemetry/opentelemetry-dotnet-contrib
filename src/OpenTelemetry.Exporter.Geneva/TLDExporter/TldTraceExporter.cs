@@ -205,6 +205,13 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             partBFieldsCount++;
         }
 
+        var traceStateString = activity.TraceStateString;
+        if (!string.IsNullOrEmpty(traceStateString))
+        {
+            eb.AddCountedAnsiString("traceState", traceStateString, Encoding.UTF8);
+            partBFieldsCount++;
+        }
+
         var linkEnumerator = activity.EnumerateLinks();
         if (linkEnumerator.MoveNext())
         {
