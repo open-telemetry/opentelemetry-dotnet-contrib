@@ -148,7 +148,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
-    [Parameter()][string]$targetBranch="main"
+    [Parameter()][string]$targetBranch="main",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
