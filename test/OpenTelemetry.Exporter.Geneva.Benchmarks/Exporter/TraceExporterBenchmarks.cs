@@ -27,6 +27,7 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 public class TraceExporterBenchmarks
 {
     private readonly Activity activity;
+    private readonly Activity activityWithTraceState;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
@@ -55,6 +56,20 @@ public class TraceExporterBenchmarks
             this.activity.SetTag("tagString", "value");
             this.activity.SetTag("tagInt", 100);
             this.activity.SetStatus(Status.Error);
+        }
+
+        using (var grandparentActivity = this.activitySource.StartActivity("GrandparentActivity"))
+        {
+            using (var parentActivity = this.activitySource.StartActivity("ParentActivity", ActivityKind.Internal, grandparentActivity.Context))
+            {
+                using (var testActivity = this.activitySource.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context))
+                {
+                    this.activityWithTraceState = testActivity;
+                    this.activity.SetTag("tagString", "value");
+                    this.activity.SetTag("tagInt", 100);
+                    this.activity.SetStatus(Status.Error);
+                }
+            }
         }
 
         activityListener.Dispose();
@@ -97,6 +112,12 @@ public class TraceExporterBenchmarks
     public void SerializeActivity()
     {
         this.exporter.SerializeActivity(this.activity);
+    }
+
+    [Benchmark]
+    public void SerializeActivityWithTraceStateInGrandparent()
+    {
+        this.exporter.SerializeActivity(this.activityWithTraceState);
     }
 
     [Benchmark]
