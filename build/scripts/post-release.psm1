@@ -67,7 +67,7 @@ $content
 "@
   }
 
-  if ($firstPackageVersion -match '-alpha' -or $firstPackageVersion -match '-beta' -or $firstPackageVersion -match '-rc')
+  if ($version -match '-alpha' -or $version -match '-beta' -or $version -match '-rc')
   {
     gh release create $tag `
       --title $tag `
