@@ -1,32 +1,27 @@
-$gitHubBotUserName="github-actions[bot]"
-$gitHubBotEmail="41898282+github-actions[bot]@users.noreply.github.com"
-
-$repoViewResponse = gh repo view --json nameWithOwner | ConvertFrom-Json
-
-$gitRepository = $repoViewResponse.nameWithOwner
-
 function CreateRelease {
   param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag
   )
 
-  $packages = (Get-ChildItem -Path src/*/bin/Release/*.nupkg).Name
+  $match = [regex]::Match($tag, '^(.*?-)(.*)$')
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse prefix or version from tag'
+  }
+
+  $tagPrefix = $match.Groups[1].Value
+  $version = $match.Groups[2].Value
+
+  $projects = @(Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
 
   $notes = ''
-  $firstPackageVersion = ''
 
-  foreach ($package in $packages)
+  foreach ($project in $projects)
   {
-      $match = [regex]::Match($package, '(.*)\.(\d+\.\d+\.\d+.*?)\.nupkg')
-      $packageName = $match.Groups[1].Value
-      $packageVersion = $match.Groups[2].Value
+      $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project.Path)
 
-      if ($firstPackageVersion -eq '')
-      {
-          $firstPackageVersion = $packageVersion
-      }
-
-      $changelogContent = Get-Content -Path "src/$packageName/CHANGELOG.md"
+      $changelogContent = Get-Content -Path "src/$projectName/CHANGELOG.md"
 
       $started = $false
       $content = ""
@@ -63,11 +58,11 @@ function CreateRelease {
 
       $notes +=
 @"
-* NuGet: [$packageName v$packageVersion](https://www.nuget.org/packages/$packageName/$packageVersion)
+* NuGet: [$projectName v$version](https://www.nuget.org/packages/$projectName/$version)
 
 $content
 
-  See [CHANGELOG](https://github.com/$gitRepository/blob/$tag/src/$packageName/CHANGELOG.md) for details.
+  See [CHANGELOG](https://github.com/$gitRepository/blob/$tag/src/$projectName/CHANGELOG.md) for details.
 
 "@
   }
@@ -92,12 +87,70 @@ $content
 
 Export-ModuleMember -Function CreateRelease
 
+function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
+  param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$tag,
+    [Parameter(Mandatory=$true)][string]$tagSha,
+    [Parameter(Mandatory=$true)][string]$packagesUrl,
+    [Parameter(Mandatory=$true)][string]$botUserName
+  )
+
+  $prListResponse = gh pr list --search $tagSha --state merged --json number,author,title,comments | ConvertFrom-Json
+
+  if ($prListResponse.Length -eq 0)
+  {
+    Write-Host 'No prepare release PR found for tag & commit skipping post notice'
+    return
+  }
+
+  foreach ($pr in $prListResponse)
+  {
+    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[repo] Prepare release $tag")
+    {
+      continue
+    }
+
+    $foundComment = $false
+    foreach ($comment in $pr.comments)
+    {
+      if ($comment.author.login -eq $botUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      {
+        $foundComment = $true
+        break
+      }
+    }
+
+    if ($foundComment -eq $false)
+    {
+      continue
+    }
+
+  $body =
+@"
+The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet shortly.
+
+Have a nice day!
+"@
+
+    $pullRequestNumber = $pr.number
+
+    gh pr comment $pullRequestNumber --body $body
+    return
+  }
+
+  Write-Host 'No prepare release PR found matched author and title with a valid comment'
+}
+
+Export-ModuleMember -Function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest
+
 function CreatePackageValidationBaselineVersionUpdatePullRequest {
   param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
-    [Parameter()][string]$gitUserName=$gitHubBotUserName,
-    [Parameter()][string]$gitUserEmail=$gitHubBotEmail,
     [Parameter()][string]$targetBranch="main"
+    [Parameter()][string]$gitUserName,
+    [Parameter()][string]$gitUserEmail
   )
 
   $match = [regex]::Match($tag, '^(.*?-)(.*)$')
@@ -111,8 +164,14 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $branch="release/post-stable-${tag}-update"
 
-  git config user.name $gitUserName
-  git config user.email $gitUserEmail
+  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
+  {
+    git config user.name $gitUserName
+  }
+  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
+  {
+    git config user.email $gitUserEmail
+  }
 
   git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -180,7 +239,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $body =
 @"
-Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/publish-packages.yml).
+Note: This PR was opened automatically by the [post-release workflow](https://github.com/$gitRepository/actions/workflows/post-release.yml).
 
 Merge once packages are available on NuGet and the build passes.
 
