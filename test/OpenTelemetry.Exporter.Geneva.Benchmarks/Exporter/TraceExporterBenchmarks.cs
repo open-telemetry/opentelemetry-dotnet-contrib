@@ -27,7 +27,9 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 public class TraceExporterBenchmarks
 {
     private readonly Activity activity;
+    private readonly Activity activityWithoutTraceState;
     private readonly Activity activityWithTraceState;
+    private readonly Activity activityWithTraceStateInGrandparent;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
@@ -64,10 +66,41 @@ public class TraceExporterBenchmarks
             {
                 using (var testActivity = this.activitySource.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context))
                 {
+                    // testActivity.TraceStateString = "some=state";
+                    this.activityWithoutTraceState = testActivity;
+                    this.activityWithoutTraceState.SetTag("tagString", "value");
+                    this.activityWithoutTraceState.SetTag("tagInt", 100);
+                    this.activityWithoutTraceState.SetStatus(Status.Error);
+                }
+            }
+        }
+
+        using (var grandparentActivity = this.activitySource.StartActivity("GrandparentActivity"))
+        {
+            using (var parentActivity = this.activitySource.StartActivity("ParentActivity", ActivityKind.Internal, grandparentActivity.Context))
+            {
+                using (var testActivity = this.activitySource.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context))
+                {
+                    testActivity.TraceStateString = "some=state";
                     this.activityWithTraceState = testActivity;
-                    this.activity.SetTag("tagString", "value");
-                    this.activity.SetTag("tagInt", 100);
-                    this.activity.SetStatus(Status.Error);
+                    this.activityWithTraceState.SetTag("tagString", "value");
+                    this.activityWithTraceState.SetTag("tagInt", 100);
+                    this.activityWithTraceState.SetStatus(Status.Error);
+                }
+            }
+        }
+
+        using (var grandparentActivity = this.activitySource.StartActivity("GrandparentActivity"))
+        {
+            grandparentActivity.TraceStateString = "some=state";
+            using (var parentActivity = this.activitySource.StartActivity("ParentActivity", ActivityKind.Internal, grandparentActivity.Context))
+            {
+                using (var testActivity = this.activitySource.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context))
+                {
+                    this.activityWithTraceStateInGrandparent = testActivity;
+                    this.activityWithTraceStateInGrandparent.SetTag("tagString", "value");
+                    this.activityWithTraceStateInGrandparent.SetTag("tagInt", 100);
+                    this.activityWithTraceStateInGrandparent.SetStatus(Status.Error);
                 }
             }
         }
@@ -115,9 +148,21 @@ public class TraceExporterBenchmarks
     }
 
     [Benchmark]
-    public void SerializeActivityWithTraceStateInGrandparent()
+    public void SerializeActivityWithoutTraceState()
+    {
+        this.exporter.SerializeActivity(this.activityWithoutTraceState);
+    }
+
+    [Benchmark]
+    public void SerializeActivityWithTraceState()
     {
         this.exporter.SerializeActivity(this.activityWithTraceState);
+    }
+
+    [Benchmark]
+    public void SerializeActivityWithTraceStateInGrandparent()
+    {
+        this.exporter.SerializeActivity(this.activityWithTraceStateInGrandparent);
     }
 
     [Benchmark]
