@@ -7,18 +7,21 @@ using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
-Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK 8.0.100
-  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3593/23H2/2023Update/SunValley3)
+Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
+.NET SDK 8.0.300
+  [Host]     : .NET 8.0.5 (8.0.524.21615), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.5 (8.0.524.21615), X64 RyuJIT AVX2
 
 
-| Method                           | Mean       | Error    | StdDev   | Gen0   | Allocated |
-|--------------------------------- |-----------:|---------:|---------:|-------:|----------:|
-| ExportActivity                   |   847.1 ns | 16.34 ns | 22.36 ns |      - |         - |
-| SerializeActivity                |   261.5 ns |  2.91 ns |  2.58 ns |      - |         - |
-| CreateActivityWithGenevaExporter | 1,066.0 ns | 20.98 ns | 56.35 ns | 0.0648 |     416 B |
+| Method                                       | Mean     | Error   | StdDev  | Gen0   | Allocated |
+|--------------------------------------------- |---------:|--------:|--------:|-------:|----------:|
+| ExportActivity                               | 266.2 ns | 0.34 ns | 0.28 ns |      - |         - |
+| SerializeActivity                            | 243.1 ns | 1.42 ns | 1.26 ns |      - |         - |
+| SerializeActivityWithoutTraceState           | 248.7 ns | 0.78 ns | 0.65 ns |      - |         - |
+| SerializeActivityWithTraceState              | 273.8 ns | 3.75 ns | 3.32 ns |      - |         - |
+| SerializeActivityWithTraceStateInGrandparent | 280.2 ns | 5.54 ns | 5.69 ns |      - |         - |
+| CreateActivityWithGenevaExporter             | 452.1 ns | 4.50 ns | 3.99 ns | 0.0396 |     416 B |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;

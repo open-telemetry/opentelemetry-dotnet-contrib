@@ -8,19 +8,22 @@ using OpenTelemetry.Exporter.Geneva.TldExporter;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
-Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK 8.0.100
-  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3593/23H2/2023Update/SunValley3)
+Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
+.NET SDK 8.0.300
+  [Host]     : .NET 8.0.5 (8.0.524.21615), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.5 (8.0.524.21615), X64 RyuJIT AVX2
 
 
-| Method                    | Mean     | Error    | StdDev   | Allocated |
-|-------------------------- |---------:|---------:|---------:|----------:|
-| MsgPack_SerializeActivity | 266.4 ns |  3.84 ns |  3.59 ns |         - |
-| TLD_SerializeActivity     | 298.9 ns |  1.99 ns |  1.66 ns |         - |
-| MsgPack_ExportActivity    | 787.3 ns | 15.70 ns | 31.71 ns |         - |
-| TLD_ExportActivity        | 878.6 ns |  9.84 ns |  9.20 ns |         - |
+| Method                                           | Mean       | Error     | StdDev    | Allocated |
+|------------------------------------------------- |-----------:|----------:|----------:|----------:|
+| MsgPack_SerializeActivity                        | 239.467 ns | 1.1202 ns | 0.9930 ns |         - |
+| TLD_SerializeActivity                            | 279.810 ns | 1.2504 ns | 0.9763 ns |         - |
+| TLD_SerializeActivityWithoutTraceState           | 294.145 ns | 1.2952 ns | 1.1481 ns |         - |
+| TLD_SerializeActivityWithTraceState              | 319.608 ns | 5.9573 ns | 5.5724 ns |         - |
+| TLD_SerializeActivityWithTraceStateInGrandparent | 314.195 ns | 1.1738 ns | 0.9164 ns |         - |
+| MsgPack_ExportActivity                           | 265.354 ns | 1.0098 ns | 0.9445 ns |         - |
+| TLD_ExportActivity                               |   1.102 ns | 0.0469 ns | 0.0482 ns |         - |
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
