@@ -128,7 +128,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
 
   $body =
 @"
-The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet shortly.
+The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet momentarily.
 
 Have a nice day!
 "@
