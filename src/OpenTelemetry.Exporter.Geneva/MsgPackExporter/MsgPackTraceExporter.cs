@@ -243,10 +243,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        var traceStateString = activity.TraceStateString;
+        if (!string.IsNullOrEmpty(traceStateString))
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "traceState");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, activity.TraceStateString);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, traceStateString);
             cntFields += 1;
         }
 
