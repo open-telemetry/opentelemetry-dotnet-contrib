@@ -49,7 +49,7 @@ For example, to add all baggage entries to new activities:
 
 ```cs
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddBaggageActivityProcessor("*")
+    .AddBaggageActivityProcessor(BaggageSpanProcessor.AllBaggageKeys)
     .Build();
 ```
 
@@ -57,17 +57,19 @@ Alternatively, you can select which baggage keys you want to copy using
 a regular expression or custom predicate function.
 
 For example, to only copy baggage entries that start with `my-key` using a
-regular expression:
-
-```cs
-  .AddBaggageActivityProcessor("^my-key")
-```
-
-For example, to only copy baggage entries that start with `my-key` using a
 custom function:
 
 ```cs
-  .AddBaggageActivityProcessor(baggageKey => baggageKey.StartWith("my-key"))
+  .AddBaggageActivityProcessor(baggageKey => baggageKey.StartWith("my-key", System.StringComparison.Ordinal))
+```
+
+For example, to only copy baggage entries that start with `my-key` using a
+regular expression:
+
+```cs
+var regex = new Regex("^mykey");
+/// ...
+  .AddBaggageActivityProcessor((baggageKey) => (baggageKey) => regex.IsMatch(baggageKey))
 ```
 
 Warning: The baggage key predicate is executed for every started activity.
