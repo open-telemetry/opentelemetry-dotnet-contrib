@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -19,7 +20,7 @@ public class BaggageSpanProcessorTests
 
         using var provider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor)
-            .AddBaggageActivityProcessor("*")
+            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllBaggageKeys)
             .AddSource(sourceName)
             .Build();
 
@@ -65,13 +66,14 @@ public class BaggageSpanProcessorTests
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
+        var regex = new Regex("^mykey");
         using var provider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor)
-            .AddBaggageActivityProcessor("^other.*")
+            .AddBaggageActivityProcessor((baggageKey) => regex.IsMatch(baggageKey))
             .AddSource(sourceName)
             .Build();
 
-        Baggage.SetBaggage("key", "value");
+        Baggage.SetBaggage("mykey", "value");
         Baggage.SetBaggage("other_key", "other_value");
 
         using var source = new ActivitySource(sourceName);
@@ -79,8 +81,8 @@ public class BaggageSpanProcessorTests
         Assert.NotNull(activity);
         activity.Stop();
 
-        Assert.DoesNotContain(activity.Tags, kv => kv.Key == "key" && kv.Value == "value");
-        Assert.Contains(activity.Tags, kv => kv.Key == "other_key" && kv.Value == "other_value");
+        Assert.Contains(activity.Tags, kv => kv.Key == "mykey" && kv.Value == "value");
+        Assert.DoesNotContain(activity.Tags, kv => kv.Key == "other_key" && kv.Value == "other_value");
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")

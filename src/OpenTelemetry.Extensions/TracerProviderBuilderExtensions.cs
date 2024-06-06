@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using System.Threading;
 using OpenTelemetry.Internal;
 
@@ -65,31 +64,6 @@ public static class TracerProviderBuilderExtensions
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return builder.AddProcessor(new BaggageActivityProcessor(baggageKeyPredicate));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-    }
-
-    /// <summary>
-    /// Adds the <see cref="BaggageActivityProcessor"/> to the <see cref="TracerProviderBuilder"/>.
-    /// </summary>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> to add the <see cref="BaggageActivityProcessor"/> to.</param>
-    /// <param name="expr">Regular expression to determine which baggage keys should be added to the activity.</param>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddBaggageActivityProcessor(
-        this TracerProviderBuilder builder, string expr)
-    {
-        Guard.ThrowIfNull(builder);
-        Guard.ThrowIfNullOrEmpty(expr);
-
-        if (expr == "*")
-        {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            return builder.AddProcessor(new BaggageActivityProcessor(_ => true));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-        }
-
-        var regex = new Regex(expr, RegexOptions.Compiled);
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        return builder.AddProcessor(new BaggageActivityProcessor(regex.IsMatch));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }
