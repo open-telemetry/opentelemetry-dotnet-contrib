@@ -63,7 +63,18 @@ public static class TracerProviderBuilderExtensions
         Guard.ThrowIfNull(baggageKeyPredicate);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        return builder.AddProcessor(new BaggageActivityProcessor(baggageKeyPredicate));
+        return builder.AddProcessor(new BaggageActivityProcessor(baggageKey =>
+        {
+            try
+            {
+                return baggageKeyPredicate(baggageKey);
+            }
+            catch (Exception ex)
+            {
+                OpenTelemetrySdkEventSource.Log.BaggageActivityProcessorException(ex);
+                return false;
+            }
+        }));
 #pragma warning restore CA2000 // Dispose objects before losing scope
     }
 }
