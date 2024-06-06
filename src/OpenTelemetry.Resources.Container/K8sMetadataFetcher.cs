@@ -9,11 +9,11 @@ namespace OpenTelemetry.Resources.Container;
 
 internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
 {
-    private const string KubernetesServiceHostKey = "KUBERNETES_SERVICE_HOST";
-    private const string KubernetesServicePortKey = "KUBERNETES_SERVICE_PORT_HTTPS";
-    private const string KubernetesHostnameKey = "HOSTNAME";
-    private const string KubernetesPodNameKey = "KUBERNETES_POD_NAME";
-    private const string KubernetesContainerNameKey = "KUBERNETES_CONTAINER_NAME";
+    private const string KubernetesServiceHostEnvVar = "KUBERNETES_SERVICE_HOST";
+    private const string KubernetesServicePortEnvVar = "KUBERNETES_SERVICE_PORT_HTTPS";
+    private const string KubernetesHostnameEnvVar = "HOSTNAME";
+    private const string KubernetesPodNameEnvVar = "KUBERNETES_POD_NAME";
+    private const string KubernetesContainerNameEnvVar = "KUBERNETES_CONTAINER_NAME";
     private const string KubernetesNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
     private const string KubernetesCredentialPath = "/var/run/secrets/kubernetes.io/serviceaccount/token";
 
@@ -43,17 +43,17 @@ internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
 
     public string? GetContainerName()
     {
-        return Environment.GetEnvironmentVariable(KubernetesContainerNameKey);
+        return Environment.GetEnvironmentVariable(KubernetesContainerNameEnvVar);
     }
 
     public string? GetHostname()
     {
-        return Environment.GetEnvironmentVariable(KubernetesHostnameKey);
+        return Environment.GetEnvironmentVariable(KubernetesHostnameEnvVar);
     }
 
     public string? GetPodName()
     {
-        return Environment.GetEnvironmentVariable(KubernetesPodNameKey);
+        return Environment.GetEnvironmentVariable(KubernetesPodNameEnvVar);
     }
 
     public string? GetNamespace()
@@ -63,8 +63,8 @@ internal sealed class K8sMetadataFetcher : IK8sMetadataFetcher
 
     public string? GetServiceBaseUrl()
     {
-        var serviceHost = Environment.GetEnvironmentVariable(KubernetesServiceHostKey);
-        var servicePort = Environment.GetEnvironmentVariable(KubernetesServicePortKey);
+        var serviceHost = Environment.GetEnvironmentVariable(KubernetesServiceHostEnvVar);
+        var servicePort = Environment.GetEnvironmentVariable(KubernetesServicePortEnvVar);
 
         if (string.IsNullOrWhiteSpace(serviceHost) || string.IsNullOrWhiteSpace(servicePort))
         {

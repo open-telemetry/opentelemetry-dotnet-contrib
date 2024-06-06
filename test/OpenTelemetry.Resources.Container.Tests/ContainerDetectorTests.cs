@@ -99,7 +99,7 @@ public class ContainerDetectorTests
             tempFile.Write(testCase.Line);
             Assert.Equal(
                 testCase.ExpectedContainerId,
-                GetContainerId(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion)));
+                containerDetector.ExtractContainerId(tempFile.FilePath, testCase.CgroupVersion));
         }
     }
 
@@ -113,9 +113,8 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(
-                containerDetector.BuildResource(tempFile.FilePath, ParseMode.V2),
-                Resource.Empty);
+            Assert.Null(
+                containerDetector.ExtractContainerId(tempFile.FilePath, ParseMode.V2));
         }
 
         // Valid in cgroupv1 is not valid in cgroupv1
@@ -123,9 +122,8 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(
-                containerDetector.BuildResource(tempFile.FilePath, ParseMode.V1),
-                Resource.Empty);
+            Assert.Null(
+                containerDetector.ExtractContainerId(tempFile.FilePath, ParseMode.V1));
         }
 
         // test invalid cases
@@ -133,12 +131,12 @@ public class ContainerDetectorTests
         {
             using var tempFile = new TempFile();
             tempFile.Write(testCase.Line);
-            Assert.Equal(containerDetector.BuildResource(tempFile.FilePath, testCase.CgroupVersion), Resource.Empty);
+            Assert.Null(containerDetector.ExtractContainerId(tempFile.FilePath, testCase.CgroupVersion));
         }
 
         // test invalid file
-        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ParseMode.V1), Resource.Empty);
-        Assert.Equal(containerDetector.BuildResource(Path.GetTempPath(), ParseMode.V2), Resource.Empty);
+        Assert.Null(containerDetector.ExtractContainerId(Path.GetTempPath(), ParseMode.V1));
+        Assert.Null(containerDetector.ExtractContainerId(Path.GetTempPath(), ParseMode.V2));
     }
 
     [Fact]
@@ -150,12 +148,6 @@ public class ContainerDetectorTests
 
             Assert.Equal(resourceAttributes[ContainerSemanticConventions.AttributeContainerId], "96724c05fa1be8d313f6db0e9872ca542b076839c4fd51ea4912a670ef538cbd");
         }
-    }
-
-    private static string GetContainerId(Resource resource)
-    {
-        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-        return resourceAttributes[ContainerSemanticConventions.AttributeContainerId].ToString()!;
     }
 
     private sealed class TestCase

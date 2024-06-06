@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
 using System.Text.Json.Serialization;
 using OpenTelemetry.Resources.Container.Models;
 
@@ -21,4 +20,3 @@ namespace OpenTelemetry.Resources.Container;
 internal sealed partial class SourceGenerationContext : JsonSerializerContext
 {
 }
-#endif

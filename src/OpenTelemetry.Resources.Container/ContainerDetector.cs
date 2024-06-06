@@ -46,37 +46,74 @@ internal sealed class ContainerDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var resource = this.BuildResource(Filepath, ParseMode.K8s);
-        if (resource == Resource.Empty)
+        var containerId = this.ExtractK8sContainerId();
+        if (!string.IsNullOrEmpty(containerId))
         {
-            resource = this.BuildResource(Filepath, ParseMode.V1);
+            return BuildResource(containerId);
         }
 
-        if (resource == Resource.Empty)
+        containerId = this.ExtractContainerId(Filepath, ParseMode.V1);
+        if (!string.IsNullOrEmpty(containerId))
         {
-            resource = this.BuildResource(FilepathV2, ParseMode.V2);
+            return BuildResource(containerId);
         }
 
-        return resource;
-    }
-
-    /// <summary>
-    /// Builds the resource attributes from Container Id in file path.
-    /// </summary>
-    /// <param name="path">File path where container id exists.</param>
-    /// <param name="parseMode">CGroup Version of file to parse from.</param>
-    /// <returns>Returns Resource with list of key-value pairs of container resource attributes if container id exists else empty resource.</returns>
-    internal Resource BuildResource(string path, ParseMode parseMode)
-    {
-        var containerId = this.ExtractContainerId(path, parseMode);
-        if (string.IsNullOrEmpty(containerId))
+        containerId = this.ExtractContainerId(FilepathV2, ParseMode.V2);
+        if (!string.IsNullOrEmpty(containerId))
         {
-            return Resource.Empty;
+            return BuildResource(containerId);
         }
-        else
+
+        return Resource.Empty;
+
+        static Resource BuildResource(string containerId)
         {
             return new Resource(new List<KeyValuePair<string, object>>(1) { new(ContainerSemanticConventions.AttributeContainerId, containerId!) });
         }
+    }
+
+    /// <summary>
+    /// Extracts Container Id from path using the cgroupv1 format.
+    /// </summary>
+    /// <param name="path">cgroup path.</param>
+    /// <param name="parseMode">CGroup Version of file to parse from.</param>
+    /// <returns>Container Id, <see langword="null" /> if not found or exception being thrown.</returns>
+    internal string? ExtractContainerId(string path, ParseMode parseMode)
+    {
+        try
+        {
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            foreach (string line in File.ReadLines(path))
+            {
+                string? containerId = null;
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (parseMode == ParseMode.V1)
+                    {
+                        containerId = GetIdFromLineV1(line);
+                    }
+                    else if (parseMode == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
+                    {
+                        containerId = GetIdFromLineV2(line);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(containerId))
+                {
+                    return containerId;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)} : Failed to extract Container id from path", ex);
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -157,7 +194,7 @@ internal sealed class ContainerDetector : IResourceDetector
             var credentials = this.k8sMetadataFetcher.GetApiCredential();
             if (string.IsNullOrEmpty(credentials))
             {
-                return string.Empty;
+                return null;
             }
 
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
@@ -165,13 +202,13 @@ internal sealed class ContainerDetector : IResourceDetector
             var pod = DeserializeK8sResponse(response);
             if (pod?.Status?.ContainerStatuses == null)
             {
-                return string.Empty;
+                return null;
             }
 
             var container = pod.Status.ContainerStatuses.SingleOrDefault(p => p.Name == containerName);
-            if (container is null || string.IsNullOrEmpty(container.Id))
+            if (string.IsNullOrEmpty(container?.Id))
             {
-                return string.Empty;
+                return null;
             }
 
             // Container's ID is in <type>://<container_id> format.
@@ -193,56 +230,5 @@ internal sealed class ContainerDetector : IResourceDetector
             return ResourceDetectorUtils.DeserializeFromString<K8sPod>(response);
 #endif
         }
-    }
-
-    /// <summary>
-    /// Extracts Container Id from path using the cgroupv1 format.
-    /// </summary>
-    /// <param name="path">cgroup path.</param>
-    /// <param name="parseMode">CGroup Version of file to parse from.</param>
-    /// <returns>Container Id, <see langword="null" /> if not found or exception being thrown.</returns>
-    private string? ExtractContainerId(string path, ParseMode parseMode)
-    {
-        try
-        {
-            if (parseMode == ParseMode.K8s)
-            {
-                return this.ExtractK8sContainerId();
-            }
-            else
-            {
-                if (!File.Exists(path))
-                {
-                    return null;
-                }
-
-                foreach (string line in File.ReadLines(path))
-                {
-                    string? containerId = null;
-                    if (!string.IsNullOrEmpty(line))
-                    {
-                        if (parseMode == ParseMode.V1)
-                        {
-                            containerId = GetIdFromLineV1(line);
-                        }
-                        else if (parseMode == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
-                        {
-                            containerId = GetIdFromLineV2(line);
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(containerId))
-                    {
-                        return containerId;
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            ContainerResourceEventSource.Log.ExtractResourceAttributesException($"{nameof(ContainerDetector)} : Failed to extract Container id from path", ex);
-        }
-
-        return null;
     }
 }

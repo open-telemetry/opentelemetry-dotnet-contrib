@@ -17,9 +17,4 @@ internal enum ParseMode
     /// Represents CGroupV2.
     /// </summary>
     V2,
-
-    /// <summary>
-    /// Represents Kubernetes.
-    /// </summary>
-    K8s,
 }
