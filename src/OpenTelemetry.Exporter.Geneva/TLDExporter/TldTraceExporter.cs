@@ -43,6 +43,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
     private readonly HashSet<string> m_customFields;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly bool m_shouldIncludeTraceState;
 
     private readonly EventProvider eventProvider;
 
@@ -114,6 +115,8 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                 this.repeatedPartAFields = eb.GetRawFields();
             }
         }
+
+        this.m_shouldIncludeTraceState = options.IncludeTraceState;
     }
 
     public ExportResult Export(in Batch<Activity> batch)
@@ -205,11 +208,14 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             partBFieldsCount++;
         }
 
-        var traceStateString = activity.TraceStateString;
-        if (!string.IsNullOrEmpty(traceStateString))
+        if (this.m_shouldIncludeTraceState)
         {
-            eb.AddCountedAnsiString("traceState", traceStateString, Encoding.UTF8);
-            partBFieldsCount++;
+            var traceStateString = activity.TraceStateString;
+            if (!string.IsNullOrEmpty(traceStateString))
+            {
+                eb.AddCountedAnsiString("traceState", traceStateString, Encoding.UTF8);
+                partBFieldsCount++;
+            }
         }
 
         var linkEnumerator = activity.EnumerateLinks();

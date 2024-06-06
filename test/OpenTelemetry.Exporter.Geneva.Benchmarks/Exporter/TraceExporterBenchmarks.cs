@@ -134,6 +134,7 @@ public class TraceExporterBenchmarks
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 };
+                options.IncludeTraceState = true;
             })
             .Build();
     }
