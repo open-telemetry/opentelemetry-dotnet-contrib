@@ -199,7 +199,7 @@ internal sealed class ContainerDetector : IResourceDetector
 
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
             var response = ResourceDetectorUtils.SendOutRequest(url, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).GetAwaiter().GetResult();
-            var pod = DeserializeK8sResponse(response);
+            var pod = ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.K8sPod);
             if (pod?.Status?.ContainerStatuses == null)
             {
                 return null;
@@ -221,14 +221,5 @@ internal sealed class ContainerDetector : IResourceDetector
         }
 
         return null;
-
-        static K8sPod? DeserializeK8sResponse(string response)
-        {
-#if NET6_0_OR_GREATER
-            return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.K8sPod);
-#else
-            return ResourceDetectorUtils.DeserializeFromString<K8sPod>(response);
-#endif
-        }
     }
 }
