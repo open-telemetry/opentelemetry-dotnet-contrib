@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using OpenTelemetry.Resources.Container.Models;
 using OpenTelemetry.Resources.Container.Utils;
 
 namespace OpenTelemetry.Resources.Container;
