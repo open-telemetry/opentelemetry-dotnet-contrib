@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-* Add TraceState support.
+* Update GenevaTraceExporter to export `activity.TraceStateString` as the value
+  for Part B `traceState` field when the `IncludeTraceState` option is set to `true`.
   ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
 
 ## 1.9.0-alpha.1
