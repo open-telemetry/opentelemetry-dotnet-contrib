@@ -11,7 +11,7 @@ using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace;
 
-public class BaggageSpanProcessorTests
+public class BaggageActivityProcessorTests
 {
     [Fact]
     public void BaggageSpanProcessor_CanAddAlloAllBaggageKeysPredicate()
