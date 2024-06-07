@@ -14,7 +14,7 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 public class BaggageActivityProcessorTests
 {
     [Fact]
-    public void BaggageSpanProcessor_CanAddAlloAllBaggageKeysPredicate()
+    public void BaggageActivityProcessor_CanAddAlloAllBaggageKeysPredicate()
     {
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
@@ -38,7 +38,7 @@ public class BaggageActivityProcessorTests
     }
 
     [Fact]
-    public void BaggageSpanProcessor_CanUseCustomPredicate()
+    public void BaggageActivityProcessor_CanUseCustomPredicate()
     {
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
@@ -62,7 +62,7 @@ public class BaggageActivityProcessorTests
     }
 
     [Fact]
-    public void BaggageSpanProcessor_CanUseRegex()
+    public void BaggageActivityProcessor_CanUseRegex()
     {
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
@@ -87,7 +87,7 @@ public class BaggageActivityProcessorTests
     }
 
     [Fact]
-    public void BaggageSpanProcessor_PredicateThrows_DoesNothing()
+    public void BaggageActivityProcessor_PredicateThrows_DoesNothing()
     {
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
