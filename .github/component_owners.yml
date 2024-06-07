@@ -41,6 +41,7 @@ components:
     - hananiel
     - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - IliaBrahinets
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
@@ -59,13 +60,13 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.AWS/:
+  src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
-  src/OpenTelemetry.ResourceDetectors.Azure/:
+  src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.Container/:
+  src/OpenTelemetry.Resources.Container/:
     - iskiselev
   src/OpenTelemetry.Resources.Host/:
     - Kielek
@@ -135,6 +136,7 @@ components:
     - hananiel
     - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - IliaBrahinets
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
@@ -149,13 +151,13 @@ components:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
+  test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
-  test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
+  test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.Container.Tests/:
+  test/OpenTelemetry.Resources.Container.Tests/:
     - iskiselev
   test/OpenTelemetry.Resources.Host.Tests/:
     - Kielek

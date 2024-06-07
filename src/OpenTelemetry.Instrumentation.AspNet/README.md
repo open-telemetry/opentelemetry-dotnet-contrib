@@ -2,6 +2,7 @@
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.AspNet)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.AspNet)
 
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
@@ -188,7 +189,10 @@ this.tracerProvider = Sdk.CreateTracerProviderBuilder()
         };
         o.EnrichWithException = (activity, exception) =>
         {
-            activity.SetTag("exceptionType", exception.GetType().ToString());
+            if (exception.Source != null)
+            {
+                activity.SetTag("exception.source", exception.Source);
+            }
         };
     })
     .Build();

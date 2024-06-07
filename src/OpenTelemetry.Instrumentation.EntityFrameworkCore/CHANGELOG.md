@@ -4,6 +4,8 @@
 
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Update `Microsoft.Extensions.Options` to `8.0.0`.
+  ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
 
 ## 1.0.0-beta.11
 

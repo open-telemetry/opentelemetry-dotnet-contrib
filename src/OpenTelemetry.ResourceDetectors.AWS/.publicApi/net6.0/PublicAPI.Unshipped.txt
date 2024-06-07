@@ -1,6 +1,0 @@
-OpenTelemetry.ResourceDetectors.AWS.AWSECSResourceDetector
-OpenTelemetry.ResourceDetectors.AWS.AWSECSResourceDetector.AWSECSResourceDetector() -> void
-OpenTelemetry.ResourceDetectors.AWS.AWSECSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
-OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector
-OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector.AWSEKSResourceDetector() -> void
-OpenTelemetry.ResourceDetectors.AWS.AWSEKSResourceDetector.Detect() -> OpenTelemetry.Resources.Resource!
