@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
@@ -83,6 +84,28 @@ public class BaggageSpanProcessorTests
 
         Assert.Contains(activity.Tags, kv => kv.Key == "mykey" && kv.Value == "value");
         Assert.DoesNotContain(activity.Tags, kv => kv.Key == "other_key" && kv.Value == "other_value");
+    }
+
+    [Fact]
+    public void BaggageSpanProcessor_PredicateThrows_DoesNothing()
+    {
+        var activityProcessor = new TestActivityProcessor();
+        var sourceName = GetTestMethodName();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddProcessor(activityProcessor)
+            .AddBaggageActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("key", "value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+        activity.Stop();
+
+        Assert.DoesNotContain(activity.Tags, kv => kv.Key == "key" && kv.Value == "value");
     }
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")

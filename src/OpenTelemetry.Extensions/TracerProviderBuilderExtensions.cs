@@ -68,9 +68,9 @@ public static class TracerProviderBuilderExtensions
             {
                 return baggageKeyPredicate(baggageKey);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
-                // OpenTelemetrySdkEventSource.Log.BaggageActivityProcessorException(ex);
+                OpenTelemetryExtensionsEventSource.Log.BaggageKeyPredicateException(exception.Message);
                 return false;
             }
         }));
