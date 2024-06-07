@@ -67,7 +67,7 @@ public class BaggageSpanProcessorTests
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
-        var regex = new Regex("^mykey");
+        var regex = new Regex("^mykey", RegexOptions.Compiled);
         using var provider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor)
             .AddBaggageActivityProcessor((baggageKey) => regex.IsMatch(baggageKey))

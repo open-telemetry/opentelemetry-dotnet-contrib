@@ -23,7 +23,7 @@ public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
     }
 
     /// <summary>
-    /// Gets a predicate that returns <c>true</c> for all baggage keys.
+    /// Gets a baggage key predicate that returns <c>true</c> for all baggage keys.
     /// </summary>
     public static Predicate<string> AllowAllBaggageKeys => (_) => true;
 
