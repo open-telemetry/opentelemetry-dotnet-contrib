@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Update BaggageActivityProcessor to use baggage key predicate.
+* Update BaggageActivityProcessor to require baggage key predicate.
   ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
 
 ## 1.0.0-beta.5
