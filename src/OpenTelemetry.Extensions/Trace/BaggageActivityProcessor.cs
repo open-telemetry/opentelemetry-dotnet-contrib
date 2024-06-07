@@ -25,7 +25,7 @@ public sealed class BaggageActivityProcessor : BaseProcessor<Activity>
     /// <summary>
     /// Gets a predicate that returns <c>true</c> for all baggage keys.
     /// </summary>
-    public static Predicate<string> AllBaggageKeys => (baggageKey) => true;
+    public static Predicate<string> AllowAllBaggageKeys => (baggageKey) => true;
 
     /// <inheritdoc />
     public override void OnStart(Activity data)

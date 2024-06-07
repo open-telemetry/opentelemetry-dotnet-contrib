@@ -20,7 +20,7 @@ public class BaggageSpanProcessorTests
 
         using var provider = Sdk.CreateTracerProviderBuilder()
             .AddProcessor(activityProcessor)
-            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllBaggageKeys)
+            .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
             .AddSource(sourceName)
             .Build();
 
