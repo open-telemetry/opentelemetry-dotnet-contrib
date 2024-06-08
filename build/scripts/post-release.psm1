@@ -107,7 +107,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
 
   foreach ($pr in $prListResponse)
   {
-    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[repo] Prepare release $tag")
+    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[release] Prepare release $tag")
     {
       continue
     }
@@ -250,11 +250,11 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   gh pr create `
-    --title "[repo] $tagPrefix stable release $version updates" `
+    --title "[release] $tagPrefix stable release $version updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
-    --label infra
+    --label release
 }
 
 Export-ModuleMember -Function CreatePackageValidationBaselineVersionUpdatePullRequest
@@ -363,11 +363,11 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   $createPullRequestResponse = gh pr create `
-    --title "[repo] Core release $version updates" `
+    --title "[release] Core release $version updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
-    --label infra
+    --label release
 
   $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
   if ($match.Success -eq $false)
