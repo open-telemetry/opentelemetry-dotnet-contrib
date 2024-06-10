@@ -99,7 +99,7 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void ProcessMetricsAreCapturedWhenTasksOverlap()
+    public async Task ProcessMetricsAreCapturedWhenTasksOverlap()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
@@ -131,7 +131,7 @@ public class ProcessMetricsTests
             }),
         };
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
