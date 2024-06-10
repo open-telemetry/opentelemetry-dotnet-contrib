@@ -25,7 +25,7 @@ public class ProcessMetricsTests
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItemsA.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
@@ -55,8 +55,8 @@ public class ProcessMetricsTests
 
         meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItemsA.Count == 5);
-        Assert.True(exportedItemsB.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
+        Assert.Equal(5, exportedItemsB.Count);
     }
 
     [Fact]

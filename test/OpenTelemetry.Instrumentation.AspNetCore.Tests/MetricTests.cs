@@ -312,7 +312,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     private static List<MetricPoint> GetMetricPoints(Metric metric)
     {
         Assert.NotNull(metric);
-        Assert.True(metric.MetricType == MetricType.Histogram);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
         var metricPoints = new List<MetricPoint>();
         foreach (var p in metric.GetMetricPoints())
         {

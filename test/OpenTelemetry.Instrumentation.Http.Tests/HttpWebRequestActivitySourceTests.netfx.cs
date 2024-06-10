@@ -524,7 +524,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // check that request failed because of the wrong domain name and not because of reflection
         var webException = (WebException)ex.InnerException;
         Assert.NotNull(webException);
-        Assert.True(webException.Status == WebExceptionStatus.NameResolutionFailure);
+        Assert.Equal(WebExceptionStatus.NameResolutionFailure, webException.Status);
 
         // We should have one Start event and one Stop event with an exception.
         Assert.Equal(2, eventRecords.Records.Count);
@@ -538,7 +538,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
-        Assert.True(activity.Status != ActivityStatusCode.Unset);
+        Assert.NotEqual(ActivityStatusCode.Unset, activity.Status);
         Assert.Null(activity.StatusDescription);
     }
 
@@ -577,8 +577,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
-        Assert.True(exceptionEvent.Value.Status != ActivityStatusCode.Unset);
-        Assert.True(exceptionEvent.Value.StatusDescription == null);
+        Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
+        Assert.Null(exceptionEvent.Value.StatusDescription);
     }
 
     /// <summary>
@@ -616,7 +616,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
-        Assert.True(exceptionEvent.Value.Status != ActivityStatusCode.Unset);
+        Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
         Assert.Null(exceptionEvent.Value.StatusDescription);
     }
 
@@ -658,7 +658,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
-        Assert.True(exceptionEvent.Value.Status != ActivityStatusCode.Unset);
+        Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
         Assert.Null(exceptionEvent.Value.StatusDescription);
     }
 
