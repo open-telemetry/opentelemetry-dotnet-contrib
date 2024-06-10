@@ -1,6 +1,8 @@
 # Changelog - OpenTelemetry.Instrumentation.AWS
 
 ## Unreleased
+* Updates AWS SDK Activity Tags based on https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes.
+  ([#1865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1865))
 
 ## 1.1.0-beta.4
 
