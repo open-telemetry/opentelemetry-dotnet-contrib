@@ -76,6 +76,7 @@ public static class OneCollectorLoggerProviderBuilderExtensions
         Action<OneCollectorLogExportProcessorBuilder> configure)
     {
         Guard.ThrowIfNullOrWhitespace(connectionString);
+        Guard.ThrowIfNull(configure);
 
         return AddOneCollectorExporter(builder, name: null, connectionString, configuration: null, configure);
     }
@@ -124,6 +125,7 @@ public static class OneCollectorLoggerProviderBuilderExtensions
         Action<OneCollectorLogExportProcessorBuilder> configure)
     {
         Guard.ThrowIfNull(configuration);
+        Guard.ThrowIfNull(configure);
 
         return AddOneCollectorExporter(builder, name: null, connectionString: null, configuration, configure);
     }
