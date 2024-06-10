@@ -295,7 +295,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     }
 
     [Fact]
-    public async void ActivitiesHaveCorrectParentTest()
+    public async Task ActivitiesHaveCorrectParentTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -348,7 +348,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     }
 
     [Fact]
-    public async void ErrorsAreHandledProperlyTest()
+    public async Task ErrorsAreHandledProperlyTest()
     {
         var testSource = new ActivitySource("TestSource");
 

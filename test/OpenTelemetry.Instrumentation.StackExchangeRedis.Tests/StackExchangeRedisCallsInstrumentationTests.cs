@@ -134,7 +134,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Fact]
-    public async void ProfilerSessionUsesTheSameDefault()
+    public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
         {
