@@ -157,7 +157,7 @@ public static class OneCollectorLoggerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        builder.ConfigureServices(services =>
+        return builder.ConfigureServices(services =>
         {
             var processorBuilder = new OneCollectorLogExportProcessorBuilder(name, services, configuration);
 
@@ -170,7 +170,5 @@ public static class OneCollectorLoggerProviderBuilderExtensions
 
             builder.AddProcessor(processorBuilder.BuildProcessor);
         });
-
-        return builder;
     }
 }
