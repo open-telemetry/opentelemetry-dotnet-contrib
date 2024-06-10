@@ -782,34 +782,6 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(statusCode, activity.GetTagValue(SemanticConventions.AttributeHttpResponseStatusCode));
     }
 
-    private static void ActivityEnrichment(Activity activity, string method, object obj)
-    {
-        switch (method)
-        {
-            case "OnStartActivity":
-                Assert.True(obj is HttpWebRequest);
-                VerifyHeaders(obj as HttpWebRequest);
-
-                if (validateBaggage)
-                {
-                    ValidateBaggage(obj as HttpWebRequest);
-                }
-
-                break;
-
-            case "OnStopActivity":
-                Assert.True(obj is HttpWebResponse);
-                break;
-
-            case "OnException":
-                Assert.True(obj is Exception);
-                break;
-
-            default:
-                break;
-        }
-    }
-
     private static void ValidateBaggage(HttpWebRequest request)
     {
         string[] baggage = request.Headers["baggage"].Split(',');
