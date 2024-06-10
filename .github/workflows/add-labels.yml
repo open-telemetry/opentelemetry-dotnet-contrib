@@ -48,6 +48,6 @@ jobs:
 
           AddLabelsOnPullRequestsBasedOnFilesChanged `
             -pullRequestNumber ${{ github.event.pull_request.number }} `
-            -labelPackagePrefix 'pkg:'
+            -labelPackagePrefix 'comp:'
         env:
           GH_TOKEN: ${{ github.token }}
