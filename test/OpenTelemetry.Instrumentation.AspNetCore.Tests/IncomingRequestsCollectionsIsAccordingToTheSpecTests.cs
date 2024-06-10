@@ -32,8 +32,8 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
     [InlineData("/api/exception", null, null, 503, true)]
     public async Task SuccessfulTemplateControllerCallGeneratesASpan_New(
         string urlPath,
-        string query,
-        string userAgent,
+        string? query,
+        string? userAgent,
         int statusCode,
         bool recordException = false)
     {
@@ -130,7 +130,7 @@ public class IncomingRequestsCollectionsIsAccordingToTheSpecTests
         activity.Dispose();
     }
 
-    private static void ValidateTagValue(Activity activity, string attribute, string expectedValue)
+    private static void ValidateTagValue(Activity activity, string attribute, string? expectedValue)
     {
         if (string.IsNullOrEmpty(expectedValue))
         {
