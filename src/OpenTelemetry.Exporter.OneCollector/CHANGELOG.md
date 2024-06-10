@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update OpenTelemetry SDK version to `1.9.0-rc.1`.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
+* Added `LoggerProviderBuilder.AddOneCollectorExporter` registration extension.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.8.0
 
 Released 2024-Apr-22
