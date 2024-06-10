@@ -199,15 +199,13 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             {
                 await client.ExecuteWithEmptyActionNameAsync(
                     new ServiceRequest(
-                       payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
             else
             {
                 await client.ExecuteAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
         }
         finally

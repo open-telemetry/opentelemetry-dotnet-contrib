@@ -180,7 +180,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         this.requestCompleteHandle.Reset();
 
-        using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+        using var response = await client.GetAsync(requestUri);
 
         /* Note: This code will continue executing as soon as the response
         is available but Owin could still be working. We need to wait until
@@ -309,7 +309,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
             try
             {
-                using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+                using var response = await client.GetAsync(requestUri);
             }
             catch
             {

@@ -80,7 +80,7 @@ public class ActivityHelperTest : IDisposable
             });
         }
 
-        await testTask.ConfigureAwait(false);
+        await testTask;
     }
 
     [Fact(Skip = "Temporarily disable until stable.")]
@@ -120,7 +120,7 @@ public class ActivityHelperTest : IDisposable
             });
         }
 
-        await testTask.ConfigureAwait(false);
+        await testTask;
     }
 
     [Fact]
