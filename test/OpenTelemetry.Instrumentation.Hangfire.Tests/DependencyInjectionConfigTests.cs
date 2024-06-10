@@ -11,6 +11,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
+[Collection("Hangfire")]
 public class DependencyInjectionConfigTests
 {
     [Theory]
