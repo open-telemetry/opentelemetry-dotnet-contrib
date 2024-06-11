@@ -6,7 +6,7 @@
 using System;
 using System.Net.Http;
 
-namespace OpenTelemetry.ResourceDetectors;
+namespace OpenTelemetry.Resources;
 
 internal static class ServerCertificateValidationHandler
 {
