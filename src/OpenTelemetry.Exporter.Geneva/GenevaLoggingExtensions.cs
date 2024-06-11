@@ -36,7 +36,7 @@ public static class GenevaLoggingExtensions
     /// </summary>
     /// <param name="builder"><see cref="LoggerProviderBuilder"/> builder to use.</param>
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
-    internal static LoggerProviderBuilder AddGenevaLogExporter(this LoggerProviderBuilder builder)
+    public static LoggerProviderBuilder AddGenevaLogExporter(this LoggerProviderBuilder builder)
         => AddGenevaLogExporter(builder, name: null, configureExporter: null);
 
     /// <summary>
@@ -45,7 +45,7 @@ public static class GenevaLoggingExtensions
     /// <param name="builder"><see cref="LoggerProviderBuilder"/> builder to use.</param>
     /// <param name="configureExporter">Callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
-    internal static LoggerProviderBuilder AddGenevaLogExporter(this LoggerProviderBuilder builder, Action<GenevaExporterOptions> configureExporter)
+    public static LoggerProviderBuilder AddGenevaLogExporter(this LoggerProviderBuilder builder, Action<GenevaExporterOptions> configureExporter)
         => AddGenevaLogExporter(builder, name: null, configureExporter);
 
     /// <summary>
@@ -55,7 +55,7 @@ public static class GenevaLoggingExtensions
     /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="configureExporter">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
-    internal static LoggerProviderBuilder AddGenevaLogExporter(
+    public static LoggerProviderBuilder AddGenevaLogExporter(
         this LoggerProviderBuilder builder,
         string name,
         Action<GenevaExporterOptions> configureExporter)
@@ -102,18 +102,15 @@ public static class GenevaLoggingExtensions
             }
 
             return BuildGenevaLogExporter(
-                sp,
                 batchExportLogRecordProcessorOptions,
                 exporterOptions);
         });
     }
 
     internal static BaseProcessor<LogRecord> BuildGenevaLogExporter(
-       IServiceProvider serviceProvider,
        BatchExportLogRecordProcessorOptions batchExportLogRecordProcessorOptions,
        GenevaExporterOptions exporterOptions)
     {
-        Debug.Assert(serviceProvider != null, "serviceProvider was null");
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
         var exporter = new GenevaLogExporter(exporterOptions);
