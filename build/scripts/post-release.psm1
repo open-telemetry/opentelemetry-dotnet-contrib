@@ -29,7 +29,7 @@ function CreateRelease {
 
       foreach ($line in $changelogContent)
       {
-          if ($line -like "## $packageVersion" -and $started -ne $true)
+          if ($line -like "## $version" -and $started -ne $true)
           {
               $started = $true
           }
