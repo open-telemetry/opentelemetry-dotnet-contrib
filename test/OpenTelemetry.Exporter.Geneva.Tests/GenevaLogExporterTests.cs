@@ -1360,6 +1360,17 @@ public class GenevaLogExporterTests
     [Fact]
     public void AddGenevaExporterWithNamedOptions()
     {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+        }
+
         int defaultConfigureExporterOptionsInvocations = 0;
         int namedConfigureExporterOptionsInvocations = 0;
 
@@ -1369,21 +1380,21 @@ public class GenevaLogExporterTests
             {
                 services.Configure<GenevaExporterOptions>(o =>
                 {
-                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    o.ConnectionString = connectionString;
                     defaultConfigureExporterOptionsInvocations++;
                 });
                 services.Configure<BatchExportLogRecordProcessorOptions>(o => defaultConfigureExporterOptionsInvocations++);
 
                 services.Configure<GenevaExporterOptions>("Exporter2", o =>
                 {
-                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    o.ConnectionString = connectionString;
                     namedConfigureExporterOptionsInvocations++;
                 });
                 services.Configure<BatchExportLogRecordProcessorOptions>("Exporter2", o => namedConfigureExporterOptionsInvocations++);
 
                 services.Configure<GenevaExporterOptions>("Exporter3", o =>
                 {
-                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    o.ConnectionString = connectionString;
                     namedConfigureExporterOptionsInvocations++;
                 });
                 services.Configure<BatchExportLogRecordProcessorOptions>("Exporter3", o => namedConfigureExporterOptionsInvocations++);
