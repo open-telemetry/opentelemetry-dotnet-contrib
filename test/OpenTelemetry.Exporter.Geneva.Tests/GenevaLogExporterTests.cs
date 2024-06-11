@@ -1410,6 +1410,66 @@ public class GenevaLogExporterTests
         Assert.Equal(4, namedConfigureExporterOptionsInvocations);
     }
 
+    [Fact]
+    public void AddGenevaBatchExportProcessorOptions()
+    {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+        }
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithLogging(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>(o => o.ScheduledDelayMilliseconds = 100);
+            })
+            .AddGenevaLogExporter());
+
+        var s = sp.BuildServiceProvider();
+
+        var loggerProvider = s.GetRequiredService<LoggerProvider>();
+
+        var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var processor = typeof(BaseProcessor<LogRecord>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Logs.LoggerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(loggerProvider) as ReentrantExportProcessor<LogRecord>;
+
+            Assert.NotNull(processor);
+        }
+        else
+        {
+            var processor = typeof(BaseProcessor<LogRecord>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Logs.LoggerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(loggerProvider) as BatchExportProcessor<LogRecord>;
+
+            Assert.NotNull(processor);
+
+            var scheduledDelayMilliseconds = typeof(BatchExportProcessor<LogRecord>)
+                .GetField("scheduledDelayMilliseconds", bindingFlags)
+                .GetValue(processor);
+
+            Assert.Equal(100, scheduledDelayMilliseconds);
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
