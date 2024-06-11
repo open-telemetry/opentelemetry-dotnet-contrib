@@ -46,7 +46,10 @@ public class LogRecordCommonSchemaJsonSerializerTests
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
+#pragma warning disable CS0618 // Type or member is obsolete
+            // TODO: Update to use LogRecord.Severity
             logRecord.LogLevel = logLevel;
+#pragma warning restore CS0618 // Type or member is obsolete
         });
 
         Assert.Equal(
