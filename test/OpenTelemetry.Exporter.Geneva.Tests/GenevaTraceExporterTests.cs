@@ -247,7 +247,7 @@ public class GenevaTraceExporterTests
 
             if (includeTraceState)
             {
-                exporterOptions.IncludeTraceState = true;
+                exporterOptions.IncludeTraceStateForSpan = true;
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
@@ -673,7 +673,7 @@ public class GenevaTraceExporterTests
             Assert.Equal(activity.ParentSpanId.ToHexString(), mapping["parentId"]);
         }
 
-        if (!exporterOptions.IncludeTraceState || string.IsNullOrEmpty(activity.TraceStateString))
+        if (!exporterOptions.IncludeTraceStateForSpan || string.IsNullOrEmpty(activity.TraceStateString))
         {
             Assert.False(mapping.ContainsKey("traceState"));
         }

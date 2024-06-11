@@ -25,7 +25,7 @@ public class GenevaExporterOptions
 
     public EventNameExportMode EventNameExportMode { get; set; }
 
-    public bool IncludeTraceState { get; set; }
+    public bool IncludeTraceStateForSpan { get; set; }
 
     public IReadOnlyDictionary<string, string> TableNameMappings
     {

@@ -1,2 +1,2 @@
-OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceState.get -> bool
-OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceState.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceStateForSpan.get -> bool
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceStateForSpan.set -> void

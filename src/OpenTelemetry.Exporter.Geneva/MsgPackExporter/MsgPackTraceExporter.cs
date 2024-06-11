@@ -91,7 +91,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #endif
         }
 
-        this.m_shouldIncludeTraceState = options.IncludeTraceState;
+        this.m_shouldIncludeTraceState = options.IncludeTraceStateForSpan;
 
         var buffer = new byte[BUFFER_SIZE];
 

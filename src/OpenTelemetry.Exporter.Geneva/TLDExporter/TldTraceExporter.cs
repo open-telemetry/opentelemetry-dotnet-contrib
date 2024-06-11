@@ -116,7 +116,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             }
         }
 
-        this.m_shouldIncludeTraceState = options.IncludeTraceState;
+        this.m_shouldIncludeTraceState = options.IncludeTraceStateForSpan;
     }
 
     public ExportResult Export(in Batch<Activity> batch)
