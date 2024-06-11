@@ -82,7 +82,7 @@ public static class GenevaLoggingExtensions
             {
                 // If we are NOT using named options we create a new
                 // instance always. The reason for this is
-                // OtlpExporterOptions is shared by all signals. Without a
+                // GenevaExporterOptions is shared by tracing and logging signals. Without a
                 // name, delegates for all signals will mix together. See:
                 // https://github.com/open-telemetry/opentelemetry-dotnet/issues/4043
                 exporterOptions = sp.GetRequiredService<IOptionsFactory<GenevaExporterOptions>>().Create(finalOptionsName);
