@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -1354,6 +1355,48 @@ public class GenevaLogExporterTests
 
             logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
         }
+    }
+
+    [Fact]
+    public void AddGenevaExporterWithNamedOptions()
+    {
+        int defaultConfigureExporterOptionsInvocations = 0;
+        int namedConfigureExporterOptionsInvocations = 0;
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithLogging(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    defaultConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>(o => defaultConfigureExporterOptionsInvocations++);
+
+                services.Configure<GenevaExporterOptions>("Exporter2", o =>
+                {
+                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    namedConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>("Exporter2", o => namedConfigureExporterOptionsInvocations++);
+
+                services.Configure<GenevaExporterOptions>("Exporter3", o =>
+                {
+                    o.ConnectionString = "EtwSession=OpenTelemetry";
+                    namedConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>("Exporter3", o => namedConfigureExporterOptionsInvocations++);
+            })
+            .AddGenevaLogExporter()
+            .AddGenevaLogExporter("Exporter2", o => { })
+            .AddGenevaLogExporter("Exporter3", o => { }));
+
+        var s = sp.BuildServiceProvider();
+
+        _ = s.GetRequiredService<LoggerProvider>();
+        Assert.Equal(2, defaultConfigureExporterOptionsInvocations);
+        Assert.Equal(4, namedConfigureExporterOptionsInvocations);
     }
 
     private static string GenerateTempFilePath()
