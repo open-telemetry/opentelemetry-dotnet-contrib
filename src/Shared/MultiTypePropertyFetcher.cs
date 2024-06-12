@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Concurrent;
@@ -33,7 +33,7 @@ internal sealed class MultiTypePropertyFetcher<T>
     /// </summary>
     /// <param name="obj">Object to be fetched.</param>
     /// <returns>Property fetched.</returns>
-    public T Fetch(object obj)
+    public T? Fetch(object? obj)
     {
         if (obj == null)
         {
@@ -83,7 +83,7 @@ internal sealed class MultiTypePropertyFetcher<T>
             return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
         }
 
-        public virtual T Fetch(object obj)
+        public virtual T? Fetch(object obj)
         {
             return default;
         }
@@ -100,7 +100,7 @@ internal sealed class MultiTypePropertyFetcher<T>
                 this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
             }
 
-            public override T Fetch(object obj)
+            public override T? Fetch(object obj)
             {
                 if (obj is TDeclaredObject o)
                 {
