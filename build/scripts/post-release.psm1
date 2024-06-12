@@ -290,7 +290,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
       $propertyVersion = "[$version]"
     }
   }
-  elseif if ($tagPrefix.StartsWith('coreunstable-') -eq $true)
+  elseif ($tagPrefix.StartsWith('coreunstable-') -eq $true)
   {
     $changelogEntry = "Updated OpenTelemetry core unstable component version(s) to"
     $propertyName = "OpenTelemetryCoreUnstableLatestVersion"
