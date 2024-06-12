@@ -82,7 +82,7 @@ public class TelemetryPropagationTests : IDisposable
     [InlineData("rest", false, false)]
     public async Task TelemetryContextPropagatesTest(
         string endpoint,
-        bool suppressDownstreamInstrumenation = true,
+        bool suppressDownstreamInstrumentation = true,
         bool shouldPropagate = true)
     {
         var stoppedActivities = new List<Activity>();
@@ -94,7 +94,7 @@ public class TelemetryPropagationTests : IDisposable
         ActivitySource.AddActivityListener(activityListener);
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumenation)
+            .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation)
             .Build();
 
         var serviceBase = endpoint == "tcp" ? this.serviceBaseUriTcp : this.serviceBaseUriHttp;

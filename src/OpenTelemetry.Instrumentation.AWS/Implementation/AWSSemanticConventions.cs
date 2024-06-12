@@ -17,4 +17,8 @@ internal static class AWSSemanticConventions
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
 
     public const string AttributeValueDynamoDb = "dynamodb";
+
+    public const string AttributeValueRPCSystem = "rpc.system";
+    public const string AttributeValueRPCService = "rpc.service";
+    public const string AttributeValueRPCMethod = "rpc.method";
 }
