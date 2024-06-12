@@ -159,7 +159,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -281,7 +281,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -372,7 +372,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 senderSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -512,7 +512,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -680,7 +680,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -826,7 +826,7 @@ public class GenevaLogExporterTests
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            string path = GenerateTempFilePath();
+            string path = TestHelpers.GenerateTempFilePath();
             var logRecordList = new List<LogRecord>();
             try
             {
@@ -930,7 +930,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -1017,7 +1017,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -1145,7 +1145,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -1273,7 +1273,7 @@ public class GenevaLogExporterTests
             }
             else
             {
-                path = GenerateTempFilePath();
+                path = TestHelpers.GenerateTempFilePath();
                 exporterOptions.ConnectionString = "Endpoint=unix:" + path;
                 var endpoint = new UnixDomainSocketEndPoint(path);
                 server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
@@ -1368,7 +1368,7 @@ public class GenevaLogExporterTests
         }
         else
         {
-            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+            connectionString = "Endpoint=unix:" + TestHelpers.GenerateTempFilePath();
         }
 
         int defaultConfigureExporterOptionsInvocations = 0;
@@ -1421,7 +1421,7 @@ public class GenevaLogExporterTests
         }
         else
         {
-            connectionString = "Endpoint=unix:" + GenerateTempFilePath();
+            connectionString = "Endpoint=unix:" + TestHelpers.GenerateTempFilePath();
         }
 
         var sp = new ServiceCollection();
@@ -1467,18 +1467,6 @@ public class GenevaLogExporterTests
                 .GetValue(processor);
 
             Assert.Equal(100, scheduledDelayMilliseconds);
-        }
-    }
-
-    private static string GenerateTempFilePath()
-    {
-        while (true)
-        {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            if (!File.Exists(path))
-            {
-                return path;
-            }
         }
     }
 
