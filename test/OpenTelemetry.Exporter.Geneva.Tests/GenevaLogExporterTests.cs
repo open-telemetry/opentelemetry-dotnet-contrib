@@ -1458,12 +1458,12 @@ public class GenevaLogExporterTests
                     .Assembly
                     .GetType("OpenTelemetry.Logs.LoggerProviderSdk")
                     .GetProperty("Processor", bindingFlags)
-                    .GetValue(loggerProvider) as BatchExportProcessor<LogRecord>;
+                    .GetValue(loggerProvider) as BatchLogRecordExportProcessor;
 
             Assert.NotNull(processor);
 
-            var scheduledDelayMilliseconds = typeof(BatchExportProcessor<LogRecord>)
-                .GetField("scheduledDelayMilliseconds", bindingFlags)
+            var scheduledDelayMilliseconds = typeof(BatchLogRecordExportProcessor)
+                .GetField("ScheduledDelayMilliseconds", bindingFlags)
                 .GetValue(processor);
 
             Assert.Equal(100, scheduledDelayMilliseconds);

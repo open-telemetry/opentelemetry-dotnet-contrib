@@ -601,12 +601,12 @@ public class GenevaTraceExporterTests
                     .Assembly
                     .GetType("OpenTelemetry.Trace.TracerProviderSdk")
                     .GetProperty("Processor", bindingFlags)
-                    .GetValue(tracerProvider) as BatchExportProcessor<Activity>;
+                    .GetValue(tracerProvider) as BatchActivityExportProcessor;
 
             Assert.NotNull(processor);
 
-            var scheduledDelayMilliseconds = typeof(BatchExportProcessor<Activity>)
-                .GetField("scheduledDelayMilliseconds", bindingFlags)
+            var scheduledDelayMilliseconds = typeof(BatchActivityExportProcessor)
+                .GetField("ScheduledDelayMilliseconds", bindingFlags)
                 .GetValue(processor);
 
             Assert.Equal(100, scheduledDelayMilliseconds);
