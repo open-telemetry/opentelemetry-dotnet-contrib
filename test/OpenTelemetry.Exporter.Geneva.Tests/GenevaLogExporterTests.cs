@@ -1634,8 +1634,8 @@ public class GenevaLogExporterTests
         }
         else
         {
-            _ = mapping.TryGetValue("env_properties", out object envProprties);
-            var envPropertiesMapping = envProprties as IDictionary<object, object>;
+            _ = mapping.TryGetValue("env_properties", out object envProperties);
+            var envPropertiesMapping = envProperties as IDictionary<object, object>;
 
             foreach (var item in stateKeyValuePairList)
             {
