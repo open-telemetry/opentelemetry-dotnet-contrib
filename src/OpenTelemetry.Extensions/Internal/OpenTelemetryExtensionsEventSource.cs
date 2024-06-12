@@ -45,7 +45,7 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
         this.WriteEvent(2, categoryName, exception);
     }
 
-    [Event(3, Message = "Baggage key predicate function threw exeption: '{0}'", Level = EventLevel.Warning)]
+    [Event(3, Message = "Baggage key predicate function threw exeption, no baggage entries will not be added to the activity. Exception: '{0}'", Level = EventLevel.Warning)]
     public void BaggageKeyPredicateException(string exception)
     {
         this.WriteEvent(3, exception);
