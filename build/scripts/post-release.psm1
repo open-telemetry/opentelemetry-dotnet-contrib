@@ -264,7 +264,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
     [Parameter()][string]$targetBranch="main",
-    [Parameter()][string]$lineEnding="`r",
+    [Parameter()][string]$lineEnding="`n",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
