@@ -36,7 +36,7 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -103,7 +103,7 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string? enableGrpcAspNetCoreSupport)
     {
         try
         {

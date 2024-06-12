@@ -27,9 +27,9 @@
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <SupportedNetTargets>net8.0;net7.0;net6.0</SupportedNetTargets>
-    <XUnitRunnerVisualStudioPkgVer>[2.5.0,3.0)</XUnitRunnerVisualStudioPkgVer>
-    <XUnitPkgVer>[2.5.0,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.5.48,2.0)</WiremockNetPkgVer>
+    <XUnitRunnerVisualStudioPkgVer>[2.8.1,3.0)</XUnitRunnerVisualStudioPkgVer>
+    <XUnitPkgVer>[2.8.1,3.0)</XUnitPkgVer>
+    <WiremockNetPkgVer>[1.5.58,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
