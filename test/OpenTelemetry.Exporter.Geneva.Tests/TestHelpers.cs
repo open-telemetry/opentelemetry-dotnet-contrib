@@ -5,7 +5,7 @@ using System.IO;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-internal class TestHelpers
+internal static class TestHelpers
 {
     internal static string GenerateTempFilePath()
     {
