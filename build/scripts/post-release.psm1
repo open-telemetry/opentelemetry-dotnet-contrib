@@ -373,7 +373,7 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   $createPullRequestResponse = gh pr create `
-    --title "[release] Core release $version updates" `
+    --title "[release] $tag release updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
