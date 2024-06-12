@@ -76,5 +76,6 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
   .Build();
 ```
 
-Warning: The baggage key predicate is executed for every baggage entry for each started activity.
+Warning: The baggage key predicate is executed for every baggage entry for each
+started activity.
 Do not use slow or intensive operations.
