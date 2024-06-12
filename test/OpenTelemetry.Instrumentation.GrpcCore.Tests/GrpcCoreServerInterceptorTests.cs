@@ -22,7 +22,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task UnaryServerHandlerSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest);
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task UnaryServerHandlerFail()
     {
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ClientStreamingServerHandlerSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest);
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ClientStreamingServerHandlerFail()
     {
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ServerStreamingServerHandlerSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task ServerStreamingServerHandlerFail()
     {
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task DuplexStreamingServerHandlerSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class GrpcCoreServerInterceptorTests
     [Fact]
     public async Task DuplexStreamingServerHandlerFail()
     {
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class GrpcCoreServerInterceptorTests
         using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
         {
             var client = FoobarService.ConstructRpcClient(server.UriString);
-            await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
+            await clientRequestFunc(client, additionalMetadata);
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);

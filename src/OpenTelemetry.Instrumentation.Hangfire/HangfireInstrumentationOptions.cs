@@ -30,7 +30,7 @@ public class HangfireInstrumentationOptions
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to
-    /// collect telemetry about the the <see cref="BackgroundJob"/> being executed.
+    /// collect telemetry about the <see cref="BackgroundJob"/> being executed.
     /// </summary>
     /// <remarks>
     /// <b>Notes:</b>
