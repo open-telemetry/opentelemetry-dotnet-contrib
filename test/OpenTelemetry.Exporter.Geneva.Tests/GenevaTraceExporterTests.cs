@@ -686,8 +686,8 @@ public class GenevaTraceExporterTests
         #endregion
 
         #region Assert Activity Tags
-        _ = mapping.TryGetValue("env_properties", out object envProprties);
-        var envPropertiesMapping = envProprties as IDictionary<object, object>;
+        _ = mapping.TryGetValue("env_properties", out object envProperties);
+        var envPropertiesMapping = envProperties as IDictionary<object, object>;
         foreach (var tag in activity.TagObjects)
         {
             if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out string replacementKey))

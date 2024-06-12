@@ -22,7 +22,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 public class TestAWSClientInstrumentation
 {
     [Fact]
+#if NETFRAMEWORK
     public void TestDDBScanSuccessful()
+#else
+    public async Task TestDDBScanSuccessful()
+#endif
     {
         var exportedItems = new List<Activity>();
 
@@ -46,7 +50,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
-            ddb.ScanAsync(scan_request).Wait();
+            await ddb.ScanAsync(scan_request);
 #endif
             Assert.Single(exportedItems);
 
@@ -61,7 +65,11 @@ public class TestAWSClientInstrumentation
     }
 
     [Fact]
+#if NETFRAMEWORK
     public void TestDDBSubtypeScanSuccessful()
+#else
+    public async Task TestDDBSubtypeScanSuccessful()
+#endif
     {
         var exportedItems = new List<Activity>();
 
@@ -85,7 +93,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
 #else
-            ddb.ScanAsync(scan_request).Wait();
+            await ddb.ScanAsync(scan_request);
 #endif
             Assert.Single(exportedItems);
 
@@ -154,7 +162,11 @@ public class TestAWSClientInstrumentation
     }
 
     [Fact]
+#if NETFRAMEWORK
     public void TestSQSSendMessageSuccessful()
+#else
+    public async Task TestSQSSendMessageSuccessful()
+#endif
     {
         var exportedItems = new List<Activity>();
 
@@ -178,7 +190,7 @@ public class TestAWSClientInstrumentation
 #if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
 #else
-            sqs.SendMessageAsync(send_msg_req).Wait();
+            await sqs.SendMessageAsync(send_msg_req);
 #endif
             Assert.Single(exportedItems);
             Activity awssdk_activity = exportedItems[0];
