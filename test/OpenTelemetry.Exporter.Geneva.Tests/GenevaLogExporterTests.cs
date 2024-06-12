@@ -1421,7 +1421,7 @@ public class GenevaLogExporterTests
         }
         else
         {
-            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+            connectionString = "Endpoint=unix:" + GenerateTempFilePath();
         }
 
         var sp = new ServiceCollection();
