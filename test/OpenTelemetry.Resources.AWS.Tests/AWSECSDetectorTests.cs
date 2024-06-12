@@ -61,7 +61,7 @@ public class AWSECSDetectorTests : IDisposable
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Ec2()
+    public async Task TestEcsMetadataV4Ec2()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -92,7 +92,7 @@ public class AWSECSDetectorTests : IDisposable
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Fargate()
+    public async Task TestEcsMetadataV4Fargate()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;

@@ -91,7 +91,10 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
         logRecord.Timestamp = DateTime.UtcNow;
         logRecord.CategoryName = typeof(LogRecordCommonSchemaJsonHttpPostBenchmarks).FullName;
+#pragma warning disable CS0618 // Type or member is obsolete
+        // TODO: Update to use LogRecord.Severity
         logRecord.LogLevel = LogLevel.Information;
+#pragma warning restore CS0618 // Type or member is obsolete
 
         if (index % 2 == 0)
         {
