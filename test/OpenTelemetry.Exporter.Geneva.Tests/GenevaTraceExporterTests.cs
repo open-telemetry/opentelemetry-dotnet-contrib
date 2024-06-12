@@ -553,6 +553,66 @@ public class GenevaTraceExporterTests
             .Build();
     }
 
+    [Fact]
+    public void AddGenevaBatchExportProcessorOptions()
+    {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+        }
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithTracing(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                });
+                services.Configure<BatchExportActivityProcessorOptions>(o => o.ScheduledDelayMilliseconds = 100);
+            })
+            .AddGenevaTraceExporter());
+
+        var s = sp.BuildServiceProvider();
+
+        var tracerProvider = s.GetRequiredService<TracerProvider>();
+
+        var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var processor = typeof(BaseProcessor<Activity>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Trace.TracerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(tracerProvider) as ReentrantActivityExportProcessor;
+
+            Assert.NotNull(processor);
+        }
+        else
+        {
+            var processor = typeof(BaseProcessor<Activity>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Trace.TracerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(tracerProvider) as BatchActivityExportProcessor;
+
+            Assert.NotNull(processor);
+
+            var scheduledDelayMilliseconds = typeof(BatchActivityExportProcessor)
+                .GetField("ScheduledDelayMilliseconds", bindingFlags)
+                .GetValue(processor);
+
+            Assert.Equal(100, scheduledDelayMilliseconds);
+        }
+    }
+
     private static string GetRandomFilePath()
     {
         while (true)
