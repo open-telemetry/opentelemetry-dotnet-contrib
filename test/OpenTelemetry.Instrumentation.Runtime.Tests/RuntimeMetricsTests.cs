@@ -111,7 +111,7 @@ public class RuntimeMetricsTests
     }
 
     [Fact]
-    public void ThreadingRelatedMetricsTest()
+    public async Task ThreadingRelatedMetricsTest()
     {
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -127,7 +127,7 @@ public class RuntimeMetricsTests
             tasks.Add(Task.Run(() => { }));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 

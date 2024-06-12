@@ -14,7 +14,7 @@ public class CommonExtensionsTests
     [InlineData("test")]
     [InlineData(443)]
     [InlineData(null)]
-    public void AddTagIfNotNull_Tag_CorrectTagsList(object tag)
+    public void AddTagIfNotNull_Tag_CorrectTagsList(object? tag)
     {
         var tags = new List<KeyValuePair<string, object>>();
 

@@ -41,7 +41,7 @@ public class HttpInListenerTests
         string url,
         string expectedUrlScheme,
         string expectedUrlPath,
-        string expectedUrlQuery,
+        string? expectedUrlQuery,
         bool disableQueryRedaction,
         string expectedHost,
         int expectedPort,

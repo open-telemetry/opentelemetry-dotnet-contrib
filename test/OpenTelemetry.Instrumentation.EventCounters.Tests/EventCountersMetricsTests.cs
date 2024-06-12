@@ -169,7 +169,7 @@ public class EventCountersMetricsTests
     }
 
     [Fact(Skip = "This test should properly validate no metrics are exported from event counters with invalid names (too long)")]
-    public void InstrumentNameTooLong()
+    public async Task InstrumentNameTooLong()
     {
         // Arrange
         List<Metric> metricItems = new();
@@ -190,7 +190,7 @@ public class EventCountersMetricsTests
         // Act
         connections.Increment(1);
 
-        Task.Delay(1800).Wait();
+        await Task.Delay(1800);
         meterProvider.ForceFlush();
 
         // Assert

@@ -80,7 +80,7 @@ public class ActivityHelperTest : IDisposable
             });
         }
 
-        await testTask.ConfigureAwait(false);
+        await testTask;
     }
 
     [Fact(Skip = "Temporarily disable until stable.")]
@@ -120,7 +120,7 @@ public class ActivityHelperTest : IDisposable
             });
         }
 
-        await testTask.ConfigureAwait(false);
+        await testTask;
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class ActivityHelperTest : IDisposable
         using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
 
         Assert.NotNull(rootActivity);
-        Assert.True(!string.IsNullOrEmpty(rootActivity.Id));
+        Assert.False(string.IsNullOrEmpty(rootActivity.Id));
     }
 
     [Fact]

@@ -349,7 +349,7 @@ public partial class HttpClientTests
             var metric = requestMetrics.FirstOrDefault(m => m.Name == "http.client.request.duration");
             Assert.NotNull(metric);
             Assert.Equal("s", metric.Unit);
-            Assert.True(metric.MetricType == MetricType.Histogram);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
 
             var metricPoints = new List<MetricPoint>();
             foreach (var p in metric.GetMetricPoints())

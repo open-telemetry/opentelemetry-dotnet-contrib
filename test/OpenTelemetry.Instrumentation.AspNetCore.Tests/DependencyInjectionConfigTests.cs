@@ -24,7 +24,7 @@ public class DependencyInjectionConfigTests
     [Theory]
     [InlineData(null)]
     [InlineData("CustomName")]
-    public void TestTracingOptionsDIConfig(string name)
+    public void TestTracingOptionsDIConfig(string? name)
     {
         name ??= Options.DefaultName;
 
