@@ -410,6 +410,7 @@ $entry = @"
 
       if ([System.IO.File]::Exists($path) -eq $false)
       {
+        Write-Host "No CHANGELOG found in $projectDir"
         continue
       }
 
