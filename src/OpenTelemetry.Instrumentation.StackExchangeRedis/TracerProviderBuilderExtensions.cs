@@ -156,15 +156,10 @@ public static class TracerProviderBuilderExtensions
             {
                 var instrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>();
 
-#if NET8_0_OR_GREATER
                 connection ??= serviceKey == null
                     ? sp.GetService<IConnectionMultiplexer>()
                     : sp.GetKeyedService<IConnectionMultiplexer>(serviceKey);
-#else
-                connection ??= serviceKey == null
-                    ? sp.GetService<IConnectionMultiplexer>()
-                    : throw new InvalidOperationException("Redis instrumentation with service key is supported in .NET 8.0 and above.");
-#endif
+
                 if (connection != null)
                 {
                     instrumentation.AddConnection(name, connection);
