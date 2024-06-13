@@ -264,6 +264,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
     [Parameter()][string]$targetBranch="main",
+    [Parameter()][string]$lineEnding="`n",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
@@ -275,25 +276,34 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
   }
 
   $tagPrefix = $match.Groups[1].Value
-  if ($tagPrefix.StartsWith('core-') -eq $false)
+  $version = $match.Groups[2].Value
+  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+
+  if ($tagPrefix.StartsWith('core-') -eq $true)
+  {
+    $changelogEntry = "Updated OpenTelemetry core component version(s) to"
+    $propertyName = "OpenTelemetryCoreLatestVersion"
+    $propertyVersion = "[$version,2.0)"
+    if ($isPrerelease -eq $true)
+    {
+      $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
+      $propertyVersion = "[$version]"
+    }
+  }
+  elseif ($tagPrefix.StartsWith('coreunstable-') -eq $true)
+  {
+    $changelogEntry = "Updated OpenTelemetry core unstable component version(s) to"
+    $propertyName = "OpenTelemetryCoreUnstableLatestVersion"
+    $propertyVersion = "[$version]"
+  }
+  else
   {
     Return
   }
 
   $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
-  $version = $match.Groups[2].Value
-  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
-
   $branch="release/post-core-${version}-update"
-
-  $propertyName = "OpenTelemetryCoreLatestVersion"
-  $propertyVersion = "[$version,2.0)"
-  if ($isPrerelease -eq $true)
-  {
-   $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
-   $propertyVersion = "[$version]"
-  }
 
   (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
@@ -363,11 +373,13 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   $createPullRequestResponse = gh pr create `
-    --title "[release] Core release $version updates" `
+    --title "[release] $tag release updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
     --label release
+
+  Write-Host $createPullRequestResponse
 
   $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
   if ($match.Success -eq $false)
@@ -383,17 +395,24 @@ Merge once packages are available on NuGet and the build passes.
   }
 
 $entry = @"
-* Updated OpenTelemetry core component version(s) to ``$version``.
+* $changelogEntry ``$version``.
   ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
 
 
 "@
 
   $lastLineBlank = $true
+  $changelogFilesUpdated = 0
 
   foreach ($projectDir in $changedProjects.Keys)
   {
       $path = Join-Path -Path $projectDir -ChildPath "CHANGELOG.md"
+
+      if ([System.IO.File]::Exists($path) -eq $false)
+      {
+        Write-Host "No CHANGELOG found in $projectDir"
+        continue
+      }
 
       $changelogContent = Get-Content -Path $path
 
@@ -411,16 +430,21 @@ $entry = @"
           {
               if ($lastLineBlank -eq $false)
               {
-                  $content += "`r`n"
+                  $content += $lineEnding
               }
               $content += $entry
               $started = $false
               $isRemoving = $false
           }
-          elseif ($line -like '*Update* OpenTelemetry SDK version to*' -and $started -eq $true)
+          elseif ($started -eq $true -and $tagPrefix.StartsWith('core-') -eq $true -and $line -like '*Update* OpenTelemetry SDK version to*')
           {
-              $isRemoving = $true
-              continue
+            $isRemoving = $true
+            continue
+          }
+          elseif ($started -eq $true -and $line -like "*$changelogEntry*")
+          {
+            $isRemoving = $true
+            continue
           }
 
           if ($line.StartsWith('* '))
@@ -432,7 +456,7 @@ $entry = @"
 
               if ($lastLineBlank -eq $false)
               {
-                  $content += "`r`n"
+                  $content += $lineEnding
               }
           }
 
@@ -441,7 +465,7 @@ $entry = @"
               continue
           }
 
-          $content += $line + "`r`n"
+          $content += $line + $lineEnding
 
           $lastLineBlank = [string]::IsNullOrWhitespace($line)
       }
@@ -451,7 +475,7 @@ $entry = @"
         # Note: If we never wrote the entry it means the file ended in the unreleased section
         if ($lastLineBlank -eq $false)
         {
-            $content += "`r`n"
+            $content += $lineEnding
         }
         $content += $entry
       }
@@ -463,18 +487,23 @@ $entry = @"
       {
           throw 'git add failure'
       }
+
+      $changelogFilesUpdated++
   }
 
-  git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
+  if ($changelogFilesUpdated -gt 0)
   {
-      throw 'git commit failure'
-  }
+    git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git commit failure'
+    }
 
-  git push -u origin $branch 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git push failure'
+    git push -u origin $branch 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git push failure'
+    }
   }
 }
 
@@ -504,7 +533,11 @@ function GetCoreDependenciesForProjects {
             if ($packageName -eq 'OpenTelemetry' -or
                 $packageName -eq 'OpenTelemetry.Api' -or
                 $packageName -eq 'OpenTelemetry.Api.ProviderBuilderExtensions' -or
-                $packageName -eq 'OpenTelemetry.Extensions.Hosting')
+                $packageName -eq 'OpenTelemetry.Extensions.Hosting' -or
+                $packageName -eq 'OpenTelemetry.Extensions.Propagators' -or
+                $packageName -eq 'OpenTelemetry.Exporter.Prometheus.AspNetCore' -or
+                $packageName -eq 'OpenTelemetry.Exporter.Prometheus.HttpListener' -or
+                $packageName -eq 'OpenTelemetry.Shims.OpenTracing')
             {
                 $projectDependencies[$packageName.ToString()] = $packageVersion.ToString()
             }
