@@ -134,7 +134,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Fact]
-    public async void ProfilerSessionUsesTheSameDefault()
+    public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
         {
@@ -287,7 +287,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         using (Activity.Current = new Activity("Child-Span-2").SetParentId(rootActivity.Id).Start())
         {
             // lose async context on purpose
-            await Task.Delay(100).ConfigureAwait(false);
+            await Task.Delay(100);
 
             ProfilingSession? profiler2 = profilerFactory();
             Assert.NotSame(profiler0, profiler2);

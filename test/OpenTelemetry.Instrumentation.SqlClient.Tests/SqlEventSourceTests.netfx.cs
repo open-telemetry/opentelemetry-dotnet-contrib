@@ -13,6 +13,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+[Collection("SqlClient")]
 public class SqlEventSourceTests
 {
     /*
@@ -176,7 +177,7 @@ public class SqlEventSourceTests
         using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+        var shutdownSignal = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(exportedItems)
             .AddSqlClientInstrumentation()
             .Build();

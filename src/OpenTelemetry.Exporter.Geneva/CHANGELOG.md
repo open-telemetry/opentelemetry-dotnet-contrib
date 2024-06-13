@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.9.0-rc.1
+
+Released 2024-Jun-12
+
+* Update OpenTelemetry SDK version to `1.9.0-rc.1`.
+  ([#1869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1869))
+
+* Added `LoggerProviderBuilder.AddGenevaLogExporter` registration extensions.
+  Added `TracerProviderBuilder.AddGenevaTraceExporter()` registration extension.
+  ([#1880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1880))
+
 ## 1.9.0-alpha.1
 
 Released 2024-May-22

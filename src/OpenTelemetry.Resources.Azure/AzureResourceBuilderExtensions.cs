@@ -12,11 +12,11 @@ namespace OpenTelemetry.Resources;
 public static class AzureResourceBuilderExtensions
 {
     /// <summary>
-    /// Enables Azure AppService resource detector.
+    /// Enables Azure App Service resource detector.
     /// </summary>
     /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
-    public static ResourceBuilder AddAppServiceDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAzureAppServiceDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new AppServiceResourceDetector());
