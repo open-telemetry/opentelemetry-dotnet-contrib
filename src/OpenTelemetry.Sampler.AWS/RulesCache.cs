@@ -60,11 +60,12 @@ internal class RulesCache : IDisposable
         List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
         foreach (var rule in newRules)
         {
-            var currentStatistics = this.RuleAppliers
-                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName)
-                ?.Statistics ?? new Statistics();
+            // If the rule already exists in the current list of appliers, then we reuse it.
+            // If there are any changes to the rule, UpdateTargets would update the rule.
+            var ruleApplier = this.RuleAppliers
+                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
+                new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
 
-            var ruleApplier = new SamplingRuleApplier(this.ClientId, this.Clock, rule, currentStatistics);
             newRuleAppliers.Add(ruleApplier);
         }
 
