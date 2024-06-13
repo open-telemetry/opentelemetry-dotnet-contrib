@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update GenevaTraceExporter to export `activity.TraceStateString` as the value
+  for Part B `traceState` field for Spans when the `IncludeTraceStateForSpan`
+  option is set to `true`. This is an opt-in feature and the default value is `false`.
+  Note that this is for Spans only and not for LogRecord.
+  ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
+
 ## 1.9.0-rc.1
 
 Released 2024-Jun-12
