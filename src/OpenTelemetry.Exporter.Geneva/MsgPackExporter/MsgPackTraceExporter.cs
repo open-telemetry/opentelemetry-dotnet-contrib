@@ -91,6 +91,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #endif
         }
 
+        this.m_shouldIncludeTraceState = options.IncludeTraceStateForSpan;
+
         var buffer = new byte[BUFFER_SIZE];
 
         var cursor = 0;
@@ -241,6 +243,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "parentId");
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, strParentId);
             cntFields += 1;
+        }
+
+        if (this.m_shouldIncludeTraceState)
+        {
+            var traceStateString = activity.TraceStateString;
+            if (!string.IsNullOrEmpty(traceStateString))
+            {
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "traceState");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, traceStateString);
+                cntFields += 1;
+            }
         }
 
         var linkEnumerator = activity.EnumerateLinks();
@@ -452,6 +465,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private readonly HashSet<string> m_dedicatedFields;
 #endif
+
+    private readonly bool m_shouldIncludeTraceState;
 
     private bool isDisposed;
 }
