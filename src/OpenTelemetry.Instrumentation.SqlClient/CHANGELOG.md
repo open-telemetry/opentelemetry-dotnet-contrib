@@ -4,9 +4,13 @@
 
 * `ActivitySource.Version` is set to NuGet package version.
   ([#5498](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5498))
+
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.8.1`.
   * Update `OpenTelemetry.Api` to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.8.0-beta.1
 
@@ -22,9 +26,11 @@ Released 2024-Feb-09
   Now that this suite of attributes are stable, this instrumentation will only
   emit the new attributes.
   ([#5270](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5270))
+
 * **Breaking Change**: Renamed `SqlClientInstrumentationOptions` to
   `SqlClientTraceInstrumentationOptions`.
   ([#5285](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5285))
+
 * **Breaking Change**: Stop emitting `db.statement_type` attribute.
   This attribute was never a part of the [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/database/database-spans.md#call-level-attributes).
   ([#5301](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5301))
@@ -125,6 +131,7 @@ Released 2022-Oct-17
   respectively to set activity status.
   ([#3118](https://github.com/open-telemetry/opentelemetry-dotnet/issues/3118))
   ([#3751](https://github.com/open-telemetry/opentelemetry-dotnet/pull/3751))
+
 * Add support for Filter option for non .NET Framework Targets
   ([#3743](https://github.com/open-telemetry/opentelemetry-dotnet/pull/3743))
 
@@ -197,6 +204,7 @@ Released 2021-Jun-09
 Released 2021-Apr-23
 
 * Instrumentation modified to depend only on the API.
+
 * Activities are now created with the `db.system` attribute set for usage during
   sampling.
   ([#1979](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1979))
@@ -212,13 +220,16 @@ Released 2021-Jan-29
 * Microsoft.Data.SqlClient v2.0.0 and higher is now properly instrumented on
   .NET Framework.
   ([#1599](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1599))
+
 * SqlClientInstrumentationOptions API changes: `SetStoredProcedureCommandName`
   and `SetTextCommandContent` have been renamed to
   `SetDbStatementForStoredProcedure` and `SetDbStatementForText`. They are now
   only available on .NET Core. On .NET Framework they are replaced by a single
   `SetDbStatement` property.
+
 * On .NET Framework, "db.statement_type" attribute is no longer set for
   activities created by the instrumentation.
+
 * New setting on SqlClientInstrumentationOptions on .NET Core: `RecordException`
   can be set to instruct the instrumentation to record SqlExceptions as Activity
   [events](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md).
@@ -244,6 +255,7 @@ Released 2020-Oct-16
   Activity.CustomProperty. To enrich activity, use the Enrich action on the
   instrumentation.
   ([#1261](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1261))
+
 * Span Status is populated as per new spec
   ([#1313](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1313))
 
@@ -258,6 +270,7 @@ Released 2020-08-28
 * .NET Core SqlClient instrumentation will now add the raw Command object to the
   Activity it creates
   ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1099))
+
 * Renamed from `AddSqlClientDependencyInstrumentation` to
   `AddSqlClientInstrumentation`
 
