@@ -2,6 +2,7 @@
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.InfluxDB)](https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.InfluxDB)](https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Exporter.InfluxDB)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Exporter.InfluxDB)
 
 The InfluxDB exporter converts OpenTelemetry metrics into the InfluxDB model
 following the [OpenTelemetry->InfluxDB conversion schema](https://github.com/influxdata/influxdb-observability/blob/main/docs/index.md).

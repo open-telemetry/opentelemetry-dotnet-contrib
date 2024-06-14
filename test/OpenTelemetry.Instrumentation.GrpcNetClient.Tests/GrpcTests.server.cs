@@ -36,10 +36,10 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION"] = enableGrpcAspNetCoreSupport,
             })
@@ -103,7 +103,7 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string? enableGrpcAspNetCoreSupport)
     {
         try
         {
@@ -111,7 +111,7 @@ public partial class GrpcTests : IDisposable
             Sdk.SetDefaultTextMapPropagator(new Extensions.Propagators.B3Propagator());
             var exportedItems = new List<Activity>();
             var configuration = new ConfigurationBuilder()
-           .AddInMemoryCollection(new Dictionary<string, string>
+           .AddInMemoryCollection(new Dictionary<string, string?>
            {
                ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION"] = enableGrpcAspNetCoreSupport,
            })

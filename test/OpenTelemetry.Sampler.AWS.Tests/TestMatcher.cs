@@ -19,7 +19,7 @@ public class TestMatcher
     [InlineData("HelloWorld", "Hell?W*d")]
     [InlineData("Hello.World", "*.World")]
     [InlineData("Bye.World", "*.World")]
-    public void TestWildcardMatch(string input, string pattern)
+    public void TestWildcardMatch(string? input, string pattern)
     {
         Assert.True(Matcher.WildcardMatch(input, pattern));
     }
@@ -27,7 +27,7 @@ public class TestMatcher
     [Theory]
     [InlineData(null, "Hello*")]
     [InlineData("HelloWorld", null)]
-    public void TestWildcardDoesNotMatch(string input, string pattern)
+    public void TestWildcardDoesNotMatch(string? input, string? pattern)
     {
         Assert.False(Matcher.WildcardMatch(input, pattern));
     }

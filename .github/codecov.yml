@@ -114,20 +114,20 @@ flags:
       - src/OpenTelemetry.PersistentStorage.Abstractions
       - src/OpenTelemetry.PersistentStorage.FileSystem
 
-  unittests-ResourceDetectors.Azure:
+  unittests-Resources.Azure:
     carryforward: true
     paths:
-      - src/OpenTelemetry.ResourceDetectors.Azure
+      - src/OpenTelemetry.Resources.Azure
 
   unittests-Resources.Gcp:
     carryforward: true
     paths:
       - src/OpenTelemetry.Resources.Gcp
 
-  unittests-ResourceDetectors.Host:
+  unittests-Resources.Host:
     carryforward: true
     paths:
-      - src/OpenTelemetry.ResourceDetectors.Host
+      - src/OpenTelemetry.Resources.Host
 
   unittests-Resources.Process:
     carryforward: true

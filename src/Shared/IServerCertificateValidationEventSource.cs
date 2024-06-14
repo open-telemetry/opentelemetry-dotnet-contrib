@@ -3,7 +3,7 @@
 
 using System;
 
-namespace OpenTelemetry.ResourceDetectors;
+namespace OpenTelemetry.Resources;
 
 internal interface IServerCertificateValidationEventSource
 {

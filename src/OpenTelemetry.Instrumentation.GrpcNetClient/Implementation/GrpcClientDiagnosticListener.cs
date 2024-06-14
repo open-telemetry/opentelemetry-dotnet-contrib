@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Reflection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
@@ -16,7 +14,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 {
     internal static readonly Assembly Assembly = typeof(GrpcClientDiagnosticListener).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string ActivitySourceName = AssemblyName.Name;
+    internal static readonly string ActivitySourceName = AssemblyName.Name!;
     internal static readonly string Version = Assembly.GetPackageVersion();
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version);
 
@@ -34,26 +32,27 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnEventWritten(string name, object payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        var activity = Activity.Current!;
         switch (name)
         {
             case OnStartEvent:
                 {
-                    this.OnStartActivity(Activity.Current, payload);
+                    this.OnStartActivity(activity, payload);
                 }
 
                 break;
             case OnStopEvent:
                 {
-                    this.OnStopActivity(Activity.Current, payload);
+                    this.OnStopActivity(activity, payload);
                 }
 
                 break;
         }
     }
 
-    public void OnStartActivity(Activity activity, object payload)
+    public void OnStartActivity(Activity activity, object? payload)
     {
         // The overall flow of what GrpcClient library does is as below:
         // Activity.Start()
@@ -71,7 +70,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         }
 
         // Ensure context propagation irrespective of sampling decision
-        if (!TryFetchRequest(payload, out HttpRequestMessage request))
+        if (!TryFetchRequest(payload, out HttpRequestMessage? request))
         {
             GrpcInstrumentationEventSource.Log.NullPayload(nameof(GrpcClientDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -113,31 +112,39 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
             var grpcMethod = GrpcTagHelper.GetGrpcMethodFromActivity(activity);
 
-            activity.DisplayName = grpcMethod?.Trim('/');
+            if (grpcMethod != null)
+            {
+                activity.DisplayName = grpcMethod.Trim('/');
+
+                if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
+                {
+                    activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
+                    activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+
+                    // Remove the grpc.method tag added by the gRPC .NET library
+                    activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
+                }
+            }
 
             activity.SetTag(SemanticConventions.AttributeRpcSystem, GrpcTagHelper.RpcSystemGrpc);
 
-            if (GrpcTagHelper.TryParseRpcServiceAndRpcMethod(grpcMethod, out var rpcService, out var rpcMethod))
+            var requestUri = request.RequestUri;
+
+            if (requestUri != null)
             {
-                activity.SetTag(SemanticConventions.AttributeRpcService, rpcService);
-                activity.SetTag(SemanticConventions.AttributeRpcMethod, rpcMethod);
+                var uriHostNameType = Uri.CheckHostName(requestUri.Host);
 
-                // Remove the grpc.method tag added by the gRPC .NET library
-                activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
+                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerSocketAddress, requestUri.Host);
+                }
+                else
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, requestUri.Host);
+                }
+
+                activity.SetTag(SemanticConventions.AttributeServerPort, requestUri.Port);
             }
-
-            var uriHostNameType = Uri.CheckHostName(request.RequestUri.Host);
-
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
-            {
-                activity.SetTag(SemanticConventions.AttributeServerSocketAddress, request.RequestUri.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-            }
-
-            activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
 
             try
             {
@@ -154,11 +161,11 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 #if NET6_0_OR_GREATER
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
-        static bool TryFetchRequest(object payload, out HttpRequestMessage request)
+        static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
             => StartRequestFetcher.TryFetch(payload, out request) && request != null;
     }
 
-    public void OnStopActivity(Activity activity, object payload)
+    public void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
@@ -177,7 +184,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             // Remove the grpc.status_code tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (TryFetchResponse(payload, out HttpResponseMessage response))
+            if (TryFetchResponse(payload, out HttpResponseMessage? response))
             {
                 try
                 {
@@ -195,7 +202,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 #if NET6_0_OR_GREATER
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
-        static bool TryFetchResponse(object payload, out HttpResponseMessage response)
+        static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
             => StopResponseFetcher.TryFetch(payload, out response) && response != null;
     }
 }

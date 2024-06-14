@@ -38,7 +38,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnarySuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeUnaryAsyncRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnaryFail()
     {
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeClientStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeDuplexStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class GrpcCoreClientInterceptorTests
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            _ = await call.ResponseAsync.ConfigureAwait(false);
+            _ = await call.ResponseAsync;
 
             Assert.Equal(parentActivity, Activity.Current);
 
@@ -284,15 +284,15 @@ public class GrpcCoreClientInterceptorTests
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage).ConfigureAwait(false);
+            await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage);
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            await call.RequestStream.CompleteAsync().ConfigureAwait(false);
+            await call.RequestStream.CompleteAsync();
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            while (await call.ResponseStream.MoveNext().ConfigureAwait(false))
+            while (await call.ResponseStream.MoveNext())
             {
                 Assert.Equal(parentActivity, Activity.Current);
             }

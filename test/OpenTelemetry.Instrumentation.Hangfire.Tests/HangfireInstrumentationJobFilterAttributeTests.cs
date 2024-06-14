@@ -13,9 +13,10 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
+[Collection("Hangfire")]
 public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<HangfireFixture>
 {
-    private HangfireFixture hangfireFixture;
+    private readonly HangfireFixture hangfireFixture;
 
     public HangfireInstrumentationJobFilterAttributeTests(HangfireFixture hangfireFixture)
     {
@@ -123,6 +124,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         using var tel = Sdk.CreateTracerProviderBuilder()
             .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
             .AddInMemoryExporter(exportedItems)
+            .SetSampler<AlwaysOnSampler>()
             .Build();
 
         // Act

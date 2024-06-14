@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+* Update GenevaTraceExporter to export `activity.TraceStateString` as the value
+  for Part B `traceState` field for Spans when the `IncludeTraceStateForSpan`
+  option is set to `true`. This is an opt-in feature and the default value is `false`.
+  Note that this is for Spans only and not for LogRecord.
+  ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
+
+## 1.9.0-rc.1
+
+Released 2024-Jun-12
+
+* Update OpenTelemetry SDK version to `1.9.0-rc.1`.
+  ([#1869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1869))
+
+* Added `LoggerProviderBuilder.AddGenevaLogExporter` registration extensions.
+  Added `TracerProviderBuilder.AddGenevaTraceExporter()` registration extension.
+  ([#1880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1880))
+
+## 1.9.0-alpha.1
+
+Released 2024-May-22
+
+* Update OpenTelemetry SDK version to `1.9.0-alpha.1`.
+  ([#1834](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1834))
+
 ## 1.8.0
 
 Released 2024-May-15

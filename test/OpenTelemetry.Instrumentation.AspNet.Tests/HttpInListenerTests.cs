@@ -41,7 +41,7 @@ public class HttpInListenerTests
         string url,
         string expectedUrlScheme,
         string expectedUrlPath,
-        string expectedUrlQuery,
+        string? expectedUrlQuery,
         bool disableQueryRedaction,
         string expectedHost,
         int expectedPort,
@@ -89,7 +89,34 @@ public class HttpInListenerTests
                                return httpContext.Request.Path != filter;
                            };
 
-                           options.Enrich = GetEnrichmentAction(setStatusToErrorInEnrich ? ActivityStatusCode.Error : default);
+                           options.EnrichWithHttpRequest = (activity, request) =>
+                           {
+                               Assert.NotNull(activity);
+                               Assert.NotNull(request);
+
+                               Assert.True(activity.IsAllDataRequested);
+                           };
+
+                           options.EnrichWithHttpResponse = (activity, response) =>
+                           {
+                               Assert.NotNull(activity);
+                               Assert.NotNull(response);
+
+                               Assert.True(activity.IsAllDataRequested);
+
+                               if (setStatusToErrorInEnrich)
+                               {
+                                   activity.SetStatus(ActivityStatusCode.Error);
+                               }
+                           };
+
+                           options.EnrichWithException = (activity, exception) =>
+                           {
+                               Assert.NotNull(activity);
+                               Assert.NotNull(exception);
+
+                               Assert.True(activity.IsAllDataRequested);
+                           };
 
                            options.RecordException = recordException;
                        })
@@ -253,35 +280,6 @@ public class HttpInListenerTests
 
         Assert.True(isFilterCalled);
         Assert.True(isPropagatorCalled);
-    }
-
-    private static Action<Activity, string, object> GetEnrichmentAction(ActivityStatusCode statusToBeSet)
-    {
-        void EnrichAction(Activity activity, string method, object obj)
-        {
-            Assert.True(activity.IsAllDataRequested);
-            switch (method)
-            {
-                case "OnStartActivity":
-                    Assert.True(obj is HttpRequest);
-                    break;
-
-                case "OnStopActivity":
-                    Assert.True(obj is HttpResponse);
-                    if (statusToBeSet != default)
-                    {
-                        activity.SetStatus(statusToBeSet);
-                    }
-
-                    break;
-
-                case "OnException":
-                    Assert.True(obj is Exception);
-                    break;
-            }
-        }
-
-        return EnrichAction;
     }
 
     private class TestSampler(SamplingDecision samplingDecision) : Sampler

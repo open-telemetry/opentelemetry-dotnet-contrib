@@ -23,13 +23,11 @@ components:
     - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
-    - atshaw43
     - ppittle
   src/OpenTelemetry.Extensions.Enrichment/:
     - xakep139
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
-    - atshaw43
     - ppittle
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
@@ -43,6 +41,7 @@ components:
     - hananiel
     - mic-max
   src/OpenTelemetry.Instrumentation.GrpcCore/:
+    - IliaBrahinets
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
@@ -61,16 +60,15 @@ components:
     - vishweshbankwar
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.AWS/:
+  src/OpenTelemetry.Resources.AWS/:
     - srprash
-    - atshaw43
     - ppittle
-  src/OpenTelemetry.ResourceDetectors.Azure/:
+  src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
     - vishweshbankwar
-  src/OpenTelemetry.ResourceDetectors.Container/:
+  src/OpenTelemetry.Resources.Container/:
     - iskiselev
-  src/OpenTelemetry.ResourceDetectors.Host/:
+  src/OpenTelemetry.Resources.Host/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.Process/:
@@ -84,9 +82,8 @@ components:
     - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
-    - atshaw43
     - ppittle
-  test/OpenTelemetry.Exporter.Geneva.Benchmark/:
+  test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - cijothomas
     - codeblanch
     - reyang
@@ -121,13 +118,12 @@ components:
     - mikegoldsmith
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
-    - atshaw43
     - ppittle
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - xakep139
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
-    - atshaw43
+    - ppittle
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
@@ -140,6 +136,7 @@ components:
     - hananiel
     - mic-max
   test/OpenTelemetry.Instrumentation.GrpcCore.Tests/:
+    - IliaBrahinets
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
@@ -154,16 +151,15 @@ components:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.AWS.Tests/:
+  test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
-    - atshaw43
     - ppittle
-  test/OpenTelemetry.ResourceDetectors.Azure.Tests/:
+  test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
     - vishweshbankwar
-  test/OpenTelemetry.ResourceDetectors.Container.Tests/:
+  test/OpenTelemetry.Resources.Container.Tests/:
     - iskiselev
-  test/OpenTelemetry.ResourceDetectors.Host.Tests/:
+  test/OpenTelemetry.Resources.Host.Tests/:
     - Kielek
     - lachmatt
   test/OpenTelemetry.Resources.Process.Tests/:
@@ -177,5 +173,4 @@ components:
     - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
-    - atshaw43
     - ppittle
