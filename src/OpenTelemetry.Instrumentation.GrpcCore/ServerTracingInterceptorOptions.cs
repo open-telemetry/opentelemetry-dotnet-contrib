@@ -27,7 +27,7 @@ public class ServerTracingInterceptorOptions
     public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
 
     /// <summary>
-    /// Gets or sets a custom identfier used during unit testing.
+    /// Gets or sets custom tags used during unit testing.
     /// </summary>
-    internal IDictionary<string, object> CustomTags { get; set; }
+    internal IReadOnlyDictionary<string, object> CustomTags { get; set; }
 }
