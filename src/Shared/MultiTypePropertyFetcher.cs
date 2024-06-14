@@ -1,14 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
+#nullable enable
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
 
@@ -16,12 +14,10 @@ namespace OpenTelemetry.Instrumentation;
 /// PropertyFetcher fetches a property from an object.
 /// </summary>
 /// <typeparam name="T">The type of the property being fetched.</typeparam>
-#pragma warning disable CA1812
 internal sealed class MultiTypePropertyFetcher<T>
-#pragma warning restore CA1812
 {
     private readonly string propertyName;
-    private readonly ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new ConcurrentDictionary<Type, PropertyFetch>();
+    private readonly ConcurrentDictionary<Type, PropertyFetch> innerFetcher = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MultiTypePropertyFetcher{T}"/> class.
@@ -37,7 +33,7 @@ internal sealed class MultiTypePropertyFetcher<T>
     /// </summary>
     /// <param name="obj">Object to be fetched.</param>
     /// <returns>Property fetched.</returns>
-    public T Fetch(object obj)
+    public T? Fetch(object? obj)
     {
         if (obj == null)
         {
@@ -45,8 +41,7 @@ internal sealed class MultiTypePropertyFetcher<T>
         }
 
         var type = obj.GetType().GetTypeInfo();
-        PropertyFetch fetcher = null;
-        if (!this.innerFetcher.TryGetValue(type, out fetcher))
+        if (!this.innerFetcher.TryGetValue(type, out var fetcher))
         {
             var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase));
             if (property == null)
@@ -88,7 +83,7 @@ internal sealed class MultiTypePropertyFetcher<T>
             return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
         }
 
-        public virtual T Fetch(object obj)
+        public virtual T? Fetch(object obj)
         {
             return default;
         }
@@ -105,7 +100,7 @@ internal sealed class MultiTypePropertyFetcher<T>
                 this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
             }
 
-            public override T Fetch(object obj)
+            public override T? Fetch(object obj)
             {
                 if (obj is TDeclaredObject o)
                 {
