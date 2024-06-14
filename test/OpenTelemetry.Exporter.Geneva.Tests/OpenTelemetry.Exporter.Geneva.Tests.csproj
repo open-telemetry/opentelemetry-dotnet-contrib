@@ -20,7 +20,7 @@
     StrongNamer signs any unsigned assemblies present in the project dependencies -->
     <PackageReference Include="StrongNamer" Version="0.2.5" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryLatestPreReleasePkgVer)" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OTelSdkVersion)" />
   </ItemGroup>
 
   <ItemGroup>
