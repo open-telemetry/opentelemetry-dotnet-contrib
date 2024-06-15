@@ -37,6 +37,8 @@ public class AspNetParentSpanCorrectorTests
             Assert.Contains(aspNetActivity.TraceId.ToString(), headerVal);
             Assert.Contains(aspNetActivity.SpanId.ToString(), headerVal);
         }
+
+        WcfInstrumentationActivitySource.Options = null;
     }
 
     private class FakeHttpContext

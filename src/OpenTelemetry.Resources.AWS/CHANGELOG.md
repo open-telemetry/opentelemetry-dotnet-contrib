@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.5.0-beta.1
+
+Released 2024-Jun-04
+
 * Implement support for cloud.{account.id,availability_zone,region} attributes in
   AWS ECS detector.
   ([#1552](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1552))
