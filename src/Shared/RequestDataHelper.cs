@@ -21,6 +21,7 @@ namespace OpenTelemetry.Internal;
 internal sealed class RequestDataHelper
 {
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
+    private const int DisplayNameCacheSize = 1000;
 
     // The value "_OTHER" is used for non-standard HTTP methods.
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
@@ -86,7 +87,7 @@ internal sealed class RequestDataHelper
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
         var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}");
+        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : DisplayNameCache.Count < DisplayNameCacheSize ? DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}") : $"{namePrefix} {httpRoute}";
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion)
