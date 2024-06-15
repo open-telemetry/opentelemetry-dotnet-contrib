@@ -87,7 +87,27 @@ internal sealed class RequestDataHelper
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
         var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : DisplayNameCache.Count < DisplayNameCacheSize ? DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}") : $"{namePrefix} {httpRoute}";
+        activity.DisplayName = GetDisplayName();
+
+        string GetDisplayName()
+        {
+            if (string.IsNullOrEmpty(httpRoute))
+            {
+                return namePrefix;
+            }
+
+            if (DisplayNameCache.TryGetValue(httpRoute!, out var displayName))
+            {
+                return displayName;
+            }
+
+            if (DisplayNameCache.Count < DisplayNameCacheSize)
+            {
+                return DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}");
+            }
+
+            return $"{namePrefix} {httpRoute}";
+        }
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion)
