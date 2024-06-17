@@ -98,6 +98,13 @@ A list of fields which should be stored as individual table columns.
 This is a collection of fields that will be applied to all the Logs and Traces
 sent through this exporter.
 
+#### `IncludeTraceStateForSpan` (optional)
+
+Export `activity.TraceStateString` as the value for Part B `traceState` field for
+Spans when the `IncludeTraceStateForSpan` option is set to `true`.
+This is an opt-in feature and the default value is `false`.
+Note that this is for Spans only and not for LogRecord.
+
 #### `TableNameMappings` (optional)
 
 This defines the mapping for the table name used to store Logs and Traces.

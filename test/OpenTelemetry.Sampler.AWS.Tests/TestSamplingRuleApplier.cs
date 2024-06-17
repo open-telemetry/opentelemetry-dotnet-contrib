@@ -30,8 +30,8 @@ public class TestSamplingRuleApplier
         var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
-            { "http.method", "GET" },
-            { "http.url", @"http://127.0.0.1:5000/helloworld" },
+            { "http.request.method", "GET" },
+            { "url.full", @"http://127.0.0.1:5000/helloworld" },
             { "faas.id", "arn:aws:lambda:us-west-2:123456789012:function:my-function" },
         };
 
@@ -59,8 +59,8 @@ public class TestSamplingRuleApplier
         var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
-            { "http.method", "GET" },
-            { "http.url", @"http://127.0.0.1:5000/helloworld" },
+            { "http.request.method", "GET" },
+            { "url.full", @"http://127.0.0.1:5000/helloworld" },
         };
 
         var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
@@ -132,7 +132,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
         };
 
         var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
@@ -164,7 +164,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
             { "dog", "bark" },
             { "cat", "meow" },
         };
@@ -198,7 +198,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
             { "dog", "bark" },
         };
 

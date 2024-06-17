@@ -195,11 +195,15 @@ public class GenevaTraceExporterTests
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields)
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState)
     {
         string path = string.Empty;
         Socket server = null;
@@ -241,6 +245,11 @@ public class GenevaTraceExporterTests
                 exporterOptions.CustomFields = new string[] { "clientRequestId" };
             }
 
+            if (includeTraceState)
+            {
+                exporterOptions.IncludeTraceStateForSpan = true;
+            }
+
             using var exporter = new MsgPackTraceExporter(exporterOptions);
 #if NET8_0_OR_GREATER
             var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as FrozenSet<string>;
@@ -277,6 +286,11 @@ public class GenevaTraceExporterTests
 
                 var linkedtraceId2 = ActivityTraceId.CreateFromString("e8ea7e9ac72de94e91fabc613f9686a2".AsSpan());
                 var linkedSpanId2 = ActivitySpanId.CreateFromString("888915b6286b9c02".AsSpan());
+
+                if (includeTraceState)
+                {
+                    parentActivity.TraceStateString = "some=state";
+                }
 
                 var links = new[]
                 {
@@ -553,6 +567,66 @@ public class GenevaTraceExporterTests
             .Build();
     }
 
+    [Fact]
+    public void AddGenevaBatchExportProcessorOptions()
+    {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+        }
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithTracing(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                });
+                services.Configure<BatchExportActivityProcessorOptions>(o => o.ScheduledDelayMilliseconds = 100);
+            })
+            .AddGenevaTraceExporter());
+
+        var s = sp.BuildServiceProvider();
+
+        var tracerProvider = s.GetRequiredService<TracerProvider>();
+
+        var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var processor = typeof(BaseProcessor<Activity>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Trace.TracerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(tracerProvider) as ReentrantActivityExportProcessor;
+
+            Assert.NotNull(processor);
+        }
+        else
+        {
+            var processor = typeof(BaseProcessor<Activity>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Trace.TracerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(tracerProvider) as BatchActivityExportProcessor;
+
+            Assert.NotNull(processor);
+
+            var scheduledDelayMilliseconds = typeof(BatchActivityExportProcessor)
+                .GetField("ScheduledDelayMilliseconds", bindingFlags)
+                .GetValue(processor);
+
+            Assert.Equal(100, scheduledDelayMilliseconds);
+        }
+    }
+
     private static string GetRandomFilePath()
     {
         while (true)
@@ -657,6 +731,15 @@ public class GenevaTraceExporterTests
         if (activity.ParentSpanId != default)
         {
             Assert.Equal(activity.ParentSpanId.ToHexString(), mapping["parentId"]);
+        }
+
+        if (!exporterOptions.IncludeTraceStateForSpan || string.IsNullOrEmpty(activity.TraceStateString))
+        {
+            Assert.False(mapping.ContainsKey("traceState"));
+        }
+        else
+        {
+            Assert.Equal(activity.TraceStateString, mapping["traceState"]);
         }
 
         #region Assert Activity Links

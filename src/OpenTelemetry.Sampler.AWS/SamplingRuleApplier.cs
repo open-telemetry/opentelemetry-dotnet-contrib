@@ -36,7 +36,7 @@ internal class SamplingRuleApplier
         this.FixedRateSampler = new ParentBasedSampler(new TraceIdRatioBasedSampler(rule.FixedRate));
 
         // We either have no reservoir sampling or borrow until we get a quota so have no end time.
-        this.ReservoirEndTime = DateTime.MaxValue;
+        this.ReservoirEndTime = DateTimeOffset.MaxValue;
 
         // We don't have a SamplingTarget so are ready to report a snapshot right away.
         this.NextSnapshotTime = this.Clock.Now();
@@ -97,15 +97,15 @@ internal class SamplingRuleApplier
         {
             foreach (var tag in samplingParameters.Tags)
             {
-                if (tag.Key.Equals(SemanticConventions.AttributeHttpTarget, StringComparison.Ordinal))
+                if (tag.Key.Equals(SemanticConventions.AttributeUrlPath, StringComparison.Ordinal))
                 {
                     httpTarget = (string?)tag.Value;
                 }
-                else if (tag.Key.Equals(SemanticConventions.AttributeHttpUrl, StringComparison.Ordinal))
+                else if (tag.Key.Equals(SemanticConventions.AttributeUrlFull, StringComparison.Ordinal))
                 {
                     httpUrl = (string?)tag.Value;
                 }
-                else if (tag.Key.Equals(SemanticConventions.AttributeHttpMethod, StringComparison.Ordinal))
+                else if (tag.Key.Equals(SemanticConventions.AttributeHttpRequestMethod, StringComparison.Ordinal))
                 {
                     httpMethod = (string?)tag.Value;
                 }
