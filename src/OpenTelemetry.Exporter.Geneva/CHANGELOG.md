@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.0-rc.2
+
+Released 2024-Jun-17
+
 * Update GenevaTraceExporter to export `activity.TraceStateString` as the value
   for Part B `traceState` field for Spans when the `IncludeTraceStateForSpan`
   option is set to `true`. This is an opt-in feature and the default value is `false`.
