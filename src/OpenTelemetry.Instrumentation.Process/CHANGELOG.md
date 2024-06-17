@@ -9,8 +9,8 @@
     (its unit changed from `{threads}` to `{thread}`).
   ([#1643](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1643))
 
-* Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 0.5.0-beta.5
 
@@ -18,6 +18,7 @@ Released 2024-Apr-05
 
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+
 * Update `OpenTelemetry.Api` to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 

@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OTelSdkVersion>$(OpenTelemetryCoreLatestPrereleaseVersion)</OTelSdkVersion>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
     <DefineConstants Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
   </PropertyGroup>
 
