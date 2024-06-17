@@ -14,7 +14,7 @@ namespace OpenTelemetry.Extensions.Tests.Trace;
 public class BaggageActivityProcessorTests
 {
     [Fact]
-    public void BaggageActivityProcessor_CanAddAlloAllBaggageKeysPredicate()
+    public void BaggageActivityProcessor_CanAddAllowAllBaggageKeysPredicate()
     {
         var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
