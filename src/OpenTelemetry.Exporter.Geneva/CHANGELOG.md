@@ -8,6 +8,9 @@
   Note that this is for Spans only and not for LogRecord.
   ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
 
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.9.0-rc.1
 
 Released 2024-Jun-12
