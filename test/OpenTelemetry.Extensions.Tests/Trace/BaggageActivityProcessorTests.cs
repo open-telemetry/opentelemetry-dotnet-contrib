@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -16,11 +15,9 @@ public class BaggageActivityProcessorTests
     [Fact]
     public void BaggageActivityProcessor_CanAddAllowAllBaggageKeysPredicate()
     {
-        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor)
             .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
             .AddSource(sourceName)
             .Build();
@@ -40,11 +37,9 @@ public class BaggageActivityProcessorTests
     [Fact]
     public void BaggageActivityProcessor_CanUseCustomPredicate()
     {
-        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor)
             .AddBaggageActivityProcessor((baggageKey) => baggageKey.StartsWith("key", StringComparison.Ordinal))
             .AddSource(sourceName)
             .Build();
@@ -64,12 +59,10 @@ public class BaggageActivityProcessorTests
     [Fact]
     public void BaggageActivityProcessor_CanUseRegex()
     {
-        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         var regex = new Regex("^mykey", RegexOptions.Compiled);
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor)
             .AddBaggageActivityProcessor((baggageKey) => regex.IsMatch(baggageKey))
             .AddSource(sourceName)
             .Build();
@@ -89,11 +82,9 @@ public class BaggageActivityProcessorTests
     [Fact]
     public void BaggageActivityProcessor_PredicateThrows_DoesNothing()
     {
-        var activityProcessor = new TestActivityProcessor();
         var sourceName = GetTestMethodName();
 
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddProcessor(activityProcessor)
             .AddBaggageActivityProcessor(_ => throw new Exception("Predicate throws an exception."))
             .AddSource(sourceName)
             .Build();
