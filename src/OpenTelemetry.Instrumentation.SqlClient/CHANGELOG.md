@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.0-beta.1
+
+Released 2024-Jun-17
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#5498](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5498))
 
