@@ -11,12 +11,13 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
+[Collection("Hangfire")]
 public class DependencyInjectionConfigTests
 {
     [Theory]
     [InlineData(null)]
     [InlineData("CustomName")]
-    public async Task TestTracingOptionsDiConfig(string name)
+    public async Task TestTracingOptionsDiConfig(string? name)
     {
         bool optionsPickedFromDi = false;
 

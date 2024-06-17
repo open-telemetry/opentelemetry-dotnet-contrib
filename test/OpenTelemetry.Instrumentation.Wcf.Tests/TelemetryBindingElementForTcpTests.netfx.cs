@@ -112,15 +112,13 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             {
                 await client.ExecuteWithEmptyActionNameAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
             else
             {
                 await client.ExecuteAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
         }
         finally
@@ -209,7 +207,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ActivitiesHaveCorrectParentTest()
+    public async Task ActivitiesHaveCorrectParentTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -262,7 +260,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ErrorsAreHandledProperlyTest()
+    public async Task ErrorsAreHandledProperlyTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -329,7 +327,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void OrphanedTelemetryTimesOut()
+    public async Task OrphanedTelemetryTimesOut()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -377,7 +375,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void DynamicTimeoutValuesAreRespected()
+    public async Task DynamicTimeoutValuesAreRespected()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()

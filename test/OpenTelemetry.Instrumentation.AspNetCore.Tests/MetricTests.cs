@@ -180,7 +180,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     [Theory]
     [InlineData("/api/values/2", "api/Values/{id}", null, 200)]
     [InlineData("/api/Error", "api/Error", "System.Exception", 500)]
-    public async Task RequestMetricIsCaptured(string api, string expectedRoute, string expectedErrorType, int expectedStatusCode)
+    public async Task RequestMetricIsCaptured(string api, string expectedRoute, string? expectedErrorType, int expectedStatusCode)
     {
         var metricItems = new List<Metric>();
 
@@ -312,7 +312,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     private static List<MetricPoint> GetMetricPoints(Metric metric)
     {
         Assert.NotNull(metric);
-        Assert.True(metric.MetricType == MetricType.Histogram);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
         var metricPoints = new List<MetricPoint>();
         foreach (var p in metric.GetMetricPoints())
         {
@@ -325,7 +325,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     private static void AssertMetricPoints(
         List<MetricPoint> metricPoints,
         List<string> expectedRoutes,
-        string expectedErrorType,
+        string? expectedErrorType,
         int expectedStatusCode,
         int expectedTagsCount)
     {
@@ -360,7 +360,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         MetricPoint metricPoint,
         int expectedStatusCode,
         string expectedRoute,
-        string expectedErrorType,
+        string? expectedErrorType,
         int expectedTagsCount)
     {
         var count = metricPoint.GetHistogramCount();
