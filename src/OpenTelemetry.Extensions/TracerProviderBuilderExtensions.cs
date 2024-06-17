@@ -70,7 +70,7 @@ public static class TracerProviderBuilderExtensions
             }
             catch (Exception exception)
             {
-                OpenTelemetryExtensionsEventSource.Log.BaggageKeyPredicateException(exception.Message);
+                OpenTelemetryExtensionsEventSource.Log.BaggageKeyPredicateException(baggageKey, exception.Message);
                 return false;
             }
         }));
