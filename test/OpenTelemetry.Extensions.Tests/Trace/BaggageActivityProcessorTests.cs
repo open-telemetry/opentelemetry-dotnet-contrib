@@ -99,6 +99,40 @@ public class BaggageActivityProcessorTests
         Assert.DoesNotContain(activity.Tags, kv => kv.Key == "key" && kv.Value == "value");
     }
 
+    [Fact]
+    public void BaggageActivityProcessor_PredicateThrows_OnlyDropsEntriesThatThrow()
+    {
+        var sourceName = GetTestMethodName();
+
+        // First call to predicate should not throw, second call should.
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddBaggageActivityProcessor(key =>
+            {
+                if (key == "key")
+                {
+                    throw new Exception("Predicate throws an exception.");
+                }
+
+                return true;
+            })
+            .AddSource(sourceName)
+            .Build();
+
+        Baggage.SetBaggage("key", "value");
+        Baggage.SetBaggage("other_key", "other_value");
+        Baggage.SetBaggage("another_key", "another_value");
+
+        using var source = new ActivitySource(sourceName);
+        using var activity = source.StartActivity("name", ActivityKind.Server);
+        Assert.NotNull(activity);
+        activity.Stop();
+
+        // Only keys that do not throw should be added.
+        Assert.DoesNotContain(activity.Tags, kv => kv.Key == "key" && kv.Value == "value");
+        Assert.Contains(activity.Tags, kv => kv.Key == "other_key" && kv.Value == "other_value");
+        Assert.Contains(activity.Tags, kv => kv.Key == "another_key" && kv.Value == "another_value");
+    }
+
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
         return callingMethodName;
