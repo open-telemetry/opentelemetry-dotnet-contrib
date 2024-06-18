@@ -1,8 +1,6 @@
-*REMOVED*static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions> configure = null) -> OpenTelemetry.Metrics.MeterProviderBuilder
 #nullable enable
 OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions
 OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions.RuntimeInstrumentationOptions() -> void
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions
-static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions> configure = null) -> OpenTelemetry.Metrics.MeterProviderBuilder
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.Runtime.RuntimeInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddRuntimeInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
