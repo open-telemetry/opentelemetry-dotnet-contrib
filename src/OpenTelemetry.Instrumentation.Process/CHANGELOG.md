@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.0-beta.6
+
+Released 2024-Jun-18
+
 * Following changes related to [Semantic Convention v1.25.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.25.0/docs/system/process-metrics.md)
   * `process.cpu.time` metric attribute renamed from `state` to `process.cpu.state`,
   * Metric descriptions fixed for `process.memory.usage` and `process.memory.virtual`,
