@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.8
+
+Released 2024-Jun-18
+
 * **Breaking Change**: Renamed method from `AddAppServiceDetector`
   to `AddAzureAppServiceDetector`.
   ([#1883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1883))
