@@ -6,7 +6,7 @@
     <Description>Http instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Http-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
 
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- this is temporary. will remove in future PR. -->
