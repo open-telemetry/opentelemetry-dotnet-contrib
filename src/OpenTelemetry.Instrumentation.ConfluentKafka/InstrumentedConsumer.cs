@@ -56,62 +56,81 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     public ConsumeResult<TKey, TValue>? Consume(int millisecondsTimeout)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
+        ConsumeResult<TKey, TValue>? result = null;
+        ConsumeResult consumeResult = default;
+        string? errorType = null;
         try
         {
-            var result = this.consumer.Consume(millisecondsTimeout);
-            if (result is { IsPartitionEOF: false })
-            {
-                this.InstrumentConsumption(start, result);
-            }
-
+            result = this.consumer.Consume(millisecondsTimeout);
+            consumeResult = ExtractConsumeResult(result);
             return result;
         }
         catch (ConsumeException e)
         {
-            this.InstrumentConsumptionError(start, e);
+            (consumeResult, errorType) = ExtractConsumeResult(e);
             throw;
+        }
+        finally
+        {
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            if (result is { IsPartitionEOF: false })
+            {
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
+            }
         }
     }
 
     public ConsumeResult<TKey, TValue>? Consume(CancellationToken cancellationToken = default)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-
+        ConsumeResult<TKey, TValue>? result = null;
+        ConsumeResult consumeResult = default;
+        string? errorType = null;
         try
         {
-            var result = this.consumer.Consume(cancellationToken);
-            if (result is { IsPartitionEOF: false })
-            {
-                this.InstrumentConsumption(start, result);
-            }
-
+            result = this.consumer.Consume(cancellationToken);
+            consumeResult = ExtractConsumeResult(result);
             return result;
         }
         catch (ConsumeException e)
         {
-            this.InstrumentConsumptionError(start, e);
+            (consumeResult, errorType) = ExtractConsumeResult(e);
             throw;
+        }
+        finally
+        {
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            if (result is { IsPartitionEOF: false })
+            {
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
+            }
         }
     }
 
     public ConsumeResult<TKey, TValue>? Consume(TimeSpan timeout)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-
+        ConsumeResult<TKey, TValue>? result = null;
+        ConsumeResult consumeResult = default;
+        string? errorType = null;
         try
         {
-            var result = this.consumer.Consume(timeout);
-            if (result is { IsPartitionEOF: false })
-            {
-                this.InstrumentConsumption(start, result);
-            }
-
+            result = this.consumer.Consume(timeout);
+            consumeResult = ExtractConsumeResult(result);
             return result;
         }
         catch (ConsumeException e)
         {
-            this.InstrumentConsumptionError(start, e);
+            (consumeResult, errorType) = ExtractConsumeResult(e);
             throw;
+        }
+        finally
+        {
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            if (result is { IsPartitionEOF: false })
+            {
+                this.InstrumentConsumption(start, end, consumeResult, errorType);
+            }
         }
     }
 
@@ -259,6 +278,20 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
     }
 
+    private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result) => result switch
+    {
+        null => new ConsumeResult(null, null),
+        { Message: null } => new ConsumeResult(result.TopicPartitionOffset, null),
+        _ => new ConsumeResult(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key),
+    };
+
+    private static (ConsumeResult ConsumeResult, string ErrorType) ExtractConsumeResult(ConsumeException exception) => exception switch
+    {
+        { ConsumerRecord: null } => (new ConsumeResult(null, null), FormatConsumeException(exception)),
+        { ConsumerRecord.Message: null } => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, null), FormatConsumeException(exception)),
+        _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key), FormatConsumeException(exception)),
+    };
+
     private static IEnumerable<KeyValuePair<string, object?>> GetTags(string topic, int? partition = null, string? errorType = null)
     {
         yield return new KeyValuePair<string, object?>(
@@ -292,72 +325,43 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         this.consumerMeterInstrumentation.RecordReceiveDuration(duration.TotalSeconds, tags);
     }
 
-    private void InstrumentConsumption(DateTimeOffset startTime, ConsumeResult<TKey, TValue> result)
+    private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
     {
-        Activity? activity = null;
         if (this.options.Traces)
         {
-            ConsumeResult consumeResult = new(result.TopicPartitionOffset, result.Message.Headers, result.Message.Key);
             PropagationContext propagationContext = consumeResult.Headers != null
                 ? ExtractPropagationContext(consumeResult.Headers)
                 : default;
-            var spanName = string.IsNullOrEmpty(consumeResult.TopicPartitionOffset?.Topic)
-                ? ReceiveOperationName
-                : string.Concat(consumeResult.TopicPartitionOffset!.Topic, " ", ReceiveOperationName);
 
-            activity = this.StartReceiveActivity(spanName, propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
-            activity?.Stop();
-        }
-
-        if (this.options.Metrics)
-        {
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - startTime;
-            this.RecordReceive(result.TopicPartition, duration);
-        }
-
-        activity?.Dispose();
-    }
-
-    private void InstrumentConsumptionError(DateTimeOffset startTime, ConsumeException exception)
-    {
-        Activity? activity = null;
-        string? errorType = null;
-        if (this.options.Traces)
-        {
-            ConsumeResult consumeResult = new(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key);
-            PropagationContext propagationContext = consumeResult.Headers != null
-                ? ExtractPropagationContext(consumeResult.Headers)
-                : default;
-            var spanName = string.IsNullOrEmpty(consumeResult.TopicPartitionOffset?.Topic)
-                ? ReceiveOperationName
-                : string.Concat(consumeResult.TopicPartitionOffset!.Topic, " ", ReceiveOperationName);
-
-            activity = this.StartReceiveActivity(spanName, propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
-            errorType = FormatConsumeException(exception);
+            using Activity? activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
             if (activity != null)
             {
-                activity.SetStatus(ActivityStatusCode.Error);
-                if (activity.IsAllDataRequested)
+                if (errorType != null)
                 {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
+                    activity.SetStatus(ActivityStatusCode.Error);
+                    if (activity.IsAllDataRequested)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
+                    }
                 }
 
-                activity.Stop();
+                activity.SetEndTime(endTime.UtcDateTime);
             }
         }
 
         if (this.options.Metrics)
         {
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - startTime;
-            errorType ??= FormatConsumeException(exception);
-            this.RecordReceive(exception.ConsumerRecord.TopicPartition, duration, errorType);
+            TimeSpan duration = endTime - startTime;
+            this.RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
         }
-
-        activity?.Dispose();
     }
 
-    private Activity? StartReceiveActivity(string spanName, PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
+    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
     {
+        var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
+            ? ReceiveOperationName
+            : string.Concat(topicPartitionOffset!.Topic, " ", ReceiveOperationName);
+
         ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
             ? new[] { new ActivityLink(propagationContext.ActivityContext) }
             : Array.Empty<ActivityLink>();

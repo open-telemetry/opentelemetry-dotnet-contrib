@@ -49,7 +49,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-        using Activity? activity = this.StartActivity(PublishOperationName, topic, message);
+        using Activity? activity = this.StartPublishActivity(start, topic, message);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -77,8 +77,9 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         finally
         {
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - start;
-            activity?.Stop();
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            activity?.SetEndTime(end.UtcDateTime);
+            TimeSpan duration = end - start;
 
             if (this.options.Metrics)
             {
@@ -95,7 +96,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-        using Activity? activity = this.StartActivity(topicPartition, message);
+        using Activity? activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -123,8 +124,9 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         finally
         {
-            activity?.Stop();
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - start;
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            activity?.SetEndTime(end.UtcDateTime);
+            TimeSpan duration = end - start;
 
             if (this.options.Metrics)
             {
@@ -138,7 +140,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     public void Produce(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>>? deliveryHandler = null)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-        using Activity? activity = this.StartActivity(PublishOperationName, topic, message);
+        using Activity? activity = this.StartPublishActivity(start, topic, message);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -165,8 +167,9 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         finally
         {
-            activity?.Stop();
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - start;
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            activity?.SetEndTime(end.UtcDateTime);
+            TimeSpan duration = end - start;
 
             if (this.options.Metrics)
             {
@@ -178,7 +181,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     public void Produce(TopicPartition topicPartition, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>>? deliveryHandler = null)
     {
         DateTimeOffset start = DateTimeOffset.UtcNow;
-        using Activity? activity = this.StartActivity(topicPartition, message);
+        using Activity? activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -205,8 +208,9 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         }
         finally
         {
-            activity?.Stop();
-            TimeSpan duration = activity?.Duration ?? DateTimeOffset.UtcNow - start;
+            DateTimeOffset end = DateTimeOffset.UtcNow;
+            activity?.SetEndTime(end.UtcDateTime);
+            TimeSpan duration = end - start;
 
             if (this.options.Metrics)
             {
@@ -317,9 +321,10 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         this.producerMeterInstrumentation.RecordPublishDuration(duration.TotalSeconds, tags);
     }
 
-    private Activity? StartActivity(string operation, string topic, Message<TKey, TValue> message)
+    private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)
     {
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(string.Concat(topic, " ", operation), ActivityKind.Producer);
+        var spanName = string.Concat(topic, " ", PublishOperationName);
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
         if (activity == null)
         {
             return null;
@@ -330,33 +335,17 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
             activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, operation);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperation, PublishOperationName);
 
             if (message.Key != null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
             }
-        }
 
-        return activity;
-    }
-
-    private Activity? StartActivity(TopicPartition topicPartition, Message<TKey, TValue> message)
-    {
-        if (!this.options.Traces)
-        {
-            return null;
-        }
-
-        var activity = this.StartActivity(PublishOperationName, topicPartition.Topic, message);
-        if (activity == null)
-        {
-            return null;
-        }
-
-        if (activity.IsAllDataRequested)
-        {
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, topicPartition.Partition.Value);
+            if (partition is not null)
+            {
+                activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, partition);
+            }
         }
 
         return activity;
