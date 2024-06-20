@@ -105,7 +105,7 @@ public class GrpcCoreServerInterceptorTests
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, CustomTags = testTags.Tags };
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityTags = testTags.Tags };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         // No parent Activity, no context from header
@@ -147,7 +147,7 @@ public class GrpcCoreServerInterceptorTests
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), CustomTags = testTags.Tags, RecordException = true };
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityTags = testTags.Tags, RecordException = true };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         using var activityListener = new InterceptorActivityListener(testTags);
