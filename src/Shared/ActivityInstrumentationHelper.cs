@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
+#nullable enable
 
 #pragma warning disable IDE0005 // Using directive is unnecessary.
 using System;
@@ -17,13 +17,13 @@ internal static class ActivityInstrumentationHelper
 
     private static Action<Activity, ActivitySource> CreateActivitySourceSetter()
     {
-        return (Action<Activity, ActivitySource>)typeof(Activity).GetProperty("Source")
-            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivitySource>));
+        return (Action<Activity, ActivitySource>)typeof(Activity).GetProperty("Source")!
+            .SetMethod!.CreateDelegate(typeof(Action<Activity, ActivitySource>));
     }
 
     private static Action<Activity, ActivityKind> CreateActivityKindSetter()
     {
-        return (Action<Activity, ActivityKind>)typeof(Activity).GetProperty("Kind")
-            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivityKind>));
+        return (Action<Activity, ActivityKind>)typeof(Activity).GetProperty("Kind")!
+            .SetMethod!.CreateDelegate(typeof(Action<Activity, ActivityKind>));
     }
 }
