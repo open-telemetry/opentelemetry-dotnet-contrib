@@ -322,7 +322,7 @@ public class ClientTracingInterceptor : Interceptor
                 this.FullServiceName,
                 ActivityKind.Client,
                 this.parentActivity == default ? default : this.parentActivity.Context,
-                tags: options.CustomActivityTags);
+                tags: options.ActivityTags);
 
             if (rpcActivity == null)
             {

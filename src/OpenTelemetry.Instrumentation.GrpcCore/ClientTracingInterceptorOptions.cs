@@ -29,5 +29,5 @@ public class ClientTracingInterceptorOptions
     /// <summary>
     /// Gets or sets custom tags used during unit testing.
     /// </summary>
-    internal IReadOnlyDictionary<string, object> CustomActivityTags { get; set; }
+    internal IReadOnlyDictionary<string, object> ActivityTags { get; set; }
 }
