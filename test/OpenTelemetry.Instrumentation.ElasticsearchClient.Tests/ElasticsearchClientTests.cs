@@ -190,7 +190,7 @@ public class ElasticsearchClientTests
         var sampler = new TestSampler
         {
             SamplingAction =
-                (samplingParameters) =>
+                _ =>
                 {
                     samplerCalled = true;
                     return new SamplingResult(SamplingDecision.RecordAndSample);
@@ -207,7 +207,7 @@ public class ElasticsearchClientTests
             {
                 Assert.True(samplerCalled);
                 Assert.False(Sdk.SuppressInstrumentation);
-                Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                Assert.True(a.IsAllDataRequested); // If Processor.OnStart is called, activity's IsAllDataRequested is set to true
                 startCalled++;
             };
 
@@ -250,7 +250,7 @@ public class ElasticsearchClientTests
         var sampler = new TestSampler
         {
             SamplingAction =
-                (samplingParameters) =>
+                _ =>
                 {
                     samplerCalled = true;
                     return new SamplingResult(SamplingDecision.RecordAndSample);
@@ -267,7 +267,7 @@ public class ElasticsearchClientTests
             {
                 Assert.True(samplerCalled);
                 Assert.False(Sdk.SuppressInstrumentation);
-                Assert.True(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                Assert.True(a.IsAllDataRequested); // If Processor.OnStart is called, activity's IsAllDataRequested is set to true
                 startCalled++;
             };
 
@@ -310,7 +310,7 @@ public class ElasticsearchClientTests
         var sampler = new TestSampler
         {
             SamplingAction =
-                (samplingParameters) =>
+                _ =>
                 {
                     samplerCalled = true;
                     return new SamplingResult(SamplingDecision.Drop);
@@ -327,7 +327,7 @@ public class ElasticsearchClientTests
             {
                 Assert.True(samplerCalled);
                 Assert.False(Sdk.SuppressInstrumentation);
-                Assert.False(a.IsAllDataRequested); // If Proccessor.OnStart is called, activity's IsAllDataRequested is set to true
+                Assert.False(a.IsAllDataRequested); // If Processor.OnStart is called, activity's IsAllDataRequested is set to true
                 startCalled++;
             };
 
@@ -740,7 +740,7 @@ public class ElasticsearchClientTests
         var client = new ElasticClient(new ConnectionSettings(new InMemoryConnection()).DefaultIndex("customer"));
 
         using (Sdk.CreateTracerProviderBuilder()
-                   .SetSampler(new TestSampler() { SamplingAction = (samplingParameters) => new SamplingResult(samplingDecision) })
+                   .SetSampler(new TestSampler() { SamplingAction = _ => new SamplingResult(samplingDecision) })
                    .AddElasticsearchClientInstrumentation()
                    .SetResourceBuilder(expectedResource)
                    .AddProcessor(processor)
