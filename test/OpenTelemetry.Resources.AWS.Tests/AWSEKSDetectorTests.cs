@@ -3,7 +3,6 @@
 
 #if !NETFRAMEWORK
 
-using System.Linq;
 using Xunit;
 
 namespace OpenTelemetry.Resources.AWS.Tests;

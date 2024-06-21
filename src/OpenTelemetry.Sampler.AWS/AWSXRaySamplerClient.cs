@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Sampler.AWS;
 
