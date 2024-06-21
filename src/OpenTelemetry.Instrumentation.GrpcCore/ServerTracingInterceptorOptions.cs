@@ -27,7 +27,7 @@ public class ServerTracingInterceptorOptions
     public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
 
     /// <summary>
-    /// Gets or sets custom activity tags used during unit testing.
+    /// Gets or sets additional activity tags used during unit testing.
     /// </summary>
     internal IReadOnlyDictionary<string, object> AdditionalTags { get; set; }
 }
