@@ -29,5 +29,5 @@ public class ServerTracingInterceptorOptions
     /// <summary>
     /// Gets or sets custom activity tags used during unit testing.
     /// </summary>
-    internal IReadOnlyDictionary<string, object> ActivityTags { get; set; }
+    internal IReadOnlyDictionary<string, object> AdditionalTags { get; set; }
 }

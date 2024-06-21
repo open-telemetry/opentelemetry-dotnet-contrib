@@ -27,7 +27,7 @@ internal class TestActivityTags
     /// Checks whether the activity has test tags.
     /// </summary>
     /// <param name="activity">The activity.</param>
-    /// <returns>Returns true of the activty has test tags.</returns>
+    /// <returns>Returns true if the activty has test tags, false otherwise.</returns>
     internal bool HasTestTags(Activity activity)
     {
         Guard.ThrowIfNull(activity);

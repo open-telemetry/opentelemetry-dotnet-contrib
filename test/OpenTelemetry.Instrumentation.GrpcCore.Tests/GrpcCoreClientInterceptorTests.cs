@@ -240,7 +240,7 @@ public class GrpcCoreClientInterceptorTests
             });
 
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ClientTracingInterceptorOptions { ActivityTags = testTags.Tags };
+        var interceptorOptions = new ClientTracingInterceptorOptions { AdditionalTags = testTags.Tags };
         callInvoker = callInvoker.Intercept(new ClientTracingInterceptor(interceptorOptions));
         var client = new Foobar.FoobarClient(callInvoker);
 
@@ -411,7 +411,7 @@ public class GrpcCoreClientInterceptorTests
         {
             Propagator = propagator,
             RecordMessageEvents = true,
-            ActivityTags = testTags.Tags,
+            AdditionalTags = testTags.Tags,
         };
 
         // No Activity parent
@@ -491,7 +491,7 @@ public class GrpcCoreClientInterceptorTests
     {
         using var server = FoobarService.Start();
         var testTags = new TestActivityTags();
-        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityTags = testTags.Tags, RecordException = true };
+        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
             new ClientTracingInterceptor(interceptorOptions),
@@ -521,7 +521,7 @@ public class GrpcCoreClientInterceptorTests
     {
         using var server = FoobarService.Start();
         var testTags = new TestActivityTags();
-        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityTags = testTags.Tags };
+        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags };
         using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
         clientRequestAction(client);
