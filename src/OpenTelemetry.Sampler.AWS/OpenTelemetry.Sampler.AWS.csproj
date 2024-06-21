@@ -5,6 +5,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry remote sampler for AWS X-Ray.</Description>
     <MinVerTagPrefix>Sampler.AWS-</MinVerTagPrefix>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.

@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Threading;
-
 namespace OpenTelemetry.Sampler.AWS;
 
 internal sealed class RateLimiter
