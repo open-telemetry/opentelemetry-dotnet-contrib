@@ -5,6 +5,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Host Resource Detector.</Description>
     <MinVerTagPrefix>Resources.Host-</MinVerTagPrefix>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.

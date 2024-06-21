@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Linq;
 using Xunit;
 
 namespace OpenTelemetry.Resources.ProcessRuntime.Tests;
