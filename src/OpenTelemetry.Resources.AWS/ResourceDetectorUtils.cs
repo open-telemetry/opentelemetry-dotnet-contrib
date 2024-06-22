@@ -39,10 +39,10 @@ internal static class ResourceDetectorUtils
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var response = await httpClient.SendAsync(httpRequestMessage))
+            using (var response = await httpClient.SendAsync(httpRequestMessage).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStringAsync();
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
         }
     }
