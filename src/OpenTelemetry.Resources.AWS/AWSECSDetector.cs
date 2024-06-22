@@ -67,8 +67,8 @@ internal sealed class AWSECSDetector : IResourceDetector
         }
 
         using var httpClientHandler = new HttpClientHandler();
-        var metadataV4ContainerResponse = ResourceDetectorUtils.SendOutRequest(metadataV4Url, "GET", null, httpClientHandler).Result;
-        var metadataV4TaskResponse = ResourceDetectorUtils.SendOutRequest($"{metadataV4Url.TrimEnd('/')}/task", "GET", null, httpClientHandler).Result;
+        var metadataV4ContainerResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(metadataV4Url, HttpMethod.Get, null, httpClientHandler));
+        var metadataV4TaskResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler));
 
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
@@ -89,10 +89,8 @@ internal sealed class AWSECSDetector : IResourceDetector
 
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
-#pragma warning disable CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
-            var baseArn = containerArn.Substring(containerArn.LastIndexOf(":", StringComparison.Ordinal));
+            var baseArn = containerArn.Substring(containerArn.LastIndexOf(':'));
 #pragma warning restore CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
-            clusterArn = $"{baseArn}:cluster/{clusterArn}";
         }
 
         var resourceAttributes = new List<KeyValuePair<string, object>>()

@@ -21,12 +21,16 @@ internal static class ResourceDetectorUtils
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
 
-    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string>? header, HttpClientHandler? handler = null)
+    internal static async Task<string> SendOutRequestAsync(
+        string url,
+        HttpMethod method,
+        KeyValuePair<string, string>? header,
+        HttpClientHandler? handler = null)
     {
         using (var httpRequestMessage = new HttpRequestMessage())
         {
             httpRequestMessage.RequestUri = new Uri(url);
-            httpRequestMessage.Method = new HttpMethod(method);
+            httpRequestMessage.Method = method;
             if (header.HasValue)
             {
                 httpRequestMessage.Headers.Add(header.Value.Key, header.Value.Value);
@@ -35,10 +39,10 @@ internal static class ResourceDetectorUtils
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var response = await httpClient.SendAsync(httpRequestMessage).ConfigureAwait(false))
+            using (var response = await httpClient.SendAsync(httpRequestMessage))
             {
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return await response.Content.ReadAsStringAsync();
             }
         }
     }
@@ -61,7 +65,7 @@ internal static class ResourceDetectorUtils
     {
         using (var stream = GetStream(filePath))
         {
-            return (T?)JsonSerializer.Deserialize(stream, typeof(T), JsonSerializerOptions);
+            return JsonSerializer.Deserialize<T>(stream, JsonSerializerOptions);
         }
     }
 
