@@ -101,7 +101,7 @@ public class CommonSchemaJsonSerializationHelperTests
         this.SerializeValueToJsonTest(typeWithISpanFormattableOverflow, "\"Overflow\"");
 #endif
 
-#if NET
+#if NET7_0_OR_GREATER
         var dateOnly = DateOnly.FromDateTime(dt);
         this.SerializeValueToJsonTest(dateOnly, $"\"{dateOnly:O}\"");
 

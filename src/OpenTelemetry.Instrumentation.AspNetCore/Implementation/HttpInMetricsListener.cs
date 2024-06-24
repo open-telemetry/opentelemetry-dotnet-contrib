@@ -6,12 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Internal;
-
 #if NET
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
 #endif
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;

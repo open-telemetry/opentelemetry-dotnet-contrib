@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET
+#if !NET8_0_OR_GREATER
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore;

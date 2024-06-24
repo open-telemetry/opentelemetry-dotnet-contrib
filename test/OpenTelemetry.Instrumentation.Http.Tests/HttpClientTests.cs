@@ -5,7 +5,7 @@ using System.Diagnostics;
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
-#if !NET
+#if !NET8_0_OR_GREATER
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
@@ -21,7 +21,7 @@ public partial class HttpClientTests
 {
     public static readonly IEnumerable<object[]> TestData = HttpTestData.ReadTestCases();
 
-#if !NET
+#if !NET8_0_OR_GREATER
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 #endif
 
@@ -73,7 +73,7 @@ public partial class HttpClientTests
             enableMetrics: false);
     }
 
-#if !NET
+#if !NET8_0_OR_GREATER
     [Fact]
     public async Task DebugIndividualTestAsync()
     {
@@ -115,7 +115,7 @@ public partial class HttpClientTests
         await CheckEnrichment(new AlwaysOnSampler(), true, this.url);
     }
 
-#if NET
+#if NET8_0_OR_GREATER
     [Theory]
     [MemberData(nameof(TestData))]
     public async Task ValidateNet8MetricsAsync(HttpOutTestCase tc)
@@ -320,7 +320,7 @@ public partial class HttpClientTests
                 Assert.DoesNotContain(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode);
                 Assert.DoesNotContain(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion);
 
-#if NET
+#if NET8_0_OR_GREATER
                 // we are using fake address so it will be "name_resolution_error"
                 // TODO: test other error types.
                 Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_error");
@@ -368,7 +368,7 @@ public partial class HttpClientTests
             if (enableTracing)
             {
                 var activity = Assert.Single(activities);
-#if !NET
+#if !NET8_0_OR_GREATER
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
 #endif
             }
@@ -419,7 +419,7 @@ public partial class HttpClientTests
                 Assert.DoesNotContain(attributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion);
                 Assert.DoesNotContain(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode);
 
-#if NET
+#if NET8_0_OR_GREATER
                 // we are using fake address so it will be "name_resolution_error"
                 // TODO: test other error types.
                 Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_error");
