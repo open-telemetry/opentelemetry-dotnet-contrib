@@ -8,6 +8,7 @@
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
     <NoWarn>$(NoWarn),1591</NoWarn>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

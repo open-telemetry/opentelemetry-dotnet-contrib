@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
-
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
 internal class InstanaSpanFactory

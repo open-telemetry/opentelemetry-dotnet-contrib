@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using Xunit;

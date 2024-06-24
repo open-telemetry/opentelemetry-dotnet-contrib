@@ -3,10 +3,7 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using Xunit;
