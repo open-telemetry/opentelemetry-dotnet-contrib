@@ -104,11 +104,12 @@ public class GrpcCoreServerInterceptorTests
     private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
     {
         // starts the server with the server interceptor
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, AdditionalTags = testTags.Tags };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         // No parent Activity, no context from header
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(server.UriString);
             await clientRequestFunc(client, additionalMetadata);
@@ -119,7 +120,7 @@ public class GrpcCoreServerInterceptorTests
         }
 
         // No parent Activity, context from header
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
@@ -145,10 +146,11 @@ public class GrpcCoreServerInterceptorTests
     private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
     {
         // starts the server with the server interceptor
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
-        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
+        using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(
             server.UriString,
             additionalMetadata: new List<Metadata.Entry>

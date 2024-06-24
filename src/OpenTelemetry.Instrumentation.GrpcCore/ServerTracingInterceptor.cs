@@ -205,21 +205,11 @@ public class ServerTracingInterceptor : Interceptor
                 }
             }
 
-            // This if block is for unit testing only.
-            IEnumerable<KeyValuePair<string, object>> customTags = null;
-            if (options.ActivityIdentifierValue != default)
-            {
-                customTags = new List<KeyValuePair<string, object>>
-                {
-                    new KeyValuePair<string, object>(SemanticConventions.AttributeActivityIdentifier, options.ActivityIdentifierValue),
-                };
-            }
-
             var activity = GrpcCoreInstrumentation.ActivitySource.StartActivity(
                 this.FullServiceName,
                 ActivityKind.Server,
                 currentContext ?? default,
-                tags: customTags);
+                tags: options.AdditionalTags);
 
             this.SetActivity(activity);
         }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
@@ -20,15 +19,15 @@ internal sealed class InterceptorActivityListener : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="InterceptorActivityListener" /> class.
     /// </summary>
-    /// <param name="activityIdentifier">The activity identifier.</param>
-    public InterceptorActivityListener(Guid activityIdentifier)
+    /// <param name="testTags">The test activity tags.</param>
+    public InterceptorActivityListener(TestActivityTags testTags)
     {
         this.activityListener = new ActivityListener
         {
             ShouldListenTo = source => source.Name == GrpcCoreInstrumentation.ActivitySourceName,
             ActivityStarted = activity =>
             {
-                if (activity.TagObjects.Any(t => t.Key == SemanticConventions.AttributeActivityIdentifier && (Guid)t.Value == activityIdentifier))
+                if (testTags.HasTestTags(activity))
                 {
                     this.Activity = activity;
                 }
