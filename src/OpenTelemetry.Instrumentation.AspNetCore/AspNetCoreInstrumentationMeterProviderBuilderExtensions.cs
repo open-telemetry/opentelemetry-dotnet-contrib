@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET
+#if !NET8_0_OR_GREATER
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 #endif
@@ -24,7 +24,7 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-#if NET
+#if NET8_0_OR_GREATER
         return builder.ConfigureMeters();
 #else
         // Note: Warm-up the status code and method mapping.
