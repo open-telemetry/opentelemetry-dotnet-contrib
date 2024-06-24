@@ -13,7 +13,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
 
         foreach (var activityEvent in activity.Events)
         {
-            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD)
+            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD && instanaSpan.TransformInfo != null)
             {
                 instanaSpan.TransformInfo.HasExceptionEvent = true;
             }
@@ -33,7 +33,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
                 }
             }
 
-            instanaSpan.Data.Events.Add(spanEvent);
+            instanaSpan.Data?.Events?.Add(spanEvent);
         }
 
         await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
