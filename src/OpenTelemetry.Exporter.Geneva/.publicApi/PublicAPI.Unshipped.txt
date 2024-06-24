@@ -1,4 +1,0 @@
-static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder builder) -> OpenTelemetry.Logs.LoggerProviderBuilder
-static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder builder, string name, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configureExporter) -> OpenTelemetry.Logs.LoggerProviderBuilder
-static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions> configureExporter) -> OpenTelemetry.Logs.LoggerProviderBuilder
-static OpenTelemetry.Exporter.Geneva.GenevaExporterHelperExtensions.AddGenevaTraceExporter(this OpenTelemetry.Trace.TracerProviderBuilder builder) -> OpenTelemetry.Trace.TracerProviderBuilder

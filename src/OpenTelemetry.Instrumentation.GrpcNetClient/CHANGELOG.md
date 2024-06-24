@@ -2,10 +2,15 @@
 
 ## Unreleased
 
+## 1.9.0-beta.1
+
+Released 2024-Jun-17
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#5498](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5498))
-* Update `OpenTelemetry` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.8.0-beta.1
 
@@ -24,12 +29,14 @@ Released 2024-Feb-09
   package therefore this also affects versions prior to this release. See this
   [issue](https://github.com/open-telemetry/opentelemetry-dotnet/issues/5092)
   for details and workaround.
+
 * Removed support for the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable
   which toggled the use of the new conventions for the
   [server, client, and shared network attributes](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/general/attributes.md#server-client-and-shared-network-attributes).
   Now that this suite of attributes are stable, this instrumentation will only
   emit the new attributes.
   ([#5259](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5259))
+
 * **Breaking Change**: Renamed `GrpcClientInstrumentationOptions` to
   `GrpcClientTraceInstrumentationOptions`.
   ([#5272](https://github.com/open-telemetry/opentelemetry-dotnet/pull/5272))
@@ -197,6 +204,7 @@ Released 2021-Mar-19
   and ActivityProcessors. Samplers, ActivityProcessor.OnStart will now get the
   Activity before any enrichment done by the instrumentation.
   ([#1836](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1836))
+
 * Performance optimization by leveraging sampling decision and short circuiting
   activity enrichment.
   ([#1903](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1904))
@@ -211,6 +219,7 @@ Released 2020-Nov-17
 
 * Add context propagation, when SuppressDownstreamInstrumentation is enabled.
   [#1464](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1464)
+
 * GrpcNetClientInstrumentation sets ActivitySource to activities created outside
   ActivitySource.
   ([#1515](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1515/))
@@ -227,6 +236,7 @@ Released 2020-Oct-16
   Activity.CustomProperty. To enrich activity, use the Enrich action on the
   instrumentation.
   ([#1261](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1261))
+
 * Span Status is populated as per new spec
   ([#1313](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1313))
 
@@ -248,6 +258,7 @@ Released 2020-08-28
   instrumentation. The package was previously named
   OpenTelemetry.Instrumentation.Grpc.
   ([#1136](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1136))
+
 * Grpc.Net.Client Instrumentation automatically populates HttpRequest in
   Activity custom property
   ([#1099](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1099))

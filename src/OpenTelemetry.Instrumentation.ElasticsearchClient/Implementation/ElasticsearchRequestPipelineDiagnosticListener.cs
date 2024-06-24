@@ -28,17 +28,17 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     internal static readonly string ActivitySourceName = AssemblyName.Name;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
-    private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
-    private static readonly ConcurrentDictionary<object, string> MethodNameCache = new ConcurrentDictionary<object, string>();
+    private static readonly Regex ParseRequest = new(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
+    private static readonly ConcurrentDictionary<object, string> MethodNameCache = new();
 
     private readonly ElasticsearchClientInstrumentationOptions options;
-    private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new MultiTypePropertyFetcher<Uri>("Uri");
-    private readonly MultiTypePropertyFetcher<object> methodFetcher = new MultiTypePropertyFetcher<object>("Method");
-    private readonly MultiTypePropertyFetcher<string> debugInformationFetcher = new MultiTypePropertyFetcher<string>("DebugInformation");
-    private readonly MultiTypePropertyFetcher<int?> httpStatusFetcher = new MultiTypePropertyFetcher<int?>("HttpStatusCode");
-    private readonly MultiTypePropertyFetcher<Exception> originalExceptionFetcher = new MultiTypePropertyFetcher<Exception>("OriginalException");
-    private readonly MultiTypePropertyFetcher<object> failureReasonFetcher = new MultiTypePropertyFetcher<object>("FailureReason");
-    private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new MultiTypePropertyFetcher<byte[]>("ResponseBodyInBytes");
+    private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new("Uri");
+    private readonly MultiTypePropertyFetcher<object> methodFetcher = new("Method");
+    private readonly MultiTypePropertyFetcher<string> debugInformationFetcher = new("DebugInformation");
+    private readonly MultiTypePropertyFetcher<int?> httpStatusFetcher = new("HttpStatusCode");
+    private readonly MultiTypePropertyFetcher<Exception> originalExceptionFetcher = new("OriginalException");
+    private readonly MultiTypePropertyFetcher<object> failureReasonFetcher = new("FailureReason");
+    private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new("ResponseBodyInBytes");
 
     public ElasticsearchRequestPipelineDiagnosticListener(ElasticsearchClientInstrumentationOptions options)
         : base("Elasticsearch.Net.RequestPipeline")
@@ -46,7 +46,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnEventWritten(string name, object payload)
+    public override void OnEventWritten(string name, object? payload)
     {
         var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
@@ -61,7 +61,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private static string GetDisplayName(Activity activity, object method, string elasticType = null)
+    private static string GetDisplayName(Activity activity, object? method, string? elasticType = null)
     {
         switch (activity.OperationName)
         {
@@ -83,7 +83,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private static string GetElasticIndex(Uri uri)
+    private static string? GetElasticIndex(Uri uri)
     {
         // first segment is always /
         if (uri.Segments.Length < 2)
@@ -91,7 +91,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             return null;
         }
 
-        // operations starting with _ are not indices (_cat, _search, etc)
+        // operations starting with _ are not indices (_cat, _search, etc.)
         if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
         {
             return null;
@@ -123,7 +123,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var request = ParseRequest.Match(debugInformation);
         if (request.Success)
         {
-            string body = request.Groups[1]?.Value?.Trim();
+            string? body = request.Groups[1]?.Value?.Trim();
             if (body == null)
             {
                 return debugInformation;
@@ -150,7 +150,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         return debugInformation;
     }
 
-    private void OnStartActivity(Activity activity, object payload)
+    private void OnStartActivity(Activity activity, object? payload)
     {
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
@@ -226,7 +226,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private void OnStopActivity(Activity activity, object payload)
+    private void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {

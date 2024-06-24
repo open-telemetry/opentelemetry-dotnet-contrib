@@ -2,11 +2,16 @@
 
 ## Unreleased
 
-* Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+## 1.0.0-rc9.15
+
+Released 2024-Jun-18
+
 * Update `Microsoft.Extensions.Options` to `8.0.0`.
   ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
 
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+  
 * Add support for instrumenting `IConnectionMultiplexer` which is added with service key.
   ([#1885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1885))
 
@@ -16,6 +21,7 @@ Released 2024-Apr-05
 
 * Update `OpenTelemetry.Api.ProviderBuilderExtensions` version to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
@@ -81,6 +87,7 @@ Released 2023-Feb-27
 
 * Update OTel API version to `1.4.0`.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
 * Added a direct dependency on System.Reflection.Emit.Lightweight which
   previously came transitively through the OpenTelemetry API.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
@@ -91,6 +98,7 @@ Released 2022-Jul-25
 
 * Update the `ActivitySource` name used to the assembly name: `OpenTelemetry.Instrumentation.StackExchangeRedis`.
 ([#485](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/485))
+
 * Drain thread is marked as background. It allows to close the application
   even if the instrumentation is not disposed.
 ([#528](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/528))
@@ -153,8 +161,10 @@ Released 2021-Oct-08
 
 * Adds SetVerboseDatabaseStatements option to allow setting more detailed
   database statement tag values.
+
 * Adds Enrich option to allow enriching activities from the source profiled
   command objects.
+
 * Removes upper constraint for Microsoft.Extensions.Options dependency.
   ([#2179](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2179))
 

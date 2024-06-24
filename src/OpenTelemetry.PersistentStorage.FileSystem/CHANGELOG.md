@@ -1,6 +1,6 @@
 # Changelog - OpenTelemetry.PersistentStorage.FileSystem
 
-## Unrealeased
+## Unreleased
 
 * Fix `System.FormatException` thrown by `PersistentStorageEventSource`.
   [#1613](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1613)

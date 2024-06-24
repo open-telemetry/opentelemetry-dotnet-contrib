@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -311,16 +310,6 @@ public class ClientTracingInterceptor : Interceptor
                 return;
             }
 
-            // This if block is for unit testing only.
-            IEnumerable<KeyValuePair<string, object>> customTags = null;
-            if (options.ActivityIdentifierValue != default)
-            {
-                customTags = new List<KeyValuePair<string, object>>
-                {
-                    new KeyValuePair<string, object>(SemanticConventions.AttributeActivityIdentifier, options.ActivityIdentifierValue),
-                };
-            }
-
             // We want to start an activity but don't activate it.
             // After calling StartActivity, Activity.Current will be the new Activity.
             // This scope is created synchronously before the RPC invocation starts and so this new Activity will overwrite
@@ -331,7 +320,7 @@ public class ClientTracingInterceptor : Interceptor
                 this.FullServiceName,
                 ActivityKind.Client,
                 this.parentActivity == default ? default : this.parentActivity.Context,
-                tags: customTags);
+                tags: options.AdditionalTags);
 
             if (rpcActivity == null)
             {

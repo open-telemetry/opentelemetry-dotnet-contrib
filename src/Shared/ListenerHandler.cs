@@ -16,7 +16,7 @@ internal abstract class ListenerHandler
     /// Initializes a new instance of the <see cref="ListenerHandler"/> class.
     /// </summary>
     /// <param name="sourceName">The name of the <see cref="ListenerHandler"/>.</param>
-    public ListenerHandler(string sourceName)
+    protected ListenerHandler(string sourceName)
     {
         this.SourceName = sourceName;
     }

@@ -2,9 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if !NETFRAMEWORK
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
