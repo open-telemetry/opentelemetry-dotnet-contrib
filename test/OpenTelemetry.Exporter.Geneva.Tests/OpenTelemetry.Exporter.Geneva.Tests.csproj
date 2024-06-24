@@ -8,6 +8,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202,OTEL1002</NoWarn>
     <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
