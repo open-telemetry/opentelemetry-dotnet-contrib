@@ -45,7 +45,7 @@ internal sealed class EventNameManager
 
         this.defaultEventFullName = BuildEventFullName(defaultEventNamespace, defaultEventName)!;
 
-#if NET6_0_OR_GREATER
+#if NET
         Debug.Assert(this.defaultEventFullName != null, "this.defaultFullyQualifiedEventName was null");
 #endif
     }

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Threading;
 using System.Threading.Tasks;
 #endif
@@ -66,7 +66,7 @@ public class RuntimeMetricsTests
         var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
         Assert.NotNull(totalObjectsSize);
 
-#if NET6_0_OR_GREATER
+#if NET
 
         var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
         Assert.NotNull(gcAllocationSizeMetric);
@@ -88,7 +88,7 @@ public class RuntimeMetricsTests
 #endif
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Fact]
     public void JitRelatedMetricsTest()
     {

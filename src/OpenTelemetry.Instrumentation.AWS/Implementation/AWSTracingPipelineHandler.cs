@@ -130,7 +130,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
         "Trimming",
         "IL2075",

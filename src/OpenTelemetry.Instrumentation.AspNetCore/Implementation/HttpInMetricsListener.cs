@@ -8,7 +8,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Internal;
 
-#if NET6_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
 #endif
@@ -55,12 +55,12 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         // See https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L252
         // and https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Middleware/Diagnostics/src/DeveloperExceptionPage/DeveloperExceptionPageMiddlewareImpl.cs#L174
         // this makes sure that top-level properties on the payload object are always preserved.
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
             => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? ctx)
@@ -86,7 +86,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         var httpMethod = TelemetryHelper.RequestDataHelper.GetNormalizedHttpMethod(context.Request.Method);
         tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
 
-#if NET6_0_OR_GREATER
+#if NET
         // Check the exception handler feature first in case the endpoint was overwritten
         var route = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
                      context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;

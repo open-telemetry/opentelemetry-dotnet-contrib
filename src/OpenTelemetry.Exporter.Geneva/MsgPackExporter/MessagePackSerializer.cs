@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Buffers.Binary;
 #endif
 using System.Globalization;
@@ -50,7 +50,7 @@ internal static class MessagePackSerializer
     private const int LIMIT_MAX_FIX_ARRAY_LENGTH = 15;
     private const int STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
-#if NET6_0_OR_GREATER
+#if NET
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
 
@@ -187,7 +187,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt16(byte[] buffer, int cursor, short value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteInt16BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(short);
 #else
@@ -204,7 +204,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt32(byte[] buffer, int cursor, int value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteInt32BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(int);
 #else
@@ -223,7 +223,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteInt64(byte[] buffer, int cursor, long value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteInt64BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(long);
 #else
@@ -246,7 +246,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt16(byte[] buffer, int cursor, ushort value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteUInt16BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(ushort);
 #else
@@ -263,7 +263,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt32(byte[] buffer, int cursor, uint value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteUInt32BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(uint);
 #else
@@ -282,7 +282,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteUInt64(byte[] buffer, int cursor, ulong value)
     {
-#if NET6_0_OR_GREATER
+#if NET
         BinaryPrimitives.WriteUInt64BigEndian(buffer.AsSpan(cursor), value);
         return cursor + sizeof(ulong);
 #else
@@ -410,7 +410,7 @@ internal static class MessagePackSerializer
         return cursor;
     }
 
-#if NET6_0_OR_GREATER
+#if NET
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
@@ -636,7 +636,7 @@ internal static class MessagePackSerializer
             case DateTimeOffset v:
                 return SerializeUtcDateTime(buffer, cursor, v.UtcDateTime);
 
-#if NET6_0_OR_GREATER
+#if NET
             case ISpanFormattable v:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
                 if (v.TryFormat(tmp, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))

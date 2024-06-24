@@ -17,7 +17,7 @@ namespace OpenTelemetry.Tests;
 
 internal static class TestHttpServer
 {
-#if !NET6_0_OR_GREATER
+#if !NET
     private static readonly Random GlobalRandom = new();
 #endif
 
@@ -32,7 +32,7 @@ internal static class TestHttpServer
         {
             try
             {
-#if NET6_0_OR_GREATER
+#if NET
                 port = RandomNumberGenerator.GetInt32(2000, 5000);
 #else
 #pragma warning disable CA5394 // Do not use insecure randomness

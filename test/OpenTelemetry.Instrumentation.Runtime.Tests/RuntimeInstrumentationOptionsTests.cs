@@ -12,7 +12,7 @@ public class RuntimeInstrumentationOptionsTests
                 var options = new RuntimeInstrumentationOptions();
 
                 Assert.True(options.IsGcEnabled);
-    #if NET6_0_OR_GREATER
+    #if NET
                 Assert.True(options.IsJitEnabled);
                 Assert.True(options.IsThreadingEnabled);
     #endif
@@ -26,7 +26,7 @@ public class RuntimeInstrumentationOptionsTests
                 var options = new RuntimeInstrumentationOptions { GcEnabled = true };
 
                 Assert.True(options.IsGcEnabled);
-    #if NET6_0_OR_GREATER
+    #if NET
                 Assert.False(options.IsJitEnabled);
                 Assert.False(options.IsThreadingEnabled);
     #endif
@@ -34,7 +34,7 @@ public class RuntimeInstrumentationOptionsTests
                 Assert.False(options.IsAllEnabled);
             }
 
-    #if NET6_0_OR_GREATER
+    #if NET
             [Fact]
             public void Enable_Jit_Only()
             {
@@ -48,7 +48,7 @@ public class RuntimeInstrumentationOptionsTests
             }
     #endif
 
-    #if NET6_0_OR_GREATER
+    #if NET
             [Fact]
             public void Enable_Threading_Only()
             {
@@ -68,7 +68,7 @@ public class RuntimeInstrumentationOptionsTests
                 var options = new RuntimeInstrumentationOptions { AssembliesEnabled = true };
 
                 Assert.False(options.IsGcEnabled);
-    #if NET6_0_OR_GREATER
+    #if NET
                 Assert.False(options.IsJitEnabled);
                 Assert.False(options.IsThreadingEnabled);
     #endif
@@ -82,7 +82,7 @@ public class RuntimeInstrumentationOptionsTests
                 var options = new RuntimeInstrumentationOptions { GcEnabled = true, AssembliesEnabled = true };
 
                 Assert.True(options.IsGcEnabled);
-    #if NET6_0_OR_GREATER
+    #if NET
                 Assert.False(options.IsJitEnabled);
                 Assert.False(options.IsThreadingEnabled);
     #endif
