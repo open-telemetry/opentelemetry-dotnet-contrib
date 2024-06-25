@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Elasticsearch.Net;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;

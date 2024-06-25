@@ -4,6 +4,7 @@
     <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
     <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
     <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.

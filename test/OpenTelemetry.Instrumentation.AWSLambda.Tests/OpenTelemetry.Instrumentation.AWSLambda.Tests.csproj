@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
