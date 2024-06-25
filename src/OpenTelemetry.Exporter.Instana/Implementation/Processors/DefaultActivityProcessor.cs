@@ -88,7 +88,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
     {
         bool isEntrySpan = false;
 
-        if (instanaSpan.Data?.data != null)
+        if (instanaSpan.Data.data != null)
         {
             switch (activity.Kind)
             {

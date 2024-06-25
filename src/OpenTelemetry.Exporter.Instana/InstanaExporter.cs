@@ -103,7 +103,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         string processId = string.Empty;
         string hostId = string.Empty;
         var resource = this.instanaExporterHelper.GetParentProviderResource(this);
-        if (resource != Resource.Empty && resource.Attributes?.Count() > 0)
+        if (resource != Resource.Empty && resource.Attributes.Count() > 0)
         {
             foreach (var resourceAttribute in resource.Attributes)
             {
@@ -158,17 +158,17 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
         await this.activityProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
 
-        if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data?.data != null)
+        if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
         }
 
-        if (instanaSpan.Data?.data != null)
+        if (instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
         }
 
-        if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data?.data != null)
+        if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.TRACE_STATE_FIELD] = activity.TraceStateString;
         }

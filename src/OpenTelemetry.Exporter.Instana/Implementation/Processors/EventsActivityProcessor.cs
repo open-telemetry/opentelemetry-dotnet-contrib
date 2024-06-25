@@ -33,7 +33,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
                 }
             }
 
-            instanaSpan.Data?.Events?.Add(spanEvent);
+            instanaSpan.Data.Events.Add(spanEvent);
         }
 
         await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
