@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +25,7 @@ public static class TraceEnrichmentProviderBuilderExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-#if NET6_0_OR_GREATER
+#if NET
     public static TracerProviderBuilder AddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
 #else
     public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)

@@ -24,7 +24,7 @@ public static class TracerProviderBuilderExtensions
         return builder;
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     /// <summary>
     /// Replace the trace id of root activity.
     /// </summary>

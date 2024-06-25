@@ -93,7 +93,7 @@ public class CommonSchemaJsonSerializationHelperTests
         var version = new Version("1.4.0");
         this.SerializeValueToJsonTest(version, "\"1.4.0\"");
 
-#if NET6_0_OR_GREATER
+#if NET
         var typeWithISpanFormattable = new TypeWithISpanFormattable(overflow: false);
         this.SerializeValueToJsonTest(typeWithISpanFormattable, "\"hello\"");
 
@@ -139,7 +139,7 @@ public class CommonSchemaJsonSerializationHelperTests
         public override string ToString() => throw new NotImplementedException();
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     private sealed class TypeWithISpanFormattable : ISpanFormattable
     {
         private readonly bool overflow;
