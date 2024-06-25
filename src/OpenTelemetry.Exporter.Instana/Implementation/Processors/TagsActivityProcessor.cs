@@ -21,20 +21,20 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 
         this.PreProcess(activity, instanaSpan);
 
-        string? statusCode = string.Empty;
-        string? statusDesc = string.Empty;
+        string statusCode = string.Empty;
+        string statusDesc = string.Empty;
         Dictionary<string, string> tags = new Dictionary<string, string>();
         foreach (var tag in activity.Tags)
         {
             if (tag.Key == "otel.status_code")
             {
-                statusCode = tag.Value as string;
+                statusCode = (tag.Value as string) ?? string.Empty;
                 continue;
             }
 
             if (tag.Key == "otel.status_description")
             {
-                statusDesc = tag.Value as string;
+                statusDesc = (tag.Value as string) ?? string.Empty;
                 continue;
             }
 
@@ -49,11 +49,8 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
             instanaSpan.Data.Tags = tags;
         }
 
-        if (instanaSpan.TransformInfo != null)
-        {
-            instanaSpan.TransformInfo.StatusCode = statusCode;
-            instanaSpan.TransformInfo.StatusDesc = statusDesc;
-        }
+        instanaSpan.TransformInfo.StatusCode = statusCode;
+        instanaSpan.TransformInfo.StatusDesc = statusDesc;
 
         await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
     }
