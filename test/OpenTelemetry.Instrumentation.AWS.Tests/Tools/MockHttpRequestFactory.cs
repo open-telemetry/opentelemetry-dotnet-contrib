@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System.IO;
 using System.Net;
-#else
-using System.Net.Http;
 #endif
 using Amazon.Runtime;
 

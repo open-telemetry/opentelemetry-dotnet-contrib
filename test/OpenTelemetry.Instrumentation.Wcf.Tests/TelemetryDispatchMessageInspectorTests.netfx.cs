@@ -2,13 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 using Xunit.Abstractions;

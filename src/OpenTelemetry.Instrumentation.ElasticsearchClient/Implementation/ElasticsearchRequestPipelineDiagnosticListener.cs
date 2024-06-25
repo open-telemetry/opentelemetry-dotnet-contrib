@@ -3,7 +3,9 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
