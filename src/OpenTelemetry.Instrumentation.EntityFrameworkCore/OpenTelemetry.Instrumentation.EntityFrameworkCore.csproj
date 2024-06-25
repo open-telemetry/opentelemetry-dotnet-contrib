@@ -4,7 +4,6 @@
     <Description>Microsoft.EntityFrameworkCore instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.EntityFrameworkCore-</MinVerTagPrefix>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 	<!--Do not run Package Baseline Validation as this package has never released a stable version.

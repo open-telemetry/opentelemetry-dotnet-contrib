@@ -8,7 +8,6 @@
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.3</PackageValidationBaselineVersion>
     <Nullable>disable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

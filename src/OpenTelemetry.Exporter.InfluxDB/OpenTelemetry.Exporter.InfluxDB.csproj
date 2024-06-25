@@ -7,7 +7,6 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
