@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK || NETSTANDARD2_0
 using System.Collections.Generic;
+#endif
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
@@ -38,9 +40,9 @@ internal class InstanaSpan
     private int ec;
     private Data data = new Data()
     {
-        data = [],
+        data = new Dictionary<string, object>(8),
         Events = new List<SpanEvent>(8),
-        Tags = new Dictionary<string, string>(),
+        Tags = new Dictionary<string, string>(2),
     };
 
     public InstanaSpanTransformInfo TransformInfo

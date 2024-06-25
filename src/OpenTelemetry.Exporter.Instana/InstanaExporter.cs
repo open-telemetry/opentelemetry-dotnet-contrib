@@ -103,7 +103,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         string processId = string.Empty;
         string hostId = string.Empty;
         var resource = this.instanaExporterHelper.GetParentProviderResource(this);
-        if (resource != Resource.Empty && resource.Attributes.Count() > 0)
+        if (resource != Resource.Empty && resource.Attributes.Any())
         {
             foreach (var resourceAttribute in resource.Attributes)
             {

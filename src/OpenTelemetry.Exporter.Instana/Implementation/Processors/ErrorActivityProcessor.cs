@@ -17,9 +17,9 @@ internal class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcesso
             if (instanaSpan.Data.data != null)
             {
                 instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD] = activity.Status.ToString();
-                if (!string.IsNullOrEmpty(activity.StatusDescription))
+                if (activity.StatusDescription != null && !string.IsNullOrEmpty(activity.StatusDescription))
                 {
-                    instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription != null ? activity.StatusDescription : string.Empty;
+                    instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription;
                 }
             }
         }
