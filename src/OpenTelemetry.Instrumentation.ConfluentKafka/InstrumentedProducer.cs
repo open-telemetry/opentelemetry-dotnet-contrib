@@ -15,7 +15,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     private const string KafkaMessagingSystem = "kafka";
 
     private readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
-    private readonly ProducerMeterInstrumentation producerMeterInstrumentation = new();
     private readonly IProducer<TKey, TValue> producer;
     private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options;
 
@@ -83,7 +82,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
             if (this.options.Metrics)
             {
-                this.RecordPublish(topic, duration, errorType);
+                RecordPublish(topic, duration, errorType);
             }
         }
 
@@ -130,7 +129,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
             if (this.options.Metrics)
             {
-                this.RecordPublish(topicPartition, duration, errorType);
+                RecordPublish(topicPartition, duration, errorType);
             }
         }
 
@@ -173,7 +172,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
             if (this.options.Metrics)
             {
-                this.RecordPublish(topic, duration, errorType);
+                RecordPublish(topic, duration, errorType);
             }
         }
     }
@@ -214,7 +213,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
             if (this.options.Metrics)
             {
-                this.RecordPublish(topicPartition, duration, errorType);
+                RecordPublish(topicPartition, duration, errorType);
             }
         }
     }
@@ -271,7 +270,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     public void Dispose()
     {
-        this.producerMeterInstrumentation.Dispose();
         this.producer.Dispose();
     }
 
@@ -281,44 +279,52 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     private static string FormatArgumentException(ArgumentException argumentException) =>
         $"ArgumentException: {argumentException.ParamName}";
 
-    private static IEnumerable<KeyValuePair<string, object?>> GetTags(string topic, int? partition = null, string? errorType = null)
+    private static void GetTags(string topic, out TagList tags, int? partition = null, string? errorType = null)
     {
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingOperation,
-            PublishOperationName);
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingSystem,
-            KafkaMessagingSystem);
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingDestinationName,
-            topic);
+        tags = new TagList()
+        {
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingOperation,
+                PublishOperationName),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingSystem,
+                KafkaMessagingSystem),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingDestinationName,
+                topic),
+        };
+
         if (partition is not null)
         {
-            yield return new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingKafkaDestinationPartition,
-                partition);
+            tags.Add(
+                new KeyValuePair<string, object?>(
+                    SemanticConventions.AttributeMessagingKafkaDestinationPartition,
+                    partition));
         }
 
         if (errorType is not null)
         {
-            yield return new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeErrorType,
-                errorType);
+            tags.Add(
+                new KeyValuePair<string, object?>(
+                    SemanticConventions.AttributeErrorType,
+                    errorType));
         }
     }
 
-    private void RecordPublish(string topic, TimeSpan duration, string? errorType = null)
+    private static void RecordPublish(string topic, TimeSpan duration, string? errorType = null)
     {
-        var tags = GetTags(topic, partition: null, errorType).ToArray();
-        this.producerMeterInstrumentation.RecordPublishMessage(tags);
-        this.producerMeterInstrumentation.RecordPublishDuration(duration.TotalSeconds, tags);
+        GetTags(topic, out var tags, partition: null, errorType);
+
+        ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
+        ConfluentKafkaCommon.PublishDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
-    private void RecordPublish(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
+    private static void RecordPublish(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
     {
-        var tags = GetTags(topicPartition.Topic, partition: topicPartition.Partition, errorType).ToArray();
-        this.producerMeterInstrumentation.RecordPublishMessage(tags);
-        this.producerMeterInstrumentation.RecordPublishDuration(duration.TotalSeconds, tags);
+        GetTags(topicPartition.Topic, out var tags, partition: topicPartition.Partition, errorType);
+
+        ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
+        ConfluentKafkaCommon.PublishDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
     private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)

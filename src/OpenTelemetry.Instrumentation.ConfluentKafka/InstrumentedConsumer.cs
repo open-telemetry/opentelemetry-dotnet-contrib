@@ -13,7 +13,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
     private const string ReceiveOperationName = "receive";
     private const string KafkaMessagingSystem = "kafka";
-    private readonly ConsumerMeterInstrumentation consumerMeterInstrumentation = new();
     private readonly IConsumer<TKey, TValue> consumer;
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
 
@@ -39,7 +38,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public void Dispose()
     {
-        this.consumerMeterInstrumentation.Dispose();
         this.consumer.Dispose();
     }
 
@@ -292,37 +290,44 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         _ => (new ConsumeResult(exception.ConsumerRecord.TopicPartitionOffset, exception.ConsumerRecord.Message.Headers, exception.ConsumerRecord.Message.Key), FormatConsumeException(exception)),
     };
 
-    private static IEnumerable<KeyValuePair<string, object?>> GetTags(string topic, int? partition = null, string? errorType = null)
+    private static void GetTags(string topic, out TagList tags, int? partition = null, string? errorType = null)
     {
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingOperation,
-            ReceiveOperationName);
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingSystem,
-            KafkaMessagingSystem);
-        yield return new KeyValuePair<string, object?>(
-            SemanticConventions.AttributeMessagingDestinationName,
-            topic);
+        tags = new TagList()
+        {
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingOperation,
+                ReceiveOperationName),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingSystem,
+                KafkaMessagingSystem),
+            new KeyValuePair<string, object?>(
+                SemanticConventions.AttributeMessagingDestinationName,
+                topic),
+        };
+
         if (partition is not null)
         {
-            yield return new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingKafkaDestinationPartition,
-                partition);
+            tags.Add(
+                new KeyValuePair<string, object?>(
+                    SemanticConventions.AttributeMessagingKafkaDestinationPartition,
+                    partition));
         }
 
         if (errorType is not null)
         {
-            yield return new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeErrorType,
-                errorType);
+            tags.Add(
+                new KeyValuePair<string, object?>(
+                    SemanticConventions.AttributeErrorType,
+                    errorType));
         }
     }
 
-    private void RecordReceive(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
+    private static void RecordReceive(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
     {
-        var tags = GetTags(topicPartition.Topic, partition: topicPartition.Partition, errorType).ToArray();
-        this.consumerMeterInstrumentation.RecordReceivedMessage(tags);
-        this.consumerMeterInstrumentation.RecordReceiveDuration(duration.TotalSeconds, tags);
+        GetTags(topicPartition.Topic, out var tags, partition: topicPartition.Partition, errorType);
+
+        ConfluentKafkaCommon.ReceiveMessagesCounter.Add(1, in tags);
+        ConfluentKafkaCommon.ReceiveDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
     private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
@@ -352,7 +357,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         if (this.options.Metrics)
         {
             TimeSpan duration = endTime - startTime;
-            this.RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
+            RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
         }
     }
 
