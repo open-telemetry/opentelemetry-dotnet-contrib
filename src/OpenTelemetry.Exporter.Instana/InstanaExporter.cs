@@ -59,7 +59,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         From from = new From();
         if (this.instanaExporterHelper.IsWindows())
         {
-            from = new From() { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
+            from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
         }
 
         string serviceName = this.ExtractServiceName(ref from);
