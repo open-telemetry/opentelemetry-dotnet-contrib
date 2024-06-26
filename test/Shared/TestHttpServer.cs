@@ -3,15 +3,13 @@
 
 // Note: When implicit usings are enabled in a project this file will generate
 // warnings/errors without this suppression.
-#pragma warning disable IDE0005 // Using directive is unnecessary.
 
 #nullable enable
 
-using System;
 using System.Net;
+#if !NETFRAMEWORK
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
+#endif
 
 namespace OpenTelemetry.Tests;
 

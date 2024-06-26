@@ -1,10 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Threading;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
