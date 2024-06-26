@@ -1,12 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-#if !NETFRAMEWORK
-using System.Threading.Tasks;
-#endif
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;

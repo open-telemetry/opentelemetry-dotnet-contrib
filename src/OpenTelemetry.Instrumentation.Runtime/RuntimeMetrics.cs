@@ -1,13 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
 #if NET
-using System.Threading;
 using JitInfo = System.Runtime.JitInfo;
 #endif
 

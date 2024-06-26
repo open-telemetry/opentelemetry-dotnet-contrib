@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
-using System.Linq;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using Xunit;
 

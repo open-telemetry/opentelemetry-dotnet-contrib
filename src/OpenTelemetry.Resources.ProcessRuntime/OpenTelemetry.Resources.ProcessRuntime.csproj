@@ -5,7 +5,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Process Runtime Resource Detector for .NET runtime.</Description>
     <MinVerTagPrefix>Resources.ProcessRuntime-</MinVerTagPrefix>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
