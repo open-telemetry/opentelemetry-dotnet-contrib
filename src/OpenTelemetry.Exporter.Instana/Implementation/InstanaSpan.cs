@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma warning disable IDE0005
-using System.Collections.Generic;
-#pragma warning restore IDE0005
-
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
