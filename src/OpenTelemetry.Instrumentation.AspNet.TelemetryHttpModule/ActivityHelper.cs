@@ -27,6 +27,9 @@ internal static class ActivityHelper
         TelemetryHttpModule.AspNetSourceName,
         typeof(ActivityHelper).Assembly.GetPackageVersion());
 
+    [ThreadStatic]
+    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
+
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
     /// cref="HttpContext"/>.
@@ -60,13 +63,25 @@ internal static class ActivityHelper
     {
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        IEnumerable<KeyValuePair<string, object?>>? enumerable = null;
+        KeyValuePair<string, object?>[]? tags = null;
         if (context.Request?.Unvalidated?.Path is string path)
         {
-            enumerable = [new KeyValuePair<string, object?>("url.path", path)];
+            tags = cachedTagsStorage;
+            if (tags is null)
+            {
+                tags = new KeyValuePair<string, object?>[1];
+                cachedTagsStorage = tags;
+            }
+
+            tags[0] = new KeyValuePair<string, object?>("url.path", path);
         }
 
-        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, enumerable);
+        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
+
+        if (tags is not null)
+        {
+            tags[0] = default;
+        }
 
         if (activity != null)
         {
