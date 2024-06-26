@@ -80,14 +80,6 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                 await producer.FlushAsync();
             }
 
-            host.Services.GetRequiredService<MeterProvider>().EnsureMetricsAreFlushed();
-
-            groups = metrics.GroupBy(x => x.Name).ToArray();
-
-            Assert.Equal(2, groups.Length);
-
-            metrics.Clear();
-
             using (var consumer = host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>().Build())
             {
                 consumer.Subscribe(topic);
@@ -122,6 +114,6 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
 
         groups = metrics.GroupBy(x => x.Name).ToArray();
 
-        Assert.Equal(2, groups.Length);
+        Assert.Equal(4, groups.Length);
     }
 }
