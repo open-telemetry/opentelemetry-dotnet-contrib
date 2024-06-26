@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Threading;
-
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal sealed class AsyncResultWithTelemetryState : IAsyncResult

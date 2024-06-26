@@ -3,8 +3,6 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Tests;
