@@ -110,7 +110,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     internal static AWSEKSClusterInformationModel? DeserializeResponse(string response)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEKSClusterInformationModel);
 #else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);

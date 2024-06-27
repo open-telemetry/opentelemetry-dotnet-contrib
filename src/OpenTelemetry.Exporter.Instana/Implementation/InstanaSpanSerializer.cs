@@ -1,12 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
@@ -24,12 +20,12 @@ internal static class InstanaSpanSerializer
 #pragma warning restore SA1310 // Field names should not contain underscore
     private static readonly long UnixZeroTime = new DateTime(1970, 1, 1, 0, 0, 0, 0).Ticks;
 
-    internal static IEnumerator GetSpanTagsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator? GetSpanTagsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Tags.GetEnumerator();
     }
 
-    internal static IEnumerator GetSpanEventsEnumerator(InstanaSpan instanaSpan)
+    internal static IEnumerator? GetSpanEventsEnumerator(InstanaSpan instanaSpan)
     {
         return instanaSpan.Data.Events.GetEnumerator();
     }
@@ -99,9 +95,14 @@ internal static class InstanaSpanSerializer
         await SerializeTagsLogicAsync(instanaSpan.Data.Tags, writer).ConfigureAwait(false);
     }
 
-    private static async Task SerializeTagsLogicAsync(Dictionary<string, string> tags, StreamWriter writer)
+    private static async Task SerializeTagsLogicAsync(Dictionary<string, string>? tags, StreamWriter writer)
     {
         await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
+        if (tags == null)
+        {
+            return;
+        }
+
         using (var enumerator = tags.GetEnumerator())
         {
             byte i = 0;
@@ -136,7 +137,7 @@ internal static class InstanaSpanSerializer
         await writer.WriteAsync(CLOSE_BRACE).ConfigureAwait(false);
     }
 
-    private static async Task AppendProperty(string value, string name, StreamWriter json)
+    private static async Task AppendProperty(string? value, string? name, StreamWriter json)
     {
         await json.WriteAsync(QUOTE).ConfigureAwait(false);
         await json.WriteAsync(name).ConfigureAwait(false);
@@ -164,6 +165,11 @@ internal static class InstanaSpanSerializer
     private static async Task SerializeDataAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
         await writer.WriteAsync(OPEN_BRACE).ConfigureAwait(false);
+        if (instanaSpan.Data.data == null)
+        {
+            return;
+        }
+
         using (var enumerator = instanaSpan.Data.data.GetEnumerator())
         {
             byte i = 0;
@@ -195,7 +201,7 @@ internal static class InstanaSpanSerializer
             }
         }
 
-        if (instanaSpan.Data.Tags?.Count > 0)
+        if (instanaSpan.Data.Tags.Count > 0)
         {
             await writer.WriteAsync(COMMA).ConfigureAwait(false);
 
@@ -203,7 +209,7 @@ internal static class InstanaSpanSerializer
             await AppendObjectAsync(SerializeTagsAsync, InstanaExporterConstants.TAGS_FIELD, instanaSpan, writer).ConfigureAwait(false);
         }
 
-        if (instanaSpan.Data.Events?.Count > 0)
+        if (instanaSpan.Data.Events.Count > 0)
         {
             await writer.WriteAsync(COMMA).ConfigureAwait(false);
 
@@ -216,6 +222,11 @@ internal static class InstanaSpanSerializer
 
     private static async Task SerializeEventsAsync(InstanaSpan instanaSpan, StreamWriter writer)
     {
+        if (instanaSpan.Data.Events == null)
+        {
+            return;
+        }
+
         using (var enumerator = instanaSpan.Data.Events.GetEnumerator())
         {
             byte i = 0;
@@ -244,7 +255,7 @@ internal static class InstanaSpanSerializer
                     await writer.WriteAsync(DateToUnixMillis(enumerator.Current.Ts).ToString(CultureInfo.InvariantCulture)).ConfigureAwait(false);
                     await writer.WriteAsync(QUOTE).ConfigureAwait(false);
 
-                    if (enumerator.Current.Tags?.Count > 0)
+                    if (enumerator.Current.Tags.Count > 0)
                     {
                         await writer.WriteAsync(COMMA).ConfigureAwait(false);
                         await writer.WriteAsync(QUOTE).ConfigureAwait(false);

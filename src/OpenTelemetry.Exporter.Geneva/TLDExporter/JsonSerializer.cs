@@ -1,12 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 
 namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 
@@ -21,7 +18,7 @@ internal static class JsonSerializer
     private const byte ASCII_CARRIAGE_RETURN = 0x0D;
     private const byte ASCII_HORIZONTAL_TAB = 0x09;
 
-#if NET6_0_OR_GREATER
+#if NET
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
 
@@ -91,7 +88,7 @@ internal static class JsonSerializer
         return cursor;
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {
@@ -253,7 +250,7 @@ internal static class JsonSerializer
         {
             case bool v:
                 return WriteString(buffer, cursor, v ? "true" : "false");
-#if NET6_0_OR_GREATER
+#if NET
             case byte:
             case sbyte:
             case short:
@@ -320,7 +317,7 @@ internal static class JsonSerializer
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
 
-#if NET6_0_OR_GREATER
+#if NET
             case ISpanFormattable v:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
                 if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture))
@@ -413,7 +410,7 @@ internal static class JsonSerializer
         return cursor;
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {

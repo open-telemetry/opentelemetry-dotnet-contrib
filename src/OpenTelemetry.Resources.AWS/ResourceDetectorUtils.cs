@@ -17,7 +17,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
-#if !NET6_0_OR_GREATER
+#if !NET
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
 
@@ -47,7 +47,7 @@ internal static class ResourceDetectorUtils
         }
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     internal static T? DeserializeFromFile<T>(string filePath, JsonTypeInfo<T> jsonTypeInfo)
     {
         using (var stream = GetStream(filePath))

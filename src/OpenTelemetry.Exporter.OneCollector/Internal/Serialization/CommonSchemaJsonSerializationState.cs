@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Runtime.InteropServices;
 #endif
 using System.Text.Json;
@@ -46,7 +46,7 @@ internal sealed class CommonSchemaJsonSerializationState
         Debug.Assert(fieldInformation?.FieldName != null, "fieldInformation.FieldName was null");
         Debug.Assert(fieldInformation?.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
 
-#if NET6_0_OR_GREATER
+#if NET
         ref var lookupIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, fieldInformation.ExtensionName, out var existed);
         if (!existed)
         {
@@ -92,7 +92,7 @@ internal sealed class CommonSchemaJsonSerializationState
             writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
         }
 
-#if NET6_0_OR_GREATER
+#if NET
         var allValues = CollectionsMarshal.AsSpan(this.allValues);
 #else
         var allValues = this.allValues;
@@ -108,7 +108,7 @@ internal sealed class CommonSchemaJsonSerializationState
             {
                 unsafe
                 {
-#if NET6_0_OR_GREATER
+#if NET
                     ref var attribute = ref allValues[keyLookup.ValueIndicies[i]];
 #else
                     var attribute = allValues[keyLookup.ValueIndicies[i]];
