@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Threading;
 using System.Web;
 using System.Web.Hosting;
 

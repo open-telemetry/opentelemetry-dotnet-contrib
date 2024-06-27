@@ -14,14 +14,14 @@ public class RuntimeInstrumentationOptions
             /// </summary>
             public bool? GcEnabled { get; set; }
 
-    #if NET6_0_OR_GREATER
+    #if NET
             /// <summary>
             /// Gets or sets a value indicating whether jitter metrics should be collected.
             /// </summary>
             public bool? JitEnabled { get; set; }
     #endif
 
-    #if NET6_0_OR_GREATER
+    #if NET
             /// <summary>
             /// Gets or sets a value indicating whether threading metrics should be collected.
             /// </summary>
@@ -42,10 +42,10 @@ public class RuntimeInstrumentationOptions
             /// Gets a value indicating whether all metrics are enabled.
             /// </summary>
             internal bool IsAllEnabled => this.GcEnabled == null
-    #if NET6_0_OR_GREATER
+    #if NET
             && this.JitEnabled == null
     #endif
-    #if NET6_0_OR_GREATER
+    #if NET
             && this.ThreadingEnabled == null
     #endif
             && this.AssembliesEnabled == null
@@ -56,14 +56,14 @@ public class RuntimeInstrumentationOptions
             /// </summary>
             internal bool IsGcEnabled => this.GcEnabled == true || this.IsAllEnabled;
 
-    #if NET6_0_OR_GREATER
+    #if NET
             /// <summary>
             /// Gets a value indicating whether jitter metrics is enabled.
             /// </summary>
             internal bool IsJitEnabled => this.JitEnabled == true || this.IsAllEnabled;
     #endif
 
-    #if NET6_0_OR_GREATER
+    #if NET
             /// <summary>
             /// Gets a value indicating whether threading metrics is enabled.
             /// </summary>

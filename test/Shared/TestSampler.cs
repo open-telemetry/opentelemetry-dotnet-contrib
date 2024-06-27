@@ -3,10 +3,7 @@
 
 #nullable enable
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
 using OpenTelemetry.Trace;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Tests;
 

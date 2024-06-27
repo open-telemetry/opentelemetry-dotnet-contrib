@@ -1,14 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.IO;
 using System.Net;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation;
 
@@ -23,7 +22,6 @@ internal static class Transport
     private static string configuredEndpoint = string.Empty;
     private static string configuredAgentKey = string.Empty;
     private static string bundleUrl = string.Empty;
-    private static InstanaHttpClient client;
 
     static Transport()
     {
@@ -32,8 +30,10 @@ internal static class Transport
 
     internal static bool IsAvailable
     {
-        get { return isConfigured && client != null; }
+        get { return isConfigured && Client != null; }
     }
+
+    internal static InstanaHttpClient? Client { get; set; }
 
     internal static async Task SendSpansAsync(ConcurrentQueue<InstanaSpan> spanQueue)
     {
@@ -83,7 +83,10 @@ internal static class Transport
                     })
                     {
                         httpMsg.Content = content;
-                        await client.SendAsync(httpMsg).ConfigureAwait(false);
+                        if (Client != null)
+                        {
+                            await Client.SendAsync(httpMsg).ConfigureAwait(false);
+                        }
                     }
                 }
             }
@@ -137,7 +140,7 @@ internal static class Transport
 
     private static void ConfigureBackendClient()
     {
-        if (client != null)
+        if (Client != null)
         {
             return;
         }
@@ -156,10 +159,10 @@ internal static class Transport
         }
 
 #pragma warning disable CA5400
-        client = new InstanaHttpClient(backendTimeout, configuredHandler);
+        Client = new InstanaHttpClient(backendTimeout, configuredHandler);
 #pragma warning restore CA5400
 
-        client.DefaultRequestHeaders.Add("X-INSTANA-KEY", configuredAgentKey);
+        Client.DefaultRequestHeaders.Add("X-INSTANA-KEY", configuredAgentKey);
     }
 }
 

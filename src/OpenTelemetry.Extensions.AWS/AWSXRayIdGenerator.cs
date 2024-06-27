@@ -1,11 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET6_0_OR_GREATER
-using System;
+#if !NET
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
