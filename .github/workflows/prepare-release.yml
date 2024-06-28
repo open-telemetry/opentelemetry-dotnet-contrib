@@ -58,6 +58,10 @@ on:
     types:
     - closed
 
+  issues:
+    types:
+    - opened
+
   issue_comment:
     types:
     - created
@@ -166,3 +170,35 @@ jobs:
           -botUserName '${{ needs.automation.outputs.username }}' `
           -gitUserName '${{ needs.automation.outputs.username }}' `
           -gitUserEmail '${{ needs.automation.outputs.email }}'
+
+  process-opened-release-request-issue:
+    runs-on: ubuntu-latest
+
+    needs: automation
+
+    if: |
+      github.event_name == 'issues'
+      && github.event.issue.pull_request == null
+      && needs.automation.outputs.enabled
+
+    env:
+      GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+
+    steps:
+    - name: check out code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+
+    - name: Tag code owners on release request issue
+      shell: pwsh
+      run: |
+        Import-Module .\build\scripts\prepare-release.psm1
+
+        TagCodeOwnersOnRequestReleaseIssue `
+          -gitRepository '${{ github.repository }}' `
+          -requestedByUserName '${{ github.event.sender.login }}' `
+          -issueNumber ${{ github.event.issue.number }} `
+          -issueBody $env:ISSUE_BODY
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}

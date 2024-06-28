@@ -183,3 +183,39 @@ The [package workflow](https://github.com/$gitRepository/actions/workflows/publi
 }
 
 Export-ModuleMember -Function CreateReleaseTagAndPostNoticeOnPullRequest
+
+function TagCodeOwnersOnRequestReleaseIssue {
+  param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$requestedByUserName,
+    [Parameter(Mandatory=$true)][string]$issueNumber,
+    [Parameter(Mandatory=$true)][string]$issueBody
+  )
+
+  $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$')
+  if ($match.Success -eq $false)
+  {
+      Return
+  }
+
+  $component = $match.Groups[1].Value
+
+  $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$')
+  if ($match.Success -eq $false)
+  {
+      Return
+  }
+
+  $version = $match.Groups[1].Value
+
+  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  if ($match.Success -eq $false)
+  {
+      gh issue close $issueNumber --comment "The version ``$version`` is invalid. Please create a new issue with a valid version."
+      Return
+  }
+
+
+}
+
+Export-ModuleMember -Function TagCodeOwnersOnRequestReleaseIssue
