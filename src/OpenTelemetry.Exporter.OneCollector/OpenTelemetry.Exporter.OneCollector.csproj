@@ -7,7 +7,6 @@
     <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
-    <ImplicitUsings>true</ImplicitUsings>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <!-- Note: SYSLIB1100;SYSLIB1101 - Configuration.Binder: Can't create
     instance and unsupported type are being emitted by config source generator
@@ -15,11 +14,11 @@
     this at the call site but there is a bug. This could possibly be cleaned up
     in the future (hopefully .NET 9) see https://github.com/dotnet/runtime/issues/92509 -->
     <NoWarn>$(NoWarn);SYSLIB1100;SYSLIB1101</NoWarn>
-    <PackageValidationBaselineVersion>1.8.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <OTelSdkVersion>$(OpenTelemetryCoreLatestPrereleaseVersion)</OTelSdkVersion>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
     <DefineConstants Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
   </PropertyGroup>
 

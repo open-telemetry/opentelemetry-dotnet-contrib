@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
@@ -42,7 +40,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
 
         SetKind(activity, instanaSpan);
 
-        if (hasParent && instanaSpan.TransformInfo.IsEntrySpan)
+        if (hasParent && instanaSpan.TransformInfo != null && instanaSpan.TransformInfo.IsEntrySpan)
         {
             // If an OTel entry span continues an ongoing trace (which is equivalent to the original span having a parent), it
             // always uses the IDs from the traceparent header, thus we mark the span with span.tp accordingly.
@@ -89,29 +87,36 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
     private static void SetKind(Activity activity, InstanaSpan instanaSpan)
     {
         bool isEntrySpan = false;
-        switch (activity.Kind)
+
+        if (instanaSpan.Data.data != null)
         {
-            case ActivityKind.Server:
-                isEntrySpan = true;
-                instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.SERVER_KIND;
-                break;
-            case ActivityKind.Client:
-                instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CLIENT_KIND;
-                break;
-            case ActivityKind.Producer:
-                instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.PRODUCER_KIND;
-                break;
-            case ActivityKind.Consumer:
-                isEntrySpan = true;
-                instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CONSUMER_KIND;
-                break;
-            case ActivityKind.Internal:
-                instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.INTERNAL_KIND;
-                break;
-            default:
-                break;
+            switch (activity.Kind)
+            {
+                case ActivityKind.Server:
+                    isEntrySpan = true;
+                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.SERVER_KIND;
+                    break;
+                case ActivityKind.Client:
+                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CLIENT_KIND;
+                    break;
+                case ActivityKind.Producer:
+                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.PRODUCER_KIND;
+                    break;
+                case ActivityKind.Consumer:
+                    isEntrySpan = true;
+                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.CONSUMER_KIND;
+                    break;
+                case ActivityKind.Internal:
+                    instanaSpan.Data.data[InstanaExporterConstants.KIND_FIELD] = InstanaExporterConstants.INTERNAL_KIND;
+                    break;
+                default:
+                    break;
+            }
         }
 
-        instanaSpan.TransformInfo.IsEntrySpan = isEntrySpan;
+        if (instanaSpan.TransformInfo != null)
+        {
+            instanaSpan.TransformInfo.IsEntrySpan = isEntrySpan;
+        }
     }
 }

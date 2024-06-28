@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using OpenTelemetry.Resources;
@@ -19,7 +16,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
     private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
     private bool shutdownCalled;
 
-    public InstanaExporter(IActivityProcessor activityProcessor = null)
+    public InstanaExporter(IActivityProcessor? activityProcessor = null)
     {
         if (activityProcessor != null)
         {
@@ -59,10 +56,10 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
             return ExportResult.Failure;
         }
 
-        From from = null;
+        From from = new From();
         if (this.instanaExporterHelper.IsWindows())
         {
-            from = new From() { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
+            from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
         }
 
         string serviceName = this.ExtractServiceName(ref from);
@@ -101,12 +98,12 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
     private string ExtractServiceName(ref From from)
     {
-        string serviceName = null;
-        string serviceId = null;
-        string processId = null;
-        string hostId = null;
+        string serviceName = string.Empty;
+        string serviceId = string.Empty;
+        string processId = string.Empty;
+        string hostId = string.Empty;
         var resource = this.instanaExporterHelper.GetParentProviderResource(this);
-        if (resource != Resource.Empty && resource.Attributes?.Count() > 0)
+        if (resource != Resource.Empty && resource.Attributes.Any())
         {
             foreach (var resourceAttribute in resource.Attributes)
             {
@@ -117,7 +114,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                     serviceName = servName;
                 }
 
-                if (from == null)
+                if (from.IsEmpty())
                 {
                     if (resourceAttribute.Key.Equals("service.instance.id", StringComparison.OrdinalIgnoreCase))
                     {
@@ -135,9 +132,8 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
             }
         }
 
-        if (from == null)
+        if (from.IsEmpty())
         {
-            from = new From();
             if (!string.IsNullOrEmpty(processId))
             {
                 from.E = processId;
@@ -156,19 +152,23 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         return serviceName;
     }
 
-    private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string serviceName = null, From from = null)
+    private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string? serviceName = null, From? from = null)
     {
         InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
 
         await this.activityProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
 
-        if (!string.IsNullOrEmpty(serviceName))
+        if (serviceName != null && !string.IsNullOrEmpty(serviceName) && instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.SERVICE_FIELD] = serviceName;
         }
 
-        instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
-        if (!string.IsNullOrEmpty(activity.TraceStateString))
+        if (instanaSpan.Data.data != null)
+        {
+            instanaSpan.Data.data[InstanaExporterConstants.OPERATION_FIELD] = activity.DisplayName;
+        }
+
+        if (activity.TraceStateString != null && !string.IsNullOrEmpty(activity.TraceStateString) && instanaSpan.Data.data != null)
         {
             instanaSpan.Data.data[InstanaExporterConstants.TRACE_STATE_FIELD] = activity.TraceStateString;
         }

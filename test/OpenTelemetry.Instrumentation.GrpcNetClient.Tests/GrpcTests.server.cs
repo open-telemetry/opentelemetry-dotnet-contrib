@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics;
 using System.Net;
 using Greet;
@@ -95,7 +95,7 @@ public partial class GrpcTests : IDisposable
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Theory(Skip = "Skipping for .NET 6 and higher due to bug #3023")]
 #endif
     [InlineData(null)]

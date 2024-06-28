@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-
 namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
@@ -20,7 +17,7 @@ internal sealed class ProcessDetector : IResourceDetector
         return new Resource(new List<KeyValuePair<string, object>>(2)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
-#if NET6_0_OR_GREATER
+#if NET
             new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
 #else
             new(ProcessSemanticConventions.AttributeProcessPid, System.Diagnostics.Process.GetCurrentProcess().Id),

@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
 using StackExchange.Redis.Profiling;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 #endif
@@ -56,14 +56,14 @@ internal static class RedisProfilerEntryToActivityConverter
 
             return (null, script);
 
-#if NET6_0_OR_GREATER
+#if NET
             [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
             [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The CommandAndKey property is preserved by the above DynamicDependency")]
 #endif
             static bool GetCommandAndKey(
                 PropertyFetcher<string> commandAndKeyFetcher,
                 object message,
-#if NET6_0_OR_GREATER
+#if NET
                 [NotNullWhen(true)]
 #endif
                 out string? value)
@@ -192,7 +192,7 @@ internal static class RedisProfilerEntryToActivityConverter
     /// represented with classType variable.
     /// </summary>
     private static Func<object, TField?>? CreateFieldGetter<TField>(
-#if NET6_0_OR_GREATER
+#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)]
 #endif
         Type classType,
@@ -202,7 +202,7 @@ internal static class RedisProfilerEntryToActivityConverter
         FieldInfo? field = classType.GetField(fieldName, flags);
         if (field != null)
         {
-#if NET6_0_OR_GREATER
+#if NET
             if (RuntimeFeature.IsDynamicCodeSupported)
 #endif
             {
@@ -219,7 +219,7 @@ internal static class RedisProfilerEntryToActivityConverter
 
                 return (Func<object, TField>)getterMethod.CreateDelegate(typeof(Func<object, TField>));
             }
-#if NET6_0_OR_GREATER
+#if NET
             else
             {
                 return obj => (TField?)field.GetValue(obj);

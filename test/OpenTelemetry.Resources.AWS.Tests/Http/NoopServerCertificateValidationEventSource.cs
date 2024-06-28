@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
 namespace OpenTelemetry.Resources.AWS.Tests.Http;
 
 internal sealed class NoopServerCertificateValidationEventSource : IServerCertificateValidationEventSource
