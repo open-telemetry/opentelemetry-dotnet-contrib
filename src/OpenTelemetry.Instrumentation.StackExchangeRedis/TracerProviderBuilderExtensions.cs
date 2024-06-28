@@ -89,8 +89,8 @@ public static class TracerProviderBuilderExtensions
     /// <param name="configure">Callback to configure options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddRedisInstrumentation(
-                this TracerProviderBuilder builder,
-                Action<StackExchangeRedisInstrumentationOptions> configure)
+        this TracerProviderBuilder builder,
+        Action<StackExchangeRedisInstrumentationOptions> configure)
     {
         Guard.ThrowIfNull(configure);
 
