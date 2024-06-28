@@ -320,7 +320,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
 
   $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
-    (Get-Content build/Common.props) `
+  (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
     Set-Content build/Common.props
 
