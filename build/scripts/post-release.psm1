@@ -301,11 +301,26 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
-  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
-
   $branch="release/post-core-${version}-update"
 
-  (Get-Content build/Common.props) `
+  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
+  {
+    git config user.name $gitUserName
+  }
+  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
+  {
+    git config user.email $gitUserEmail
+  }
+
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git switch failure'
+  }
+
+  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
+
+    (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
     Set-Content build/Common.props
 
@@ -326,21 +341,6 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
           $changedProjects[$projectDir] = $true
       }
     }
-  }
-
-  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
-  {
-    git config user.name $gitUserName
-  }
-  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
-  {
-    git config user.email $gitUserEmail
-  }
-
-  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git switch failure'
   }
 
   git add build/Common.props 2>&1 | % ToString
