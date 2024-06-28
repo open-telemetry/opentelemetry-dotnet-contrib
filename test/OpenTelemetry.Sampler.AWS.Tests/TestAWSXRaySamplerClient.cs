@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -30,14 +27,11 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingRules()
+    public async Task TestGetSamplingRules()
     {
         this.CreateResponse("/GetSamplingRules", "Data/GetSamplingRulesResponse.json");
 
-        var responseTask = this.client.GetSamplingRules();
-        responseTask.Wait();
-
-        List<SamplingRule> rules = responseTask.Result;
+        var rules = await this.client.GetSamplingRules();
 
         Assert.Equal(3, rules.Count);
 
@@ -81,23 +75,20 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingRulesMalformed()
+    public async Task TestGetSamplingRulesMalformed()
     {
         this.mockServer
             .Given(Request.Create().WithPath("/GetSamplingRules").UsingPost())
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var responseTask = this.client.GetSamplingRules();
-        responseTask.Wait();
-
-        List<SamplingRule> rules = responseTask.Result;
+        List<SamplingRule> rules = await this.client.GetSamplingRules();
 
         Assert.Empty(rules);
     }
 
     [Fact]
-    public void TestGetSamplingTargets()
+    public async Task TestGetSamplingTargets()
     {
         TestClock clock = new TestClock();
 
@@ -128,10 +119,8 @@ public class TestAWSXRaySamplerClient : IDisposable
                 clock.ToDouble(clock.Now())),
         });
 
-        var responseTask = this.client.GetSamplingTargets(request);
-        responseTask.Wait();
-
-        GetSamplingTargetsResponse targetsResponse = responseTask.Result!;
+        var targetsResponse = await this.client.GetSamplingTargets(request);
+        Assert.NotNull(targetsResponse);
 
         Assert.Equal(2, targetsResponse.SamplingTargetDocuments.Count);
         Assert.Single(targetsResponse.UnprocessedStatistics);
@@ -154,7 +143,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingTargetsWithMalformed()
+    public async Task TestGetSamplingTargetsWithMalformed()
     {
         TestClock clock = new TestClock();
         this.mockServer
@@ -173,10 +162,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 clock.ToDouble(clock.Now())),
         });
 
-        var responseTask = this.client.GetSamplingTargets(request);
-        responseTask.Wait();
-
-        GetSamplingTargetsResponse? targetsResponse = responseTask.Result;
+        var targetsResponse = await this.client.GetSamplingTargets(request);
 
         Assert.Null(targetsResponse);
     }

@@ -3,12 +3,7 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -61,7 +56,7 @@ public class AWSECSDetectorTests : IDisposable
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Ec2()
+    public async Task TestEcsMetadataV4Ec2()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -92,7 +87,7 @@ public class AWSECSDetectorTests : IDisposable
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Fargate()
+    public async Task TestEcsMetadataV4Fargate()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;

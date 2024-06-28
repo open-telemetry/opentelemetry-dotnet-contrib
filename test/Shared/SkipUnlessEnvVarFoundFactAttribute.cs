@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma warning disable IDE0005 // Using directive is unnecessary. <- Projects with ImplicitUsings enabled will see warnings on using System
-
 #nullable enable
 
-using System;
 using Xunit;
 
 namespace OpenTelemetry.Tests;

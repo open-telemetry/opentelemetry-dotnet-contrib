@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.ElasticsearchClient;
@@ -32,7 +31,7 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
         this TracerProviderBuilder builder,
-        Action<ElasticsearchClientInstrumentationOptions> configure) =>
+        Action<ElasticsearchClientInstrumentationOptions>? configure) =>
         AddElasticsearchClientInstrumentation(builder, name: null, configure);
 
     /// <summary>
@@ -44,8 +43,8 @@ public static class TracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddElasticsearchClientInstrumentation(
         this TracerProviderBuilder builder,
-        string name,
-        Action<ElasticsearchClientInstrumentationOptions> configure)
+        string? name,
+        Action<ElasticsearchClientInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 

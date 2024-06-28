@@ -1,12 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -169,7 +164,7 @@ public class EventCountersMetricsTests
     }
 
     [Fact(Skip = "This test should properly validate no metrics are exported from event counters with invalid names (too long)")]
-    public void InstrumentNameTooLong()
+    public async Task InstrumentNameTooLong()
     {
         // Arrange
         List<Metric> metricItems = new();
@@ -190,7 +185,7 @@ public class EventCountersMetricsTests
         // Act
         connections.Increment(1);
 
-        Task.Delay(1800).Wait();
+        await Task.Delay(1800);
         meterProvider.ForceFlush();
 
         // Assert

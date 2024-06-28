@@ -1,13 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
-#if NET6_0_OR_GREATER
-using System.Threading;
+#if NET
 using JitInfo = System.Runtime.JitInfo;
 #endif
 
@@ -22,7 +19,7 @@ internal sealed class RuntimeMetrics
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly Meter MeterInstance = new(AssemblyName.Name!, Assembly.GetPackageVersion());
 
-#if NET6_0_OR_GREATER
+#if NET
     private const long NanosecondsPerTick = 100;
 #endif
     private const int NumberOfGenerations = 3;
@@ -43,7 +40,7 @@ internal sealed class RuntimeMetrics
             unit: "bytes",
             description: "Count of bytes currently in use by objects in the GC heap that haven't been collected yet. Fragmentation and other GC committed memory pools are excluded.");
 
-#if NET6_0_OR_GREATER
+#if NET
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.allocations.size",
             () => GC.GetTotalAllocatedBytes(),

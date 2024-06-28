@@ -1,13 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
@@ -180,7 +175,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
         this.requestCompleteHandle.Reset();
 
-        using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+        using var response = await client.GetAsync(requestUri);
 
         /* Note: This code will continue executing as soon as the response
         is available but Owin could still be working. We need to wait until
@@ -309,7 +304,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
             try
             {
-                using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+                using var response = await client.GetAsync(requestUri);
             }
             catch
             {

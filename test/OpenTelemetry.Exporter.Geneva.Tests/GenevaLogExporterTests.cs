@@ -1,17 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -1356,6 +1352,119 @@ public class GenevaLogExporterTests
         }
     }
 
+    [Fact]
+    public void AddGenevaExporterWithNamedOptions()
+    {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
+        }
+
+        int defaultConfigureExporterOptionsInvocations = 0;
+        int namedConfigureExporterOptionsInvocations = 0;
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithLogging(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                    defaultConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>(o => defaultConfigureExporterOptionsInvocations++);
+
+                services.Configure<GenevaExporterOptions>("Exporter2", o =>
+                {
+                    o.ConnectionString = connectionString;
+                    namedConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>("Exporter2", o => namedConfigureExporterOptionsInvocations++);
+
+                services.Configure<GenevaExporterOptions>("Exporter3", o =>
+                {
+                    o.ConnectionString = connectionString;
+                    namedConfigureExporterOptionsInvocations++;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>("Exporter3", o => namedConfigureExporterOptionsInvocations++);
+            })
+            .AddGenevaLogExporter()
+            .AddGenevaLogExporter("Exporter2", o => { })
+            .AddGenevaLogExporter("Exporter3", o => { }));
+
+        var s = sp.BuildServiceProvider();
+
+        _ = s.GetRequiredService<LoggerProvider>();
+        Assert.Equal(2, defaultConfigureExporterOptionsInvocations);
+        Assert.Equal(4, namedConfigureExporterOptionsInvocations);
+    }
+
+    [Fact]
+    public void AddGenevaBatchExportProcessorOptions()
+    {
+        string connectionString = null;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            connectionString = "Endpoint=unix:" + GenerateTempFilePath();
+        }
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithLogging(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>(o => o.ScheduledDelayMilliseconds = 100);
+            })
+            .AddGenevaLogExporter());
+
+        var s = sp.BuildServiceProvider();
+
+        var loggerProvider = s.GetRequiredService<LoggerProvider>();
+
+        var bindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var processor = typeof(BaseProcessor<LogRecord>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Logs.LoggerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(loggerProvider) as ReentrantExportProcessor<LogRecord>;
+
+            Assert.NotNull(processor);
+        }
+        else
+        {
+            var processor = typeof(BaseProcessor<LogRecord>)
+                    .Assembly
+                    .GetType("OpenTelemetry.Logs.LoggerProviderSdk")
+                    .GetProperty("Processor", bindingFlags)
+                    .GetValue(loggerProvider) as BatchLogRecordExportProcessor;
+
+            Assert.NotNull(processor);
+
+            var scheduledDelayMilliseconds = typeof(BatchLogRecordExportProcessor)
+                .GetField("ScheduledDelayMilliseconds", bindingFlags)
+                .GetValue(processor);
+
+            Assert.Equal(100, scheduledDelayMilliseconds);
+        }
+    }
+
     private static string GenerateTempFilePath()
     {
         while (true)
@@ -1520,8 +1629,8 @@ public class GenevaLogExporterTests
         }
         else
         {
-            _ = mapping.TryGetValue("env_properties", out object envProprties);
-            var envPropertiesMapping = envProprties as IDictionary<object, object>;
+            _ = mapping.TryGetValue("env_properties", out object envProperties);
+            var envPropertiesMapping = envProperties as IDictionary<object, object>;
 
             foreach (var item in stateKeyValuePairList)
             {

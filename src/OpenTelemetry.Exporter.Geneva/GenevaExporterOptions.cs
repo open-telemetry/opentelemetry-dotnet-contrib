@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 using OpenTelemetry.Internal;
 
@@ -24,6 +22,8 @@ public class GenevaExporterOptions
     public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
 
     public EventNameExportMode EventNameExportMode { get; set; }
+
+    public bool IncludeTraceStateForSpan { get; set; }
 
     public IReadOnlyDictionary<string, string> TableNameMappings
     {

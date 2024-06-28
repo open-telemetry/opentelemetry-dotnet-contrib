@@ -1,39 +1,35 @@
-$gitHubBotUserName="github-actions[bot]"
-$gitHubBotEmail="41898282+github-actions[bot]@users.noreply.github.com"
-
-$repoViewResponse = gh repo view --json nameWithOwner | ConvertFrom-Json
-
-$gitRepository = $repoViewResponse.nameWithOwner
-
 function CreateRelease {
   param(
-    [Parameter(Mandatory=$true)][string]$tag
+    [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$tag,
+    [Parameter()][string]$releaseFiles
   )
 
-  $packages = (Get-ChildItem -Path src/*/bin/Release/*.nupkg).Name
+  $match = [regex]::Match($tag, '^(.*?-)(.*)$')
+  if ($match.Success -eq $false)
+  {
+      throw 'Could not parse prefix or version from tag'
+  }
+
+  $tagPrefix = $match.Groups[1].Value
+  $version = $match.Groups[2].Value
+
+  $projects = @(Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" -List | Select Path)
 
   $notes = ''
-  $firstPackageVersion = ''
 
-  foreach ($package in $packages)
+  foreach ($project in $projects)
   {
-      $match = [regex]::Match($package, '(.*)\.(\d+\.\d+\.\d+.*?)\.nupkg')
-      $packageName = $match.Groups[1].Value
-      $packageVersion = $match.Groups[2].Value
+      $projectName = [System.IO.Path]::GetFileNameWithoutExtension($project.Path)
 
-      if ($firstPackageVersion -eq '')
-      {
-          $firstPackageVersion = $packageVersion
-      }
-
-      $changelogContent = Get-Content -Path "src/$packageName/CHANGELOG.md"
+      $changelogContent = Get-Content -Path "src/$projectName/CHANGELOG.md"
 
       $started = $false
       $content = ""
 
       foreach ($line in $changelogContent)
       {
-          if ($line -like "## $packageVersion" -and $started -ne $true)
+          if ($line -like "## $version" -and $started -ne $true)
           {
               $started = $true
           }
@@ -63,18 +59,18 @@ function CreateRelease {
 
       $notes +=
 @"
-* NuGet: [$packageName v$packageVersion](https://www.nuget.org/packages/$packageName/$packageVersion)
+* NuGet: [$projectName v$version](https://www.nuget.org/packages/$projectName/$version)
 
 $content
 
-  See [CHANGELOG](https://github.com/$gitRepository/blob/$tag/src/$packageName/CHANGELOG.md) for details.
+  See [CHANGELOG](https://github.com/$gitRepository/blob/$tag/src/$projectName/CHANGELOG.md) for details.
 
 "@
   }
 
-  if ($firstPackageVersion -match '-alpha' -or $firstPackageVersion -match '-beta' -or $firstPackageVersion -match '-rc')
+  if ($version -match '-alpha' -or $version -match '-beta' -or $version -match '-rc')
   {
-    gh release create $tag `
+    gh release create $tag $releaseFiles `
       --title $tag `
       --verify-tag `
       --notes $notes `
@@ -82,7 +78,7 @@ $content
   }
   else
   {
-    gh release create $tag `
+    gh release create $tag $releaseFiles `
       --title $tag `
       --verify-tag `
       --notes $notes `
@@ -92,12 +88,70 @@ $content
 
 Export-ModuleMember -Function CreateRelease
 
+function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
+  param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$tag,
+    [Parameter(Mandatory=$true)][string]$tagSha,
+    [Parameter(Mandatory=$true)][string]$packagesUrl,
+    [Parameter(Mandatory=$true)][string]$botUserName
+  )
+
+  $prListResponse = gh pr list --search $tagSha --state merged --json number,author,title,comments | ConvertFrom-Json
+
+  if ($prListResponse.Length -eq 0)
+  {
+    Write-Host 'No prepare release PR found for tag & commit skipping post notice'
+    return
+  }
+
+  foreach ($pr in $prListResponse)
+  {
+    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[release] Prepare release $tag")
+    {
+      continue
+    }
+
+    $foundComment = $false
+    foreach ($comment in $pr.comments)
+    {
+      if ($comment.author.login -eq $botUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      {
+        $foundComment = $true
+        break
+      }
+    }
+
+    if ($foundComment -eq $false)
+    {
+      continue
+    }
+
+  $body =
+@"
+The [packages]($packagesUrl) for [$tag](https://github.com/$gitRepository/releases/tag/$tag) should be available on NuGet momentarily.
+
+Have a nice day!
+"@
+
+    $pullRequestNumber = $pr.number
+
+    gh pr comment $pullRequestNumber --body $body
+    return
+  }
+
+  Write-Host 'No prepare release PR found matched author and title with a valid comment'
+}
+
+Export-ModuleMember -Function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest
+
 function CreatePackageValidationBaselineVersionUpdatePullRequest {
   param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
-    [Parameter()][string]$gitUserName=$gitHubBotUserName,
-    [Parameter()][string]$gitUserEmail=$gitHubBotEmail,
-    [Parameter()][string]$targetBranch="main"
+    [Parameter()][string]$targetBranch="main",
+    [Parameter()][string]$gitUserName,
+    [Parameter()][string]$gitUserEmail
   )
 
   $match = [regex]::Match($tag, '^(.*?-)(.*)$')
@@ -111,8 +165,14 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $branch="release/post-stable-${tag}-update"
 
-  git config user.name $gitUserName
-  git config user.email $gitUserEmail
+  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
+  {
+    git config user.name $gitUserName
+  }
+  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
+  {
+    git config user.email $gitUserEmail
+  }
 
   git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -180,7 +240,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
 
   $body =
 @"
-Note: This PR was opened automatically by the [package workflow](https://github.com/$gitRepository/actions/workflows/publish-packages.yml).
+Note: This PR was opened automatically by the [post-release workflow](https://github.com/$gitRepository/actions/workflows/post-release.yml).
 
 Merge once packages are available on NuGet and the build passes.
 
@@ -190,11 +250,11 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   gh pr create `
-    --title "[repo] $tagPrefix stable release $version updates" `
+    --title "[release] $tagPrefix stable release $version updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
-    --label infra
+    --label release
 }
 
 Export-ModuleMember -Function CreatePackageValidationBaselineVersionUpdatePullRequest
@@ -204,6 +264,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$tag,
     [Parameter()][string]$targetBranch="main",
+    [Parameter()][string]$lineEnding="`n",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
@@ -215,25 +276,34 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
   }
 
   $tagPrefix = $match.Groups[1].Value
-  if ($tagPrefix.StartsWith('core-') -eq $false)
+  $version = $match.Groups[2].Value
+  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+
+  if ($tagPrefix.StartsWith('core-') -eq $true)
+  {
+    $changelogEntry = "Updated OpenTelemetry core component version(s) to"
+    $propertyName = "OpenTelemetryCoreLatestVersion"
+    $propertyVersion = "[$version,2.0)"
+    if ($isPrerelease -eq $true)
+    {
+      $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
+      $propertyVersion = "[$version]"
+    }
+  }
+  elseif ($tagPrefix.StartsWith('coreunstable-') -eq $true)
+  {
+    $changelogEntry = "Updated OpenTelemetry core unstable component version(s) to"
+    $propertyName = "OpenTelemetryCoreUnstableLatestVersion"
+    $propertyVersion = "[$version]"
+  }
+  else
   {
     Return
   }
 
   $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
-  $version = $match.Groups[2].Value
-  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
-
   $branch="release/post-core-${version}-update"
-
-  $propertyName = "OpenTelemetryCoreLatestVersion"
-  $propertyVersion = "[$version,2.0)"
-  if ($isPrerelease -eq $true)
-  {
-   $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
-   $propertyVersion = "[$version]"
-  }
 
   (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
@@ -303,11 +373,13 @@ Merge once packages are available on NuGet and the build passes.
 "@
 
   $createPullRequestResponse = gh pr create `
-    --title "[repo] Core release $version updates" `
+    --title "[release] $tag release updates" `
     --body $body `
     --base $targetBranch `
     --head $branch `
-    --label infra
+    --label release
+
+  Write-Host $createPullRequestResponse
 
   $match = [regex]::Match($createPullRequestResponse, "\/pull\/(.*)$")
   if ($match.Success -eq $false)
@@ -323,17 +395,24 @@ Merge once packages are available on NuGet and the build passes.
   }
 
 $entry = @"
-* Updated OpenTelemetry core component version(s) to ``$version``.
+* $changelogEntry ``$version``.
   ([#$pullRequestNumber](https://github.com/$gitRepository/pull/$pullRequestNumber))
 
 
 "@
 
   $lastLineBlank = $true
+  $changelogFilesUpdated = 0
 
   foreach ($projectDir in $changedProjects.Keys)
   {
       $path = Join-Path -Path $projectDir -ChildPath "CHANGELOG.md"
+
+      if ([System.IO.File]::Exists($path) -eq $false)
+      {
+        Write-Host "No CHANGELOG found in $projectDir"
+        continue
+      }
 
       $changelogContent = Get-Content -Path $path
 
@@ -351,16 +430,21 @@ $entry = @"
           {
               if ($lastLineBlank -eq $false)
               {
-                  $content += "`r`n"
+                  $content += $lineEnding
               }
               $content += $entry
               $started = $false
               $isRemoving = $false
           }
-          elseif ($line -like '*Update* OpenTelemetry SDK version to*' -and $started -eq $true)
+          elseif ($started -eq $true -and $tagPrefix.StartsWith('core-') -eq $true -and $line -like '*Update* OpenTelemetry SDK version to*')
           {
-              $isRemoving = $true
-              continue
+            $isRemoving = $true
+            continue
+          }
+          elseif ($started -eq $true -and $line -like "*$changelogEntry*")
+          {
+            $isRemoving = $true
+            continue
           }
 
           if ($line.StartsWith('* '))
@@ -372,7 +456,7 @@ $entry = @"
 
               if ($lastLineBlank -eq $false)
               {
-                  $content += "`r`n"
+                  $content += $lineEnding
               }
           }
 
@@ -381,7 +465,7 @@ $entry = @"
               continue
           }
 
-          $content += $line + "`r`n"
+          $content += $line + $lineEnding
 
           $lastLineBlank = [string]::IsNullOrWhitespace($line)
       }
@@ -391,7 +475,7 @@ $entry = @"
         # Note: If we never wrote the entry it means the file ended in the unreleased section
         if ($lastLineBlank -eq $false)
         {
-            $content += "`r`n"
+            $content += $lineEnding
         }
         $content += $entry
       }
@@ -403,18 +487,23 @@ $entry = @"
       {
           throw 'git add failure'
       }
+
+      $changelogFilesUpdated++
   }
 
-  git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
+  if ($changelogFilesUpdated -gt 0)
   {
-      throw 'git commit failure'
-  }
+    git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git commit failure'
+    }
 
-  git push -u origin $branch 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git push failure'
+    git push -u origin $branch 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git push failure'
+    }
   }
 }
 
@@ -444,7 +533,11 @@ function GetCoreDependenciesForProjects {
             if ($packageName -eq 'OpenTelemetry' -or
                 $packageName -eq 'OpenTelemetry.Api' -or
                 $packageName -eq 'OpenTelemetry.Api.ProviderBuilderExtensions' -or
-                $packageName -eq 'OpenTelemetry.Extensions.Hosting')
+                $packageName -eq 'OpenTelemetry.Extensions.Hosting' -or
+                $packageName -eq 'OpenTelemetry.Extensions.Propagators' -or
+                $packageName -eq 'OpenTelemetry.Exporter.Prometheus.AspNetCore' -or
+                $packageName -eq 'OpenTelemetry.Exporter.Prometheus.HttpListener' -or
+                $packageName -eq 'OpenTelemetry.Shims.OpenTracing')
             {
                 $projectDependencies[$packageName.ToString()] = $packageVersion.ToString()
             }

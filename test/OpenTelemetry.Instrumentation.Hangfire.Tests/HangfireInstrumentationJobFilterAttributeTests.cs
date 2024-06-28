@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Hangfire;
 using Hangfire.Storage.Monitoring;
 using OpenTelemetry.Trace;
@@ -13,9 +9,10 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
+[Collection("Hangfire")]
 public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<HangfireFixture>
 {
-    private HangfireFixture hangfireFixture;
+    private readonly HangfireFixture hangfireFixture;
 
     public HangfireInstrumentationJobFilterAttributeTests(HangfireFixture hangfireFixture)
     {
@@ -123,6 +120,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         using var tel = Sdk.CreateTracerProviderBuilder()
             .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
             .AddInMemoryExporter(exportedItems)
+            .SetSampler<AlwaysOnSampler>()
             .Build();
 
         // Act

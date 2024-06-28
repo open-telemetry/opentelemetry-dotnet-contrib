@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Update OpenTelemetry SDK version to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+## 1.0.0-rc.17
+
+Released 2024-Jun-18
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.0.0-rc.16
 
@@ -11,6 +15,7 @@ Released 2024-Apr-05
 
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+
 * Update OpenTelemetry SDK version to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 
@@ -39,11 +44,14 @@ Released 2023-Oct-30
 
 * Update OpenTelemetry SDK version to `1.6.0`.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+
 * Fixed span hierarchy when hosted in ASP.NET
   ([#1342](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1342))
+
 * **Breaking Change** `TelemetryClientMessageInspector` and `TelemetryDispatchMessageInspector`
   changed from public to internal
   ([#1376](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1376))
+
 * Added support for `IRequestSessionChannel` and `IDuplexChannel` channel shapes
   ([#1374](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1374))
 
@@ -60,6 +68,7 @@ Released 2023-Aug-14
 
 * Update OpenTelemetry SDK version to `1.5.1`.
   ([#1255](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1255))
+
 * Client instrumentation implementation moved to lower-level `BindingElement`.
   ([#1247](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1247))
 
@@ -76,6 +85,7 @@ Released 2023-Feb-27
 
 * Update OpenTelemetry SDK version to `1.4.0`.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
 * Removes `AddWcfInstrumentation` method with default configure parameter.
   ([#928](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/928))
 
@@ -85,6 +95,7 @@ Released 2022-Dec-28
 
 * Update OpenTelemetry SDK version to `1.3.1`.
   ([#631](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/631))
+
 * Change value `rpc.system` from `wcf` to `dotnet_wcf`.
   ([#837](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/837))
 
@@ -94,6 +105,7 @@ Released 2022-Aug-23
 
 * Updated OpenTelemetry SDK package version to 1.3.0
   ([#569](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/569))
+
 * Changed activity source name from `OpenTelemetry.WCF`
   to `OpenTelemetry.Instrumentation.Wcf`
   ([#570](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/570))

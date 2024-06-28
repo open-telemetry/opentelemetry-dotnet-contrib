@@ -1,12 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using System.Threading;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
@@ -43,6 +40,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
     private readonly HashSet<string> m_customFields;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly bool m_shouldIncludeTraceState;
 
     private readonly EventProvider eventProvider;
 
@@ -114,6 +112,8 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                 this.repeatedPartAFields = eb.GetRawFields();
             }
         }
+
+        this.m_shouldIncludeTraceState = options.IncludeTraceStateForSpan;
     }
 
     public ExportResult Export(in Batch<Activity> batch)
@@ -203,6 +203,16 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         {
             eb.AddCountedString("parentId", strParentId);
             partBFieldsCount++;
+        }
+
+        if (this.m_shouldIncludeTraceState)
+        {
+            var traceStateString = activity.TraceStateString;
+            if (!string.IsNullOrEmpty(traceStateString))
+            {
+                eb.AddCountedAnsiString("traceState", traceStateString, Encoding.UTF8);
+                partBFieldsCount++;
+            }
         }
 
         var linkEnumerator = activity.EnumerateLinks();

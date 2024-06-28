@@ -27,7 +27,7 @@ using OpenTelemetry.Resources;
 
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
                         // other configurations
-                        .ConfigureResource(resource => resource.AddAppServiceDetector())
+                        .ConfigureResource(resource => resource.AddAzureAppServiceDetector())
                         .Build();
 ```
 

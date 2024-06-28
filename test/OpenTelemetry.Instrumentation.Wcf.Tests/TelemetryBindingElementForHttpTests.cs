@@ -1,16 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -199,15 +193,13 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             {
                 await client.ExecuteWithEmptyActionNameAsync(
                     new ServiceRequest(
-                       payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
             else
             {
                 await client.ExecuteAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
         }
         finally
@@ -295,7 +287,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     }
 
     [Fact]
-    public async void ActivitiesHaveCorrectParentTest()
+    public async Task ActivitiesHaveCorrectParentTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -348,7 +340,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
     }
 
     [Fact]
-    public async void ErrorsAreHandledProperlyTest()
+    public async Task ErrorsAreHandledProperlyTest()
     {
         var testSource = new ActivitySource("TestSource");
 

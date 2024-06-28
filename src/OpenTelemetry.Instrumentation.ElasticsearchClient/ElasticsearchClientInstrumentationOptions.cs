@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient;
@@ -41,5 +40,5 @@ public class ElasticsearchClientInstrumentationOptions
     /// <para>object: the raw object from which additional information can be extracted to enrich the activity.
     /// The type of this object depends on the event, which is given by the above parameter.</para>
     /// </remarks>
-    public Action<Activity, string, object> Enrich { get; set; }
+    public Action<Activity, string, object?>? Enrich { get; set; }
 }

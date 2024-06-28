@@ -1,16 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
 using Xunit;
+using StatusCode = Grpc.Core.StatusCode;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
@@ -36,7 +34,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnarySuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -50,7 +48,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeUnaryAsyncRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -60,7 +58,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task AsyncUnaryFail()
     {
-        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
     }
 
     /// <summary>
@@ -84,7 +82,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -98,7 +96,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeClientStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -108,7 +106,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ClientStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
     }
 
     /// <summary>
@@ -132,7 +130,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -142,7 +140,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task ServerStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
     }
 
     /// <summary>
@@ -166,7 +164,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingSuccess()
     {
-        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc()).ConfigureAwait(false);
+        await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc());
     }
 
     /// <summary>
@@ -180,7 +178,7 @@ public class GrpcCoreClientInterceptorTests
             FoobarService.MakeDuplexStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
-            BogusServerUri).ConfigureAwait(false);
+            BogusServerUri);
     }
 
     /// <summary>
@@ -190,7 +188,7 @@ public class GrpcCoreClientInterceptorTests
     [Fact]
     public async Task DuplexStreamingFail()
     {
-        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest).ConfigureAwait(false);
+        await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
     }
 
     /// <summary>
@@ -237,7 +235,8 @@ public class GrpcCoreClientInterceptorTests
                 return metadata;
             });
 
-        var interceptorOptions = new ClientTracingInterceptorOptions { ActivityIdentifierValue = Guid.NewGuid() };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ClientTracingInterceptorOptions { AdditionalTags = testTags.Tags };
         callInvoker = callInvoker.Intercept(new ClientTracingInterceptor(interceptorOptions));
         var client = new Foobar.FoobarClient(callInvoker);
 
@@ -248,7 +247,7 @@ public class GrpcCoreClientInterceptorTests
         }
 
         // Check the blocking async call
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
             var response = client.Unary(FoobarService.DefaultRequestMessage);
@@ -259,14 +258,14 @@ public class GrpcCoreClientInterceptorTests
         }
 
         // Check unary async
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
             using var call = client.UnaryAsync(FoobarService.DefaultRequestMessage);
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            _ = await call.ResponseAsync.ConfigureAwait(false);
+            _ = await call.ResponseAsync;
 
             Assert.Equal(parentActivity, Activity.Current);
 
@@ -274,22 +273,22 @@ public class GrpcCoreClientInterceptorTests
         }
 
         // Check a streaming async call
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             Assert.Equal(parentActivity, Activity.Current);
             using var call = client.DuplexStreaming();
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage).ConfigureAwait(false);
+            await call.RequestStream.WriteAsync(FoobarService.DefaultRequestMessage);
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            await call.RequestStream.CompleteAsync().ConfigureAwait(false);
+            await call.RequestStream.CompleteAsync();
 
             Assert.Equal(parentActivity, Activity.Current);
 
-            while (await call.ResponseStream.MoveNext().ConfigureAwait(false))
+            while (await call.ResponseStream.MoveNext())
             {
                 Assert.Equal(parentActivity, Activity.Current);
             }
@@ -343,7 +342,7 @@ public class GrpcCoreClientInterceptorTests
             {
                 Assert.NotNull(activityEvent.Tags);
                 Assert.Contains(activityEvent.Tags, t => t.Key == "name" && (string)t.Value == "message");
-                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageID && (int)t.Value == 1);
+                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageId && (int)t.Value == 1);
             }
 
             Assert.NotEqual(default, requestMessage);
@@ -403,15 +402,16 @@ public class GrpcCoreClientInterceptorTests
         };
 
         using var server = FoobarService.Start();
+        var testTags = new TestActivityTags();
         var interceptorOptions = new ClientTracingInterceptorOptions
         {
             Propagator = propagator,
             RecordMessageEvents = true,
-            ActivityIdentifierValue = Guid.NewGuid(),
+            AdditionalTags = testTags.Tags,
         };
 
         // No Activity parent
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(interceptorOptions));
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
@@ -446,7 +446,7 @@ public class GrpcCoreClientInterceptorTests
         capturedPropagationContext = default;
 
         // Activity has a parent
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             using var parentActivity = new Activity("foo");
             parentActivity.SetIdFormat(ActivityIdFormat.W3C);
@@ -486,7 +486,8 @@ public class GrpcCoreClientInterceptorTests
         string serverUriString = null)
     {
         using var server = FoobarService.Start();
-        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
             new ClientTracingInterceptor(interceptorOptions),
@@ -496,7 +497,7 @@ public class GrpcCoreClientInterceptorTests
                 new(FoobarService.RequestHeaderErrorDescription, "fubar"),
             });
 
-        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
+        using var activityListener = new InterceptorActivityListener(testTags);
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
 
         var activity = activityListener.Activity;
@@ -515,8 +516,9 @@ public class GrpcCoreClientInterceptorTests
     private void TestActivityIsCancelledWhenHandlerDisposed(Action<Foobar.FoobarClient> clientRequestAction)
     {
         using var server = FoobarService.Start();
-        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid() };
-        using var activityListener = new InterceptorActivityListener(clientInterceptorOptions.ActivityIdentifierValue);
+        var testTags = new TestActivityTags();
+        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags };
+        using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
         clientRequestAction(client);
 

@@ -5,19 +5,29 @@
 * Add Kubernetes support.
   ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
 
+## 1.0.0-beta.9
+
+Released 2024-Jun-18
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.0.0-beta.8
 
 Released 2024-Jun-04
 
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
 * **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Container`
   to `OpenTelemetry.Resources.Container`.
   ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+
 * **Breaking Change**: `ContainerResourceDetector` type is now internal,
 use `ResourceBuilder` extension method `AddContainerDetector`
 to enable the detector.
   ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+
 * **Breaking Change**: Renamed EventSource
 from `OpenTelemetry-ResourceDetectors-Container`
 to `OpenTelemetry-Resources-Container`.
@@ -69,6 +79,7 @@ Released 2023-Apr-7
     OpenTelemetry.ResourceDetectors.Container`)
     and the class name (`DockerResourceDetector` to `ContainerResourceDetector`).
   ([#1123](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1123))
+
 * Updates to 1.4.0 of OpenTelemetry SDK.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 

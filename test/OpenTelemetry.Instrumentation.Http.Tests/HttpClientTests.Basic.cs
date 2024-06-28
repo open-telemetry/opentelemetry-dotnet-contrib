@@ -522,7 +522,7 @@ public partial class HttpClientTests : IDisposable
     }
 
     [Fact]
-    public async void RequestNotCollectedWhenInstrumentationFilterApplied()
+    public async Task RequestNotCollectedWhenInstrumentationFilterApplied()
     {
         var exportedItems = new List<Activity>();
 
@@ -563,7 +563,7 @@ public partial class HttpClientTests : IDisposable
     }
 
     [Fact]
-    public async void RequestNotCollectedWhenInstrumentationFilterThrowsException()
+    public async Task RequestNotCollectedWhenInstrumentationFilterThrowsException()
     {
         var exportedItems = new List<Activity>();
 

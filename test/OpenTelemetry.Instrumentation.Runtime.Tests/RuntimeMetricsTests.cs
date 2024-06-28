@@ -1,13 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-#if NET6_0_OR_GREATER
-using System.Threading;
-using System.Threading.Tasks;
-#endif
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -66,7 +59,7 @@ public class RuntimeMetricsTests
         var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
         Assert.NotNull(totalObjectsSize);
 
-#if NET6_0_OR_GREATER
+#if NET
 
         var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
         Assert.NotNull(gcAllocationSizeMetric);
@@ -88,7 +81,7 @@ public class RuntimeMetricsTests
 #endif
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Fact]
     public void JitRelatedMetricsTest()
     {
@@ -111,7 +104,7 @@ public class RuntimeMetricsTests
     }
 
     [Fact]
-    public void ThreadingRelatedMetricsTest()
+    public async Task ThreadingRelatedMetricsTest()
     {
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -127,7 +120,7 @@ public class RuntimeMetricsTests
             tasks.Add(Task.Run(() => { }));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 

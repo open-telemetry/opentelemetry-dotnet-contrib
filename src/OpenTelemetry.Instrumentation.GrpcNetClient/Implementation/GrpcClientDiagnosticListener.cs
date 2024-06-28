@@ -158,7 +158,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
         // See https://github.com/grpc/grpc-dotnet/blob/ff1a07b90c498f259e6d9f4a50cdad7c89ecd3c0/src/Grpc.Net.Client/Internal/GrpcCall.cs#L1180-L1183
         // this makes sure that top-level properties on the payload object are always preserved.
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
@@ -199,7 +199,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 
         // See https://github.com/grpc/grpc-dotnet/blob/ff1a07b90c498f259e6d9f4a50cdad7c89ecd3c0/src/Grpc.Net.Client/Internal/GrpcCall.cs#L1180-L1183
         // this makes sure that top-level properties on the payload object are always preserved.
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)

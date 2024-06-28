@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
@@ -32,7 +29,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher<MyTraceEnricher2>())
             .Build();
 
-        await host.StartAsync().ConfigureAwait(false);
+        await host.StartAsync();
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -61,7 +58,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync().ConfigureAwait(false);
+        await host.StopAsync();
     }
 
     [Fact]
@@ -80,7 +77,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(new MyTraceEnricher2()))
             .Build();
 
-        await host.StartAsync().ConfigureAwait(false);
+        await host.StartAsync();
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -102,7 +99,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync().ConfigureAwait(false);
+        await host.StopAsync();
     }
 
     [Fact]
@@ -126,7 +123,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(bag => bag.Add(testKey2, testValue2)))
             .Build();
 
-        await host.StartAsync().ConfigureAwait(false);
+        await host.StartAsync();
 
         using var source1 = new ActivitySource(SourceName);
 
@@ -162,7 +159,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                 .AddTraceEnricher(sp => new MyTraceEnricher2()))
             .Build();
 
-        await host.StartAsync().ConfigureAwait(false);
+        await host.StartAsync();
 
         var enrichers = host.Services.GetServices<TraceEnricher>().ToArray();
         Assert.NotNull(enrichers);
@@ -184,6 +181,6 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
             Assert.Equal(1, tagObject2.Single().Value);
         }
 
-        await host.StopAsync().ConfigureAwait(false);
+        await host.StopAsync();
     }
 }

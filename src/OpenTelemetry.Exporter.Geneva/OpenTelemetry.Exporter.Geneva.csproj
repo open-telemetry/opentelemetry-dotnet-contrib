@@ -10,7 +10,7 @@
     <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
