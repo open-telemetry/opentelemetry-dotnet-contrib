@@ -193,7 +193,7 @@ internal sealed class ContainerDetector : IResourceDetector
             }
 
             using var httpClientHandler = ServerCertificateValidationHandler.Create(K8sCertificatePath, ContainerResourceEventSource.Log);
-            var response = ResourceDetectorUtils.SendOutRequest(url, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).GetAwaiter().GetResult();
+            var response = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(url, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
             var pod = ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.K8sPod);
             if (pod?.Status?.ContainerStatuses == null)
             {
