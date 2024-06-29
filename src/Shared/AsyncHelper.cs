@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.Resources.AWS;
+namespace OpenTelemetry.Resources;
 
 /// <summary>
 /// A helper class for running asynchronous methods synchronously.
