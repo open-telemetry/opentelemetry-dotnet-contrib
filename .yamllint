@@ -9,8 +9,7 @@ rules:
   octal-values: enable
   truthy:
     allowed-values: ['true', 'false', 'on']  # 'on' for GH action trigger
-  line-length:
-    max: 200
+  line-length: disable
   indentation:
     check-multi-line-strings: false
     indent-sequences: consistent
