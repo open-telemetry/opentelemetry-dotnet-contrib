@@ -18,7 +18,7 @@ jobs:
       with:
         filters: |
           md: [ '**.md' ]
-          yml: [ '**.yml, '**.yaml' ]
+          yml: [ '**.yml, '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
