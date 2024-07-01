@@ -7,7 +7,7 @@ namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
 internal abstract class ActivityProcessorBase : IActivityProcessor
 {
-    public IActivityProcessor NextProcessor { get; set; }
+    public IActivityProcessor? NextProcessor { get; set; }
 
     public virtual async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
     {

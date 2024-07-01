@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 internal sealed class SqlClientInstrumentation : IDisposable
 {
     internal const string SqlClientDiagnosticListenerName = "SqlClientDiagnosticListener";
-#if NET6_0_OR_GREATER
+#if NET
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
 #endif
 #if NETFRAMEWORK
@@ -40,7 +40,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
     /// Initializes a new instance of the <see cref="SqlClientInstrumentation"/> class.
     /// </summary>
     /// <param name="options">Configuration options for sql instrumentation.</param>
-#if NET6_0_OR_GREATER
+#if NET
     [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
 #endif
     public SqlClientInstrumentation(

@@ -33,7 +33,7 @@ internal sealed class ConnectionStringBuilder
                 continue;
             }
 
-#if NET6_0_OR_GREATER
+#if NET
             var index = token.IndexOf(EqualSign, StringComparison.Ordinal);
 #else
             var index = token.IndexOf(EqualSign);

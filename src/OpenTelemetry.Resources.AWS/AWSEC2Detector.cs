@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -80,7 +83,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
 #else
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
@@ -89,7 +92,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     private static string GetAWSEC2Token()
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2MetadataTokenUrl, HttpMethod.Put, new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")));
     }
 
     private static AWSEC2IdentityDocumentModel? GetAWSEC2Identity(string token)
@@ -102,11 +105,11 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     private static string GetIdentityResponse(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2IdentityDocumentUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)));
     }
 
     private static string GetAWSEC2HostName(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2HostNameUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)));
     }
 }

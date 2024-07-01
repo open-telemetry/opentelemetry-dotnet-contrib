@@ -7,8 +7,6 @@
     <Description>Instana .NET Exporter for OpenTelemetry</Description>
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.3</PackageValidationBaselineVersion>
-    <Nullable>disable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +25,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
 </Project>

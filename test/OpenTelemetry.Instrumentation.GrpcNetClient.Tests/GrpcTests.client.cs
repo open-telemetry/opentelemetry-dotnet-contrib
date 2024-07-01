@@ -114,7 +114,7 @@ public partial class GrpcTests
         }
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

@@ -14,13 +14,16 @@ internal class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcesso
         if (activity.Status == ActivityStatusCode.Error)
         {
             instanaSpan.Ec = 1;
-            instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD] = activity.Status.ToString();
-            if (!string.IsNullOrEmpty(activity.StatusDescription))
+            if (instanaSpan.Data.data != null)
             {
-                instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription;
+                instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD] = activity.Status.ToString();
+                if (activity.StatusDescription != null && !string.IsNullOrEmpty(activity.StatusDescription))
+                {
+                    instanaSpan.Data.data[InstanaExporterConstants.ERROR_DETAIL_FIELD] = activity.StatusDescription;
+                }
             }
         }
-        else if (instanaSpan.TransformInfo.HasExceptionEvent)
+        else if (instanaSpan.TransformInfo != null && instanaSpan.TransformInfo.HasExceptionEvent)
         {
             instanaSpan.Ec = 1;
         }
@@ -29,6 +32,9 @@ internal class ErrorActivityProcessor : ActivityProcessorBase, IActivityProcesso
             instanaSpan.Ec = 0;
         }
 
-        await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        if (activity != null && instanaSpan != null)
+        {
+            await base.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
+        }
     }
 }

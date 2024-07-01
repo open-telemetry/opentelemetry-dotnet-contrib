@@ -64,7 +64,7 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
         string? websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar);
         string websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar) ?? string.Empty;
 
-#if NET6_0_OR_GREATER
+#if NET
         int idx = websiteOwnerName.IndexOf('+', StringComparison.Ordinal);
 #else
         int idx = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);

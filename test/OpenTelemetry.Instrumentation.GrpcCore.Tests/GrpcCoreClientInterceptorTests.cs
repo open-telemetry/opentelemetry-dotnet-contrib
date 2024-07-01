@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;

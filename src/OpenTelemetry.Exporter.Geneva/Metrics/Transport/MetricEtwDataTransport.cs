@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Diagnostics.Tracing;
@@ -26,7 +26,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     }
 
     [NonEvent]
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
     public unsafe void Send(MetricEventType eventType, byte[] data, int size)
@@ -41,7 +41,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     }
 
     [NonEvent]
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
 #endif
     public unsafe void SendOtlpProtobufEvent(byte[] data, int size)

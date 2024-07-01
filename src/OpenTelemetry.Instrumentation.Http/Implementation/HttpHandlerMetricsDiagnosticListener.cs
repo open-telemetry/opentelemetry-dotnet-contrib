@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Diagnostics.Metrics;
@@ -30,7 +30,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<HttpRequestMessage> RequestFetcher = new("Request");
-#if NET6_0_OR_GREATER
+#if NET
     private static readonly HttpRequestOptionsKey<string> HttpRequestOptionsErrorKey = new(SemanticConventions.AttributeErrorType);
 #endif
 
@@ -72,7 +72,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
             if (response == null)
             {
-#if !NET6_0_OR_GREATER
+#if !NET
                 request.Properties.TryGetValue(SemanticConventions.AttributeErrorType, out var errorType);
 #else
                 request.Options.TryGetValue(HttpRequestOptionsErrorKey, out var errorType);
@@ -94,7 +94,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
         static bool TryFetchRequest(object payload, out HttpRequestMessage request) =>
@@ -102,7 +102,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
         static bool TryFetchResponse(object payload, out HttpResponseMessage response) =>
@@ -117,7 +117,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
             return;
         }
 
-#if !NET6_0_OR_GREATER
+#if !NET
         request.Properties.Add(SemanticConventions.AttributeErrorType, exc.GetType().FullName);
 #else
         request.Options.Set(HttpRequestOptionsErrorKey, exc.GetType().FullName);
@@ -125,7 +125,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
         static bool TryFetchException(object payload, out Exception exc)
@@ -140,7 +140,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
         static bool TryFetchRequest(object payload, out HttpRequestMessage request)

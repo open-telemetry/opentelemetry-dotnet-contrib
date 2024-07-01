@@ -337,7 +337,7 @@ internal class HttpInListener : ListenerHandler
         // See https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L252
         // and https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Middleware/Diagnostics/src/DeveloperExceptionPage/DeveloperExceptionPageMiddlewareImpl.cs#L174
         // this makes sure that top-level properties on the payload object are always preserved.
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)

@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
