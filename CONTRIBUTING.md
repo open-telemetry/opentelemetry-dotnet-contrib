@@ -100,7 +100,7 @@ If you made changes to any YAML files (`*.yaml` or `*.yml` files), install the l
 [`yamllint`](https://github.com/adrienverge/yamllint) and run:
 
 ```sh
-yamllint .
+yamllint --no-warnings .
 ```
 
 Check out a new branch, make modifications and push the branch to your fork:
