@@ -26,14 +26,14 @@ internal class ServerStreamWriterProxy<T> : IServerStreamWriter<T>
     /// <summary>
     /// The on write action.
     /// </summary>
-    private readonly Action<T> onWrite;
+    private readonly Action<T>? onWrite;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServerStreamWriterProxy{T}"/> class.
     /// </summary>
     /// <param name="writer">The writer.</param>
     /// <param name="onWrite">The on write action, if any.</param>
-    public ServerStreamWriterProxy(IServerStreamWriter<T> writer, Action<T> onWrite = null)
+    public ServerStreamWriterProxy(IServerStreamWriter<T> writer, Action<T>? onWrite = null)
     {
         this.writer = writer;
         this.onWrite = onWrite;

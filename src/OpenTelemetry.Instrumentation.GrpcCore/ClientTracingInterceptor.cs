@@ -42,7 +42,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -74,7 +74,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -127,7 +127,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -186,7 +186,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -228,7 +228,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -289,7 +289,7 @@ public class ClientTracingInterceptor : Interceptor
         /// <summary>
         /// The parent activity.
         /// </summary>
-        private readonly Activity parentActivity;
+        private readonly Activity? parentActivity;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientRpcScope{TRequest, TResponse}" /> class.

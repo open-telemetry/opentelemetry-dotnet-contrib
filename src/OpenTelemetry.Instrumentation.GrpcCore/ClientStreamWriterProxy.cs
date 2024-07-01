@@ -26,17 +26,17 @@ internal class ClientStreamWriterProxy<T> : IClientStreamWriter<T>
     /// <summary>
     /// The on write action.
     /// </summary>
-    private readonly Action<T> onWrite;
+    private readonly Action<T>? onWrite;
 
     /// <summary>
     /// The on complete action.
     /// </summary>
-    private readonly Action onComplete;
+    private readonly Action? onComplete;
 
     /// <summary>
     /// The on exception action.
     /// </summary>
-    private readonly Action<Exception> onException;
+    private readonly Action<Exception>? onException;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClientStreamWriterProxy{T}"/> class.
@@ -45,7 +45,7 @@ internal class ClientStreamWriterProxy<T> : IClientStreamWriter<T>
     /// <param name="onWrite">The on write action if any.</param>
     /// <param name="onComplete">The on complete action, if any.</param>
     /// <param name="onException">The on exception action, if any.</param>
-    public ClientStreamWriterProxy(IClientStreamWriter<T> writer, Action<T> onWrite = null, Action onComplete = null, Action<Exception> onException = null)
+    public ClientStreamWriterProxy(IClientStreamWriter<T> writer, Action<T>? onWrite = null, Action? onComplete = null, Action<Exception>? onException = null)
     {
         this.writer = writer;
         this.onWrite = onWrite;

@@ -27,17 +27,17 @@ internal class AsyncStreamReaderProxy<T> : IAsyncStreamReader<T>
     /// <summary>
     /// The on message action.
     /// </summary>
-    private readonly Action<T> onMessage;
+    private readonly Action<T>? onMessage;
 
     /// <summary>
     /// The on stream end action.
     /// </summary>
-    private readonly Action onStreamEnd;
+    private readonly Action? onStreamEnd;
 
     /// <summary>
     /// The on exception action.
     /// </summary>
-    private readonly Action<Exception> onException;
+    private readonly Action<Exception>? onException;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AsyncStreamReaderProxy{T}"/> class.
@@ -46,7 +46,7 @@ internal class AsyncStreamReaderProxy<T> : IAsyncStreamReader<T>
     /// <param name="onMessage">The on message action, if any.</param>
     /// <param name="onStreamEnd">The on stream end action, if any.</param>
     /// <param name="onException">The on exception action, if any.</param>
-    public AsyncStreamReaderProxy(IAsyncStreamReader<T> reader, Action<T> onMessage = null, Action onStreamEnd = null, Action<Exception> onException = null)
+    public AsyncStreamReaderProxy(IAsyncStreamReader<T> reader, Action<T>? onMessage = null, Action? onStreamEnd = null, Action<Exception>? onException = null)
     {
         this.reader = reader;
         this.onMessage = onMessage;
