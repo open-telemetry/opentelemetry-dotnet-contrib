@@ -277,7 +277,7 @@ public class ClientTracingInterceptor : Interceptor
         /// <summary>
         /// The metadata setter action.
         /// </summary>
-        private static readonly Action<Metadata, string, string> MetadataSetter = (metadata, key, value) => { metadata.Add(new Metadata.Entry(key, value)); };
+        private static readonly Action<Metadata?, string, string> MetadataSetter = (metadata, key, value) => { metadata?.Add(new Metadata.Entry(key, value)); };
 
         /// <summary>
         /// The context.
@@ -343,7 +343,7 @@ public class ClientTracingInterceptor : Interceptor
 
             this.SetActivity(rpcActivity);
             options.Propagator.Inject(new PropagationContext(rpcActivity.Context, Baggage.Current), callOptions.Headers, MetadataSetter);
-            this.context = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host, callOptions);
+            this.context = new ClientInterceptorContext<TRequest, TResponse>(context.Method!, context.Host, callOptions);
         }
 
         /// <summary>
