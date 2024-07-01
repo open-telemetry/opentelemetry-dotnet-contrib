@@ -15,13 +15,13 @@ internal class TestActivityTags
 
     public TestActivityTags()
     {
-        this.Tags = new Dictionary<string, object>()
+        this.Tags = new Dictionary<string, object?>()
         {
             [ActivityIdentifierTag] = Guid.NewGuid(),
         };
     }
 
-    internal IReadOnlyDictionary<string, object> Tags { get; }
+    internal IReadOnlyDictionary<string, object?> Tags { get; }
 
     /// <summary>
     /// Checks whether the activity has test tags.

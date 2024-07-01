@@ -101,7 +101,7 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
@@ -116,7 +116,7 @@ public class GrpcCoreServerInterceptorTests
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-            Assert.Equal(default, activity.ParentSpanId);
+            Assert.Equal(default, activity!.ParentSpanId);
         }
 
         // No parent Activity, context from header
@@ -133,7 +133,7 @@ public class GrpcCoreServerInterceptorTests
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-            Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
+            Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity!.ParentSpanId);
         }
     }
 
@@ -143,7 +143,7 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
         var testTags = new TestActivityTags();
@@ -164,6 +164,6 @@ public class GrpcCoreServerInterceptorTests
 
         var activity = activityListener.Activity;
         GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
-        Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
+        Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity!.ParentSpanId);
     }
 }
