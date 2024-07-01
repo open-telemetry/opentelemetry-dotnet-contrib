@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using Google.Protobuf;
 using Grpc.Core;
 using OpenTelemetry.Trace;
@@ -243,7 +240,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         {
             new KeyValuePair<string, object>("name", "message"),
             new KeyValuePair<string, object>(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageID, request ? this.requestMessageCounter : this.responseMessageCounter),
+            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
 
             // TODO how to get the real compressed or uncompressed sizes
             new KeyValuePair<string, object>(SemanticConventions.AttributeMessageCompressedSize, messageSize),

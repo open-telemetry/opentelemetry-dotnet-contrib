@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
@@ -205,21 +201,11 @@ public class ServerTracingInterceptor : Interceptor
                 }
             }
 
-            // This if block is for unit testing only.
-            IEnumerable<KeyValuePair<string, object>> customTags = null;
-            if (options.ActivityIdentifierValue != default)
-            {
-                customTags = new List<KeyValuePair<string, object>>
-                {
-                    new KeyValuePair<string, object>(SemanticConventions.AttributeActivityIdentifier, options.ActivityIdentifierValue),
-                };
-            }
-
             var activity = GrpcCoreInstrumentation.ActivitySource.StartActivity(
                 this.FullServiceName,
                 ActivityKind.Server,
                 currentContext ?? default,
-                tags: customTags);
+                tags: options.AdditionalTags);
 
             this.SetActivity(activity);
         }

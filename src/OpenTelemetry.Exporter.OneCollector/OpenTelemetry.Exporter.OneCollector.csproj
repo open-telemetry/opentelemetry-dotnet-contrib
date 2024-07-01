@@ -7,7 +7,6 @@
     <TargetFrameworks>net7.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
-    <ImplicitUsings>true</ImplicitUsings>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <!-- Note: SYSLIB1100;SYSLIB1101 - Configuration.Binder: Can't create
     instance and unsupported type are being emitted by config source generator

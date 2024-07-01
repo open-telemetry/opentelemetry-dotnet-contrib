@@ -1,15 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace OpenTelemetry.Exporter.Geneva;
 

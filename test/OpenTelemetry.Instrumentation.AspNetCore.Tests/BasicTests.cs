@@ -1220,12 +1220,7 @@ public sealed class BasicTests
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
-            if (this.attributes != null)
-            {
-                return new SamplingResult(this.samplingDecision, this.attributes);
-            }
-
-            return new SamplingResult(this.samplingDecision);
+            return new SamplingResult(this.samplingDecision, this.attributes);
         }
     }
 
