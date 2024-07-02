@@ -4,7 +4,6 @@
     <Description>.NET gRPC Core based client and server interceptors for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);gRPC Core;interceptors</PackageTags>
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
