@@ -31,7 +31,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// The RPC activity.
     /// </summary>
-    private Activity activity;
+    private Activity? activity;
 
     /// <summary>
     /// The complete flag.
@@ -54,7 +54,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
     /// <param name="recordException">If set to <c>true</c> [record exception].</param>
-    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordException)
+    protected RpcScope(string? fullServiceName, bool recordMessageEvents, bool recordException)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
@@ -79,7 +79,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.AddMessageEvent(typeof(TRequest).Name, request as IMessage, request: true);
+        this.AddMessageEvent(typeof(TRequest).Name, (request as IMessage)!, request: true);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.AddMessageEvent(typeof(TResponse).Name, response as IMessage, request: false);
+        this.AddMessageEvent(typeof(TResponse).Name, (response as IMessage)!, request: false);
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity!.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
         this.activity.Stop();
     }
 
@@ -206,10 +206,10 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (!string.IsNullOrEmpty(description))
         {
-            this.activity.SetStatus(ActivityStatusCode.Error, description);
+            this.activity!.SetStatus(ActivityStatusCode.Error, description);
         }
 
-        if (this.activity.IsAllDataRequested && this.recordException)
+        if (this.activity!.IsAllDataRequested && this.recordException)
         {
             this.activity.RecordException(exception);
         }
@@ -236,17 +236,17 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     {
         var messageSize = message.CalculateSize();
 
-        var attributes = new ActivityTagsCollection(new KeyValuePair<string, object>[5]
-        {
-            new KeyValuePair<string, object>("name", "message"),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
+        var attributes = new ActivityTagsCollection(
+        [
+            new("name", "message"),
+            new(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
+            new(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
 
             // TODO how to get the real compressed or uncompressed sizes
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageCompressedSize, messageSize),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
-        });
+            new(SemanticConventions.AttributeMessageCompressedSize, messageSize),
+            new(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
+        ]);
 
-        this.activity.AddEvent(new ActivityEvent(eventName, default, attributes));
+        this.activity!.AddEvent(new ActivityEvent(eventName, default, attributes));
     }
 }
