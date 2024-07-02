@@ -18,6 +18,7 @@ jobs:
       with:
         filters: |
           md: [ '**.md' ]
+          yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
@@ -68,6 +69,13 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'md')
       || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/markdownlint.yml
+
+  lint-yml:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'yml')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    uses: ./.github/workflows/yamllint.yml
 
   lint-dotnet-format:
     needs: detect-changes
@@ -609,7 +617,7 @@ jobs:
       build-test-semanticconventions,
       build-test-contrib-shared-tests,
       verify-aot-compat
-      ]
+    ]
     if: always() && !cancelled() && !contains(needs.*.result, 'failure')
     runs-on: windows-latest
     steps:

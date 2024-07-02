@@ -20,7 +20,7 @@ jobs:
       'external' || 'internal' }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo ✓
+    - run: echo ✓
 
   build-integration-test:
     needs: authorize
