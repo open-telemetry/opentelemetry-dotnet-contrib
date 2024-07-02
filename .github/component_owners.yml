@@ -35,6 +35,8 @@ components:
     - ppittle
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
+  src/OpenTelemetry.Instrumentation.ConfluentKafka/:
+    - g7ed6e    
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -130,6 +132,8 @@ components:
     - ppittle
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
+  test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
+    - g7ed6e    
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
