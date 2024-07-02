@@ -34,7 +34,7 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
 
         ConsumerConfig config = (ConsumerConfig)this.Config;
 
-        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.Options);
+        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.Options!);
         consumer.GroupId = config.GroupId;
 
         return consumer;

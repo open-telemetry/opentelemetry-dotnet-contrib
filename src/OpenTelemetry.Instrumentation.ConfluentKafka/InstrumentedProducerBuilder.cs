@@ -32,6 +32,6 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
         Debug.Assert(this.Options != null, "Options should not be null.");
 
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.Options);
+        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.Options!);
     }
 }
