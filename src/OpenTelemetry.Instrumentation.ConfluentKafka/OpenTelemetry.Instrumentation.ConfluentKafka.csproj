@@ -27,9 +27,4 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='net462'">
-    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
-  </ItemGroup>
-
 </Project>
