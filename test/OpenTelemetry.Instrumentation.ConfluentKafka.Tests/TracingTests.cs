@@ -302,4 +302,61 @@ public class TracingTests
         Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
         Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
     }
+
+    [Trait("CategoryName", "KafkaIntegrationTests")]
+    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    public async Task ConsumeAndProcessMessageTest()
+    {
+        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+
+        ConsumerConfig consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            GroupId = "test-consumer-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnablePartitionEof = true,
+        };
+        InstrumentedConsumerBuilder<string, string> consumerBuilder = new(consumerConfig);
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+        using (Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(activities)
+                .SetSampler(sampler)
+                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .Build())
+        {
+            using IConsumer<string, string> consumer = consumerBuilder.Build();
+            consumer.Subscribe(topic);
+            while (true)
+            {
+                var consumeResult = await consumer.ConsumeAndProcessMessageAsync(NoOpAsync);
+                if (consumeResult == null)
+                {
+                    continue;
+                }
+
+                if (consumeResult.IsPartitionEOF)
+                {
+                    break;
+                }
+            }
+
+            consumer.Close();
+        }
+
+        var activity = Assert.Single(activities, activity => activity.DisplayName == topic + " process");
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("process", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
+        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
+        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
+        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
+
+        ValueTask NoOpAsync(
+            ConsumeResult<string, string> consumeResult,
+            CancellationToken cancellationToken = default)
+        {
+            return default;
+        }
+    }
 }
