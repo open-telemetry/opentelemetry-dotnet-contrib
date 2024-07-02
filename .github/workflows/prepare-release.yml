@@ -20,6 +20,7 @@ on:
         - OpenTelemetry.Instrumentation.AWS
         - OpenTelemetry.Instrumentation.AWSLambda
         - OpenTelemetry.Instrumentation.Cassandra
+        - OpenTelemetry.Instrumentation.ConfluentKafka
         - OpenTelemetry.Instrumentation.ElasticsearchClient
         - OpenTelemetry.Instrumentation.EntityFrameworkCore
         - OpenTelemetry.Instrumentation.EventCounters
