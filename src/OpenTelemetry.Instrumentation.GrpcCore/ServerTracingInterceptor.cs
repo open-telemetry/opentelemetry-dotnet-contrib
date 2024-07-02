@@ -207,10 +207,7 @@ public class ServerTracingInterceptor : Interceptor
                 currentContext ?? default,
                 tags: options.AdditionalTags);
 
-            if (activity != null)
-            {
                 this.SetActivity(activity);
-            }
         }
     }
 }

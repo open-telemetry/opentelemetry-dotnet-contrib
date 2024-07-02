@@ -142,7 +142,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// Sets the activity for this RPC scope. Should only be called once.
     /// </summary>
     /// <param name="activity">The activity.</param>
-    protected void SetActivity(Activity activity)
+    protected void SetActivity(Activity? activity)
     {
         this.activity = activity;
 
