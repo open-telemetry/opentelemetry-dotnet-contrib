@@ -93,8 +93,14 @@ public class ClientTracingInterceptor : Interceptor
                     }
                     catch (AggregateException ex)
                     {
-                        rpcScope.CompleteWithException(ex.InnerException);
-                        throw ex.InnerException;
+                        if (ex.InnerException != null)
+                        {
+                            rpcScope.CompleteWithException(ex.InnerException);
+                            throw ex.InnerException;
+                        }
+
+                        rpcScope.CompleteWithException(ex);
+                        throw;
                     }
                 },
                 TaskScheduler.Current);
@@ -150,8 +156,14 @@ public class ClientTracingInterceptor : Interceptor
                     }
                     catch (AggregateException ex)
                     {
-                        rpcScope.CompleteWithException(ex.InnerException);
-                        throw ex.InnerException;
+                        if (ex.InnerException != null)
+                        {
+                            rpcScope.CompleteWithException(ex.InnerException);
+                            throw ex.InnerException;
+                        }
+
+                        rpcScope.CompleteWithException(ex);
+                        throw;
                     }
                 },
                 TaskScheduler.Current);

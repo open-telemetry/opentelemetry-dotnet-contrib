@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
@@ -308,7 +309,7 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
     /// <param name="recordedExceptions">if set to <c>true</c> [recorded exceptions].</param>
     internal static void ValidateCommonActivityTags(
-        Activity? activity,
+        [NotNull] Activity? activity,
         StatusCode expectedStatusCode = StatusCode.OK,
         bool recordedMessages = false,
         bool recordedExceptions = false)
@@ -468,7 +469,7 @@ public class GrpcCoreClientInterceptorTests
 
             var activity = activityListener.Activity;
             ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-            Assert.Equal(parentActivity.Id, activity!.ParentId);
+            Assert.Equal(parentActivity.Id, activity.ParentId);
         }
     }
 
@@ -508,7 +509,7 @@ public class GrpcCoreClientInterceptorTests
 
         if (validateErrorDescription)
         {
-            Assert.Contains("fubar", activity!.StatusDescription);
+            Assert.Contains("fubar", activity.StatusDescription);
         }
     }
 

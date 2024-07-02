@@ -113,7 +113,7 @@ public class GrpcCoreServerInterceptorTests
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-            Assert.Equal(default, activity!.ParentSpanId);
+            Assert.Equal(default, activity.ParentSpanId);
         }
 
         // No parent Activity, context from header
@@ -130,7 +130,7 @@ public class GrpcCoreServerInterceptorTests
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
-            Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity!.ParentSpanId);
+            Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
         }
     }
 
@@ -161,6 +161,6 @@ public class GrpcCoreServerInterceptorTests
 
         var activity = activityListener.Activity;
         GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
-        Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity!.ParentSpanId);
+        Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
     }
 }
