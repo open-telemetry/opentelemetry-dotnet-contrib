@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Google.Protobuf;
 using Grpc.Core;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using StatusCode = Grpc.Core.StatusCode;
 
@@ -72,6 +73,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="request">The request.</param>
     public void RecordRequest(TRequest request)
     {
+        Guard.ThrowIfNull(request);
+
         this.requestMessageCounter++;
 
         if (this.activity == null || !this.activity.IsAllDataRequested || !this.recordMessageEvents)
@@ -88,6 +91,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="response">The response.</param>
     public void RecordResponse(TResponse response)
     {
+        Guard.ThrowIfNull(response);
+
         this.responseMessageCounter++;
 
         if (this.activity == null || !this.activity.IsAllDataRequested || !this.recordMessageEvents)
@@ -118,6 +123,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="exception">The exception.</param>
     public void CompleteWithException(Exception exception)
     {
+        Guard.ThrowIfNull(exception);
+
         if (this.activity == null)
         {
             return;
