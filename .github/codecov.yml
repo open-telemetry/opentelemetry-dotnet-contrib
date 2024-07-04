@@ -63,6 +63,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.AspNetCore
 
+  unittests-Instrumentation.ConfluentKafka:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.ConfluentKafka
+
   unittests-Instrumentation.EventCounters:
     carryforward: true
     paths:
