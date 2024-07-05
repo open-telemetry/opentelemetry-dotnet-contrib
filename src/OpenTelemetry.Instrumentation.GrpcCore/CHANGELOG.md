@@ -4,6 +4,8 @@
 
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+* Updated minimal supported version of `Grpc.Core.Api` to `2.43.0`.
+  ([#1936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1936))
 
 ## 1.0.0-beta.6
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add support for instrumenting `IConnectionMultiplexer`
+  which is added with service key.
+  ([#1885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1885))
+
 ## 1.0.0-rc9.15
 
 Released 2024-Jun-18
