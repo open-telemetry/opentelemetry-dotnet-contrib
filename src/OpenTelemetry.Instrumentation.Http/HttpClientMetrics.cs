@@ -18,7 +18,7 @@ internal sealed class HttpClientMetrics : IDisposable
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
-    private readonly Func<string, object, object, bool> isEnabled = (activityName, obj1, obj2)
+    private readonly Func<string, object?, object?, bool> isEnabled = (activityName, _, _)
         => !ExcludedDiagnosticSourceEvents.Contains(activityName);
 
     /// <summary>
