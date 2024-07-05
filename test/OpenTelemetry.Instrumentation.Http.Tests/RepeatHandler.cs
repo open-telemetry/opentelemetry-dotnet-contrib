@@ -1,17 +1,19 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
 
 namespace OpenTelemetry.Tests;
 
-public class RetryHandler : DelegatingHandler
+public class RepeatHandler : DelegatingHandler
 {
     private readonly int maxRetries;
 
-    public RetryHandler(HttpMessageHandler innerHandler, int maxRetries)
+    public RepeatHandler(HttpMessageHandler innerHandler, int maxRetries)
         : base(innerHandler)
     {
         this.maxRetries = maxRetries;
@@ -21,7 +23,7 @@ public class RetryHandler : DelegatingHandler
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        HttpResponseMessage response = null;
+        HttpResponseMessage? response = null;
         for (int i = 0; i < this.maxRetries; i++)
         {
             response?.Dispose();
@@ -35,6 +37,6 @@ public class RetryHandler : DelegatingHandler
             }
         }
 
-        return response;
+        return response!;
     }
 }

@@ -341,7 +341,7 @@ public partial class HttpClientTests : IDisposable
 
         int maxRetries = 3;
         using var clientHandler = new HttpClientHandler();
-        using var retryHandler = new RetryHandler(clientHandler, maxRetries);
+        using var retryHandler = new RepeatHandler(clientHandler, maxRetries);
         using var httpClient = new HttpClient(retryHandler);
         await httpClient.SendAsync(request);
 
