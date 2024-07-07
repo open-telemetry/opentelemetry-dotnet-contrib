@@ -96,6 +96,13 @@ If you made changes to the Markdown documents (`*.md` files), install the latest
 markdownlint .
 ```
 
+If you made changes to any YAML files (`*.yaml` or `*.yml` files), install the latest
+[`yamllint`](https://github.com/adrienverge/yamllint) and run:
+
+```sh
+yamllint --no-warnings .
+```
+
 Check out a new branch, make modifications and push the branch to your fork:
 
 ```sh

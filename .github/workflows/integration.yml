@@ -2,9 +2,14 @@ name: Integration Build OpenTelemetry.Instrumentation.StackExchangeRedis
 
 on:
   workflow_call:
+    inputs:
+      job:
+        required: true
+        type: string
 
 jobs:
   redis-integration-test:
+    if: inputs.job == 'all' || inputs.job == 'redis-integration-test'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -13,5 +18,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run redis docker-compose.integration
+      - name: Run redis docker-compose
         run: docker-compose --file=test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
+
+  kafka-integration-test:
+    if: inputs.job == 'all' || inputs.job == 'kafka-integration-test'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [net6.0, net7.0, net8.0]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run kafka docker-compose
+        run: docker-compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build

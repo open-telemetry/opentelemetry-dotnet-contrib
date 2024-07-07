@@ -1,12 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.using System;
-using System;
 using System.Diagnostics;
 using System.Text;
 using Xunit;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Tests;
 

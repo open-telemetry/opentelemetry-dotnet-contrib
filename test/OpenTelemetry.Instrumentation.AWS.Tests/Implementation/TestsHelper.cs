@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using OpenTelemetry.Instrumentation.AWS.Implementation;

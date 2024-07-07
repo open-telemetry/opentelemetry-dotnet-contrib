@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -62,7 +58,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// </summary>
     /// <param name="serverInterceptor">The server interceptor.</param>
     /// <returns>A tuple.</returns>
-    public static DisposableServer Start(Interceptor serverInterceptor = null)
+    public static DisposableServer Start(Interceptor? serverInterceptor = null)
     {
         // Disable SO_REUSEPORT to prevent https://github.com/grpc/grpc/issues/10755
         var serviceDefinition = Foobar.BindService(new FoobarService());
@@ -94,8 +90,8 @@ internal class FoobarService : Foobar.FoobarBase
     /// </returns>
     public static Foobar.FoobarClient ConstructRpcClient(
         string target,
-        ClientTracingInterceptor clientTracingInterceptor = null,
-        IEnumerable<Metadata.Entry> additionalMetadata = null)
+        ClientTracingInterceptor? clientTracingInterceptor = null,
+        IEnumerable<Metadata.Entry>? additionalMetadata = null)
     {
         var channel = new Channel(target, ChannelCredentials.Insecure);
         var callInvoker = channel.CreateCallInvoker();
@@ -129,7 +125,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <param name="client">The client.</param>
     /// <param name="additionalMetadata">The additional metadata.</param>
     /// <returns>A Task.</returns>
-    public static async Task MakeUnaryAsyncRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
+    public static async Task MakeUnaryAsyncRequest(Foobar.FoobarClient client, Metadata? additionalMetadata)
     {
         using var call = client.UnaryAsync(DefaultRequestMessage, headers: additionalMetadata);
         _ = await call.ResponseAsync.ConfigureAwait(false);
@@ -141,7 +137,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <param name="client">The client.</param>
     /// <param name="additionalMetadata">The additional metadata.</param>
     /// <returns>A Task.</returns>
-    public static async Task MakeClientStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
+    public static async Task MakeClientStreamingRequest(Foobar.FoobarClient client, Metadata? additionalMetadata)
     {
         using var call = client.ClientStreaming(headers: additionalMetadata);
         await call.RequestStream.WriteAsync(DefaultRequestMessage).ConfigureAwait(false);
@@ -155,7 +151,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <param name="client">The client.</param>
     /// <param name="additionalMetadata">The additional metadata.</param>
     /// <returns>A Task.</returns>
-    public static async Task MakeServerStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
+    public static async Task MakeServerStreamingRequest(Foobar.FoobarClient client, Metadata? additionalMetadata)
     {
         using var call = client.ServerStreaming(DefaultRequestMessage, headers: additionalMetadata);
         while (await call.ResponseStream.MoveNext().ConfigureAwait(false))
@@ -169,7 +165,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <param name="client">The client.</param>
     /// <param name="additionalMetadata">The additional metadata.</param>
     /// <returns>A Task.</returns>
-    public static async Task MakeDuplexStreamingRequest(Foobar.FoobarClient client, Metadata additionalMetadata)
+    public static async Task MakeDuplexStreamingRequest(Foobar.FoobarClient client, Metadata? additionalMetadata)
     {
         using var call = client.DuplexStreaming(headers: additionalMetadata);
         await call.RequestStream.WriteAsync(DefaultRequestMessage).ConfigureAwait(false);

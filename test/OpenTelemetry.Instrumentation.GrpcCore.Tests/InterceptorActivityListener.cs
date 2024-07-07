@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
@@ -42,7 +41,7 @@ internal sealed class InterceptorActivityListener : IDisposable
     /// <summary>
     /// Gets the started Activity.
     /// </summary>
-    public Activity Activity { get; private set; }
+    public Activity? Activity { get; private set; }
 
     /// <inheritdoc/>
     public void Dispose()

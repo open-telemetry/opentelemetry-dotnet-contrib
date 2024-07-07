@@ -137,7 +137,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
         string? awsAuth = null;
         try
         {
-            awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+            awsAuth = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSAuthUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
         }
         catch (Exception ex)
         {
@@ -149,7 +149,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     private static string GetEKSClusterInfo(string credentials, HttpClientHandler? httpClientHandler)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSClusterInfoUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
     }
 }
 #endif

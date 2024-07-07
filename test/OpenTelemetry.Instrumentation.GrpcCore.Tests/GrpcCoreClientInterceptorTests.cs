@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
@@ -231,7 +227,7 @@ public class GrpcCoreClientInterceptorTests
             metadata =>
             {
                 // This Func is called as part of an internal MetadataInjector interceptor created by gRPC Core.
-                Assert.True(Activity.Current.Source == GrpcCoreInstrumentation.ActivitySource);
+                Assert.True(Activity.Current?.Source == GrpcCoreInstrumentation.ActivitySource);
                 Assert.Equal(parentActivity.Id, Activity.Current.ParentId);
 
                 // Set a tag on the Activity and make sure we can see it afterwards
@@ -247,7 +243,8 @@ public class GrpcCoreClientInterceptorTests
         static void ValidateNewTagOnActivity(InterceptorActivityListener listener)
         {
             var createdActivity = listener.Activity;
-            Assert.Contains(createdActivity.TagObjects, t => t.Key == "foo" && (string)t.Value == "bar");
+            Assert.NotNull(createdActivity);
+            Assert.Contains(createdActivity.TagObjects, t => t.Key == "foo" && (string?)t.Value == "bar");
         }
 
         // Check the blocking async call
@@ -311,7 +308,7 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="recordedMessages">if set to <c>true</c> [recorded messages].</param>
     /// <param name="recordedExceptions">if set to <c>true</c> [recorded exceptions].</param>
     internal static void ValidateCommonActivityTags(
-        Activity activity,
+        Activity? activity,
         StatusCode expectedStatusCode = StatusCode.OK,
         bool recordedMessages = false,
         bool recordedExceptions = false)
@@ -324,10 +321,10 @@ public class GrpcCoreClientInterceptorTests
 
         // TagObjects contain non string values
         // Tags contains only string values
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystem && (string)t.Value == "grpc");
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar");
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystem && (string?)t.Value == "grpc");
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService && (string?)t.Value == "OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar");
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod);
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int)t.Value == (int)expectedStatusCode);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int?)t.Value == (int)expectedStatusCode);
 
         // Cancelled is not an error.
         if (expectedStatusCode != StatusCode.OK && expectedStatusCode != StatusCode.Cancelled)
@@ -345,20 +342,20 @@ public class GrpcCoreClientInterceptorTests
             static void ValidateCommonEventAttributes(ActivityEvent activityEvent)
             {
                 Assert.NotNull(activityEvent.Tags);
-                Assert.Contains(activityEvent.Tags, t => t.Key == "name" && (string)t.Value == "message");
-                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageId && (int)t.Value == 1);
+                Assert.Contains(activityEvent.Tags, t => t.Key == "name" && (string?)t.Value == "message");
+                Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageId && (int?)t.Value == 1);
             }
 
             Assert.NotEqual(default, requestMessage);
             Assert.NotEqual(default, responseMessage);
 
             ValidateCommonEventAttributes(requestMessage);
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string)t.Value == "SENT");
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int)t.Value == FoobarService.DefaultRequestMessageSize);
+            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == "SENT");
+            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int?)t.Value == FoobarService.DefaultRequestMessageSize);
 
             ValidateCommonEventAttributes(responseMessage);
-            Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string)t.Value == "RECEIVED");
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int)t.Value == FoobarService.DefaultResponseMessageSize);
+            Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == "RECEIVED");
+            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int?)t.Value == FoobarService.DefaultResponseMessageSize);
         }
 
         if (recordedExceptions)
@@ -368,7 +365,7 @@ public class GrpcCoreClientInterceptorTests
 
             var exceptionEvent = activity.Events.First(e => e.Name == SemanticConventions.AttributeExceptionEventName);
             Assert.NotNull(exceptionEvent.Tags);
-            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionType && (string)t.Value == typeof(RpcException).FullName);
+            Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionType && (string?)t.Value == typeof(RpcException).FullName);
             Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionMessage);
             Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionStacktrace);
         }
@@ -384,7 +381,7 @@ public class GrpcCoreClientInterceptorTests
     {
         var propagator = new TestTextMapPropagator();
         PropagationContext capturedPropagationContext = default;
-        Metadata capturedCarrier = null;
+        Metadata? capturedCarrier = null;
         var propagatorCalled = 0;
         var originalMetadataCount = additionalMetadata.Count;
 
@@ -435,11 +432,13 @@ public class GrpcCoreClientInterceptorTests
             // There was no parent activity, so these will be default
             Assert.NotEqual(default, capturedPropagationContext.ActivityContext.TraceId);
             Assert.NotEqual(default, capturedPropagationContext.ActivityContext.SpanId);
+            Assert.NotNull(activity);
             Assert.Null(activity.Parent);
             Assert.Equal(activity.TraceId, capturedPropagationContext.ActivityContext.TraceId);
             Assert.Equal(activity.SpanId, capturedPropagationContext.ActivityContext.SpanId);
 
             // Sanity check a valid metadata injection setter.
+            Assert.NotNull(capturedCarrier);
             Assert.NotEmpty(capturedCarrier);
 
             ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
@@ -469,6 +468,7 @@ public class GrpcCoreClientInterceptorTests
 
             var activity = activityListener.Activity;
             ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            Assert.NotNull(activity);
             Assert.Equal(parentActivity.Id, activity.ParentId);
         }
     }
@@ -484,10 +484,10 @@ public class GrpcCoreClientInterceptorTests
     /// A Task.
     /// </returns>
     private static async Task TestHandlerFailure(
-        Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc,
+        Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc,
         StatusCode statusCode = StatusCode.ResourceExhausted,
         bool validateErrorDescription = true,
-        string serverUriString = null)
+        string? serverUriString = null)
     {
         using var server = FoobarService.Start();
         var testTags = new TestActivityTags();
@@ -509,6 +509,7 @@ public class GrpcCoreClientInterceptorTests
 
         if (validateErrorDescription)
         {
+            Assert.NotNull(activity);
             Assert.Contains("fubar", activity.StatusDescription);
         }
     }

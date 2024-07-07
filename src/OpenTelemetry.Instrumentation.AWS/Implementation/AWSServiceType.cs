@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceType

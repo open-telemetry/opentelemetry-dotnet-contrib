@@ -7,7 +7,6 @@
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup>

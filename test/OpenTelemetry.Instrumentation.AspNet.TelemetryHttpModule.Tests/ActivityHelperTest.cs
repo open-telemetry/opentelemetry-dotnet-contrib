@@ -1,13 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using Xunit;

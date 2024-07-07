@@ -4,7 +4,6 @@
     <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Container Resource Detector from Container environment.</Description>
     <MinVerTagPrefix>Resources.Container-</MinVerTagPrefix>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.

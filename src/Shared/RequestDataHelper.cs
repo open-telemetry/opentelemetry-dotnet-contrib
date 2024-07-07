@@ -3,17 +3,11 @@
 
 #nullable enable
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Web;
 using OpenTelemetry.Trace;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Internal;
 
