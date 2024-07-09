@@ -14,12 +14,10 @@ public class OperatingSystemDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-        var operatingSystems = new[] { "windows", "linux", "darwin" };
-
         Assert.Single(resourceAttributes);
 
         Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemType));
 
-        Assert.Contains(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], operatingSystems);
+        Assert.Contains(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], OperatingSystemSemanticConventions.OperatingSystems);
     }
 }
