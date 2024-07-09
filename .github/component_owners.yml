@@ -73,6 +73,9 @@ components:
   src/OpenTelemetry.Resources.Host/:
     - Kielek
     - lachmatt
+  src/OpenTelemetry.Resources.OperatingSystem/:
+    - Kielek
+    - lachmatt
   src/OpenTelemetry.Resources.Process/:
     - Kielek
     - lachmatt

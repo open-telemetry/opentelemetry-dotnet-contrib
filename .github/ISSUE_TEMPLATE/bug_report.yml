@@ -54,6 +54,7 @@ body:
         - OpenTelemetry.Resources.Container
         - OpenTelemetry.Resources.Gcp
         - OpenTelemetry.Resources.Host
+        - OpenTelemetry.Resources.OperatingSystem
         - OpenTelemetry.Resources.Process
         - OpenTelemetry.Resources.ProcessRuntime
         - OpenTelemetry.Sampler.AWS
