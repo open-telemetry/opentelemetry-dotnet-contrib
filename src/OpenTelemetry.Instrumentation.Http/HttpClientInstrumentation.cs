@@ -25,10 +25,10 @@ internal sealed class HttpClientInstrumentation : IDisposable
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
-    private readonly Func<string, object, object, bool> isEnabled = (eventName, _, _)
+    private readonly Func<string, object?, object?, bool> isEnabled = (eventName, _, _)
         => !ExcludedDiagnosticSourceEvents.Contains(eventName);
 
-    private readonly Func<string, object, object, bool> isEnabledNet7OrGreater = (eventName, _, _)
+    private readonly Func<string, object?, object?, bool> isEnabledNet7OrGreater = (eventName, _, _)
         => !ExcludedDiagnosticSourceEventsNet7OrGreater.Contains(eventName);
 
     /// <summary>

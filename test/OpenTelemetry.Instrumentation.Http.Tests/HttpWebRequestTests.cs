@@ -8,7 +8,9 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
+#if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
+#endif
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -24,7 +26,7 @@ public partial class HttpWebRequestTests
     public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
-            (ctx) =>
+            ctx =>
             {
                 ctx.Response.StatusCode = tc.ResponseCode == 0 ? 200 : tc.ResponseCode;
                 ctx.Response.OutputStream.Close();
@@ -43,11 +45,11 @@ public partial class HttpWebRequestTests
             .AddInMemoryExporter(exportedItems)
             .AddHttpClientInstrumentation(options =>
             {
-                options.EnrichWithHttpWebRequest = (activity, httpWebRequest) => { enrichWithHttpWebRequestCalled = true; };
-                options.EnrichWithHttpWebResponse = (activity, httpWebResponse) => { enrichWithHttpWebResponseCalled = true; };
-                options.EnrichWithHttpRequestMessage = (activity, request) => { enrichWithHttpRequestMessageCalled = true; };
-                options.EnrichWithHttpResponseMessage = (activity, response) => { enrichWithHttpResponseMessageCalled = true; };
-                options.EnrichWithException = (activity, exception) => { enrichWithExceptionCalled = true; };
+                options.EnrichWithHttpWebRequest = (_, _) => { enrichWithHttpWebRequestCalled = true; };
+                options.EnrichWithHttpWebResponse = (_, _) => { enrichWithHttpWebResponseCalled = true; };
+                options.EnrichWithHttpRequestMessage = (_, _) => { enrichWithHttpRequestMessageCalled = true; };
+                options.EnrichWithHttpResponseMessage = (_, _) => { enrichWithHttpResponseMessageCalled = true; };
+                options.EnrichWithException = (_, _) => { enrichWithExceptionCalled = true; };
                 options.RecordException = tc.RecordException ?? false;
             })
             .Build();
@@ -98,11 +100,11 @@ public partial class HttpWebRequestTests
                 return HttpTestData.NormalizeValues(x.Value, host, port);
             });
 
-        foreach (KeyValuePair<string, object> tag in activity.TagObjects)
+        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
         {
-            var tagValue = tag.Value.ToString();
+            var tagValue = tag.Value?.ToString();
 
-            if (!tc.SpanAttributes.TryGetValue(tag.Key, out string value))
+            if (!tc.SpanAttributes.TryGetValue(tag.Key, out string? value))
             {
                 if (tag.Key == SpanAttributeConstants.StatusCodeKey)
                 {
@@ -179,6 +181,8 @@ public partial class HttpWebRequestTests
               }
             ",
         JsonSerializerOptions);
+
+        Assert.NotNull(input);
         this.HttpOutCallsAreCollectedSuccessfully(input);
     }
 
