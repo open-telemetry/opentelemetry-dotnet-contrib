@@ -1,16 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Text;
 using System.Text.Json;
 #if !NETFRAMEWORK
 using System.Text.Json.Serialization.Metadata;
 #endif
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Resources.AWS;
 
@@ -19,16 +17,20 @@ namespace OpenTelemetry.Resources.AWS;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
-#if !NET6_0_OR_GREATER
+#if !NET
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
 
-    internal static async Task<string> SendOutRequest(string url, string method, KeyValuePair<string, string>? header, HttpClientHandler? handler = null)
+    internal static async Task<string> SendOutRequestAsync(
+        string url,
+        HttpMethod method,
+        KeyValuePair<string, string>? header,
+        HttpClientHandler? handler = null)
     {
         using (var httpRequestMessage = new HttpRequestMessage())
         {
             httpRequestMessage.RequestUri = new Uri(url);
-            httpRequestMessage.Method = new HttpMethod(method);
+            httpRequestMessage.Method = method;
             if (header.HasValue)
             {
                 httpRequestMessage.Headers.Add(header.Value.Key, header.Value.Value);
@@ -45,7 +47,7 @@ internal static class ResourceDetectorUtils
         }
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     internal static T? DeserializeFromFile<T>(string filePath, JsonTypeInfo<T> jsonTypeInfo)
     {
         using (var stream = GetStream(filePath))
@@ -63,7 +65,7 @@ internal static class ResourceDetectorUtils
     {
         using (var stream = GetStream(filePath))
         {
-            return (T?)JsonSerializer.Deserialize(stream, typeof(T), JsonSerializerOptions);
+            return JsonSerializer.Deserialize<T>(stream, JsonSerializerOptions);
         }
     }
 

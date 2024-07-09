@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Runtime.InteropServices;
 #endif
 using OpenTelemetry.Resources.AWS.Models;
@@ -16,7 +14,7 @@ namespace OpenTelemetry.Resources.AWS;
 internal sealed class AWSEBSDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
-#if NET6_0_OR_GREATER
+#if NET
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
 #endif
 
@@ -29,7 +27,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
         try
         {
             string? filePath;
-#if NET6_0_OR_GREATER
+#if NET
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = AWSEBSMetadataWindowsFilePath;
@@ -86,7 +84,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #else
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);

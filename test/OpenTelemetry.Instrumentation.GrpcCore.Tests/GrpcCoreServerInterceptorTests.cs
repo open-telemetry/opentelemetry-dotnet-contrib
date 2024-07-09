@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Grpc.Core;
 using OpenTelemetry.Context.Propagation;
 using Xunit;
@@ -101,25 +98,27 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerSuccess(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, ActivityIdentifierValue = Guid.NewGuid() };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), RecordMessageEvents = true, AdditionalTags = testTags.Tags };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
         // No parent Activity, no context from header
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(server.UriString);
             await clientRequestFunc(client, additionalMetadata);
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            Assert.NotNull(activity);
             Assert.Equal(default, activity.ParentSpanId);
         }
 
         // No parent Activity, context from header
-        using (var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue))
+        using (var activityListener = new InterceptorActivityListener(testTags))
         {
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
@@ -132,6 +131,7 @@ public class GrpcCoreServerInterceptorTests
 
             var activity = activityListener.Activity;
             GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+            Assert.NotNull(activity);
             Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
         }
     }
@@ -142,13 +142,14 @@ public class GrpcCoreServerInterceptorTests
     /// <param name="clientRequestFunc">The specific client request function.</param>
     /// <param name="additionalMetadata">The additional metadata, if any.</param>
     /// <returns>A Task.</returns>
-    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata, Task> clientRequestFunc, Metadata additionalMetadata = null)
+    private static async Task TestHandlerFailure(Func<Foobar.FoobarClient, Metadata?, Task> clientRequestFunc, Metadata? additionalMetadata = null)
     {
         // starts the server with the server interceptor
-        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), ActivityIdentifierValue = Guid.NewGuid(), RecordException = true };
+        var testTags = new TestActivityTags();
+        var interceptorOptions = new ServerTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
         using var server = FoobarService.Start(new ServerTracingInterceptor(interceptorOptions));
 
-        using var activityListener = new InterceptorActivityListener(interceptorOptions.ActivityIdentifierValue);
+        using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(
             server.UriString,
             additionalMetadata: new List<Metadata.Entry>
@@ -162,6 +163,7 @@ public class GrpcCoreServerInterceptorTests
 
         var activity = activityListener.Activity;
         GrpcCoreClientInterceptorTests.ValidateCommonActivityTags(activity, StatusCode.ResourceExhausted, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
+        Assert.NotNull(activity);
         Assert.Equal(FoobarService.DefaultParentFromTraceparentHeader.SpanId, activity.ParentSpanId);
     }
 }

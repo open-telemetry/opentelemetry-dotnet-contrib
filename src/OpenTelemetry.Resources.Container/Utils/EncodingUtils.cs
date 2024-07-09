@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
-using System.Linq;
-
 namespace OpenTelemetry.Resources.Container.Utils;
 
 internal class EncodingUtils

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.1
+
+Released 2024-Jun-20
+
 Initial release of `OpenTelemetry.Sampler.AWS`.
 
 * Feature - AWSXRayRemoteSampler - Add support for AWS X-Ray remote sampling

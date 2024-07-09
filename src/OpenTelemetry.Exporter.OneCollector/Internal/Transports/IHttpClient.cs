@@ -23,7 +23,7 @@ internal sealed class HttpClientWrapper : IHttpClient
 
     public HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return this.httpClient.Send(request, CancellationToken.None);
 #else
         return this.httpClient.SendAsync(request, CancellationToken.None).GetAwaiter().GetResult();

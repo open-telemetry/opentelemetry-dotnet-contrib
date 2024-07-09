@@ -14,21 +14,25 @@ public static class HttpTestData
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<HttpOutTestCase[]>(
-            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json"),
+            assembly.GetManifestResourceStream("OpenTelemetry.Instrumentation.Http.Tests.http-out-test-cases.json")!,
             JsonSerializerOptions);
         return GetArgumentsFromTestCaseObject(input);
     }
 
-    public static IEnumerable<object[]> GetArgumentsFromTestCaseObject(IEnumerable<HttpOutTestCase> input)
+    public static IEnumerable<object[]> GetArgumentsFromTestCaseObject(IEnumerable<HttpOutTestCase>? input)
     {
         var result = new List<object[]>();
 
+        if (input == null)
+        {
+            return result;
+        }
+
         foreach (var testCase in input)
         {
-            result.Add(new object[]
-            {
-                testCase,
-            });
+            result.Add([
+                testCase
+            ]);
         }
 
         return result;

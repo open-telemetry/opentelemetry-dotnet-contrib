@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Threading;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
@@ -35,7 +33,7 @@ public static class TracerProviderBuilderExtensions
         Func<Activity, bool> predicate,
         int timeoutMilliseconds = 10000)
     {
-#if NET6_0_OR_GREATER
+#if NET
         ArgumentNullException.ThrowIfNull(builder);
 #else
         if (builder == null)

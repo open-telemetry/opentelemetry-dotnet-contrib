@@ -9,7 +9,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal static class CommonSchemaJsonSerializationHelper
 {
-#if NET6_0_OR_GREATER
+#if NET
     public const int MaximumStackAllocSizeInBytes = 256;
 #endif
 
@@ -209,7 +209,7 @@ internal static class CommonSchemaJsonSerializationHelper
 
     private static void SerializeObjectValueToJson(object value, Utf8JsonWriter writer)
     {
-#if NET6_0_OR_GREATER
+#if NET
         if (value is ISpanFormattable spanFormattable)
         {
             Span<char> destination = stackalloc char[MaximumStackAllocSizeInBytes / 2];

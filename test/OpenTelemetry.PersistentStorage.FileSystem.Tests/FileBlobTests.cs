@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.IO;
 using System.Text;
-using System.Threading;
 using OpenTelemetry.PersistentStorage.Abstractions;
 using Xunit;
 

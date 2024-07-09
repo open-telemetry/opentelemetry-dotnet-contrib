@@ -4,7 +4,6 @@
     <Description>.NET gRPC Core based client and server interceptors for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);gRPC Core;interceptors</PackageTags>
     <MinVerTagPrefix>Instrumentation.GrpcCore-</MinVerTagPrefix>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <!--Do not run Package Baseline Validation as this package has never released a stable version.
@@ -15,12 +14,13 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="[3.15.0,4.0)" />
-    <PackageReference Include="Grpc.Core.Api" Version="[2.23.0,3.0)" />
+    <PackageReference Include="Grpc.Core.Api" Version="[2.43.0,3.0)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
   </ItemGroup>
 </Project>
