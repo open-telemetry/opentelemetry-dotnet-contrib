@@ -8,10 +8,6 @@
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
-* Bumped the minimum required version of `System.Text.Json` to `8.0.4`
-  in response to [CVE-2024-30105](https://github.com/dotnet/runtime/issues/104619).
-  ([#1945](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1945))
-
 ## 1.3.0-beta.1
 
 Released 2023-Aug-02
