@@ -32,7 +32,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
         }
 
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AppServiceResourceDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
         Assert.NotNull(resource);
 
         var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
@@ -65,7 +65,7 @@ public class AzureResourceDetectorTests : IDisposable
             };
         };
 
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureVMResourceDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddAzureVMDetector().Build();
         Assert.NotNull(resource);
 
         foreach (var field in AzureVMResourceDetector.ExpectedAzureAmsFields)
@@ -108,7 +108,7 @@ public class AzureResourceDetectorTests : IDisposable
         {
         }
 
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new AzureContainerAppsResourceDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
         Assert.NotNull(resource);
 
         Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);

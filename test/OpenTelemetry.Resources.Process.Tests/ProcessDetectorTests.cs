@@ -10,7 +10,7 @@ public class ProcessDetectorTests
     [Fact]
     public void TestProcessAttributes()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new ProcessDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddProcessDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
