@@ -21,17 +21,21 @@ dotnet add package OpenTelemetry.Resources.OperatingSystem --prerelease
 ## Usage
 
 You can configure Operating System resource detector to
-the `TracerProvider` with the following example below.
+the `ResourceBuilder` with the following example.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource
-                            .AddOperatingSystemDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddOperatingSystemDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddOperatingSystemDetector())
+    // other configurations
+    .Build();
 ```
 
 The resource detectors will record the following metadata based on where

@@ -20,18 +20,21 @@ dotnet add package OpenTelemetry.Resources.AWS
 ## Usage
 
 You can configure AWS resource detector to
-the `TracerProvider` with the following EC2 example below.
+the `ResourceBuilder` with the following EC2 example.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .SetResourceBuilder(ResourceBuilder
-                            .CreateEmpty()
-                            .AddAWSEC2Detector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddAWSEC2Detector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddAWSEC2Detector())
+    // other configurations
+    .Build();
 ```
 
 The resource detectors will record the following metadata based on where

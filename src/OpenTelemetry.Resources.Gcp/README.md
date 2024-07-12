@@ -8,24 +8,33 @@ This package contains [Resource
 Detectors](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#detecting-resource-information-from-the-environment)
 for applications running in Google Cloud Platform environments.
 
-## Installation
+## Getting Started
+
+You need to install the
+`OpenTelemetry.Resources.Gcp` package to be able to use the
+Google Cloud Platform Resource Detectors.
 
 ```shell
 dotnet add package --prerelease OpenTelemetry.Resources.Gcp
 ```
 
+## Usage
+
+You can configure Google Cloud Platform resource detector to
+the `ResourceBuilder` with the following example.
+
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    // other configurations
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .ConfigureResource(resource => resource.AddGcpDetector())
+    // other configurations
     .Build();
 
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    // other configurations
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddGcpDetector())
+    // other configurations
     .Build();
 
 using var loggerFactory = LoggerFactory.Create(builder =>

@@ -14,8 +14,8 @@ public static class ContainerResourceBuilderExtensions
     /// <summary>
     /// Enables Container resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddContainerDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
