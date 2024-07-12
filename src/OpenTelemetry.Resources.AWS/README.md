@@ -35,6 +35,14 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddAWSEC2Detector())
     // other configurations
     .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddAWSEC2Detector());
+    });
+});
 ```
 
 The resource detectors will record the following metadata based on where

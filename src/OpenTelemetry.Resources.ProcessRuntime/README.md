@@ -36,6 +36,14 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddProcessRuntimeDetector())
     // other configurations
     .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessRuntimeDetector());
+    });
+});
 ```
 
 The resource detectors will record the following metadata based on where

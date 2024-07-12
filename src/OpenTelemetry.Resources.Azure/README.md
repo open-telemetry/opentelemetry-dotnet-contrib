@@ -33,6 +33,14 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddAzureAppServiceDetector())
     // other configurations
     .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddAzureAppServiceDetector());
+    });
+});
 ```
 
 | Attribute               | Description                                                                                                                                                                                               |

@@ -41,9 +41,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddOpenTelemetry(options =>
     {
-        options.SetResourceBuilder(ResourceBuilder
-            .CreateDefault()
-            .AddGcpDetector());
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddGcpDetector());
     });
 });
 ```
