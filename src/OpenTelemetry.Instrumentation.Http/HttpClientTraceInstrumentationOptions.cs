@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Runtime.CompilerServices;
 #if NETFRAMEWORK
@@ -29,7 +30,7 @@ public class HttpClientTraceInstrumentationOptions
     {
         Debug.Assert(configuration != null, "configuration was null");
 
-        if (configuration.TryGetBoolValue(
+        if (configuration!.TryGetBoolValue(
            HttpInstrumentationEventSource.Log,
            "OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION",
            out var disableUrlQueryRedaction))
@@ -58,7 +59,7 @@ public class HttpClientTraceInstrumentationOptions
     /// </list></item>
     /// </list>
     /// </remarks>
-    public Func<HttpRequestMessage, bool> FilterHttpRequestMessage { get; set; }
+    public Func<HttpRequestMessage, bool>? FilterHttpRequestMessage { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with <see cref="HttpRequestMessage"/>.
@@ -69,7 +70,7 @@ public class HttpClientTraceInstrumentationOptions
     /// cref="HttpWebRequest"/> on .NET and .NET Core are both implemented
     /// using <see cref="HttpRequestMessage"/>.</b></para>
     /// </remarks>
-    public Action<Activity, HttpRequestMessage> EnrichWithHttpRequestMessage { get; set; }
+    public Action<Activity, HttpRequestMessage>? EnrichWithHttpRequestMessage { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with <see cref="HttpResponseMessage"/>.
@@ -80,7 +81,7 @@ public class HttpClientTraceInstrumentationOptions
     /// cref="HttpWebRequest"/> on .NET and .NET Core are both implemented
     /// using <see cref="HttpRequestMessage"/>.</b></para>
     /// </remarks>
-    public Action<Activity, HttpResponseMessage> EnrichWithHttpResponseMessage { get; set; }
+    public Action<Activity, HttpResponseMessage>? EnrichWithHttpResponseMessage { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with <see cref="Exception"/>.
@@ -88,7 +89,7 @@ public class HttpClientTraceInstrumentationOptions
     /// <remarks>
     /// <para><b>EnrichWithException is called for all runtimes.</b></para>
     /// </remarks>
-    public Action<Activity, Exception> EnrichWithException { get; set; }
+    public Action<Activity, Exception>? EnrichWithException { get; set; }
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to
@@ -110,7 +111,7 @@ public class HttpClientTraceInstrumentationOptions
     /// </list></item>
     /// </list>
     /// </remarks>
-    public Func<HttpWebRequest, bool> FilterHttpWebRequest { get; set; }
+    public Func<HttpWebRequest, bool>? FilterHttpWebRequest { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with <see cref="HttpWebRequest"/>.
@@ -121,7 +122,7 @@ public class HttpClientTraceInstrumentationOptions
     /// on .NET Framework are both implemented using <see
     /// cref="HttpWebRequest"/>.</b></para>
     /// </remarks>
-    public Action<Activity, HttpWebRequest> EnrichWithHttpWebRequest { get; set; }
+    public Action<Activity, HttpWebRequest>? EnrichWithHttpWebRequest { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with <see cref="HttpWebResponse"/>.
@@ -132,7 +133,7 @@ public class HttpClientTraceInstrumentationOptions
     /// on .NET Framework are both implemented using <see
     /// cref="HttpWebRequest"/>.</b></para>
     /// </remarks>
-    public Action<Activity, HttpWebResponse> EnrichWithHttpWebResponse { get; set; }
+    public Action<Activity, HttpWebResponse>? EnrichWithHttpWebResponse { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether exception will be recorded
@@ -164,7 +165,7 @@ public class HttpClientTraceInstrumentationOptions
         {
             return
                 this.FilterHttpRequestMessage == null ||
-                !TryParseHttpRequestMessage(activityName, arg1, out HttpRequestMessage requestMessage) ||
+                !TryParseHttpRequestMessage(activityName, arg1, out HttpRequestMessage? requestMessage) ||
                 this.FilterHttpRequestMessage(requestMessage);
         }
         catch (Exception ex)
@@ -188,7 +189,7 @@ public class HttpClientTraceInstrumentationOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool TryParseHttpRequestMessage(string activityName, object arg1, out HttpRequestMessage requestMessage)
+    private static bool TryParseHttpRequestMessage(string activityName, object arg1, [NotNullWhen(true)] out HttpRequestMessage? requestMessage)
     {
         return (requestMessage = arg1 as HttpRequestMessage) != null && activityName == "System.Net.Http.HttpRequestOut";
     }

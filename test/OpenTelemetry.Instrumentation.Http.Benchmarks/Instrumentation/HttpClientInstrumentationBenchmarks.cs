@@ -30,10 +30,10 @@ public class HttpClientInstrumentationBenchmarks
 {
     private static readonly Uri Url = new("http://localhost:5000");
 
-    private HttpClient httpClient;
-    private WebApplication app;
-    private TracerProvider tracerProvider;
-    private MeterProvider meterProvider;
+    private HttpClient? httpClient;
+    private WebApplication? app;
+    private TracerProvider? tracerProvider;
+    private MeterProvider? meterProvider;
 
     [Flags]
     public enum EnableInstrumentationOption
@@ -114,43 +114,43 @@ public class HttpClientInstrumentationBenchmarks
     {
         if (this.EnableInstrumentation == EnableInstrumentationOption.None)
         {
-            this.httpClient.Dispose();
+            this.httpClient?.Dispose();
 #pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app.DisposeAsync().GetAwaiter().GetResult();
+            this.app?.DisposeAsync().GetAwaiter().GetResult();
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
         else if (this.EnableInstrumentation == EnableInstrumentationOption.Traces)
         {
-            this.httpClient.Dispose();
+            this.httpClient?.Dispose();
 #pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app.DisposeAsync().GetAwaiter().GetResult();
+            this.app?.DisposeAsync().GetAwaiter().GetResult();
 #pragma warning restore CA2012 // Use ValueTasks correctly
-            this.tracerProvider.Dispose();
+            this.tracerProvider?.Dispose();
         }
         else if (this.EnableInstrumentation == EnableInstrumentationOption.Metrics)
         {
-            this.httpClient.Dispose();
+            this.httpClient?.Dispose();
 #pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app.DisposeAsync().GetAwaiter().GetResult();
+            this.app?.DisposeAsync().GetAwaiter().GetResult();
 #pragma warning restore CA2012 // Use ValueTasks correctly
-            this.meterProvider.Dispose();
+            this.meterProvider?.Dispose();
         }
         else if (this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Traces) &&
             this.EnableInstrumentation.HasFlag(EnableInstrumentationOption.Metrics))
         {
-            this.httpClient.Dispose();
+            this.httpClient?.Dispose();
 #pragma warning disable CA2012 // Use ValueTasks correctly
-            this.app.DisposeAsync().GetAwaiter().GetResult();
+            this.app?.DisposeAsync().GetAwaiter().GetResult();
 #pragma warning restore CA2012 // Use ValueTasks correctly
-            this.tracerProvider.Dispose();
-            this.meterProvider.Dispose();
+            this.tracerProvider?.Dispose();
+            this.meterProvider?.Dispose();
         }
     }
 
     [Benchmark]
     public async Task HttpClientRequest()
     {
-        var httpResponse = await this.httpClient.GetAsync(Url).ConfigureAwait(false);
+        var httpResponse = await this.httpClient!.GetAsync(Url).ConfigureAwait(false);
         httpResponse.EnsureSuccessStatusCode();
     }
 

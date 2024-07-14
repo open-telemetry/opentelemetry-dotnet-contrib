@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable disable
+
 #if NETFRAMEWORK
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -27,7 +29,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     {
         HttpClientTraceInstrumentationOptions options = new()
         {
-            EnrichWithHttpWebRequest = (activity, httpWebRequest) =>
+            EnrichWithHttpWebRequest = (_, httpWebRequest) =>
             {
                 VerifyHeaders(httpWebRequest);
 
@@ -714,7 +716,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
 
         // wait up to 10 sec for all requests and suppress exceptions
-        await Task.WhenAll(tasks.Select(t => t.Value).ToArray()).ContinueWith(async tt =>
+        await Task.WhenAll(tasks.Select(t => t.Value).ToArray()).ContinueWith(async _ =>
         {
             foreach (var task in tasks)
             {
@@ -817,10 +819,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         {
             this.activityListener = new ActivityListener
             {
-                ShouldListenTo = (activitySource) => activitySource.Name == HttpWebRequestActivitySource.ActivitySourceName,
+                ShouldListenTo = activitySource => activitySource.Name == HttpWebRequestActivitySource.ActivitySourceName,
                 ActivityStarted = this.ActivityStarted,
                 ActivityStopped = this.ActivityStopped,
-                Sample = (ref ActivityCreationOptions<ActivityContext> options) => activitySamplingResult,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => activitySamplingResult,
             };
 
             ActivitySource.AddActivityListener(this.activityListener);
