@@ -5,6 +5,8 @@
 * Add support for instrumenting `IConnectionMultiplexer`
   which is added with service key.
   ([#1885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1885))
+* Update `StackExchange.Redis` to `2.6.80`, resolving warnings about [CVE-2021-24112](https://github.com/advisories/GHSA-rxg9-xrhp-64gj).
+  ([#1959](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1959))
 
 ## 1.0.0-rc9.15
 
