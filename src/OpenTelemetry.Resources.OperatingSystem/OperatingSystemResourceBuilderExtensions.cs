@@ -2,23 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Internal;
-using OpenTelemetry.Resources.Process;
+using OpenTelemetry.Resources.OperatingSystem;
 
 namespace OpenTelemetry.Resources;
 
 /// <summary>
-/// Extension methods to simplify registering of process resource detectors.
+/// Extension methods to simplify registering of operating system detectors.
 /// </summary>
-public static class ProcessResourceBuilderExtensions
+public static class OperatingSystemResourceBuilderExtensions
 {
     /// <summary>
-    /// Enables process resource detector.
+    /// Enables operating system detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddOperatingSystemDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new ProcessDetector());
+        return builder.AddDetector(new OperatingSystemDetector());
     }
 }

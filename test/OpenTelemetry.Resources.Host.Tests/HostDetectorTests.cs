@@ -42,7 +42,7 @@ public class HostDetectorTests
     [Fact]
     public void TestHostAttributes()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new HostDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 

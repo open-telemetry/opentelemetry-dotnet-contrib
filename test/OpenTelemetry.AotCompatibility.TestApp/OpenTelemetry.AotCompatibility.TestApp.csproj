@@ -35,6 +35,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Host" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.OperatingSystem" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />

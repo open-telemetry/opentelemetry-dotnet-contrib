@@ -134,6 +134,11 @@ flags:
     paths:
       - src/OpenTelemetry.Resources.Host
 
+  unittests-Resources.OperatingSystem:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Resources.OperatingSystem
+
   unittests-Resources.Process:
     carryforward: true
     paths:
