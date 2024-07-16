@@ -11,12 +11,16 @@ internal class AWSServiceHelper
     {
         { AWSServiceType.DynamoDbService, "TableName" },
         { AWSServiceType.SQSService, "QueueUrl" },
+        { AWSServiceType.S3Service, "BucketName" },
+        { AWSServiceType.KinesisService, "StreamName" },
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
     {
         { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
         { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
+        { "BucketName", AWSSemanticConventions.AttributeAWSS3BucketName },
+        { "StreamName", AWSSemanticConventions.AttributeAWSKinesisStreamName },
     };
 
     internal static string GetAWSServiceName(IRequestContext requestContext)

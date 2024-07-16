@@ -12,6 +12,8 @@ internal static class AWSSemanticConventions
 
     public const string AttributeAWSDynamoTableName = "aws.table_name";
     public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
+    public const string AttributeAWSS3BucketName = "aws.s3.bucket";
+    public const string AttributeAWSKinesisStreamName = "aws.kinesis.stream_name";
 
     public const string AttributeHttpStatusCode = "http.status_code";
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
