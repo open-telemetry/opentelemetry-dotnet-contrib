@@ -196,6 +196,48 @@ public class TestAWSClientInstrumentation
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateSqsActivityTags(awssdk_activity);
+            this.ValidateSqsSendMessageActivityTags(awssdk_activity);
+
+            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+        }
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestSQSCreateQueueSuccessful()
+#else
+    public async Task TestSQSCreateQueueSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation()
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string dummyResponse = "{}";
+            CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
+            var create_queue_req = new CreateQueueRequest();
+            create_queue_req.QueueName = "MyTestQueue";
+#if NETFRAMEWORK
+            sqs.CreateQueue(create_queue_req);
+#else
+            await sqs.CreateQueueAsync(create_queue_req);
+#endif
+            Assert.Single(exportedItems);
+            Activity awssdk_activity = exportedItems[0];
+
+            this.ValidateAWSActivity(awssdk_activity, parent);
+            this.ValidateSqsActivityTags(awssdk_activity);
+            this.ValidateSqsCreateQueueActivityTags(awssdk_activity);
 
             Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
             Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
@@ -303,14 +345,26 @@ public class TestAWSClientInstrumentation
 
     private void ValidateSqsActivityTags(Activity sqs_activity)
     {
-        Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "aws.service"));
-        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "aws.operation"));
         Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "aws.region"));
-        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
+    }
+
+    private void ValidateSqsSendMessageActivityTags(Activity sqs_activity)
+    {
+        Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
+        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "aws.operation"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
+        Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
+    }
+
+    private void ValidateSqsCreateQueueActivityTags(Activity sqs_activity)
+    {
+        Assert.Equal("SQS.CreateQueue", sqs_activity.DisplayName);
+        Assert.Equal("CreateQueue", Utils.GetTagValue(sqs_activity, "aws.operation"));
+        Assert.Equal("CreateQueue", Utils.GetTagValue(sqs_activity, "rpc.method"));
+        Assert.Equal("MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.sqs.queue_name"));
     }
 
     private void ValidateS3ActivityTags(Activity s3_activity)
