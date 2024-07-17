@@ -33,6 +33,8 @@ jobs:
         exclude:
         - os: ubuntu-latest
           version: net462
+        - os: macos-latest
+          version: net462
 
     runs-on: ${{ matrix.os }}
 
