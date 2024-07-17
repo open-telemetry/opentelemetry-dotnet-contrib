@@ -27,20 +27,14 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 
     Stream IHttpResponseBody.OpenResponse()
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException("HttpWebResponseBody");
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(HttpResponseMessageBody));
 
         return this.response.Content.ReadAsStreamAsync().Result;
     }
 
     Task<Stream> IHttpResponseBody.OpenResponseAsync()
     {
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException("HttpWebResponseBody");
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, nameof(HttpResponseMessageBody));
 
         if (this.response.Content != null)
         {
