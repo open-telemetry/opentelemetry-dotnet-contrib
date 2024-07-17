@@ -13,6 +13,11 @@ internal static class AWSSemanticConventions
     public const string AttributeAWSDynamoTableName = "aws.table_name";
     public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
 
+    public const string AttributeAWSBedrockDataSourceId = "aws.bedrock.data_source.id";
+    public const string AttributeAWSBedrockKnowledgeBaseId = "aws.bedrock.knowledge_base.id";
+    public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
+    public const string AttributeAWSBedrockGuardrailId = "aws.bedrock.guardrail.id";
+
     public const string AttributeHttpStatusCode = "http.status_code";
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
 
