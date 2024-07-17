@@ -30,6 +30,8 @@ public static class TracerProviderBuilderExtensions
         this TracerProviderBuilder builder,
         Action<AWSClientInstrumentationOptions>? configure)
     {
+        // log something to console
+        Console.WriteLine("Adding AWS Instrumentation from local repo");
         Guard.ThrowIfNull(builder);
 
         var awsClientOptions = new AWSClientInstrumentationOptions();
