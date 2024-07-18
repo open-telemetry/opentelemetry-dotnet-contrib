@@ -15,13 +15,6 @@ public class OperatingSystemDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-        var operatingSystems = new[]
-        {
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Windows,
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
-        };
-
         var expectedPlatform =
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemSemanticConventions.OperatingSystemsValues.Windows :
             RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemSemanticConventions.OperatingSystemsValues.Linux :
@@ -31,8 +24,6 @@ public class OperatingSystemDetectorTests
         Assert.Single(resourceAttributes);
 
         Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemType));
-
-        Assert.Contains(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], operatingSystems);
 
         Assert.Equal(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], expectedPlatform);
     }
