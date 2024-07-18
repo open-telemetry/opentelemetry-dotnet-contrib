@@ -6,7 +6,7 @@
 
 Released 2024-Jul-17
 
-* Fix issue with detecting MacOS
+* Fix detection of macOS which was wrongly identified as Linux.
   ([#1965](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1965))
 
 ## 0.1.0-alpha.1
