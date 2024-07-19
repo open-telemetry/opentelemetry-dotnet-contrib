@@ -34,9 +34,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private static string? GetOSType()
     {
-    #if NETFRAMEWORK
+#if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
-    #else
+#else
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             return OperatingSystemsValues.Windows;
@@ -53,6 +53,6 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         {
             return null;
         }
-    #endif
+#endif
     }
 }
