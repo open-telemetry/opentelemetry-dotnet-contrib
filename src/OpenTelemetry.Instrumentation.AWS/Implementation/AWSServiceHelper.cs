@@ -7,16 +7,18 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceHelper
 {
-    internal static IReadOnlyDictionary<string, string> ServiceParameterMap = new Dictionary<string, string>()
+    internal static IReadOnlyDictionary<string, List<string>> ServiceParameterMap = new Dictionary<string, List<string>>()
     {
-        { AWSServiceType.DynamoDbService, "TableName" },
-        { AWSServiceType.SQSService, "QueueUrl" },
+        { AWSServiceType.DynamoDbService, new List<string> { "TableName" } },
+        { AWSServiceType.SQSService, new List<string> { "QueueUrl" } }, 
+        { AWSServiceType.BedrockRuntimeService, new List<string> { "ModelId" } }
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
     {
         { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
         { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
+        { "ModelId", AWSSemanticConventions.AttributeGenAiModelId },
     };
 
     internal static string GetAWSServiceName(IRequestContext requestContext)
