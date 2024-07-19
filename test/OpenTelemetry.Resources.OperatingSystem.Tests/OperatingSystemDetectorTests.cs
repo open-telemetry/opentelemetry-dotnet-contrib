@@ -15,11 +15,24 @@ public class OperatingSystemDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-        var expectedPlatform =
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemSemanticConventions.OperatingSystemsValues.Windows :
-            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemSemanticConventions.OperatingSystemsValues.Linux :
-            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin :
+        string expectedPlatform;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Windows;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Linux;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin;
+        }
+        else
+        {
             throw new PlatformNotSupportedException("Unknown platform");
+        }
 
         Assert.Single(resourceAttributes);
 

@@ -34,13 +34,25 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private static string? GetOSType()
     {
-#if NETFRAMEWORK
+    #if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
-#else
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemsValues.Windows :
-                   RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemsValues.Linux :
-                   RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemsValues.Darwin :
-                   null;
-#endif
+    #else
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return OperatingSystemsValues.Windows;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return OperatingSystemsValues.Linux;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return OperatingSystemsValues.Darwin;
+        }
+        else
+        {
+            return null;
+        }
+    #endif
     }
 }
