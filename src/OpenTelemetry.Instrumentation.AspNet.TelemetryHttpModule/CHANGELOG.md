@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Changed HttpInListener so that `url.path` is set to the Unvalidated.Path of the request
+  when the activity is started so that it can be used in sampling decisions.
+
 ## 1.9.0-beta.1
 
 Released 2024-Jun-18
