@@ -38,7 +38,7 @@ internal class ServerStreamWriterProxy<T> : IServerStreamWriter<T>
     }
 
     /// <inheritdoc/>
-    public WriteOptions WriteOptions
+    public WriteOptions? WriteOptions
     {
         get => this.writer.WriteOptions;
         set => this.writer.WriteOptions = value;
