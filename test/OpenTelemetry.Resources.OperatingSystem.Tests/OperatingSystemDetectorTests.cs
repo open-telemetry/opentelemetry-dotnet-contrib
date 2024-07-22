@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace OpenTelemetry.Resources.OperatingSystem.Test;
@@ -14,17 +15,29 @@ public class OperatingSystemDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-        var operatingSystems = new[]
+        string expectedPlatform;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Windows,
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
-            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
-        };
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Windows;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Linux;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin;
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Unknown platform");
+        }
 
         Assert.Single(resourceAttributes);
 
         Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemType));
 
-        Assert.Contains(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], operatingSystems);
+        Assert.Equal(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], expectedPlatform);
     }
 }

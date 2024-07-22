@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NETFRAMEWORK
+using System.Runtime.InteropServices;
+#endif
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
 
 namespace OpenTelemetry.Resources.OperatingSystem;
@@ -31,22 +34,25 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private static string? GetOSType()
     {
-        var platform = Environment.OSVersion.Platform;
-        if (platform == PlatformID.Win32NT)
+#if NETFRAMEWORK
+        return OperatingSystemsValues.Windows;
+#else
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             return OperatingSystemsValues.Windows;
         }
-
-        if (platform == PlatformID.MacOSX)
-        {
-            return OperatingSystemsValues.Darwin;
-        }
-
-        if (platform == PlatformID.Unix)
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             return OperatingSystemsValues.Linux;
         }
-
-        return null;
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return OperatingSystemsValues.Darwin;
+        }
+        else
+        {
+            return null;
+        }
+#endif
     }
 }
