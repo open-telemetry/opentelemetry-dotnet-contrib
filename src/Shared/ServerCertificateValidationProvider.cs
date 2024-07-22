@@ -3,13 +3,10 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
-namespace OpenTelemetry.ResourceDetectors;
+namespace OpenTelemetry.Resources;
 
 internal class ServerCertificateValidationProvider
 {

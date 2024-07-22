@@ -2,18 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
-using System.Threading.Tasks;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -112,15 +107,13 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             {
                 await client.ExecuteWithEmptyActionNameAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
             else
             {
                 await client.ExecuteAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
         }
         finally
@@ -209,7 +202,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ActivitiesHaveCorrectParentTest()
+    public async Task ActivitiesHaveCorrectParentTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -262,7 +255,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ErrorsAreHandledProperlyTest()
+    public async Task ErrorsAreHandledProperlyTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -329,7 +322,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void OrphanedTelemetryTimesOut()
+    public async Task OrphanedTelemetryTimesOut()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -377,7 +370,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void DynamicTimeoutValuesAreRespected()
+    public async Task DynamicTimeoutValuesAreRespected()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()

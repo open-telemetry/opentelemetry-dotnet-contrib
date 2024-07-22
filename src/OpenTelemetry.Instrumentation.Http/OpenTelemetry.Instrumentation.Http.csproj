@@ -6,11 +6,7 @@
     <Description>Http instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Http-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
-
-    <ImplicitUsings>enable</ImplicitUsings>
-    <!-- this is temporary. will remove in future PR. -->
-    <Nullable>disable</Nullable>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +31,7 @@
   <ItemGroup>
     <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptions8PkgVer)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 

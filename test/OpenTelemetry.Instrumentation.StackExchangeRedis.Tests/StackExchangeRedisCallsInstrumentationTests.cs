@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Tests;
@@ -39,7 +36,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -85,14 +82,15 @@ public class StackExchangeRedisCallsInstrumentationTests
 
     [Trait("CategoryName", "RedisIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
-    [InlineData("value1")]
-    public void SuccessfulCommandTest(string value)
+    [InlineData("value1", null)]
+    [InlineData("value1", "serviceKey")]
+    public void SuccessfulCommandTest(string value, string? serviceKey)
     {
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         ConnectionMultiplexer? connection = null;
         var exportedItems = new List<Activity>();
@@ -100,14 +98,24 @@ public class StackExchangeRedisCallsInstrumentationTests
         using (Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
             {
-                services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                if (serviceKey is null)
                 {
-                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                });
+                    services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
+                else
+                {
+                    services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
             })
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.SetVerboseDatabaseStatements = false)
+            .AddRedisInstrumentation(null, null, serviceKey, c => c.SetVerboseDatabaseStatements = false)
             .Build())
         {
             Assert.NotNull(connection);
@@ -134,7 +142,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Fact]
-    public async void ProfilerSessionUsesTheSameDefault()
+    public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
         {
@@ -165,7 +173,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         var exportedItems = new List<Activity>();
@@ -287,7 +295,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         using (Activity.Current = new Activity("Child-Span-2").SetParentId(rootActivity.Id).Start())
         {
             // lose async context on purpose
-            await Task.Delay(100).ConfigureAwait(false);
+            await Task.Delay(100);
 
             ProfilingSession? profiler2 = profilerFactory();
             Assert.NotSame(profiler0, profiler2);

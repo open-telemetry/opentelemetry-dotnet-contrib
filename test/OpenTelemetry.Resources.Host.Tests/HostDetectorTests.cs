@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace OpenTelemetry.Resources.Host.Tests;
@@ -45,7 +42,7 @@ public class HostDetectorTests
     [Fact]
     public void TestHostAttributes()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new HostDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 

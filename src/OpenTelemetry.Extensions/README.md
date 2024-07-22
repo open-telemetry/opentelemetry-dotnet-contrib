@@ -46,10 +46,36 @@ and adds the baggage keys and values to the `Activity` as tags (attributes) on s
 
 Add this activity processor to a tracer provider.
 
-Example of adding BaggageActivityProcessor to `TracerProvider`:
+For example, to add all baggage entries to new activities:
 
 ```cs
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddBaggageActivityProcessor()
+    .AddBaggageActivityProcessor(BaggageActivityProcessor.AllowAllBaggageKeys)
     .Build();
 ```
+
+Alternatively, you can select which baggage keys you want to copy using a
+custom predicate function.
+
+For example, to only copy baggage entries where the key start with `my-key`
+using a custom function:
+
+```cs
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+  .AddBaggageActivityProcessor((baggageKey) => baggageKey.StartWith("my-key", System.StringComparison.Ordinal))
+  .Build();
+```
+
+For example, to only copy baggage entries where the key matches the regular
+expression `^my-key`:
+
+```cs
+var baggageKeyRegex = new Regex("^mykey", RegexOptions.Compiled);
+var tracerProvider = Sdk.CreateTracerProviderBuilder()
+  .AddBaggageActivityProcessor((baggageKey) => baggageKeyRegex.IsMatch(baggageKey))
+  .Build();
+```
+
+Warning: The baggage key predicate is executed for every baggage entry for each
+started activity.
+Do not use slow or intensive operations.

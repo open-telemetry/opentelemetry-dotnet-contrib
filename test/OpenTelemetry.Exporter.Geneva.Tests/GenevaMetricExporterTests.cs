@@ -1,17 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Kaitai;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter.Geneva.Metrics;
@@ -114,7 +109,7 @@ public class GenevaMetricExporterTests
     }
 
     [Fact]
-    public void SuccessfulExportOnLinux()
+    public async Task SuccessfulExportOnLinux()
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -198,7 +193,7 @@ public class GenevaMetricExporterTests
                     out _);
 
                 // Wait a little more than the ExportInterval for the exporter to export the data.
-                Task.Delay(5500).Wait();
+                await Task.Delay(5500);
 
                 // Read the data sent via socket.
                 var receivedData = new byte[1024];

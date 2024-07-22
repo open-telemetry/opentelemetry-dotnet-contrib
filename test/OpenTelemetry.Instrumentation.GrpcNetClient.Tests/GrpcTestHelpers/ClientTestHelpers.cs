@@ -52,7 +52,7 @@ internal static class ClientTestHelpers
         }
 
         await ResponseUtils.WriteHeaderAsync(ms, data.Length, compress, CancellationToken.None);
-#if NET5_0_OR_GREATER
+#if NET
         await ms.WriteAsync(data);
 #else
         await ms.WriteAsync(data, 0, data.Length);

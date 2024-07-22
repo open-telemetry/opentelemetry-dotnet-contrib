@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Util;
@@ -130,7 +128,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
         "Trimming",
         "IL2075",
@@ -233,6 +231,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
             activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+
+            // Follow: https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCSystem, "aws-api");
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCService, service);
+            activity.SetTag(AWSSemanticConventions.AttributeValueRPCMethod, operation);
             var client = executionContext.RequestContext.ClientConfig;
             if (client != null)
             {

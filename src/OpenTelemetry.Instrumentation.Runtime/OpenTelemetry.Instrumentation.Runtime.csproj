@@ -5,7 +5,7 @@
     <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

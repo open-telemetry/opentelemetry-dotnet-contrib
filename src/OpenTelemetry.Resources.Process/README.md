@@ -21,16 +21,28 @@ dotnet add package OpenTelemetry.Resources.Process --prerelease
 ## Usage
 
 You can configure Process Runtime resource detector to
-the `TracerProvider` with the following example below.
+the `ResourceBuilder` with the following example.
 
 ```csharp
 using OpenTelemetry;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource
-                            .AddProcessDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddProcessDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddProcessDetector())
+    // other configurations
+    .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessDetector());
+    });
+});
 ```
 
 The resource detectors will record the following metadata based on where

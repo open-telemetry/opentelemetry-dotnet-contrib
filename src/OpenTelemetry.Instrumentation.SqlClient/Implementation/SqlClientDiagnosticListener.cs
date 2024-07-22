@@ -5,13 +5,13 @@
 using System.Data;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
-#if NET6_0_OR_GREATER
+#if NET
 [RequiresUnreferencedCode(SqlClientInstrumentation.SqlClientTrimmingUnsupportedMessage)]
 #endif
 internal sealed class SqlClientDiagnosticListener : ListenerHandler

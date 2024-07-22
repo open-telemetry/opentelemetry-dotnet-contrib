@@ -39,6 +39,6 @@ internal sealed class MetricUnixDataTransport : IMetricDataTransport
 
     public void SendOtlpProtobufEvent(byte[] body, int size)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }

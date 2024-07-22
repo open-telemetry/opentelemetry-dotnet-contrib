@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
-namespace OpenTelemetry.ResourceDetectors;
+namespace OpenTelemetry.Resources;
 
 internal interface IServerCertificateValidationEventSource
 {

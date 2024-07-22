@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update BaggageActivityProcessor to require baggage key predicate.
+  ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.0.0-beta.5
 
 Released 2024-May-08

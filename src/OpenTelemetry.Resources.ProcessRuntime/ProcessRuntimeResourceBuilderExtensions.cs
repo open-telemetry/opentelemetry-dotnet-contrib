@@ -14,8 +14,8 @@ public static class ProcessRuntimeResourceBuilderExtensions
     /// <summary>
     /// Enables process runtime resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddProcessRuntimeDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);

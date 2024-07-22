@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Linq;
 using Xunit;
 
 namespace OpenTelemetry.Resources.ProcessRuntime.Tests;
@@ -11,7 +10,7 @@ public class ProcessRuntimeDetectorTests
     [Fact]
     public void TestProcessRuntimeAttributes()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new ProcessRuntimeDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddProcessRuntimeDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 

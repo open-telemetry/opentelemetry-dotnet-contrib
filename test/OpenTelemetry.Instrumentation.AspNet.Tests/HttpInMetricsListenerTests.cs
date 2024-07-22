@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
@@ -34,11 +31,11 @@ public class HttpInMetricsListenerTests
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
-        string routeTemplate,
-        string enrichMode,
+        string? routeTemplate,
+        string? enrichMode,
         string expectedScheme,
         string? expectedHost,
-        string expectedRoute,
+        string? expectedRoute,
         int? expectedPort,
         int expectedStatus,
         bool enableServerAttributesForRequestDuration = true)

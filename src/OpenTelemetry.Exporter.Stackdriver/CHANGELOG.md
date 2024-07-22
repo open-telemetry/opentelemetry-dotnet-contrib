@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.0.0-beta.6
 
 Released 2024-Apr-22
@@ -9,8 +12,10 @@ Released 2024-Apr-22
 * Fixes an issue when Activity/ActivityLink tags contain duplicate tag keys
   that lead to ArgumentException.
   ([#1660](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1660))
+
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
 * Annotates trace information with `service.name` attribute
   if it's present in the resource tags. Please use
   `services.ConfigureResource(r => r.AddService("my-service", "1.0.0"))`
@@ -23,6 +28,7 @@ Released 2024-Feb-15
 
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
+
 * Add support of a native "gRPC for .NET" for apps targeting .NET 6.0 or later.
   ([#1414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1414))
   1. Add support net8.0, net6.0 as target frameworks.
@@ -37,6 +43,7 @@ Released 2022-Dec-07
 
 * Fix the issue of incorrect handling of null attributes.
   ([#566](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/566))
+
 * Support for Google Cloud Dependencies up to 3.x.x
   and OpenTelemetry SDK package to 1.3.1
   ([#794](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/794))
@@ -46,8 +53,11 @@ Released 2022-Dec-07
 Released 2022-Jul-22
 
 * Updated OpenTelemetry SDK package version to 1.2.0
+
 * Updated minimum full framework support to net462
+
 * Update Google.Cloud.Monitoring.V3 2.1.0 -> 2.6.0
+
 * Update Google.Cloud.Monitoring.V3 2.0.0 -> 2.3.0
 
 * Rename the namespaces to remove the word `Contrib` from them:
@@ -70,6 +80,7 @@ Released 2022-Jul-22
 ## 1.0.0-beta1
 
 * Update OpenTelemetry SDK package version to 1.1.0
+
 * Log exceptions when failing to export data to stackdriver
 
 ## Initial Release

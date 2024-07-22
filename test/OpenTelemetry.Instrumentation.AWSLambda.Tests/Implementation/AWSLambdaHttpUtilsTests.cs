@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Amazon.Lambda.APIGatewayEvents;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
@@ -227,7 +225,7 @@ public class AWSLambdaHttpUtilsTests
     [InlineData(null, "localhost", "localhost", null)]
     [InlineData("http", "localhost", "localhost", 80)]
     [InlineData("https", "localhost", "localhost", 443)]
-    public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string httpSchema, string hostHeader, string expectedHost, int? expectedPort)
+    public void GetHostAndPort_HostHeader_ReturnsCorrectHostAndPort(string? httpSchema, string? hostHeader, string? expectedHost, int? expectedPort)
     {
         (var host, var port) = AWSLambdaHttpUtils.GetHostAndPort(httpSchema, hostHeader);
 
@@ -244,7 +242,7 @@ public class AWSLambdaHttpUtilsTests
     [InlineData(new[] { "value 1" }, "?name=value+1")]
     [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
-    public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string> values, string expectedQueryString)
+    public void GetQueryString_APIGatewayProxyRequest_CorrectQueryString(IList<string>? values, string expectedQueryString)
     {
         var request = new APIGatewayProxyRequest();
         if (values != null)
@@ -265,7 +263,7 @@ public class AWSLambdaHttpUtilsTests
     [InlineData("", "")]
     [InlineData("name=value1", "?name=value1")]
     [InlineData("sdckj9_+", "?sdckj9_+")]
-    public void GetQueryString_APIGatewayHttpApiV2ProxyRequest_CorrectQueryString(string rawQueryString, string expectedQueryString)
+    public void GetQueryString_APIGatewayHttpApiV2ProxyRequest_CorrectQueryString(string? rawQueryString, string expectedQueryString)
     {
         var request = new APIGatewayHttpApiV2ProxyRequest
         {

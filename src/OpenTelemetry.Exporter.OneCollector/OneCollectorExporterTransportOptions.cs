@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.ComponentModel.DataAnnotations;
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -13,6 +16,8 @@ public sealed class OneCollectorExporterTransportOptions
     internal const string DefaultOneCollectorEndpoint = "https://mobile.events.data.microsoft.com/OneCollector/1.0/";
     internal const int DefaultMaxPayloadSizeInBytes = 1024 * 1024 * 4;
     internal const int DefaultMaxNumberOfItemsPerPayload = 1500;
+
+    private static readonly Func<HttpClient> DefaultHttpClientFactory = () => new HttpClient();
 
     internal OneCollectorExporterTransportOptions()
     {
@@ -58,6 +63,23 @@ public sealed class OneCollectorExporterTransportOptions
     /// cref="OneCollectorExporterHttpTransportCompressionType.Deflate"/>.
     /// </summary>
     internal OneCollectorExporterHttpTransportCompressionType HttpCompression { get; set; } = OneCollectorExporterHttpTransportCompressionType.Deflate;
+
+    /// <summary>
+    /// Gets or sets the factory function called to create the <see
+    /// cref="HttpClient"/> instance that will be used at runtime to transmit
+    /// telemetry over HTTP transports. The returned instance will be reused for
+    /// all export invocations.
+    /// </summary>
+    /// <remarks>
+    /// Note: The default behavior is an <see cref="HttpClient"/> will be
+    /// instantiated directly.
+    /// </remarks>
+    internal Func<HttpClient>? HttpClientFactory { get; set; }
+
+    internal HttpClient GetHttpClient()
+    {
+        return (this.HttpClientFactory ?? DefaultHttpClientFactory)() ?? throw new NotSupportedException("HttpClientFactory cannot return a null instance.");
+    }
 
     internal void Validate()
     {

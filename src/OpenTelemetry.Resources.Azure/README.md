@@ -18,17 +18,29 @@ dotnet add package --prerelease OpenTelemetry.Resources.Azure
 
 Adds resource attributes for the applications running in Azure App Service.
 The following example shows how to add `AppServiceResourceDetector` to
-`TracerProvider` configuration, but this can be added to logs and metrics
-as well.
+the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource.AddAppServiceDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureAppServiceDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureAppServiceDetector())
+    // other configurations
+    .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddAzureAppServiceDetector());
+    });
+});
 ```
 
 | Attribute               | Description                                                                                                                                                                                               |
@@ -47,17 +59,21 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 Adds resource attributes for the applications running in an Azure virtual machine.
 The following example shows how to add `AzureVMResourceDetector` to
-`TracerProvider` configuration, but this can be added to logs and metrics
-as well.
+the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource.AddAzureVMDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureVMDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureVMDetector())
+    // other configurations
+    .Build();
 ```
 
 | Attribute                | Description                                                                                                                                                                                                                         |
@@ -79,17 +95,21 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 Adds resource attributes for the applications running in Azure Container Apps.
 The following example shows how to add `AzureContainerAppsResourceDetector` to
-`TracerProvider` configuration, but this can be added to logs and metrics as
-well.
+the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource.AddAzureContainerAppsDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureContainerAppsDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddAzureContainerAppsDetector())
+    // other configurations
+    .Build();
 ```
 
 | Attribute               | Description                                                                                                                                                                                               |

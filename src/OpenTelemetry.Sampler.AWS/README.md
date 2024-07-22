@@ -11,7 +11,7 @@ See: [AWS X-Ray Sampling](https://docs.aws.amazon.com/xray/latest/devguide/xray-
 Start with installing the package
 
 ```shell
-dotnet add package OpenTelemetry.Sampler.AWS
+dotnet add package OpenTelemetry.Sampler.AWS --prerelease
 ```
 
 You can configure the `AWSXRayRemoteSampler` as per the following example.
@@ -33,7 +33,7 @@ var serviceName = "MyServiceName";
 var resourceBuilder = ResourceBuilder
     .CreateDefault()
     .AddService(serviceName: serviceName)
-    .AddDetector(new AWSEC2ResourceDetector());
+    .AddAWSEC2Detector();
 
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddSource(serviceName)

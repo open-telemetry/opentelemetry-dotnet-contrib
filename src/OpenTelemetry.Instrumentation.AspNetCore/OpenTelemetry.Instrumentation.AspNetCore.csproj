@@ -5,9 +5,7 @@
     <Description>ASP.NET Core instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNetCore</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNetCore-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
-
-    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,8 +36,8 @@
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="[2.1.1,6.0)" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="[2.1.1,6.0)" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
   </ItemGroup>
 

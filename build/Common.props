@@ -12,6 +12,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -33,15 +34,16 @@
     <MicrosoftExtensionsConfigurationBinderPkgVer>[8.0.1,)</MicrosoftExtensionsConfigurationBinderPkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftExtensionsConfigurationPkgVer>8.0.0</MicrosoftExtensionsConfigurationPkgVer>
-    <MicrosoftExtensionsOptionsPkgVer>[3.1.0,)</MicrosoftExtensionsOptionsPkgVer>
-    <MicrosoftExtensionsOptions8PkgVer>8.0.0</MicrosoftExtensionsOptions8PkgVer>
+    <MicrosoftExtensionsOptionsPkgVer>8.0.0</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.11.0-beta1.23525.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[8.0.0,9.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <OpenTelemetryCoreLatestVersion>[1.8.1,2.0)</OpenTelemetryCoreLatestVersion>
-    <OpenTelemetryCoreLatestPrereleaseVersion>[1.9.0-alpha.1]</OpenTelemetryCoreLatestPrereleaseVersion>
-    <StackExchangeRedisPkgVer>[2.1.58,3.0)</StackExchangeRedisPkgVer>
+    <OpenTelemetryCoreUnstableLatestVersion>[1.9.0-beta.2]</OpenTelemetryCoreUnstableLatestVersion>
+    <OpenTelemetryCoreLatestVersion>[1.9.0,2.0)</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreLatestPrereleaseVersion>[1.9.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
+    <StackExchangeRedisPkgVer>[2.6.122,3.0)</StackExchangeRedisPkgVer>
+    <ConfluentKafkaPkgVer>[2.3.0,3.0)</ConfluentKafkaPkgVer>
     <CassandraCSharpDriverPkgVer>[3.16.0,4.0)</CassandraCSharpDriverPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.507,2.0)</StyleCopAnalyzersPkgVer>
     <SystemNetHttp>[4.3.4,)</SystemNetHttp>

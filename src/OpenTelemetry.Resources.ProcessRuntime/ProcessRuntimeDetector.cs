@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
-using System;
-#endif
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 #if NETFRAMEWORK
 using Microsoft.Win32;

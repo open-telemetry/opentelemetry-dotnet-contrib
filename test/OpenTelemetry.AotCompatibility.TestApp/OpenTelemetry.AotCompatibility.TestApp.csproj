@@ -7,7 +7,6 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <EventSourceSupport>true</EventSourceSupport>
     <SelfContained>true</SelfContained>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,10 +31,11 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.Runtime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.SqlClient" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
-    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.AWS" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
-    <TrimmerRootAssembly Include="OpenTelemetry.ResourceDetectors.Container" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Host" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.OperatingSystem" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />

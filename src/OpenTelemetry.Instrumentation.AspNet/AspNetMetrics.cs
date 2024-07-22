@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;

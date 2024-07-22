@@ -30,6 +30,7 @@ body:
         - OpenTelemetry.Instrumentation.AWS
         - OpenTelemetry.Instrumentation.AWSLambda
         - OpenTelemetry.Instrumentation.Cassandra
+        - OpenTelemetry.Instrumentation.ConfluentKafka
         - OpenTelemetry.Instrumentation.ElasticsearchClient
         - OpenTelemetry.Instrumentation.EntityFrameworkCore
         - OpenTelemetry.Instrumentation.EventCounters
@@ -48,11 +49,12 @@ body:
         - OpenTelemetry.Instrumentation.Wcf
         - OpenTelemetry.PersistentStorage.Abstractions
         - OpenTelemetry.PersistentStorage.FileSystem
-        - OpenTelemetry.ResourceDetectors.AWS
-        - OpenTelemetry.ResourceDetectors.Container
+        - OpenTelemetry.Resources.AWS
         - OpenTelemetry.Resources.Azure
+        - OpenTelemetry.Resources.Container
         - OpenTelemetry.Resources.Gcp
         - OpenTelemetry.Resources.Host
+        - OpenTelemetry.Resources.OperatingSystem
         - OpenTelemetry.Resources.Process
         - OpenTelemetry.Resources.ProcessRuntime
         - OpenTelemetry.Sampler.AWS

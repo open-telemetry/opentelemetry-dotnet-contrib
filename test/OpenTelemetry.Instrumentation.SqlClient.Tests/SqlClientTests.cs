@@ -14,6 +14,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+[Collection("SqlClient")]
 public class SqlClientTests : IDisposable
 {
 #if !NETFRAMEWORK

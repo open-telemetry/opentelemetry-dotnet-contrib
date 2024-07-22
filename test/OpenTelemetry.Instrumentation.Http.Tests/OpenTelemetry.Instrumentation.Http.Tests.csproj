@@ -3,10 +3,6 @@
     <Description>Unit test project for OpenTelemetry HTTP instrumentations</Description>
     <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-
-    <ImplicitUsings>enable</ImplicitUsings>
-    <!-- this is temporary. will remove in future PR. -->
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-    <PackageReference Include="System.Text.Json" Version="7.0.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup>

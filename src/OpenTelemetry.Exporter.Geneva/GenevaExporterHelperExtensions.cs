@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -12,6 +11,14 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 public static class GenevaExporterHelperExtensions
 {
+    /// <summary>
+    /// Adds <see cref="GenevaTraceExporter"/> to the <see cref="TracerProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder)
+        => AddGenevaTraceExporter(builder, name: null, configure: null);
+
     /// <summary>
     /// Adds <see cref="GenevaTraceExporter"/> to the <see cref="TracerProviderBuilder"/>.
     /// </summary>
@@ -32,34 +39,64 @@ public static class GenevaExporterHelperExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        name ??= Options.DefaultName;
+        var finalOptionsName = name ?? Options.DefaultName;
 
-        if (configure != null)
+        builder.ConfigureServices(services =>
         {
-            builder.ConfigureServices(services => services.Configure(name, configure));
-        }
+            if (name != null && configure != null)
+            {
+                // If we are using named options we register the
+                // configuration delegate into options pipeline.
+                services.Configure(finalOptionsName, configure);
+            }
+        });
 
         return builder.AddProcessor(sp =>
         {
-            var exporterOptions = sp.GetRequiredService<IOptionsMonitor<GenevaExporterOptions>>().Get(name);
+            GenevaExporterOptions exporterOptions;
 
-            return BuildGenevaTraceExporter(exporterOptions, configure);
+            BatchExportActivityProcessorOptions batchExportActivityProcessorOptions;
+
+            if (name == null)
+            {
+                // If we are NOT using named options we create a new
+                // instance always. The reason for this is
+                // GenevaExporterOptions is shared by tracing and logging signals. Without a
+                // name, delegates for all signals will mix together. See:
+                // https://github.com/open-telemetry/opentelemetry-dotnet/issues/4043
+                exporterOptions = sp.GetRequiredService<IOptionsFactory<GenevaExporterOptions>>().Create(finalOptionsName);
+
+                batchExportActivityProcessorOptions = sp.GetRequiredService<IOptionsFactory<BatchExportActivityProcessorOptions>>().Create(finalOptionsName);
+
+                // Configuration delegate is executed inline on the fresh instance.
+                configure?.Invoke(exporterOptions);
+            }
+            else
+            {
+                // When using named options we can properly utilize Options
+                // API to create or reuse an instance.
+                exporterOptions = sp.GetRequiredService<IOptionsMonitor<GenevaExporterOptions>>().Get(finalOptionsName);
+
+                batchExportActivityProcessorOptions = sp.GetRequiredService<IOptionsMonitor<BatchExportActivityProcessorOptions>>().Get(finalOptionsName);
+            }
+
+            return BuildGenevaTraceExporter(
+                exporterOptions,
+                batchExportActivityProcessorOptions);
         });
     }
 
-    private static BaseProcessor<Activity> BuildGenevaTraceExporter(GenevaExporterOptions options, Action<GenevaExporterOptions> configure)
+    private static BaseProcessor<Activity> BuildGenevaTraceExporter(GenevaExporterOptions options, BatchExportActivityProcessorOptions batchActivityExportProcessor)
     {
-        configure?.Invoke(options);
         var exporter = new GenevaTraceExporter(options);
         if (exporter.IsUsingUnixDomainSocket)
         {
-            var batchOptions = new BatchExportActivityProcessorOptions();
             return new BatchActivityExportProcessor(
                 exporter,
-                batchOptions.MaxQueueSize,
-                batchOptions.ScheduledDelayMilliseconds,
-                batchOptions.ExporterTimeoutMilliseconds,
-                batchOptions.MaxExportBatchSize);
+                batchActivityExportProcessor.MaxQueueSize,
+                batchActivityExportProcessor.ScheduledDelayMilliseconds,
+                batchActivityExportProcessor.ExporterTimeoutMilliseconds,
+                batchActivityExportProcessor.MaxExportBatchSize);
         }
         else
         {
