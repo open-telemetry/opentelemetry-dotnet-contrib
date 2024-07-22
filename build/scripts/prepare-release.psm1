@@ -9,7 +9,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
     [Parameter()][string]$gitUserEmail
   )
 
-  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc)|(?:rc9))\.(\d+))?$')
   if ($match.Success -eq $false)
   {
       throw 'Input version did not match expected format'
