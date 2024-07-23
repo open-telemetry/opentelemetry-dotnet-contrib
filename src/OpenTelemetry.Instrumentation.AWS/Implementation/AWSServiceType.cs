@@ -9,9 +9,9 @@ internal class AWSServiceType
     internal const string SQSService = "SQS";
     internal const string SNSService = "SNS";
     internal const string BedrockService = "Bedrock";
-    internal const string BedrockAgentService = "BedrockAgent";
-    internal const string BedrockAgentRuntimeService = "BedrockAgentRuntime";
-    internal const string BedrockRuntimeService = "BedrockRuntime";
+    internal const string BedrockAgentService = "Bedrock Agent";
+    internal const string BedrockAgentRuntimeService = "Bedrock Agent Runtime";
+    internal const string BedrockRuntimeService = "Bedrock Runtime";
 
     internal static bool IsDynamoDbService(string service)
         => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
