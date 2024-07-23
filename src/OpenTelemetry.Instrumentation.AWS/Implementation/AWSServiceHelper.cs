@@ -10,8 +10,8 @@ internal class AWSServiceHelper
     internal static IReadOnlyDictionary<string, List<string>> ServiceParameterMap = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.DynamoDbService, new List<string> { "TableName" } },
-        { AWSServiceType.SQSService, new List<string> { "QueueUrl" } }, 
-        { AWSServiceType.BedrockRuntimeService, new List<string> { "ModelId" } }
+        { AWSServiceType.SQSService, new List<string> { "QueueUrl" } },
+        { AWSServiceType.BedrockRuntimeService, new List<string> { "ModelId" } },
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
