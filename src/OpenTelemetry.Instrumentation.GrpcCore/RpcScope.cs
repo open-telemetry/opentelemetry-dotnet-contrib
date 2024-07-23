@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Google.Protobuf;
 using Grpc.Core;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 using StatusCode = Grpc.Core.StatusCode;
 
@@ -31,7 +32,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <summary>
     /// The RPC activity.
     /// </summary>
-    private Activity activity;
+    private Activity? activity;
 
     /// <summary>
     /// The complete flag.
@@ -54,7 +55,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="fullServiceName">Full name of the service.</param>
     /// <param name="recordMessageEvents">if set to <c>true</c> [record message events].</param>
     /// <param name="recordException">If set to <c>true</c> [record exception].</param>
-    protected RpcScope(string fullServiceName, bool recordMessageEvents, bool recordException)
+    protected RpcScope(string? fullServiceName, bool recordMessageEvents, bool recordException)
     {
         this.FullServiceName = fullServiceName?.TrimStart('/') ?? "unknownservice/unknownmethod";
         this.recordMessageEvents = recordMessageEvents;
@@ -72,6 +73,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="request">The request.</param>
     public void RecordRequest(TRequest request)
     {
+        Guard.ThrowIfNull(request);
+
         this.requestMessageCounter++;
 
         if (this.activity == null || !this.activity.IsAllDataRequested || !this.recordMessageEvents)
@@ -79,7 +82,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.AddMessageEvent(typeof(TRequest).Name, request as IMessage, request: true);
+        this.AddMessageEvent(typeof(TRequest).Name, (request as IMessage)!, request: true);
     }
 
     /// <summary>
@@ -88,6 +91,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="response">The response.</param>
     public void RecordResponse(TResponse response)
     {
+        Guard.ThrowIfNull(response);
+
         this.responseMessageCounter++;
 
         if (this.activity == null || !this.activity.IsAllDataRequested || !this.recordMessageEvents)
@@ -95,7 +100,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.AddMessageEvent(typeof(TResponse).Name, response as IMessage, request: false);
+        this.AddMessageEvent(typeof(TResponse).Name, (response as IMessage)!, request: false);
     }
 
     /// <summary>
@@ -118,6 +123,8 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// <param name="exception">The exception.</param>
     public void CompleteWithException(Exception exception)
     {
+        Guard.ThrowIfNull(exception);
+
         if (this.activity == null)
         {
             return;
@@ -142,7 +149,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// Sets the activity for this RPC scope. Should only be called once.
     /// </summary>
     /// <param name="activity">The activity.</param>
-    protected void SetActivity(Activity activity)
+    protected void SetActivity(Activity? activity)
     {
         this.activity = activity;
 
@@ -180,7 +187,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        this.activity.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
+        this.activity!.SetTag(SemanticConventions.AttributeRpcGrpcStatusCode, statusCode);
         this.activity.Stop();
     }
 
@@ -206,10 +213,10 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (!string.IsNullOrEmpty(description))
         {
-            this.activity.SetStatus(ActivityStatusCode.Error, description);
+            this.activity!.SetStatus(ActivityStatusCode.Error, description);
         }
 
-        if (this.activity.IsAllDataRequested && this.recordException)
+        if (this.activity!.IsAllDataRequested && this.recordException)
         {
             this.activity.RecordException(exception);
         }
@@ -236,17 +243,17 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     {
         var messageSize = message.CalculateSize();
 
-        var attributes = new ActivityTagsCollection(new KeyValuePair<string, object>[5]
-        {
-            new KeyValuePair<string, object>("name", "message"),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
+        var attributes = new ActivityTagsCollection(
+        [
+            new("name", "message"),
+            new(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
+            new(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
 
             // TODO how to get the real compressed or uncompressed sizes
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageCompressedSize, messageSize),
-            new KeyValuePair<string, object>(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
-        });
+            new(SemanticConventions.AttributeMessageCompressedSize, messageSize),
+            new(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
+        ]);
 
-        this.activity.AddEvent(new ActivityEvent(eventName, default, attributes));
+        this.activity!.AddEvent(new ActivityEvent(eventName, default, attributes));
     }
 }

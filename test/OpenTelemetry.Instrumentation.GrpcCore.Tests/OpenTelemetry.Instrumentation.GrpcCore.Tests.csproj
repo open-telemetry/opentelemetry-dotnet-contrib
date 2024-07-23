@@ -2,11 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Tools" Version="1.17.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.38.0" />
     <PackageReference Include="Grpc" Version="[2.46.6,3.0)" />
   </ItemGroup>
 

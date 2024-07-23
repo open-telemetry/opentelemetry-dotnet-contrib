@@ -17,17 +17,29 @@ dotnet add package OpenTelemetry.Resources.Container --prerelease
 ## Usage
 
 You can configure Container resource detector to
-the `TracerProvider` with the following example below.
+the `ResourceBuilder` with the following example.
 
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Resources.Container;
 
-var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                        // other configurations
-                        .ConfigureResource(resource => resource
-                            .AddContainerDetector())
-                        .Build();
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddContainerDetector())
+    // other configurations
+    .Build();
+
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .ConfigureResource(resource => resource.AddContainerDetector())
+    // other configurations
+    .Build();
+
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder.AddOpenTelemetry(options =>
+    {
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddContainerDetector());
+    });
+});
 ```
 
 The resource detectors will record the following metadata based on where

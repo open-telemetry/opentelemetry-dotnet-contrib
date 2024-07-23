@@ -11,7 +11,9 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
+#if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
+#endif
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -27,7 +29,7 @@ public partial class HttpWebRequestTests : IDisposable
         Activity.ForceDefaultIdFormat = false;
 
         this.serverLifeTime = TestHttpServer.RunServer(
-            (ctx) =>
+            ctx =>
             {
                 if (string.IsNullOrWhiteSpace(ctx.Request.Headers["traceparent"])
                     && string.IsNullOrWhiteSpace(ctx.Request.Headers["custom_traceparent"])
@@ -36,7 +38,7 @@ public partial class HttpWebRequestTests : IDisposable
                     ctx.Response.StatusCode = 500;
                     ctx.Response.StatusDescription = "Missing trace context";
                 }
-                else if (ctx.Request.Url.PathAndQuery.Contains("500"))
+                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500"))
                 {
                     ctx.Response.StatusCode = 500;
                 }
@@ -95,15 +97,15 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation(
                 options =>
                 {
-                    options.FilterHttpWebRequest = (req) =>
+                    options.FilterHttpWebRequest = req =>
                     {
                         httpWebRequestFilterApplied = true;
                         return !req.RequestUri.OriginalString.Contains(this.url);
                     };
-                    options.FilterHttpRequestMessage = (req) =>
+                    options.FilterHttpRequestMessage = req =>
                     {
                         httpRequestMessageFilterApplied = true;
-                        return !req.RequestUri.OriginalString.Contains(this.url);
+                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.url);
                     };
                 })
             .Build();
@@ -135,8 +137,8 @@ public partial class HttpWebRequestTests : IDisposable
             .AddHttpClientInstrumentation(
                 c =>
                 {
-                    c.FilterHttpWebRequest = (req) => throw new Exception("From Instrumentation filter");
-                    c.FilterHttpRequestMessage = (req) => throw new Exception("From Instrumentation filter");
+                    c.FilterHttpWebRequest = _ => throw new Exception("From Instrumentation filter");
+                    c.FilterHttpRequestMessage = _ => throw new Exception("From Instrumentation filter");
                 })
             .Build();
 
@@ -148,7 +150,7 @@ public partial class HttpWebRequestTests : IDisposable
 
             using var response = await request.GetResponseAsync();
 
-            Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 4));
+            Assert.Single(inMemoryEventListener.Events.Where(e => e.EventId == 4));
         }
 
         Assert.Empty(exportedItems);
@@ -203,7 +205,9 @@ public partial class HttpWebRequestTests : IDisposable
     [InlineData(false, false)]
     public async Task CustomPropagatorCalled(bool sample, bool createParentActivity)
     {
+#if NETFRAMEWORK
         ActivityContext parentContext = default;
+#endif
         ActivityContext contextFromPropagator = default;
 
         var propagator = new CustomTextMapPropagator
@@ -211,7 +215,7 @@ public partial class HttpWebRequestTests : IDisposable
             Injected = (PropagationContext context) => contextFromPropagator = context.ActivityContext,
         };
         propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
-        propagator.InjectValues.Add("custom_traceState", context => Activity.Current.TraceStateString);
+        propagator.InjectValues.Add("custom_traceState", context => Activity.Current?.TraceStateString ?? string.Empty);
 
         var exportedItems = new List<Activity>();
 
@@ -224,7 +228,7 @@ public partial class HttpWebRequestTests : IDisposable
             var previousDefaultTextMapPropagator = Propagators.DefaultTextMapPropagator;
             Sdk.SetDefaultTextMapPropagator(propagator);
 
-            Activity parent = null;
+            Activity? parent = null;
             if (createParentActivity)
             {
                 parent = new Activity("parent")
@@ -234,7 +238,9 @@ public partial class HttpWebRequestTests : IDisposable
                 parent.TraceStateString = "k1=v1,k2=v2";
                 parent.ActivityTraceFlags = ActivityTraceFlags.Recorded;
 
+#if NETFRAMEWORK
                 parentContext = parent.Context;
+#endif
             }
 
             var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
@@ -275,7 +281,7 @@ public partial class HttpWebRequestTests : IDisposable
     [Theory]
     [InlineData(null)]
     [InlineData("CustomName")]
-    public void AddHttpClientInstrumentationUsesOptionsApi(string name)
+    public void AddHttpClientInstrumentationUsesOptionsApi(string? name)
     {
         name ??= Options.DefaultName;
 
@@ -284,7 +290,7 @@ public partial class HttpWebRequestTests : IDisposable
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
             {
-                services.Configure<HttpClientTraceInstrumentationOptions>(name, o => configurationDelegateInvocations++);
+                services.Configure<HttpClientTraceInstrumentationOptions>(name, _ => configurationDelegateInvocations++);
             })
             .AddHttpClientInstrumentation(name, options =>
             {

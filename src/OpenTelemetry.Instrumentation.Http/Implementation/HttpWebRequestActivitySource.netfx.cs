@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
+
+#nullable disable
+
 using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;

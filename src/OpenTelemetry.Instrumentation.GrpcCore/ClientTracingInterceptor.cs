@@ -40,7 +40,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -72,7 +72,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -93,8 +93,14 @@ public class ClientTracingInterceptor : Interceptor
                     }
                     catch (AggregateException ex)
                     {
-                        rpcScope.CompleteWithException(ex.InnerException);
-                        throw ex.InnerException;
+                        if (ex.InnerException != null)
+                        {
+                            rpcScope.CompleteWithException(ex.InnerException);
+                            throw ex.InnerException;
+                        }
+
+                        rpcScope.CompleteWithException(ex);
+                        throw;
                     }
                 },
                 TaskScheduler.Current);
@@ -125,7 +131,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -150,8 +156,14 @@ public class ClientTracingInterceptor : Interceptor
                     }
                     catch (AggregateException ex)
                     {
-                        rpcScope.CompleteWithException(ex.InnerException);
-                        throw ex.InnerException;
+                        if (ex.InnerException != null)
+                        {
+                            rpcScope.CompleteWithException(ex.InnerException);
+                            throw ex.InnerException;
+                        }
+
+                        rpcScope.CompleteWithException(ex);
+                        throw;
                     }
                 },
                 TaskScheduler.Current);
@@ -184,7 +196,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -226,7 +238,7 @@ public class ClientTracingInterceptor : Interceptor
         Guard.ThrowIfNull(context);
         Guard.ThrowIfNull(continuation);
 
-        ClientRpcScope<TRequest, TResponse> rpcScope = null;
+        ClientRpcScope<TRequest, TResponse>? rpcScope = null;
 
         try
         {
@@ -277,7 +289,7 @@ public class ClientTracingInterceptor : Interceptor
         /// <summary>
         /// The metadata setter action.
         /// </summary>
-        private static readonly Action<Metadata, string, string> MetadataSetter = (metadata, key, value) => { metadata.Add(new Metadata.Entry(key, value)); };
+        private static readonly Action<Metadata?, string, string> MetadataSetter = (metadata, key, value) => { metadata?.Add(new Metadata.Entry(key, value)); };
 
         /// <summary>
         /// The context.
@@ -287,7 +299,7 @@ public class ClientTracingInterceptor : Interceptor
         /// <summary>
         /// The parent activity.
         /// </summary>
-        private readonly Activity parentActivity;
+        private readonly Activity? parentActivity;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientRpcScope{TRequest, TResponse}" /> class.
@@ -343,7 +355,7 @@ public class ClientTracingInterceptor : Interceptor
 
             this.SetActivity(rpcActivity);
             options.Propagator.Inject(new PropagationContext(rpcActivity.Context, Baggage.Current), callOptions.Headers, MetadataSetter);
-            this.context = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host, callOptions);
+            this.context = new ClientInterceptorContext<TRequest, TResponse>(context.Method!, context.Host, callOptions);
         }
 
         /// <summary>

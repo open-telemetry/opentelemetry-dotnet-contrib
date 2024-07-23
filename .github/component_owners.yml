@@ -35,6 +35,8 @@ components:
     - ppittle
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
+  src/OpenTelemetry.Instrumentation.ConfluentKafka/:
+    - g7ed6e
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -51,6 +53,8 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
+    - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
     - twenzel
     - xiang17
@@ -69,6 +73,9 @@ components:
   src/OpenTelemetry.Resources.Container/:
     - iskiselev
   src/OpenTelemetry.Resources.Host/:
+    - Kielek
+    - lachmatt
+  src/OpenTelemetry.Resources.OperatingSystem/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.Process/:
@@ -130,6 +137,8 @@ components:
     - ppittle
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
+  test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
+    - g7ed6e
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -144,6 +153,8 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17
