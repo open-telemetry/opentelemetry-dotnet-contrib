@@ -202,7 +202,7 @@ public partial class HttpClientTests
         {
             tracerProvider.Dispose();
         }
-        
+
         var activity = Assert.Single(activities);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
