@@ -60,7 +60,7 @@ public partial class HttpClientTests : IDisposable
                 {
                     ctx.Response.StatusCode = int.Parse(responseCode);
                 }
-                else if (ctx.Request.Url.PathAndQuery.Contains("slow"))
+                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("slow"))
                 {
                     Thread.Sleep(10000);
                     ctx.Response.RedirectLocation = "/";

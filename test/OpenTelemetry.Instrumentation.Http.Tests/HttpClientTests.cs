@@ -205,8 +205,8 @@ public partial class HttpClientTests
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("Task Canceled", activity.StatusDescription);
 
-        var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value.ToString());
-        Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "System.Threading.Tasks.TaskCanceledException");
+        var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
+        Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
     }
 #endif
 
