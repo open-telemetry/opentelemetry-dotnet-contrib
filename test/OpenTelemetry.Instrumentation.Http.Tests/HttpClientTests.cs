@@ -188,7 +188,8 @@ public partial class HttpClientTests
             using var c = new HttpClient();
             using var request = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{this.url}/slow"), Method = new HttpMethod("GET")
+                RequestUri = new Uri($"{this.url}/slow"),
+                Method = new HttpMethod("GET")
             };
 
             var cancellationTokenSource = new CancellationTokenSource(100);
