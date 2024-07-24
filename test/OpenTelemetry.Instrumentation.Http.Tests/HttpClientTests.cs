@@ -178,7 +178,7 @@ public partial class HttpClientTests
     {
         var activities = new List<Activity>();
 
-        Sdk.CreateTracerProviderBuilder()
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation()
             .AddInMemoryExporter(activities)
             .Build();
@@ -188,8 +188,7 @@ public partial class HttpClientTests
             using var c = new HttpClient();
             using var request = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{this.url}/slow"),
-                Method = new HttpMethod("GET"),
+                RequestUri = new Uri($"{this.url}/slow"), Method = new HttpMethod("GET"),
             };
 
             var cancellationTokenSource = new CancellationTokenSource(100);
@@ -199,7 +198,11 @@ public partial class HttpClientTests
         {
             // we expect this to be thrown here
         }
-
+        finally
+        {
+            tracerProvider.Dispose();
+        }
+        
         var activity = Assert.Single(activities);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
