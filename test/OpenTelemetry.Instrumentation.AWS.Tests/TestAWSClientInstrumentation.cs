@@ -56,7 +56,7 @@ public class TestAWSClientInstrumentation
             this.ValidateDynamoActivityTags(awssdk_activity);
 
             Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         }
     }
 
@@ -100,7 +100,7 @@ public class TestAWSClientInstrumentation
             this.ValidateDynamoActivityTags(awssdk_activity);
 
             Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         }
     }
 
@@ -152,7 +152,7 @@ public class TestAWSClientInstrumentation
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
 
-                Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+                Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
                 Assert.Equal(Status.Error.WithDescription("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown."), awssdk_activity.GetStatus());
                 Assert.Equal("exception", awssdk_activity.Events.First().Name);
             }
@@ -198,7 +198,7 @@ public class TestAWSClientInstrumentation
             this.ValidateSqsActivityTags(awssdk_activity);
 
             Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         }
     }
 
@@ -211,9 +211,6 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "aws.service"));
-        Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "aws.region"));
         Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
@@ -224,9 +221,6 @@ public class TestAWSClientInstrumentation
     private void ValidateSqsActivityTags(Activity sqs_activity)
     {
         Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
-        Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "aws.service"));
-        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "aws.region"));
         Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
