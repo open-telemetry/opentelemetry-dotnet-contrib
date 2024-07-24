@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+* BREAKING: Update the instrumentation logic to use AWS TracerProvider.
+  ([#1974](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1974))
 * Add AWS metrics instrumentation.
   ([#1980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
+* Updated dependency on AWS .NET SDK to version 3.7.400.
+  ([#1974](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
 * Added `rpc.system`, `rpc.service`, and `rpc.method` to activity tags based on
   [semantic convention v1.26.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes).
   ([#1865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1865))
