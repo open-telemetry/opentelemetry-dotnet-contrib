@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWS;
 public class AWSClientInstrumentationOptions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether downstream Http instrumentation is suppressed.
+    /// Gets or sets a value indicating whether downstream instrumentation is suppressed.
     /// </summary>
-    public bool SuppressDownstreamInstrumentation { get; set; } = true;
+    public bool SuppressDownstreamInstrumentation { get; set; }
 }
