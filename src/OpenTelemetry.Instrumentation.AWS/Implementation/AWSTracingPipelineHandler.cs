@@ -91,6 +91,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     {
         var responseContext = executionContext.ResponseContext;
         var requestContext = executionContext.RequestContext;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
 
         if (activity.IsAllDataRequested)
         {
@@ -106,6 +107,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
                 AddStatusCodeToActivity(activity, statusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
+
+                AddResponseSpecificInformation(activity, responseContext, service);
             }
         }
 
@@ -178,6 +181,20 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, "aws_bedrock");
+        }
+    }
+
+    private static void AddResponseSpecificInformation(Activity activity, IResponseContext responseContext, string service)
+    {
+        AmazonWebServiceResponse response = responseContext.Response;
+
+        if (AWSServiceType.IsBedrockService(service))
+        {
+            var property = response.GetType().GetProperty("GuardrailId");
+            if (property != null)
+            {
+                activity.SetTag(AWSSemanticConventions.AttributeAWSBedrockGuardrailId, property.GetValue(response));
+            }
         }
     }
 
