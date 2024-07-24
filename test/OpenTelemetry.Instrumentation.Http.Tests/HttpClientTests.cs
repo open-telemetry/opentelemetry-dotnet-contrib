@@ -13,7 +13,6 @@ using System.Text.Json;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Xunit;
-using OperationCanceledException = System.OperationCanceledException;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
