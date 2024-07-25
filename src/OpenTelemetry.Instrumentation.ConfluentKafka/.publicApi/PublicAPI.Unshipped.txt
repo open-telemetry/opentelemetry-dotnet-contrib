@@ -4,6 +4,7 @@ OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, T
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>.InstrumentedConsumerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>.InstrumentedProducerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
+OpenTelemetry.Instrumentation.ConfluentKafka.ProducerBuilderExtensions
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IConsumer<TKey, TValue>!
