@@ -1,8 +1,8 @@
 # Operating System Detectors
 
-[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.OperatingSyatem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSyatem)
-[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.OperatingSyatem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSyatem)
-[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.OperatingSyatem)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.OperatingSyatem)
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.OperatingSystem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.OperatingSystem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.OperatingSystem)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.OperatingSystem)
 
 > [!IMPORTANT]
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/resource/os.md).

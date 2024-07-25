@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+## 1.9.0-beta.1
+
+Released 2024-Jul-23
+
 * Add support for instrumenting `IConnectionMultiplexer`
   which is added with service key.
   ([#1885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1885))
+* Update `StackExchange.Redis` version to `2.6.122`, resolving warnings about
+  [CVE-2021-24112](https://github.com/advisories/GHSA-rxg9-xrhp-64gj).
+  ([#1961](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1961))
 
 ## 1.0.0-rc9.15
 
