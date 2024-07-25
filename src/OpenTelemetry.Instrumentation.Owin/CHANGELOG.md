@@ -9,6 +9,11 @@
   `IConfiguration`.
   ([#1973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1973))
 
+* **Breaking change** Updated to depend on the
+  `OpenTelemetry.Api.ProviderBuilderExtensions` (API) package instead of the
+  `OpenTelemetry` (SDK) package.
+  ([#1977](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1977))
+
 ## 1.0.0-rc.6
 
 Released 2024-Apr-19
