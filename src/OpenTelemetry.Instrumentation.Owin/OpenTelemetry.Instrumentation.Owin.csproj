@@ -25,7 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="Microsoft.Owin" Version="$(MicrosoftOwinPkgVer)" />
   </ItemGroup>
 
