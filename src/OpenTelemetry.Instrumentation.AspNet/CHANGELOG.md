@@ -4,7 +4,7 @@
 
 * Updated registration extension code to retrieve environment variables through
   `IConfiguration`.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1976))
 
 ## 1.9.0-beta.1
 
