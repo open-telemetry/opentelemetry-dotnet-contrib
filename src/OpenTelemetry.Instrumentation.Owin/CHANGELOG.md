@@ -5,6 +5,10 @@
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
+* Updated registration extension code to retrieve environment variables through
+  `IConfiguration`.
+  ([#1973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1973))
+
 ## 1.0.0-rc.6
 
 Released 2024-Apr-19
