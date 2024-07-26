@@ -3,6 +3,10 @@
 
 using System.Diagnostics;
 using Amazon;
+using Amazon.Bedrock;
+using Amazon.Bedrock.Model;
+using Amazon.BedrockRuntime;
+using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
@@ -202,6 +206,86 @@ public class TestAWSClientInstrumentation
         }
     }
 
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockGetGuardrailSuccessful()
+#else
+    public async Task TestBedrockGetGuardrailSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation()
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string dummyResponse = "{\"GuardrailId\":\"123456789\"}";
+            CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
+            var get_guardrail_req = new GetGuardrailRequest();
+            get_guardrail_req.GuardrailIdentifier = "123456789";
+#if NETFRAMEWORK
+            var response = bedrock.GetGuardrail(get_guardrail_req);
+#else
+            var response = await bedrock.GetGuardrailAsync(get_guardrail_req);
+#endif
+            Assert.Single(exportedItems);
+            Activity awssdk_activity = exportedItems[0];
+
+            this.ValidateAWSActivity(awssdk_activity, parent);
+            this.ValidateBedrockActivityTags(awssdk_activity);
+
+            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+        }
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation()
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string dummyResponse = "{}";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invoke_model_req = new InvokeModelRequest();
+            invoke_model_req.ModelId = "amazon.titan-text-express-v1";
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invoke_model_req);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invoke_model_req);
+#endif
+            Assert.Single(exportedItems);
+            Activity awssdk_activity = exportedItems[0];
+
+            this.ValidateAWSActivity(awssdk_activity, parent);
+            this.ValidateBedrockRuntimeActivityTags(awssdk_activity);
+
+            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+        }
+    }
+
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
@@ -231,5 +315,30 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "rpc.method"));
+    }
+
+    private void ValidateBedrockActivityTags(Activity bedrock_activity)
+    {
+        Assert.Equal("Bedrock.GetGuardrail", bedrock_activity.DisplayName);
+        Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "aws.service"));
+        Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "aws.operation"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
+        Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.guardrail.id"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "rpc.service"));
+        Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+    }
+
+    private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity)
+    {
+        Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
+        Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "aws.service"));
+        Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "aws.operation"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
+        Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
+        Assert.Equal("aws_bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
+        Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));
     }
 }
