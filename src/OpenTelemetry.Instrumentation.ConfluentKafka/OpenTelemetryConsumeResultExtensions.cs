@@ -85,8 +85,6 @@ public static class OpenTelemetryConsumeResultExtensions
         ArgumentNullException.ThrowIfNull(handler);
 #endif
 
-        DateTimeOffset start = DateTimeOffset.UtcNow;
-
         var consumeResult = instrumentedConsumer.Consume(cancellationToken);
 
         if (consumeResult?.Message == null || consumeResult.IsPartitionEOF)
@@ -97,12 +95,19 @@ public static class OpenTelemetryConsumeResultExtensions
         Activity? processActivity = null;
         if (TryExtractPropagationContext(consumeResult, out var propagationContext))
         {
-            TKey key = consumeResult.Message.Key;
             processActivity = StartProcessActivity(
                 propagationContext,
-                start,
                 consumeResult.TopicPartitionOffset,
-                key,
+                consumeResult.Message.Key,
+                instrumentedConsumer.Name,
+                instrumentedConsumer.GroupId!);
+        }
+        else
+        {
+            processActivity = StartProcessActivity(
+                default,
+                consumeResult.TopicPartitionOffset,
+                consumeResult.Message.Key,
                 instrumentedConsumer.Name,
                 instrumentedConsumer.GroupId!);
         }
@@ -127,17 +132,17 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, TKey? key, string clientId, string groupId)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, TopicPartitionOffset? topicPartitionOffset, TKey? key, string clientId, string groupId)
     {
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
             ? ConfluentKafkaCommon.ProcessOperationName
             : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ProcessOperationName);
 
-        ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
+        ActivityLink[] activityLinks = propagationContext != default && propagationContext.ActivityContext.IsValid()
             ? new[] { new ActivityLink(propagationContext.ActivityContext) }
             : Array.Empty<ActivityLink>();
 
-        Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
+        Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
