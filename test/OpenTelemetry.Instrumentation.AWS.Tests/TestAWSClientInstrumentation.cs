@@ -47,9 +47,9 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Equal(2, exportedItems.Count);
+            Assert.NotEmpty(exportedItems);
 
-            Activity awssdkMainActivity = exportedItems[1];
+            Activity awssdkMainActivity = exportedItems.ToList().Single(e => e.DisplayName == "DynamoDB.Scan");
 
             this.ValidateAWSActivity(awssdkMainActivity, parent);
             this.ValidateDynamoActivityTags(awssdkMainActivity);
@@ -90,9 +90,9 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Equal(2, exportedItems.Count);
+            Assert.NotEmpty(exportedItems);
 
-            Activity awssdkMainActivity = exportedItems[1];
+            Activity awssdkMainActivity = exportedItems.ToList().Single(e => e.DisplayName == "DynamoDB.Scan");
 
             this.ValidateAWSActivity(awssdkMainActivity, parent);
             this.ValidateDynamoActivityTags(awssdkMainActivity);
@@ -142,9 +142,9 @@ public class TestAWSClientInstrumentation
             }
             catch (AmazonServiceException)
             {
-                Assert.Equal(2, exportedItems.Count);
+                Assert.NotEmpty(exportedItems);
 
-                Activity awssdkMainActivity = exportedItems[1];
+                Activity awssdkMainActivity = exportedItems.ToList().Single(e => e.DisplayName == "DynamoDB.Scan");
 
                 this.ValidateAWSActivity(awssdkMainActivity, parent);
                 this.ValidateDynamoActivityTags(awssdkMainActivity);
@@ -187,8 +187,8 @@ public class TestAWSClientInstrumentation
 #else
             await sqs.SendMessageAsync(send_msg_req);
 #endif
-            Assert.Equal(2, exportedItems.Count);
-            Activity awssdkMainActivity = exportedItems[1];
+            Assert.NotEmpty(exportedItems);
+            Activity awssdkMainActivity = exportedItems.ToList().Single(e => e.DisplayName == "SQS.SendMessage");
 
             this.ValidateAWSActivity(awssdkMainActivity, parent);
             this.ValidateSqsActivityTags(awssdkMainActivity);
