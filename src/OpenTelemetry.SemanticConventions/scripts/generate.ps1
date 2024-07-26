@@ -2,7 +2,7 @@ $SCRIPT_DIR = $PSScriptRoot
 $ROOT_DIR = "${SCRIPT_DIR}/../"
 
 # freeze the spec version to make SemanticAttributes generation reproducible
-$SEMCONV_VERSION = "1.25.0"
+$SEMCONV_VERSION = "1.26.0"
 $GENERATOR_VERSION = "0.7.0"
 
 Set-Location $SCRIPT_DIR
