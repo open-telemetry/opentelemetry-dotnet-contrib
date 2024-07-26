@@ -3,11 +3,12 @@
 
 using System.Diagnostics;
 using System.Text;
-using Confluent.Kafka;
+using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Instrumentation.ConfluentKafka;
 using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Instrumentation.ConfluentKafka;
+namespace Confluent.Kafka;
 
 /// <summary>
 /// <see cref="IConsumer{TKey,TValue}"/> extension methods.
@@ -97,19 +98,23 @@ public static class OpenTelemetryConsumeResultExtensions
         if (TryExtractPropagationContext(consumeResult, out var propagationContext))
         {
             TKey key = consumeResult.Message.Key;
-            object? keyAsObject = key;
             processActivity = StartProcessActivity(
                 propagationContext,
                 start,
                 consumeResult.TopicPartitionOffset,
-                keyAsObject,
+                key,
                 instrumentedConsumer.Name,
                 instrumentedConsumer.GroupId!);
         }
 
         try
         {
-            await handler(consumeResult, cancellationToken).ConfigureAwait(false);
+            await handler(consumeResult, processActivity, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            processActivity?.SetStatus(Status.Error);
+            processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().Name);
         }
         finally
         {
@@ -122,7 +127,7 @@ public static class OpenTelemetryConsumeResultExtensions
     internal static PropagationContext ExtractPropagationContext(Headers? headers)
         => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
 
-    private static Activity? StartProcessActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key, string clientId, string groupId)
+    private static Activity? StartProcessActivity<TKey>(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, TKey? key, string clientId, string groupId)
     {
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
             ? ConfluentKafkaCommon.ProcessOperationName

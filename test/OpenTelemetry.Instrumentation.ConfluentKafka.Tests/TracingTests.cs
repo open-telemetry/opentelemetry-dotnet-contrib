@@ -354,6 +354,7 @@ public class TracingTests
 
         ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,
+            Activity activity,
             CancellationToken cancellationToken = default)
         {
             return default;
