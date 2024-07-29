@@ -344,17 +344,18 @@ public class TracingTests
             consumer.Close();
         }
 
-        var activity = Assert.Single(activities, activity => activity.DisplayName == topic + " process");
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
-        Assert.Equal("process", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
-        Assert.Equal(topic, activity.GetTagValue("messaging.destination.name"));
-        Assert.Equal(0, activity.GetTagValue("messaging.kafka.destination.partition"));
-        Assert.Equal(0L, activity.GetTagValue("messaging.kafka.message.offset"));
-        Assert.Equal("test-consumer-group", activity.GetTagValue("messaging.kafka.consumer.group"));
+        var processActivity = Assert.Single(activities, activity => activity.DisplayName == topic + " process");
+
+        Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
+        Assert.Equal(topic, processActivity.GetTagValue("messaging.destination.name"));
+        Assert.Equal(0, processActivity.GetTagValue("messaging.kafka.destination.partition"));
+        Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.message.offset"));
+        Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.kafka.consumer.group"));
 
         ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,
-            Activity activity,
+            Activity? activity,
             CancellationToken cancellationToken = default)
         {
             return default;
