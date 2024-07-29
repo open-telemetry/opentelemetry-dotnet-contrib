@@ -55,7 +55,6 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
             });
         });
 
-        IGrouping<string, Metric>[] groups = null;
         using (var host = builder.Build())
         {
             await host.StartAsync();
@@ -108,7 +107,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
             host.Services.GetRequiredService<MeterProvider>().EnsureMetricsAreFlushed();
         }
 
-        groups = metrics.GroupBy(x => x.Name).ToArray();
+        IGrouping<string, Metric>[] groups = metrics.GroupBy(x => x.Name).ToArray();
 
         Assert.Equal(4, groups.Length);
     }
