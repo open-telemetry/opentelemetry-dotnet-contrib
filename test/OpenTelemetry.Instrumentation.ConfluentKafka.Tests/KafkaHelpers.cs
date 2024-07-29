@@ -10,7 +10,7 @@ internal static class KafkaHelpers
 {
     public const string KafkaEndPointEnvVarName = "OTEL_KAFKAENDPOINT";
 
-    public static readonly string KafkaEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(KafkaEndPointEnvVarName);
+    public static readonly string? KafkaEndPoint = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(KafkaEndPointEnvVarName);
 
     public static async Task<string> ProduceTestMessageAsync()
     {

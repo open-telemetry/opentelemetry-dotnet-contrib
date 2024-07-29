@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.AspNet;
 using OpenTelemetry.Internal;
 
@@ -31,10 +33,20 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new AspNetMetricsInstrumentationOptions();
-        configure?.Invoke(options);
+        return builder.ConfigureServices(services =>
+        {
+            if (configure != null)
+            {
+                services.Configure(configure);
+            }
 
-        builder.AddMeter(AspNetMetrics.InstrumentationName);
-        return builder.AddInstrumentation(() => new AspNetMetrics(options));
+            services.ConfigureOpenTelemetryMeterProvider((sp, builder) =>
+            {
+                var options = sp.GetRequiredService<IOptionsMonitor<AspNetMetricsInstrumentationOptions>>().Get(name: null);
+
+                builder.AddInstrumentation(() => new AspNetMetrics(options));
+                builder.AddMeter(AspNetMetrics.InstrumentationName);
+            });
+        });
     }
 }

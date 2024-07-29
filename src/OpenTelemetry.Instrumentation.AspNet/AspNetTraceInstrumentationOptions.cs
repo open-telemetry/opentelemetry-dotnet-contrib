@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Web;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
@@ -18,18 +19,20 @@ public class AspNetTraceInstrumentationOptions
     /// Initializes a new instance of the <see cref="AspNetTraceInstrumentationOptions"/> class.
     /// </summary>
     public AspNetTraceInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
     {
-        try
+    }
+
+    internal AspNetTraceInstrumentationOptions(IConfiguration configuration)
+    {
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetBoolValue(
+            AspNetInstrumentationEventSource.Log,
+            DisableQueryRedactionEnvVar,
+            out var disableUrlQueryRedaction))
         {
-            var disableQueryRedaction = Environment.GetEnvironmentVariable(DisableQueryRedactionEnvVar);
-            if (disableQueryRedaction != null && disableQueryRedaction.Equals("true", StringComparison.OrdinalIgnoreCase))
-            {
-                this.DisableUrlQueryRedaction = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            AspNetInstrumentationEventSource.Log.FailedToReadEnvironmentVariable(DisableQueryRedactionEnvVar, ex);
+            this.DisableUrlQueryRedaction = disableUrlQueryRedaction;
         }
     }
 

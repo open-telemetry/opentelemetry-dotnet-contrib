@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Owin;
@@ -10,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.Owin;
 /// EventSource events emitted from the project.
 /// </summary>
 [EventSource(Name = "OpenTelemetry-Instrumentation-Owin")]
-internal sealed class OwinInstrumentationEventSource : EventSource
+internal sealed class OwinInstrumentationEventSource : EventSource, IConfigurationExtensionsLogger
 {
     public static OwinInstrumentationEventSource Log { get; } = new OwinInstrumentationEventSource();
 
@@ -44,25 +45,21 @@ internal sealed class OwinInstrumentationEventSource : EventSource
         }
     }
 
-    [NonEvent]
-    public void FailedToReadEnvironmentVariable(string envVarName, Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.FailedToReadEnvironmentVariable(envVarName, ex.ToInvariantString());
-        }
-    }
-
     [Event(EventIds.EnrichmentException, Message = "Enrichment threw exception. Exception {0}.", Level = EventLevel.Error)]
     public void EnrichmentException(string exception)
     {
         this.WriteEvent(EventIds.EnrichmentException, exception);
     }
 
-    [Event(EventIds.FailedToReadEnvironmentVariable, Message = "Failed to read environment variable='{0}': {1}", Level = EventLevel.Error)]
-    public void FailedToReadEnvironmentVariable(string envVarName, string exception)
+    [Event(EventIds.InvalidConfigurationValue, Message = "Configuration key '{0}' has an invalid value: '{1}'", Level = EventLevel.Warning)]
+    public void InvalidConfigurationValue(string key, string value)
     {
-        this.WriteEvent(4, envVarName, exception);
+        this.WriteEvent(EventIds.InvalidConfigurationValue, key, value);
+    }
+
+    void IConfigurationExtensionsLogger.LogInvalidConfigurationValue(string key, string value)
+    {
+        this.InvalidConfigurationValue(key, value);
     }
 
     private class EventIds
@@ -70,6 +67,6 @@ internal sealed class OwinInstrumentationEventSource : EventSource
         public const int RequestIsFilteredOut = 1;
         public const int RequestFilterException = 2;
         public const int EnrichmentException = 3;
-        public const int FailedToReadEnvironmentVariable = 4;
+        public const int InvalidConfigurationValue = 4;
     }
 }

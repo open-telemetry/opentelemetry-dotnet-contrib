@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Web.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 using OpenTelemetry.Instrumentation.Owin.Implementation;
@@ -277,13 +279,18 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false)]
-    [InlineData("path?a=b&c=d", "path?a=b&c=d", true)]
-    public async Task QueryParametersAreRedacted(string actualPath, string expectedPath, bool disableQueryRedaction)
+    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", true, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", false, true)]
+    public async Task QueryParametersAreRedacted(
+        string actualPath,
+        string expectedPath,
+        bool disableQueryRedactionUsingEnvVar,
+        bool disableQueryRedactionUsingConfiguration)
     {
         try
         {
-            if (disableQueryRedaction)
+            if (disableQueryRedactionUsingEnvVar)
             {
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
             }
@@ -291,6 +298,20 @@ public class DiagnosticsMiddlewareTests : IDisposable
             List<Activity> stoppedActivities = new List<Activity>();
 
             var builder = Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices(services =>
+                {
+                    if (disableQueryRedactionUsingConfiguration)
+                    {
+                        var config = new ConfigurationBuilder()
+                            .AddInMemoryCollection(new Dictionary<string, string?>()
+                            {
+                                ["OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION"] = "true",
+                            })
+                            .Build();
+
+                        services.AddSingleton<IConfiguration>(config);
+                    }
+                })
                 .AddInMemoryExporter(stoppedActivities)
                 .AddOwinInstrumentation()
                 .Build();

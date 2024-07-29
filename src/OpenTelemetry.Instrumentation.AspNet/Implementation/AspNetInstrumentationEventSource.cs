@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
@@ -10,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 /// EventSource events emitted from the project.
 /// </summary>
 [EventSource(Name = "OpenTelemetry-Instrumentation-AspNet")]
-internal sealed class AspNetInstrumentationEventSource : EventSource
+internal sealed class AspNetInstrumentationEventSource : EventSource, IConfigurationExtensionsLogger
 {
     public static AspNetInstrumentationEventSource Log = new();
 
@@ -32,15 +33,6 @@ internal sealed class AspNetInstrumentationEventSource : EventSource
         }
     }
 
-    [NonEvent]
-    public void FailedToReadEnvironmentVariable(string envVarName, Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
-        {
-            this.EnrichmentException(envVarName, ex.ToInvariantString());
-        }
-    }
-
     [Event(1, Message = "Request is filtered out and will not be collected. Operation='{0}'", Level = EventLevel.Verbose)]
     public void RequestIsFilteredOut(string operationName)
     {
@@ -59,9 +51,14 @@ internal sealed class AspNetInstrumentationEventSource : EventSource
         this.WriteEvent(3, eventName, exception);
     }
 
-    [Event(4, Message = "Failed to read environment variable='{0}': {1}", Level = EventLevel.Error)]
-    public void FailedToReadEnvironmentVariable(string envVarName, string exception)
+    [Event(4, Message = "Configuration key '{0}' has an invalid value: '{1}'", Level = EventLevel.Warning)]
+    public void InvalidConfigurationValue(string key, string value)
     {
-        this.WriteEvent(4, envVarName, exception);
+        this.WriteEvent(4, key, value);
+    }
+
+    void IConfigurationExtensionsLogger.LogInvalidConfigurationValue(string key, string value)
+    {
+        this.InvalidConfigurationValue(key, value);
     }
 }
