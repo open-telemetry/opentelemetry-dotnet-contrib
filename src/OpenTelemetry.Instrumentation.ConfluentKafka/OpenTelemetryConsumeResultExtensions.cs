@@ -53,6 +53,19 @@ public static class OpenTelemetryConsumeResultExtensions
     /// </summary>
     /// <param name="consumer">The <see cref="IConsumer{TKey,TValue}"/>.</param>
     /// <param name="handler">A <see cref="ConsumeAndProcessMessageHandler{TKey,TValue}"/>.</param>
+    /// <typeparam name="TKey">The type of key of the <see cref="ConsumeResult{TKey,TValue}"/>.</typeparam>
+    /// <typeparam name="TValue">The type of value of the <see cref="ConsumeResult{TKey,TValue}"/>.</typeparam>
+    /// <returns>A <see cref="ValueTask"/>.</returns>
+    public static ValueTask<ConsumeResult<TKey, TValue>?> ConsumeAndProcessMessageAsync<TKey, TValue>(
+        this IConsumer<TKey, TValue> consumer,
+        ConsumeAndProcessMessageHandler<TKey, TValue> handler) =>
+        ConsumeAndProcessMessageAsync(consumer, handler, default);
+
+    /// <summary>
+    /// Consumes a message and creates <see href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-kind">a process span</see> embracing the <see cref="ConsumeAndProcessMessageHandler{TKey,TValue}"/>.
+    /// </summary>
+    /// <param name="consumer">The <see cref="IConsumer{TKey,TValue}"/>.</param>
+    /// <param name="handler">A <see cref="ConsumeAndProcessMessageHandler{TKey,TValue}"/>.</param>
     /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
     /// <typeparam name="TKey">The type of key of the <see cref="ConsumeResult{TKey,TValue}"/>.</typeparam>
     /// <typeparam name="TValue">The type of value of the <see cref="ConsumeResult{TKey,TValue}"/>.</typeparam>
@@ -60,7 +73,7 @@ public static class OpenTelemetryConsumeResultExtensions
     public static async ValueTask<ConsumeResult<TKey, TValue>?> ConsumeAndProcessMessageAsync<TKey, TValue>(
         this IConsumer<TKey, TValue> consumer,
         ConsumeAndProcessMessageHandler<TKey, TValue> handler,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
 #if NETFRAMEWORK
         if (consumer == null)
