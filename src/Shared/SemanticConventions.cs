@@ -54,7 +54,7 @@ internal static class SemanticConventions
     public const string AttributeDbInstance = "db.instance";
     public const string AttributeDbCassandraKeyspace = "db.cassandra.keyspace";
     public const string AttributeDbHBaseNamespace = "db.hbase.namespace";
-    public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
+    public const string AttributeDbRedisFlagsKeyName = "db.redis.flags";
     public const string AttributeDbMongoDbCollection = "db.mongodb.collection";
 
     public const string AttributeRpcSystem = "rpc.system";
@@ -110,6 +110,8 @@ internal static class SemanticConventions
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md#http-server
     public const string AttributeClientAddress = "client.address";
     public const string AttributeClientPort = "client.port";
+    public const string AttributeNetworkPeerAddress = "network.peer.address";
+    public const string AttributeNetworkPeerPort = "network.peer.port";
     public const string AttributeNetworkProtocolVersion = "network.protocol.version"; // replaces: "http.flavor" (AttributeHttpFlavor)
     public const string AttributeNetworkProtocolName = "network.protocol.name";
     public const string AttributeServerAddress = "server.address"; // replaces: "net.host.name" (AttributeNetHostName)

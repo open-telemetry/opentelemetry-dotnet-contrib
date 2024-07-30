@@ -13,7 +13,7 @@ This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments
 [StackExchange.Redis](https://www.nuget.org/packages/StackExchange.Redis/)
-and collects traces about outgoing calls to Redis.
+and collects traces and metrics about outgoing calls to Redis.
 
 > [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
@@ -41,10 +41,12 @@ dotnet add package OpenTelemetry.Instrumentation.StackExchangeRedis
 ## Step 2: Enable StackExchange.Redis Instrumentation at application startup
 
 StackExchange.Redis instrumentation must be enabled at application startup.
-`AddRedisInstrumentation` method on `TracerProviderBuilder` must be called to
-enable Redis instrumentation, passing the `IConnectionMultiplexer` instance used
-to make Redis calls. Only those Redis calls made using the same instance of the
-`IConnectionMultiplexer` will be instrumented.
+`AddRedisInstrumentation` method on `TracerProviderBuilder` and/or
+`MeterProviderBuilder` must be called to enable Redis instrumentation, passing
+the `IConnectionMultiplexer` instance used to make Redis calls. Only those
+Redis calls made using the same instance of the `IConnectionMultiplexer` will
+be instrumented. Once tracing and metrics are enabled, any instrumented
+connection will export both signals.
 
 The following example demonstrates adding StackExchange.Redis instrumentation to
 a console application. This example also sets up the OpenTelemetry Console
@@ -64,6 +66,11 @@ public class Program
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddRedisInstrumentation(connection)
+            .AddConsoleExporter()
+            .Build();
+
+        using var tracerProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRedisInstrumentation()
             .AddConsoleExporter()
             .Build();
     }
@@ -92,6 +99,10 @@ using var connection = ConnectionMultiplexer.Connect("localhost:6379");
 
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddRedisInstrumentation(connection)
+    .Build();
+
+using var tracerProvider = Sdk.CreateMeterProviderBuilder()
+    .AddRedisInstrumentation()
     .Build();
 ```
 
@@ -168,6 +179,9 @@ StackExchange.Redis by default does not give detailed database statements like
 what key or script was used during an operation. The `SetVerboseDatabaseStatements`
 option can be used to enable gathering this more detailed information.
 
+`SetVerboseDatabaseStatements` is not applied to metrics, only the command is
+defined in the statement attribute.
+
 The following example shows how to use `SetVerboseDatabaseStatements`.
 
 ```csharp
@@ -185,6 +199,8 @@ This option allows one to enrich the activity with additional information from t
 raw `IProfiledCommand` object. The `Enrich` action is called only when
 `activity.IsAllDataRequested` is `true`. It contains the activity itself (which can
 be enriched), and the source profiled command object.
+
+The `Enrich` action is not applied for metrics.
 
 The following code snippet shows how to add additional tags using `Enrich`.
 
