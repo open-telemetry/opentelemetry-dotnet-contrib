@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
-internal static class RedisProfilerEntryToActivityConverter
+internal static class RedisProfilerEntryInstrumenter
 {
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
@@ -73,7 +73,11 @@ internal static class RedisProfilerEntryToActivityConverter
         });
     });
 
-    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
+    public static Activity? ProfilerCommandInstrument(
+        Activity? parentActivity,
+        IProfiledCommand command,
+        RedisMetrics metrics,
+        StackExchangeRedisInstrumentationOptions options)
     {
         var name = command.Command; // Example: SET;
         if (string.IsNullOrEmpty(name))
@@ -88,102 +92,148 @@ internal static class RedisProfilerEntryToActivityConverter
             StackExchangeRedisConnectionInstrumentation.CreationTags,
             startTime: command.CommandCreated);
 
-        if (activity == null)
+        if (activity is null && metrics.Enabled is false)
         {
             return null;
         }
 
-        activity.SetEndTime(command.CommandCreated + command.ElapsedTime);
+        activity?.SetEndTime(command.CommandCreated + command.ElapsedTime);
+        var meterTags = metrics.Enabled ?
+            new TagList(StackExchangeRedisConnectionInstrumentation.CreationTags) :
+            default(IList<KeyValuePair<string, object?>>);
 
-        if (activity.IsAllDataRequested)
+        // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+
+        // Timing example:
+        // command.CommandCreated; //2019-01-10 22:18:28Z
+
+        // command.CreationToEnqueued;      // 00:00:32.4571995
+        // command.EnqueuedToSending;       // 00:00:00.0352838
+        // command.SentToResponse;          // 00:00:00.0060586
+        // command.ResponseToCompletion;    // 00:00:00.0002601
+
+        // Total:
+        // command.ElapsedTime;             // 00:00:32.4988020
+
+        var flags = command.Flags.ToString();
+        activity?.SetTag(SemanticConventions.AttributeDbRedisFlagsKeyName, flags);
+        meterTags?.Add(SemanticConventions.AttributeDbRedisFlagsKeyName, flags);
+
+        var operationName = command.Command ?? string.Empty;
+        activity?.SetTag(SemanticConventions.AttributeDbOperationName, operationName);
+        meterTags?.Add(SemanticConventions.AttributeDbOperationName, operationName);
+
+        if (activity is not null)
         {
-            // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
-
-            // Timing example:
-            // command.CommandCreated; //2019-01-10 22:18:28Z
-
-            // command.CreationToEnqueued;      // 00:00:32.4571995
-            // command.EnqueuedToSending;       // 00:00:00.0352838
-            // command.SentToResponse;          // 00:00:00.0060586
-            // command.ResponseToCompletion;    // 00:00:00.0002601
-
-            // Total:
-            // command.ElapsedTime;             // 00:00:32.4988020
-
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
-
             if (options.SetVerboseDatabaseStatements)
             {
                 var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
 
                 if (!string.IsNullOrEmpty(commandAndKey) && !string.IsNullOrEmpty(script))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey + " " + script);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey + " " + script);
                 }
                 else if (!string.IsNullOrEmpty(commandAndKey))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
                 }
                 else if (command.Command != null)
                 {
-                    // Example: "db.statement": SET;
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                    // Example: "db.query.text": SET;
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, command.Command);
                 }
             }
             else if (command.Command != null)
             {
-                // Example: "db.statement": SET;
-                activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                // Example: "db.query.text": SET;
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, command.Command);
             }
+        }
 
-            if (command.EndPoint != null)
+        if (command.EndPoint != null)
+        {
+            if (command.EndPoint is IPEndPoint ipEndPoint)
             {
-                if (command.EndPoint is IPEndPoint ipEndPoint)
-                {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, ipEndPoint.Address.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, ipEndPoint.Port);
-                }
-                else if (command.EndPoint is DnsEndPoint dnsEndPoint)
-                {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerName, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, dnsEndPoint.Port);
-                }
-                else
-                {
-                    activity.SetTag(SemanticConventions.AttributePeerService, command.EndPoint.ToString());
-                }
+                var ip = ipEndPoint.Address.ToString();
+                var port = ipEndPoint.Port;
+
+                activity?.SetTag(SemanticConventions.AttributeServerAddress, ip);
+                activity?.SetTag(SemanticConventions.AttributeServerPort, port);
+                activity?.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ip);
+                activity?.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
+
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, ip);
+                meterTags?.Add(SemanticConventions.AttributeServerPort, port);
+                meterTags?.Add(SemanticConventions.AttributeNetworkPeerAddress, ip);
+                meterTags?.Add(SemanticConventions.AttributeNetworkPeerPort, port);
             }
+            else if (command.EndPoint is DnsEndPoint dnsEndPoint)
+            {
+                var host = dnsEndPoint.Host;
+                var port = dnsEndPoint.Port;
 
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                activity?.SetTag(SemanticConventions.AttributeServerAddress, host);
+                activity?.SetTag(SemanticConventions.AttributeServerPort, port);
 
-            // TODO: deal with the re-transmission
-            // command.RetransmissionOf;
-            // command.RetransmissionReason;
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, host);
+                meterTags?.Add(SemanticConventions.AttributeServerPort, port);
+            }
+            else
+            {
+                var service = command.EndPoint.ToString();
 
+                activity?.SetTag(SemanticConventions.AttributeServerAddress, service);
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, service);
+            }
+        }
+
+        var db = command.Db;
+        activity?.SetTag(SemanticConventions.AttributeDbNamespace, db);
+        meterTags?.Add(SemanticConventions.AttributeDbNamespace, db);
+
+        // TODO: deal with the re-transmission
+        // command.RetransmissionOf;
+        // command.RetransmissionReason;
+
+        if (activity?.IsAllDataRequested ?? false)
+        {
             var enqueued = command.CommandCreated.Add(command.CreationToEnqueued);
             var send = enqueued.Add(command.EnqueuedToSending);
             var response = send.Add(command.SentToResponse);
+            var completion = send.Add(command.ResponseToCompletion);
 
             if (options.EnrichActivityWithTimingEvents)
             {
                 activity.AddEvent(new ActivityEvent("Enqueued", enqueued));
                 activity.AddEvent(new ActivityEvent("Sent", send));
                 activity.AddEvent(new ActivityEvent("ResponseReceived", response));
+                activity.AddEvent(new ActivityEvent("Completion", completion));
             }
 
             options.Enrich?.Invoke(activity, command);
         }
 
-        activity.Stop();
+        if (metrics.Enabled && meterTags is TagList meterTagList)
+        {
+            metrics.QueueHistogram.Record(command.EnqueuedToSending.TotalSeconds, meterTagList);
+            metrics.NetworkHistogram.Record(command.SentToResponse.TotalSeconds, meterTagList);
+            metrics.RequestHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
+        }
+
+        activity?.Stop();
 
         return activity;
     }
 
-    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
+    public static void DrainSession(
+        Activity? parentActivity,
+        IEnumerable<IProfiledCommand> sessionCommands,
+        RedisMetrics redisMetrics,
+        StackExchangeRedisInstrumentationOptions options)
     {
         foreach (var command in sessionCommands)
         {
-            ProfilerCommandToActivity(parentActivity, command, options);
+            ProfilerCommandInstrument(parentActivity, command, redisMetrics, options);
         }
     }
 
@@ -228,5 +278,10 @@ internal static class RedisProfilerEntryToActivityConverter
         }
 
         return null;
+    }
+
+    private static void Add(this IList<KeyValuePair<string, object?>> tags, string ket, object? value)
+    {
+        tags?.Add(new KeyValuePair<string, object?>(ket, value));
     }
 }
