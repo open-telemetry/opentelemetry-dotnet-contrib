@@ -132,7 +132,7 @@ public static class OpenTelemetryConsumeResultExtensions
         catch (Exception ex)
         {
             processActivity?.SetStatus(Status.Error);
-            processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().Name);
+            processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().FullName);
         }
         finally
         {
