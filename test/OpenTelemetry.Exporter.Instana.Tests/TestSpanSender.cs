@@ -7,7 +7,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 internal class TestSpanSender : ISpanSender
 {
-    public Action<InstanaSpan> OnEnqueue { get; set; }
+    public Action<InstanaSpan>? OnEnqueue { get; set; }
 
     public void Enqueue(InstanaSpan instanaSpan)
     {
