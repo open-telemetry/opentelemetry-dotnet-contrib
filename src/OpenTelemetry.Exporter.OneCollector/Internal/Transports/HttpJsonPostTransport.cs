@@ -107,10 +107,8 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
             using var response = this.httpClient.Send(request, CancellationToken.None);
 
-            try
+            if (response.IsSuccessStatusCode)
             {
-                response.EnsureSuccessStatusCode();
-
                 OneCollectorExporterEventSource.Log.WriteTransportDataSentEventIfEnabled(sendRequest.ItemType, sendRequest.NumberOfItems, this.Description);
 
                 var root = this.payloadTransmittedSuccessCallbacks.Root;
@@ -125,7 +123,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
                 return true;
             }
-            catch
+            else
             {
                 response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
 
