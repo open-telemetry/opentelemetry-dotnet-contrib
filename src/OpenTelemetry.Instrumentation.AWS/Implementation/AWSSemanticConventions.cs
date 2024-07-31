@@ -15,6 +15,9 @@ internal static class AWSSemanticConventions
 
     // AWS Bedrock service attributes not yet defined in semantic conventions
     public const string AttributeAWSBedrockGuardrailId = "aws.bedrock.guardrail.id";
+    public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
+    public const string AttributeAWSBedrockKnowledgeBaseId = "aws.bedrock.knowledgebase.id";
+    public const string AttributeAWSBedrockDataSourceId = "aws.bedrock.datasource.id";
 
     // should be global convention for Gen AI attributes
     public const string AttributeGenAiModelId = "gen_ai.request.model";
