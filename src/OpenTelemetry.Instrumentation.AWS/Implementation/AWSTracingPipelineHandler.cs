@@ -139,28 +139,25 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 #endif
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameters))
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
         {
             AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
-            foreach (var parameter in parameters)
+            try
             {
-                try
+                var property = request.GetType().GetProperty(parameter);
+                if (property != null)
                 {
-                    var property = request.GetType().GetProperty(parameter);
-                    if (property != null)
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                     {
-                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
-                        {
-                            activity.SetTag(attribute, property.GetValue(request));
-                        }
+                        activity.SetTag(attribute, property.GetValue(request));
                     }
                 }
-                catch (Exception)
-                {
-                    // Guard against any reflection-related exceptions when running in AoT.
-                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
-                }
+            }
+            catch (Exception)
+            {
+                // Guard against any reflection-related exceptions when running in AoT.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
             }
         }
 
