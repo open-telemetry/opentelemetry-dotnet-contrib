@@ -36,7 +36,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -90,7 +90,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         ConnectionMultiplexer? connection = null;
         var exportedItems = new List<Activity>();
@@ -173,7 +173,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         var exportedItems = new List<Activity>();

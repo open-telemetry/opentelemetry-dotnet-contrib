@@ -12,8 +12,8 @@ public class InstanaExporterTests
     private readonly TestInstanaExporterHelper instanaExporterHelper = new();
     private readonly TestActivityProcessor activityProcessor = new();
     private readonly TestSpanSender spanSender = new();
-    private InstanaSpan instanaSpan;
-    private InstanaExporter instanaExporter;
+    private InstanaSpan? instanaSpan;
+    private InstanaExporter? instanaExporter;
 
     [Fact]
     public void Export()
