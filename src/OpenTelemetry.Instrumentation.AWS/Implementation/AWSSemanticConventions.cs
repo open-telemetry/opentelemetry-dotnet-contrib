@@ -13,8 +13,10 @@ internal static class AWSSemanticConventions
     public const string AttributeAWSDynamoTableName = "aws.table_name";
     public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
 
-    public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
     public const string AttributeAWSBedrockGuardrailId = "aws.bedrock.guardrail.id";
+    public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
+    public const string AttributeAWSBedrockKnowledgeBaseId = "aws.bedrock.knowledgebase.id";
+    public const string AttributeAWSBedrockDataSourceId = "aws.bedrock.datasource.id";
 
     // should be global convention for Gen AI attributes
     public const string AttributeGenAiModelId = "gen_ai.request.model";
