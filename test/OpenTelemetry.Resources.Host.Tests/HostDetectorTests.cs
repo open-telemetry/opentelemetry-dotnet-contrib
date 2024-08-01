@@ -66,7 +66,6 @@ public class HostDetectorTests
         foreach (var (path, expected) in combos)
         {
             var detector = new HostDetector(
-                PlatformID.Unix,
                 () => path,
                 () => throw new Exception("should not be called"),
                 () => throw new Exception("should not be called"));
@@ -89,7 +88,6 @@ public class HostDetectorTests
     public void TestHostMachineIdMacOs()
     {
         var detector = new HostDetector(
-            PlatformID.MacOSX,
             () => Enumerable.Empty<string>(),
             () => MacOSMachineIdOutput,
             () => throw new Exception("should not be called"));
@@ -110,7 +108,6 @@ public class HostDetectorTests
     public void TestHostMachineIdWindows()
     {
         var detector = new HostDetector(
-            PlatformID.Win32NT,
             () => Enumerable.Empty<string>(),
             () => throw new Exception("should not be called"),
             () => "windows-machine-id");
