@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NETFRAMEWORK
 using System.Runtime.InteropServices;
+#endif
 using Xunit;
 
 namespace OpenTelemetry.Resources.Host.Tests;
@@ -37,8 +39,10 @@ public class HostDetectorTests
           ""IOPlatformUUID"" = ""1AB2345C-03E4-57D4-A375-1234D48DE123""
         }";
 
+#if !NETFRAMEWORK
     private static readonly IEnumerable<string> ETCMACHINEID = new[] { "Samples/etc_machineid" };
     private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
+#endif
 
     [Fact]
     public void TestHostAttributes()
@@ -53,12 +57,11 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 
+#if !NETFRAMEWORK
     [Fact]
     public void TestHostMachineIdLinux()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            var combos = new[]
+        var combos = new[]
         {
             (Enumerable.Empty<string>(), null),
             (ETCMACHINEID, "etc_machineid"),
@@ -66,24 +69,24 @@ public class HostDetectorTests
             (Enumerable.Concat(ETCMACHINEID, ETCVARDBUSMACHINEID), "etc_machineid"),
         };
 
-            foreach (var (path, expected) in combos)
-            {
-                var detector = new HostDetector(
-                    () => path,
-                    () => throw new Exception("should not be called"),
-                    () => throw new Exception("should not be called"));
-                var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
-                var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        foreach (var (path, expected) in combos)
+        {
+            var detector = new HostDetector(
+                osPlatform => osPlatform == OSPlatform.Linux,
+                () => path,
+                () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"));
+            var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
-                if (string.IsNullOrEmpty(expected))
-                {
-                    Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId));
-                }
-                else
-                {
-                    Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
-                    Assert.Equal(expected, resourceAttributes[HostSemanticConventions.AttributeHostId]);
-                }
+            if (string.IsNullOrEmpty(expected))
+            {
+                Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId));
+            }
+            else
+            {
+                Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+                Assert.Equal(expected, resourceAttributes[HostSemanticConventions.AttributeHostId]);
             }
         }
     }
@@ -91,18 +94,17 @@ public class HostDetectorTests
     [Fact]
     public void TestHostMachineIdMacOs()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            var detector = new HostDetector(
+        var detector = new HostDetector(
+            osPlatform => osPlatform == OSPlatform.OSX,
             () => Enumerable.Empty<string>(),
             () => MacOSMachineIdOutput,
             () => throw new Exception("should not be called"));
-            var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
-            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
-            Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
-            Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", resourceAttributes[HostSemanticConventions.AttributeHostId]);
-        }
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+        Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
+#endif
 
     [Fact]
     public void TestParseMacOsOutput()
@@ -114,16 +116,15 @@ public class HostDetectorTests
     [Fact]
     public void TestHostMachineIdWindows()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var detector = new HostDetector(
-                () => Enumerable.Empty<string>(),
-                () => throw new Exception("should not be called"),
-                () => "windows-machine-id");
-            var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
-            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
-            Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
-            Assert.Equal("windows-machine-id", resourceAttributes[HostSemanticConventions.AttributeHostId]);
-        }
+#if NETFRAMEWORK
+        var detector = new HostDetector(() => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+#else
+        var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+#endif
+
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+        Assert.Equal("windows-machine-id", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 }

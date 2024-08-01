@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 #endif
 using System.Text;
 using Microsoft.Win32;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources.Host;
 
@@ -17,6 +18,9 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
+#if !NETFRAMEWORK
+    private readonly Func<OSPlatform, bool> isOsPlatform;
+#endif
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
@@ -26,23 +30,36 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
+#if !NETFRAMEWORK
+        RuntimeInformation.IsOSPlatform,
+#endif
         GetFilePaths,
         GetMachineIdMacOs,
         GetMachineIdWindows)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HostDetector"/> class for testing.
-    /// </summary>
-    /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
-    /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
-    /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
+    internal HostDetector(
+#if !NETFRAMEWORK
+        Func<OSPlatform, bool> isOsPlatform,
+#endif
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
     {
-        this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
-        this.getMacOsMachineId = getMacOsMachineId ?? throw new ArgumentNullException(nameof(getMacOsMachineId));
-        this.getWindowsMachineId = getWindowsMachineId ?? throw new ArgumentNullException(nameof(getWindowsMachineId));
+#if !NETFRAMEWORK
+        Guard.ThrowIfNull(isOsPlatform);
+#endif
+        Guard.ThrowIfNull(getFilePaths);
+        Guard.ThrowIfNull(getMacOsMachineId);
+        Guard.ThrowIfNull(getWindowsMachineId);
+
+#if !NETFRAMEWORK
+        this.isOsPlatform = isOsPlatform;
+#endif
+        this.getFilePaths = getFilePaths;
+        this.getMacOsMachineId = getMacOsMachineId;
+        this.getWindowsMachineId = getWindowsMachineId;
     }
 
     /// <summary>
@@ -161,15 +178,17 @@ internal sealed class HostDetector : IResourceDetector
 #if NETFRAMEWORK
         return this.getWindowsMachineId();
 #else
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (this.isOsPlatform(OSPlatform.Windows))
         {
             return this.getWindowsMachineId();
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+        if (this.isOsPlatform(OSPlatform.Linux))
         {
             return this.GetMachineIdLinux();
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
+        if (this.isOsPlatform(OSPlatform.OSX))
         {
             return ParseMacOsOutput(this.getMacOsMachineId());
         }
