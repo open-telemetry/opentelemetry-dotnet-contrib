@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+#if !NETFRAMEWORK
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using Microsoft.Win32;
 
@@ -14,7 +17,6 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-    private readonly PlatformID platformId;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
@@ -24,7 +26,6 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
-        Environment.OSVersion.Platform,
         GetFilePaths,
         GetMachineIdMacOs,
         GetMachineIdWindows)
@@ -34,13 +35,11 @@ internal sealed class HostDetector : IResourceDetector
     /// <summary>
     /// Initializes a new instance of the <see cref="HostDetector"/> class for testing.
     /// </summary>
-    /// <param name="platformId">Target platform ID.</param>
     /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
     /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
     /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
+    internal HostDetector(Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
     {
-        this.platformId = platformId;
         this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
         this.getMacOsMachineId = getMacOsMachineId ?? throw new ArgumentNullException(nameof(getMacOsMachineId));
         this.getWindowsMachineId = getWindowsMachineId ?? throw new ArgumentNullException(nameof(getWindowsMachineId));
@@ -159,13 +158,24 @@ internal sealed class HostDetector : IResourceDetector
 
     private string? GetMachineId()
     {
-        return this.platformId switch
+#if NETFRAMEWORK
+        return this.getWindowsMachineId();
+#else
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            PlatformID.Unix => this.GetMachineIdLinux(),
-            PlatformID.MacOSX => ParseMacOsOutput(this.getMacOsMachineId()),
-            PlatformID.Win32NT => this.getWindowsMachineId(),
-            _ => null,
-        };
+            return this.getWindowsMachineId();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return this.GetMachineIdLinux();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return ParseMacOsOutput(this.getMacOsMachineId());
+        }
+
+        return null;
+#endif
     }
 
     private string? GetMachineIdLinux()
