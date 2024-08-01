@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
+#if NET
 using System.Runtime.InteropServices;
 #endif
 using Xunit;
@@ -39,7 +39,7 @@ public class HostDetectorTests
           ""IOPlatformUUID"" = ""1AB2345C-03E4-57D4-A375-1234D48DE123""
         }";
 
-#if !NETFRAMEWORK
+#if NET
     private static readonly IEnumerable<string> ETCMACHINEID = new[] { "Samples/etc_machineid" };
     private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
 #endif
@@ -57,7 +57,7 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 
-#if !NETFRAMEWORK
+#if NET
     [Fact]
     public void TestHostMachineIdLinux()
     {
@@ -116,10 +116,10 @@ public class HostDetectorTests
     [Fact]
     public void TestHostMachineIdWindows()
     {
-#if NETFRAMEWORK
-        var detector = new HostDetector(() => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
-#else
+#if NET
         var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+#else
+        var detector = new HostDetector(() => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
 #endif
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
