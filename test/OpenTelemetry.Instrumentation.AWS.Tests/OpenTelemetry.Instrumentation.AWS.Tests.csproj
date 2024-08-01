@@ -12,6 +12,7 @@
     <PackageReference Include="AWSSDK.S3" Version="3.7.400" />
     <PackageReference Include="AWSSDK.Bedrock" Version="3.7.303.3" />
     <PackageReference Include="AWSSDK.BedrockRuntime" Version="3.7.303.3" />
+    <PackageReference Include="AWSSDK.BedrockAgentRuntime" Version="3.7.303.3" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
