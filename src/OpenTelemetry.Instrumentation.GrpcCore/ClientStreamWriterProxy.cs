@@ -52,7 +52,7 @@ internal class ClientStreamWriterProxy<T> : IClientStreamWriter<T>
     }
 
     /// <inheritdoc/>
-    public WriteOptions WriteOptions
+    public WriteOptions? WriteOptions
     {
         get => this.writer.WriteOptions;
         set => this.writer.WriteOptions = value;

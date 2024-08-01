@@ -388,7 +388,7 @@ public class SqlClientTests : IDisposable
         }
         else
         {
-            Assert.Empty(activity.Tags.Where(tag => tag.Key == "enriched"));
+            Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
         }
 
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));

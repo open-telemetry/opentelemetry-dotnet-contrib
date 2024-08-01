@@ -53,6 +53,8 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
+    - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
     - twenzel
     - xiang17
@@ -151,6 +153,8 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17

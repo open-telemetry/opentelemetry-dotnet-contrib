@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed a bug preventing `HttpTransportErrorResponseReceived` events from firing
+  on .NET Framework.
+  ([#1987](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1987))
+
 ## 1.9.0
 
 Released 2024-Jun-17
