@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-* Implement additional attributes in
+* Implement
+  `os.build_id`,
+  `os.description`,
+  `os.name`,
+  `os.version` attributes in
   `OpenTelemetry.ResourceDetectors.OperatingSystem`.
   ([#1983](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1983))
 
