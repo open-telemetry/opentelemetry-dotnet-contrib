@@ -91,6 +91,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #endif
     }
 
+#pragma warning disable CA1416
     private static string? GetWindowsBuildId()
     {
         var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
@@ -116,6 +117,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
         return null;
     }
+#pragma warning restore CA1416
 
 #if !NETFRAMEWORK
     private static string? GetLinuxBuildId()
@@ -134,7 +136,6 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         catch (Exception ex)
         {
             OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux build ID", ex);
-
         }
 
         return null;
@@ -202,6 +203,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         return "Linux";
     }
 
+#pragma warning disable CA1416
     private static string? GetWindowsVersion()
     {
         try
@@ -225,6 +227,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
         return null;
     }
+#pragma warning restore CA1416
 
 #if !NETFRAMEWORK
     private static string? GetMacOSVersion()
