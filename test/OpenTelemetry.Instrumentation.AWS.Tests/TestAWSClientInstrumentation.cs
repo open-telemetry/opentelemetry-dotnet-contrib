@@ -5,6 +5,8 @@ using System.Diagnostics;
 using Amazon;
 using Amazon.Bedrock;
 using Amazon.Bedrock.Model;
+using Amazon.BedrockAgentRuntime;
+using Amazon.BedrockAgentRuntime.Model;
 using Amazon.BedrockRuntime;
 using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
@@ -282,6 +284,49 @@ public class TestAWSClientInstrumentation
         }
     }
 
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockAgentRuntimeInvokeAgentSuccessful()
+#else
+    public async Task TestBedrockAgentRuntimeInvokeAgentSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation()
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+            string dummyResponse = "{}";
+            CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
+            var invoke_agent_req = new InvokeAgentRequest();
+            invoke_agent_req.AgentId = "123456789";
+            invoke_agent_req.AgentAliasId = "testalias";
+            invoke_agent_req.SessionId = "test-session-id";
+            invoke_agent_req.InputText = "sample input text";
+#if NETFRAMEWORK
+            var response = bedrockagentruntime.InvokeAgent(invoke_agent_req);
+#else
+            var response = await bedrockagentruntime.InvokeAgentAsync(invoke_agent_req);
+#endif
+            Assert.Single(exportedItems);
+            Activity awssdk_activity = exportedItems[0];
+
+            this.ValidateAWSActivity(awssdk_activity, parent);
+            this.ValidateBedrockAgentRuntimeActivityTags(awssdk_activity);
+
+            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
+        }
+    }
+
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
@@ -336,5 +381,17 @@ public class TestAWSClientInstrumentation
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));
+    }
+
+    private void ValidateBedrockAgentRuntimeActivityTags(Activity bedrock_activity)
+    {
+        Assert.Equal("Bedrock Agent Runtime.InvokeAgent", bedrock_activity.DisplayName);
+        Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "aws.service"));
+        Assert.Equal("InvokeAgent", Utils.GetTagValue(bedrock_activity, "aws.operation"));
+        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
+        Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.agent.id"));
+        Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
+        Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
+        Assert.Equal("InvokeAgent", Utils.GetTagValue(bedrock_activity, "rpc.method"));
     }
 }
