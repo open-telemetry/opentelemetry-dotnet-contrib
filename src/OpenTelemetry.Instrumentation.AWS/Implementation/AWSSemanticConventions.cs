@@ -13,6 +13,7 @@ internal static class AWSSemanticConventions
     public const string AttributeAWSDynamoTableName = "aws.table_name";
     public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
 
+    // AWS Bedrock service attributes not yet defined in semantic conventions
     public const string AttributeAWSBedrockGuardrailId = "aws.bedrock.guardrail.id";
 
     // should be global convention for Gen AI attributes
