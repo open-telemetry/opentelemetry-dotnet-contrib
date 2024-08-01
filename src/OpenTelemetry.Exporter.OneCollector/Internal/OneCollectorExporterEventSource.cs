@@ -28,15 +28,6 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [NonEvent]
-    public void WriteTransportDataSentEventIfEnabled(string itemType, int? numberOfRecords, string transportDescription)
-    {
-        if (this.IsInformationalLoggingEnabled())
-        {
-            this.TransportDataSent(itemType, numberOfRecords ?? -1, transportDescription);
-        }
-    }
-
-    [NonEvent]
     public void WriteSinkDataWrittenEventIfEnabled(string itemType, int numberOfRecords, string sinkDescription)
     {
         if (this.IsInformationalLoggingEnabled())
