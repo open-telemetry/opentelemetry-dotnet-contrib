@@ -35,21 +35,21 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         switch (osType)
         {
             case OperatingSystemsValues.Windows:
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetWindowsBuildId());
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetWindowsVersion());
-            break;
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetWindowsBuildId());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetWindowsVersion());
+                break;
 #if !NETFRAMEWORK
             case OperatingSystemsValues.Linux:
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetLinuxBuildId());
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, GetLinuxDistributionName());
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetLinuxVersion());
-            break;
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetLinuxBuildId());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, GetLinuxDistributionName());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetLinuxVersion());
+                break;
             case OperatingSystemsValues.Darwin:
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetMacOSBuildId());
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetMacOSVersion());
-            break;
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetMacOSBuildId());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetMacOSVersion());
+                break;
 #endif
         }
 
