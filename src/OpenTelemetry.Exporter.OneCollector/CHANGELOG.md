@@ -4,7 +4,7 @@
 
 * Fixed `PlatformNotSupportedException`s being thrown during export when running
   on mobile platforms which caused telemetry to be dropped silently.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1992))
 
 ## 1.9.1
 
