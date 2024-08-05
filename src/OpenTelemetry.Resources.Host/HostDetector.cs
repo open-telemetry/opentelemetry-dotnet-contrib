@@ -108,31 +108,35 @@ internal sealed class HostDetector : IResourceDetector
 
     internal static string? ParseMacOsOutput(string? output)
     {
+        Console.WriteLine(output);
+
         if (output == null || string.IsNullOrEmpty(output))
         {
             return null;
         }
 
-        var lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+        var key = "IOPlatformUUID";
+        var keyIndex = output.IndexOf(key, StringComparison.Ordinal);
 
-        foreach (var line in lines)
+        if (keyIndex == -1)
         {
-#if NETFRAMEWORK
-            if (line.IndexOf("IOPlatformUUID", StringComparison.OrdinalIgnoreCase) >= 0)
-#else
-            if (line.Contains("IOPlatformUUID", StringComparison.OrdinalIgnoreCase))
-#endif
-            {
-                var parts = line.Split('"');
-
-                if (parts.Length > 3)
-                {
-                    return parts[3];
-                }
-            }
+            return null;
         }
 
-        return null;
+        var valueStartIndex = output.IndexOf('\"', keyIndex + key.Length);
+        if (valueStartIndex == -1)
+        {
+            return null;
+        }
+
+        var valueEndIndex = output.IndexOf('\"', valueStartIndex + 5);
+        if (valueEndIndex == -1)
+        {
+            return null;
+        }
+
+        var uuid = output.Substring(valueStartIndex + 5, valueEndIndex - valueStartIndex - 5);
+        return uuid;
     }
 
     private static IEnumerable<string> GetFilePaths()
