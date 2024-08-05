@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
+#if NET
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -39,7 +39,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetWindowsVersion());
                 break;
-#if !NETFRAMEWORK
+#if NET
             case OperatingSystemsValues.Linux:
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetLinuxBuildId());
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, GetLinuxDistributionName());
@@ -100,19 +100,15 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #pragma warning disable CA1416
     private static string? GetWindowsBuildId()
     {
-        var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-        var buildLabValue = "BuildLab";
-        var buildLabExValue = "BuildLabEx";
-
         try
         {
+            var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+
             using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey))
             {
                 if (key != null)
                 {
-                    var buildLab = key.GetValue(buildLabValue)?.ToString();
-                    var buildLabEx = key.GetValue(buildLabExValue)?.ToString();
-                    return !string.IsNullOrEmpty(buildLabEx) ? buildLabEx : buildLab;
+                    return key.GetValue("CurrentBuild")?.ToString();
                 }
             }
         }
@@ -125,7 +121,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 #pragma warning restore CA1416
 
-#if !NETFRAMEWORK
+#if NET
     private static string? GetLinuxBuildId()
     {
         try
@@ -137,6 +133,23 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 {
                     return line.Substring("BUILD_ID=".Length).Trim('"');
                 }
+            }
+
+            using (var process = new Process())
+            {
+                process.StartInfo = new ProcessStartInfo
+                {
+                    FileName = "uname",
+                    Arguments = "-r",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+
+                process.Start();
+                var output = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit();
+                return output;
             }
         }
         catch (Exception ex)
@@ -177,7 +190,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private static string GetOSDescription()
     {
-#if !NETFRAMEWORK
+#if NET
         return RuntimeInformation.OSDescription;
 #else
         return Environment.OSVersion.ToString();
@@ -219,10 +232,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             {
                 if (key != null)
                 {
-                    var currentVersion = key.GetValue("CurrentVersion")?.ToString();
-                    var currentBuild = key.GetValue("CurrentBuild")?.ToString();
-                    var ubr = key.GetValue("UBR")?.ToString();
-                    return $"{currentVersion}.{currentBuild}.{ubr}";
+                    return key.GetValue("CurrentVersion")?.ToString();
                 }
             }
         }
@@ -235,7 +245,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 #pragma warning restore CA1416
 
-#if !NETFRAMEWORK
+#if NET
     private static string? GetMacOSVersion()
     {
         try
@@ -278,23 +288,6 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                         return line.Substring("VERSION_ID=".Length).Trim('"');
                     }
                 }
-            }
-
-            using (var process = new Process())
-            {
-                process.StartInfo = new ProcessStartInfo
-                {
-                    FileName = "uname",
-                    Arguments = "-r",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                };
-
-                process.Start();
-                var output = process.StandardOutput.ReadToEnd().Trim();
-                process.WaitForExit();
-                return output;
             }
         }
         catch (Exception ex)
