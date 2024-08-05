@@ -2,8 +2,12 @@
 
 ## Unreleased
 
-* Changed HttpInListener so that `url.path` is set to the Unvalidated.Path of the request
-  when the activity is started so that it can be used in sampling decisions.
+* `TelemetryHttpModule` will now pass the `url.path` tag (set to
+  [Request.Unvalidated.Path](https://learn.microsoft.com/dotnet/api/system.web.unvalidatedrequestvalues.path))
+  when starting `Activity` instances for incoming requests so that it is
+  available to custom samplers and may be used to influence the sampling
+  decision.
+  ([#1871](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1871))
 
 ## 1.9.0-beta.1
 

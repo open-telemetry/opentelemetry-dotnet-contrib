@@ -67,57 +67,62 @@ public class HttpInListenerTests
 
             Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
             using (Sdk.CreateTracerProviderBuilder()
-                       .AddAspNetInstrumentation((options) =>
-                       {
-                           options.Filter = httpContext =>
-                           {
-                               Assert.True(Activity.Current!.IsAllDataRequested);
-                               if (string.IsNullOrEmpty(filter))
-                               {
-                                   return true;
-                               }
+                .AddAspNetInstrumentation((options) =>
+                {
+                    options.Filter = httpContext =>
+                    {
+                        Assert.True(Activity.Current!.IsAllDataRequested);
+                        if (string.IsNullOrEmpty(filter))
+                        {
+                            return true;
+                        }
 
-                               if (filter == "{ThrowException}")
-                               {
-                                   throw new InvalidOperationException();
-                               }
+                        if (filter == "{ThrowException}")
+                        {
+                            throw new InvalidOperationException();
+                        }
 
-                               return httpContext.Request.Path != filter;
-                           };
+                        return httpContext.Request.Path != filter;
+                    };
 
-                           options.EnrichWithHttpRequest = (activity, request) =>
-                           {
-                               Assert.NotNull(activity);
-                               Assert.NotNull(request);
+                    options.EnrichWithHttpRequest = (activity, request) =>
+                    {
+                        Assert.NotNull(activity);
+                        Assert.NotNull(request);
 
-                               Assert.True(activity.IsAllDataRequested);
-                           };
+                        Assert.True(activity.IsAllDataRequested);
+                    };
 
-                           options.EnrichWithHttpResponse = (activity, response) =>
-                           {
-                               Assert.NotNull(activity);
-                               Assert.NotNull(response);
+                    options.EnrichWithHttpResponse = (activity, response) =>
+                    {
+                        Assert.NotNull(activity);
+                        Assert.NotNull(response);
 
-                               Assert.True(activity.IsAllDataRequested);
+                        Assert.True(activity.IsAllDataRequested);
 
-                               if (setStatusToErrorInEnrich)
-                               {
-                                   activity.SetStatus(ActivityStatusCode.Error);
-                               }
-                           };
+                        if (setStatusToErrorInEnrich)
+                        {
+                            activity.SetStatus(ActivityStatusCode.Error);
+                        }
+                    };
 
-                           options.EnrichWithException = (activity, exception) =>
-                           {
-                               Assert.NotNull(activity);
-                               Assert.NotNull(exception);
+                    options.EnrichWithException = (activity, exception) =>
+                    {
+                        Assert.NotNull(activity);
+                        Assert.NotNull(exception);
 
-                               Assert.True(activity.IsAllDataRequested);
-                           };
+                        Assert.True(activity.IsAllDataRequested);
+                    };
 
-                           options.RecordException = recordException;
-                       })
-                       .AddInMemoryExporter(exportedItems)
-                       .Build())
+                    options.RecordException = recordException;
+                })
+                .AddInMemoryExporter(exportedItems)
+                .SetSampler(
+                    new TestSampler(SamplingDecision.RecordAndSample)
+                    {
+                        ExpectedUrlPath = expectedUrlPath,
+                    })
+                .Build())
             {
                 using var inMemoryEventListener = new InMemoryEventListener(AspNetInstrumentationEventSource.Log);
 
@@ -282,8 +287,16 @@ public class HttpInListenerTests
     {
         private readonly SamplingDecision samplingDecision = samplingDecision;
 
+        public string? ExpectedUrlPath { get; set; }
+
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
+            if (!string.IsNullOrEmpty(this.ExpectedUrlPath))
+            {
+                Assert.NotNull(samplingParameters.Tags);
+                Assert.Contains(samplingParameters.Tags, t => t.Key == "url.path" && (t.Value as string) == this.ExpectedUrlPath);
+            }
+
             return new SamplingResult(this.samplingDecision);
         }
     }
