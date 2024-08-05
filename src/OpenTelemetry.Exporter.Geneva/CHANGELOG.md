@@ -6,7 +6,7 @@
 
 Released 2024-Jun-21
 
-* Stable support for exemplars. Exemplars are disabled by default, for more
+* Exemplars are now supported as a stable feature. Please note that OpenTelemetry SDK has Exemplars disabled by default. Check [OpenTelemetry Metrics docs](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#exemplars) to learn how to enable them..
   information check out this
   [doc](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#exemplars)
 
