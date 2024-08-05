@@ -63,17 +63,16 @@ internal static class ActivityHelper
     {
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        KeyValuePair<string, object?>[]? tags = null;
+        KeyValuePair<string, object?>[]? tags;
         if (context.Request?.Unvalidated?.Path is string path)
         {
-            tags = cachedTagsStorage;
-            if (tags is null)
-            {
-                tags = new KeyValuePair<string, object?>[1];
-                cachedTagsStorage = tags;
-            }
+            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
 
             tags[0] = new KeyValuePair<string, object?>("url.path", path);
+        }
+        else
+        {
+            tags = null;
         }
 
         Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
