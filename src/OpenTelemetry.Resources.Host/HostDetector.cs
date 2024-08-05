@@ -39,6 +39,20 @@ internal sealed class HostDetector : IResourceDetector
     {
     }
 
+#if NET
+    public HostDetector(
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
+        : this(
+            RuntimeInformation.IsOSPlatform,
+            getFilePaths,
+            getMacOsMachineId,
+            getWindowsMachineId)
+    {
+    }
+#endif
+
     internal HostDetector(
 #if !NETFRAMEWORK
         Func<OSPlatform, bool> isOsPlatform,

@@ -78,7 +78,6 @@ public class HostDetectorTests
                 () => throw new Exception("should not be called"));
             var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
             var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
-
             if (string.IsNullOrEmpty(expected))
             {
                 Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId));
@@ -127,4 +126,54 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("windows-machine-id", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
+
+#if NET
+    [Fact]
+    public void TestPlatformSpecificMethodInvocation()
+    {
+        bool linuxMethodCalled = false;
+        bool macOsMethodCalled = false;
+        bool windowsMethodCalled = false;
+        var detector = new HostDetector(
+            () =>
+        {
+            linuxMethodCalled = true;
+            return Array.Empty<string>();
+        },
+            () =>
+        {
+            macOsMethodCalled = true;
+            return string.Empty;
+        },
+            () =>
+        {
+            windowsMethodCalled = true;
+            return string.Empty;
+        });
+        detector.Detect();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            Assert.True(linuxMethodCalled, "Linux method should have been called.");
+            Assert.False(windowsMethodCalled, "Windows method should not have been called.");
+            Assert.False(macOsMethodCalled, "MacOS method should not have been called.");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Assert.False(linuxMethodCalled, "Linux method should not have been called.");
+            Assert.True(windowsMethodCalled, "Windows method should have been called.");
+            Assert.False(macOsMethodCalled, "MacOS method should not have been called.");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            Assert.False(linuxMethodCalled, "Linux method should not have been called.");
+            Assert.False(windowsMethodCalled, "Windows method should not have been called.");
+            Assert.True(macOsMethodCalled, "MacOS method should have been called.");
+        }
+        else
+        {
+            Assert.Fail("Unexpected platform detected.");
+        }
+    }
+#endif
 }
