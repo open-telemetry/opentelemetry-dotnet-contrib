@@ -60,15 +60,19 @@ public class WriteDirectlyToTransportSinkTests
 
         var numberOfRecordsWritten = sink.Write(Resource.Empty, new(items, items.Length));
 
-        Assert.Equal(2, numberOfRecordsWritten);
+        Assert.Equal(0, sink.Buffer.Length);
+        Assert.Equal(3, numberOfRecordsWritten);
+        Assert.Equal(2, transport.ExportedData.Count);
 
         var data = transport.ExportedData[0];
 
         Assert.NotNull(data);
-
         Assert.Equal("\"item1\"\n\"item2\"\n", Encoding.ASCII.GetString(data));
 
-        Assert.Equal(0, sink.Buffer.Length);
+        data = transport.ExportedData[1];
+
+        Assert.NotNull(data);
+        Assert.Equal("\"item3\"\n", Encoding.ASCII.GetString(data));
     }
 
     [Fact]
@@ -78,7 +82,7 @@ public class WriteDirectlyToTransportSinkTests
 
         var transport = new TestTransport();
 
-        var sink = new WriteDirectlyToTransportSink<string>(
+        using var sink = new WriteDirectlyToTransportSink<string>(
             new TestSerializer(maxPayloadSizeInBytes: expectedPayloadSizeInBytes + 1),
             transport);
 
@@ -91,7 +95,9 @@ public class WriteDirectlyToTransportSinkTests
 
         var numberOfRecordsWritten = sink.Write(Resource.Empty, new(items, items.Length));
 
+        Assert.Equal(0, sink.Buffer.Length);
         Assert.Equal(3, numberOfRecordsWritten);
+        Assert.Equal(2, transport.ExportedData.Count);
 
         var data = transport.ExportedData[0];
 
@@ -99,7 +105,13 @@ public class WriteDirectlyToTransportSinkTests
         Assert.Equal(expectedPayloadSizeInBytes, data.Length);
         Assert.Equal("\"item1\"\n\"item2\"\n", Encoding.ASCII.GetString(data));
 
-        Assert.NotEqual(0, sink.Buffer.Length);
+        data = transport.ExportedData[1];
+
+        Assert.NotNull(data);
+        Assert.NotEqual(expectedPayloadSizeInBytes, data.Length);
+        Assert.Equal("\"item3\"\n", Encoding.ASCII.GetString(data));
+
+        transport.ExportedData.Clear();
 
         items = new string[]
         {
@@ -109,24 +121,15 @@ public class WriteDirectlyToTransportSinkTests
 
         numberOfRecordsWritten = sink.Write(Resource.Empty, new(items, items.Length));
 
+        Assert.Equal(0, sink.Buffer.Length);
         Assert.Equal(2, numberOfRecordsWritten);
+        Assert.Single(transport.ExportedData);
 
-        data = transport.ExportedData[1];
+        data = transport.ExportedData[0];
 
         Assert.NotNull(data);
         Assert.Equal(expectedPayloadSizeInBytes, data.Length);
-        Assert.Equal("\"item3\"\n\"item4\"\n", Encoding.ASCII.GetString(data));
-
-        Assert.NotEqual(0, sink.Buffer.Length);
-
-        sink.Dispose();
-
-        Assert.Equal(0, sink.Buffer.Length);
-
-        data = transport.ExportedData[2];
-
-        Assert.NotNull(data);
-        Assert.Equal("\"item5\"\n", Encoding.ASCII.GetString(data));
+        Assert.Equal("\"item4\"\n\"item5\"\n", Encoding.ASCII.GetString(data));
     }
 
     private sealed class TestSerializer : CommonSchemaJsonSerializer<string>

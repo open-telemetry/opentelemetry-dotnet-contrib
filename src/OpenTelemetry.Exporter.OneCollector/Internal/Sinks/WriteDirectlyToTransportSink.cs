@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NETFRAMEWORK || NETSTANDARD2_0
-using System.Buffers;
-#endif
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
@@ -40,43 +37,70 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
     public void Dispose()
     {
-        this.TrySendRemainingData();
-
         (this.serializer as IDisposable)?.Dispose();
         (this.Transport as IDisposable)?.Dispose();
     }
 
     public int Write(Resource resource, in Batch<T> batch)
     {
-        Span<byte> remainingData = default;
-
+        var totalNumberOfItemsSerialized = 0;
         var buffer = this.buffer;
+        ArraySegment<byte> remainingDataFromPreviousTransmission = default;
+        var state = new BatchSerializationState<T>(in batch);
 
-        try
+        while (true)
         {
-            this.serializer.SerializeBatchOfItemsToStream(resource, in batch, buffer, (int)buffer.Length, out var serializationResult);
+            int numberOfItemsToSend;
 
-            var numberOfItemsSerialized = serializationResult.NumberOfItemsSerialized;
-
-            if (numberOfItemsSerialized <= 0)
+            if (remainingDataFromPreviousTransmission.Count > 0)
             {
-                return 0;
+                buffer.Position = 0;
+                buffer.Write(
+                    remainingDataFromPreviousTransmission.Array!,
+                    remainingDataFromPreviousTransmission.Offset,
+                    remainingDataFromPreviousTransmission.Count);
+                buffer.SetLength(remainingDataFromPreviousTransmission.Count);
+                numberOfItemsToSend = 1;
+                remainingDataFromPreviousTransmission = default;
+            }
+            else
+            {
+                buffer.SetLength(0);
+                numberOfItemsToSend = 0;
             }
 
-            OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(this.typeName, numberOfItemsSerialized, this.Description);
+            this.serializer.SerializeBatchOfItemsToStream(
+                resource,
+                ref state,
+                buffer,
+                (int)buffer.Length,
+                out var result);
 
-            var numberOfItemsToSend = numberOfItemsSerialized;
+            int numberOfItemsSerialized = result.NumberOfItemsSerialized;
 
-            if (serializationResult.PayloadOverflowItemSizeInBytes.HasValue)
+            if (numberOfItemsSerialized > 0)
+            {
+                OneCollectorExporterEventSource.Log.WriteSinkDataWrittenEventIfEnabled(this.typeName, numberOfItemsSerialized, this.Description);
+
+                totalNumberOfItemsSerialized += numberOfItemsSerialized;
+                numberOfItemsToSend += numberOfItemsSerialized;
+            }
+            else if (numberOfItemsToSend <= 0)
+            {
+                break;
+            }
+
+            if (result.PayloadOverflowItemSizeInBytes.HasValue)
             {
                 var hasUnderlyingBuffer = buffer.TryGetBuffer(out var underlyingBuffer);
                 Debug.Assert(hasUnderlyingBuffer, "Could not access underlying buffer");
 
-                var endPositionOfValidMessages = (int)(serializationResult.PayloadSizeInBytes - serializationResult.PayloadOverflowItemSizeInBytes);
+                var endPositionOfValidMessages = (int)(result.PayloadSizeInBytes - result.PayloadOverflowItemSizeInBytes);
 
-                remainingData = underlyingBuffer.AsSpan().Slice(
+                remainingDataFromPreviousTransmission = new ArraySegment<byte>(
+                    underlyingBuffer.Array!,
                     endPositionOfValidMessages,
-                    (int)serializationResult.PayloadOverflowItemSizeInBytes.Value);
+                    (int)result.PayloadOverflowItemSizeInBytes.Value);
 
                 buffer.SetLength(endPositionOfValidMessages);
 
@@ -96,67 +120,8 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
             {
                 OneCollectorExporterEventSource.Log.DataDropped(this.typeName, numberOfItemsToSend);
             }
-
-            return numberOfItemsSerialized;
         }
-        finally
-        {
-            if (remainingData.Length > 0)
-            {
-                buffer.Position = 0;
-#if NETFRAMEWORK || NETSTANDARD2_0
-                var rentedBuffer = ArrayPool<byte>.Shared.Rent(remainingData.Length);
-                try
-                {
-                    remainingData.CopyTo(rentedBuffer);
-                    buffer.Write(rentedBuffer, 0, remainingData.Length);
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(rentedBuffer);
-                }
-#else
-                buffer.Write(remainingData);
-#endif
-                buffer.SetLength(remainingData.Length);
-            }
-            else
-            {
-                buffer.SetLength(0);
-            }
-        }
-    }
 
-    private void TrySendRemainingData()
-    {
-        var buffer = this.buffer;
-        if (buffer != null && buffer.Length > 0)
-        {
-            buffer.Position = 0;
-
-            try
-            {
-                if (!this.Transport.Send(
-                    new TransportSendRequest
-                    {
-                        ItemType = this.typeName,
-                        ItemSerializationFormat = this.serializer.SerializationFormat,
-                        ItemStream = buffer,
-                        NumberOfItems = 1,
-                    }))
-                {
-                    OneCollectorExporterEventSource.Log.DataDropped(this.typeName, 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                OneCollectorExporterEventSource.Log.DataDropped(this.typeName, 1);
-                OneCollectorExporterEventSource.Log.WriteExportExceptionThrownEventIfEnabled(this.typeName, ex);
-            }
-            finally
-            {
-                buffer.SetLength(0);
-            }
-        }
+        return totalNumberOfItemsSerialized;
     }
 }

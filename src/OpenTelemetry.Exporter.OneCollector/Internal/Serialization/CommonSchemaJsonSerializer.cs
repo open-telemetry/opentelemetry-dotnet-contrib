@@ -34,20 +34,25 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
-    public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, int initialSizeOfPayloadInBytes, out BatchSerializationResult result)
+    public void SerializeBatchOfItemsToStream(
+        Resource resource,
+        ref BatchSerializationState<T> state,
+        Stream stream,
+        int initialSizeOfPayloadInBytes,
+        out BatchSerializationResult result)
     {
         Guard.ThrowIfNull(stream);
 
         var numberOfSerializedItems = 0;
         long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var state = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
+        var jsonSerializerState = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
 
-        var writer = state.Writer;
+        var writer = jsonSerializerState.Writer;
 
-        foreach (var item in batch)
+        while (state.TryGetNextItem(out var item))
         {
-            this.SerializeItemToJson(resource, item, state);
+            this.SerializeItemToJson(resource, item!, jsonSerializerState);
 
             var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;
 
