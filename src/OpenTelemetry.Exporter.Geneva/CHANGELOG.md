@@ -6,6 +6,10 @@
 
 Released 2024-Jun-21
 
+* Stable support for exemplars. Exemplars are disabled by default, for more
+  information check out this
+  [doc](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#exemplars)
+
 ## 1.9.0-rc.2
 
 Released 2024-Jun-17
