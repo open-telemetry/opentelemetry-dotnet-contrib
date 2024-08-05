@@ -58,9 +58,15 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
     {
+        if (value == null)
+        {
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value is null");
+            return;
+        }
+
         if (value is string strValue && string.IsNullOrEmpty(strValue))
         {
-            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is null or empty.");
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is empty.");
             return;
         }
 
