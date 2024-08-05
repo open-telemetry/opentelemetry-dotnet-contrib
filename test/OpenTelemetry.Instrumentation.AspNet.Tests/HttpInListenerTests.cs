@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using System.Web.Routing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Tests;
@@ -15,30 +17,39 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 public class HttpInListenerTests
 {
+    public enum QueryRedactionDisableBehavior
+    {
+#pragma warning disable SA1602 // Enumeration items should be documented
+        DisableViaEnvVar,
+        DiableViaIConfiguration,
+#pragma warning restore SA1602 // Enumeration items should be documented
+    }
+
     [Theory]
-    [InlineData("http://localhost/", "http", "/", null, true, "localhost", 80, "GET", "GET", null, 0, null, "GET")]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", true, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=Redacted&baz=Redacted", false, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
-    [InlineData("https://localhost/", "https", "/", null, true, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null, "HTTP")]
-    [InlineData("https://user:pass@localhost/", "https", "/", null, true, "localhost", 443, "GeT", "GET", "GeT", 0, null, "GET")] // Test URL sanitization
-    [InlineData("http://localhost:443/", "http", "/", null, true, "localhost", 443, "GET", "GET", null, 0, null, "GET")] // Test http over 443
-    [InlineData("https://localhost:80/", "https", "/", null, true, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test https over 80
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", true, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", false, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
-    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", true, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL sanitization
-    [InlineData("http://localhost:80/Index", "http", "/Index", null, true, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET {controller}/{action}/{id}")]
-    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, true, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", "HEAD about_attr_route/{customerId}")]
-    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, true, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET api/{controller}/{id}")]
-    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, true, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", "GET subroute/{customerId}")]
-    [InlineData("http://localhost/api/value", "http", "/api/value", null, true, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "/api/value")] // Request will be filtered
-    [InlineData("http://localhost/api/value", "http", "/api/value", null, true, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "{ThrowException}")] // Filter user code will throw an exception
-    [InlineData("http://localhost/", "http", "/", null, true, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, null, true, "System.InvalidOperationException")] // Test RecordException option
+    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET")]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DiableViaIConfiguration, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=Redacted&baz=Redacted", null, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
+    [InlineData("https://localhost/", "https", "/", null, null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null, "HTTP")]
+    [InlineData("https://user:pass@localhost/", "https", "/", null, null, "localhost", 443, "GeT", "GET", "GeT", 0, null, "GET")] // Test URL sanitization
+    [InlineData("http://localhost:443/", "http", "/", null, null, "localhost", 443, "GET", "GET", null, 0, null, "GET")] // Test http over 443
+    [InlineData("https://localhost:80/", "https", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test https over 80
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", null, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
+    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DiableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL sanitization
+    [InlineData("http://localhost:80/Index", "http", "/Index", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET {controller}/{action}/{id}")]
+    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", "HEAD about_attr_route/{customerId}")]
+    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET api/{controller}/{id}")]
+    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", "GET subroute/{customerId}")]
+    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "/api/value")] // Request will be filtered
+    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "{ThrowException}")] // Filter user code will throw an exception
+    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, null, true, "System.InvalidOperationException")] // Test RecordException option
     public void AspNetRequestsAreCollectedSuccessfully(
         string url,
         string expectedUrlScheme,
         string expectedUrlPath,
         string? expectedUrlQuery,
-        bool disableQueryRedaction,
+        QueryRedactionDisableBehavior? disableQueryRedaction,
         string expectedHost,
         int expectedPort,
         string requestMethod,
@@ -54,7 +65,7 @@ public class HttpInListenerTests
     {
         try
         {
-            if (disableQueryRedaction)
+            if (disableQueryRedaction == QueryRedactionDisableBehavior.DisableViaEnvVar)
             {
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION", "true");
             }
@@ -67,6 +78,20 @@ public class HttpInListenerTests
 
             Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
             using (Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices(services =>
+                {
+                    if (disableQueryRedaction == QueryRedactionDisableBehavior.DiableViaIConfiguration)
+                    {
+                        var config = new ConfigurationBuilder()
+                            .AddInMemoryCollection(new Dictionary<string, string?>()
+                            {
+                                ["OTEL_DOTNET_EXPERIMENTAL_ASPNET_DISABLE_URL_QUERY_REDACTION"] = "true",
+                            })
+                            .Build();
+
+                        services.AddSingleton<IConfiguration>(config);
+                    }
+                })
                 .AddAspNetInstrumentation((options) =>
                 {
                     options.Filter = httpContext =>
@@ -231,9 +256,9 @@ public class HttpInListenerTests
         var activityProcessor = new TestActivityProcessor();
         Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .SetSampler(new TestSampler(samplingDecision))
-                   .AddAspNetInstrumentation()
-                   .AddProcessor(activityProcessor).Build())
+            .SetSampler(new TestSampler(samplingDecision))
+            .AddAspNetInstrumentation()
+            .AddProcessor(activityProcessor).Build())
         {
             var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
             ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
@@ -265,15 +290,15 @@ public class HttpInListenerTests
         var activityProcessor = new TestActivityProcessor();
         Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAspNetInstrumentation(options =>
-                   {
-                       options.Filter = context =>
-                       {
-                           isFilterCalled = true;
-                           return false;
-                       };
-                   })
-                   .AddProcessor(activityProcessor).Build())
+            .AddAspNetInstrumentation(options =>
+            {
+                options.Filter = context =>
+                {
+                    isFilterCalled = true;
+                    return false;
+                };
+            })
+            .AddProcessor(activityProcessor).Build())
         {
             var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
             ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
