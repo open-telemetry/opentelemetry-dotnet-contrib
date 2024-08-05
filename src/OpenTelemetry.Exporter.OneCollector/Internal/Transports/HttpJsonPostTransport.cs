@@ -105,7 +105,10 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-            using var response = this.httpClient.Send(request, CancellationToken.None);
+            using var response = this.httpClient.Send(
+                request,
+                infoLoggingEnabled ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead,
+                CancellationToken.None);
 
             if (response.IsSuccessStatusCode)
             {
