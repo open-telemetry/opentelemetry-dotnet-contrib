@@ -33,7 +33,7 @@ public class HttpJsonPostTransportTests
             },
             (req, body) =>
             {
-                AssertStandardHeaders(req);
+                AssertStandardHeaders(req, listenerEnabled: false);
                 Assert.True(string.IsNullOrWhiteSpace(req.Headers["Content-Encoding"]));
                 Assert.Equal(request, Encoding.ASCII.GetString(body.ToArray()));
             });
@@ -58,7 +58,7 @@ public class HttpJsonPostTransportTests
             },
             (req, body) =>
             {
-                AssertStandardHeaders(req);
+                AssertStandardHeaders(req, listenerEnabled: false);
                 Assert.Equal("deflate", req.Headers["Content-Encoding"]);
 
                 using var uncompressedStream = new MemoryStream();
@@ -110,7 +110,7 @@ public class HttpJsonPostTransportTests
             },
             (req, body) =>
             {
-                AssertStandardHeaders(req);
+                AssertStandardHeaders(req, listenerEnabled: false);
                 Assert.True(string.IsNullOrWhiteSpace(req.Headers["Content-Encoding"]));
                 Assert.Equal(request, Encoding.ASCII.GetString(body.ToArray()));
             },
@@ -234,14 +234,95 @@ public class HttpJsonPostTransportTests
         }
     }
 
-    private static void AssertStandardHeaders(HttpListenerRequest request)
+    [Fact]
+    public void TransportDataSentEventFiredTest()
+    {
+        var request = "{}";
+
+        using var httpClient = new HttpClient();
+
+        RunHttpServerTest(
+            request,
+            requestUri =>
+            {
+                return new HttpJsonPostTransport(
+                    "instrumentation-key",
+                    requestUri,
+                    OneCollectorExporterHttpTransportCompressionType.None,
+                    new HttpClientWrapper(httpClient));
+            },
+            (req, body) =>
+            {
+                AssertStandardHeaders(req, listenerEnabled: true);
+            },
+            enabledListener: true);
+    }
+
+    [Fact]
+    public void TransportExceptionThrownEventFiredTest()
+    {
+        var request = "{}";
+
+        using var httpClient = new HttpClient();
+
+        RunHttpServerTest(
+            request,
+            requestUri =>
+            {
+                return new HttpJsonPostTransport(
+                    "instrumentation-key",
+                    requestUri,
+                    OneCollectorExporterHttpTransportCompressionType.None,
+                    new HttpClientWrapper(httpClient));
+            },
+            (req, body) =>
+            {
+                AssertStandardHeaders(req, listenerEnabled: true);
+            },
+            enabledListener: true,
+            transportFailure: true);
+    }
+
+    [Fact]
+    public void HttpTransportErrorResponseReceivedEventFiredTest()
+    {
+        var request = "{}";
+
+        using var httpClient = new HttpClient();
+
+        RunHttpServerTest(
+            request,
+            requestUri =>
+            {
+                return new HttpJsonPostTransport(
+                    "instrumentation-key",
+                    requestUri,
+                    OneCollectorExporterHttpTransportCompressionType.None,
+                    new HttpClientWrapper(httpClient));
+            },
+            (req, body) =>
+            {
+                AssertStandardHeaders(req, listenerEnabled: true);
+            },
+            enabledListener: true,
+            shouldTestFailFunc: i => true);
+    }
+
+    private static void AssertStandardHeaders(HttpListenerRequest request, bool listenerEnabled)
     {
         Assert.Equal("POST", request.HttpMethod);
         Assert.True(!string.IsNullOrWhiteSpace(request.Headers["User-Agent"]));
         Assert.True(!string.IsNullOrWhiteSpace(request.Headers["sdk-version"]));
         Assert.True(!string.IsNullOrWhiteSpace(request.Headers["x-apikey"]));
         Assert.Equal("application/x-json-stream; charset=utf-8", request.Headers["Content-Type"]);
-        Assert.Equal("true", request.Headers["NoResponseBody"]);
+        if (listenerEnabled)
+        {
+            Assert.Null(request.Headers["NoResponseBody"]);
+        }
+        else
+        {
+            Assert.Equal("true", request.Headers["NoResponseBody"]);
+        }
     }
 
     private static void RunHttpServerTest(
@@ -252,8 +333,14 @@ public class HttpJsonPostTransportTests
         int testIterations = 1,
         Func<int, bool>? shouldTestFailFunc = null,
         Action<int, ITransport>? testStartingAction = null,
-        Action<int, ITransport>? testFinishedAction = null)
+        Action<int, ITransport>? testFinishedAction = null,
+        bool enabledListener = false,
+        bool transportFailure = false)
     {
+        using var eventListener = enabledListener
+            ? new InMemoryEventListener(OneCollectorExporterEventSource.Log)
+            : null;
+
         shouldTestFailFunc ??= static iteration => false;
         bool failTest = false;
         bool requestReceivedAndAsserted = false;
@@ -289,7 +376,7 @@ public class HttpJsonPostTransportTests
             out var testServerPort);
 
         var transport = createTransportFunc(
-            new Uri($"http://{testServerHost}:{testServerPort}/"));
+            new Uri($"http://{testServerHost}:{(transportFailure ? 0 : testServerPort)}/"));
 
         try
         {
@@ -317,8 +404,16 @@ public class HttpJsonPostTransportTests
                     throw testException;
                 }
 
-                Assert.NotEqual(failTest, result);
-                Assert.True(requestReceivedAndAsserted);
+                if (transportFailure)
+                {
+                    Assert.False(result);
+                    Assert.False(requestReceivedAndAsserted);
+                }
+                else
+                {
+                    Assert.NotEqual(failTest, result);
+                    Assert.True(requestReceivedAndAsserted);
+                }
 
                 testFinishedAction?.Invoke(i, transport);
             }
@@ -326,6 +421,22 @@ public class HttpJsonPostTransportTests
         finally
         {
             (transport as IDisposable)?.Dispose();
+        }
+
+        if (eventListener != null)
+        {
+            if (failTest)
+            {
+                Assert.Contains(eventListener.Events, e => e.EventId == 6);
+            }
+            else if (transportFailure)
+            {
+                Assert.Contains(eventListener.Events, e => e.EventId == 5);
+            }
+            else
+            {
+                Assert.Contains(eventListener.Events, e => e.EventId == 2);
+            }
         }
     }
 }

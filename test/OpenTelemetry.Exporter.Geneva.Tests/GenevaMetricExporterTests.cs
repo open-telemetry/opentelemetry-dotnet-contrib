@@ -746,7 +746,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(7, exportedItems.Count);
 
             // observableLongCounter and observableDoubleGauge are dropped
-            Assert.Empty(exportedItems.Where(item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge"));
+            Assert.DoesNotContain(exportedItems, item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge");
 
             // check serialization for longCounter
             CheckSerializationWithTLVForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);

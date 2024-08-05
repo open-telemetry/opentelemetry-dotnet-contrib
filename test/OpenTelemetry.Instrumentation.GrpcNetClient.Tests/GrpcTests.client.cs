@@ -175,8 +175,8 @@ public partial class GrpcTests
         }
         else
         {
-            Assert.Empty(grpcSpan.Tags.Where(tag => tag.Key == "enrichedWithHttpRequestMessage"));
-            Assert.Empty(grpcSpan.Tags.Where(tag => tag.Key == "enrichedWithHttpResponseMessage"));
+            Assert.DoesNotContain(grpcSpan.Tags, tag => tag.Key == "enrichedWithHttpRequestMessage");
+            Assert.DoesNotContain(grpcSpan.Tags, tag => tag.Key == "enrichedWithHttpResponseMessage");
         }
     }
 
