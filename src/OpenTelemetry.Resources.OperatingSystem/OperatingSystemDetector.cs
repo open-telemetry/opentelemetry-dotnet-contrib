@@ -4,8 +4,8 @@
 #if NET
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
 #endif
+
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
 
 namespace OpenTelemetry.Resources.OperatingSystem;
@@ -15,10 +15,13 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 /// </summary>
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
+    internal static readonly char[] Separator = new[] { '\n', '\r' };
+
     /// <summary>
     /// Detects the resource attributes from the operating system.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    ///
     public Resource Detect()
     {
         var attributes = new List<KeyValuePair<string, object>>();
@@ -35,20 +38,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         switch (osType)
         {
             case OperatingSystemsValues.Windows:
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetWindowsBuildId());
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetWindowsVersion());
+                AddWindowsAttributes(attributes);
                 break;
 #if NET
             case OperatingSystemsValues.Linux:
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetLinuxBuildId());
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, GetLinuxDistributionName());
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetLinuxVersion());
+                AddLinuxAttributes(attributes);
                 break;
             case OperatingSystemsValues.Darwin:
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, GetMacOSBuildId());
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, GetMacOSVersion());
+                AddMacOSAttributes(attributes);
                 break;
 #endif
         }
@@ -98,46 +95,55 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 
 #pragma warning disable CA1416
-    private static string? GetWindowsBuildId()
+    private static void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
             var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-
             using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey))
             {
                 if (key != null)
                 {
-                    return key.GetValue("CurrentBuild")?.ToString();
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuild")?.ToString());
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, key.GetValue("CurrentVersion")?.ToString());
                 }
             }
         }
         catch (Exception ex)
         {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Windows build ID", ex);
+            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Windows attributes", ex);
         }
-
-        return null;
     }
 #pragma warning restore CA1416
 
 #if NET
-    private static string? GetLinuxBuildId()
+    private static void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
             var osReleaseContent = File.ReadAllText("/etc/os-release");
+            string? buildId = null, name = null, version = null;
+
             foreach (var line in osReleaseContent.Split('\n'))
             {
                 if (line.StartsWith("BUILD_ID=", StringComparison.Ordinal))
                 {
-                    return line.Substring("BUILD_ID=".Length).Trim('"');
+                    buildId = line.Substring("BUILD_ID=".Length).Trim('"');
+                }
+                else if (line.StartsWith("NAME=", StringComparison.Ordinal))
+                {
+                    name = line.Substring("NAME=".Length).Trim('"');
+                }
+                else if (line.StartsWith("VERSION_ID=", StringComparison.Ordinal))
+                {
+                    version = line.Substring("VERSION_ID=".Length).Trim('"');
                 }
             }
 
-            using (var process = new Process())
+            if (string.IsNullOrEmpty(buildId))
             {
-                process.StartInfo = new ProcessStartInfo
+                var psi = new ProcessStartInfo
                 {
                     FileName = "uname",
                     Arguments = "-r",
@@ -146,46 +152,53 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                     CreateNoWindow = true,
                 };
 
-                process.Start();
-                var output = process.StandardOutput.ReadToEnd().Trim();
-                process.WaitForExit();
-                return output;
+                using var process = Process.Start(psi);
+                if (process != null)
+                {
+                    buildId = process.StandardOutput.ReadToEnd().Trim();
+                }
             }
+
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name ?? "Linux");
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
         }
         catch (Exception ex)
         {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux build ID", ex);
+            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux attributes", ex);
         }
-
-        return null;
     }
 
-    private static string? GetMacOSBuildId()
+    private static void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "sw_vers",
-                Arguments = "-buildVersion",
+                FileName = "sh",
+                Arguments = "-c \"sw_vers -productVersion && sw_vers -buildVersion\"",
                 RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
             };
-            using (var process = Process.Start(psi))
+            using var process = Process.Start(psi);
+            if (process != null)
             {
-                if (process != null)
-                {
-                    var output = process.StandardOutput.ReadToEnd().Trim();
-                    return output;
-                }
+                string[] lines = process.StandardOutput.ReadToEnd().Trim().Split(Separator, StringSplitOptions.RemoveEmptyEntries);
+                var version = lines[0];
+                var buildId = lines[1];
+
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
             }
         }
         catch (Exception ex)
         {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS build ID", ex);
+            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to add MacOS attributes", ex);
         }
-
-        return null;
     }
+
 #endif
 
     private static string GetOSDescription()
@@ -196,107 +209,4 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         return Environment.OSVersion.ToString();
 #endif
     }
-
-    private static string GetLinuxDistributionName()
-    {
-        try
-        {
-            var osReleaseFile = "/etc/os-release";
-            if (File.Exists(osReleaseFile))
-            {
-                var lines = File.ReadAllLines(osReleaseFile);
-                foreach (var line in lines)
-                {
-                    if (line.StartsWith("NAME=", StringComparison.Ordinal))
-                    {
-                        return line.Substring("NAME=".Length).Trim('"');
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux distribution name", ex);
-        }
-
-        return "Linux";
-    }
-
-#pragma warning disable CA1416
-    private static string? GetWindowsVersion()
-    {
-        try
-        {
-            var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey))
-            {
-                if (key != null)
-                {
-                    return key.GetValue("CurrentVersion")?.ToString();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Windows version", ex);
-        }
-
-        return null;
-    }
-#pragma warning restore CA1416
-
-#if NET
-    private static string? GetMacOSVersion()
-    {
-        try
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "sw_vers",
-                Arguments = "-productVersion",
-                RedirectStandardOutput = true,
-            };
-            using (var process = Process.Start(psi))
-            {
-                if (process != null)
-                {
-                    var output = process.StandardOutput.ReadToEnd().Trim();
-                    return output;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS version", ex);
-        }
-
-        return null;
-    }
-
-    private static string? GetLinuxVersion()
-    {
-        try
-        {
-            var osReleaseFile = "/etc/os-release";
-            if (File.Exists(osReleaseFile))
-            {
-                var lines = File.ReadAllLines(osReleaseFile);
-                foreach (var line in lines)
-                {
-                    if (line.StartsWith("VERSION_ID=", StringComparison.Ordinal))
-                    {
-                        return line.Substring("VERSION_ID=".Length).Trim('"');
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux version", ex);
-        }
-
-        return null;
-    }
-
-#endif
 }
