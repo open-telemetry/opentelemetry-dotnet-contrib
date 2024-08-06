@@ -4,6 +4,7 @@
 // Based on the jaeger remote sampler for Java from https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/jaeger-remote-sampler/src/main/java/io/opentelemetry/sdk/extension/trace/jaeger/sampler/RateLimitingSampler.java
 
 using System.Globalization;
+using OpenTelemetry.Extensions.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry;

@@ -1,11 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -51,12 +46,12 @@ public class RateLimitingSamplerTests
         }
 
         // Assert
-        Assert.True(sampleIn == 3);
-        Assert.True(sampleOut == 0);
+        Assert.Equal(3, sampleIn);
+        Assert.Equal(0, sampleOut);
     }
 
     [Fact]
-    public async void ShouldFilter_WhenAboveRateLimit()
+    public async Task ShouldFilter_WhenAboveRateLimit()
     {
         const int SAMPLE_RATE = 5; // 5 trace per second
         const int CYCLES = 500;
@@ -95,6 +90,7 @@ public class RateLimitingSamplerTests
 
         var timeTakenSeconds = (DateTime.UtcNow - startTime).TotalSeconds;
         var approxSamples = Math.Floor(timeTakenSeconds * SAMPLE_RATE);
+
         // Assert - We should have sampled in 5 traces per second over duration
         // Adding in a fudge factor
         Assert.True(sampleIn > (approxSamples * 0.9) && sampleIn < (approxSamples * 1.2));

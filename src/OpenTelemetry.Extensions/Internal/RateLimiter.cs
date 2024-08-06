@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 using System.Diagnostics;
 
-namespace OpenTelemetry;
+namespace OpenTelemetry.Extensions.Internal;
 
 internal sealed class RateLimiter
 {
