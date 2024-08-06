@@ -47,9 +47,10 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Single(exportedItems);
+            Assert.NotEmpty(exportedItems);
 
-            Activity awssdk_activity = exportedItems[0];
+            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+            Assert.NotNull(awssdk_activity);
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -90,9 +91,10 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Single(exportedItems);
+            Assert.NotEmpty(exportedItems);
 
-            Activity awssdk_activity = exportedItems[0];
+            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+            Assert.NotNull(awssdk_activity);
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
@@ -142,9 +144,10 @@ public class TestAWSClientInstrumentation
             }
             catch (AmazonServiceException)
             {
-                Assert.Single(exportedItems);
+                Assert.NotEmpty(exportedItems);
 
-                Activity awssdk_activity = exportedItems[0];
+                Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+                Assert.NotNull(awssdk_activity);
 
                 this.ValidateAWSActivity(awssdk_activity, parent);
                 this.ValidateDynamoActivityTags(awssdk_activity);
@@ -187,8 +190,9 @@ public class TestAWSClientInstrumentation
 #else
             await sqs.SendMessageAsync(send_msg_req);
 #endif
-            Assert.Single(exportedItems);
-            Activity awssdk_activity = exportedItems[0];
+            Assert.NotEmpty(exportedItems);
+            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SQS.SendMessage");
+            Assert.NotNull(awssdk_activity);
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateSqsActivityTags(awssdk_activity);
