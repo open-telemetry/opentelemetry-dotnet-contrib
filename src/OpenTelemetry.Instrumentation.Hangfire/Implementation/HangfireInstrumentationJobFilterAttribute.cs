@@ -38,15 +38,12 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             Baggage.Current = propagationContext.Baggage;
         }
 
-        var activity = HangfireInstrumentation.ActivitySource
-            .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
+        var activityName = this.options.DisplayNameFunc(performingContext.BackgroundJob) ?? HangfireInstrumentationConstants.ActivityName;
+
+        var activity = HangfireInstrumentation.ActivitySource.StartActivity(activityName, ActivityKind.Internal, parentContext);
 
         if (activity != null)
         {
-            var displayNameFunc = this.options.DisplayNameFunc;
-
-            activity.DisplayName = displayNameFunc(performingContext.BackgroundJob);
-
             if (activity.IsAllDataRequested)
             {
                 try
