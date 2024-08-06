@@ -142,6 +142,11 @@ public class HttpInListenerTests
                     options.RecordException = recordException;
                 })
                 .AddInMemoryExporter(exportedItems)
+                .SetSampler(
+                    new TestSampler(SamplingDecision.RecordAndSample)
+                    {
+                        ExpectedUrlPath = expectedUrlPath,
+                    })
                 .Build())
             {
                 using var inMemoryEventListener = new InMemoryEventListener(AspNetInstrumentationEventSource.Log);
@@ -307,8 +312,16 @@ public class HttpInListenerTests
     {
         private readonly SamplingDecision samplingDecision = samplingDecision;
 
+        public string? ExpectedUrlPath { get; set; }
+
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
+            if (!string.IsNullOrEmpty(this.ExpectedUrlPath))
+            {
+                Assert.NotNull(samplingParameters.Tags);
+                Assert.Contains(samplingParameters.Tags, t => t.Key == "url.path" && (t.Value as string) == this.ExpectedUrlPath);
+            }
+
             return new SamplingResult(this.samplingDecision);
         }
     }

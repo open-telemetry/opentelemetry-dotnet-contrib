@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* `TelemetryHttpModule` will now pass the `url.path` tag (set to
+  [Request.Unvalidated.Path](https://learn.microsoft.com/dotnet/api/system.web.unvalidatedrequestvalues.path))
+  when starting `Activity` instances for incoming requests so that it is
+  available to samplers and may be used to influence the sampling decision made
+  by [custom
+  implementations](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk#sampler).
+  ([#1871](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1871))
+
 ## 1.9.0-beta.1
 
 Released 2024-Jun-18
