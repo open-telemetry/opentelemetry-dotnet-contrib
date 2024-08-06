@@ -62,7 +62,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         try
         {
-            var stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder("Bearer ");
 
             using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
             {
@@ -71,8 +71,6 @@ internal sealed class AWSEKSDetector : IResourceDetector
                     stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
-
-            stringBuilder.Insert(0, "Bearer ");
 
             return stringBuilder.ToString();
         }
