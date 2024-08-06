@@ -148,17 +148,32 @@ internal sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "sh",
-                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice",
+                Arguments = "-c \"ioreg -rd1 -c IOPlatformExpertDevice\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
             };
 
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             process?.WaitForExit();
-            sb.Append(process?.StandardOutput.ReadToEnd());
-            return sb.ToString();
+            if (process != null)
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), error);
+                    return null;
+                }
+
+                sb.Append(output);
+                return sb.ToString();
+            }
+
+            return null;
         }
         catch (Exception ex)
         {
