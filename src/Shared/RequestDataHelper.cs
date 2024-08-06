@@ -3,6 +3,7 @@
 
 #nullable enable
 
+using System.Collections.Concurrent;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
@@ -14,12 +15,14 @@ namespace OpenTelemetry.Internal;
 internal sealed class RequestDataHelper
 {
     private const string KnownHttpMethodsEnvironmentVariable = "OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS";
+    private const int DisplayNameCacheSize = 1000;
 
     // The value "_OTHER" is used for non-standard HTTP methods.
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
     private const string OtherHttpMethod = "_OTHER";
 
     private static readonly char[] SplitChars = new[] { ',' };
+    private static readonly ConcurrentDictionary<string, string> DisplayNameCache = new ConcurrentDictionary<string, string>();
 
 #if NET8_0_OR_GREATER
     private readonly FrozenDictionary<string, string> knownHttpMethods;
@@ -78,7 +81,27 @@ internal sealed class RequestDataHelper
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
         var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : $"{namePrefix} {httpRoute}";
+        activity.DisplayName = GetDisplayName();
+
+        string GetDisplayName()
+        {
+            if (string.IsNullOrEmpty(httpRoute))
+            {
+                return namePrefix;
+            }
+
+            if (DisplayNameCache.TryGetValue(httpRoute!, out var displayName))
+            {
+                return displayName;
+            }
+
+            if (DisplayNameCache.Count < DisplayNameCacheSize)
+            {
+                return DisplayNameCache.GetOrAdd(httpRoute!, $"{namePrefix} {httpRoute}");
+            }
+
+            return $"{namePrefix} {httpRoute}";
+        }
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion)
