@@ -3,6 +3,7 @@
 
 using Amazon;
 using Amazon.Runtime;
+using Amazon.Runtime.Telemetry;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SimpleNotificationService;
@@ -136,6 +137,65 @@ public class TestAWSClientMetricsInstrumentation
         this.ValidateCommonMetrics(exportedItems);
         this.ValidateHTTPBytesMetric(exportedItems, "client.http.bytes_sent");
         this.ValidateHTTPBytesMetric(exportedItems, "client.http.bytes_received");
+    }
+
+    [Fact]
+    public void TestAWSUpDownCounterIsCalledProperly()
+    {
+        var exportedItems = new List<Metrics.Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAWSInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        var countAmount = 7;
+        var counterName = "TestCounter";
+        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter($"{TelemetryConstants.TelemetryScopePrefix}.TestMeter");
+        var counter = meter.CreateUpDownCounter<long>(counterName);
+
+        counter.Add(countAmount);
+        counter.Add(countAmount);
+
+        meterProvider.ForceFlush();
+
+        var counterMetric = exportedItems.FirstOrDefault(i => i.Name == counterName);
+
+        Assert.NotNull(counterMetric);
+        Assert.Equal(MetricType.LongSumNonMonotonic, counterMetric.MetricType);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in counterMetric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        Assert.Single(metricPoints);
+        var metricPoint = metricPoints[0];
+
+        Assert.Equal(countAmount * 2, metricPoint.GetSumLong());
+    }
+
+    [Fact]
+    public void TestAWSUpDownCounterIsntCalledAfterMeterDispose()
+    {
+        var exportedItems = new List<Metrics.Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAWSInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        var countAmount = 7;
+        var counterName = "TestCounter";
+        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter($"{TelemetryConstants.TelemetryScopePrefix}.TestDisposedMeter");
+        var counter = meter.CreateUpDownCounter<long>(counterName);
+
+        meter.Dispose();
+        counter.Add(countAmount);
+
+        meterProvider.ForceFlush();
+
+        var counterMetric = exportedItems.FirstOrDefault(i => i.Name == counterName);
+        Assert.Null(counterMetric);
     }
 
     private void ValidateHTTPBytesMetric(List<Metrics.Metric> exportedMetrics, string metricName)

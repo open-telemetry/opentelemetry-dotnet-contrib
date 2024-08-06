@@ -20,6 +20,7 @@ internal class AWSUpDownCounter<T> : UpDownCounter<T>
     {
         if (attributes != null)
         {
+            // TODO: remove ToArray call and use when AttributesAsSpan expected to be added at AWS SDK v4.
             this.upDownCounter.Add(value, attributes.AllAttributes.ToArray());
         }
         else

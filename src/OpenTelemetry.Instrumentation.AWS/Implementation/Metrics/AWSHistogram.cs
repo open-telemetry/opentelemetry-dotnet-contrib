@@ -20,6 +20,7 @@ internal class AWSHistogram<T> : Histogram<T>
     {
         if (attributes != null)
         {
+            // TODO: remove ToArray call and use when AttributesAsSpan expected to be added at AWS SDK v4.
             this.histogram.Record(value, attributes.AllAttributes.ToArray());
         }
         else

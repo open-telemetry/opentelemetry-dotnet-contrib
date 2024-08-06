@@ -47,9 +47,10 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Single(exportedItems);
+            Assert.NotEmpty(exportedItems);
 
-            Activity awssdk_activity = exportedItems[0];
+            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+            Assert.NotNull(awssdk_activity);
 
             this.ValidateAWSActivity(awssdk_activity, parent);
             this.ValidateDynamoActivityTags(awssdk_activity);
