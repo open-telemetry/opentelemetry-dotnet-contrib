@@ -7,7 +7,7 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.Resources.Container;
 
 [EventSource(Name = "OpenTelemetry-Resources-Container")]
-internal class ContainerResourceEventSource : EventSource, IServerCertificateValidationEventSource
+internal sealed class ContainerResourceEventSource : EventSource, IServerCertificateValidationEventSource
 {
     public static ContainerResourceEventSource Log = new();
 
