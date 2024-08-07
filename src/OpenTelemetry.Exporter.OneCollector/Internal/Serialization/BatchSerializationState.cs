@@ -1,4 +1,4 @@
-﻿// Copyright The OpenTelemetry Authors
+// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
 // Note: StyleCop doesn't understand the C#11 "required" modifier yet. Remove
