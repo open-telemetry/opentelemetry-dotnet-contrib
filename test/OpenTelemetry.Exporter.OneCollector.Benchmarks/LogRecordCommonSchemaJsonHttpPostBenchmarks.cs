@@ -153,7 +153,10 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
     private sealed class NoopHttpClient : IHttpClient
     {
-        public HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        public HttpResponseMessage Send(
+            HttpRequestMessage request,
+            HttpCompletionOption completionOption,
+            CancellationToken cancellationToken)
         {
             return new HttpResponseMessage
             {
