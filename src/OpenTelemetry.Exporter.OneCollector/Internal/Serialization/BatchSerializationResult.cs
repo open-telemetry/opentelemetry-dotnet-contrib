@@ -8,9 +8,13 @@ internal readonly struct BatchSerializationResult
 #if NET7_0_OR_GREATER
     public required int NumberOfItemsSerialized { get; init; }
 
+    public required int NumberOfItemsDropped { get; init; }
+
     public required long PayloadSizeInBytes { get; init; }
 #else
     public int NumberOfItemsSerialized { get; init; }
+
+    public int NumberOfItemsDropped { get; init; }
 
     public long PayloadSizeInBytes { get; init; }
 #endif

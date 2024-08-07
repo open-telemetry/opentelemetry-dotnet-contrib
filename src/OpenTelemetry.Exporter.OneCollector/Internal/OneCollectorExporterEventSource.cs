@@ -87,10 +87,10 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         this.WriteEvent(3, itemType, numberOfRecords, sinkDescription);
     }
 
-    [Event(4, Message = "Dropped {1} '{0}' item(s).", Level = EventLevel.Warning)]
-    public void DataDropped(string itemType, int numberOfRecords)
+    [Event(4, Message = "Dropped {1} '{0}' item(s). {2} item(s) dropped during serialization. {3} item(s) dropped due to transmission failure.", Level = EventLevel.Warning)]
+    public void DataDropped(string itemType, int numberOfRecords, int numberOfRecordsDroppedDuringSerialization, int numberOfRecordsDroppedDuringTransmission)
     {
-        this.WriteEvent(4, itemType, numberOfRecords);
+        this.WriteEvent(4, itemType, numberOfRecords, numberOfRecordsDroppedDuringSerialization, numberOfRecordsDroppedDuringTransmission);
     }
 
     [Event(5, Message = "Exception thrown by '{0}' transport: {1}", Level = EventLevel.Error)]

@@ -44,6 +44,8 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
     public int Write(Resource resource, in Batch<T> batch)
     {
         var totalNumberOfItemsSerialized = 0;
+        var totalNumberOfItemsDroppedDuringSerialization = 0;
+        var totalNumberOfItemsDroppedDueToTransmissionFailure = 0;
         var buffer = this.buffer;
         ArraySegment<byte> remainingDataFromPreviousTransmission = default;
         var state = new BatchSerializationState<T>(in batch);
@@ -75,6 +77,8 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
                 buffer,
                 (int)buffer.Length,
                 out var result);
+
+            totalNumberOfItemsDroppedDuringSerialization += result.NumberOfItemsDropped;
 
             int numberOfItemsSerialized = result.NumberOfItemsSerialized;
 
@@ -118,8 +122,17 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
                     NumberOfItems = numberOfItemsToSend,
                 }))
             {
-                OneCollectorExporterEventSource.Log.DataDropped(this.typeName, numberOfItemsToSend);
+                totalNumberOfItemsDroppedDueToTransmissionFailure += numberOfItemsToSend;
             }
+        }
+
+        if (totalNumberOfItemsDroppedDuringSerialization > 0 || totalNumberOfItemsDroppedDueToTransmissionFailure > 0)
+        {
+            OneCollectorExporterEventSource.Log.DataDropped(
+                this.typeName,
+                totalNumberOfItemsDroppedDuringSerialization + totalNumberOfItemsDroppedDueToTransmissionFailure,
+                totalNumberOfItemsDroppedDuringSerialization,
+                totalNumberOfItemsDroppedDueToTransmissionFailure);
         }
 
         return totalNumberOfItemsSerialized;
