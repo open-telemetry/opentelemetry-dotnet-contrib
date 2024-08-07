@@ -485,6 +485,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
+      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
 
   build-test-resources-operatingsystem:
     needs: detect-changes
