@@ -9,7 +9,7 @@
 * Fixed a bug which caused remaining records in a batch to be dropped silently
   once the max payload size for a transmission (default 4 KiB) has been
   reached.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#1999](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1999))
 
 ## 1.9.1
 
