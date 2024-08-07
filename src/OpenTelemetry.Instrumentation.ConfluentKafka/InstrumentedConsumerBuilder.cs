@@ -33,12 +33,8 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
         Debug.Assert(this.Options != null, "Options should not be null.");
 
         ConsumerConfig config = (ConsumerConfig)this.Config;
-        if (this.Options!.Metrics)
-        {
-            config.StatisticsIntervalMs ??= 1000;
-        }
 
-        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.Options);
+        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.Options!);
         consumer.GroupId = config.GroupId;
 
         return consumer;
