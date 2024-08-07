@@ -302,9 +302,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         var batch = new Batch<LogRecord>(logRecords, numberOfLogRecords);
 
+        var state = new BatchSerializationState<LogRecord>(in batch);
+
         serializer.SerializeBatchOfItemsToStream(
             resource ?? Resource.Empty,
-            in batch,
+            ref state,
             stream,
             initialSizeOfPayloadInBytes: 0,
             out var result);

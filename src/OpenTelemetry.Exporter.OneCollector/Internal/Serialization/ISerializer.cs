@@ -14,8 +14,8 @@ internal interface ISerializer<T>
 
     void SerializeBatchOfItemsToStream(
         Resource resource,
-        in Batch<T> batch,
+        ref BatchSerializationState<T> state,
         Stream stream,
         int initialSizeOfPayloadInBytes,
-        out BatchSerializationResult serializationResult);
+        out BatchSerializationResult result);
 }
