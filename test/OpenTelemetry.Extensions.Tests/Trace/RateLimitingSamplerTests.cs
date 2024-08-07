@@ -89,11 +89,14 @@ public class RateLimitingSamplerTests
         }
 
         var timeTakenSeconds = (DateTime.UtcNow - startTime).TotalSeconds;
-        var approxSamples = Math.Floor(timeTakenSeconds * SAMPLE_RATE);
+
+        // Approximate the number of samples we should have taken
+        // Account for the fact that the initial balance is the SampleRate, so they will all be sampled in
+        var approxSamples = Math.Floor(timeTakenSeconds * SAMPLE_RATE) + SAMPLE_RATE;
 
         // Assert - We should have sampled in 5 traces per second over duration
         // Adding in a fudge factor
-        Assert.True(sampleIn > (approxSamples * 0.9) && sampleIn < (approxSamples * 1.2));
+        Assert.True(sampleIn > (approxSamples * 0.9) && sampleIn < (approxSamples * 1.1));
         Assert.True(sampleOut == (CYCLES - sampleIn));
     }
 }
