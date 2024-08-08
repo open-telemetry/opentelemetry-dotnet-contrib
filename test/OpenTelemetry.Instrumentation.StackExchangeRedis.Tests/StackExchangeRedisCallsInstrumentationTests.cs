@@ -370,11 +370,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             Assert.NotNull(instrumentation);
 
-            var registration = instrumentation.AddConnection(connection);
+            var registration1 = instrumentation.AddConnection(connection);
 
             Assert.NotEmpty(instrumentation.InstrumentedConnections);
 
-            registration.Dispose();
+            var registration2 = instrumentation.AddConnection(connection);
+
+            Assert.Single(instrumentation.InstrumentedConnections);
+
+            registration1.Dispose();
 
             Assert.Empty(instrumentation.InstrumentedConnections);
 
@@ -413,7 +417,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         Assert.Equal(Status.Unset, activity.GetStatus());
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(0, activity.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName));
+        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
 
         if (endPoint is IPEndPoint ipEndPoint)
         {
