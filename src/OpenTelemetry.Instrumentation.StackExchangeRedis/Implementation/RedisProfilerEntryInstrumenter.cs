@@ -217,7 +217,7 @@ internal static class RedisProfilerEntryInstrumenter
         {
             metrics.QueueHistogram.Record(command.EnqueuedToSending.TotalSeconds, meterTagList);
             metrics.NetworkHistogram.Record(command.SentToResponse.TotalSeconds, meterTagList);
-            metrics.RequestHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
+            metrics.OperationHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
         }
 
         activity?.Stop();
