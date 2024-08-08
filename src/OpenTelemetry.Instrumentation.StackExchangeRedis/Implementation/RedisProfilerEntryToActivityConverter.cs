@@ -73,16 +73,16 @@ internal static class RedisProfilerEntryToActivityConverter
         });
     });
 
-    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
+    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options, string name)
     {
-        var name = command.Command; // Example: SET;
-        if (string.IsNullOrEmpty(name))
+        var commandName = command.Command; // Example: SET;
+        if (string.IsNullOrEmpty(commandName))
         {
-            name = StackExchangeRedisConnectionInstrumentation.ActivityName;
+            commandName = StackExchangeRedisConnectionInstrumentation.ActivityName;
         }
 
-        var activity = StackExchangeRedisConnectionInstrumentation.ActivitySource.StartActivity(
-            name,
+        var activity = StackExchangeRedisConnectionInstrumentation.GetActivitySource(name).StartActivity(
+            commandName,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
             StackExchangeRedisConnectionInstrumentation.CreationTags,
@@ -179,11 +179,11 @@ internal static class RedisProfilerEntryToActivityConverter
         return activity;
     }
 
-    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
+    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options, string name)
     {
         foreach (var command in sessionCommands)
         {
-            ProfilerCommandToActivity(parentActivity, command, options);
+            ProfilerCommandToActivity(parentActivity, command, options, name);
         }
     }
 
