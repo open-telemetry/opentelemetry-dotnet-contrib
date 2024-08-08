@@ -23,6 +23,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly ConcurrentDictionary<string, ActivitySource> ActivitySources = new();
     internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
     {
         new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
@@ -36,6 +37,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     private readonly Thread drainThread;
 
     private readonly ProfilingSession defaultSession = new();
+    private readonly string name;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StackExchangeRedisConnectionInstrumentation"/> class.
@@ -51,6 +53,19 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         Guard.ThrowIfNull(connection);
 
         this.options = options ?? new StackExchangeRedisInstrumentationOptions();
+        this.name = name ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            lock (ActivitySources)
+            {
+                if (!ActivitySources.TryGetValue(name!, out var activitySource))
+                {
+                    activitySource = new($"{GetActivitySourceName(name!)}", Assembly.GetPackageVersion());
+                    ActivitySources.TryAdd(name!, activitySource);
+                }
+            }
+        }
 
         this.drainThread = new Thread(this.DrainEntries)
         {
@@ -60,6 +75,33 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
         this.drainThread.Start();
 
         connection.RegisterProfiler(this.GetProfilerSessionsFactory());
+    }
+
+    public static ActivitySource GetActivitySource(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return ActivitySource;
+        }
+
+        ActivitySource? source;
+
+        if (!ActivitySources.TryGetValue(name, out source))
+        {
+            source = ActivitySource;
+        }
+
+        return source;
+    }
+
+    public static string GetActivitySourceName(string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            return $"{ActivitySourceName}.{name}";
+        }
+
+        return ActivitySourceName;
     }
 
     /// <summary>
@@ -108,7 +150,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
     internal void Flush()
     {
-        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options);
+        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options, this.name);
 
         foreach (var entry in this.Cache)
         {
@@ -120,7 +162,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             }
 
             ProfilingSession session = entry.Value.Session;
-            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
+            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options, this.name);
             this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
         }
     }

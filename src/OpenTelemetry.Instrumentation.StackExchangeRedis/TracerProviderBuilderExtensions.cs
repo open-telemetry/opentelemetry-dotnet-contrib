@@ -124,7 +124,7 @@ public static class TracerProviderBuilderExtensions
     /// resolved using the application <see cref="IServiceProvider"/>.
     /// </remarks>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="name">Optional name which is used when retrieving options as well as adding the ActivitySource name.</param>
     /// <param name="connection">Optional <see cref="IConnectionMultiplexer"/> to instrument.</param>
     /// <param name="serviceKey">Optional service key used to retrieve the <see cref="IConnectionMultiplexer"/> to instrument from the <see cref="IServiceProvider" />.</param>
     /// <param name="configure">Optional callback to configure options.</param>
@@ -151,7 +151,7 @@ public static class TracerProviderBuilderExtensions
         }
 
         return builder
-            .AddSource(StackExchangeRedisConnectionInstrumentation.ActivitySourceName)
+            .AddSource(StackExchangeRedisConnectionInstrumentation.GetActivitySourceName(name))
             .AddInstrumentation(sp =>
             {
                 var instrumentation = sp.GetRequiredService<StackExchangeRedisInstrumentation>();

@@ -72,6 +72,38 @@ the `ConfigureServices` of your `Startup` class. Refer to documentation for
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
 
+### Instrumenting multiple Redis connections
+
+If your application utilizes multiple Redis connections, they can be instrumented separately if desired.
+To do this, simply provide a unique `name` to the `AddRedisInstrumentation` method:
+
+```csharp
+using OpenTelemetry.Trace;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        // Connect to the first server.
+        var firstConnectionName = "myRedisConnection1";
+        using var connection1 = ConnectionMultiplexer.Connect("server1:6379");
+
+        // Connect to the second server.
+        var secondConnectionName = "myRedisConnection2";
+        using var connection2 = ConnectionMultiplexer.Connect("server2:6379");
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddRedisInstrumentation(firstConnectionName, connection1, null)
+            .AddRedisInstrumentation(secondConnectionName, connection2, null)
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
+This will give you the ability to provide different instrumentation options for each Redis connection.
+It should also prevent you from receiving duplicate spans in your traces since each Redis connection is now instrumented separately.
+
 ## Specify the Redis connection
 
 The following sections cover different ways to specify the `StackExchange.Redis`
