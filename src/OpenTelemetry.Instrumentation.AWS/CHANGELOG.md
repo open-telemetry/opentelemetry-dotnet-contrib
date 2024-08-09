@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Added instrumentation support for AWS Bedrock, BedrockRuntime, BedrockAgent, BedrockAgentRuntime.
+  ([#1979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1979))
 * Add AWS metrics instrumentation.
   ([#1980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
 * Added `rpc.system`, `rpc.service`, and `rpc.method` to activity tags based on
