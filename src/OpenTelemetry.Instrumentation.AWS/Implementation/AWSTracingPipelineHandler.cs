@@ -91,6 +91,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     {
         var responseContext = executionContext.ResponseContext;
         var requestContext = executionContext.RequestContext;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
 
         if (activity.IsAllDataRequested)
         {
@@ -106,6 +107,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
                 AddStatusCodeToActivity(activity, statusCode);
                 activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
+
+                AddResponseSpecificInformation(activity, responseContext, service);
             }
         }
 
@@ -136,25 +139,27 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 #endif
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
+        AmazonWebServiceRequest request = requestContext.OriginalRequest;
+        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameters))
         {
-            AmazonWebServiceRequest request = requestContext.OriginalRequest;
-
-            try
+            foreach (var parameter in parameters)
             {
-                var property = request.GetType().GetProperty(parameter);
-                if (property != null)
+                try
                 {
-                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    var property = request.GetType().GetProperty(parameter);
+                    if (property != null)
                     {
-                        activity.SetTag(attribute, property.GetValue(request));
+                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(request));
+                        }
                     }
                 }
-            }
-            catch (Exception)
-            {
-                // Guard against any reflection-related exceptions when running in AoT.
-                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                }
             }
         }
 
@@ -171,6 +176,82 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             SnsRequestContextHelper.AddAttributes(
                 requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+        else if (AWSServiceType.IsBedrockRuntimeService(service))
+        {
+            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, "aws_bedrock");
+        }
+        else if (AWSServiceType.IsBedrockAgentService(service))
+        {
+            try
+            {
+                if (AWSServiceHelper.OperationNameToResourceMap().TryGetValue(AWSServiceHelper.GetAWSOperationName(requestContext), out var parameter))
+                {
+                    var property = request.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(request));
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Guard against any reflection-related exceptions when running in AoT.
+                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+            }
+        }
+    }
+
+    private static void AddResponseSpecificInformation(Activity activity, IResponseContext responseContext, string service)
+    {
+        AmazonWebServiceResponse response = responseContext.Response;
+
+        if (AWSServiceType.IsBedrockService(service))
+        {
+            var property = response.GetType().GetProperty("GuardrailId");
+            if (property != null)
+            {
+                activity.SetTag(AWSSemanticConventions.AttributeAWSBedrockGuardrailId, property.GetValue(response));
+            }
+        }
+        else if (AWSServiceType.IsBedrockAgentService(service))
+        {
+            var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
+            if (AWSServiceHelper.OperationNameToResourceMap().TryGetValue(operationName, out var parameter))
+            {
+                switch (parameter)
+                {
+                    case "KnowledgeBaseId":
+                        AddBedrockAgentResponseAttribute(activity, response, "KnowledgeBase", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId);
+                        break;
+                    case "DataSourceId":
+                        AddBedrockAgentResponseAttribute(activity, response, "DataSource", AWSSemanticConventions.AttributeAWSBedrockDataSourceId);
+                        break;
+                    case "AgentId":
+                        AddBedrockAgentResponseAttribute(activity, response, "Agent", AWSSemanticConventions.AttributeAWSBedrockAgentId);
+                        break;
+                }
+            }
+        }
+    }
+
+    private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string propertyName, string attributeName)
+    {
+        var property = response.GetType().GetProperty(propertyName);
+        if (property != null)
+        {
+            var value = property.GetValue(response);
+            if (value != null)
+            {
+                var attribute = value.GetType().GetProperty(propertyName + "Id");
+                if (attribute != null)
+                {
+                    activity.SetTag(attributeName, attribute.GetValue(value));
+                }
+            }
         }
     }
 
