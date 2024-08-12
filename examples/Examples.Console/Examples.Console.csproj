@@ -32,10 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Examples.GrpcService\Examples.GrpcService.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Update="StyleCop.Analyzers" Version="1.2.0-beta.556" />
   </ItemGroup>
 

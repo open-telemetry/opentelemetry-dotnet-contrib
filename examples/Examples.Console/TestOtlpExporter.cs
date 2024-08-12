@@ -83,10 +83,10 @@ internal static class TestOtlpExporter
     }
 
     private static OtlpExportProtocol? ToOtlpExportProtocol(string protocol) =>
-        protocol.Trim().ToLower() switch
+        protocol.Trim() switch
         {
-            "grpc" => OtlpExportProtocol.Grpc,
-            "http/protobuf" => OtlpExportProtocol.HttpProtobuf,
+            var p when p.Equals("grpc", StringComparison.OrdinalIgnoreCase) => OtlpExportProtocol.Grpc,
+            var p when p.Equals("http/protobuf", StringComparison.OrdinalIgnoreCase) => OtlpExportProtocol.HttpProtobuf,
             _ => null,
         };
 }

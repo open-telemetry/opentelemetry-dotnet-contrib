@@ -43,11 +43,11 @@ internal class TestLogs
 
                     var protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
 
-                    if (options.Protocol.Trim().ToLower().Equals("grpc"))
+                    if (options.Protocol.Trim().Equals("grpc", StringComparison.OrdinalIgnoreCase))
                     {
                         protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                     }
-                    else if (options.Protocol.Trim().ToLower().Equals("http/protobuf"))
+                    else if (options.Protocol.Trim().Equals("http/protobuf", StringComparison.OrdinalIgnoreCase))
                     {
                         protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
                     }
@@ -57,11 +57,11 @@ internal class TestLogs
                     }
 
                     var processorType = ExportProcessorType.Batch;
-                    if (options.ProcessorType.Trim().ToLower().Equals("batch"))
+                    if (options.ProcessorType.Trim().Equals("batch", StringComparison.OrdinalIgnoreCase))
                     {
                         processorType = ExportProcessorType.Batch;
                     }
-                    else if (options.ProcessorType.Trim().ToLower().Equals("simple"))
+                    else if (options.ProcessorType.Trim().Equals("simple", StringComparison.OrdinalIgnoreCase))
                     {
                         processorType = ExportProcessorType.Simple;
                     }
@@ -97,10 +97,10 @@ internal class TestLogs
         });
 
         var logger = loggerFactory.CreateLogger<Program>();
-        using (logger.BeginScope("{city}", "Seattle"))
-        using (logger.BeginScope("{storeType}", "Physical"))
+        using (logger.BeginScope("{City}", "Seattle"))
+        using (logger.BeginScope("{StoreType}", "Physical"))
         {
-            logger.LogInformation("Hello from {name} {price}.", "tomato", 2.99);
+            logger.LogInformation("Hello from {Name} {Price}.", "tomato", 2.99);
         }
 
         return null;

@@ -53,12 +53,17 @@ public class MessageReceiver : IDisposable
         {
             var message = Encoding.UTF8.GetString(ea.Body.Span.ToArray());
 
-            this.logger.LogInformation($"Message received: [{message}]");
+            this.logger.LogInformation("Message received: {Message}", message);
 
             activity?.SetTag("message", message);
 
             // The OpenTelemetry messaging specification defines a number of attributes. These attributes are added here.
-            RabbitMqHelper.AddMessagingTags(activity);
+            if (activity != null)
+            {
+                activity.SetTag("message", message);
+
+                RabbitMqHelper.AddMessagingTags(activity);
+            }
 
             // Simulate some work
             Thread.Sleep(1000);
@@ -76,6 +81,11 @@ public class MessageReceiver : IDisposable
             if (props.Headers.TryGetValue(key, out var value))
             {
                 var bytes = value as byte[];
+                if (bytes == null)
+                {
+                    return Enumerable.Empty<string>();
+                }
+
                 return new[] { Encoding.UTF8.GetString(bytes) };
             }
         }

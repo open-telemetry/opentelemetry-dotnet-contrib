@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace Examples.AspNetCore.Controllers;
-
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using Examples.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+
+namespace Examples.AspNetCore.Controllers;
 
 [ApiController]
 [Route("[controller]")]
@@ -40,7 +39,7 @@ public class WeatherForecastController : ControllerBase
         // Making an http call here to serve as an example of
         // how dependency calls will be captured and treated
         // automatically as child of incoming request.
-        var res = HttpClient.GetStringAsync("http://google.com").Result;
+        var res = HttpClient.GetStringAsync(new Uri("http://google.com")).Result;
 
         // Optional: Manually create an activity. This will become a child of
         // the activity created from the instrumentation library for AspNetCore.
@@ -65,7 +64,7 @@ public class WeatherForecastController : ControllerBase
         this.freezingDaysCounter.Add(forecast.Count(f => f.TemperatureC < 0));
 
         this.logger.LogInformation(
-            "WeatherForecasts generated {count}: {forecasts}",
+            "WeatherForecasts generated {Count}: {Forecasts}",
             forecast.Length,
             forecast);
 

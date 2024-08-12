@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Threading.Tasks;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
 
 namespace Examples.GrpcService;
 

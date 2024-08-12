@@ -62,7 +62,11 @@ public class MessageSender : IDisposable
             Propagator.Inject(new PropagationContext(contextToInject, Baggage.Current), props, this.InjectTraceContextIntoBasicProperties);
 
             // The OpenTelemetry messaging specification defines a number of attributes. These attributes are added here.
-            RabbitMqHelper.AddMessagingTags(activity);
+            if (activity != null)
+            {
+                RabbitMqHelper.AddMessagingTags(activity);
+            }
+
             var body = $"Published message: DateTime.Now = {DateTime.Now}.";
 
             this.channel.BasicPublish(
@@ -71,7 +75,7 @@ public class MessageSender : IDisposable
                 basicProperties: props,
                 body: Encoding.UTF8.GetBytes(body));
 
-            this.logger.LogInformation($"Message sent: [{body}]");
+            this.logger.LogInformation("Message sent: [{Body}]", body);
 
             return body;
         }
