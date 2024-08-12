@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add AWS metrics instrumentation.
+  ([#1980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
 * Added `rpc.system`, `rpc.service`, and `rpc.method` to activity tags based on
   [semantic convention v1.26.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes).
   ([#1865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1865))
