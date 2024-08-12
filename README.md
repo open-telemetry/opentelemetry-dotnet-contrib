@@ -15,7 +15,7 @@ projects.
 For information on how to contribute, consult [the contributing
 guidelines](./CONTRIBUTING.md).
 
-### Project status
+## Project status
 
 Components shipped from this repository are at different maturity levels. The
 status for each component is mentioned in their respective Readme files. The
@@ -26,7 +26,7 @@ component status falls under one of the following categories:
 Component is currently in development and is not available on
 [Nuget](https://www.nuget.org/).
 
-#### Alpha
+### Alpha
 
 The component is ready to be used for limited non-critical workloads and the
 authors of this component would welcome your feedback. Bugs and performance
@@ -35,12 +35,12 @@ away. Components can go through significant breaking changes and there are no
 backward compatibility guarantees. Package in this status is appended by
 `-alpha` extension.
 
-#### Beta
+### Beta
 
 Same as Alpha, but comparatively more stable. Package in this status is appended
 by `-beta` extension.
 
-#### RC
+### RC
 
 Component is close to stability. There might be minimal breaking changes between
 releases. A component at this stage is expected to have had exposure to
@@ -48,7 +48,7 @@ non-critical production workloads already during its **Alpha/Beta** phase,
 making it suitable for broader usage. Package in this status is appended by
 `-rc` extension.
 
-#### Stable
+### Stable
 
 The component is ready for general availability. Bugs and performance problems
 should be reported and there's an expectation that the component owners will
