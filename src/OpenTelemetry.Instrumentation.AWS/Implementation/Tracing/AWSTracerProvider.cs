@@ -5,7 +5,7 @@ using Amazon.Runtime.Telemetry.Tracing;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal class AWSTracerProvider : TracerProvider
+internal sealed class AWSTracerProvider : TracerProvider
 {
     public override Tracer GetTracer(string scope)
     {

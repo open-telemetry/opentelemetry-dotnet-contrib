@@ -7,7 +7,7 @@ using Amazon.Runtime.Telemetry.Tracing;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal class AWSTracer : Tracer
+internal sealed class AWSTracer : Tracer
 {
     private readonly ActivitySource activitySource;
 

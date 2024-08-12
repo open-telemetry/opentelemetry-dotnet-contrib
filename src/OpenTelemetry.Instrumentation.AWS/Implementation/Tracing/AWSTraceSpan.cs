@@ -8,7 +8,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
-internal class AWSTraceSpan : TraceSpan
+internal sealed class AWSTraceSpan : TraceSpan
 {
     private readonly Activity? activity;
 
