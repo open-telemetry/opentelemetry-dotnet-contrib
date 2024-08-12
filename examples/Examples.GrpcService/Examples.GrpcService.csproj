@@ -14,6 +14,6 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
- </ItemGroup>
+  </ItemGroup>
 
 </Project>
