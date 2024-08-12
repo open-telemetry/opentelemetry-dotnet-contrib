@@ -15,8 +15,6 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 /// </summary>
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
-    internal static readonly char[] Separator = new[] { '\n', '\r' };
-
     /// <summary>
     /// Detects the resource attributes from the operating system.
     /// </summary>
@@ -176,7 +174,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             var psi = new ProcessStartInfo
             {
                 FileName = "sh",
-                Arguments = "-c \"sw_vers -productVersion && sw_vers -buildVersion\"",
+                Arguments = "-c \"sw_vers\"",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
@@ -184,9 +182,11 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             using var process = Process.Start(psi);
             if (process != null)
             {
-                string[] lines = process.StandardOutput.ReadToEnd().Trim().Split(Separator, StringSplitOptions.RemoveEmptyEntries);
-                var version = lines[0];
-                var buildId = lines[1];
+                string output = process.StandardOutput.ReadToEnd().Trim();
+                string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+                string? version = lines.FirstOrDefault(line => line.StartsWith("ProductVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+                string? buildId = lines.FirstOrDefault(line => line.StartsWith("BuildVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
 
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
@@ -195,7 +195,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         }
         catch (Exception ex)
         {
-            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to add MacOS attributes", ex);
+            OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS attributes", ex);
         }
     }
 
