@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.2
+
+Released 2024-Aug-12
+
 * Fixed `PlatformNotSupportedException`s being thrown during export when running
   on mobile platforms which caused telemetry to be dropped silently.
   ([#1992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1992))
