@@ -22,7 +22,7 @@ public class WeatherForecastController : ControllerBase
     private readonly ActivitySource activitySource;
     private readonly Counter<long> freezingDaysCounter;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger, Instrumentation instrumentation)
+    public WeatherForecastController(ILogger<WeatherForecastController> logger, CustomInstrumentation instrumentation)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
