@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if !NETFRAMEWORK
+#if NET
 using System.Runtime.InteropServices;
 #endif
 using System.Text;
@@ -18,7 +18,7 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-#if !NETFRAMEWORK
+#if NET
     private readonly Func<OSPlatform, bool> isOsPlatform;
 #endif
     private readonly Func<IEnumerable<string>> getFilePaths;
@@ -30,7 +30,7 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
-#if !NETFRAMEWORK
+#if NET
         RuntimeInformation.IsOSPlatform,
 #endif
         GetFilePaths,
@@ -54,21 +54,21 @@ internal sealed class HostDetector : IResourceDetector
 #endif
 
     internal HostDetector(
-#if !NETFRAMEWORK
+#if NET
         Func<OSPlatform, bool> isOsPlatform,
 #endif
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
         Func<string?> getWindowsMachineId)
     {
-#if !NETFRAMEWORK
+#if NET
         Guard.ThrowIfNull(isOsPlatform);
 #endif
         Guard.ThrowIfNull(getFilePaths);
         Guard.ThrowIfNull(getMacOsMachineId);
         Guard.ThrowIfNull(getWindowsMachineId);
 
-#if !NETFRAMEWORK
+#if NET
         this.isOsPlatform = isOsPlatform;
 #endif
         this.getFilePaths = getFilePaths;
