@@ -17,7 +17,7 @@ guidelines](./CONTRIBUTING.md).
 
 ## Project status
 
-This repository is a collection of unrelated components maintained by different
+This repository is a collection of components maintained by different
 authors and groups. As such, components shipped from this repository (via
 [Nuget](https://www.nuget.org/)) may be at different stability/maturity levels.
 The status for each individual component is mentioned in its respective
