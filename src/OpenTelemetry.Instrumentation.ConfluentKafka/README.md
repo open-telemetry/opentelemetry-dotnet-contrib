@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Development](..\..\Readme.md#development)|
+| Stability     |  [Development](../../README.md#development)|
 | Code Owners   |  [@g7ed6e](https://github.com/g7ed6e)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ConfluentKafka)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ConfluentKafka)

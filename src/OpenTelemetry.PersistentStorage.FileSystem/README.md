@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Stable](..\..\Readme.md#stable)|
+| Stability     |  [Stable](../../README.md#stable)|
 | Code Owners   |  [@vishweshbankwar](https://github.com/vishweshbankwar)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)

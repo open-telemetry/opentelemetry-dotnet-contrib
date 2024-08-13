@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [RC](..\..\Readme.md#rc)|
+| Stability     |  [RC](../../README.md#rc)|
 | Code Owners   |  [@codeblanch](https://github.com/codeblanch)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)

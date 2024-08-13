@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Stable](..\..\Readme.md#beta)|
+| Stability     |  [Stable](../../README.md#beta)|
 | Code Owners   |  [@twenzel](https://github.com/twenzel), [@xiang17](https://github.com/xiang17)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)

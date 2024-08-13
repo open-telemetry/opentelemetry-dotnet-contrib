@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Alpha](..\..\Readme.md#alpha)|
+| Stability     |  [Alpha](../../README.md#alpha)|
 | Code Owners   |  [@hananiel](https://github.com/hananiel), [@mic-max](https://github.com/mic-max)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)

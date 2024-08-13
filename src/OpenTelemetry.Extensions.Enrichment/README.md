@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Development](..\..\Readme.md#development)|
+| Stability     |  [Development](../../README.md#development)|
 | Code Owners   |  [@xakep139](https://github.com/xakep139)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.Enrichment)](https://www.nuget.org/packages/OpenTelemetry.Extensions.Enrichment)

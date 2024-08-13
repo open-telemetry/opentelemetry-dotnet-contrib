@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Stable](..\..\Readme.md#stable)|
+| Stability     |  [Stable](../../README.md#stable)|
 | Code Owners   |  [@zivaninstana](https://github.com/zivaninstana)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Instana)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)

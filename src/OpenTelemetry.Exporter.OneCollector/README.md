@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Stable](..\..\Readme.md#stable)|
+| Stability     |  [Stable](../../README.md#stable)|
 | Code Owners   |  [@codeblanch](https://github.com/codeblanch), [@reyang](https://github.com/reyang)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.OneCollector)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
