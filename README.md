@@ -17,13 +17,15 @@ guidelines](./CONTRIBUTING.md).
 
 ## Project status
 
-Components shipped from this repository are at different maturity levels. The
-status for each component is mentioned in their respective Readme files. The
-component status falls under one of the following categories:
+This repository is a collection of unrelated components maintained by different
+authors and groups. As such components shipped from this repository (via
+[Nuget](https://www.nuget.org/))may be at different stability/maturity levels.
+The status for each individual component SHOULD be mentioned in its respective
+`README.md` file and SHOULD fall into one of the following categories:
 
 ### Development
 
-Component is currently in development and is not available on
+Component is currently in development and is NOT available on
 [Nuget](https://www.nuget.org/).
 
 ### Alpha
@@ -32,29 +34,28 @@ The component is ready to be used for limited non-critical workloads and the
 authors of this component would welcome your feedback. Bugs and performance
 problems should be reported, but component owners might not work on them right
 away. Components can go through significant breaking changes and there are no
-backward compatibility guarantees. Package in this status is appended by
+backward compatibility guarantees. Package versions in this status have the
 `-alpha` extension.
 
 ### Beta
 
-Same as Alpha, but comparatively more stable. Package in this status is appended
-by `-beta` extension.
+Same as Alpha, but comparatively more stable. Package versions in this status
+have the `-beta` extension.
 
-### RC
+### Release candidate
 
-Component is close to stability. There might be minimal breaking changes between
+Component is close to stability. There may be minimal breaking changes between
 releases. A component at this stage is expected to have had exposure to
-non-critical production workloads already during its **Alpha/Beta** phase,
-making it suitable for broader usage. Package in this status is appended by
+non-critical production workloads already during its **Alpha/Beta** phase(s),
+making it suitable for broader usage. Package versions in this status have the
 `-rc` extension.
 
 ### Stable
 
 The component is ready for general availability. Bugs and performance problems
-should be reported and there's an expectation that the component owners will
-work on them. Breaking changes, including configuration options and the
-component's output are not expected to happen without prior notice, unless under
-special circumstances such as security related fixes.
+should be reported and the component owner(s) SHOULD triage and/or resolve them
+in a timely manner. The package versions MUST follow [SemVer
+V2](https://semver.org/spec/v2.0.0.html).
 
 ## Support
 
