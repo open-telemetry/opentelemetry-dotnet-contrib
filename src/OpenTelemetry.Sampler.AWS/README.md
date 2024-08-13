@@ -1,5 +1,10 @@
 # AWS X-Ray Remote Sampler
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Alpha](..\..\Readme.md#alpha)|
+| Code Owners   |  [@srprash](https://github.com/srprash), [@ppittle](https://github.com/ppittle)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Sampler.AWS)](https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Sampler.AWS)](https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Sampler.AWS)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Sampler.AWS)

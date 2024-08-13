@@ -1,5 +1,10 @@
 # Elasticsearch Client Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Code Owners   |  [@ejsmith](https://github.com/ejsmith)|
+
 ## NEST/Elasticsearch.Net
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
