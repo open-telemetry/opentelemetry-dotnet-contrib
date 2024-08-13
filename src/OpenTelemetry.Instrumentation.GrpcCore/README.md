@@ -3,7 +3,7 @@
 | Status        |           |
 | ------------- |-----------|
 | Stability     |  [Beta](..\..\Readme.md#beta)|
-| Code Owners   |  [@IliaBrahinets](https://github.com/IliaBrahinets), [@pcwiese](https://github.com/pcwieserajkumar-rangaraj)|
+| Code Owners   |  [@IliaBrahinets](https://github.com/IliaBrahinets), [@pcwiese](https://github.com/pcwiese)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.GrpcCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)
