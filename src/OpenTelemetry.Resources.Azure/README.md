@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Stability     |  [Beta](../../README.md#beta)|
 | Code Owners   |  [@vishweshbankwar](https://github.com/vishweshbankwar), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)

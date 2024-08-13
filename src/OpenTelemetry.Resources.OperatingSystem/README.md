@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Alpha](..\..\Readme.md#alpha)|
+| Stability     |  [Alpha](../../README.md#alpha)|
 | Code Owners   |  [@Kielek](https://github.com/Kielek), [@lachmatt](https://github.com/lachmatt)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.OperatingSystem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem)

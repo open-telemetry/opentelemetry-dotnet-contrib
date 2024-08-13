@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Development](..\..\Readme.md#development)|
+| Stability     |  [Development](../../README.md#development)|
 | Code Owners   |  [@matt-hensley](https://github.com/matt-hensley), [@pyohannes](https://github.com/pyohannes)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Gcp)](https://www.nuget.org/packages/OpenTelemetry.Resources.Gcp)

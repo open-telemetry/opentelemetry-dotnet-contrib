@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Alpha](..\..\Readme.md#alpha)|
+| Stability     |  [Alpha](../../README.md#alpha)|
 | Code Owners   |  [@havret](https://github.com/havret)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.InfluxDB)](https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB)

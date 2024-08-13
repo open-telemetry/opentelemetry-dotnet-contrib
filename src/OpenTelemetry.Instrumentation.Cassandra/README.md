@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Stability     |  [Beta](../../README.md#beta)|
 | Code Owners   |  [@xsoheilalizadeh](https://github.com/xsoheilalizadeh)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)

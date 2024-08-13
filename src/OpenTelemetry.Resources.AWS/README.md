@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Stability     |  [Beta](../../README.md#beta)|
 | Code Owners   |  [@srprash](https://github.com/srprash), [@ppittle](https://github.com/ppittle)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.AWS)](https://www.nuget.org/packages/OpenTelemetry.Resources.AWS)

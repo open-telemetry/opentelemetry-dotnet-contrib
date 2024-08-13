@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Stability     |  [Beta](../../README.md#beta)|
 | Code Owners   |  [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@ppittle](https://github.com/ppittle)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)

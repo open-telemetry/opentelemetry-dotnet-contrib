@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Stable](..\..\Readme.md#stable)|
+| Stability     |  [Stable](../../README.md#stable)|
 | Code Owners   |  [@cijothomas](https://github.com/cijothomas),  [@codeblanch](https://github.com/codeblanch),  [@reyang](https://github.com/reyang),  [@utpilla](https://github.com/utpilla),  [@Yun-Ting](https://github.com/Yun-Ting)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)

@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Stability     |  [Beta](../../README.md#beta)|
 | Code Owners   |  [@SergeyKanzhelev](https://github.com/SergeyKanzhelev)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
