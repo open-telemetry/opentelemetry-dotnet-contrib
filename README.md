@@ -18,10 +18,10 @@ guidelines](./CONTRIBUTING.md).
 ## Project status
 
 This repository is a collection of unrelated components maintained by different
-authors and groups. As such components shipped from this repository (via
-[Nuget](https://www.nuget.org/))may be at different stability/maturity levels.
-The status for each individual component SHOULD be mentioned in its respective
-`README.md` file and SHOULD fall into one of the following categories:
+authors and groups. As such, components shipped from this repository (via
+[Nuget](https://www.nuget.org/)) may be at different stability/maturity levels.
+The status for each individual component is mentioned in its respective
+`README.md` file and will fall into one of the following categories:
 
 ### Development
 
@@ -35,12 +35,12 @@ authors of this component would welcome your feedback. Bugs and performance
 problems should be reported, but component owners might not work on them right
 away. Components can go through significant breaking changes and there are no
 backward compatibility guarantees. Package versions in this status have the
-`-alpha` extension.
+`-alpha` extension (eg: opentelemetry.exporter.abc-1.0.0-alpha.1).
 
 ### Beta
 
 Same as Alpha, but comparatively more stable. Package versions in this status
-have the `-beta` extension.
+have the `-beta` extension (eg: opentelemetry.exporter.abc-1.0.0-beta.1).
 
 ### Release candidate
 
@@ -48,7 +48,7 @@ Component is close to stability. There may be minimal breaking changes between
 releases. A component at this stage is expected to have had exposure to
 non-critical production workloads already during its **Alpha/Beta** phase(s),
 making it suitable for broader usage. Package versions in this status have the
-`-rc` extension.
+`-rc` extension (eg: opentelemetry.exporter.abc-1.0.0-rc.1).
 
 ### Stable
 
@@ -63,8 +63,8 @@ This repository is maintained by [.NET Contrib maintainers](#maintainers) team
 and [.NET Contrib approvers](#approvers) who can help with reviews and code
 approval. However, as individual components are developed by numerous
 contributors, approvers and maintainers are not expected to directly contribute
-to every component. The list of owners for each component can be found
-[here](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/component_owners.yml).
+to every component. The list of owners for each component can be found in
+component's `Readme.md` file.
 
 ### Triagers
 

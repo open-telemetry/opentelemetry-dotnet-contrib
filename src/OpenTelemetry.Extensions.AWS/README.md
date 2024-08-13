@@ -1,5 +1,10 @@
 # Tracing with AWS Distro for OpenTelemetry .Net SDK
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](..\..\Readme.md#beta)|
+| Code Owners   |  [@srprash](https://github.com/srprash), [@ppittle](https://github.com/ppittle)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Extensions.AWS)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Extensions.AWS)
