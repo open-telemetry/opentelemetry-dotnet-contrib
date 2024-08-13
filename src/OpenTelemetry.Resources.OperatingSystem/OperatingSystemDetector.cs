@@ -103,7 +103,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 if (key != null)
                 {
                     AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuild")?.ToString());
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "Windows");
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, key.GetValue("ProductName")?.ToString());
                     AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, key.GetValue("CurrentVersion")?.ToString());
                 }
             }
@@ -186,10 +186,11 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
                 string? version = lines.FirstOrDefault(line => line.StartsWith("ProductVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+                string? name = lines.FirstOrDefault(line => line.StartsWith("ProductName:", StringComparison.Ordinal))?.Split(':').Last().Trim();
                 string? buildId = lines.FirstOrDefault(line => line.StartsWith("BuildVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
 
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, "MacOS");
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
             }
         }

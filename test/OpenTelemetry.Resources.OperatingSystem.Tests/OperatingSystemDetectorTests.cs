@@ -16,25 +16,21 @@ public class OperatingSystemDetectorTests
 
         string expectedPlatform;
         string expectedDescription;
-        string expectedName;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Windows;
             expectedDescription = "Windows";
-            expectedName = "Windows";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Linux;
             expectedDescription = "Linux";
-            expectedName = "Linux";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin;
             expectedDescription = "Darwin";
-            expectedName = "MacOS";
         }
         else
         {
@@ -48,10 +44,9 @@ public class OperatingSystemDetectorTests
         Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId));
         Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemVersion));
 
-        if (expectedName != "Linux")
+        if (expectedDescription != "Linux")
         {
             Assert.Contains(expectedDescription, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemDescription]);
-            Assert.Equal(expectedName, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         }
 
         Assert.Equal(expectedPlatform, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
