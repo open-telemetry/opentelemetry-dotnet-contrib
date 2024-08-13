@@ -9,7 +9,7 @@
   * `redis.client.request.duration`,
   * `redis.client.queue.duration`,
   * `redis.client.network.duration`.
-  ([#1982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1982)) 
+  ([#1982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1982))
 
 ## 1.9.0-beta.1
 
