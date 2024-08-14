@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+## 1.9.2
+
+Released 2024-Aug-12
+
 * Fixed `PlatformNotSupportedException`s being thrown during export when running
   on mobile platforms which caused telemetry to be dropped silently.
   ([#1992](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1992))
+
+* Fixed a bug which caused remaining records in a batch to be dropped silently
+  once the max payload size for a transmission (default 4 KiB) has been
+  reached.
+  ([#1999](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1999))
 
 ## 1.9.1
 
