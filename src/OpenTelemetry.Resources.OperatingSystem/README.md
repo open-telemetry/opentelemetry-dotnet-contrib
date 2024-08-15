@@ -1,5 +1,10 @@
 # Operating System Detectors
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Alpha](../../README.md#alpha)|
+| Code Owners   |  [@Kielek](https://github.com/Kielek), [@lachmatt](https://github.com/lachmatt)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.OperatingSystem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.OperatingSystem)](https://www.nuget.org/packages/OpenTelemetry.Resources.OperatingSystem)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.OperatingSystem)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.OperatingSystem)

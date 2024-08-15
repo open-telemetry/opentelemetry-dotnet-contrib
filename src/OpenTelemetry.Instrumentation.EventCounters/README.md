@@ -1,5 +1,10 @@
 # EventCounters Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Alpha](../../README.md#alpha)|
+| Code Owners   |  [@hananiel](https://github.com/hananiel), [@mic-max](https://github.com/mic-max)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.EventCounters)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.EventCounters)
