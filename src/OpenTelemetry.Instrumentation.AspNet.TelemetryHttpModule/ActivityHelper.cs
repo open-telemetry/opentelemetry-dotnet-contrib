@@ -66,9 +66,10 @@ internal static class ActivityHelper
         KeyValuePair<string, object?>[]? tags;
         if (context.Request?.Unvalidated?.Path is string path)
         {
-            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
+            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[2];
 
             tags[0] = new KeyValuePair<string, object?>("url.path", path);
+            tags[1] = new KeyValuePair<string, object?>("http.request.method", path);
         }
         else
         {
@@ -80,6 +81,7 @@ internal static class ActivityHelper
         if (tags is not null)
         {
             tags[0] = default;
+            tags[1] = default;
         }
 
         if (activity != null)
