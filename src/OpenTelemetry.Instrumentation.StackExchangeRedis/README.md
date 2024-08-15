@@ -1,5 +1,10 @@
 # StackExchange.Redis Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@matt-hensley](https://github.com/matt-hensley)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.StackExchangeRedis)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.StackExchangeRedis)

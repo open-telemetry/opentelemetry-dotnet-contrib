@@ -1,5 +1,10 @@
 # Resource Detectors for Google Cloud Platform environments
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Development](../../README.md#development)|
+| Code Owners   |  [@matt-hensley](https://github.com/matt-hensley), [@pyohannes](https://github.com/pyohannes)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Gcp)](https://www.nuget.org/packages/OpenTelemetry.Resources.Gcp)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Gcp)](https://www.nuget.org/packages/OpenTelemetry.Resources.Gcp)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.Gcp)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.Gcp)
