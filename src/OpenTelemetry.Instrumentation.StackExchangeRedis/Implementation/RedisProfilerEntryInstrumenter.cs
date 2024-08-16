@@ -112,10 +112,8 @@ internal static class RedisProfilerEntryInstrumenter
 
         var flags = command.Flags.ToString();
         activity?.SetTag(SemanticConventions.AttributeDbRedisFlagsKeyName, flags);
-        meterTags?.Add(SemanticConventions.AttributeDbRedisFlagsKeyName, flags);
 
         var operationName = command.Command ?? string.Empty;
-        activity?.SetTag(SemanticConventions.AttributeDbOperationName, operationName);
         meterTags?.Add(SemanticConventions.AttributeDbOperationName, operationName);
 
         if (activity is not null)
@@ -126,22 +124,22 @@ internal static class RedisProfilerEntryInstrumenter
 
                 if (!string.IsNullOrEmpty(commandAndKey) && !string.IsNullOrEmpty(script))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey + " " + script);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey + " " + script);
                 }
                 else if (!string.IsNullOrEmpty(commandAndKey))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey);
                 }
                 else if (command.Command != null)
                 {
-                    // Example: "db.query.text": SET;
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, command.Command);
+                    // Example: "db.statement": SET;
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
                 }
             }
             else if (command.Command != null)
             {
-                // Example: "db.query.text": SET;
-                activity.SetTag(SemanticConventions.AttributeDbQueryText, command.Command);
+                // Example: "db.statement": SET;
+                activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
             }
         }
 
@@ -152,10 +150,8 @@ internal static class RedisProfilerEntryInstrumenter
                 var ip = ipEndPoint.Address.ToString();
                 var port = ipEndPoint.Port;
 
-                activity?.SetTag(SemanticConventions.AttributeServerAddress, ip);
-                activity?.SetTag(SemanticConventions.AttributeServerPort, port);
-                activity?.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ip);
-                activity?.SetTag(SemanticConventions.AttributeNetworkPeerPort, port);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerIp, ip);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerPort, port);
 
                 meterTags?.Add(SemanticConventions.AttributeServerAddress, ip);
                 meterTags?.Add(SemanticConventions.AttributeServerPort, port);
@@ -167,8 +163,8 @@ internal static class RedisProfilerEntryInstrumenter
                 var host = dnsEndPoint.Host;
                 var port = dnsEndPoint.Port;
 
-                activity?.SetTag(SemanticConventions.AttributeServerAddress, host);
-                activity?.SetTag(SemanticConventions.AttributeServerPort, port);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerName, host);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerPort, port);
 
                 meterTags?.Add(SemanticConventions.AttributeServerAddress, host);
                 meterTags?.Add(SemanticConventions.AttributeServerPort, port);
@@ -177,13 +173,13 @@ internal static class RedisProfilerEntryInstrumenter
             {
                 var service = command.EndPoint.ToString();
 
-                activity?.SetTag(SemanticConventions.AttributeServerAddress, service);
+                activity?.SetTag(SemanticConventions.AttributePeerService, service);
                 meterTags?.Add(SemanticConventions.AttributeServerAddress, service);
             }
         }
 
         var db = command.Db;
-        activity?.SetTag(SemanticConventions.AttributeDbNamespace, db);
+        activity?.SetTag(SemanticConventions.AttributeDbRedisDatabaseIndex, db);
         meterTags?.Add(SemanticConventions.AttributeDbNamespace, db);
 
         // TODO: deal with the re-transmission
@@ -195,14 +191,12 @@ internal static class RedisProfilerEntryInstrumenter
             var enqueued = command.CommandCreated.Add(command.CreationToEnqueued);
             var send = enqueued.Add(command.EnqueuedToSending);
             var response = send.Add(command.SentToResponse);
-            var completion = send.Add(command.ResponseToCompletion);
 
             if (options.EnrichActivityWithTimingEvents)
             {
                 activity.AddEvent(new ActivityEvent("Enqueued", enqueued));
                 activity.AddEvent(new ActivityEvent("Sent", send));
                 activity.AddEvent(new ActivityEvent("ResponseReceived", response));
-                activity.AddEvent(new ActivityEvent("Completion", completion));
             }
 
             options.Enrich?.Invoke(activity, command);
@@ -210,8 +204,6 @@ internal static class RedisProfilerEntryInstrumenter
 
         if (metrics.Enabled && meterTags is TagList meterTagList)
         {
-            metrics.QueueTimeHistogram.Record(command.EnqueuedToSending.TotalSeconds, meterTagList);
-            metrics.ServerTimeHistogram.Record(command.SentToResponse.TotalSeconds, meterTagList);
             metrics.DurationHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
         }
 

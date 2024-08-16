@@ -25,16 +25,6 @@ internal class RedisMetrics : IDisposable
     {
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
 
-        this.QueueTimeHistogram = this.meter.CreateHistogram<double>(
-            QueueTimeMetricName,
-            unit: "s",
-            description: "Total time the redis request was waiting in queue before being sent to the server.");
-
-        this.ServerTimeHistogram = this.meter.CreateHistogram<double>(
-            ServerTimeMetricName,
-            unit: "s",
-            description: "Duration of redis requests since sent the request to receive the response.");
-
         this.DurationHistogram = this.meter.CreateHistogram<double>(
             DurationMetricName,
             unit: "s",
@@ -43,10 +33,6 @@ internal class RedisMetrics : IDisposable
     }
 
     public static RedisMetrics Instance { get; } = new RedisMetrics();
-
-    public Histogram<double> QueueTimeHistogram { get; }
-
-    public Histogram<double> ServerTimeHistogram { get; }
 
     public Histogram<double> DurationHistogram { get; }
 
