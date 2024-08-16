@@ -57,7 +57,7 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
     }
 
     [Fact]
-    public void ProfilerCommandInstrument_UsesNamespace()
+    public void ProfilerCommandInstrument_UsesDbRedisDatabaseIndex()
     {
         var activity = new Activity("redis-profiler");
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow);
@@ -65,8 +65,8 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
         var result = RedisProfilerEntryInstrumenter.ProfilerCommandInstrument(activity, profiledCommand, this.metrics, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbNamespace));
-        Assert.Equal(0, result.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbRedisDatabaseIndex));
+        Assert.Equal(0, result.GetTagValue(SemanticConventions.AttributeDbRedisDatabaseIndex));
     }
 
     [Fact]
@@ -104,10 +104,8 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
         var result = RedisProfilerEntryInstrumenter.ProfilerCommandInstrument(activity, profiledCommand, this.metrics, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbOperationName));
-        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbOperationName));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbQueryText));
-        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
     }
 
     [Fact]
@@ -142,14 +140,10 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
         var result = RedisProfilerEntryInstrumenter.ProfilerCommandInstrument(activity, profiledCommand, this.metrics, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(addressString, result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerPort));
-        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeServerPort));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
-        Assert.Equal(addressString, result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
-        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
+        Assert.Equal(addressString, result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
     }
 
     [Fact]
@@ -163,10 +157,10 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
         var result = RedisProfilerEntryInstrumenter.ProfilerCommandInstrument(activity, profiledCommand, this.metrics, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerPort));
-        Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeNetPeerName));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
     }
 
 #if !NETFRAMEWORK
@@ -180,9 +174,8 @@ public class RedisProfilerEntryInstrumenterTests : IDisposable
         var result = RedisProfilerEntryInstrumenter.ProfilerCommandInstrument(activity, profiledCommand, this.metrics, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributeServerAddress));
-        Assert.Null(result.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));
+        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributePeerService));
     }
 #endif
 }

@@ -28,6 +28,7 @@ public class RedisProfilerEntryInstrumenterConfigurationTests
         connectionOptions.EndPoints.Add("localhost:6379");
 
         this.connection = ConnectionMultiplexer.Connect(connectionOptions);
+        this.metrics = new RedisMetrics();
     }
 
     [Theory]
@@ -48,7 +49,7 @@ public class RedisProfilerEntryInstrumenterConfigurationTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         if (enableMeter)
         {
-            Assert.True(this.exportedItems.Count >= 3);
+            Assert.Single(this.exportedItems);
         }
         else
         {

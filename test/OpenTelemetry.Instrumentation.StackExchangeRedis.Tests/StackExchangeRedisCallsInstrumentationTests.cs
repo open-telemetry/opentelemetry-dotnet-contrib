@@ -417,7 +417,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         Assert.Equal(Status.Unset, activity.GetStatus());
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.Equal(0, activity.GetTagValue(SemanticConventions.AttributeDbRedisDatabaseIndex));
 
         if (endPoint is IPEndPoint ipEndPoint)
         {
