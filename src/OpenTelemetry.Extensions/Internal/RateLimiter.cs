@@ -7,28 +7,28 @@ namespace OpenTelemetry.Extensions.Internal;
 internal sealed class RateLimiter
 {
     private readonly Stopwatch stopwatch = Stopwatch.StartNew();
-    private readonly double creditsPerNanosecond;
+    private readonly double creditsPerTick;
     private readonly long maxBalance; // max balance in ticks
     private long currentBalance; // last op ticks less remaining balance, using long directly with Interlocked for thread safety
 
     public RateLimiter(double creditsPerSecond, double maxBalance)
     {
-        this.creditsPerNanosecond = creditsPerSecond / Stopwatch.Frequency;
-        this.maxBalance = (long)(maxBalance / this.creditsPerNanosecond);
+        this.creditsPerTick = creditsPerSecond / Stopwatch.Frequency;
+        this.maxBalance = (long)(maxBalance / this.creditsPerTick);
         this.currentBalance = this.stopwatch.ElapsedTicks - this.maxBalance;
     }
 
     public bool TrySpend(double itemCost)
     {
-        long cost = (long)(itemCost / this.creditsPerNanosecond);
-        long currentNanos;
-        long currentBalanceNanos;
+        long cost = (long)(itemCost / this.creditsPerTick);
+        long currentTicks;
+        long currentBalanceTicks;
         long availableBalanceAfterWithdrawal;
         do
         {
-            currentBalanceNanos = Interlocked.Read(ref this.currentBalance);
-            currentNanos = this.stopwatch.ElapsedTicks;
-            long currentAvailableBalance = currentNanos - currentBalanceNanos;
+            currentBalanceTicks = Interlocked.Read(ref this.currentBalance);
+            currentTicks = this.stopwatch.ElapsedTicks;
+            long currentAvailableBalance = currentTicks - currentBalanceTicks;
             if (currentAvailableBalance > this.maxBalance)
             {
                 currentAvailableBalance = this.maxBalance;
@@ -40,7 +40,9 @@ internal sealed class RateLimiter
                 return false;
             }
         }
-        while (Interlocked.CompareExchange(ref this.currentBalance, currentNanos - availableBalanceAfterWithdrawal, currentBalanceNanos) != currentBalanceNanos);
+
+        // CompareExchange will fail if currentBalance has changed since the last read, implying another thread has updated the balance
+        while (Interlocked.CompareExchange(ref this.currentBalance, currentTicks - availableBalanceAfterWithdrawal, currentBalanceTicks) != currentBalanceTicks);
         return true;
     }
 }
