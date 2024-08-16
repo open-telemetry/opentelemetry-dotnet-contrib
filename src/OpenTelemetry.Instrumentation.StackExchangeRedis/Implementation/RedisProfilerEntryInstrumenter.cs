@@ -210,9 +210,9 @@ internal static class RedisProfilerEntryInstrumenter
 
         if (metrics.Enabled && meterTags is TagList meterTagList)
         {
-            metrics.QueueHistogram.Record(command.EnqueuedToSending.TotalSeconds, meterTagList);
-            metrics.NetworkHistogram.Record(command.SentToResponse.TotalSeconds, meterTagList);
-            metrics.OperationHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
+            metrics.QueueTimeHistogram.Record(command.EnqueuedToSending.TotalSeconds, meterTagList);
+            metrics.ServerTimeHistogram.Record(command.SentToResponse.TotalSeconds, meterTagList);
+            metrics.DurationHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
         }
 
         activity?.Stop();

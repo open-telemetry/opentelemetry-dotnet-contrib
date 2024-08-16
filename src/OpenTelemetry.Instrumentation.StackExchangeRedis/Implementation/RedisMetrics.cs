@@ -10,9 +10,9 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal class RedisMetrics : IDisposable
 {
-    internal const string OperationMetricName = "db.client.operation.duration";
-    internal const string QueueMetricName = "db.client.queue.duration";
-    internal const string NetworkMetricName = "db.client.network.duration";
+    internal const string DurationMetricName = "db.client.operation.duration";
+    internal const string QueueTimeMetricName = "db.client.operation.queue_time";
+    internal const string ServerTimeMetricName = "db.client.operation.server_time";
 
     internal static readonly Assembly Assembly = typeof(StackExchangeRedisInstrumentation).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -25,18 +25,18 @@ internal class RedisMetrics : IDisposable
     {
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
 
-        this.QueueHistogram = this.meter.CreateHistogram<double>(
-            QueueMetricName,
+        this.QueueTimeHistogram = this.meter.CreateHistogram<double>(
+            QueueTimeMetricName,
             unit: "s",
             description: "Total time the redis request was waiting in queue before being sent to the server.");
 
-        this.NetworkHistogram = this.meter.CreateHistogram<double>(
-            NetworkMetricName,
+        this.ServerTimeHistogram = this.meter.CreateHistogram<double>(
+            ServerTimeMetricName,
             unit: "s",
             description: "Duration of redis requests since sent the request to receive the response.");
 
-        this.OperationHistogram = this.meter.CreateHistogram<double>(
-            OperationMetricName,
+        this.DurationHistogram = this.meter.CreateHistogram<double>(
+            DurationMetricName,
             unit: "s",
             description: "Total client request duration, including processing, queue and server duration.",
             [new(SemanticConventions.AttributeDbSystem, "redis")]);
@@ -44,13 +44,13 @@ internal class RedisMetrics : IDisposable
 
     public static RedisMetrics Instance { get; } = new RedisMetrics();
 
-    public Histogram<double> QueueHistogram { get; }
+    public Histogram<double> QueueTimeHistogram { get; }
 
-    public Histogram<double> NetworkHistogram { get; }
+    public Histogram<double> ServerTimeHistogram { get; }
 
-    public Histogram<double> OperationHistogram { get; }
+    public Histogram<double> DurationHistogram { get; }
 
-    public bool Enabled => this.OperationHistogram.Enabled;
+    public bool Enabled => this.DurationHistogram.Enabled;
 
     public void Dispose()
     {

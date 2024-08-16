@@ -6,9 +6,9 @@
   ([#2160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2160))
 
 * Add `OpenTelemetry.Instrumentation.StackExchangeRedis` meter. Supported metrics:
-  * `redis.client.request.duration`,
-  * `redis.client.queue.duration`,
-  * `redis.client.network.duration`.
+  * `db.client.operation.duration`,
+  * `db.client.operation.queue_time`,
+  * `db.client.operation.server_time`.
   ([#1982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1982))
 
 ## 1.9.0-beta.1
