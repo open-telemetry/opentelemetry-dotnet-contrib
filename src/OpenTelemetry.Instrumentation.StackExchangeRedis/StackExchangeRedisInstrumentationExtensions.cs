@@ -11,6 +11,9 @@ using StackExchange.Redis;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
+/// <summary>
+/// Extension methods to simplify registering of Redis instrumentation.
+/// </summary>
 public static class StackExchangeRedisInstrumentationExtensions
 {
     /// <summary>
