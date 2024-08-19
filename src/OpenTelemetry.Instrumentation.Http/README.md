@@ -367,7 +367,6 @@ library you can do so as follows:
       // .NET only, access request object if needed.
       // response.RequestMessage
       activity.DisplayName = CustomDisplayName;
-      
   };
 });
 ```

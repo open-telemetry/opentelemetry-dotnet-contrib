@@ -299,7 +299,6 @@ library you can do so as follows:
       // Access request object if needed.
       // response.HttpContext.Request
       activity.DisplayName = CustomDisplayName;
-      
   };
 });
 ```
