@@ -13,6 +13,7 @@ internal sealed class OperatingSystemResourcesEventSource : EventSource
 
     private const int EventIdFailedToExtractAttributes = 1;
     private const int EventIdFailedToValidateValue = 2;
+    private const int EventIdProcessTimeout = 3;
 
     [NonEvent]
     public void ResourceAttributesExtractException(string format, Exception ex)
@@ -33,5 +34,11 @@ internal sealed class OperatingSystemResourcesEventSource : EventSource
     public void FailedToValidateValue(string error)
     {
         this.WriteEvent(EventIdFailedToValidateValue, error);
+    }
+
+    [Event(EventIdProcessTimeout, Message = "Process timeout occurred: '{0}'", Level = EventLevel.Warning)]
+    public void ProcessTimeout(string error)
+    {
+        this.WriteEvent(EventIdProcessTimeout, error);
     }
 }

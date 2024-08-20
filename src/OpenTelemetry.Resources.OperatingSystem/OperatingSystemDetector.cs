@@ -149,10 +149,17 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 };
 
                 using var process = Process.Start(psi);
-                process?.WaitForExit(5000);
                 if (process != null)
                 {
-                    buildId = process.StandardOutput.ReadToEnd().Trim();
+                    var isExited = process.WaitForExit(5000);
+                    if (isExited)
+                    {
+                        buildId = process.StandardOutput.ReadToEnd().Trim();
+                    }
+                    else
+                    {
+                        OperatingSystemResourcesEventSource.Log.ProcessTimeout("Process did not exit within the given timeout.");
+                    }
                 }
             }
 
@@ -179,19 +186,26 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 CreateNoWindow = true,
             };
             using var process = Process.Start(psi);
-            process?.WaitForExit(5000);
             if (process != null)
             {
-                string output = process.StandardOutput.ReadToEnd().Trim();
-                string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                var isExited = process.WaitForExit(5000);
+                if (isExited)
+                {
+                    string output = process.StandardOutput.ReadToEnd().Trim();
+                    string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-                string? version = lines.FirstOrDefault(line => line.StartsWith("ProductVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
-                string? name = lines.FirstOrDefault(line => line.StartsWith("ProductName:", StringComparison.Ordinal))?.Split(':').Last().Trim();
-                string? buildId = lines.FirstOrDefault(line => line.StartsWith("BuildVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+                    string? version = lines.FirstOrDefault(line => line.StartsWith("ProductVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+                    string? name = lines.FirstOrDefault(line => line.StartsWith("ProductName:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+                    string? buildId = lines.FirstOrDefault(line => line.StartsWith("BuildVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
 
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
+                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
+                }
+                else
+                {
+                    OperatingSystemResourcesEventSource.Log.ProcessTimeout("Process did not exit within the given timeout.");
+                }
             }
         }
         catch (Exception ex)
