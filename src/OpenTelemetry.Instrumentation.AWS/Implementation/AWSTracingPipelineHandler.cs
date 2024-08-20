@@ -140,12 +140,21 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
     {
         AmazonWebServiceRequest request = requestContext.OriginalRequest;
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameters))
+        if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
             foreach (var parameter in parameters)
             {
                 try
                 {
+                    // for bedrock agent, we only extract one attribute based on the operation.
+                    if (AWSServiceType.IsBedrockAgentService(service))
+                    {
+                        if (AWSServiceHelper.OperationNameToResourceMap()[AWSServiceHelper.GetAWSOperationName(requestContext)] != parameter)
+                        {
+                            continue;
+                        }
+                    }
+
                     var property = request.GetType().GetProperty(parameter);
                     if (property != null)
                     {
@@ -181,75 +190,61 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, "aws_bedrock");
         }
-        else if (AWSServiceType.IsBedrockAgentService(service))
-        {
-            try
-            {
-                if (AWSServiceHelper.OperationNameToResourceMap().TryGetValue(AWSServiceHelper.GetAWSOperationName(requestContext), out var parameter))
-                {
-                    var property = request.GetType().GetProperty(parameter);
-                    if (property != null)
-                    {
-                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
-                        {
-                            activity.SetTag(attribute, property.GetValue(request));
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Guard against any reflection-related exceptions when running in AoT.
-                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
-            }
-        }
     }
 
     private static void AddResponseSpecificInformation(Activity activity, IResponseContext responseContext, string service)
     {
-        AmazonWebServiceResponse response = responseContext.Response;
+        if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
+        {
+            AmazonWebServiceResponse response = responseContext.Response;
 
-        if (AWSServiceType.IsBedrockService(service))
-        {
-            var property = response.GetType().GetProperty("GuardrailId");
-            if (property != null)
+            foreach (var parameter in parameters)
             {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSBedrockGuardrailId, property.GetValue(response));
-            }
-        }
-        else if (AWSServiceType.IsBedrockAgentService(service))
-        {
-            var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
-            if (AWSServiceHelper.OperationNameToResourceMap().TryGetValue(operationName, out var parameter))
-            {
-                switch (parameter)
+                try
                 {
-                    case "KnowledgeBaseId":
-                        AddBedrockAgentResponseAttribute(activity, response, "KnowledgeBase", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId);
-                        break;
-                    case "DataSourceId":
-                        AddBedrockAgentResponseAttribute(activity, response, "DataSource", AWSSemanticConventions.AttributeAWSBedrockDataSourceId);
-                        break;
-                    case "AgentId":
-                        AddBedrockAgentResponseAttribute(activity, response, "Agent", AWSSemanticConventions.AttributeAWSBedrockAgentId);
-                        break;
+                    // for bedrock agent, extract attribute from object in response.
+                    if (AWSServiceType.IsBedrockAgentService(service))
+                    {
+                        var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
+                        if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
+                        {
+                            AddBedrockAgentResponseAttribute(activity, response, parameter);
+                        }
+                    }
+
+                    var property = response.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(response));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
                 }
             }
         }
     }
 
-    private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string propertyName, string attributeName)
+    private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
     {
-        var property = response.GetType().GetProperty(propertyName);
-        if (property != null)
+        var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
+        if (responseObject != null)
         {
-            var value = property.GetValue(response);
-            if (value != null)
+            var attributeObject = responseObject.GetValue(response);
+            if (attributeObject != null)
             {
-                var attribute = value.GetType().GetProperty(propertyName + "Id");
-                if (attribute != null)
+                var property = attributeObject.GetType().GetProperty(parameter);
+                if (property != null)
                 {
-                    activity.SetTag(attributeName, attribute.GetValue(value));
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    {
+                        activity.SetTag(attribute, property.GetValue(attributeObject));
+                    }
                 }
             }
         }

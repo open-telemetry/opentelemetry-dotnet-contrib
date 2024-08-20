@@ -7,12 +7,19 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceHelper
 {
-    internal static IReadOnlyDictionary<string, List<string>> ServiceParameterMap = new Dictionary<string, List<string>>()
+    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.DynamoDbService, new List<string> { "TableName" } },
         { AWSServiceType.SQSService, new List<string> { "QueueUrl" } },
         { AWSServiceType.BedrockRuntimeService, new List<string> { "ModelId" } },
+        { AWSServiceType.BedrockAgentService, new List<string> { "AgentId", "KnowledgeBaseId", "DataSourceId" } },
         { AWSServiceType.BedrockAgentRuntimeService, new List<string> { "AgentId", "KnowledgeBaseId" } },
+    };
+
+    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap = new Dictionary<string, List<string>>()
+    {
+        { AWSServiceType.BedrockService, new List<string> { "GuardrailId" } },
+        { AWSServiceType.BedrockAgentService, new List<string> { "AgentId", "DataSourceId" } },
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
@@ -20,6 +27,7 @@ internal class AWSServiceHelper
         { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
         { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
         { "ModelId", AWSSemanticConventions.AttributeGenAiModelId },
+        { "GuardrailId", AWSSemanticConventions.AttributeAWSBedrockGuardrailId },
         { "AgentId", AWSSemanticConventions.AttributeAWSBedrockAgentId },
         { "KnowledgeBaseId", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId },
         { "DataSourceId", AWSSemanticConventions.AttributeAWSBedrockDataSourceId },
