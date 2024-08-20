@@ -98,14 +98,12 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         try
         {
             var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey))
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey);
+            if (key != null)
             {
-                if (key != null)
-                {
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuild")?.ToString());
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, key.GetValue("ProductName")?.ToString());
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, key.GetValue("CurrentVersion")?.ToString());
-                }
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuild")?.ToString());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, key.GetValue("ProductName")?.ToString());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, key.GetValue("CurrentVersion")?.ToString());
             }
         }
         catch (Exception ex)
@@ -151,6 +149,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 };
 
                 using var process = Process.Start(psi);
+                process?.WaitForExit(5000);
                 if (process != null)
                 {
                     buildId = process.StandardOutput.ReadToEnd().Trim();
@@ -180,6 +179,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 CreateNoWindow = true,
             };
             using var process = Process.Start(psi);
+            process?.WaitForExit(5000);
             if (process != null)
             {
                 string output = process.StandardOutput.ReadToEnd().Trim();

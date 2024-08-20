@@ -17,7 +17,7 @@ internal sealed class OperatingSystemResourcesEventSource : EventSource
     [NonEvent]
     public void ResourceAttributesExtractException(string format, Exception ex)
     {
-        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        if (this.IsEnabled(EventLevel.Warning, EventKeywords.All))
         {
             this.FailedToExtractResourceAttributes(format, ex.ToInvariantString());
         }
