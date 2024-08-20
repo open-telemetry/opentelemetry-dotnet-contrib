@@ -157,7 +157,7 @@ internal sealed class HostDetector : IResourceDetector
 
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
-            process?.WaitForExit();
+            process?.WaitForExit(5000);
             if (process != null)
             {
                 string output = process.StandardOutput.ReadToEnd();
