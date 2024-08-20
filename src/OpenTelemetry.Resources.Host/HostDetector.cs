@@ -157,20 +157,28 @@ internal sealed class HostDetector : IResourceDetector
 
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
-            process?.WaitForExit(5000);
             if (process != null)
             {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-
-                if (!string.IsNullOrEmpty(error))
+                var isExited = process.WaitForExit(5000);
+                if (isExited)
                 {
-                    HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), error);
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), error);
+                        return null;
+                    }
+
+                    sb.Append(output);
+                    return sb.ToString();
+                }
+                else
+                {
+                    HostResourceEventSource.Log.ProcessTimeout("Process did not exit within the given timeout");
                     return null;
                 }
-
-                sb.Append(output);
-                return sb.ToString();
             }
 
             return null;
