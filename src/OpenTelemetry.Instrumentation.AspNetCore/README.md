@@ -279,8 +279,10 @@ When overriding the default settings provided by instrumentation or adding
 additional telemetry, it is important to consider the sequence of callbacks.
 Generally, it is recommended to use `EnrichWithHttpResponse` for any activity
 enrichment that does not need access to exceptions, as the instrumentation
-library sets all defaults before this callback. The following is the sequence in
-which these callbacks are executed:
+library populates all telemetry following the [OTel
+specification](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/http)
+before this callback. The following is the sequence in which these callbacks are
+executed:
 
 1) Processor `OnStart`
 2) `EnrichWithHttpRequest`
@@ -288,17 +290,23 @@ which these callbacks are executed:
 4) `EnrichWithHttpResponse`
 5) Processor `OnEnd`
 
-As an example, if you need to override the default DisplayName set by the
-library you can do so as follows:
+As an example, if you need to override the default DisplayName or tags set by
+the library you can do so as follows:
 
 ```csharp
 .AddAspNetCoreInstrumentation(o =>
 {
   o.EnrichWithHttpResponse = (activity, response) =>
   {
-      // Access request object if needed.
+      // Access request object if needed
       // response.HttpContext.Request
       activity.DisplayName = CustomDisplayName;
+
+      // Overrides the value
+      activity.SetTag("http.route", "CustomRoute");
+
+      // Removes the tag
+      activity.SetTag("network.protocol.version", null);
   };
 });
 ```
