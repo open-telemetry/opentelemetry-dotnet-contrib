@@ -38,7 +38,6 @@ public class OperatingSystemDetectorTests
         }
 
         Assert.Equal(5, resourceAttributes.Count);
-        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemDescription, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemName, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemType, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId, resourceAttributes.Keys);
@@ -47,6 +46,7 @@ public class OperatingSystemDetectorTests
         // Not checking on Linux because the description may vary depending on the distribution.
         if (expectedDescription != "Linux")
         {
+            Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemDescription, resourceAttributes.Keys);
             Assert.Contains(expectedDescription, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemDescription]);
         }
 

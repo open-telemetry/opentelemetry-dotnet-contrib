@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NET
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 #endif
 
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
@@ -137,31 +137,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 }
             }
 
-            if (string.IsNullOrEmpty(buildId))
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "uname",
-                    Arguments = "-r",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                };
-
-                using var process = Process.Start(psi);
-                if (process != null)
-                {
-                    var isExited = process.WaitForExit(5000);
-                    if (isExited)
-                    {
-                        buildId = process.StandardOutput.ReadToEnd().Trim();
-                    }
-                    else
-                    {
-                        OperatingSystemResourcesEventSource.Log.ProcessTimeout("Process did not exit within the given timeout.");
-                    }
-                }
-            }
+            // TODO: fallback for buildId
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name ?? "Linux");
@@ -177,36 +153,44 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            var psi = new ProcessStartInfo
+            var possibleFiles = new[]
             {
-                FileName = "sh",
-                Arguments = "-c \"sw_vers\"",
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
+            "/System/Library/CoreServices/SystemVersion.plist",
+            "/System/Library/CoreServices/ServerVersion.plist",
             };
-            using var process = Process.Start(psi);
-            if (process != null)
+
+            string? plistFilePath = possibleFiles.FirstOrDefault(File.Exists);
+            if (string.IsNullOrEmpty(plistFilePath))
             {
-                var isExited = process.WaitForExit(5000);
-                if (isExited)
-                {
-                    string output = process.StandardOutput.ReadToEnd().Trim();
-                    string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
+                return;
+            }
 
-                    string? version = lines.FirstOrDefault(line => line.StartsWith("ProductVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
-                    string? name = lines.FirstOrDefault(line => line.StartsWith("ProductName:", StringComparison.Ordinal))?.Split(':').Last().Trim();
-                    string? buildId = lines.FirstOrDefault(line => line.StartsWith("BuildVersion:", StringComparison.Ordinal))?.Split(':').Last().Trim();
+            var properties = new Dictionary<string, string>();
+            XDocument doc = XDocument.Load(plistFilePath);
+            var dict = doc.Root?.Element("dict");
 
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
-                    AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
-                }
-                else
+            if (dict != null)
+            {
+                var keys = dict.Elements("key").ToList();
+                var values = dict.Elements("string").ToList();
+
+                if (keys.Count == values.Count)
                 {
-                    OperatingSystemResourcesEventSource.Log.ProcessTimeout("Process did not exit within the given timeout.");
+                    for (int i = 0; i < keys.Count; i++)
+                    {
+                        properties[keys[i].Value] = values[i].Value;
+                    }
                 }
             }
+
+            string? name = properties.GetValueOrDefault("ProductName");
+            string? version = properties.GetValueOrDefault("ProductVersion");
+            string? buildId = properties.GetValueOrDefault("ProductBuildVersion");
+
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
         }
         catch (Exception ex)
         {
