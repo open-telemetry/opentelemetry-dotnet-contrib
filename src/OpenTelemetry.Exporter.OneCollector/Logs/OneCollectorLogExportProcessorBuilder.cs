@@ -250,7 +250,7 @@ public sealed class OneCollectorLogExportProcessorBuilder
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName),
+                new EventNameManager(exporterOptions),
                 exporterOptions.TenantToken!,
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,

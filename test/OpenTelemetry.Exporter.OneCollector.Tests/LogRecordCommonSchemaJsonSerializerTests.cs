@@ -264,7 +264,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
         bool includeStackTraceAsString = false)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
-            new("Namespace", "Name"),
+            new EventNameManager(new OneCollectorLogExporterOptions
+            {
+                DefaultEventNamespace = "Namespace",
+                DefaultEventName = "Name",
+            }),
             "tenant-token",
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 

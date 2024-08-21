@@ -56,7 +56,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
         var sink = new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName),
+                new EventNameManager(exporterOptions),
                 exporterOptions.TenantToken!,
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,

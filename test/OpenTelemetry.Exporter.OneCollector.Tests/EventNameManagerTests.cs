@@ -55,9 +55,9 @@ public class EventNameManagerTests
     [Fact]
     public void DefaultEventFullNameLengthTest()
     {
-        Assert.Throws<ArgumentException>(() => new EventNameManager("N", "N"));
-        Assert.Throws<ArgumentException>(() => new EventNameManager(new string('N', 99), "N"));
-        Assert.Throws<ArgumentException>(() => new EventNameManager("N", new string('N', 99)));
+        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager("N", "N"));
+        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager(new string('N', 99), "N"));
+        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager("N", new string('N', 99)));
     }
 
     [Theory]
@@ -68,7 +68,7 @@ public class EventNameManagerTests
     [InlineData("9", "[]", "DefaultNamespace.DefaultName")]
     public void DefaultEventNamespaceAndNameUsedToGenerateFullNameTest(string? eventNamespace, string? eventName, string expectedEventFullName)
     {
-        var eventNameManager = new EventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName(eventNamespace, eventName);
 
@@ -78,7 +78,7 @@ public class EventNameManagerTests
     [Fact]
     public void DefaultEventNamespaceAndNameUsedToGenerateFullNameLengthTest()
     {
-        var eventNameManager = new EventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("N", "N");
 
@@ -96,7 +96,7 @@ public class EventNameManagerTests
     [Fact]
     public void EventNameCacheTest()
     {
-        var eventNameManager = new EventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
 
         Assert.Empty(eventNameManager.EventNamespaceCache);
 
@@ -109,5 +109,14 @@ public class EventNameManagerTests
 
         Assert.Single(eventNameManager.EventNamespaceCache);
         Assert.Single((eventNameManager.EventNamespaceCache["Test"] as Hashtable)!);
+    }
+
+    private static EventNameManager CreateDefaultEventNameManager(string defaultNamespace, string defaultEventName)
+    {
+        return new EventNameManager(new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = defaultNamespace,
+            DefaultEventName = defaultEventName,
+        });
     }
 }

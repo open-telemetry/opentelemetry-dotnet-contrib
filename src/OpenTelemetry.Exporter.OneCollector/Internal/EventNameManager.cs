@@ -19,31 +19,31 @@ internal sealed class EventNameManager
     private readonly byte[] defaultEventFullName;
     private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
-    public EventNameManager(string defaultEventNamespace, string defaultEventName)
+    public EventNameManager(OneCollectorLogExporterOptions exporterOptions)
     {
-        Debug.Assert(defaultEventNamespace != null, "defaultEventNamespace was null");
-        Debug.Assert(defaultEventName != null, "defaultEventName was null");
+        Debug.Assert(exporterOptions.DefaultEventNamespace != null, "defaultEventNamespace was null");
+        Debug.Assert(exporterOptions.DefaultEventName != null, "defaultEventName was null");
 
-        this.defaultEventNamespace = defaultEventNamespace!;
-        this.defaultEventName = defaultEventName!;
+        this.defaultEventNamespace = exporterOptions.DefaultEventNamespace!;
+        this.defaultEventName = exporterOptions.DefaultEventName!;
 
-        if (!IsEventNamespaceValid(defaultEventNamespace!))
+        if (!IsEventNamespaceValid(exporterOptions.DefaultEventNamespace!))
         {
-            throw new ArgumentException($"Default event namespace '{defaultEventNamespace}' was invalid.", nameof(defaultEventNamespace));
+            throw new ArgumentException($"Default event namespace '{exporterOptions.DefaultEventNamespace}' was invalid.", nameof(exporterOptions));
         }
 
-        if (!IsEventNamespaceValid(defaultEventName!))
+        if (!IsEventNamespaceValid(exporterOptions.DefaultEventName!))
         {
-            throw new ArgumentException($"Default event name '{defaultEventName}' was invalid.", nameof(defaultEventName));
+            throw new ArgumentException($"Default event name '{exporterOptions.DefaultEventName}' was invalid.", nameof(exporterOptions));
         }
 
-        var defaultEventFullNameLength = defaultEventNamespace!.Length + defaultEventName!.Length + 1;
+        var defaultEventFullNameLength = exporterOptions.DefaultEventNamespace!.Length + exporterOptions.DefaultEventName!.Length + 1;
         if (defaultEventFullNameLength < MinimumEventFullNameLength || defaultEventFullNameLength > MaximumEventFullNameLength)
         {
-            throw new ArgumentException($"Default event full name '{defaultEventNamespace}.{defaultEventName}' does not meet length requirements.", nameof(defaultEventName));
+            throw new ArgumentException($"Default event full name '{exporterOptions.DefaultEventNamespace}.{exporterOptions.DefaultEventName}' does not meet length requirements.", nameof(exporterOptions));
         }
 
-        this.defaultEventFullName = BuildEventFullName(defaultEventNamespace, defaultEventName)!;
+        this.defaultEventFullName = BuildEventFullName(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName)!;
 
 #if NET
         Debug.Assert(this.defaultEventFullName != null, "this.defaultFullyQualifiedEventName was null");
