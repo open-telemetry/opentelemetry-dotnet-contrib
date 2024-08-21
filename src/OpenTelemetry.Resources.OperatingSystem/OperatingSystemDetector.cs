@@ -118,10 +118,10 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            var osReleaseContent = File.ReadAllText("/etc/os-release");
+            var osReleaseContent = File.ReadAllLines("/etc/os-release");
             string? buildId = null, name = null, version = null;
 
-            foreach (var line in osReleaseContent.Split('\n'))
+            foreach (var line in osReleaseContent)
             {
                 if (line.StartsWith("BUILD_ID=", StringComparison.Ordinal))
                 {
