@@ -37,7 +37,6 @@ public class OperatingSystemDetectorTests
             throw new PlatformNotSupportedException("Unknown platform");
         }
 
-        Assert.Equal(5, resourceAttributes.Count);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemName, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemType, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId, resourceAttributes.Keys);
@@ -48,6 +47,7 @@ public class OperatingSystemDetectorTests
         {
             Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemDescription, resourceAttributes.Keys);
             Assert.Contains(expectedDescription, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemDescription]);
+            Assert.Equal(5, resourceAttributes.Count);
         }
 
         Assert.Equal(expectedPlatform, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
