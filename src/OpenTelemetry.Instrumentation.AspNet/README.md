@@ -1,5 +1,10 @@
 # ASP.NET Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.AspNet)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.AspNet)
@@ -137,6 +142,18 @@ below.
 
 ### Trace Filter
 
+> [!NOTE]
+> OpenTelemetry has the concept of a
+[Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
+When using `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule` the
+`url.path` tag is supplied automatically to samplers when telemetry is started
+for incoming requests. It is recommended to use a sampler which inspects
+`url.path` (as opposed to the `Filter` option described below) in order to
+perform filtering as it will prevent child spans from being created and bypass
+data collection for anything NOT recorded by the sampler. The sampler approach
+will reduce the impact on the process being instrumented for all filtered
+requests.
+
 This instrumentation by default collects all the incoming http requests. It
 allows filtering of requests by using the `Filter` function in
 `AspNetTraceInstrumentationOptions`. This defines the condition for allowable
@@ -157,11 +174,6 @@ this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             })
     .Build();
 ```
-
-It is important to note that this `Filter` option is specific to this
-instrumentation. OpenTelemetry has a concept of a
-[Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling),
-and the `Filter` option does the filtering *before* the Sampler is invoked.
 
 ### Trace Enrich
 
