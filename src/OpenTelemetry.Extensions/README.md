@@ -84,3 +84,27 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 Warning: The baggage key predicate is executed for every baggage entry for each
 started activity.
 Do not use slow or intensive operations.
+
+### RateLimitingSampler
+
+The rate limiting sampler is a sampler that will limit the number of samples to
+the specified rate per second. It is typically used in conjunction with the ParentBasedSampler
+to ensure that the rate limiting sampler is only applied to the root spans. When
+using the ParentBasedSampler, when an Activity creation request comes in without
+a sampling decision, it will delegate to the rate limiting sampler which will
+make a decision based on the rate limit, that way all spans in the trace will use
+the same sampling decision, and the rate will effectively become the number of
+traces per second, irrespective of the number of spans within each trace.
+
+Example of RateLimitingSampler usage:
+
+```cs
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            // Add the rate limiting sampler with a limit of 3 traces per second
+            .SetSampler(new ParentBasedSampler(new RateLimitingSampler(3)))
+    });
+```
