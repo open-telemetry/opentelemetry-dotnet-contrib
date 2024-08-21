@@ -353,9 +353,9 @@ before this callback. The following is the sequence in which these callbacks are
 executed:
 
 1) Processor `OnStart`
-2) `EnrichWithHttpRequestMessage` (.NET) \ `EnrichWithHttpWebRequest` (.NET Framework)
+2) `EnrichWithHttpRequestMessage` (.NET) / `EnrichWithHttpWebRequest` (.NET Framework)
 3) `EnrichWithException` both
-4) `EnrichWithHttpResponseMessage` (.NET) \ `EnrichWithHttpWebResponse` (.NET Framework)
+4) `EnrichWithHttpResponseMessage` (.NET) / `EnrichWithHttpWebResponse` (.NET Framework)
 5) Processor `OnEnd`
 
 As an example, if you need to override the default DisplayName set by the
@@ -368,7 +368,7 @@ library you can do so as follows:
   {
       // .NET only, access request object if needed.
       // response.RequestMessage
-      activity.DisplayName = CustomDisplayName;
+      activity.DisplayName = "CustomDisplayName";
 
       // Overrides the value
       activity.SetTag("url.full", "CustomUrl");

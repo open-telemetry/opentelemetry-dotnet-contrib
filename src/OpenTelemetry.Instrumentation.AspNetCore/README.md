@@ -300,7 +300,7 @@ the library you can do so as follows:
   {
       // Access request object if needed
       // response.HttpContext.Request
-      activity.DisplayName = CustomDisplayName;
+      activity.DisplayName = "CustomDisplayName";
 
       // Overrides the value
       activity.SetTag("http.route", "CustomRoute");
