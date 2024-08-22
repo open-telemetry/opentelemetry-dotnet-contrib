@@ -164,22 +164,6 @@ internal sealed class EventNameManager
 
     private byte[] ResolveEventNameRare(Hashtable eventNameCache, string eventNamespace, string eventName)
     {
-        if (!IsEventNamespaceValid(eventNamespace))
-        {
-            OneCollectorExporterEventSource.Log.EventNamespaceInvalid(eventNamespace);
-            eventNamespace = this.exporterOptions.DefaultEventNamespace;
-        }
-
-        var eventNameHashtableKey = eventName;
-
-        if (!IsEventNameValid(eventName))
-        {
-            OneCollectorExporterEventSource.Log.EventNameInvalid(eventName);
-            eventName = this.exporterOptions.DefaultEventName;
-        }
-
-        byte[] eventFullName;
-
         var tableMappingOptions = this.exporterOptions.TableMappingOptions;
         if (tableMappingOptions.UseTableMapping)
         {
@@ -210,13 +194,37 @@ internal sealed class EventNameManager
                 }
                 else
                 {
-                    eventNamespace = tableMappingOptions.DefaultTableName;
+                    var catchAllFound = tableMappingOptions.TableMappings.TryGetValue(OneCollectorLogExporterTableMappingOptions.CatchAllNamespace, out var defaultTableName);
+
+                    if (catchAllFound && defaultTableName is not null)
+                    {
+                        eventNamespace = defaultTableName;
+                    }
+                    else
+                    {
+                        eventNamespace = OneCollectorLogExporterTableMappingOptions.DefaultTableName;
+                    }
                 }
             }
 
             eventName = string.Empty;
         }
 
+        if (!IsEventNamespaceValid(eventNamespace))
+        {
+            OneCollectorExporterEventSource.Log.EventNamespaceInvalid(eventNamespace);
+            eventNamespace = this.exporterOptions.DefaultEventNamespace;
+        }
+
+        var eventNameHashtableKey = eventName;
+
+        if (!IsEventNameValid(eventName))
+        {
+            OneCollectorExporterEventSource.Log.EventNameInvalid(eventName);
+            eventName = this.exporterOptions.DefaultEventName;
+        }
+
+        byte[] eventFullName;
 
         var finalEventFullNameLength = eventNamespace.Length + eventName.Length + 1;
         if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)

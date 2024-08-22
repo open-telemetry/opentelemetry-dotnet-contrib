@@ -126,7 +126,6 @@ public class EventNameManagerTests
                     { "MyNamespace", "MyTable" },
                     { "MyNamespace2", "MyTable2" },
                 },
-                DefaultTableName = "Log",
             },
         };
 
@@ -152,7 +151,6 @@ public class EventNameManagerTests
                     { "MyNamespace", "MyTable" },
                     { "MyNamespace2", "MyTable2" },
                 },
-                DefaultTableName = "Log",
             },
         };
 
@@ -179,7 +177,6 @@ public class EventNameManagerTests
                     { "MyNamespace.MyChildNamespace", "MyChildTable" },
                     { "MyNamespace2", "MyTable2" },
                 },
-                DefaultTableName = "Log",
             },
         };
 
@@ -191,7 +188,33 @@ public class EventNameManagerTests
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespaceDoesNotMatchTest()
+    public void TableMappingEnabledAndEventNamespaceDoesNotMatchCatchAllEntryExistsTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace2", "MyTable2" },
+                    { "MyNamespace3", "MyTable3" },
+                    { "*", "Log" },
+                },
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"Log\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingEnabledAndEventNamespaceDoesNotMatchCatchAllEntryDoesNotExistsTest()
     {
         var exporterOptions = new OneCollectorLogExporterOptions
         {
@@ -205,7 +228,6 @@ public class EventNameManagerTests
                     { "MyNamespace2", "MyTable2" },
                     { "MyNamespace3", "MyTable3" },
                 },
-                DefaultTableName = "Log",
             },
         };
 
@@ -213,7 +235,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"Log\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes($"\"{OneCollectorLogExporterTableMappingOptions.DefaultTableName}\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
@@ -230,7 +252,6 @@ public class EventNameManagerTests
                 {
                     { "MyNamespace2", "MyTable" },
                 },
-                DefaultTableName = "Log",
             },
         };
 
@@ -255,7 +276,6 @@ public class EventNameManagerTests
                 {
                     { "MyNamespace2", "MyTable" },
                 },
-                DefaultTableName = "Log",
             },
         };
 

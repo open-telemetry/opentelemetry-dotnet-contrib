@@ -76,7 +76,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Theory]
     [InlineData("MyClass.Company", null, "MyTable")]
     [InlineData("MyClass.Company", "MyEvent", "MyTable")]
-    [InlineData("MyClass.OtherCompany", "MyEvent", "Log")]
+    [InlineData("MyClass.OtherCompany", "MyEvent", "MyLogTable")]
     public void TableMappingIsEnabledEventNameJsonTest(string categoryName, string? eventName, string expectedTableName)
     {
         var exportOptions = new OneCollectorLogExporterOptions
@@ -84,10 +84,10 @@ public class LogRecordCommonSchemaJsonSerializerTests
             TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
             {
                 UseTableMapping = true,
-                DefaultTableName = "Log",
                 TableMappings = new Dictionary<string, string>
                 {
-                    ["MyClass.Company"] = "MyTable",
+                    { "MyClass.Company", "MyTable" },
+                    { "*", "MyLogTable" },
                 },
             },
         };

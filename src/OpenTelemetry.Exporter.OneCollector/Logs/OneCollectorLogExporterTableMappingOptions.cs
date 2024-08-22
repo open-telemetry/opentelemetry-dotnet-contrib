@@ -9,6 +9,16 @@ namespace OpenTelemetry.Exporter.OneCollector;
 public sealed class OneCollectorLogExporterTableMappingOptions
 {
     /// <summary>
+    /// String that represents a catch-all namespace.
+    /// </summary>
+    public const string CatchAllNamespace = "*";
+
+    /// <summary>
+    /// String that represents the default table name, in case no mapping is found.
+    /// </summary>
+    public const string DefaultTableName = "Log";
+
+    /// <summary>
     /// Gets or sets a value indicating whether table mapping logic should be used.
     /// </summary>
     /// <remarks>
@@ -20,9 +30,4 @@ public sealed class OneCollectorLogExporterTableMappingOptions
     /// Gets or sets a dictionary that maps Log Categories to Table Names.
     /// </summary>
     public IDictionary<string, string> TableMappings { get; set; } = new Dictionary<string, string>();
-
-    /// <summary>
-    /// Gets or sets the default table name, used when no mapping is found.
-    /// </summary>
-    public string DefaultTableName { get; set; } = "Log";
 }
