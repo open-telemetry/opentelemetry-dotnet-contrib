@@ -4,6 +4,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -14,18 +15,19 @@ internal sealed class EventNameManager
     private static readonly Regex EventNamespaceValidationRegex = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
     private static readonly Regex EventNameValidationRegex = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
-    private readonly string defaultEventNamespace;
-    private readonly string defaultEventName;
     private readonly byte[] defaultEventFullName;
     private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly OneCollectorLogExporterOptions exporterOptions;
+
     public EventNameManager(OneCollectorLogExporterOptions exporterOptions)
     {
+        Guard.ThrowIfNull(exporterOptions, nameof(exporterOptions));
+
         Debug.Assert(exporterOptions.DefaultEventNamespace != null, "defaultEventNamespace was null");
         Debug.Assert(exporterOptions.DefaultEventName != null, "defaultEventName was null");
 
-        this.defaultEventNamespace = exporterOptions.DefaultEventNamespace!;
-        this.defaultEventName = exporterOptions.DefaultEventName!;
+        this.exporterOptions = exporterOptions;
 
         if (!IsEventNamespaceValid(exporterOptions.DefaultEventNamespace!))
         {
@@ -72,12 +74,12 @@ internal sealed class EventNameManager
                 return this.defaultEventFullName;
             }
 
-            eventNamespace = this.defaultEventNamespace;
+            eventNamespace = this.exporterOptions.DefaultEventNamespace;
         }
 
         if (eventNameIsNullOrWhiteSpace)
         {
-            eventName = this.defaultEventName;
+            eventName = this.exporterOptions.DefaultEventName;
         }
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
@@ -103,6 +105,21 @@ internal sealed class EventNameManager
         destination[cursor++] = (byte)'.';
 
         WriteEventFullNameComponent(eventName, destination, ref cursor);
+
+        destination[cursor++] = (byte)'\"';
+
+        return destination.Slice(0, cursor).ToArray();
+    }
+
+    private static byte[] BuildEventFullNameBasedOnNamespace(string eventNamespace)
+    {
+        Span<byte> destination = stackalloc byte[128];
+
+        destination[0] = (byte)'\"';
+
+        var cursor = 1;
+
+        WriteEventFullNameComponent(eventNamespace, destination, ref cursor);
 
         destination[cursor++] = (byte)'\"';
 
@@ -150,7 +167,7 @@ internal sealed class EventNameManager
         if (!IsEventNamespaceValid(eventNamespace))
         {
             OneCollectorExporterEventSource.Log.EventNamespaceInvalid(eventNamespace);
-            eventNamespace = this.defaultEventNamespace;
+            eventNamespace = this.exporterOptions.DefaultEventNamespace;
         }
 
         var eventNameHashtableKey = eventName;
@@ -158,10 +175,48 @@ internal sealed class EventNameManager
         if (!IsEventNameValid(eventName))
         {
             OneCollectorExporterEventSource.Log.EventNameInvalid(eventName);
-            eventName = this.defaultEventName;
+            eventName = this.exporterOptions.DefaultEventName;
         }
 
         byte[] eventFullName;
+
+        var tableMappingOptions = this.exporterOptions.TableMappingOptions;
+        if (tableMappingOptions.UseTableMapping)
+        {
+            if (tableMappingOptions.TableMappings.TryGetValue(eventNamespace, out var tableMapping))
+            {
+                eventNamespace = tableMapping;
+            }
+            else
+            {
+                // Exact match not found, try to find a partial match.
+                KeyValuePair<string, string>? currentEntry = null;
+                foreach (var mapping in tableMappingOptions.TableMappings)
+                {
+                    if (!eventNamespace.StartsWith(mapping.Key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!currentEntry.HasValue || mapping.Key.Length >= currentEntry.Value.Key.Length)
+                    {
+                        currentEntry = mapping;
+                    }
+                }
+
+                if (currentEntry.HasValue)
+                {
+                    eventNamespace = currentEntry.Value.Value;
+                }
+                else
+                {
+                    eventNamespace = tableMappingOptions.DefaultTableName;
+                }
+            }
+
+            eventName = string.Empty;
+        }
+
 
         var finalEventFullNameLength = eventNamespace.Length + eventName.Length + 1;
         if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)
@@ -171,7 +226,14 @@ internal sealed class EventNameManager
         }
         else
         {
-            eventFullName = BuildEventFullName(eventNamespace!, eventName!);
+            if (tableMappingOptions.UseTableMapping)
+            {
+                eventFullName = BuildEventFullNameBasedOnNamespace(eventNamespace!);
+            }
+            else
+            {
+                eventFullName = BuildEventFullName(eventNamespace!, eventName!);
+            }
         }
 
         lock (eventNameCache)

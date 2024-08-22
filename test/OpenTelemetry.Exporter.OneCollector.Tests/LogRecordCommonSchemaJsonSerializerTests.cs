@@ -73,6 +73,41 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Theory]
+    [InlineData("MyClass.Company", null, "MyTable")]
+    [InlineData("MyClass.Company", "MyEvent", "MyTable")]
+    [InlineData("MyClass.OtherCompany", "MyEvent", "Log")]
+    public void TableMappingIsEnabledEventNameJsonTest(string categoryName, string? eventName, string expectedTableName)
+    {
+        var exportOptions = new OneCollectorLogExporterOptions
+        {
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                DefaultTableName = "Log",
+                TableMappings = new Dictionary<string, string>
+                {
+                    ["MyClass.Company"] = "MyTable",
+                },
+            },
+        };
+
+        string json = GetLogRecordJson(1,
+            (index, logRecord) =>
+            {
+                logRecord.CategoryName = categoryName;
+                logRecord.EventId = new(0, eventName);
+            },
+            null,
+            null,
+            false,
+            exportOptions);
+
+        Assert.Equal(
+            $$$"""{"ver":"4.0","name":"{{{expectedTableName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
+            json);
+    }
+
     [Fact]
     public void LogRecordEventIdJsonTest()
     {
@@ -261,14 +296,20 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
         ScopeProvider? scopeProvider = null,
-        bool includeStackTraceAsString = false)
+        bool includeStackTraceAsString = false,
+        OneCollectorLogExporterOptions? exporterOptions = null)
     {
-        var serializer = new LogRecordCommonSchemaJsonSerializer(
-            new EventNameManager(new OneCollectorLogExporterOptions
+        if (exporterOptions == null)
+        {
+            exporterOptions = new OneCollectorLogExporterOptions
             {
                 DefaultEventNamespace = "Namespace",
                 DefaultEventName = "Name",
-            }),
+            };
+        }
+
+        var serializer = new LogRecordCommonSchemaJsonSerializer(
+            new EventNameManager(exporterOptions),
             "tenant-token",
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 

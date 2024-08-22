@@ -135,6 +135,27 @@ public sealed class OneCollectorLogExportProcessorBuilder
     }
 
     /// <summary>
+    /// Register a callback action for configuring the table mapping options used by 
+    /// the <see cref="OneCollectorExporter{T}"/> created by the builder.
+    /// </summary>
+    /// <param name="configure">Callback action for configuring <see
+    /// cref="OneCollectorExporterTransportOptions"/>.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder ConfigureTableMappingOptions(
+        Action<OneCollectorLogExporterTableMappingOptions> configure)
+    {
+        Guard.ThrowIfNull(configure);
+
+        this.services.Configure<OneCollectorLogExporterOptions>(
+            this.name,
+            exporterOptions => configure(exporterOptions.TableMappingOptions));
+
+        return this;
+    }
+
+    /// <summary>
     /// Sets the connection string used by the <see
     /// cref="OneCollectorExporter{T}"/> created by the builder.
     /// </summary>

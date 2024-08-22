@@ -28,6 +28,11 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     public OneCollectorLogExporterSerializationOptions SerializationOptions { get; } = new();
 
     /// <summary>
+    /// Gets or sets the table mapping options.
+    /// </summary>
+    public OneCollectorLogExporterTableMappingOptions TableMappingOptions { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the default event namespace. Default value:
     /// <c>OpenTelemetry.Logs</c>.
     /// </summary>

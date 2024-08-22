@@ -111,6 +111,161 @@ public class EventNameManagerTests
         Assert.Single((eventNameManager.EventNamespaceCache["Test"] as Hashtable)!);
     }
 
+    [Fact]
+    public void TableMappingEnabledAndEventNamespaceMatchesTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace", "MyTable" },
+                    { "MyNamespace2", "MyTable2" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyTable\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingEnabledAndEventNamespacePrefixMatchesTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace", "MyTable" },
+                    { "MyNamespace2", "MyTable2" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChildNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyTable\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingEnabledAndEventNamespaceLongestMatchWinsTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace", "MyTable" },
+                    { "MyNamespace.MyChildNamespace", "MyChildTable" },
+                    { "MyNamespace2", "MyTable2" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChildNamespace.MyGrandchildNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyChildTable\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingEnabledAndEventNamespaceDoesNotMatchTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = true,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace2", "MyTable2" },
+                    { "MyNamespace3", "MyTable3" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"Log\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingDisabledAndEventNamespaceMatchesTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = false,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace2", "MyTable" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.Test\""), resolveEventFullName.ToArray());
+    }
+
+    [Fact]
+    public void TableMappingDisabledAndEventNamespaceDoesNotMatchTest()
+    {
+        var exporterOptions = new OneCollectorLogExporterOptions
+        {
+            DefaultEventNamespace = "defaultNamespace",
+            DefaultEventName = "defaultName",
+            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+            {
+                UseTableMapping = false,
+                TableMappings = new Dictionary<string, string>
+                {
+                    { "MyNamespace2", "MyTable" },
+                },
+                DefaultTableName = "Log",
+            },
+        };
+
+        var eventNameManager = new EventNameManager(exporterOptions);
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.Test\""), resolveEventFullName.ToArray());
+    }
+
     private static EventNameManager CreateDefaultEventNameManager(string defaultNamespace, string defaultEventName)
     {
         return new EventNameManager(new OneCollectorLogExporterOptions
