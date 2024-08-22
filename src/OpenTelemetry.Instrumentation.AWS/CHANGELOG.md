@@ -6,10 +6,6 @@
 
 Released 2024-Aug-22
 
-## 1.1.0-beta.5
-
-Released 2024-Aug-22
-
 * BREAKING: Update the instrumentation logic to use AWS TracerProvider.
   ([#1974](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1974))
 * Add AWS metrics instrumentation.
