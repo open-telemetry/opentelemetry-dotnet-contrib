@@ -22,7 +22,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     ///
     public Resource Detect()
     {
-        var attributes = new List<KeyValuePair<string, object>>();
+        var attributes = new List<KeyValuePair<string, object>>(5);
         var osType = GetOSType();
         if (osType == null)
         {
@@ -101,7 +101,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey);
             if (key != null)
             {
-                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuild")?.ToString());
+                AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuildNumber")?.ToString());
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, key.GetValue("ProductName")?.ToString());
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, key.GetValue("CurrentVersion")?.ToString());
             }
@@ -119,6 +119,12 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         try
         {
             var osReleaseContent = File.ReadAllLines("/etc/os-release");
+            if (osReleaseContent == null)
+            {
+                OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
+                return;
+            }
+
             string? buildId = null, name = null, version = null;
 
             foreach (var line in osReleaseContent)
@@ -166,27 +172,39 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 return;
             }
 
-            var properties = new Dictionary<string, string>();
             XDocument doc = XDocument.Load(plistFilePath);
             var dict = doc.Root?.Element("dict");
+            string? buildId = null, name = null, version = null;
 
             if (dict != null)
             {
-                var keys = dict.Elements("key").ToList();
-                var values = dict.Elements("string").ToList();
+                string? currentKey = null;
 
-                if (keys.Count == values.Count)
+                foreach (var element in dict.Elements())
                 {
-                    for (int i = 0; i < keys.Count; i++)
+                    if (element.Name == "key")
                     {
-                        properties[keys[i].Value] = values[i].Value;
+                        currentKey = element.Value;
+                    }
+                    else if (element.Name == "string" && currentKey != null)
+                    {
+                        if (currentKey == "ProductName")
+                        {
+                            name = element.Value;
+                        }
+                        else if (currentKey == "ProductVersion")
+                        {
+                            version = element.Value;
+                        }
+                        else if (currentKey == "ProductBuildVersion")
+                        {
+                            buildId = element.Value;
+                        }
+
+                        currentKey = null;
                     }
                 }
             }
-
-            string? name = properties.GetValueOrDefault("ProductName");
-            string? version = properties.GetValueOrDefault("ProductVersion");
-            string? buildId = properties.GetValueOrDefault("ProductBuildVersion");
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
