@@ -6,7 +6,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSMonotonicCounter<T> : MonotonicCounter<T>
+internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
     where T : struct
 {
     private readonly System.Diagnostics.Metrics.Counter<T> counter;
