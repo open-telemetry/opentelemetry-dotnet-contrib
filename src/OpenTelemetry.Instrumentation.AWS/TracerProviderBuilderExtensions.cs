@@ -1,8 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Amazon;
+using Amazon.Runtime.Telemetry;
 using OpenTelemetry.Instrumentation.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
+using OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Trace;
@@ -36,7 +39,10 @@ public static class TracerProviderBuilderExtensions
         configure?.Invoke(awsClientOptions);
 
         _ = new AWSClientsInstrumentation(awsClientOptions);
-        builder.AddSource(AWSTracingPipelineHandler.ActivitySourceName);
+
+        AWSConfigs.TelemetryProvider.RegisterTracerProvider(new AWSTracerProvider());
+        builder.AddSource($"{TelemetryConstants.TelemetryScopePrefix}.*");
+
         return builder;
     }
 }

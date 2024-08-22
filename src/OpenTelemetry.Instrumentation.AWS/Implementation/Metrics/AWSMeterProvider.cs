@@ -6,7 +6,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSMeterProvider : MeterProvider
+internal sealed class AWSMeterProvider : MeterProvider
 {
     public override Meter GetMeter(string scope, Attributes? attributes = null)
     {

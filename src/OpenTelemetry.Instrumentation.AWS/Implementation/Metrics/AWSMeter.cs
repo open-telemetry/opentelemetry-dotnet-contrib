@@ -5,7 +5,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSMeter : Meter
+internal sealed class AWSMeter : Meter
 {
     private readonly System.Diagnostics.Metrics.Meter meter;
 
