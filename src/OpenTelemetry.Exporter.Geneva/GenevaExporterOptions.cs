@@ -13,11 +13,11 @@ public class GenevaExporterOptions
         [Schema.V40.PartA.Ver] = "4.0",
     };
 
-    private IReadOnlyDictionary<string, string> _tableNameMappings;
+    private IReadOnlyDictionary<string, string>? _tableNameMappings;
 
-    public string ConnectionString { get; set; }
+    public string? ConnectionString { get; set; }
 
-    public IEnumerable<string> CustomFields { get; set; }
+    public IEnumerable<string>? CustomFields { get; set; }
 
     public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
 
@@ -25,7 +25,7 @@ public class GenevaExporterOptions
 
     public bool IncludeTraceStateForSpan { get; set; }
 
-    public IReadOnlyDictionary<string, string> TableNameMappings
+    public IReadOnlyDictionary<string, string>? TableNameMappings
     {
         get => this._tableNameMappings;
         set

@@ -16,11 +16,11 @@ internal static class MetricSerializer
     /// <param name="bufferIndex">Index of the buffer.</param>
     /// <param name="value">The value.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SerializeString(byte[] buffer, ref int bufferIndex, string value)
+    public static void SerializeString(byte[] buffer, ref int bufferIndex, string? value)
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (bufferIndex + value.Length + sizeof(short) >= buffer.Length)
+            if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
                 // TODO: What should we do when the data is invalid?
             }
@@ -233,11 +233,11 @@ internal static class MetricSerializer
     /// <param name="bufferIndex">Index of the buffer.</param>
     /// <param name="value">The value.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void SerializeBase128String(byte[] buffer, ref int bufferIndex, string value)
+    public static void SerializeBase128String(byte[] buffer, ref int bufferIndex, string? value)
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (bufferIndex + value.Length + sizeof(short) >= buffer.Length)
+            if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
             }
 

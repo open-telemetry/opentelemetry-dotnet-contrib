@@ -35,7 +35,7 @@ public static class GenevaExporterHelperExtensions
     /// /// <param name="name">Name which is used when retrieving options.</param>
     /// <param name="configure">Exporter configuration options.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, string name, Action<GenevaExporterOptions> configure)
+    public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, string? name, Action<GenevaExporterOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 

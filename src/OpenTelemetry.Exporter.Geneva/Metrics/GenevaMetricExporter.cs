@@ -35,7 +35,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     private bool isDisposed;
 
-    private Resource resource;
+    private Resource? resource;
 
     internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
 
@@ -56,7 +56,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
                 connectionStringBuilder,
-                options.PrepopulatedMetricDimensions);
+                options.PrepopulatedMetricDimensions!);
 
             this.exporter = otlpProtobufExporter;
 

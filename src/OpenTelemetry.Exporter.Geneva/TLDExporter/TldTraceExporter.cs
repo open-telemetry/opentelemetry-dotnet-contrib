@@ -12,9 +12,9 @@ namespace OpenTelemetry.Exporter.Geneva.TldExporter;
 internal sealed class TldTraceExporter : TldExporter, IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> keyValuePairs = new(() => null);
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
+    private static readonly ThreadLocal<EventBuilder?> eventBuilder = new(() => null);
+    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>?> keyValuePairs = new(() => null);
+    private static readonly ThreadLocal<KeyValuePair<string, object?>[]?> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
@@ -38,8 +38,8 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     private readonly string partAName = "Span";
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly HashSet<string> m_customFields;
-    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly HashSet<string>? m_customFields;
+    private readonly Tuple<byte[], byte[]>? repeatedPartAFields;
     private readonly bool m_shouldIncludeTraceState;
 
     private readonly EventProvider eventProvider;
@@ -105,7 +105,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -221,7 +221,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             var keyValuePairsForLinks = keyValuePairs.Value;
             if (keyValuePairsForLinks == null)
             {
-                keyValuePairsForLinks = new List<KeyValuePair<string, object>>();
+                keyValuePairsForLinks = new();
                 keyValuePairs.Value = keyValuePairsForLinks;
             }
 
@@ -251,16 +251,16 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         var kvpArrayForPartCFields = partCFields.Value;
         if (kvpArrayForPartCFields == null)
         {
-            kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
+            kvpArrayForPartCFields = new KeyValuePair<string, object?>[120];
             partCFields.Value = kvpArrayForPartCFields;
         }
 
-        List<KeyValuePair<string, object>> envPropertiesList = null;
+        List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 Serialize(eb, replacementKey, entry.Value);
                 partBFieldsCount++;
@@ -276,7 +276,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
             {
-                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty;
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
@@ -293,7 +293,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     envPropertiesList = keyValuePairs.Value;
                     if (envPropertiesList == null)
                     {
-                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        envPropertiesList = new();
                         keyValuePairs.Value = envPropertiesList;
                     }
 
@@ -301,7 +301,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                 }
 
                 // TODO: This could lead to unbounded memory usage.
-                envPropertiesList.Add(new(entry.Key, entry.Value));
+                envPropertiesList!.Add(new(entry.Key, entry.Value));
             }
         }
 

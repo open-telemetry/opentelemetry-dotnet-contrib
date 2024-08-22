@@ -19,7 +19,7 @@ internal class ReentrantExportProcessor<T> : BaseExportProcessor<T>
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         var ctor = typeof(Batch<T>).GetConstructor(flags, null, new Type[] { typeof(T) }, null);
         var value = Expression.Parameter(typeof(T), null);
-        var lambda = Expression.Lambda<Func<T, Batch<T>>>(Expression.New(ctor, value), value);
+        var lambda = Expression.Lambda<Func<T, Batch<T>>>(Expression.New(ctor!, value), value);
         CreateBatch = lambda.Compile();
     }
 

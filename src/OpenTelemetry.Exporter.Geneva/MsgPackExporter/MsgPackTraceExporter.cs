@@ -7,6 +7,7 @@ using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -14,6 +15,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
     public MsgPackTraceExporter(GenevaExporterOptions options)
     {
+        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrEmpty(options.ConnectionString);
+
         var partAName = "Span";
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
@@ -156,7 +160,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             try
             {
                 var cursor = this.SerializeActivity(activity);
-                this.m_dataTransport.Send(this.m_buffer.Value, cursor - 0);
+                this.m_dataTransport.Send(this.m_buffer.Value!, cursor - 0);
             }
             catch (Exception ex)
             {
@@ -177,14 +181,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal int SerializeActivity(Activity activity)
     {
-        var buffer = this.m_buffer.Value;
-        if (buffer == null)
+        if (this.m_buffer.Value == null)
         {
-            buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer, 0, this.m_bufferPrologue.Length);
-            this.m_buffer.Value = buffer;
+            var buffer1 = new byte[BUFFER_SIZE]; // TODO: handle OOM
+            Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer1, 0, this.m_bufferPrologue.Length);
+            this.m_buffer.Value = buffer1;
         }
 
+        var buffer = this.m_buffer.Value;
         var cursor = this.m_bufferPrologue.Length;
         var cntFields = this.m_cntPrepopulatedFields;
         var dtBegin = activity.StartTimeUtc;
@@ -293,7 +297,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
             }
@@ -308,7 +312,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
             else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
             {
-                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty;
                 continue;
             }
             else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
@@ -338,7 +342,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
-                if (this.m_dedicatedFields.Contains(entry.Key))
+                if (this.m_dedicatedFields != null && this.m_dedicatedFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -439,7 +443,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
 #endif
 
-    private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
+    private readonly ThreadLocal<byte[]?> m_buffer = new(() => null);
 
     private readonly byte[] m_bufferPrologue;
 
@@ -454,13 +458,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     private readonly IDataTransport m_dataTransport;
 
 #if NET8_0_OR_GREATER
-    private readonly FrozenSet<string> m_customFields;
+    private readonly FrozenSet<string>? m_customFields;
 
-    private readonly FrozenSet<string> m_dedicatedFields;
+    private readonly FrozenSet<string>? m_dedicatedFields;
 #else
-    private readonly HashSet<string> m_customFields;
+    private readonly HashSet<string>? m_customFields;
 
-    private readonly HashSet<string> m_dedicatedFields;
+    private readonly HashSet<string>? m_dedicatedFields;
 #endif
 
     private readonly bool m_shouldIncludeTraceState;

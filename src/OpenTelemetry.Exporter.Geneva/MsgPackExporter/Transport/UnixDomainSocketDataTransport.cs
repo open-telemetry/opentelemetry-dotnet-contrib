@@ -10,7 +10,7 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
 {
     public const int DefaultTimeoutMilliseconds = 15000;
     private readonly EndPoint unixEndpoint;
-    private Socket socket;
+    private readonly Socket socket;
     private int timeoutMilliseconds;
 
     /// <summary>
@@ -29,6 +29,7 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.timeoutMilliseconds = timeoutMilliseconds;
+        this.socket = this.CreateSocket();
         try
         {
             this.Connect();
@@ -72,10 +73,6 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
     {
         try
         {
-            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-            {
-                SendTimeout = this.timeoutMilliseconds,
-            };
             this.socket.Connect(this.unixEndpoint);
         }
         catch (Exception ex)
@@ -93,5 +90,15 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
     {
         this.socket.Close();
         this.Connect();
+    }
+
+    private Socket CreateSocket()
+    {
+        var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+        {
+            SendTimeout = this.timeoutMilliseconds,
+        };
+
+        return socket;
     }
 }

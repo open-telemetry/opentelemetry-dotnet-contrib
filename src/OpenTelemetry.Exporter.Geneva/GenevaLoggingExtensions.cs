@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -13,7 +12,7 @@ namespace Microsoft.Extensions.Logging;
 
 public static class GenevaLoggingExtensions
 {
-    public static OpenTelemetryLoggerOptions AddGenevaLogExporter(this OpenTelemetryLoggerOptions options, Action<GenevaExporterOptions> configure)
+    public static OpenTelemetryLoggerOptions AddGenevaLogExporter(this OpenTelemetryLoggerOptions options, Action<GenevaExporterOptions>? configure)
     {
         Guard.ThrowIfNull(options);
 
@@ -56,8 +55,8 @@ public static class GenevaLoggingExtensions
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
     public static LoggerProviderBuilder AddGenevaLogExporter(
         this LoggerProviderBuilder builder,
-        string name,
-        Action<GenevaExporterOptions> configureExporter)
+        string? name,
+        Action<GenevaExporterOptions>? configureExporter)
     {
         var finalOptionsName = name ?? Options.Options.DefaultName;
 
@@ -110,7 +109,7 @@ public static class GenevaLoggingExtensions
        BatchExportLogRecordProcessorOptions batchExportLogRecordProcessorOptions,
        GenevaExporterOptions exporterOptions)
     {
-        Debug.Assert(exporterOptions != null, "exporterOptions was null");
+        Guard.ThrowIfNull(batchExportLogRecordProcessorOptions);
 
         var exporter = new GenevaLogExporter(exporterOptions);
         if (exporter.IsUsingUnixDomainSocket)

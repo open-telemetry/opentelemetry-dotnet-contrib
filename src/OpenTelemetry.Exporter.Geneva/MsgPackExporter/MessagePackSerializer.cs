@@ -343,7 +343,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
+    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -450,7 +450,7 @@ internal static class MessagePackSerializer
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -594,7 +594,7 @@ internal static class MessagePackSerializer
         return SerializeTimestamp96(buffer, cursor, utc.Ticks);
     }
 
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
         if (obj == null)
         {
@@ -648,7 +648,7 @@ internal static class MessagePackSerializer
 #endif
 
             default:
-                string repr;
+                string? repr;
 
                 try
                 {

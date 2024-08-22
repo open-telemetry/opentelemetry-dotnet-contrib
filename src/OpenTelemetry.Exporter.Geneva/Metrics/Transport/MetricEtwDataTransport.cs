@@ -98,7 +98,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
             // No managed resources to release.
             // The singleton instance is kept alive for the lifetime of the application.
             // Set the instance to null so that future calls to the singleton property can fail explicitly.
-            Instance = null;
+            Instance = null!;
         }
 
         this.isDisposed = true;

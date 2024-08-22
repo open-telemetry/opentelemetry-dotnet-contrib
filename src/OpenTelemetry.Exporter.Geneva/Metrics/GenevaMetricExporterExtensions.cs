@@ -34,7 +34,7 @@ public static class GenevaMetricExporterExtensions
     /// /// <param name="name">Name which is used when retrieving options.</param>
     /// <param name="configure">Exporter configuration options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddGenevaMetricExporter(this MeterProviderBuilder builder, string name, Action<GenevaMetricExporterOptions> configure)
+    public static MeterProviderBuilder AddGenevaMetricExporter(this MeterProviderBuilder builder, string? name, Action<GenevaMetricExporterOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -53,7 +53,7 @@ public static class GenevaMetricExporterExtensions
         });
     }
 
-    private static PeriodicExportingMetricReader BuildGenevaMetricExporter(GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions> configure = null)
+    private static PeriodicExportingMetricReader BuildGenevaMetricExporter(GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions>? configure = null)
     {
         configure?.Invoke(options);
         return new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)

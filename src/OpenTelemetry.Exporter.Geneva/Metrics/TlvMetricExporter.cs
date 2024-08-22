@@ -17,9 +17,9 @@ internal sealed class TlvMetricExporter : IDisposable
 
     private readonly IMetricDataTransport metricDataTransport;
 
-    private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
 
-    private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
 
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
 
@@ -29,7 +29,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
@@ -609,7 +609,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions keys
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
         }
 
         if (this.prepopulatedDimensionsCount > 0)
@@ -642,7 +642,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions values
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
         }
 
         // Serialize MetricPoint Dimension values
@@ -669,7 +669,7 @@ internal sealed class TlvMetricExporter : IDisposable
             }
 
             var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-            if (dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
+            if (dimensionValue != null && dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
             {
                 // TODO: Data Validation
             }
@@ -700,7 +700,7 @@ internal sealed class TlvMetricExporter : IDisposable
         var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
         foreach (var value in values)
         {
-            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture);
+            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture)!;
             serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
         }
 

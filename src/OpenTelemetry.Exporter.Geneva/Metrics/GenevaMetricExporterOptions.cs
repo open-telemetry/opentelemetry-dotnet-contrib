@@ -8,14 +8,14 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 public class GenevaMetricExporterOptions
 {
-    private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
+    private IReadOnlyDictionary<string, object>? _prepopulatedMetricDimensions;
     private int _metricExporterIntervalMilliseconds = 60000;
 
     /// <summary>
     /// Gets or sets the ConnectionString which contains semicolon separated list of key-value pairs.
     /// For e.g.: "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace".
     /// </summary>
-    public string ConnectionString { get; set; }
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Gets or sets the metric export interval in milliseconds. The default value is 60000.
@@ -38,7 +38,7 @@ public class GenevaMetricExporterOptions
     /// <summary>
     /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter.
     /// </summary>
-    public IReadOnlyDictionary<string, object> PrepopulatedMetricDimensions
+    public IReadOnlyDictionary<string, object>? PrepopulatedMetricDimensions
     {
         get
         {
@@ -70,7 +70,7 @@ public class GenevaMetricExporterOptions
                 }
 
                 var dimensionValue = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
-                if (dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
+                if (dimensionValue!.Length > GenevaMetricExporter.MaxDimensionValueSize)
                 {
                     throw new ArgumentException($"Value provided for the dimension: {entry.Key} exceeds the maximum allowed limit of {GenevaMetricExporter.MaxDimensionValueSize} characters for dimension value.");
                 }

@@ -23,7 +23,7 @@ internal static class JsonSerializer
 #endif
 
     private static readonly byte[] HEX_CODE;
-    private static readonly ThreadLocal<byte[]> threadLocalBuffer = new(() => null);
+    private static readonly ThreadLocal<byte[]?> threadLocalBuffer = new(() => null);
 
     static JsonSerializer()
     {
@@ -61,7 +61,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeString(string value)
+    public static string SerializeString(string? value)
     {
         var buffer = threadLocalBuffer.Value;
         if (buffer == null)
@@ -75,7 +75,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeString(byte[] buffer, int cursor, string value)
+    public static int SerializeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -157,7 +157,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object>> listKVp, out int count)
+    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object?>>? listKVp, out int count)
     {
         var buffer = threadLocalBuffer.Value;
         if (buffer == null)
@@ -198,7 +198,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object>> listKvp)
+    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object?>>? listKvp)
     {
         if (listKvp == null)
         {
@@ -239,7 +239,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
         if (obj == null)
         {
@@ -262,7 +262,7 @@ internal static class JsonSerializer
             case float:
             case double:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                (obj as ISpanFormattable).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
+                (obj as ISpanFormattable)!.TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
             case DateTime dt:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
@@ -329,7 +329,7 @@ internal static class JsonSerializer
 #endif
 
             default:
-                string repr;
+                string? repr;
                 try
                 {
                     repr = Convert.ToString(obj, CultureInfo.InvariantCulture);

@@ -15,7 +15,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     private readonly Func<Resource> getResource;
 
-    public OtlpProtobufMetricExporter(Func<Resource> getResource, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    public OtlpProtobufMetricExporter(Func<Resource> getResource, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object?> prepopulatedMetricDimensions)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {

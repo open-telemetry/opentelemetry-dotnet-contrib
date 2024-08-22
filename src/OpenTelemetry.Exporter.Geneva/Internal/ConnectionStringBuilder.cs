@@ -18,7 +18,7 @@ internal enum TransportProtocol
 
 internal sealed class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> _parts = new Dictionary<string, string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _parts = new(StringComparer.Ordinal);
 
     public ConnectionStringBuilder(string connectionString)
     {
@@ -73,10 +73,21 @@ internal sealed class ConnectionStringBuilder
         set => this._parts[nameof(this.PrivatePreviewEnableTraceLoggingDynamic)] = value;
     }
 
-    public string PrivatePreviewEnableOtlpProtobufEncoding
+    public string? PrivatePreviewEnableOtlpProtobufEncoding
     {
         get => this._parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value) ? value : null;
-        set => this._parts[nameof(this.PrivatePreviewEnableOtlpProtobufEncoding)] = value;
+        set
+        {
+            var key = nameof(this.PrivatePreviewEnableOtlpProtobufEncoding);
+
+            if (value == null)
+            {
+                this._parts.Remove(key);
+                return;
+            }
+
+            this._parts[key] = value;
+        }
     }
 
     public string Endpoint
@@ -157,7 +168,7 @@ internal sealed class ConnectionStringBuilder
     {
         get
         {
-            if (!this._parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string value))
+            if (!this._parts.TryGetValue(nameof(this.TimeoutMilliseconds), out var value))
             {
                 return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
             }

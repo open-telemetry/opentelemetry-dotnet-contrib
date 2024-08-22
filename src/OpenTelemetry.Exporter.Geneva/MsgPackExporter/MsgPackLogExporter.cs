@@ -17,7 +17,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private static readonly ThreadLocal<byte[]> m_buffer = new ThreadLocal<byte[]>(() => null);
+    private static readonly ThreadLocal<byte[]?> m_buffer = new ThreadLocal<byte[]?>(() => null);
     private static readonly string[] logLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
@@ -27,24 +27,27 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly TableNameSerializer m_tableNameSerializer;
 
 #if NET8_0_OR_GREATER
-    private readonly FrozenSet<string> m_customFields;
-    private readonly FrozenDictionary<string, object> m_prepopulatedFields;
+    private readonly FrozenSet<string>? m_customFields;
+    private readonly FrozenDictionary<string, object>? m_prepopulatedFields;
 #else
-    private readonly HashSet<string> m_customFields;
-    private readonly Dictionary<string, object> m_prepopulatedFields;
+    private readonly HashSet<string>? m_customFields;
+    private readonly Dictionary<string, object>? m_prepopulatedFields;
 #endif
 
     private readonly ExceptionStackExportMode m_exportExceptionStack;
-    private readonly List<string> m_prepopulatedFieldKeys;
+    private readonly List<string>? m_prepopulatedFieldKeys;
     private readonly byte[] m_bufferEpilogue;
     private readonly IDataTransport m_dataTransport;
 
     // This is used for Scopes
-    private readonly ThreadLocal<SerializationDataForScopes> m_serializationData = new(() => null);
+    private readonly ThreadLocal<SerializationDataForScopes?> m_serializationData = new(() => null);
     private bool isDisposed;
 
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
+        Guard.ThrowIfNull(options);
+        Guard.ThrowIfNullOrEmpty(options.ConnectionString);
+
         this.m_tableNameSerializer = new(options, defaultTableName: "Log");
         this.m_exportExceptionStack = options.ExceptionStackExportMode;
 
@@ -121,7 +124,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             try
             {
                 var cursor = this.SerializeLogRecord(logRecord);
-                this.m_dataTransport.Send(m_buffer.Value, cursor - 0);
+                this.m_dataTransport.Send(m_buffer!.Value!, cursor - 0);
             }
             catch (Exception ex)
             {
@@ -144,7 +147,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     {
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        IReadOnlyList<KeyValuePair<string, object>> listKvp;
+        IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
         if (logRecord.StateValues != null)
         {
             listKvp = logRecord.StateValues;
@@ -152,7 +155,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         else
         {
             // Attempt to see if State could be ROL_KVP.
-            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
+            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
         }
 #pragma warning restore 0618
 
@@ -203,7 +206,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             for (int i = 0; i < this.m_prepopulatedFieldKeys.Count; i++)
             {
                 var key = this.m_prepopulatedFieldKeys[i];
-                var value = this.m_prepopulatedFields[key];
+                var value = this.m_prepopulatedFields![key];
                 cursor = AddPartAField(buffer, cursor, key, value);
                 cntFields += 1;
             }
@@ -354,10 +357,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             int idxMapSizeEnvPropertiesPatch = cursor - 2;
-            for (int i = 0; i < listKvp.Count; i++)
+            for (int i = 0; i < listKvp?.Count; i++)
             {
                 var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.m_customFields.Contains(entry.Key))
+                if (entry.Key == "{OriginalFormat}" || this.m_customFields!.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -465,7 +468,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         {
             (this.m_dataTransport as IDisposable)?.Dispose();
             this.m_serializationData.Dispose();
-            this.m_prepopulatedFieldKeys.Clear();
+            this.m_prepopulatedFieldKeys?.Clear();
         }
         catch (Exception ex)
         {
@@ -477,10 +480,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
     {
-        var stateData = state.m_serializationData.Value;
+        var stateData = state.m_serializationData.Value!;
         var customFields = state.m_customFields;
 
-        foreach (KeyValuePair<string, object> scopeItem in scope)
+        foreach (KeyValuePair<string, object?> scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
@@ -492,8 +495,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 if (scopeItem.Value != null)
                 {
                     // null is not supported.
-                    stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
-                    stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
+                    stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer!, stateData.Cursor, scopeItem.Key);
+                    stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer!, stateData.Cursor, scopeItem.Value);
                     stateData.FieldsCount += 1;
                 }
             }
@@ -506,20 +509,20 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvProperties = (scope, state) =>
     {
-        var stateData = state.m_serializationData.Value;
+        var stateData = state.m_serializationData.Value!;
         var customFields = state.m_customFields;
 
-        foreach (KeyValuePair<string, object> scopeItem in scope)
+        foreach (KeyValuePair<string, object?> scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
                 continue;
             }
 
-            if (!customFields.Contains(scopeItem.Key))
+            if (customFields != null && !customFields.Contains(scopeItem.Key))
             {
-                stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
-                stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
+                stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer!, stateData.Cursor, scopeItem.Key);
+                stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer!, stateData.Cursor, scopeItem.Value);
                 stateData.EnvPropertiesCount += 1;
             }
         }
@@ -531,7 +534,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         public ushort EnvPropertiesCount;
 
         public int Cursor;
-        public byte[] Buffer;
+        public byte[]? Buffer;
         public ushort FieldsCount;
     }
 }

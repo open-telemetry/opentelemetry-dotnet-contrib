@@ -33,7 +33,7 @@ internal abstract class TldExporter
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Serialize(EventBuilder eb, string key, object value)
+    protected static void Serialize(EventBuilder eb, string key, object? value)
     {
         switch (value)
         {
@@ -121,17 +121,17 @@ internal abstract class TldExporter
                 eb.AddFileTimeArray(key, vdtarray);
                 break;
             default:
-                string repr;
+                string? repr;
                 try
                 {
                     repr = Convert.ToString(value, CultureInfo.InvariantCulture);
                 }
                 catch
                 {
-                    repr = $"ERROR: type {value.GetType().FullName} is not supported";
+                    repr = $"ERROR: type {value?.GetType().FullName} is not supported";
                 }
 
-                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
+                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr?.Length ?? 0, StringLengthLimit));
                 break;
         }
     }

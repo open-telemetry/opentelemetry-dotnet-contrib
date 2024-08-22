@@ -16,23 +16,23 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private const int MaxSanitizedEventNameLength = 50;
 
     // TODO: Is using a single ThreadLocal a better idea?
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => null);
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
+    private static readonly ThreadLocal<EventBuilder?> eventBuilder = new(() => null);
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]?> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
+    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>?> envProperties = new(() => null);
 
     private static readonly string[] logLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
-    private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(() => null); // This is used for Scopes
+    private readonly ThreadLocal<SerializationDataForScopes?> serializationData = new(() => null); // This is used for Scopes
 
     private readonly byte partAFieldsCount = 1; // At least one field: time
     private readonly bool shouldPassThruTableMappings;
     private readonly string defaultEventName = "Log";
-    private readonly HashSet<string> customFields;
-    private readonly Dictionary<string, string> tableMappings;
-    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly HashSet<string>? customFields;
+    private readonly Dictionary<string, string>? tableMappings;
+    private readonly Tuple<byte[], byte[]>? repeatedPartAFields;
     private readonly ExceptionStackExportMode exceptionStackExportMode;
 
     private readonly EventProvider eventProvider;
@@ -111,7 +111,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -170,7 +170,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
     internal void SerializeLogRecord(LogRecord logRecord)
     {
-        IReadOnlyList<KeyValuePair<string, object>> listKvp;
+        IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
 
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
@@ -181,7 +181,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         else
         {
             // Attempt to see if State could be ROL_KVP.
-            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
+            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
         }
 #pragma warning restore 0618
 
@@ -196,22 +196,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         // price = 100
         // TODO: 2. Structured with strongly typed logging.
 
-        string eventName;
-        var categoryName = logRecord.CategoryName;
-
-        // If user configured explicit TableName, use it.
-        if (this.tableMappings != null && this.tableMappings.TryGetValue(categoryName, out eventName))
-        {
-        }
-        else if (!this.shouldPassThruTableMappings)
-        {
-            eventName = this.defaultEventName;
-        }
-        else
-        {
-            // TODO: Avoid allocation
-            eventName = GetSanitizedCategoryName(categoryName);
-        }
+        var eventName = this.GetEventName(logRecord);
 
         var eb = eventBuilder.Value;
         if (eb == null)
@@ -305,7 +290,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             partCFields.Value = kvpArrayForPartCFields;
         }
 
-        List<KeyValuePair<string, object>> envPropertiesList = null;
+        List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
         for (int i = 0; i < listKvp?.Count; i++)
         {
@@ -350,7 +335,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     envPropertiesList = envProperties.Value;
                     if (envPropertiesList == null)
                     {
-                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        envPropertiesList = new();
                         envProperties.Value = envPropertiesList;
                     }
 
@@ -358,13 +343,13 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 }
 
                 // TODO: This could lead to unbounded memory usage.
-                envPropertiesList.Add(new(entry.Key, entry.Value));
+                envPropertiesList!.Add(new(entry.Key, entry.Value));
             }
         }
 
         if (!namePopulated)
         {
-            eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
+            eb.AddCountedAnsiString("name", logRecord.CategoryName, Encoding.UTF8);
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)
@@ -496,6 +481,29 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         return result.Slice(0, validNameLength).ToString();
     }
 
+    private string GetEventName(LogRecord logRecord)
+    {
+        var categoryName = logRecord.CategoryName;
+
+        if (string.IsNullOrEmpty(categoryName))
+        {
+            return this.defaultEventName;
+        }
+
+        if (this.tableMappings != null && this.tableMappings.TryGetValue(categoryName!, out var eventName))
+        {
+            return eventName;
+        }
+
+        if (!this.shouldPassThruTableMappings)
+        {
+            return this.defaultEventName;
+        }
+
+        // TODO: Avoid allocation
+        return GetSanitizedCategoryName(categoryName!);
+    }
+
     private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
     {
         var stateData = state.serializationData.Value;
@@ -503,7 +511,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         var kvpArrayForPartCFields = partCFields.Value;
         var envPropertiesList = envProperties.Value;
 
-        foreach (KeyValuePair<string, object> scopeItem in scope)
+        foreach (KeyValuePair<string, object?> scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
@@ -514,18 +522,18 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             {
                 if (scopeItem.Value != null)
                 {
-                    kvpArrayForPartCFields[stateData.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
+                    kvpArrayForPartCFields![stateData!.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
                     stateData.PartCFieldsCountFromState++;
                 }
             }
             else
             {
-                if (stateData.HasEnvProperties == 0)
+                if (stateData?.HasEnvProperties == 0)
                 {
                     stateData.HasEnvProperties = 1;
                     if (envPropertiesList == null)
                     {
-                        envPropertiesList = new List<KeyValuePair<string, object>>();
+                        envPropertiesList = new();
                         envProperties.Value = envPropertiesList;
                     }
 
@@ -533,7 +541,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 }
 
                 // TODO: This could lead to unbounded memory usage.
-                envPropertiesList.Add(new(scopeItem.Key, scopeItem.Value));
+                envPropertiesList!.Add(new(scopeItem.Key, scopeItem.Value));
             }
         }
     };
