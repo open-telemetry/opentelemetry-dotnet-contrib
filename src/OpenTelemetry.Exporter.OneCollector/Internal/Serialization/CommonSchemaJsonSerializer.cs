@@ -34,29 +34,44 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
     protected JsonEncodedText TenantTokenWithTenancySystemSymbol { get; }
 
-    public void SerializeBatchOfItemsToStream(Resource resource, in Batch<T> batch, Stream stream, int initialSizeOfPayloadInBytes, out BatchSerializationResult result)
+    public void SerializeBatchOfItemsToStream(
+        Resource resource,
+        ref BatchSerializationState<T> state,
+        Stream stream,
+        int initialSizeOfPayloadInBytes,
+        out BatchSerializationResult result)
     {
         Guard.ThrowIfNull(stream);
 
         var numberOfSerializedItems = 0;
+        var numberOfDroppedItems = 0;
         long payloadSizeInBytes = initialSizeOfPayloadInBytes;
 
-        var state = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
+        var jsonSerializerState = ThreadStorageHelper.GetCommonSchemaJsonSerializationState(this.itemType, stream);
 
-        var writer = state.Writer;
+        var writer = jsonSerializerState.Writer;
 
-        foreach (var item in batch)
+        while (state.TryGetNextItem(out var item))
         {
-            this.SerializeItemToJson(resource, item, state);
+            this.SerializeItemToJson(resource, item!, jsonSerializerState);
 
             var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;
-
-            payloadSizeInBytes += currentItemSizeInBytes;
 
             writer.Flush();
             writer.Reset();
 
             stream.Write(CommonSchemaJsonSerializationHelper.NewLine, 0, 1);
+
+            if (currentItemSizeInBytes >= this.maxPayloadSizeInBytes)
+            {
+                // Note: If an individual item cannot fit inside the max size it
+                // is dropped.
+                numberOfDroppedItems++;
+                stream.SetLength(stream.Position - currentItemSizeInBytes);
+                continue;
+            }
+
+            payloadSizeInBytes += currentItemSizeInBytes;
 
             if (++numberOfSerializedItems >= this.maxNumberOfItemsPerPayload)
             {
@@ -65,9 +80,13 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
             if (payloadSizeInBytes >= this.maxPayloadSizeInBytes)
             {
+                // Note: If the last item written doesn't fit into the max size
+                // it is kept in the buffer and becomes the first item in the
+                // next transmission.
                 result = new BatchSerializationResult
                 {
                     NumberOfItemsSerialized = numberOfSerializedItems,
+                    NumberOfItemsDropped = numberOfDroppedItems,
                     PayloadSizeInBytes = payloadSizeInBytes,
                     PayloadOverflowItemSizeInBytes = currentItemSizeInBytes,
                 };
@@ -78,6 +97,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         result = new BatchSerializationResult
         {
             NumberOfItemsSerialized = numberOfSerializedItems,
+            NumberOfItemsDropped = numberOfDroppedItems,
             PayloadSizeInBytes = payloadSizeInBytes,
         };
     }
