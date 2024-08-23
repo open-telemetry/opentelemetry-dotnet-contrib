@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Adding "Table Mapping" capabilities so that log [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
+  can be mapped to specific tables in telemetry.
+  ([#2021](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2021))
+
 ## 1.9.2
 
 Released 2024-Aug-12

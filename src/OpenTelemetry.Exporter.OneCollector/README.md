@@ -37,3 +37,46 @@ using var scope = logger.BeginScope("{requestContext}", Guid.NewGuid());
 logger.LogInformation("Request received {requestId}!", 1);
 logger.LogWarning("Warning encountered {error_code}!", 0xBAADBEEF);
 ```
+
+## Table Mapping
+
+When TableMapping is enabled the default table name used for logs is `Log`. 
+Mappings can be specified universally or for individual log message [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category) values.
+
+* To change the default table name for Logs add an entry with the key `*` and set the value to the desired custom table name.
+
+* To change the table name for a specific log [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category) add an entry with the key set to the full "category" of the log messages or a prefix that will match the starting portion of the log message "category". Set the value of the key to either the desired custom table name
+
+  For example, given the configuration...
+
+  ```csharp
+    using var logFactory = LoggerFactory.Create(builder => builder
+        .AddOpenTelemetry(builder =>
+        {
+            builder.IncludeScopes = true;
+            builder.AddOneCollectorExporter("InstrumentationKey=instrumentation-key-here", exporterBuilder => {
+                exporterBuilder.ConfigureTableMappingOptions(tableMappingOptions =>
+                    {
+                        tableMappingOptions.UseTableMapping = true;
+                        tableMappingOptions.TableMappings = TableMappings = new Dictionary<string, string>()
+                        {
+                            ["*"] = "DefaultLogs",
+                            ["MyCompany"] = "InternalLogs",
+                            ["MyCompany.Product1"] = "InternalProduct1Logs",
+                            ["MyCompany.Product2"] = "InternalProduct2Logs",
+                            ["MyCompany.Product2.Security"] = "InternalSecurityLogs",
+                        },
+                    });
+            });
+        }));
+
+  ```
+
+  ...log category mapping would be performed as such:
+
+  * `ILogger<ThirdParty.Thing>`: This would go to "DefaultLogs"
+  * `ILogger<MyCompany.ProductX.Thing>`: This would go to "InternalLogs"
+  * `ILogger<MyCompany.Product1.Thing>`: This would go to "InternalProduct1Logs"
+  * `ILogger<MyCompany.Product2.Thing>`: This would go to "InternalProduct2Logs"
+  * `ILogger<MyCompany.Product2.Security.Alert>`: This would go to
+    "InternalSecurityLogs"

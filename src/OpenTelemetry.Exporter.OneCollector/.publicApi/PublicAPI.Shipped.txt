@@ -1,4 +1,6 @@
 #nullable enable
+const OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.CatchAllNamespace = "*" -> string!
+const OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.DefaultTableName = "Log" -> string!
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback, bool includeFailures) -> System.IDisposable?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback) -> System.IDisposable?
@@ -28,10 +30,17 @@ OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventN
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventName.set -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.OneCollectorLogExporterOptions() -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.SerializationOptions.get -> OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions!
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.TableMappingOptions.get -> OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions?
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.TableMappingOptions.set -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions.ExceptionStackTraceHandling.get -> OpenTelemetry.Exporter.OneCollector.OneCollectorExporterSerializationExceptionStackTraceHandlingType
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions.ExceptionStackTraceHandling.set -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions.OneCollectorLogExporterSerializationOptions() -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.OneCollectorLogExporterTableMappingOptions() -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.TableMappings.get -> System.Collections.Generic.IDictionary<string!, string!>!
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.UseTableMapping.get -> bool
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterTableMappingOptions.UseTableMapping.set -> void
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.ConfigureBatchOptions(System.Action<OpenTelemetry.BatchExportProcessorOptions<OpenTelemetry.Logs.LogRecord!>!>! configure) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.ConfigureExporter(System.Action<OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<OpenTelemetry.Logs.LogRecord!>!>! configure) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
