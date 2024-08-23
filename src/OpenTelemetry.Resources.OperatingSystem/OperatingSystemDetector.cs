@@ -20,6 +20,10 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     ///
+#if NET
+    private const string EtcOsReleasePath = "/etc/os-release";
+#endif
+
     public Resource Detect()
     {
         var attributes = new List<KeyValuePair<string, object>>(5);
@@ -51,61 +55,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         return new Resource(attributes);
     }
 
-#if NET
-    internal static string? GetOsReleaseValue(string[] osReleaseContent, string prefix)
-    {
-        foreach (var line in osReleaseContent)
-        {
-            if (line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            {
-                var fieldValue = line.Substring(prefix.Length);
-
-                // Remove enclosing quotes.
-                if (fieldValue.Length >= 2 &&
-                    (fieldValue[0] == '"' || fieldValue[0] == '\'') &&
-                    fieldValue[0] == fieldValue[^1])
-                {
-                    fieldValue = fieldValue[1..^1];
-                }
-
-                return fieldValue;
-            }
-        }
-
-        return null;
-    }
-
-    internal static string? GetPlistValue(XElement dict, string key)
-    {
-        var keyElement = dict.Elements("key").FirstOrDefault(e => e.Value == key);
-        if (keyElement != null)
-        {
-            var valueElement = keyElement.ElementsAfterSelf("string").FirstOrDefault();
-            return valueElement?.Value;
-        }
-
-        return null;
-    }
-#endif
-
-    private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
-    {
-        if (value == null)
-        {
-            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value is null");
-            return;
-        }
-
-        if (value is string strValue && string.IsNullOrEmpty(strValue))
-        {
-            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is empty.");
-            return;
-        }
-
-        attributes.Add(new KeyValuePair<string, object>(key, value!));
-    }
-
-    private static string? GetOSType()
+    internal static string? GetOSType()
     {
 #if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
@@ -130,7 +80,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 
 #pragma warning disable CA1416
-    private static void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
+    internal static void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
@@ -151,44 +101,72 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #pragma warning restore CA1416
 
 #if NET
-    private static void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
+    internal static void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes, string etcOsReleasePath = EtcOsReleasePath)
     {
         try
         {
-            var osReleaseContent = File.ReadAllLines("/etc/os-release");
-            if (osReleaseContent == null || osReleaseContent.Length == 0)
+            if (!File.Exists(etcOsReleasePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find or read the os-release file");
                 return;
             }
 
-            string? name = GetOsReleaseValue(osReleaseContent, "NAME=") ?? "Linux";
-            string? version = GetOsReleaseValue(osReleaseContent, "VERSION_ID=");
-            string? buildId = GetOsReleaseValue(osReleaseContent, "BUILD_ID=");
+            var osReleaseContent = File.ReadAllLines(etcOsReleasePath);
+            ReadOnlySpan<char> buildId = default, name = default, version = default;
+
+            foreach (var line in osReleaseContent)
+            {
+                ReadOnlySpan<char> lineSpan = line.AsSpan();
+
+                _ = TryGetFieldValue(lineSpan, "BUILD_ID=", ref buildId) ||
+                    TryGetFieldValue(lineSpan, "NAME=", ref name) ||
+                    TryGetFieldValue(lineSpan, "VERSION_ID=", ref version);
+            }
 
             // TODO: fallback for buildId
 
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId.IsEmpty ? null : buildId.ToString());
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name.IsEmpty ? "Linux" : name.ToString());
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version.IsEmpty ? null : version.ToString());
         }
         catch (Exception ex)
         {
             OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get Linux attributes", ex);
         }
+
+        static bool TryGetFieldValue(ReadOnlySpan<char> line, ReadOnlySpan<char> prefix, ref ReadOnlySpan<char> value)
+        {
+            if (!line.StartsWith(prefix))
+            {
+                return false;
+            }
+
+            ReadOnlySpan<char> fieldValue = line.Slice(prefix.Length);
+
+            // Remove enclosing quotes if present.
+            if (fieldValue.Length >= 2 &&
+                (fieldValue[0] == '"' || fieldValue[0] == '\'') &&
+                fieldValue[0] == fieldValue[^1])
+            {
+                fieldValue = fieldValue[1..^1];
+            }
+
+            value = fieldValue;
+            return true;
+        }
     }
 
-    private static void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes)
+    internal static void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes, string[]? plistFilePaths = null)
     {
         try
         {
-            var possibleFiles = new[]
+            plistFilePaths ??= new[]
             {
-            "/System/Library/CoreServices/SystemVersion.plist",
-            "/System/Library/CoreServices/ServerVersion.plist",
+                "/System/Library/CoreServices/SystemVersion.plist",
+                "/System/Library/CoreServices/ServerVersion.plist",
             };
 
-            string? plistFilePath = possibleFiles.FirstOrDefault(File.Exists);
+            string? plistFilePath = plistFilePaths.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
@@ -198,15 +176,29 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             XDocument doc = XDocument.Load(plistFilePath);
             var dict = doc.Root?.Element("dict");
 
-            if (dict == null)
-            {
-                OperatingSystemResourcesEventSource.Log.FailedToFindFile("No <dict> element found in plist file");
-                return;
-            }
+            string? buildId = null, name = null, version = null;
 
-            string? name = GetPlistValue(dict, "ProductName");
-            string? version = GetPlistValue(dict, "ProductVersion");
-            string? buildId = GetPlistValue(dict, "ProductBuildVersion");
+            if (dict != null)
+            {
+                var keys = dict.Elements("key").ToList();
+                var values = dict.Elements("string").ToList();
+
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    switch (keys[i].Value)
+                    {
+                        case "ProductBuildVersion":
+                            buildId = values[i].Value;
+                            break;
+                        case "ProductName":
+                            name = values[i].Value;
+                            break;
+                        case "ProductVersion":
+                            version = values[i].Value;
+                            break;
+                    }
+                }
+            }
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
@@ -217,14 +209,32 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS attributes", ex);
         }
     }
+
 #endif
 
-    private static string GetOSDescription()
+    internal static string GetOSDescription()
     {
 #if NET
         return RuntimeInformation.OSDescription;
 #else
         return Environment.OSVersion.ToString();
 #endif
+    }
+
+    private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
+    {
+        if (value == null)
+        {
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value is null");
+            return;
+        }
+
+        if (value is string strValue && string.IsNullOrEmpty(strValue))
+        {
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is empty.");
+            return;
+        }
+
+        attributes.Add(new KeyValuePair<string, object>(key, value!));
     }
 }
