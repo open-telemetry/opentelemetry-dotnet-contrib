@@ -51,6 +51,43 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         return new Resource(attributes);
     }
 
+#if NET
+    internal static string? GetOsReleaseValue(string[] osReleaseContent, string prefix)
+    {
+        foreach (var line in osReleaseContent)
+        {
+            if (line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var fieldValue = line.Substring(prefix.Length);
+
+                // Remove enclosing quotes.
+                if (fieldValue.Length >= 2 &&
+                    (fieldValue[0] == '"' || fieldValue[0] == '\'') &&
+                    fieldValue[0] == fieldValue[^1])
+                {
+                    fieldValue = fieldValue[1..^1];
+                }
+
+                return fieldValue;
+            }
+        }
+
+        return null;
+    }
+
+    internal static string? GetPlistValue(XElement dict, string key)
+    {
+        var keyElement = dict.Elements("key").FirstOrDefault(e => e.Value == key);
+        if (keyElement != null)
+        {
+            var valueElement = keyElement.ElementsAfterSelf("string").FirstOrDefault();
+            return valueElement?.Value;
+        }
+
+        return null;
+    }
+#endif
+
     private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
     {
         if (value == null)
@@ -119,34 +156,20 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         try
         {
             var osReleaseContent = File.ReadAllLines("/etc/os-release");
-            if (osReleaseContent == null)
+            if (osReleaseContent == null || osReleaseContent.Length == 0)
             {
-                OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
+                OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find or read the os-release file");
                 return;
             }
 
-            string? buildId = null, name = null, version = null;
-
-            foreach (var line in osReleaseContent)
-            {
-                if (line.StartsWith("BUILD_ID=", StringComparison.Ordinal))
-                {
-                    buildId = line.Substring("BUILD_ID=".Length).Trim('"');
-                }
-                else if (line.StartsWith("NAME=", StringComparison.Ordinal))
-                {
-                    name = line.Substring("NAME=".Length).Trim('"');
-                }
-                else if (line.StartsWith("VERSION_ID=", StringComparison.Ordinal))
-                {
-                    version = line.Substring("VERSION_ID=".Length).Trim('"');
-                }
-            }
+            string? name = GetOsReleaseValue(osReleaseContent, "NAME=") ?? "Linux";
+            string? version = GetOsReleaseValue(osReleaseContent, "VERSION_ID=");
+            string? buildId = GetOsReleaseValue(osReleaseContent, "BUILD_ID=");
 
             // TODO: fallback for buildId
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name ?? "Linux");
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version);
         }
         catch (Exception ex)
@@ -174,37 +197,16 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
             XDocument doc = XDocument.Load(plistFilePath);
             var dict = doc.Root?.Element("dict");
-            string? buildId = null, name = null, version = null;
 
-            if (dict != null)
+            if (dict == null)
             {
-                string? currentKey = null;
-
-                foreach (var element in dict.Elements())
-                {
-                    if (element.Name == "key")
-                    {
-                        currentKey = element.Value;
-                    }
-                    else if (element.Name == "string" && currentKey != null)
-                    {
-                        if (currentKey == "ProductName")
-                        {
-                            name = element.Value;
-                        }
-                        else if (currentKey == "ProductVersion")
-                        {
-                            version = element.Value;
-                        }
-                        else if (currentKey == "ProductBuildVersion")
-                        {
-                            buildId = element.Value;
-                        }
-
-                        currentKey = null;
-                    }
-                }
+                OperatingSystemResourcesEventSource.Log.FailedToFindFile("No <dict> element found in plist file");
+                return;
             }
+
+            string? name = GetPlistValue(dict, "ProductName");
+            string? version = GetPlistValue(dict, "ProductVersion");
+            string? buildId = GetPlistValue(dict, "ProductBuildVersion");
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name);
@@ -215,7 +217,6 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS attributes", ex);
         }
     }
-
 #endif
 
     private static string GetOSDescription()
