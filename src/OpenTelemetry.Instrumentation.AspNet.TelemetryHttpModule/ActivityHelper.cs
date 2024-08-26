@@ -64,24 +64,35 @@ internal static class ActivityHelper
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
         KeyValuePair<string, object?>[]? tags;
-        if (context.Request?.Unvalidated?.Path is string path)
-        {
-            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[2];
+        string? path = context.Request?.Unvalidated?.Path;
+        string? method = context.Request?.HttpMethod;
 
-            tags[0] = new KeyValuePair<string, object?>("url.path", path);
-            tags[1] = new KeyValuePair<string, object?>("http.request.method", path);
-        }
-        else
+        // Determine the number of available tags and initialize the array accordingly
+        int tagCount = (path is not null ? 1 : 0) + (method is not null ? 1 : 0);
+        tags = tagCount > 0 ? cachedTagsStorage ??= new KeyValuePair<string, object?>[tagCount] : null;
+
+        int tagIndex = 0;
+        if (tags is not null)
         {
-            tags = null;
+            if (path is not null)
+            {
+                tags[tagIndex++] = new KeyValuePair<string, object?>("url.path", path);
+            }
+
+            if (method is not null)
+            {
+                tags[tagIndex] = new KeyValuePair<string, object?>("http.request.method", method);
+            }
         }
 
         Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
         if (tags is not null)
         {
-            tags[0] = default;
-            tags[1] = default;
+            for (int i = 0; i < tags.Length; i++)
+            {
+                tags[i] = default(KeyValuePair<string, object?>);
+            }
         }
 
         if (activity != null)
