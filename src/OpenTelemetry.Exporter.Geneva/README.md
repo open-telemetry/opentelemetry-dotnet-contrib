@@ -1,5 +1,10 @@
 # Geneva Exporter for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Stable](../../README.md#stable)|
+| Code Owners   |  [@cijothomas](https://github.com/cijothomas),  [@codeblanch](https://github.com/codeblanch),  [@reyang](https://github.com/reyang),  [@utpilla](https://github.com/utpilla),  [@Yun-Ting](https://github.com/Yun-Ting)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Exporter.Geneva)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Exporter.Geneva)
