@@ -146,6 +146,7 @@ public class HttpInListenerTests
                     new TestSampler(SamplingDecision.RecordAndSample)
                     {
                         ExpectedUrlPath = expectedUrlPath,
+                        ExpectedHttpRequestMethod = expectedRequestMethod,
                     })
                 .Build())
             {
@@ -314,12 +315,19 @@ public class HttpInListenerTests
 
         public string? ExpectedUrlPath { get; set; }
 
+        public string? ExpectedHttpRequestMethod { get; set; }
+
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
             if (!string.IsNullOrEmpty(this.ExpectedUrlPath))
             {
                 Assert.NotNull(samplingParameters.Tags);
                 Assert.Contains(samplingParameters.Tags, t => t.Key == "url.path" && (t.Value as string) == this.ExpectedUrlPath);
+            }
+            if (!string.IsNullOrEmpty(this.ExpectedHttpRequestMethod))
+            {
+                Assert.NotNull(samplingParameters.Tags);
+                Assert.Contains(samplingParameters.Tags, t => t.Key == "http.request.method" && (t.Value as string) == this.ExpectedHttpRequestMethod);
             }
 
             return new SamplingResult(this.samplingDecision);
