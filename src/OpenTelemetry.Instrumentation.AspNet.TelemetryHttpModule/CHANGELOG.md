@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* `TelemetryHttpModule` will now pass the `url.path` and the `http.request.method` tags (set to
+* `TelemetryHttpModule` will now pass the `http.request.method` and the `url.path` tags (set to
   [Request.Unvalidated.Path](https://learn.microsoft.com/dotnet/api/system.web.unvalidatedrequestvalues.path))
   when starting `Activity` instances for incoming requests so that it is
   available to samplers and may be used to influence the sampling decision made
