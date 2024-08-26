@@ -58,8 +58,7 @@ public class OperatingSystemDetectorTests
     public void TestParseMacOSPlist()
     {
         List<KeyValuePair<string, object>> resourceAttributes = new();
-        string baseDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
-        string path = Path.Combine(baseDirectory, "Samples", "SystemVersion.plist");
+        string path = "Samples/SystemVersion.plist";
         OperatingSystemDetector.AddMacOSAttributes(
             resourceAttributes,
             [path]);
@@ -74,8 +73,7 @@ public class OperatingSystemDetectorTests
     public void TestParseLinuxOsRelease()
     {
         List<KeyValuePair<string, object>> resourceAttributes = new();
-        string baseDirectory = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
-        string path = Path.Combine(baseDirectory, "Samples", "os-release");
+        string path = "Samples/os-release";
         OperatingSystemDetector.AddLinuxAttributes(resourceAttributes, path);
         var attributes = resourceAttributes.ToDictionary(x => x.Key, x => (string)x.Value);
 

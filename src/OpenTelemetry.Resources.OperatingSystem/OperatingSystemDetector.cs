@@ -22,6 +22,11 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     ///
 #if NET
     private const string EtcOsReleasePath = "/etc/os-release";
+    private static readonly string[] DefaultPlistFilePaths =
+    [
+        "/System/Library/CoreServices/SystemVersion.plist",
+        "/System/Library/CoreServices/ServerVersion.plist",
+    ];
 #endif
 
     public Resource Detect()
@@ -101,6 +106,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #pragma warning restore CA1416
 
 #if NET
+    // based on:
+    // https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Linux/os-release/Interop.OSReleaseFile.cs
     internal static void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes, string etcOsReleasePath = EtcOsReleasePath)
     {
         try
@@ -156,16 +163,13 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         }
     }
 
-    internal static void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes, string[]? plistFilePaths = null)
+    internal static void AddMacOSAttributes(
+        List<KeyValuePair<string, object>> attributes,
+        string[]? plistFilePaths = null)
     {
         try
         {
-            plistFilePaths ??= new[]
-            {
-                "/System/Library/CoreServices/SystemVersion.plist",
-                "/System/Library/CoreServices/ServerVersion.plist",
-            };
-
+            plistFilePaths ??= DefaultPlistFilePaths;
             string? plistFilePath = plistFilePaths.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
