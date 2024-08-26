@@ -6,7 +6,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSUpDownCounter<T> : UpDownCounter<T>
+internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
     where T : struct
 {
     private readonly System.Diagnostics.Metrics.UpDownCounter<T> upDownCounter;
