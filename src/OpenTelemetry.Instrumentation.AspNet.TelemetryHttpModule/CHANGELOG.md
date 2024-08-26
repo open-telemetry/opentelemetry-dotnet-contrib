@@ -9,6 +9,12 @@
   by [custom
   implementations](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk#sampler).
   ([#1871](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1871))
+* `TelemetryHttpModule` will now pass the `http.request.method` tag
+  when starting `Activity` instances for incoming requests so that it is
+  available to samplers and may be used to influence the sampling decision made
+  by [custom
+  implementations](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk#sampler).
+  ([#2023](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2023))
 
 ## 1.9.0-beta.1
 
