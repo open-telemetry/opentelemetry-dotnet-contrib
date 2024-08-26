@@ -146,7 +146,7 @@ below.
 > OpenTelemetry has the concept of a
 [Sampler](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling).
 When using `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule` the
-`url.path` tag is supplied automatically to samplers when telemetry is started
+`url.path` in addition to `http.request.method` tag are supplied automatically to samplers when telemetry is started
 for incoming requests. It is recommended to use a sampler which inspects
 `url.path` (as opposed to the `Filter` option described below) in order to
 perform filtering as it will prevent child spans from being created and bypass
