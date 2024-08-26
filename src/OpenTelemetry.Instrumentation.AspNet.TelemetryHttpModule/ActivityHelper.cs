@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Internal;// asdfasf
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
