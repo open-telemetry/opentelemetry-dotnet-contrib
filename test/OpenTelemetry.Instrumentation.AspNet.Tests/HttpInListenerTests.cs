@@ -324,6 +324,7 @@ public class HttpInListenerTests
                 Assert.NotNull(samplingParameters.Tags);
                 Assert.Contains(samplingParameters.Tags, t => t.Key == "url.path" && (t.Value as string) == this.ExpectedUrlPath);
             }
+
             if (!string.IsNullOrEmpty(this.ExpectedHttpRequestMethod))
             {
                 Assert.NotNull(samplingParameters.Tags);
