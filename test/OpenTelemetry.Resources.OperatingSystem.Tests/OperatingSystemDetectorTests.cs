@@ -57,12 +57,13 @@ public class OperatingSystemDetectorTests
     [Fact]
     public void TestParseMacOSPlist()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = new();
         string path = "Samples/SystemVersion.plist";
-        OperatingSystemDetector.AddMacOSAttributes(
-            resourceAttributes,
+        var osDetector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
+            null,
+            null,
             [path]);
-        var attributes = resourceAttributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Mac OS X", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("10.6.8", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
@@ -72,10 +73,13 @@ public class OperatingSystemDetectorTests
     [Fact]
     public void TestParseLinuxOsRelease()
     {
-        List<KeyValuePair<string, object>> resourceAttributes = new();
         string path = "Samples/os-release";
-        OperatingSystemDetector.AddLinuxAttributes(resourceAttributes, path);
-        var attributes = resourceAttributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        var osDetector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
+            null,
+            path,
+            null);
+        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Ubuntu", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);

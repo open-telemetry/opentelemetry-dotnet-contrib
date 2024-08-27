@@ -4,6 +4,7 @@
 #if NET
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+
 #endif
 
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
@@ -13,46 +14,65 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 /// <summary>
 /// Operating system detector.
 /// </summary>
-internal sealed class OperatingSystemDetector : IResourceDetector
+internal sealed class OperatingSystemDetector() : IResourceDetector
 {
     /// <summary>
     /// Detects the resource attributes from the operating system.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     ///
+    private readonly string? registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+    private readonly string? osType = GetOSType();
 #if NET
-    private const string EtcOsReleasePath = "/etc/os-release";
-    private static readonly string[] DefaultPlistFilePaths =
+    private readonly string? etcOsReleasePath = "/etc/os-release";
+    private readonly string[]? defaultPlistFilePaths =
     [
         "/System/Library/CoreServices/SystemVersion.plist",
         "/System/Library/CoreServices/ServerVersion.plist",
     ];
 #endif
 
+#if NET
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
+    /// </summary>
+    /// <param name="osType">The target platform identifier, specifying the operating system type from SemanticConventions.</param>
+    /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
+    /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
+    /// <param name="defaultPlistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
+    internal OperatingSystemDetector(string? osType, string? registryKey, string? etcOsReleasePath, string[]? defaultPlistFilePaths)
+        : this()
+    {
+        this.osType = osType;
+        this.registryKey = registryKey;
+        this.etcOsReleasePath = etcOsReleasePath;
+        this.defaultPlistFilePaths = defaultPlistFilePaths;
+    }
+#endif
+
     public Resource Detect()
     {
         var attributes = new List<KeyValuePair<string, object>>(5);
-        var osType = GetOSType();
-        if (osType == null)
+        if (this.osType == null)
         {
             return Resource.Empty;
         }
 
-        attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemType, osType));
+        attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemType, this.osType));
 
         AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemDescription, GetOSDescription());
 
-        switch (osType)
+        switch (this.osType)
         {
             case OperatingSystemsValues.Windows:
-                AddWindowsAttributes(attributes);
+                this.AddWindowsAttributes(attributes);
                 break;
 #if NET
             case OperatingSystemsValues.Linux:
-                AddLinuxAttributes(attributes);
+                this.AddLinuxAttributes(attributes);
                 break;
             case OperatingSystemsValues.Darwin:
-                AddMacOSAttributes(attributes);
+                this.AddMacOSAttributes(attributes);
                 break;
 #endif
         }
@@ -84,13 +104,21 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #endif
     }
 
+    internal static string GetOSDescription()
+    {
+#if NET
+        return RuntimeInformation.OSDescription;
+#else
+        return Environment.OSVersion.ToString();
+#endif
+    }
+
 #pragma warning disable CA1416
-    internal static void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
+    internal void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
-            var registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(registryKey);
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(this.registryKey!);
             if (key != null)
             {
                 AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, key.GetValue("CurrentBuildNumber")?.ToString());
@@ -108,17 +136,17 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #if NET
     // based on:
     // https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Linux/os-release/Interop.OSReleaseFile.cs
-    internal static void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes, string etcOsReleasePath = EtcOsReleasePath)
+    internal void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
-            if (!File.Exists(etcOsReleasePath))
+            if (!File.Exists(this.etcOsReleasePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find or read the os-release file");
                 return;
             }
 
-            var osReleaseContent = File.ReadAllLines(etcOsReleasePath);
+            var osReleaseContent = File.ReadAllLines(this.etcOsReleasePath);
             ReadOnlySpan<char> buildId = default, name = default, version = default;
 
             foreach (var line in osReleaseContent)
@@ -163,14 +191,11 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         }
     }
 
-    internal static void AddMacOSAttributes(
-        List<KeyValuePair<string, object>> attributes,
-        string[]? plistFilePaths = null)
+    internal void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
-            plistFilePaths ??= DefaultPlistFilePaths;
-            string? plistFilePath = plistFilePaths.FirstOrDefault(File.Exists);
+            string? plistFilePath = this.defaultPlistFilePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
@@ -215,15 +240,6 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 
 #endif
-
-    internal static string GetOSDescription()
-    {
-#if NET
-        return RuntimeInformation.OSDescription;
-#else
-        return Environment.OSVersion.ToString();
-#endif
-    }
 
     private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
     {
