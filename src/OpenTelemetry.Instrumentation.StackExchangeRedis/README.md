@@ -69,8 +69,8 @@ public class Program
             .AddConsoleExporter()
             .Build();
 
-        using var tracerProvider = Sdk.CreateMeterProviderBuilder()
-            .AddRedisInstrumentation()
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddRedisInstrumentation(connection)
             .AddConsoleExporter()
             .Build();
     }
@@ -101,8 +101,8 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddRedisInstrumentation(connection)
     .Build();
 
-using var tracerProvider = Sdk.CreateMeterProviderBuilder()
-    .AddRedisInstrumentation()
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddRedisInstrumentation(connection)
     .Build();
 ```
 

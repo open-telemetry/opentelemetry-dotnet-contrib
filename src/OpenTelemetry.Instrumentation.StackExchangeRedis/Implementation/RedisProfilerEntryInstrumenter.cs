@@ -113,13 +113,14 @@ internal static class RedisProfilerEntryInstrumenter
         // Total:
         // command.ElapsedTime;             // 00:00:32.4988020
 
-        var flags = command.Flags.ToString();
-        activity?.SetTag(SemanticConventions.AttributeDbRedisFlagsKeyName, flags);
+        activity?.SetTag(SemanticConventions.AttributeDbRedisFlagsKeyName, command.Flags.ToString());
 
-        var operationName = command.Command ?? string.Empty;
-        meterTags?.Add(SemanticConventions.AttributeDbOperationName, operationName);
+        if (command.Command != null)
+        {
+            meterTags?.Add(SemanticConventions.AttributeDbOperationName, command.Command);
+        }
 
-        if (activity is not null)
+        if (activity != null)
         {
             if (options.SetVerboseDatabaseStatements)
             {
