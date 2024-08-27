@@ -1,0 +1,1 @@
+opentelemetry-proto/CHANGELOG.md
