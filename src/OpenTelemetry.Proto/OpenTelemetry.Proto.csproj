@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="**/*.proto" Access="internal">
+    <Protobuf Include="**/*.proto" Access="public">
       <ProtoRoot>opentelemetry-proto</ProtoRoot>
     </Protobuf>
   </ItemGroup>
