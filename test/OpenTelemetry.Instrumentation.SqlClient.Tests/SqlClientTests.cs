@@ -3,9 +3,13 @@
 
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
+using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+using OpenTelemetry.Metrics;
+
 #if !NETFRAMEWORK
 using OpenTelemetry.Tests;
 #endif
@@ -65,14 +69,7 @@ public class SqlClientTests : IDisposable
     // DiagnosticListener-based instrumentation is only available on .NET Core
 #if !NETFRAMEWORK
     [Theory]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, false)]
+    [MemberData(nameof(SqlTestData.SqlClientCallsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
     public void SqlClientCallsAreCollectedSuccessfully(
         string beforeCommand,
         string afterCommand,
@@ -80,25 +77,44 @@ public class SqlClientTests : IDisposable
         string commandText,
         bool captureStoredProcedureCommandName,
         bool captureTextCommandContent,
-        bool shouldEnrich = true)
+        bool shouldEnrich = true,
+        bool tracingEnabled = true,
+        bool metricsEnabled = true)
     {
         using var sqlConnection = new SqlConnection(TestConnectionString);
         using var sqlCommand = sqlConnection.CreateCommand();
 
         var activities = new List<Activity>();
-        using (Sdk.CreateTracerProviderBuilder()
-                .AddSqlClientInstrumentation(
-                    (opt) =>
-                    {
-                        opt.SetDbStatementForText = captureTextCommandContent;
-                        opt.SetDbStatementForStoredProcedure = captureStoredProcedureCommandName;
-                        if (shouldEnrich)
-                        {
-                            opt.Enrich = ActivityEnrichment;
-                        }
-                    })
-                .AddInMemoryExporter(activities)
-                .Build())
+        var metrics = new List<Metric>();
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+        if (tracingEnabled)
+        {
+            traceProviderBuilder.AddSqlClientInstrumentation(
+            (opt) =>
+            {
+                opt.SetDbStatementForText = captureTextCommandContent;
+                opt.SetDbStatementForStoredProcedure = captureStoredProcedureCommandName;
+                if (shouldEnrich)
+                {
+                    opt.Enrich = ActivityEnrichment;
+                }
+            });
+            traceProviderBuilder.AddInMemoryExporter(activities);
+        }
+        var traceProvider = traceProviderBuilder.Build();
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (metricsEnabled)
+        {
+            meterProviderBuilder.AddSqlClientInstrumentation();
+            meterProviderBuilder.AddInMemoryExporter(metrics);
+        }
+
+        var meterProvider = meterProviderBuilder.Build();
+
+        try
         {
             var operationId = Guid.NewGuid();
             sqlCommand.CommandType = commandType;
@@ -128,20 +144,59 @@ public class SqlClientTests : IDisposable
                 afterCommand,
                 afterExecuteEventData);
         }
+        finally
+        {
+            traceProvider.Dispose();
+            meterProvider.Dispose();
+        }
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        Activity? activity = null;
 
-        VerifyActivityData(
-            sqlCommand.CommandType,
-            sqlCommand.CommandText,
-            captureStoredProcedureCommandName,
-            captureTextCommandContent,
-            false,
-            false,
-            shouldEnrich,
-            sqlConnection.DataSource,
-            activity);
+        if (tracingEnabled)
+        {
+            activity = Assert.Single(activities);
+
+            VerifyActivityData(
+                sqlCommand.CommandType,
+                sqlCommand.CommandText,
+                captureStoredProcedureCommandName,
+                captureTextCommandContent,
+                false,
+                false,
+                shouldEnrich,
+                sqlConnection.DataSource,
+                activity);
+        }
+
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == "db.client.operation.duration")
+            .ToArray();
+
+        if (metricsEnabled)
+        {
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            Assert.NotNull(metric);
+            Assert.Equal("s", metric.Unit);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+            var metricPoints = new List<MetricPoint>();
+            foreach (var p in metric.GetMetricPoints())
+            {
+                metricPoints.Add(p);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+
+            if (tracingEnabled && activity != null)
+            {
+                var count = metricPoint.GetHistogramCount();
+                var sum = metricPoint.GetHistogramSum();
+                Assert.Equal(activity.Duration.TotalSeconds, sum);
+            }
+        } else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
+        }
     }
 
     [Theory]
