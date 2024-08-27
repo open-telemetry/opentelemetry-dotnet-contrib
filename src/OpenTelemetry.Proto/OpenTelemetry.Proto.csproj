@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net6.0;net472;netstandard2.0</TargetFrameworks>
+    <Description>Protobuf bindings for OpenTelemetry .NET</Description>
+    <RootNamespace>OpenTelemetry</RootNamespace>
+    <MinVerTagPrefix>Proto-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Condition="'$(TargetFramework)' != 'netstandard2.0' AND '$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'" />
+    <PackageReference Include="Grpc" Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="**/*.proto" Access="internal">
+      <ProtoRoot>opentelemetry-proto</ProtoRoot>
+    </Protobuf>
+  </ItemGroup>
+</Project>
