@@ -1,21 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;net472</TargetFrameworks>
     <Description>Protobuf bindings for OpenTelemetry .NET</Description>
-    <RootNamespace>OpenTelemetry</RootNamespace>
     <MinVerTagPrefix>Proto-</MinVerTagPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Net.Client" Condition="'$(TargetFramework)' != 'netstandard2.0' AND '$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'" />
-    <PackageReference Include="Grpc" Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
-    <PackageReference Include="Google.Protobuf" />
-    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+    <PackageReference Include="Google.Protobuf" Version="3.26.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.46.6" PrivateAssets="All" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.46.6" />
+    <PackageReference Include="Grpc" Version="2.46.6" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="**/*.proto" Access="public">
-      <ProtoRoot>opentelemetry-proto</ProtoRoot>
-    </Protobuf>
+    <Protobuf Include="**/*.proto" Access="public" ProtoRoot="./opentelemetry-proto/" />
   </ItemGroup>
 </Project>
