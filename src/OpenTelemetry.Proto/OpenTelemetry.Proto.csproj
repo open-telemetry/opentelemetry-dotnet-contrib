@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net6.0;net472;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.1</TargetFrameworks>
     <Description>Protobuf bindings for OpenTelemetry .NET</Description>
     <RootNamespace>OpenTelemetry</RootNamespace>
     <MinVerTagPrefix>Proto-</MinVerTagPrefix>
