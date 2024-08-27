@@ -67,6 +67,8 @@ public static class TracerProviderBuilderExtensions
             builder.ConfigureServices(services => services.Configure(name, configureSqlClientTraceInstrumentationOptions));
         }
 
+        // TODO guard against double instrumentation registration
+        // metrics extension method may register instrumentation as well
         builder.AddInstrumentation(sp =>
         {
             var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);

@@ -33,6 +33,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly SqlClientTraceInstrumentationOptions options;
+    private readonly AsyncLocal<Activity?> currentActivity = new();
 
     public SqlClientDiagnosticListener(string sourceName, SqlClientTraceInstrumentationOptions? options)
         : base(sourceName)
@@ -60,7 +61,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
-                        return;
+                        activity = new Activity(SqlActivitySourceHelper.MeterName);
+                        activity.IsAllDataRequested = true;
+                        activity.Start();
+                        this.currentActivity.Value = activity;
                     }
 
                     _ = this.commandFetcher.TryFetch(payload, out var command);
@@ -71,7 +75,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.IsAllDataRequested)
+                    activity.SetTag(SemanticConventions.AttributeDbSystem, "mssql");
+
+                    if (activity.IsAllDataRequested && this.currentActivity.Value == null)
                     {
                         try
                         {
@@ -90,7 +96,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                             return;
                         }
+                    }
 
+                    if (activity.IsAllDataRequested)
+                    {
                         _ = this.connectionFetcher.TryFetch(command, out var connection);
                         _ = this.databaseFetcher.TryFetch(connection, out var database);
 
@@ -148,24 +157,40 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataAfterExecuteCommand:
             case SqlMicrosoftAfterExecuteCommand:
                 {
+                    activity = activity ?? this.currentActivity.Value;
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
                         return;
                     }
 
-                    if (activity.Source != SqlActivitySourceHelper.ActivitySource)
-                    {
-                        return;
-                    }
+                    //if (activity.Source != SqlActivitySourceHelper.ActivitySource && this.currentActivity.Value == null)
+                    //{
+                    //    return;
+                    //}
 
                     activity.Stop();
+
+                    if (SqlActivitySourceHelper.DbClientOperationDuration.Enabled)
+                    {
+                        SqlActivitySourceHelper.DbClientOperationDuration.Record(activity.Duration.TotalSeconds);
+                    }
+
+                    //if (this.currentActivity.Value == activity)
+                    if (this.currentActivity.Value != null)
+                    {
+                        activity.Dispose();
+                        this.currentActivity.Value = null;
+                    }
                 }
 
                 break;
             case SqlDataWriteCommandError:
             case SqlMicrosoftWriteCommandError:
                 {
+                    activity = activity ?? this.currentActivity.Value;
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
@@ -199,6 +224,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
+
+                        if (this.currentActivity.Value == activity)
+                        {
+                            activity.Dispose();
+                            this.currentActivity.Value = null;
+                        }
                     }
                 }
 
