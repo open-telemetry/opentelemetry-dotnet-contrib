@@ -4,7 +4,6 @@
 #if NET
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
-
 #endif
 
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
@@ -14,42 +13,50 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 /// <summary>
 /// Operating system detector.
 /// </summary>
-internal sealed class OperatingSystemDetector() : IResourceDetector
+internal sealed class OperatingSystemDetector : IResourceDetector
 {
-    /// <summary>
-    /// Detects the resource attributes from the operating system.
-    /// </summary>
-    /// <returns>Resource with key-value pairs of resource attributes.</returns>
-    ///
-    private readonly string? registryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-    private readonly string? osType = GetOSType();
-#if NET
-    private readonly string? etcOsReleasePath = "/etc/os-release";
-    private readonly string[]? defaultPlistFilePaths =
-    [
-        "/System/Library/CoreServices/SystemVersion.plist",
-        "/System/Library/CoreServices/ServerVersion.plist",
-    ];
-#endif
+    private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+    private const string EtcOsReleasePath = "/etc/os-release";
+    private static readonly string[] DefaultPlistFilePaths =
+        [
+            "/System/Library/CoreServices/SystemVersion.plist",
+            "/System/Library/CoreServices/ServerVersion.plist"
+        ];
 
-#if NET
+    private readonly string? osType;
+    private readonly string? registryKey;
+    private readonly string? etcOsReleasePath;
+    private readonly string[]? plistFilePaths;
+
+    internal OperatingSystemDetector()
+        : this(
+            GetOSType(),
+            RegistryKey,
+            EtcOsReleasePath,
+            DefaultPlistFilePaths)
+    {
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
     /// </summary>
     /// <param name="osType">The target platform identifier, specifying the operating system type from SemanticConventions.</param>
     /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
     /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
-    /// <param name="defaultPlistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
-    internal OperatingSystemDetector(string? osType, string? registryKey, string? etcOsReleasePath, string[]? defaultPlistFilePaths)
-        : this()
+    /// <param name="plistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
+    internal OperatingSystemDetector(string? osType, string? registryKey, string? etcOsReleasePath, string[]? plistFilePaths)
     {
         this.osType = osType;
         this.registryKey = registryKey;
         this.etcOsReleasePath = etcOsReleasePath;
-        this.defaultPlistFilePaths = defaultPlistFilePaths;
+        this.plistFilePaths = plistFilePaths;
     }
-#endif
 
+    /// <summary>
+    /// Detects the resource attributes from the operating system.
+    /// </summary>
+    /// <returns>Resource with key-value pairs of resource attributes.</returns>
+    ///
     public Resource Detect()
     {
         var attributes = new List<KeyValuePair<string, object>>(5);
@@ -195,7 +202,7 @@ internal sealed class OperatingSystemDetector() : IResourceDetector
     {
         try
         {
-            string? plistFilePath = this.defaultPlistFilePaths!.FirstOrDefault(File.Exists);
+            string? plistFilePath = this.plistFilePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
