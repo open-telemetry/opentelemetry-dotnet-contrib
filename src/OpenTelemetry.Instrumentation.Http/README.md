@@ -348,7 +348,7 @@ It is generally recommended to use `EnrichWithHttpResponseMessage` or
 `EnrichWithHttpWebResponse` for any activity enrichment that does not require
 access to exceptions or request object in case of .NET Framework, as the
 instrumentation library populates all telemetry following the [OTel
-specification](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/http)
+specification](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http)
 before this callback. The following is the sequence in which these callbacks are
 executed:
 
