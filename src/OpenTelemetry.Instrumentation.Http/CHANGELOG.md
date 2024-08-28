@@ -11,7 +11,7 @@ Released 2024-Jun-17
 
 * Fix an issue where cancellation of an HTTP request via the Cancellation Token
   would not set a description or an `error.type` on the activity
-  ([#1831](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1831))
+  ([#1955](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1955))
 
 ## 1.8.1
 
