@@ -166,4 +166,3 @@ to display once a route has been resolved. Here is how this can be done using We
 * [Open Web Interface for .NET](http://owin.org/)
 * [Katana Project](https://github.com/aspnet/AspNetKatana/)
 * [OpenTelemetry Project](https://opentelemetry.io/)
-* [Instrumentation.Http](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/7fcae4903133fb8d6e249963bceaa81689c5e326/src/OpenTelemetry.Instrumentation.Http/README.md?plain=1#L81)
