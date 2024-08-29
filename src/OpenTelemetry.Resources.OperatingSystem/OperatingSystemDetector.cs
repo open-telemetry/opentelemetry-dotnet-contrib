@@ -16,7 +16,7 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-    private static readonly string[] DefaultEtcOsReleasePath =
+    private static readonly string[] DefaultEtcOsReleasePaths =
         [
             "/etc/os-release",
             "/usr/lib/os-release"
@@ -30,14 +30,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private readonly string? osType;
     private readonly string? registryKey;
-    private readonly string[]? etcOsReleasePath;
+    private readonly string[]? etcOsReleasePaths;
     private readonly string[]? plistFilePaths;
 
     internal OperatingSystemDetector()
         : this(
             GetOSType(),
             RegistryKey,
-            DefaultEtcOsReleasePath,
+            DefaultEtcOsReleasePaths,
             DefaultPlistFilePaths)
     {
     }
@@ -53,7 +53,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         this.osType = osType;
         this.registryKey = registryKey;
-        this.etcOsReleasePath = etcOsReleasePath;
+        this.etcOsReleasePaths = etcOsReleasePath;
         this.plistFilePaths = plistFilePaths;
     }
 
@@ -169,7 +169,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            string? etcOsReleasePath = this.etcOsReleasePath!.FirstOrDefault(File.Exists);
+            string? etcOsReleasePath = this.etcOsReleasePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(etcOsReleasePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find the os-release file");
