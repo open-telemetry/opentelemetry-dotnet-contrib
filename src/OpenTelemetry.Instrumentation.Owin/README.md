@@ -59,6 +59,27 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
         .Build();
 ```
 
+Following list of attributes are added by default on activity. See
+[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-spans.md)
+for more details about each individual attribute:
+
+* `error.type`
+* `http.request.method`
+* `http.request.method_original`
+* `http.response.status_code`
+* `http.route`
+* `network.protocol.version`
+* `user_agent.original`
+* `server.address`
+* `server.port`
+* `url.path`
+* `url.query` - By default, the values in the query component are replaced with
+  the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
+  `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
+  environment variable
+  `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION` to `true`.
+* `url.scheme`
+
 #### Configure OpenTelemetry MeterProvider
 
 Call the `AddOwinInstrumentation` `MeterProviderBuilder` extension to register
@@ -140,35 +161,9 @@ to display once a route has been resolved. Here is how this can be done using We
     }
 ```
 
-## OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION
-
-OpenTelemetry's OWIN instrumentation redacts URL query parameters by default to
-prevent leaking potentially sensitive information. When this redaction is enabled,
-any values detected in the query string component of requests are replaced with
-the text `Redacted` in the `http.url` tag. For example, a URL with query parameters
-like `?key1=value1&key2=value2` will be displayed as `?key1=Redacted&key2=Redacted`.
-
-You can disable this default redaction behavior by setting the
-environment variable `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION`
-to `true`. This can be useful in scenarios such as debugging or when you are
-certain that the query parameters do not contain sensitive information.
-Setting this flag to `true` allows the full query parameter values to be displayed
-in the `http.url` tag without redaction.
-
-**Example:**
-
-```shell
-export OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION=true
-```
-
-Or in code:
-
-```csharp
-Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
-```
-
 ## References
 
 * [Open Web Interface for .NET](http://owin.org/)
 * [Katana Project](https://github.com/aspnet/AspNetKatana/)
 * [OpenTelemetry Project](https://opentelemetry.io/)
+* [Instrumentation.Http](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/7fcae4903133fb8d6e249963bceaa81689c5e326/src/OpenTelemetry.Instrumentation.Http/README.md?plain=1#L81)
