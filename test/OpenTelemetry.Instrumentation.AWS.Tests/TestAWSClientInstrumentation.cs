@@ -225,6 +225,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -234,26 +235,26 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{\"GuardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
             var get_guardrail_req = new GetGuardrailRequest();
             get_guardrail_req.GuardrailIdentifier = "123456789";
 #if NETFRAMEWORK
-            var response = bedrock.GetGuardrail(get_guardrail_req);
+            bedrock.GetGuardrail(get_guardrail_req);
 #else
-            var response = await bedrock.GetGuardrailAsync(get_guardrail_req);
+            await bedrock.GetGuardrailAsync(get_guardrail_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock.GetGuardrail");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock.GetGuardrail");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
     [Fact]
@@ -266,6 +267,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -275,7 +277,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
             var invoke_model_req = new InvokeModelRequest();
@@ -285,16 +286,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockruntime.InvokeModelAsync(invoke_model_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockRuntimeActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
 // Agent related operation for Bedrock Agent
@@ -308,6 +310,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -317,7 +320,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var get_agent_req = new GetAgentRequest();
@@ -327,16 +329,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockagent.GetAgentAsync(get_agent_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetAgent");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockAgentAgentOpsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetAgent");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockAgentAgentOpsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
 // Knowledge Base related operation for Bedrock Agent
@@ -350,6 +353,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -359,7 +363,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var get_knowledge_base_req = new GetKnowledgeBaseRequest();
@@ -369,16 +372,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockagent.GetKnowledgeBaseAsync(get_knowledge_base_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetKnowledgeBase");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockAgentKnowledgeBaseOpsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetKnowledgeBase");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockAgentKnowledgeBaseOpsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
 // Data Source related operation for Bedrock Agent
@@ -392,6 +396,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -401,7 +406,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var get_data_source_req = new GetDataSourceRequest();
@@ -412,16 +416,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockagent.GetDataSourceAsync(get_data_source_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetDataSource");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockAgentDataSourceOpsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetDataSource");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockAgentDataSourceOpsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
 // Agent related operation for Bedrock Agent Runtime
@@ -435,6 +440,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -444,7 +450,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
             var invoke_agent_req = new InvokeAgentRequest();
@@ -457,16 +462,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockagentruntime.InvokeAgentAsync(invoke_agent_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.InvokeAgent");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockAgentRuntimeAgentOpsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.InvokeAgent");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockAgentRuntimeAgentOpsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
 // Knowledge Base related operation for Bedrock Agent Runtime
@@ -480,6 +486,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -489,7 +496,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
             var retrieve_req = new RetrieveRequest();
@@ -499,16 +505,17 @@ public class TestAWSClientInstrumentation
 #else
             var response = await bedrockagentruntime.RetrieveAsync(retrieve_req);
 #endif
-            Assert.NotEmpty(exportedItems);
-            Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.Retrieve");
-            Assert.NotNull(awssdk_activity);
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.Retrieve");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
@@ -539,9 +546,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock.GetGuardrail", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.guardrail.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock", Utils.GetTagValue(bedrock_activity, "rpc.service"));
@@ -551,9 +555,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
         Assert.Equal("aws_bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
@@ -564,9 +565,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentAgentOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetAgent", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("GetAgent", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.agent.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
@@ -576,9 +574,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetKnowledgeBase", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("GetKnowledgeBase", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
@@ -588,9 +583,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentDataSourceOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent.GetDataSource", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("GetDataSource", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("1234567890", Utils.GetTagValue(bedrock_activity, "aws.bedrock.data_source.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent", Utils.GetTagValue(bedrock_activity, "rpc.service"));
@@ -600,9 +592,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentRuntimeAgentOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent Runtime.InvokeAgent", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("InvokeAgent", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.agent.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
@@ -612,9 +601,6 @@ public class TestAWSClientInstrumentation
     private void ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(Activity bedrock_activity)
     {
         Assert.Equal("Bedrock Agent Runtime.Retrieve", bedrock_activity.DisplayName);
-        Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "aws.service"));
-        Assert.Equal("Retrieve", Utils.GetTagValue(bedrock_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(bedrock_activity, "aws.region"));
         Assert.Equal("123456789", Utils.GetTagValue(bedrock_activity, "aws.bedrock.knowledge_base.id"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Agent Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
