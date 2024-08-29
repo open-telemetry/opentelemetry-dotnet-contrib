@@ -341,6 +341,44 @@ general extensibility point to add additional properties to any activity. The
 `Enrich` option is specific to this instrumentation, and is provided to get
 access to raw request, response, and exception objects.
 
+When overriding the default settings provided by instrumentation or adding
+additional telemetry, it is important to consider the sequence of callbacks.
+
+It is generally recommended to use `EnrichWithHttpResponseMessage` or
+`EnrichWithHttpWebResponse` for any activity enrichment that does not require
+access to exceptions or request object in case of .NET Framework, as the
+instrumentation library populates all telemetry following the [OTel
+specification](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http)
+before this callback. The following is the sequence in which these callbacks are
+executed:
+
+1) Processor `OnStart`
+2) `EnrichWithHttpRequestMessage` (.NET) / `EnrichWithHttpWebRequest` (.NET Framework)
+3) `EnrichWithException` both
+4) `EnrichWithHttpResponseMessage` (.NET) / `EnrichWithHttpWebResponse` (.NET Framework)
+5) Processor `OnEnd`
+
+As an example, if you need to override the default DisplayName set by the
+library you can do so as follows:
+
+```csharp
+.AddHttpClientInstrumentation(o =>
+{
+  o.EnrichWithHttpResponseMessage = (activity, response) =>
+  {
+      // .NET only, access request object if needed.
+      // response.RequestMessage
+      activity.DisplayName = "CustomDisplayName";
+
+      // Overrides the value
+      activity.SetTag("url.full", "CustomUrl");
+
+      // Removes the tag
+      activity.SetTag("network.protocol.version", null);
+  };
+});
+```
+
 #### RecordException
 
 This instrumentation automatically sets Activity Status to Error if the Http
