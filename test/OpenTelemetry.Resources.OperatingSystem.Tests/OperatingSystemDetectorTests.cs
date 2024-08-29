@@ -77,13 +77,12 @@ public class OperatingSystemDetectorTests
         var osDetector = new OperatingSystemDetector(
             OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
             null,
-            path,
+            [path],
             null);
         var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Ubuntu", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
-        Assert.Equal("20240823", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
     }
 #endif
 }

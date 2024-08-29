@@ -16,7 +16,12 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
-    private const string EtcOsReleasePath = "/etc/os-release";
+    private static readonly string[] DefaultEtcOsReleasePath =
+        [
+            "/etc/os-release",
+            "/usr/lib/os-release"
+        ];
+
     private static readonly string[] DefaultPlistFilePaths =
         [
             "/System/Library/CoreServices/SystemVersion.plist",
@@ -25,14 +30,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private readonly string? osType;
     private readonly string? registryKey;
-    private readonly string? etcOsReleasePath;
+    private readonly string[]? etcOsReleasePath;
     private readonly string[]? plistFilePaths;
 
     internal OperatingSystemDetector()
         : this(
             GetOSType(),
             RegistryKey,
-            EtcOsReleasePath,
+            DefaultEtcOsReleasePath,
             DefaultPlistFilePaths)
     {
     }
@@ -44,7 +49,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
     /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
     /// <param name="plistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
-    internal OperatingSystemDetector(string? osType, string? registryKey, string? etcOsReleasePath, string[]? plistFilePaths)
+    internal OperatingSystemDetector(string? osType, string? registryKey, string[]? etcOsReleasePath, string[]? plistFilePaths)
     {
         this.osType = osType;
         this.registryKey = registryKey;
@@ -87,7 +92,24 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         return new Resource(attributes);
     }
 
-    internal static string? GetOSType()
+    private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
+    {
+        if (value == null)
+        {
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value is null");
+            return;
+        }
+
+        if (value is string strValue && string.IsNullOrEmpty(strValue))
+        {
+            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is empty.");
+            return;
+        }
+
+        attributes.Add(new KeyValuePair<string, object>(key, value!));
+    }
+
+    private static string? GetOSType()
     {
 #if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
@@ -111,7 +133,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #endif
     }
 
-    internal static string GetOSDescription()
+    private static string GetOSDescription()
     {
 #if NET
         return RuntimeInformation.OSDescription;
@@ -121,7 +143,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 
 #pragma warning disable CA1416
-    internal void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
+    private void AddWindowsAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
@@ -143,17 +165,18 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #if NET
     // based on:
     // https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Linux/os-release/Interop.OSReleaseFile.cs
-    internal void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
+    private void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
-            if (!File.Exists(this.etcOsReleasePath))
+            string? etcOsReleasePath = this.etcOsReleasePath!.FirstOrDefault(File.Exists);
+            if (string.IsNullOrEmpty(etcOsReleasePath))
             {
-                OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find or read the os-release file");
+                OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find the os-release file");
                 return;
             }
 
-            var osReleaseContent = File.ReadAllLines(this.etcOsReleasePath);
+            var osReleaseContent = File.ReadAllLines(etcOsReleasePath);
             ReadOnlySpan<char> buildId = default, name = default, version = default;
 
             foreach (var line in osReleaseContent)
@@ -198,7 +221,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         }
     }
 
-    internal void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes)
+    private void AddMacOSAttributes(List<KeyValuePair<string, object>> attributes)
     {
         try
         {
@@ -218,6 +241,12 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             {
                 var keys = dict.Elements("key").ToList();
                 var values = dict.Elements("string").ToList();
+
+                if (keys.Count != values.Count)
+                {
+                    OperatingSystemResourcesEventSource.Log.FailedToValidateValue($"Failed to get MacOS attributes: The number of keys does not match the number of values. Keys count: {keys.Count}, Values count: {values.Count}");
+                    return;
+                }
 
                 for (int i = 0; i < keys.Count; i++)
                 {
@@ -245,23 +274,5 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             OperatingSystemResourcesEventSource.Log.ResourceAttributesExtractException("Failed to get MacOS attributes", ex);
         }
     }
-
 #endif
-
-    private static void AddAttributeIfNotNullOrEmpty(List<KeyValuePair<string, object>> attributes, string key, object? value)
-    {
-        if (value == null)
-        {
-            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value is null");
-            return;
-        }
-
-        if (value is string strValue && string.IsNullOrEmpty(strValue))
-        {
-            OperatingSystemResourcesEventSource.Log.FailedToValidateValue("The provided value string is empty.");
-            return;
-        }
-
-        attributes.Add(new KeyValuePair<string, object>(key, value!));
-    }
 }
