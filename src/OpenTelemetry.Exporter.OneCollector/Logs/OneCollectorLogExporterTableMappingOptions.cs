@@ -29,5 +29,7 @@ public sealed class OneCollectorLogExporterTableMappingOptions
     /// <summary>
     /// Gets or sets a dictionary that maps Log Categories to Table Names.
     /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only
     public IDictionary<string, string> TableMappings { get; set; } = new Dictionary<string, string>();
+#pragma warning restore CA2227 // Collection properties should be read only
 }

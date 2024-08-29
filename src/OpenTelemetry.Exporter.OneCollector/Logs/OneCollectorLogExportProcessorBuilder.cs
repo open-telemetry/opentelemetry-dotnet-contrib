@@ -135,7 +135,7 @@ public sealed class OneCollectorLogExportProcessorBuilder
     }
 
     /// <summary>
-    /// Register a callback action for configuring the table mapping options used by 
+    /// Register a callback action for configuring the table mapping options used by
     /// the <see cref="OneCollectorExporter{T}"/> created by the builder.
     /// </summary>
     /// <param name="configure">Callback action for configuring <see
