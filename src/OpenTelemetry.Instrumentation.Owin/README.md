@@ -77,7 +77,7 @@ for more details about each individual attribute:
   the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
   `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
   environment variable
-  `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION` to `true`.
+  `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
 * `url.scheme`
 
 #### Configure OpenTelemetry MeterProvider
