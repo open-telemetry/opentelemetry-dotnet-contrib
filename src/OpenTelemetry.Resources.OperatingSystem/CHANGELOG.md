@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.3
+
+Released 2024-Aug-30
+
 * Implement
   `os.build_id`,
   `os.description`,
