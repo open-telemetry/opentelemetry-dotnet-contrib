@@ -74,37 +74,28 @@ public class LogRecordCommonSchemaJsonSerializerTests
     }
 
     [Theory]
-    [InlineData("MyClass.Company", null, "MyTable")]
-    [InlineData("MyClass.Company", "MyEvent", "MyTable")]
-    [InlineData("MyClass.OtherCompany", "MyEvent", "MyLogTable")]
-    public void TableMappingIsEnabledEventNameJsonTest(string categoryName, string? eventName, string expectedTableName)
+    [InlineData("MyClass.Company", null, "MyNewEvent")]
+    [InlineData("MyClass.Company", "MyEvent", "MyNewEvent")]
+    [InlineData("MyClass.OtherCompany", "MyEvent", "MyDefaultEvent")]
+    public void EventFullNameMappedJsonTest(string categoryName, string? eventName, string expectedEventFullName)
     {
-        var exportOptions = new OneCollectorLogExporterOptions
+        var eventFullNameMappings = new Dictionary<string, EventFullName>
         {
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
-            {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyClass.Company", "MyTable" },
-                    { "*", "MyLogTable" },
-                },
-            },
+            { "MyClass.Company", EventFullName.Create("MyNewEvent") },
+            { "*", EventFullName.Create("MyDefaultEvent") },
         };
 
-        string json = GetLogRecordJson(1,
+        string json = GetLogRecordJson(
+            1,
             (index, logRecord) =>
             {
                 logRecord.CategoryName = categoryName;
                 logRecord.EventId = new(0, eventName);
             },
-            null,
-            null,
-            false,
-            exportOptions);
+            eventFullNameMappings: eventFullNameMappings);
 
         Assert.Equal(
-            $$$"""{"ver":"4.0","name":"{{{expectedTableName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
+            $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 
@@ -297,19 +288,10 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Resource? resource = null,
         ScopeProvider? scopeProvider = null,
         bool includeStackTraceAsString = false,
-        OneCollectorLogExporterOptions? exporterOptions = null)
+        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null)
     {
-        if (exporterOptions == null)
-        {
-            exporterOptions = new OneCollectorLogExporterOptions
-            {
-                DefaultEventNamespace = "Namespace",
-                DefaultEventName = "Name",
-            };
-        }
-
         var serializer = new LogRecordCommonSchemaJsonSerializer(
-            new EventNameManager(exporterOptions),
+            new EventNameManager("Namespace", "Name", eventFullNameMappings),
             "tenant-token",
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 

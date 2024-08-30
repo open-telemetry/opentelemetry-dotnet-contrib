@@ -135,27 +135,6 @@ public sealed class OneCollectorLogExportProcessorBuilder
     }
 
     /// <summary>
-    /// Register a callback action for configuring the table mapping options used by
-    /// the <see cref="OneCollectorExporter{T}"/> created by the builder.
-    /// </summary>
-    /// <param name="configure">Callback action for configuring <see
-    /// cref="OneCollectorExporterTransportOptions"/>.</param>
-    /// <returns>The supplied <see
-    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
-    /// chaining.</returns>
-    public OneCollectorLogExportProcessorBuilder ConfigureTableMappingOptions(
-        Action<OneCollectorLogExporterTableMappingOptions> configure)
-    {
-        Guard.ThrowIfNull(configure);
-
-        this.services.Configure<OneCollectorLogExporterOptions>(
-            this.name,
-            exporterOptions => configure(exporterOptions.TableMappingOptions));
-
-        return this;
-    }
-
-    /// <summary>
     /// Sets the connection string used by the <see
     /// cref="OneCollectorExporter{T}"/> created by the builder.
     /// </summary>
@@ -174,6 +153,51 @@ public sealed class OneCollectorLogExportProcessorBuilder
         this.services.Configure<OneCollectorLogExporterOptions>(
             this.name,
             exporterOptions => exporterOptions.ConnectionString = connectionString);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the event full name mappings used by the <see
+    /// cref="OneCollectorExporter{T}"/> created by the builder.
+    /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="OneCollectorLogExporterOptions.EventFullNameMappings"
+    /// path="/remarks"/></remarks>
+    /// <param name="eventFullNameMappings">Event full name mappings.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder SetEventFullNameMappings(
+        IReadOnlyDictionary<string, string>? eventFullNameMappings)
+    {
+        this.services.Configure<OneCollectorLogExporterOptions>(
+            this.name,
+            exporterOptions => exporterOptions.EventFullNameMappings = eventFullNameMappings);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the default event namespace used by the <see
+    /// cref="OneCollectorExporter{T}"/> created by the builder. Default value:
+    /// <c>OpenTelemetry.Logs</c>.
+    /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="OneCollectorLogExporterOptions.DefaultEventNamespace"
+    /// path="/remarks"/></remarks>
+    /// <param name="defaultEventNamespace">Default event namespace.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder SetDefaultEventNamespace(
+        string defaultEventNamespace)
+    {
+        Guard.ThrowIfNullOrWhitespace(defaultEventNamespace);
+
+        this.services.Configure<OneCollectorLogExporterOptions>(
+            this.name,
+            exporterOptions => exporterOptions.DefaultEventNamespace = defaultEventNamespace);
 
         return this;
     }
@@ -271,7 +295,10 @@ public sealed class OneCollectorLogExportProcessorBuilder
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(exporterOptions),
+                new EventNameManager(
+                    exporterOptions.DefaultEventNamespace,
+                    exporterOptions.DefaultEventName,
+                    exporterOptions.ParsedEventFullNameMappings),
                 exporterOptions.TenantToken!,
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,

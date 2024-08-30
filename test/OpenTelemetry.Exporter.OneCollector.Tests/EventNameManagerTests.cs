@@ -52,14 +52,6 @@ public class EventNameManagerTests
         Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
     }
 
-    [Fact]
-    public void DefaultEventFullNameLengthTest()
-    {
-        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager("N", "N"));
-        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager(new string('N', 99), "N"));
-        Assert.Throws<ArgumentException>(() => CreateDefaultEventNameManager("N", new string('N', 99)));
-    }
-
     [Theory]
     [InlineData(null, null, "DefaultNamespace.DefaultName")]
     [InlineData("myNamespace", null, "MyNamespace.DefaultName")]
@@ -68,7 +60,7 @@ public class EventNameManagerTests
     [InlineData("9", "[]", "DefaultNamespace.DefaultName")]
     public void DefaultEventNamespaceAndNameUsedToGenerateFullNameTest(string? eventNamespace, string? eventName, string expectedEventFullName)
     {
-        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName(eventNamespace, eventName);
 
@@ -78,7 +70,7 @@ public class EventNameManagerTests
     [Fact]
     public void DefaultEventNamespaceAndNameUsedToGenerateFullNameLengthTest()
     {
-        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("N", "N");
 
@@ -96,7 +88,7 @@ public class EventNameManagerTests
     [Fact]
     public void EventNameCacheTest()
     {
-        var eventNameManager = CreateDefaultEventNameManager("defaultNamespace", "defaultName");
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
 
         Assert.Empty(eventNameManager.EventNamespaceCache);
 
@@ -112,186 +104,136 @@ public class EventNameManagerTests
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespaceMatchesTest()
+    public void EventFullNameMappedWhenEventNamespaceMatchesTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
-            {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace", "MyTable" },
-                    { "MyNamespace2", "MyTable2" },
-                },
-            },
-        };
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new("*", "WildcardEventName"),
+            new("MyNamespace", "NewEventName1"),
+            new("mynamespace.match.in.full.MyEventName", "NewEventName2"));
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.Match.In.Full", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyTable\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName2\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespacePrefixMatchesTest()
+    public void EventFullNameMappedWhenEventNamespaceStartsWithPrefixTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
-            {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace", "MyTable" },
-                    { "MyNamespace2", "MyTable2" },
-                },
-            },
-        };
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new("*", "WildcardEventName"),
+            new("MyNamespace", "NewEventName1"),
+            new("MyNamespace.NonMatch", "NewEventName2"),
+            new("MyNamespace.MyChild", "NewEventName3"),
+            new("mynamespace.mychild.namesp", "NewEventName4"));
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChild.Namespace", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChildNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyTable\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName4\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespaceLongestMatchWinsTest()
+    public void EventFullNameMappedUsingDefaultRuleTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new("MyNamespace1", "NewEventName1"),
+            new("MyNamespace2", "NewEventName2"),
+            new("*", "defaultEventName"));
+
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultEventName\""), resolveEventFullName.ToArray());
+    }
+
+    [Theory]
+    [InlineData("DefaultNamespace")]
+    [InlineData("")]
+    public void EventFullNameMappedUsingDefaultsWhenNoDefaultRuleDefinedTest(string defaultNamespace)
+    {
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            defaultNamespace,
+            new KeyValuePair<string, string>[]
             {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace", "MyTable" },
-                    { "MyNamespace.MyChildNamespace", "MyChildTable" },
-                    { "MyNamespace2", "MyTable2" },
-                },
-            },
-        };
+                new("MyNamespace1", "NewEventName1"),
+                new("MyNamespace2", "NewEventName2"),
+            });
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChildNamespace.MyGrandchildNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyChildTable\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes($"\"{(defaultNamespace.Length > 0 ? $"{defaultNamespace}." : string.Empty)}DefaultName\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespaceDoesNotMatchCatchAllEntryExistsTest()
+    public void EventFullNameMappedUsingPassthroughEventNameTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new KeyValuePair<string, string>[]
             {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace2", "MyTable2" },
-                    { "MyNamespace3", "MyTable3" },
-                    { "*", "Log" },
-                },
-            },
-        };
+                new("*", "*"),
+            });
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"Log\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyEventName\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
-    public void TableMappingEnabledAndEventNamespaceDoesNotMatchCatchAllEntryDoesNotExistsTest()
+    public void EventFullNameMappedUsingPassthroughEventNamespaceTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new KeyValuePair<string, string>[]
             {
-                UseTableMapping = true,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace2", "MyTable2" },
-                    { "MyNamespace3", "MyTable3" },
-                },
-            },
-        };
+                new("*", "*.MyNewEventName"),
+            });
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes($"\"{OneCollectorLogExporterTableMappingOptions.DefaultTableName}\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.MyNewEventName\""), resolveEventFullName.ToArray());
     }
 
     [Fact]
-    public void TableMappingDisabledAndEventNamespaceMatchesTest()
+    public void EventFullNameMappedUsingPassthroughTest()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
+        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
+            new KeyValuePair<string, string>[]
             {
-                UseTableMapping = false,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace2", "MyTable" },
-                },
-            },
-        };
+                new("*", "*.*"),
+            });
 
-        var eventNameManager = new EventNameManager(exporterOptions);
+        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.Test\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.MyEventName\""), resolveEventFullName.ToArray());
     }
 
-    [Fact]
-    public void TableMappingDisabledAndEventNamespaceDoesNotMatchTest()
+    private static EventNameManager BuildEventNameManagerWithDefaultOptions()
     {
-        var exporterOptions = new OneCollectorLogExporterOptions
-        {
-            DefaultEventNamespace = "defaultNamespace",
-            DefaultEventName = "defaultName",
-            TableMappingOptions = new OneCollectorLogExporterTableMappingOptions
-            {
-                UseTableMapping = false,
-                TableMappings = new Dictionary<string, string>
-                {
-                    { "MyNamespace2", "MyTable" },
-                },
-            },
-        };
-
-        var eventNameManager = new EventNameManager(exporterOptions);
-
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "Test");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.Test\""), resolveEventFullName.ToArray());
+        return new EventNameManager("defaultNamespace", "defaultName");
     }
 
-    private static EventNameManager CreateDefaultEventNameManager(string defaultNamespace, string defaultEventName)
+    private static EventNameManager BuildEventNameManagerWithEventFullNameMappings(
+        params KeyValuePair<string, string>[] mappings)
     {
-        return new EventNameManager(new OneCollectorLogExporterOptions
+        return BuildEventNameManagerWithEventFullNameMappings(
+            "defaultNamespace",
+            mappings);
+    }
+
+    private static EventNameManager BuildEventNameManagerWithEventFullNameMappings(
+        string defaultNamespace,
+        KeyValuePair<string, string>[] mappings)
+    {
+        var options = new OneCollectorLogExporterOptions()
         {
-            DefaultEventNamespace = defaultNamespace,
-            DefaultEventName = defaultEventName,
-        });
+            ConnectionString = "InstrumentationKey=token-extrainformation",
+            EventFullNameMappings = mappings.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value),
+        };
+
+        options.Validate();
+
+        return new EventNameManager(
+            defaultNamespace,
+            "defaultName",
+            eventFullNameMappings: options.ParsedEventFullNameMappings);
     }
 }

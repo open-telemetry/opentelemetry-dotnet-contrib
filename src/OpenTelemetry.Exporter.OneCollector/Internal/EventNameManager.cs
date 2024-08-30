@@ -4,48 +4,38 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
 internal sealed class EventNameManager
 {
-    private const int MinimumEventFullNameLength = 4;
-    private const int MaximumEventFullNameLength = 100;
+    // Note: OneCollector will silently drop events which have a name less than 4 characters.
+    internal const int MinimumEventFullNameLength = 4;
+    internal const int MaximumEventFullNameLength = 100;
     private static readonly Regex EventNamespaceValidationRegex = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
     private static readonly Regex EventNameValidationRegex = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
+    private readonly string defaultEventNamespace;
+    private readonly string defaultEventName;
+    private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly byte[] defaultEventFullName;
     private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly OneCollectorLogExporterOptions exporterOptions;
-
-    public EventNameManager(OneCollectorLogExporterOptions exporterOptions)
+    public EventNameManager(
+        string defaultEventNamespace,
+        string defaultEventName,
+        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null)
     {
-        Guard.ThrowIfNull(exporterOptions, nameof(exporterOptions));
+        Debug.Assert(defaultEventNamespace != null, "defaultEventNamespace was null");
+        Debug.Assert(defaultEventName != null, "defaultEventName was null");
 
-        Debug.Assert(exporterOptions.DefaultEventNamespace != null, "defaultEventNamespace was null");
-        Debug.Assert(exporterOptions.DefaultEventName != null, "defaultEventName was null");
+        this.defaultEventNamespace = defaultEventNamespace!;
+        this.defaultEventName = defaultEventName!;
+        this.eventFullNameMappings = eventFullNameMappings;
 
-        this.exporterOptions = exporterOptions;
-
-        if (!IsEventNamespaceValid(exporterOptions.DefaultEventNamespace!))
-        {
-            throw new ArgumentException($"Default event namespace '{exporterOptions.DefaultEventNamespace}' was invalid.", nameof(exporterOptions));
-        }
-
-        if (!IsEventNamespaceValid(exporterOptions.DefaultEventName!))
-        {
-            throw new ArgumentException($"Default event name '{exporterOptions.DefaultEventName}' was invalid.", nameof(exporterOptions));
-        }
-
-        var defaultEventFullNameLength = exporterOptions.DefaultEventNamespace!.Length + exporterOptions.DefaultEventName!.Length + 1;
-        if (defaultEventFullNameLength < MinimumEventFullNameLength || defaultEventFullNameLength > MaximumEventFullNameLength)
-        {
-            throw new ArgumentException($"Default event full name '{exporterOptions.DefaultEventNamespace}.{exporterOptions.DefaultEventName}' does not meet length requirements.", nameof(exporterOptions));
-        }
-
-        this.defaultEventFullName = BuildEventFullName(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName)!;
+        this.defaultEventFullName = BuildEventFullName(
+            this.defaultEventNamespace,
+            this.defaultEventName);
 
 #if NET
         Debug.Assert(this.defaultEventFullName != null, "this.defaultFullyQualifiedEventName was null");
@@ -74,12 +64,12 @@ internal sealed class EventNameManager
                 return this.defaultEventFullName;
             }
 
-            eventNamespace = this.exporterOptions.DefaultEventNamespace;
+            eventNamespace = this.defaultEventNamespace;
         }
 
         if (eventNameIsNullOrWhiteSpace)
         {
-            eventName = this.exporterOptions.DefaultEventName;
+            eventName = this.defaultEventName;
         }
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
@@ -100,26 +90,14 @@ internal sealed class EventNameManager
 
         var cursor = 1;
 
-        WriteEventFullNameComponent(eventNamespace, destination, ref cursor);
+        if (eventNamespace.Length > 0)
+        {
+            WriteEventFullNameComponent(eventNamespace, destination, ref cursor);
 
-        destination[cursor++] = (byte)'.';
+            destination[cursor++] = (byte)'.';
+        }
 
         WriteEventFullNameComponent(eventName, destination, ref cursor);
-
-        destination[cursor++] = (byte)'\"';
-
-        return destination.Slice(0, cursor).ToArray();
-    }
-
-    private static byte[] BuildEventFullNameBasedOnNamespace(string eventNamespace)
-    {
-        Span<byte> destination = stackalloc byte[128];
-
-        destination[0] = (byte)'\"';
-
-        var cursor = 1;
-
-        WriteEventFullNameComponent(eventNamespace, destination, ref cursor);
 
         destination[cursor++] = (byte)'\"';
 
@@ -164,69 +142,88 @@ internal sealed class EventNameManager
 
     private byte[] ResolveEventNameRare(Hashtable eventNameCache, string eventNamespace, string eventName)
     {
-        var tableMappingOptions = this.exporterOptions.TableMappingOptions;
-        if (tableMappingOptions.UseTableMapping)
+        var originalNamespace = eventNamespace;
+        var originalName = eventName;
+
+        var eventFullNameMappings = this.eventFullNameMappings;
+        if (eventFullNameMappings != null)
         {
-            if (tableMappingOptions.TableMappings.TryGetValue(eventNamespace, out var tableMapping))
+            var tempEventFullName = $"{eventNamespace}.{eventName}";
+
+            if (eventFullNameMappings.TryGetValue(
+                tempEventFullName,
+                out var exactMatchRule))
             {
-                eventNamespace = tableMapping;
+                eventNamespace = exactMatchRule.EventNamespace;
+                eventName = exactMatchRule.EventName;
             }
             else
             {
-                // Exact match not found, try to find a partial match.
-                KeyValuePair<string, string>? currentEntry = null;
-                foreach (var mapping in tableMappingOptions.TableMappings)
+                KeyValuePair<string, EventFullName>? prefixMatchRule = null;
+
+                foreach (var mappingRule in eventFullNameMappings)
                 {
-                    if (!eventNamespace.StartsWith(mapping.Key, StringComparison.OrdinalIgnoreCase))
+                    if (!tempEventFullName.StartsWith(mappingRule.Key, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    if (!currentEntry.HasValue || mapping.Key.Length >= currentEntry.Value.Key.Length)
+                    if (!prefixMatchRule.HasValue
+                        || mappingRule.Key.Length >= prefixMatchRule.Value.Key.Length)
                     {
-                        currentEntry = mapping;
+                        prefixMatchRule = mappingRule;
                     }
                 }
 
-                if (currentEntry.HasValue)
+                if (prefixMatchRule.HasValue)
                 {
-                    eventNamespace = currentEntry.Value.Value;
+                    eventNamespace = prefixMatchRule.Value.Value.EventNamespace;
+                    eventName = prefixMatchRule.Value.Value.EventName;
+                }
+                else if (eventFullNameMappings.TryGetValue("*", out var defaultRule))
+                {
+                    eventNamespace = defaultRule.EventNamespace;
+                    eventName = defaultRule.EventName;
                 }
                 else
                 {
-                    var catchAllFound = tableMappingOptions.TableMappings.TryGetValue(OneCollectorLogExporterTableMappingOptions.CatchAllNamespace, out var defaultTableName);
-
-                    if (catchAllFound && defaultTableName is not null)
-                    {
-                        eventNamespace = defaultTableName;
-                    }
-                    else
-                    {
-                        eventNamespace = OneCollectorLogExporterTableMappingOptions.DefaultTableName;
-                    }
+                    eventNamespace = this.defaultEventNamespace;
+                    eventName = this.defaultEventName;
                 }
             }
 
-            eventName = string.Empty;
+            if (eventNamespace == "*")
+            {
+                eventNamespace = originalNamespace;
+            }
+
+            if (eventName == "*")
+            {
+                eventName = originalName;
+            }
         }
 
-        if (!IsEventNamespaceValid(eventNamespace))
+        var namespaceLength = eventNamespace.Length;
+        if (namespaceLength != 0)
         {
-            OneCollectorExporterEventSource.Log.EventNamespaceInvalid(eventNamespace);
-            eventNamespace = this.exporterOptions.DefaultEventNamespace;
-        }
+            if (!IsEventNamespaceValid(eventNamespace))
+            {
+                OneCollectorExporterEventSource.Log.EventNamespaceInvalid(eventNamespace);
+                eventNamespace = this.defaultEventNamespace;
+            }
 
-        var eventNameHashtableKey = eventName;
+            namespaceLength = eventNamespace.Length + 1;
+        }
 
         if (!IsEventNameValid(eventName))
         {
             OneCollectorExporterEventSource.Log.EventNameInvalid(eventName);
-            eventName = this.exporterOptions.DefaultEventName;
+            eventName = this.defaultEventName;
         }
 
         byte[] eventFullName;
 
-        var finalEventFullNameLength = eventNamespace.Length + eventName.Length + 1;
+        var finalEventFullNameLength = namespaceLength + eventName.Length;
         if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)
         {
             OneCollectorExporterEventSource.Log.EventFullNameDiscarded(eventNamespace, eventName);
@@ -234,21 +231,14 @@ internal sealed class EventNameManager
         }
         else
         {
-            if (tableMappingOptions.UseTableMapping)
-            {
-                eventFullName = BuildEventFullNameBasedOnNamespace(eventNamespace!);
-            }
-            else
-            {
-                eventFullName = BuildEventFullName(eventNamespace!, eventName!);
-            }
+            eventFullName = BuildEventFullName(eventNamespace!, eventName!);
         }
 
         lock (eventNameCache)
         {
-            if (eventNameCache[eventNameHashtableKey] is null)
+            if (eventNameCache[originalName] is null)
             {
-                eventNameCache[eventNameHashtableKey] = eventFullName;
+                eventNameCache[originalName] = eventFullName;
             }
         }
 

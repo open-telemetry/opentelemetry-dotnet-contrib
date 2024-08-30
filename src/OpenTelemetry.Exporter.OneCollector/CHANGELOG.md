@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-* Adding "Table Mapping" capabilities so that log [category](https://docs.microsoft.com/dotnet/core/extensions/logging#log-category)
-  can be mapped to specific tables in telemetry.
+* Added `SetEventFullNameMappings` API on
+  `OneCollectorLogExportProcessorBuilder` which can be used to change the event
+  full name sent to the OneCollector service for a given `LogRecord`
+  (`CategoryName` and `EventId.Name` are used to derive the event full name by
+  default).
   ([#2021](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2021))
 
 ## 1.9.2
