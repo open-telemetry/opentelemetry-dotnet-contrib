@@ -237,12 +237,12 @@ public class TestAWSClientInstrumentation
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{\"GuardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
-            var get_guardrail_req = new GetGuardrailRequest();
-            get_guardrail_req.GuardrailIdentifier = "123456789";
+            var getGuardrailRequest = new GetGuardrailRequest();
+            getGuardrailRequest.GuardrailIdentifier = "123456789";
 #if NETFRAMEWORK
-            bedrock.GetGuardrail(get_guardrail_req);
+            bedrock.GetGuardrail(getGuardrailRequest);
 #else
-            await bedrock.GetGuardrailAsync(get_guardrail_req);
+            await bedrock.GetGuardrailAsync(getGuardrailRequest);
 #endif
         }
 
@@ -279,12 +279,12 @@ public class TestAWSClientInstrumentation
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
-            var invoke_model_req = new InvokeModelRequest();
-            invoke_model_req.ModelId = "amazon.titan-text-express-v1";
+            var invokeModelRequest = new InvokeModelRequest();
+            invokeModelRequest.ModelId = "amazon.titan-text-express-v1";
 #if NETFRAMEWORK
-            var response = bedrockruntime.InvokeModel(invoke_model_req);
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
 #else
-            var response = await bedrockruntime.InvokeModelAsync(invoke_model_req);
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
 #endif
         }
 
@@ -299,7 +299,6 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
-// Agent related operation for Bedrock Agent
     [Fact]
 #if NETFRAMEWORK
     public void TestBedrockAgentGetAgentSuccessful()
@@ -322,12 +321,12 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var get_agent_req = new GetAgentRequest();
-            get_agent_req.AgentId = "1234567890";
+            var getAgentRequest = new GetAgentRequest();
+            getAgentRequest.AgentId = "1234567890";
 #if NETFRAMEWORK
-            var response = bedrockagent.GetAgent(get_agent_req);
+            var response = bedrockagent.GetAgent(getAgentRequest);
 #else
-            var response = await bedrockagent.GetAgentAsync(get_agent_req);
+            var response = await bedrockagent.GetAgentAsync(getAgentRequest);
 #endif
         }
 
@@ -342,7 +341,6 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
-// Knowledge Base related operation for Bedrock Agent
     [Fact]
 #if NETFRAMEWORK
     public void TestBedrockAgentGetKnowledgeBaseSuccessful()
@@ -365,12 +363,12 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var get_knowledge_base_req = new GetKnowledgeBaseRequest();
-            get_knowledge_base_req.KnowledgeBaseId = "1234567890";
+            var getKnowledgeBaseRequest = new GetKnowledgeBaseRequest();
+            getKnowledgeBaseRequest.KnowledgeBaseId = "1234567890";
 #if NETFRAMEWORK
-            var response = bedrockagent.GetKnowledgeBase(get_knowledge_base_req);
+            var response = bedrockagent.GetKnowledgeBase(getKnowledgeBaseRequest);
 #else
-            var response = await bedrockagent.GetKnowledgeBaseAsync(get_knowledge_base_req);
+            var response = await bedrockagent.GetKnowledgeBaseAsync(getKnowledgeBaseRequest);
 #endif
         }
 
@@ -385,7 +383,6 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
-// Data Source related operation for Bedrock Agent
     [Fact]
 #if NETFRAMEWORK
     public void TestBedrockAgentGetDataSourceSuccessful()
@@ -408,13 +405,13 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var get_data_source_req = new GetDataSourceRequest();
-            get_data_source_req.DataSourceId = "1234567890";
-            get_data_source_req.KnowledgeBaseId = "1234567890";
+            var getDataSourceRequest = new GetDataSourceRequest();
+            getDataSourceRequest.DataSourceId = "1234567890";
+            getDataSourceRequest.KnowledgeBaseId = "1234567890";
 #if NETFRAMEWORK
-            var response = bedrockagent.GetDataSource(get_data_source_req);
+            var response = bedrockagent.GetDataSource(getDataSourceRequest);
 #else
-            var response = await bedrockagent.GetDataSourceAsync(get_data_source_req);
+            var response = await bedrockagent.GetDataSourceAsync(getDataSourceRequest);
 #endif
         }
 
@@ -429,7 +426,6 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
-// Agent related operation for Bedrock Agent Runtime
     [Fact]
 #if NETFRAMEWORK
     public void TestBedrockAgentRuntimeInvokeAgentSuccessful()
@@ -452,15 +448,15 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
-            var invoke_agent_req = new InvokeAgentRequest();
-            invoke_agent_req.AgentId = "123456789";
-            invoke_agent_req.AgentAliasId = "testalias";
-            invoke_agent_req.SessionId = "test-session-id";
-            invoke_agent_req.InputText = "sample input text";
+            var invokeAgentRequest = new InvokeAgentRequest();
+            invokeAgentRequest.AgentId = "123456789";
+            invokeAgentRequest.AgentAliasId = "testalias";
+            invokeAgentRequest.SessionId = "test-session-id";
+            invokeAgentRequest.InputText = "sample input text";
 #if NETFRAMEWORK
-            var response = bedrockagentruntime.InvokeAgent(invoke_agent_req);
+            var response = bedrockagentruntime.InvokeAgent(invokeAgentRequest);
 #else
-            var response = await bedrockagentruntime.InvokeAgentAsync(invoke_agent_req);
+            var response = await bedrockagentruntime.InvokeAgentAsync(invokeAgentRequest);
 #endif
         }
 
@@ -475,7 +471,6 @@ public class TestAWSClientInstrumentation
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
-// Knowledge Base related operation for Bedrock Agent Runtime
     [Fact]
 #if NETFRAMEWORK
     public void TestBedrockAgentRuntimeRetrieveSuccessful()
@@ -498,12 +493,12 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             string dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
-            var retrieve_req = new RetrieveRequest();
-            retrieve_req.KnowledgeBaseId = "123456789";
+            var retrieveRequest = new RetrieveRequest();
+            retrieveRequest.KnowledgeBaseId = "123456789";
 #if NETFRAMEWORK
-            var response = bedrockagentruntime.Retrieve(retrieve_req);
+            var response = bedrockagentruntime.Retrieve(retrieveRequest);
 #else
-            var response = await bedrockagentruntime.RetrieveAsync(retrieve_req);
+            var response = await bedrockagentruntime.RetrieveAsync(retrieveRequest);
 #endif
         }
 
