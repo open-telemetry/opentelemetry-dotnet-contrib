@@ -54,7 +54,8 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **OperatingSystemDetector**: `os.type`.
+- **OperatingSystemDetector**: `os.type`, `os.build_id`, `os.description`,
+  `os.name`, `os.version`.
 
 ## References
 
