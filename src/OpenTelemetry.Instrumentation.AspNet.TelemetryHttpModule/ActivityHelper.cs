@@ -20,6 +20,7 @@ internal static class ActivityHelper
     /// </summary>
     internal const string ContextKey = "__AspnetInstrumentationContext__";
     internal static readonly object StartedButNotSampledObj = new();
+    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
 
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
@@ -65,7 +66,10 @@ internal static class ActivityHelper
 
         KeyValuePair<string, object?>[]? tags;
         string? path = context.Request?.Unvalidated?.Path;
-        string? method = context.Request?.HttpMethod;
+        string? originalHttpMethod = context.Request?.HttpMethod;
+
+        string normalizedHttpMethod = RequestDataHelper.GetNormalizedHttpMethod(originalHttpMethod ?? string.Empty);
+        string method = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
         // Determine the number of available tags and initialize the array accordingly
         int tagCount = (path is not null ? 1 : 0) + (method is not null ? 1 : 0);
