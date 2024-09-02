@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-beta.3
+
+Released 2024-Aug-30
+
 * Fix the bug where macOS was detected as Linux
   ([#1985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1985))
 
