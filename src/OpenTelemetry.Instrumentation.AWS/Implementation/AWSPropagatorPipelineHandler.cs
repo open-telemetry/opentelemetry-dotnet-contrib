@@ -121,6 +121,12 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
         }
     }
 
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
     private static void AddResponseSpecificInformation(Activity activity, IExecutionContext executionContext)
     {
         var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
@@ -162,6 +168,12 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
         }
     }
 
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
     private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
     {
         var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
