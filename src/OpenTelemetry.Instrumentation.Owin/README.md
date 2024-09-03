@@ -60,10 +60,9 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
 ```
 
 Following list of attributes are added by default on activity. See
-[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-spans.md)
+[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md)
 for more details about each individual attribute:
 
-* `error.type`
 * `http.request.method`
 * `http.request.method_original`
 * `http.response.status_code`
