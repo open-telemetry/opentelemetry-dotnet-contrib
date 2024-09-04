@@ -11,9 +11,6 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 
 internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValue>
 {
-    private const string PublishOperationName = "publish";
-    private const string KafkaMessagingSystem = "kafka";
-
     private readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
     private readonly IProducer<TKey, TValue> producer;
     private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options;
@@ -285,10 +282,10 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         {
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingOperation,
-                PublishOperationName),
+                ConfluentKafkaCommon.PublishOperationName),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingSystem,
-                KafkaMessagingSystem),
+                ConfluentKafkaCommon.KafkaMessagingSystem),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingDestinationName,
                 topic),
@@ -329,7 +326,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)
     {
-        var spanName = string.Concat(topic, " ", PublishOperationName);
+        var spanName = string.Concat(topic, " ", ConfluentKafkaCommon.PublishOperationName);
         var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
         if (activity == null)
         {
@@ -338,10 +335,10 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
         if (activity.IsAllDataRequested)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, KafkaMessagingSystem);
+            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
             activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, PublishOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.PublishOperationName);
 
             if (message.Key != null)
             {
