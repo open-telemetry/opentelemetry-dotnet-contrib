@@ -162,14 +162,9 @@ public static class AWSLambdaWrapper
             }
         }
 
-        // No parallel invocation of the same lambda handler.
-        bool faasColdStart = isColdStart;
-        if (faasColdStart)
-        {
-            isColdStart = false;
-        }
-
-        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context, faasColdStart);
+        // No parallel invocation of the same lambda handler expected.
+        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context, isColdStart);
+        isColdStart = false;
         var httpTags = AWSLambdaHttpUtils.GetHttpTags(input);
 
         // We assume that functionTags and httpTags have no intersection.
@@ -178,6 +173,9 @@ public static class AWSLambdaWrapper
 
         return activity;
     }
+
+    // Use only for testing.
+    internal static void ResetColdStart() => isColdStart = true;
 
     private static void OnFunctionStop(Activity? activity, TracerProvider? tracerProvider)
     {
