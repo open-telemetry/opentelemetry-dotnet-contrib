@@ -66,7 +66,6 @@ for more details about each individual attribute:
 * `http.request.method`
 * `http.request.method_original`
 * `http.response.status_code`
-* `http.route`
 * `network.protocol.version`
 * `user_agent.original`
 * `server.address`

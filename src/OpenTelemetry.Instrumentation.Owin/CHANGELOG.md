@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated activity tags to use new semantic conventions attribute schema.
+  ([2028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2028))
+
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 

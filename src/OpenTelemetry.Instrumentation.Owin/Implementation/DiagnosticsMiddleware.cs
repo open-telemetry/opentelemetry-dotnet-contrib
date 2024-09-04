@@ -20,6 +20,8 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     private static readonly Func<IOwinRequest, string, IEnumerable<string>> OwinRequestHeaderValuesGetter
         = (request, name) => request.Headers.GetValues(name);
 
+    private static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DiagnosticsMiddleware"/> class.
     /// </summary>
@@ -88,25 +90,15 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             // value because OWIN does not expose any kind of
             // route/template. See:
             // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name
-            activity.DisplayName = request.Method switch
-            {
-                "GET" => "HTTP GET",
-                "POST" => "HTTP POST",
-                "PUT" => "HTTP PUT",
-                "DELETE" => "HTTP DELETE",
-                _ => $"HTTP {request.Method}",
-            };
+            RequestDataHelper.SetActivityDisplayName(activity, activity.DisplayName);
 
             if (activity.IsAllDataRequested)
             {
+                RequestDataHelper.SetHttpMethodTag(activity, request.Method);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, request.Uri.Port);
-                activity.SetTag(SemanticConventions.AttributeHttpRequestMethod, request.Method);
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, request.Protocol);
 
-                // activity.SetTag(SemanticConventions.AttributeHttpRoute, routePattern);
-
-                activity.SetTag(SemanticConventions.AttributeHttpRequestMethodOriginal, request.Method);
                 activity.SetTag(SemanticConventions.AttributeUrlPath, request.Uri.AbsolutePath);
                 activity.SetTag(SemanticConventions.AttributeUrlQuery, request.Query);
                 activity.SetTag(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme);
