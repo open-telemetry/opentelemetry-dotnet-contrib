@@ -116,24 +116,7 @@ internal class AWSLambdaHttpUtils
     internal static string? GetQueryString(ApplicationLoadBalancerRequest request)
     {
         // If the request has a query string value, one of the following properties will be set, depending on if
-        // "Multi value headers" is disabled on ELB Target Group.
-        if (request.QueryStringParameters != null)
-        {
-            var queryString = new StringBuilder();
-            var separator = '?';
-            foreach (var parameterKvp in request.QueryStringParameters)
-            {
-                // TODO: Check if we need to handle multiple values differently here
-                queryString.Append(separator)
-                    .Append(HttpUtility.UrlEncode(parameterKvp.Key))
-                    .Append('=')
-                    .Append(HttpUtility.UrlEncode(parameterKvp.Value));
-                separator = '&';
-            }
-
-            return queryString.ToString();
-        }
-
+        // "Multi value headers" is enabled on ELB Target Group.
         if (request.MultiValueQueryStringParameters != null)
         {
             var queryString = new StringBuilder();
@@ -154,6 +137,23 @@ internal class AWSLambdaHttpUtils
 
             return queryString.ToString();
         }
+
+        if (request.QueryStringParameters != null)
+        {
+            var queryString = new StringBuilder();
+            var separator = '?';
+            foreach (var parameterKvp in request.QueryStringParameters)
+            {
+                queryString.Append(separator)
+                    .Append(HttpUtility.UrlEncode(parameterKvp.Key))
+                    .Append('=')
+                    .Append(HttpUtility.UrlEncode(parameterKvp.Value));
+                separator = '&';
+            }
+
+            return queryString.ToString();
+        }
+
 
         return string.Empty;
     }
