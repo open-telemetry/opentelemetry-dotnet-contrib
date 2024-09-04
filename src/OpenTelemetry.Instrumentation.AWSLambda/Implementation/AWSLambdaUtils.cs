@@ -102,11 +102,12 @@ internal static class AWSLambdaUtils
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context)
+    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context, bool isColdStart)
     {
         var tags = new List<KeyValuePair<string, object>>
         {
             new(AWSLambdaSemanticConventions.AttributeFaasTrigger, GetFaasTrigger(input)),
+            new(AWSLambdaSemanticConventions.AttributeFaasColdStart, isColdStart),
         };
 
         var functionName = GetFunctionName(context);

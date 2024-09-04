@@ -10,6 +10,11 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 
 internal static class ConfluentKafkaCommon
 {
+    internal const string ReceiveOperationName = "receive";
+    internal const string ProcessOperationName = "process";
+    internal const string KafkaMessagingSystem = "kafka";
+    internal const string PublishOperationName = "publish";
+
     internal static readonly string InstrumentationName = typeof(ConfluentKafkaCommon).Assembly.GetName().Name!;
     internal static readonly string InstrumentationVersion = typeof(ConfluentKafkaCommon).Assembly.GetPackageVersion();
     internal static readonly ActivitySource ActivitySource = new(InstrumentationName, InstrumentationVersion);
