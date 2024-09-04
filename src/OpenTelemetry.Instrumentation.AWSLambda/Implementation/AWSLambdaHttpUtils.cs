@@ -154,7 +154,6 @@ internal class AWSLambdaHttpUtils
             return queryString.ToString();
         }
 
-
         return string.Empty;
     }
 
