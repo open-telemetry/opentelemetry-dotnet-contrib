@@ -7,7 +7,6 @@ templates:
   - pattern: SemanticConventionsAttributes.cs.j2
     filter: >
       semconv_grouped_attributes({
-        "exclude_root_namespace": ["android", "ios", "jvm", "nodejs"],
         "exclude_deprecated": false
       })
     application_mode: each
