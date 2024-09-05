@@ -1,17 +1,17 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Confluent.Kafka;
+using OpenTelemetry.Instrumentation.ConfluentKafka;
 
-namespace OpenTelemetry.Instrumentation.ConfluentKafka;
+namespace Confluent.Kafka;
 
 /// <summary>
 /// Extensions for <see cref="ConsumerBuilder{TKey, TValue}"/>.
 /// </summary>
-public static class ConsumerBuilderExtensions
+public static class OpenTelemetryConsumerBuilderExtensions
 {
     /// <summary>
-    /// Converts a <see cref="ConsumerBuilder{TKey, TValue}"/> to an <see cref="InstrumentedConsumerBuilder{TKey, TValue}"/>.
+    /// Converts a <see cref="ConsumerBuilder{TKey, TValue}"/> to an <see cref="InstrumentedConsumerBuilder{TKey,TValue}"/>.
     /// </summary>
     /// <typeparam name="TKey">Type of the key.</typeparam>
     /// <typeparam name="TValue">Type of the value.</typeparam>

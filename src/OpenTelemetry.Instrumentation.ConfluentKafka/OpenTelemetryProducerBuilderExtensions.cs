@@ -1,14 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Confluent.Kafka;
+using OpenTelemetry.Instrumentation.ConfluentKafka;
 
-namespace OpenTelemetry.Instrumentation.ConfluentKafka;
+namespace Confluent.Kafka;
 
 /// <summary>
 /// Extensions for <see cref="ProducerBuilder{TKey,TValue}"/>.
 /// </summary>
-public static class ProducerBuilderExtensions
+public static class OpenTelemetryProducerBuilderExtensions
 {
     /// <summary>
     /// Converts <see cref="ProducerBuilder{TKey,TValue}"/> to <see cref="InstrumentedProducerBuilder{TKey,TValue}"/>.
