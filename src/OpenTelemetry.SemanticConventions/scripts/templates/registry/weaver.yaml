@@ -2,7 +2,7 @@ params:
 
   # excluded attributes will be commented out in the generated code
   # this behavior is fully controlled by jinja templates
-  excluded_attributes: ["messaging.client_id"]
+  excluded_attributes: ["messaging.client_id", "otel.library.name", "otel.library.version"]
 
 whitespace_control:
   trim_blocks: true
@@ -32,7 +32,7 @@ templates:
       }) | map({
           root_namespace: .root_namespace,
           attributes: .attributes,
-          excluded_attributes: $excluded_attributes[]
+          excluded_attributes: $excluded_attributes
       })
     application_mode: each
 

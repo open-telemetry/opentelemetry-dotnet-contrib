@@ -14,14 +14,6 @@ namespace OpenTelemetry.SemanticConventions;
 /// </summary>
 public static class OtelAttributes
 {
-    
-    [Obsolete("use the <c>otel.scope.name</c> attribute")]
-    public const string AttributeOtelLibraryName = "otel.library.name";
-
-    
-    [Obsolete("use the <c>otel.scope.version</c> attribute")]
-    public const string AttributeOtelLibraryVersion = "otel.library.version";
-
     /// <summary>
     /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP)
     /// </summary>
