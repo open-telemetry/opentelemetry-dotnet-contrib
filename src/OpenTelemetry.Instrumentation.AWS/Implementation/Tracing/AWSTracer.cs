@@ -14,10 +14,10 @@ internal sealed class AWSTracer : Tracer
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSTracer"/> class.
     /// </summary>
-    /// <param name="scope">The name of the instrumentation scope that uniquely identifies the tracer.</param>
-    public AWSTracer(string scope)
+    /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
+    public AWSTracer(ActivitySource activitySource)
     {
-        this.activitySource = new ActivitySource(scope);
+        this.activitySource = activitySource ?? throw new ArgumentNullException(nameof(activitySource));
     }
 
     public override TraceSpan CreateSpan(

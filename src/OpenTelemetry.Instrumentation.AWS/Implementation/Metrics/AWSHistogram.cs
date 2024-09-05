@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
 
@@ -9,11 +10,25 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSHistogram<T> : Histogram<T>
     where T : struct
 {
+    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Histogram<T>> HistogramsDictionary
+        = new ConcurrentDictionary<string, System.Diagnostics.Metrics.Histogram<T>>();
+
     private readonly System.Diagnostics.Metrics.Histogram<T> histogram;
 
-    public AWSHistogram(System.Diagnostics.Metrics.Histogram<T> histogram)
+    public AWSHistogram(
+        System.Diagnostics.Metrics.Meter meter,
+        string name,
+        string? units = null,
+        string? description = null)
     {
-        this.histogram = histogram;
+        if (HistogramsDictionary.TryGetValue(name, out System.Diagnostics.Metrics.Histogram<T>? histogram))
+        {
+            this.histogram = histogram;
+        }
+
+        this.histogram = HistogramsDictionary.GetOrAdd(
+            name,
+            meter.CreateHistogram<T>(name, units, description));
     }
 
     public override void Record(T value, Attributes? attributes = null)
