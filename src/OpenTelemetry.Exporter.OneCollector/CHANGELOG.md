@@ -5,6 +5,7 @@
 * Removes `net7.0` target as .NET 7.0 is out
   of support. The package keeps `netstandard2.1` target, so it
   can still be used with .NET7.0 apps.
+  Adds `net8.0` target.
   ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
 
 ## 1.9.2
