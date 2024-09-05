@@ -64,7 +64,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName(eventNamespace, eventName);
 
-        Assert.Equal(Encoding.ASCII.GetBytes($"\"{expectedEventFullName}\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes($"\"{expectedEventFullName}\""), resolveEventFullName.EventFullName);
     }
 
     [Fact]
@@ -74,15 +74,15 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("N", "N");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.EventFullName);
 
         resolveEventFullName = eventNameManager.ResolveEventFullName(new string('N', 99), "N");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.EventFullName);
 
         resolveEventFullName = eventNameManager.ResolveEventFullName("N", new string('N', 99));
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.DefaultName\""), resolveEventFullName.EventFullName);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.Match.In.Full", "MyEventName");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName2\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName2\""), resolveEventFullName.EventFullName);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace.MyChild.Namespace", "MyEventName");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName4\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"NewEventName4\""), resolveEventFullName.EventFullName);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultEventName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultEventName\""), resolveEventFullName.EventFullName);
     }
 
     [Theory]
@@ -159,11 +159,11 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        Assert.Equal(Encoding.ASCII.GetBytes($"\"{(defaultNamespace.Length > 0 ? $"{defaultNamespace}." : string.Empty)}DefaultName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes($"\"{(defaultNamespace.Length > 0 ? $"{defaultNamespace}." : string.Empty)}DefaultName\""), resolveEventFullName.EventFullName);
     }
 
     [Fact]
-    public void EventFullNameMappedUsingPassthroughEventNameTest()
+    public void EventFullNameMappedUsingPassthroughTest()
     {
         var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
             new KeyValuePair<string, string>[]
@@ -173,35 +173,7 @@ public class EventNameManagerTests
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyEventName\""), resolveEventFullName.ToArray());
-    }
-
-    [Fact]
-    public void EventFullNameMappedUsingPassthroughEventNamespaceTest()
-    {
-        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
-            new KeyValuePair<string, string>[]
-            {
-                new("*", "*.MyNewEventName"),
-            });
-
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.MyNewEventName\""), resolveEventFullName.ToArray());
-    }
-
-    [Fact]
-    public void EventFullNameMappedUsingPassthroughTest()
-    {
-        var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
-            new KeyValuePair<string, string>[]
-            {
-                new("*", "*.*"),
-            });
-
-        var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
-
-        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.MyEventName\""), resolveEventFullName.ToArray());
+        Assert.Equal(Encoding.ASCII.GetBytes("\"MyNamespace.MyEventName\""), resolveEventFullName.EventFullName);
     }
 
     private static EventNameManager BuildEventNameManagerWithDefaultOptions()

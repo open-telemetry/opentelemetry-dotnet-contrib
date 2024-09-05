@@ -73,9 +73,11 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// <item>Key:
     /// <list type="bullet">
     /// <item>Key may be <c>*</c> to set the default mapping rule. Only a single
-    /// default mapping rule may be defined.</item>
-    /// <item>Key may be a fully qualified event name (exact match rule).</item>
-    /// <item>Key may be a prefix (<c>StartsWith</c> rule).</item>
+    /// default mapping rule may be defined. Example: <c>*</c>.</item>
+    /// <item>Key may be a fully qualified event name (exact match rule).
+    /// Example: <c>MyCompany.Library.EventName</c>.</item>
+    /// <item>Key may be a prefix (<c>StartsWith</c> rule). Example:
+    /// <c>MyCompany.Library</c>.</item>
     /// </list>
     /// </item>
     /// <item>Value:
@@ -84,13 +86,8 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// <c>MyNewEventName</c>.</item>
     /// <item>Value may be a a fully qualified event name. Example:
     /// <c>MyCompany.Library.MyNewEventName</c>.</item>
-    /// <item>Value may be <c>*</c> to pass-through only the originally resolved
-    /// event name value (namespace will be dropped). Example: <c>*</c>.</item>
-    /// <item>Value may use <c>*</c> in the namespace portion with a valid event
-    /// name to pass-through the original resolved namespace value with a new
-    /// event name. Example: <c>*.MyNewEventName</c>.</item>
-    /// <item>Value may use <c>*.*</c> to pass-through the original resolved
-    /// event full name. Example: <c>*.*</c>.</item>
+    /// <item>Value may be <c>*</c> to pass-through the originally resolved full
+    /// event name value. Example: <c>*</c>.</item>
     /// </list>
     /// </item>
     /// </list>

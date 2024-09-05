@@ -18,7 +18,7 @@ internal sealed class EventNameManager
     private readonly string defaultEventNamespace;
     private readonly string defaultEventName;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
-    private readonly byte[] defaultEventFullName;
+    private readonly ResolvedEventFullName defaultEventFullName;
     private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
     public EventNameManager(
@@ -33,12 +33,13 @@ internal sealed class EventNameManager
         this.defaultEventName = defaultEventName!;
         this.eventFullNameMappings = eventFullNameMappings;
 
-        this.defaultEventFullName = BuildEventFullName(
-            this.defaultEventNamespace,
-            this.defaultEventName);
+        this.defaultEventFullName = new(
+            eventFullName: BuildEventFullName(this.defaultEventNamespace, this.defaultEventName),
+            originalEventNamespace: null,
+            originalEventName: null);
 
 #if NET
-        Debug.Assert(this.defaultEventFullName != null, "this.defaultFullyQualifiedEventName was null");
+        Debug.Assert(this.defaultEventFullName.EventFullName != null, "this.defaultFullyQualifiedEventName was null");
 #endif
     }
 
@@ -51,10 +52,12 @@ internal sealed class EventNameManager
     public static bool IsEventNameValid(string eventName)
         => EventNameValidationRegex.IsMatch(eventName);
 
-    public ReadOnlySpan<byte> ResolveEventFullName(
+    public ResolvedEventFullName ResolveEventFullName(
         string? eventNamespace,
         string? eventName)
     {
+        var originalEventNamespace = eventNamespace;
+        var originalEventName = eventName;
         var eventNameIsNullOrWhiteSpace = string.IsNullOrWhiteSpace(eventName);
 
         if (string.IsNullOrWhiteSpace(eventNamespace))
@@ -74,12 +77,39 @@ internal sealed class EventNameManager
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
 
-        if (eventNameCache[eventName!] is byte[] cachedEventFullName)
+        if (eventNameCache[eventName!] is ResolvedEventFullName cachedEventFullName)
         {
             return cachedEventFullName;
         }
 
-        return this.ResolveEventNameRare(eventNameCache, eventNamespace!, eventName!);
+        var eventFullNameBlob = this.ResolveEventNameRare(
+            ref eventNamespace!,
+            ref eventName!);
+
+        byte[]? originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
+            && originalEventNamespace != eventNamespace
+            ? BuildEventFullName(string.Empty, originalEventNamespace!)
+            : null;
+
+        byte[]? originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
+            && originalEventName != eventName
+            ? BuildEventFullName(string.Empty, originalEventName!)
+            : null;
+
+        var resolvedEventFullName = new ResolvedEventFullName(
+            eventFullNameBlob,
+            originalEventNamespaceBlob,
+            originalEventNameBlob);
+
+        lock (eventNameCache)
+        {
+            if (eventNameCache[eventName!] is null)
+            {
+                eventNameCache[eventName!] = resolvedEventFullName;
+            }
+        }
+
+        return resolvedEventFullName;
     }
 
     private static byte[] BuildEventFullName(string eventNamespace, string eventName)
@@ -140,7 +170,9 @@ internal sealed class EventNameManager
         return eventNameCacheForNamespace;
     }
 
-    private byte[] ResolveEventNameRare(Hashtable eventNameCache, string eventNamespace, string eventName)
+    private byte[] ResolveEventNameRare(
+        ref string eventNamespace,
+        ref string eventName)
     {
         var originalNamespace = eventNamespace;
         var originalName = eventName;
@@ -192,13 +224,9 @@ internal sealed class EventNameManager
                 }
             }
 
-            if (eventNamespace == "*")
+            if (eventNamespace.Length == 0 && eventName == "*")
             {
                 eventNamespace = originalNamespace;
-            }
-
-            if (eventName == "*")
-            {
                 eventName = originalName;
             }
         }
@@ -227,21 +255,32 @@ internal sealed class EventNameManager
         if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)
         {
             OneCollectorExporterEventSource.Log.EventFullNameDiscarded(eventNamespace, eventName);
-            eventFullName = this.defaultEventFullName;
+            eventFullName = this.defaultEventFullName.EventFullName;
         }
         else
         {
             eventFullName = BuildEventFullName(eventNamespace!, eventName!);
         }
 
-        lock (eventNameCache)
+        return eventFullName;
+    }
+
+    internal sealed class ResolvedEventFullName
+    {
+        public ResolvedEventFullName(
+            byte[] eventFullName,
+            byte[]? originalEventNamespace,
+            byte[]? originalEventName)
         {
-            if (eventNameCache[originalName] is null)
-            {
-                eventNameCache[originalName] = eventFullName;
-            }
+            this.EventFullName = eventFullName;
+            this.OriginalEventNamespace = originalEventNamespace;
+            this.OriginalEventName = originalEventName;
         }
 
-        return eventFullName;
+        public byte[] EventFullName { get; }
+
+        public byte[]? OriginalEventNamespace { get; }
+
+        public byte[]? OriginalEventName { get; }
     }
 }

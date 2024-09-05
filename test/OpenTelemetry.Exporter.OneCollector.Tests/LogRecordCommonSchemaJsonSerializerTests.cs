@@ -77,12 +77,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [InlineData("MyClass.Company", null, "MyNewEvent")]
     [InlineData("MyClass.Company", "MyEvent", "MyNewEvent")]
     [InlineData("MyClass.OtherCompany", "MyEvent", "MyDefaultEvent")]
+    [InlineData("NotMapped", null, "Namespace.Name")]
     public void EventFullNameMappedJsonTest(string categoryName, string? eventName, string expectedEventFullName)
     {
         var eventFullNameMappings = new Dictionary<string, EventFullName>
         {
             { "MyClass.Company", EventFullName.Create("MyNewEvent") },
-            { "*", EventFullName.Create("MyDefaultEvent") },
+            { "MyClass", EventFullName.Create("MyDefaultEvent") },
         };
 
         string json = GetLogRecordJson(
@@ -94,8 +95,12 @@ public class LogRecordCommonSchemaJsonSerializerTests
             },
             eventFullNameMappings: eventFullNameMappings);
 
+        string expectedName = eventName == null
+            ? string.Empty
+            : $"\"name\":\"{eventName}\",";
+
         Assert.Equal(
-            $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
+            $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"namespace":"{{{categoryName}}}",{{{expectedName}}}"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
     }
 

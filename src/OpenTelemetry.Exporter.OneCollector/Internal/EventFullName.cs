@@ -56,8 +56,7 @@ internal sealed class EventFullName
 
     internal void Validate(string key)
     {
-        if (this.EventNamespace != "*"
-            && this.EventNamespace?.Length != 0
+        if (this.EventNamespace?.Length != 0
             && (this.EventNamespace == null
                 || !EventNameManager.IsEventNamespaceValid(this.EventNamespace!)))
         {
@@ -71,7 +70,7 @@ internal sealed class EventFullName
             throw new OneCollectorExporterValidationException($"The event full name mapping name value provided for key '{key}' was null or invalid.");
         }
 
-        if (this.EventNamespace != "*" && this.EventName != "*")
+        if (this.EventName != "*")
         {
             var length = this.EventNamespace.Length;
             if (length > 0)
