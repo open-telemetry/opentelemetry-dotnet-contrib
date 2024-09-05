@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix Memory Leak by Reusing ActivitySources, Meters, and Instruments
+  ([#2039](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2039))
+
 ## 1.1.0-beta.5
 
 Released 2024-Aug-22
