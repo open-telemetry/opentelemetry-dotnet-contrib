@@ -20,19 +20,15 @@ namespace OpenTelemetry.SemanticConventions;
 /// </summary>
 public static class {{my_class_name}}
 {
-{% for attribute in ctx.attributes | sort(attribute="name") %}
+{% for attribute in ctx.attributes | rejectattr("name", "in", ctx.excluded_attributes) | sort(attribute="name") %}
 {% set attr_name = c.attribute_name(attribute) %}
 {% if not loop.first %}{{"\n"}}{% endif %}
-    /// <summary>
-    /// {{c.to_docstring(attribute.brief) | markdown_to_html}}.
-    /// </summary>
+    {{ attribute.brief | comment(indent=4) }}
 {% if attribute.note %}
-    /// <remarks>
-    /// {{c.format_remarks(attribute.note | markdown_to_html)}}.
-    /// </remarks>
+    {{ attribute.note | comment(header="/// <remarks>", footer="/// </remarks>", indent=4) }}
 {% endif %}
 {% if attribute.deprecated %}
-    [Obsolete("{{c.to_docstring(attribute.deprecated) | replace('"', "")}}")]
+    [Obsolete("{{ attribute.deprecated | replace("\"", "") | comment(header="", footer="", prefix="", indent=0) }}")]
 {% endif %}
     public const string Attribute{{attr_name}} = "{{attribute.name}}";
 {% endfor %}
@@ -40,19 +36,15 @@ public static class {{my_class_name}}
 {% set enum_class_name = attribute.name | pascal_case ~ "Values" %}
 {% set attribute_resolved_type = attribute.type | instantiated_type %}
 
-    /// <summary>
-    /// {{c.to_docstring(attribute.brief) | markdown_to_html}}.
-    /// </summary>
+    {{ attribute.brief | comment(indent=4) }}
     public static class {{enum_class_name}}
     {
         {% for member in attribute.type.members %}
-        /// <summary>
-        /// {{c.to_docstring(member.brief or member.id) | markdown_to_html}}.
-        /// </summary>
+        {{ [member.brief or (member.id ~ '.')] | comment(indent=8) }}
         {% if attribute.deprecated %}
-        [Obsolete("{{c.to_docstring(attribute.deprecated) | replace('"', "")}}")]
+        [Obsolete("{{ attribute.deprecated | replace("\"", "") | comment(header="", footer="", prefix="", indent=0) }}")]
         {% endif %}
-        public const {{c.to_csharp_return_type(attribute_resolved_type)}} {{ member.id | pascal_case }} = {{ c.print_value(attribute_resolved_type, member.value) }};
+        public const {{ attribute_resolved_type | map_text("csharp_type") }} {{ member.id | pascal_case }} = {{ member.value | print_member_value }};
         {% if not loop.last %}{{"\n"}}{% endif %}
         {% endfor %}
     }

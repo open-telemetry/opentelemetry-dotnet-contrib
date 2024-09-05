@@ -1,28 +1,3 @@
-{%- macro to_csharp_return_type(type) -%}
-  {%- if type == "string" -%}
-    string
-  {%- elif type == "string[]" -%}
-    List<String>
-  {%- elif type == "boolean" -%}
-    bool
-  {%- elif type == "int" -%}
-    int
-  {%- elif type == "double" -%}
-    double
-  {%- else -%}
-    {{type}}
-  {%- endif -%}
-{%- endmacro %}
-
-{%- macro print_value(type, value) -%}
-{%- if type == "string" -%}"{{value}}"{%-else-%}{{value}}{%-endif-%}
-{%- endmacro -%}
-
-{%- macro format_remarks(text) -%}
-{%- set notes = '\n    /// '.join(text.splitlines()) -%}
-{{notes}}
-{%- endmacro -%}
-
 {%- macro to_const_name(attr_name) -%}
 {{attr_name | pascal_case | replace('.', '_')}}
 {%- endmacro %}
@@ -30,11 +5,3 @@
 {%- macro attribute_name(attribute) -%}
 {{to_const_name(attribute.name)}}{%- if "template" in attribute.type -%}_TEMPLATE{%- endif -%}
 {%- endmacro -%}
-
-{%- macro remove_trailing_dots(str) -%}
-{%- if str[-1:] == '.' -%}{{ remove_trailing_dots(str[:-1]) }}{%- else -%}{{ str }}{%- endif -%}
-{%- endmacro -%}
-
-{%- macro to_docstring(str) -%}
-{{remove_trailing_dots(str | trim(' \n'))}}
-{%- endmacro %}
