@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Owin;
 
 namespace OpenTelemetry.Instrumentation.Owin;
@@ -17,18 +18,20 @@ public class OwinInstrumentationOptions
     /// Initializes a new instance of the <see cref="OwinInstrumentationOptions"/> class.
     /// </summary>
     public OwinInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
     {
-        try
+    }
+
+    internal OwinInstrumentationOptions(IConfiguration configuration)
+    {
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetBoolValue(
+            OwinInstrumentationEventSource.Log,
+            DisableQueryRedactionEnvVar,
+            out var disableUrlQueryRedaction))
         {
-            var disableQueryRedaction = Environment.GetEnvironmentVariable(DisableQueryRedactionEnvVar);
-            if (disableQueryRedaction != null && disableQueryRedaction.Equals("true", StringComparison.OrdinalIgnoreCase))
-            {
-                this.DisableUrlQueryRedaction = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            OwinInstrumentationEventSource.Log.FailedToReadEnvironmentVariable(DisableQueryRedactionEnvVar, ex);
+            this.DisableUrlQueryRedaction = disableUrlQueryRedaction;
         }
     }
 

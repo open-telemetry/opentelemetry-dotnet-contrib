@@ -2,8 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+#if NET
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using Microsoft.Win32;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources.Host;
 
@@ -14,7 +18,9 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-    private readonly PlatformID platformId;
+#if NET
+    private readonly Func<OSPlatform, bool> isOsPlatform;
+#endif
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
@@ -24,26 +30,50 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
-        Environment.OSVersion.Platform,
+#if NET
+        RuntimeInformation.IsOSPlatform,
+#endif
         GetFilePaths,
         GetMachineIdMacOs,
         GetMachineIdWindows)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HostDetector"/> class for testing.
-    /// </summary>
-    /// <param name="platformId">Target platform ID.</param>
-    /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
-    /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
-    /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
+#if NET
+    public HostDetector(
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
+        : this(
+            RuntimeInformation.IsOSPlatform,
+            getFilePaths,
+            getMacOsMachineId,
+            getWindowsMachineId)
     {
-        this.platformId = platformId;
-        this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
-        this.getMacOsMachineId = getMacOsMachineId ?? throw new ArgumentNullException(nameof(getMacOsMachineId));
-        this.getWindowsMachineId = getWindowsMachineId ?? throw new ArgumentNullException(nameof(getWindowsMachineId));
+    }
+#endif
+
+    internal HostDetector(
+#if NET
+        Func<OSPlatform, bool> isOsPlatform,
+#endif
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
+    {
+#if NET
+        Guard.ThrowIfNull(isOsPlatform);
+#endif
+        Guard.ThrowIfNull(getFilePaths);
+        Guard.ThrowIfNull(getMacOsMachineId);
+        Guard.ThrowIfNull(getWindowsMachineId);
+
+#if NET
+        this.isOsPlatform = isOsPlatform;
+#endif
+        this.getFilePaths = getFilePaths;
+        this.getMacOsMachineId = getMacOsMachineId;
+        this.getWindowsMachineId = getWindowsMachineId;
     }
 
     /// <summary>
@@ -118,17 +148,40 @@ internal sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "sh",
-                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice",
+                Arguments = "-c \"ioreg -rd1 -c IOPlatformExpertDevice\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
             };
 
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
-            process?.WaitForExit();
-            sb.Append(process?.StandardOutput.ReadToEnd());
-            return sb.ToString();
+            if (process != null)
+            {
+                var isExited = process.WaitForExit(5000);
+                if (isExited)
+                {
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), error);
+                        return null;
+                    }
+
+                    sb.Append(output);
+                    return sb.ToString();
+                }
+                else
+                {
+                    HostResourceEventSource.Log.ProcessTimeout("Process did not exit within the given timeout");
+                    return null;
+                }
+            }
+
+            return null;
         }
         catch (Exception ex)
         {
@@ -159,13 +212,26 @@ internal sealed class HostDetector : IResourceDetector
 
     private string? GetMachineId()
     {
-        return this.platformId switch
+#if NETFRAMEWORK
+        return this.getWindowsMachineId();
+#else
+        if (this.isOsPlatform(OSPlatform.Windows))
         {
-            PlatformID.Unix => this.GetMachineIdLinux(),
-            PlatformID.MacOSX => ParseMacOsOutput(this.getMacOsMachineId()),
-            PlatformID.Win32NT => this.getWindowsMachineId(),
-            _ => null,
-        };
+            return this.getWindowsMachineId();
+        }
+
+        if (this.isOsPlatform(OSPlatform.Linux))
+        {
+            return this.GetMachineIdLinux();
+        }
+
+        if (this.isOsPlatform(OSPlatform.OSX))
+        {
+            return ParseMacOsOutput(this.getMacOsMachineId());
+        }
+
+        return null;
+#endif
     }
 
     private string? GetMachineIdLinux()

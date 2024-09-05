@@ -58,6 +58,7 @@ jobs:
           resources-container: ['*/OpenTelemetry.Resources.Container*/**', '!**/*.md']
           resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           resources-host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
+          resources-operatingsystem: ['*/OpenTelemetry.Resources.OperatingSystem/**', '*/OpenTelemetry.Resources.OperatingSystem.Tests/**', '!**/*.md']
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS**/**', '!**/*.md']
@@ -484,6 +485,19 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
+      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+
+  build-test-resources-operatingsystem:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-operatingsystem')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.OperatingSystem]
+      code-cov-name: Resources.OperatingSystem
+      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -561,6 +575,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
       || contains(needs.detect-changes.outputs.changes, 'resources-host')
+      || contains(needs.detect-changes.outputs.changes, 'resources-operatingsystem')
       || contains(needs.detect-changes.outputs.changes, 'resources-process')
       || contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
       || contains(needs.detect-changes.outputs.changes, 'sampler-aws')
