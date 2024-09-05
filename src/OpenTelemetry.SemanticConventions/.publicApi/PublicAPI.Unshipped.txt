@@ -131,8 +131,8 @@ const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerIm
 const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerImageName = "container.image.name" -> string
 const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerImageRepoDigests = "container.image.repo_digests" -> string
 const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerImageTags = "container.image.tags" -> string
-const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerLabel = "container.label" -> string
-const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerLabels = "container.labels" -> string
+const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerLabels_TEMPLATE = "container.labels" -> string
+const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerLabel_TEMPLATE = "container.label" -> string
 const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerName = "container.name" -> string
 const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerRuntime = "container.runtime" -> string
 const OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues.Kernel = "kernel" -> string
@@ -145,6 +145,9 @@ const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraIdempot
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraPageSize = "db.cassandra.page_size" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraSpeculativeExecutionCount = "db.cassandra.speculative_execution_count" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraTable = "db.cassandra.table" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionsPoolName = "db.client.connections.pool.name" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionsState = "db.client.connections.state" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCollectionName = "db.collection.name" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbConnectionString = "db.connection_string" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCosmosdbClientId = "db.cosmosdb.client_id" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCosmosdbConnectionMode = "db.cosmosdb.connection_mode" -> string
@@ -156,13 +159,17 @@ const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCosmosdbStatusCo
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCosmosdbSubStatusCode = "db.cosmosdb.sub_status_code" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbElasticsearchNodeName = "db.elasticsearch.node.name" -> string
-const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbElasticsearchPathParts = "db.elasticsearch.path_parts" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbElasticsearchPathParts_TEMPLATE = "db.elasticsearch.path_parts" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbInstanceId = "db.instance.id" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbJdbcDriverClassname = "db.jdbc.driver_classname" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbMongodbCollection = "db.mongodb.collection" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbMssqlInstanceName = "db.mssql.instance_name" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbName = "db.name" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbNamespace = "db.namespace" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbOperation = "db.operation" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbOperationName = "db.operation.name" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbQueryParameter_TEMPLATE = "db.query.parameter" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbQueryText = "db.query.text" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbRedisDatabaseIndex = "db.redis.database_index" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbSqlTable = "db.sql.table" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbStatement = "db.statement" -> string
@@ -179,6 +186,8 @@ const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevel
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues.Serial = "serial" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues.Three = "three" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues.Two = "two" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues.Idle = "idle" -> string
+const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues.Used = "used" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues.Direct = "direct" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues.Gateway = "gateway" -> string
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbOperationTypeValues.Batch = "Batch" -> string
@@ -310,6 +319,19 @@ const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpCloudRunJobExe
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpCloudRunJobTaskIndex = "gcp.cloud_run.job.task_index" -> string
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceHostname = "gcp.gce.instance.hostname" -> string
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceName = "gcp.gce.instance.name" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiCompletion = "gen_ai.completion" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiPrompt = "gen_ai.prompt" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestMaxTokens = "gen_ai.request.max_tokens" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestModel = "gen_ai.request.model" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestTemperature = "gen_ai.request.temperature" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestTopP = "gen_ai.request.top_p" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseFinishReasons = "gen_ai.response.finish_reasons" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseId = "gen_ai.response.id" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseModel = "gen_ai.response.model" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiSystem = "gen_ai.system" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens" -> string
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues.Openai = "openai" -> string
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlDocument = "graphql.document" -> string
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlOperationName = "graphql.operation.name" -> string
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlOperationType = "graphql.operation.type" -> string
@@ -342,23 +364,28 @@ const OpenTelemetry.SemanticConventions.HostAttributes.HostArchValues.Ppc32 = "p
 const OpenTelemetry.SemanticConventions.HostAttributes.HostArchValues.Ppc64 = "ppc64" -> string
 const OpenTelemetry.SemanticConventions.HostAttributes.HostArchValues.S390x = "s390x" -> string
 const OpenTelemetry.SemanticConventions.HostAttributes.HostArchValues.X86 = "x86" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpClientIp = "http.client_ip" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpConnectionState = "http.connection.state" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpFlavor = "http.flavor" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpHost = "http.host" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpMethod = "http.method" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestBodySize = "http.request.body.size" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestContentLength = "http.request_content_length" -> string
-const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestHeader = "http.request.header" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestContentLengthUncompressed = "http.request_content_length_uncompressed" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestHeader_TEMPLATE = "http.request.header" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestMethod = "http.request.method" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestMethodOriginal = "http.request.method_original" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestResendCount = "http.request.resend_count" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRequestSize = "http.request.size" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseBodySize = "http.response.body.size" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseContentLength = "http.response_content_length" -> string
-const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseHeader = "http.response.header" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseContentLengthUncompressed = "http.response_content_length_uncompressed" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseHeader_TEMPLATE = "http.response.header" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseSize = "http.response.size" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpResponseStatusCode = "http.response.status_code" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpRoute = "http.route" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpScheme = "http.scheme" -> string
+const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpServerName = "http.server_name" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpStatusCode = "http.status_code" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpTarget = "http.target" -> string
 const OpenTelemetry.SemanticConventions.HttpAttributes.AttributeHttpUrl = "http.url" -> string
@@ -406,6 +433,7 @@ const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sClusterName = 
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sClusterUid = "k8s.cluster.uid" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerName = "k8s.container.name" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerRestartCount = "k8s.container.restart_count" -> string
+const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sCronjobName = "k8s.cronjob.name" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sCronjobUid = "k8s.cronjob.uid" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sDaemonsetName = "k8s.daemonset.name" -> string
@@ -417,9 +445,9 @@ const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sJobUid = "k8s.
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sNamespaceName = "k8s.namespace.name" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sNodeName = "k8s.node.name" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sNodeUid = "k8s.node.uid" -> string
-const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodAnnotation = "k8s.pod.annotation" -> string
-const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodLabel = "k8s.pod.label" -> string
-const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodLabels = "k8s.pod.labels" -> string
+const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodAnnotation_TEMPLATE = "k8s.pod.annotation" -> string
+const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodLabels_TEMPLATE = "k8s.pod.labels" -> string
+const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodLabel_TEMPLATE = "k8s.pod.label" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodName = "k8s.pod.name" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sPodUid = "k8s.pod.uid" -> string
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sReplicasetName = "k8s.replicaset.name" -> string
@@ -441,7 +469,7 @@ const OpenTelemetry.SemanticConventions.MessageAttributes.AttributeMessageUncomp
 const OpenTelemetry.SemanticConventions.MessageAttributes.MessageTypeValues.Received = "RECEIVED" -> string
 const OpenTelemetry.SemanticConventions.MessageAttributes.MessageTypeValues.Sent = "SENT" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingBatchMessageCount = "messaging.batch.message_count" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingClientId = "messaging.client_id" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingClientId = "messaging.client.id" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationAnonymous = "messaging.destination.anonymous" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationName = "messaging.destination.name" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id" -> string
@@ -451,6 +479,9 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDe
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationTemporary = "messaging.destination.temporary" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingEventhubsConsumerGroup = "messaging.eventhubs.consumer.group" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingEventhubsMessageEnqueuedTime = "messaging.eventhubs.message.enqueued_time" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageAckDeadline = "messaging.gcp_pubsub.message.ack_deadline" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageAckId = "messaging.gcp_pubsub.message.ack_id" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageDeliveryAttempt = "messaging.gcp_pubsub.message.delivery_attempt" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaConsumerGroup = "messaging.kafka.consumer.group" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition" -> string
@@ -462,6 +493,8 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMe
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMessageEnvelopeSize = "messaging.message.envelope.size" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMessageId = "messaging.message.id" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingOperation = "messaging.operation" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingOperationName = "messaging.operation.name" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingOperationType = "messaging.operation.type" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingRabbitmqDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingRabbitmqMessageDeliveryTag = "messaging.rabbitmq.message.delivery_tag" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingRocketmqClientGroup = "messaging.rocketmq.client_group" -> string
@@ -478,11 +511,11 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingSe
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingServicebusMessageDeliveryCount = "messaging.servicebus.message.delivery_count" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingServicebusMessageEnqueuedTime = "messaging.servicebus.message.enqueued_time" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingSystem = "messaging.system" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues.Create = "create" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues.Deliver = "process" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues.Publish = "publish" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues.Receive = "receive" -> string
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues.Settle = "settle" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Create = "create" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Deliver = "process" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Publish = "publish" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Receive = "receive" -> string
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Settle = "settle" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingRocketmqConsumptionModelValues.Broadcasting = "broadcasting" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingRocketmqConsumptionModelValues.Clustering = "clustering" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingRocketmqMessageTypeValues.Delay = "delay" -> string
@@ -503,8 +536,10 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValue
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Rabbitmq = "rabbitmq" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Rocketmq = "rocketmq" -> string
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Servicebus = "servicebus" -> string
+const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetHostIp = "net.host.ip" -> string
 const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetHostName = "net.host.name" -> string
 const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetHostPort = "net.host.port" -> string
+const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetPeerIp = "net.peer.ip" -> string
 const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetPeerName = "net.peer.name" -> string
 const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetPeerPort = "net.peer.port" -> string
 const OpenTelemetry.SemanticConventions.NetAttributes.AttributeNetProtocolName = "net.protocol.name" -> string
@@ -611,15 +646,28 @@ const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessComman
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessCommandLine = "process.command_line" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessContextSwitchType = "process.context_switch_type" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessCpuState = "process.cpu.state" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessCreationTime = "process.creation.time" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessExecutableName = "process.executable.name" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessExecutablePath = "process.executable.path" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessExitCode = "process.exit.code" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessExitTime = "process.exit.time" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessGroupLeaderPid = "process.group_leader.pid" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessInteractive = "process.interactive" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessOwner = "process.owner" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessPagingFaultType = "process.paging.fault_type" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessParentPid = "process.parent_pid" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessPid = "process.pid" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessRealUserId = "process.real_user.id" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessRealUserName = "process.real_user.name" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessRuntimeDescription = "process.runtime.description" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessRuntimeName = "process.runtime.name" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessRuntimeVersion = "process.runtime.version" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessSavedUserId = "process.saved_user.id" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessSavedUserName = "process.saved_user.name" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessSessionLeaderPid = "process.session_leader.pid" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessUserId = "process.user.id" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessUserName = "process.user.name" -> string
+const OpenTelemetry.SemanticConventions.ProcessAttributes.AttributeProcessVpid = "process.vpid" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessContextSwitchTypeValues.Involuntary = "involuntary" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessContextSwitchTypeValues.Voluntary = "voluntary" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessCpuStateValues.System = "system" -> string
@@ -628,15 +676,19 @@ const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessCpuStateValues.
 const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessPagingFaultTypeValues.Major = "major" -> string
 const OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessPagingFaultTypeValues.Minor = "minor" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcConnectRpcErrorCode = "rpc.connect_rpc.error_code" -> string
-const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcConnectRpcRequestMetadata = "rpc.connect_rpc.request.metadata" -> string
-const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcConnectRpcResponseMetadata = "rpc.connect_rpc.response.metadata" -> string
-const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcGrpcRequestMetadata = "rpc.grpc.request.metadata" -> string
-const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcGrpcResponseMetadata = "rpc.grpc.response.metadata" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcConnectRpcRequestMetadata_TEMPLATE = "rpc.connect_rpc.request.metadata" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcConnectRpcResponseMetadata_TEMPLATE = "rpc.connect_rpc.response.metadata" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcGrpcRequestMetadata_TEMPLATE = "rpc.grpc.request.metadata" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcGrpcResponseMetadata_TEMPLATE = "rpc.grpc.response.metadata" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcGrpcStatusCode = "rpc.grpc.status_code" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcJsonrpcErrorCode = "rpc.jsonrpc.error_code" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcJsonrpcErrorMessage = "rpc.jsonrpc.error_message" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcJsonrpcRequestId = "rpc.jsonrpc.request_id" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcJsonrpcVersion = "rpc.jsonrpc.version" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcMessageCompressedSize = "rpc.message.compressed_size" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcMessageId = "rpc.message.id" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcMessageType = "rpc.message.type" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcMessageUncompressedSize = "rpc.message.uncompressed_size" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcMethod = "rpc.method" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcService = "rpc.service" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.AttributeRpcSystem = "rpc.system" -> string
@@ -673,6 +725,8 @@ const OpenTelemetry.SemanticConventions.RpcAttributes.RpcGrpcStatusCodeValues.Un
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcGrpcStatusCodeValues.Unavailable = 14 -> int
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcGrpcStatusCodeValues.Unimplemented = 12 -> int
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcGrpcStatusCodeValues.Unknown = 2 -> int
+const OpenTelemetry.SemanticConventions.RpcAttributes.RpcMessageTypeValues.Received = "RECEIVED" -> string
+const OpenTelemetry.SemanticConventions.RpcAttributes.RpcMessageTypeValues.Sent = "SENT" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcSystemValues.ApacheDubbo = "apache_dubbo" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcSystemValues.ConnectRpc = "connect_rpc" -> string
 const OpenTelemetry.SemanticConventions.RpcAttributes.RpcSystemValues.DotnetWcf = "dotnet_wcf" -> string
@@ -818,6 +872,7 @@ const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlQuery = "url.q
 const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlRegisteredDomain = "url.registered_domain" -> string
 const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlScheme = "url.scheme" -> string
 const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlSubdomain = "url.subdomain" -> string
+const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlTemplate = "url.template" -> string
 const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlTopLevelDomain = "url.top_level_domain" -> string
 const OpenTelemetry.SemanticConventions.UserAgentAttributes.AttributeUserAgentName = "user_agent.name" -> string
 const OpenTelemetry.SemanticConventions.UserAgentAttributes.AttributeUserAgentOriginal = "user_agent.original" -> string
@@ -844,6 +899,7 @@ OpenTelemetry.SemanticConventions.ContainerAttributes
 OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues
 OpenTelemetry.SemanticConventions.DbAttributes
 OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues
+OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbOperationTypeValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues
@@ -865,6 +921,8 @@ OpenTelemetry.SemanticConventions.FaasAttributes.FaasTriggerValues
 OpenTelemetry.SemanticConventions.FeatureFlagAttributes
 OpenTelemetry.SemanticConventions.FileAttributes
 OpenTelemetry.SemanticConventions.GcpAttributes
+OpenTelemetry.SemanticConventions.GenAiAttributes
+OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues
 OpenTelemetry.SemanticConventions.GraphqlAttributes
 OpenTelemetry.SemanticConventions.GraphqlAttributes.GraphqlOperationTypeValues
 OpenTelemetry.SemanticConventions.HerokuAttributes
@@ -885,7 +943,7 @@ OpenTelemetry.SemanticConventions.LogAttributes.LogIostreamValues
 OpenTelemetry.SemanticConventions.MessageAttributes
 OpenTelemetry.SemanticConventions.MessageAttributes.MessageTypeValues
 OpenTelemetry.SemanticConventions.MessagingAttributes
-OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationValues
+OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues
 OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingRocketmqConsumptionModelValues
 OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingRocketmqMessageTypeValues
 OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingServicebusDispositionStatusValues
@@ -917,6 +975,7 @@ OpenTelemetry.SemanticConventions.ProcessAttributes.ProcessPagingFaultTypeValues
 OpenTelemetry.SemanticConventions.RpcAttributes
 OpenTelemetry.SemanticConventions.RpcAttributes.RpcConnectRpcErrorCodeValues
 OpenTelemetry.SemanticConventions.RpcAttributes.RpcGrpcStatusCodeValues
+OpenTelemetry.SemanticConventions.RpcAttributes.RpcMessageTypeValues
 OpenTelemetry.SemanticConventions.RpcAttributes.RpcSystemValues
 OpenTelemetry.SemanticConventions.ServerAttributes
 OpenTelemetry.SemanticConventions.ServiceAttributes
