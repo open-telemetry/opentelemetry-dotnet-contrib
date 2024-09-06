@@ -109,7 +109,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
     [GeneratedRegex(DisableRegexPattern)]
     private static partial Regex GetDisableRegexPattern();
 #else
