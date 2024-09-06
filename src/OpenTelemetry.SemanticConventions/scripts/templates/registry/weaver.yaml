@@ -1,6 +1,6 @@
 params:
 
-  # excluded attributes will be commented out in the generated code
+  # excluded attributes will not be generated
   # this behavior is fully controlled by jinja templates
   excluded_attributes: ["messaging.client_id", "otel.library.name", "otel.library.version"]
 

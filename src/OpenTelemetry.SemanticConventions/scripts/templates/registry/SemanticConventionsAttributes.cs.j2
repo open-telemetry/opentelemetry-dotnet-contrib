@@ -20,7 +20,7 @@ namespace OpenTelemetry.SemanticConventions;
 /// </summary>
 public static class {{my_class_name}}
 {
-{% for attribute in ctx.attributes | rejectattr("name", "in", ctx.excluded_attributes) | sort(attribute="name") %}
+{% for attribute in ctx.attributes | rejectattr("name", "in", ctx.excluded_attributes) %}
 {% set attr_name = c.attribute_name(attribute) %}
 {% if not loop.first %}{{"\n"}}{% endif %}
     {{ attribute.brief | comment(indent=4) }}
@@ -32,7 +32,7 @@ public static class {{my_class_name}}
 {% endif %}
     public const string Attribute{{attr_name}} = "{{attribute.name}}";
 {% endfor %}
-{% for attribute in ctx.attributes | sort(attribute="name") %}{% if attribute.type is mapping %}
+{% for attribute in ctx.attributes %}{% if attribute.type is mapping %}
 {% set enum_class_name = attribute.name | pascal_case ~ "Values" %}
 {% set attribute_resolved_type = attribute.type | instantiated_type %}
 

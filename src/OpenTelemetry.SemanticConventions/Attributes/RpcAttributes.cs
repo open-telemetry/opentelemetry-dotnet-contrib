@@ -25,7 +25,7 @@ public static class RpcAttributes
     /// <remarks>
     /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information
     /// </remarks>
-    public const string AttributeRpcConnectRpcRequestMetadata_TEMPLATE = "rpc.connect_rpc.request.metadata";
+    public const string AttributeRpcConnectRpcRequestMetadataTemplate = "rpc.connect_rpc.request.metadata";
 
     /// <summary>
     /// Connect response metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values
@@ -33,7 +33,7 @@ public static class RpcAttributes
     /// <remarks>
     /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information
     /// </remarks>
-    public const string AttributeRpcConnectRpcResponseMetadata_TEMPLATE = "rpc.connect_rpc.response.metadata";
+    public const string AttributeRpcConnectRpcResponseMetadataTemplate = "rpc.connect_rpc.response.metadata";
 
     /// <summary>
     /// gRPC request metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values
@@ -41,7 +41,7 @@ public static class RpcAttributes
     /// <remarks>
     /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information
     /// </remarks>
-    public const string AttributeRpcGrpcRequestMetadata_TEMPLATE = "rpc.grpc.request.metadata";
+    public const string AttributeRpcGrpcRequestMetadataTemplate = "rpc.grpc.request.metadata";
 
     /// <summary>
     /// gRPC response metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values
@@ -49,7 +49,7 @@ public static class RpcAttributes
     /// <remarks>
     /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information
     /// </remarks>
-    public const string AttributeRpcGrpcResponseMetadata_TEMPLATE = "rpc.grpc.response.metadata";
+    public const string AttributeRpcGrpcResponseMetadataTemplate = "rpc.grpc.response.metadata";
 
     /// <summary>
     /// The <a href="https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md">numeric status code</a> of the gRPC request

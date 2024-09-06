@@ -73,13 +73,13 @@ public static class ContainerAttributes
     /// <summary>
     /// Container labels, <c><key></c> being the label name, the value being the label value
     /// </summary>
-    public const string AttributeContainerLabel_TEMPLATE = "container.label";
+    public const string AttributeContainerLabelTemplate = "container.label";
 
     /// <summary>
     /// Deprecated, use <c>container.label</c> instead
     /// </summary>
     [Obsolete("Replaced by <c>container.label</c>")]
-    public const string AttributeContainerLabels_TEMPLATE = "container.labels";
+    public const string AttributeContainerLabelsTemplate = "container.labels";
 
     /// <summary>
     /// Container name used by container runtime

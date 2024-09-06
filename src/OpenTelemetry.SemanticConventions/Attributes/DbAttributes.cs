@@ -132,7 +132,7 @@ public static class DbAttributes
     /// <remarks>
     /// Many Elasticsearch url paths allow dynamic values. These SHOULD be recorded in span attributes in the format <c>db.elasticsearch.path_parts.<key></c>, where <c><key></c> is the url path part name. The implementation SHOULD reference the <a href="https://raw.githubusercontent.com/elastic/elasticsearch-specification/main/output/schema/schema.json">elasticsearch schema</a> in order to map the path part values to their names
     /// </remarks>
-    public const string AttributeDbElasticsearchPathParts_TEMPLATE = "db.elasticsearch.path_parts";
+    public const string AttributeDbElasticsearchPathPartsTemplate = "db.elasticsearch.path_parts";
 
     /// <summary>
     /// Deprecated, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead
@@ -195,7 +195,7 @@ public static class DbAttributes
     /// Query parameters should only be captured when <c>db.query.text</c> is parameterized with placeholders.
     /// If a parameter has no name and instead is referenced only by index, then <c><key></c> SHOULD be the 0-based index
     /// </remarks>
-    public const string AttributeDbQueryParameter_TEMPLATE = "db.query.parameter";
+    public const string AttributeDbQueryParameterTemplate = "db.query.parameter";
 
     /// <summary>
     /// The database query being executed

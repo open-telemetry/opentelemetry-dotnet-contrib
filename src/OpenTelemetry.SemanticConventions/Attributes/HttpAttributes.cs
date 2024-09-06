@@ -56,7 +56,7 @@ public static class HttpAttributes
     /// The <c>User-Agent</c> header is already captured in the <c>user_agent.original</c> attribute. Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
     /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers
     /// </remarks>
-    public const string AttributeHttpRequestHeader_TEMPLATE = "http.request.header";
+    public const string AttributeHttpRequestHeaderTemplate = "http.request.header";
 
     /// <summary>
     /// HTTP request method
@@ -122,7 +122,7 @@ public static class HttpAttributes
     /// Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
     /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers
     /// </remarks>
-    public const string AttributeHttpResponseHeader_TEMPLATE = "http.response.header";
+    public const string AttributeHttpResponseHeaderTemplate = "http.response.header";
 
     /// <summary>
     /// The total size of the response in bytes. This should be the total number of bytes sent over the wire, including the status line (HTTP/1.1), framing (HTTP/2 and HTTP/3), headers, and response body and trailers if any

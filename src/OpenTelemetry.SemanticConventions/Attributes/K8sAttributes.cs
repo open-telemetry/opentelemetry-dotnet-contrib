@@ -123,18 +123,18 @@ public static class K8sAttributes
     /// <summary>
     /// The annotation key-value pairs placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value
     /// </summary>
-    public const string AttributeK8sPodAnnotation_TEMPLATE = "k8s.pod.annotation";
+    public const string AttributeK8sPodAnnotationTemplate = "k8s.pod.annotation";
 
     /// <summary>
     /// The label key-value pairs placed on the Pod, the <c><key></c> being the label name, the value being the label value
     /// </summary>
-    public const string AttributeK8sPodLabel_TEMPLATE = "k8s.pod.label";
+    public const string AttributeK8sPodLabelTemplate = "k8s.pod.label";
 
     /// <summary>
     /// Deprecated, use <c>k8s.pod.label</c> instead
     /// </summary>
     [Obsolete("Replaced by <c>k8s.pod.label</c>")]
-    public const string AttributeK8sPodLabels_TEMPLATE = "k8s.pod.labels";
+    public const string AttributeK8sPodLabelsTemplate = "k8s.pod.labels";
 
     /// <summary>
     /// The name of the Pod
