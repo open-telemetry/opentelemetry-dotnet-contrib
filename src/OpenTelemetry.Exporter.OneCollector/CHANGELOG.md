@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-* Removes `net7.0` target as .NET 7.0 is out
-  of support. The package keeps `netstandard2.1` target, so it
-  can still be used with .NET7.0 apps.
+* Dropped support for the `net7.0` target because .NET 7 is no longer supported.
   Adds `net8.0` target.
   ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
 
@@ -71,7 +69,7 @@ Released 2023-Sep-20
 * Update OpenTelemetry to 1.6.0
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
-* Added support for receiving tranmission failures via the
+* Added support for receiving transmission failures via the
   `RegisterPayloadTransmittedCallback` API.
   ([#1309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1309))
 
