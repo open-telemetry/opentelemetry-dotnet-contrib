@@ -58,8 +58,8 @@ public static class OpenTelemetryConsumerBuilderExtensions
     internal static Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? GetInternalPartitionsRevokedHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
         => ReflectionHelpers.GetProperty(consumerBuilder, "PartitionsRevokedHandler") as Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>;
 
-    internal static Action<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? GetInternalPartitionsLostHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
-        => ReflectionHelpers.GetProperty(consumerBuilder, "PartitionsLostHandler") as Action<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>;
+    internal static Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? GetInternalPartitionsLostHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
+        => ReflectionHelpers.GetProperty(consumerBuilder, "PartitionsLostHandler") as Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>;
 
     internal static IDeserializer<TKey>? GetInternalKeyDeserializer<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
         => ReflectionHelpers.GetProperty(consumerBuilder, "KeyDeserializer") as IDeserializer<TKey>;
@@ -91,7 +91,7 @@ public static class OpenTelemetryConsumerBuilderExtensions
     internal static void SetInternalPartitionsRevokedHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder, Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? value)
         => ReflectionHelpers.SetProperty(consumerBuilder, "PartitionsRevokedHandler", value);
 
-    internal static void SetInternalPartitionsLostHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder, Action<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? value)
+    internal static void SetInternalPartitionsLostHandler<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder, Func<IConsumer<TKey, TValue>, List<TopicPartitionOffset>, IEnumerable<TopicPartitionOffset>>? value)
         => ReflectionHelpers.SetProperty(consumerBuilder, "PartitionsLostHandler", value);
 
     internal static void SetInternalKeyDeserializer<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder, IDeserializer<TKey>? value)
