@@ -199,10 +199,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
                 Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
                 Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
-
-                // Assert.Equal(requestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
-
                 Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
+
                 if (generateRemoteException)
                 {
                     Assert.Equal(Status.Error, activity.GetStatus());
@@ -349,8 +347,6 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
             Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
             Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
-
-            // Assert.Equal(requestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
         }
         finally
         {

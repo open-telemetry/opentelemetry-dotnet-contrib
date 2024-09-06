@@ -90,7 +90,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
             // value because OWIN does not expose any kind of
             // route/template. See:
             // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name
-            RequestDataHelper.SetActivityDisplayName(activity, activity.DisplayName);
+            RequestDataHelper.SetActivityDisplayName(activity, request.Method);
 
             if (activity.IsAllDataRequested)
             {

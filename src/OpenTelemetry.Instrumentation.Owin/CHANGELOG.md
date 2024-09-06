@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Updated activity tags to use new semantic conventions attribute schema.
+* Updated activity tags to use new [semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md) attribute schema.
   ([2028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2028))
 
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
