@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Dropped support for the `net7.0` target because .NET 7 is no longer supported.
-  Adds `net8.0` target.
+  Added a `net8.0` target.
   ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
 
 ## 1.9.2
