@@ -59,6 +59,10 @@ the desired table configuration, `EventFullNameMappings` may be supplied to
 `OneCollectorExporter` to customize the final event full names sent to the
 OneCollector service.
 
+> [!NOTE]
+> When a log/event is mapped `OneCollectorExporter` will automaticallyadd the
+> `namespace` and/or `name` attribute(s) to preserve the original values.
+
 Mappings can be specified using a default wild card rule, exact-match rules,
 and/or prefix-based (`StartsWith`) rules. In the event multiple prefix matches
 are made the one matching the most characters is selected.
@@ -105,6 +109,35 @@ are made the one matching the most characters is selected.
 
   * `ILogger<MyCompany.Product2.Security.Alert>`: All logs emitted through this
     logger will use the "InternalSecurityLogs" event full name
+
+#### Schema management
+
+The default mapping behavior used by `OneCollectorExporter` is designed so that
+each unique log/event is mapped to its own table with its own schema. Using
+`EventFullNameMappings` may lead to many disparate logs/events with differing
+schema going into the same table. This could lead to wide tables with many
+columns or, in the case of logs/events sending attributes with the same name but
+different data types, lost or corrupt data.
+
+`OneCollectorExporter` does not currently provide any features to automatically
+flatten or stringify attributes into a single column to prevent "schema
+explosion" issues as described above. Users are encouraged to manually stringify
+attributes which should not become columns into JSON strings and log them into a
+standard attribute:
+
+```csharp
+logger.LogInformation(
+    "Hello world {ColumnA} {ColumnB} {Attributes}",
+    "A", // ColumnA
+    "B", // ColumnB
+    // Attributes:
+    JsonSerializer.Serialize(
+        new Dictionary<string, object?>()
+        {
+            ["id"] = 1,
+            ["name"] = "name_goes_here",
+        }));
+```
 
 #### Pass-through mappings
 
