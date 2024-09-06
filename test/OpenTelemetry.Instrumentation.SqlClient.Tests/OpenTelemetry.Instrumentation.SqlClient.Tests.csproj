@@ -16,8 +16,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.3" />
-    <PackageReference Include="Testcontainers.MsSql" Version="3.8.0" />
-    <PackageReference Include="Testcontainers.SqlEdge" Version="3.8.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="3.9.0" />
+    <PackageReference Include="Testcontainers.SqlEdge" Version="3.9.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
   </ItemGroup>
 
