@@ -60,7 +60,7 @@ the desired table configuration, `EventFullNameMappings` may be supplied to
 OneCollector service.
 
 > [!NOTE]
-> When a log/event is mapped `OneCollectorExporter` will automaticallyadd the
+> When a log/event is mapped `OneCollectorExporter` will automatically add the
 > `namespace` and/or `name` attribute(s) to preserve the original values.
 
 Mappings can be specified using a default wild card rule, exact-match rules,
