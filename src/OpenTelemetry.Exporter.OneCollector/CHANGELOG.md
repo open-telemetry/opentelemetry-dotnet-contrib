@@ -6,6 +6,13 @@
   Added a `net8.0` target.
   ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
 
+* Added `SetEventFullNameMappings` API on
+  `OneCollectorLogExportProcessorBuilder` which can be used to change the event
+  full name sent to the OneCollector service for a given `LogRecord`
+  (`CategoryName` and `EventId.Name` are used to derive the event full name by
+  default).
+  ([#2021](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2021))
+
 ## 1.9.2
 
 Released 2024-Aug-12
