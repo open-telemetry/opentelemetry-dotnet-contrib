@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -61,6 +62,9 @@ internal static class AWSLambdaUtils
             case APIGatewayHttpApiV2ProxyRequest apiGatewayHttpApiV2ProxyRequest:
                 parentContext = Propagators.DefaultTextMapPropagator.Extract(default, apiGatewayHttpApiV2ProxyRequest, GetHeaderValues);
                 break;
+            case ApplicationLoadBalancerRequest applicationLoadBalancerRequest:
+                parentContext = Propagators.DefaultTextMapPropagator.Extract(default, applicationLoadBalancerRequest, GetHeaderValues);
+                break;
             case SQSEvent sqsEvent:
                 (parentContext, links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
                 break;
@@ -98,11 +102,12 @@ internal static class AWSLambdaUtils
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context)
+    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context, bool isColdStart)
     {
         var tags = new List<KeyValuePair<string, object>>
         {
             new(AWSLambdaSemanticConventions.AttributeFaasTrigger, GetFaasTrigger(input)),
+            new(AWSLambdaSemanticConventions.AttributeFaasColdStart, isColdStart),
         };
 
         var functionName = GetFunctionName(context);
@@ -152,6 +157,19 @@ internal static class AWSLambdaUtils
         return headerValue?.Split(',');
     }
 
+    internal static IEnumerable<string>? GetHeaderValues(ApplicationLoadBalancerRequest request, string name)
+    {
+        var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
+        if (multiValueHeader != null)
+        {
+            return multiValueHeader;
+        }
+
+        var headerValue = request.Headers?.GetValueByKeyIgnoringCase(name);
+
+        return headerValue != null ? new[] { headerValue } : null;
+    }
+
     private static string? GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
         request.Headers?.GetValueByKeyIgnoringCase(name);
 
@@ -189,7 +207,7 @@ internal static class AWSLambdaUtils
         IsHttpRequest(input) ? "http" : "other";
 
     private static bool IsHttpRequest<TInput>(TInput input) =>
-        input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest;
+        input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest || input is ApplicationLoadBalancerRequest;
 
     private static ActivityContext ParseXRayTraceHeader(string rawHeader)
     {
