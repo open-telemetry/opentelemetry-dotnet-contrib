@@ -158,6 +158,51 @@ public sealed class OneCollectorLogExportProcessorBuilder
     }
 
     /// <summary>
+    /// Sets the event full name mappings used by the <see
+    /// cref="OneCollectorExporter{T}"/> created by the builder.
+    /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="OneCollectorLogExporterOptions.EventFullNameMappings"
+    /// path="/remarks"/></remarks>
+    /// <param name="eventFullNameMappings">Event full name mappings.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder SetEventFullNameMappings(
+        IReadOnlyDictionary<string, string>? eventFullNameMappings)
+    {
+        this.services.Configure<OneCollectorLogExporterOptions>(
+            this.name,
+            exporterOptions => exporterOptions.EventFullNameMappings = eventFullNameMappings);
+
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the default event namespace used by the <see
+    /// cref="OneCollectorExporter{T}"/> created by the builder. Default value:
+    /// <c>OpenTelemetry.Logs</c>.
+    /// </summary>
+    /// <remarks><inheritdoc
+    /// cref="OneCollectorLogExporterOptions.DefaultEventNamespace"
+    /// path="/remarks"/></remarks>
+    /// <param name="defaultEventNamespace">Default event namespace.</param>
+    /// <returns>The supplied <see
+    /// cref="OneCollectorLogExportProcessorBuilder"/> for call
+    /// chaining.</returns>
+    public OneCollectorLogExportProcessorBuilder SetDefaultEventNamespace(
+        string defaultEventNamespace)
+    {
+        Guard.ThrowIfNullOrWhitespace(defaultEventNamespace);
+
+        this.services.Configure<OneCollectorLogExporterOptions>(
+            this.name,
+            exporterOptions => exporterOptions.DefaultEventNamespace = defaultEventNamespace);
+
+        return this;
+    }
+
+    /// <summary>
     /// Sets the default event name used by the <see
     /// cref="OneCollectorExporter{T}"/> created by the builder. Default value:
     /// <c>Log</c>.
@@ -250,7 +295,10 @@ public sealed class OneCollectorLogExportProcessorBuilder
 #pragma warning disable CA2000 // Dispose objects before losing scope
         return new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName),
+                new EventNameManager(
+                    exporterOptions.DefaultEventNamespace,
+                    exporterOptions.DefaultEventName,
+                    exporterOptions.ParsedEventFullNameMappings),
                 exporterOptions.TenantToken!,
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,

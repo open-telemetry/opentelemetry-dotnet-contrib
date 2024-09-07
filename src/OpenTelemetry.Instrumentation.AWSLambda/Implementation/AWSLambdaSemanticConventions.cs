@@ -16,4 +16,5 @@ internal static class AWSLambdaSemanticConventions
     public const string AttributeFaasName = "faas.name";
     public const string AttributeFaasVersion = "faas.version";
     public const string AttributeFaasTrigger = "faas.trigger";
+    public const string AttributeFaasColdStart = "faas.coldstart";
 }

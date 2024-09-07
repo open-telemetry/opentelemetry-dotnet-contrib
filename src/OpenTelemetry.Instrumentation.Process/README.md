@@ -1,5 +1,10 @@
 # Process Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@Yun-Ting](https://github.com/Yun-Ting)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Process)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Process)

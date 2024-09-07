@@ -32,12 +32,6 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
         Debug.Assert(this.Options != null, "Options should not be null.");
 
-        ProducerConfig config = (ProducerConfig)this.Config;
-        if (this.Options!.Metrics)
-        {
-            config.StatisticsIntervalMs ??= 1000;
-        }
-
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.Options);
+        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.Options!);
     }
 }

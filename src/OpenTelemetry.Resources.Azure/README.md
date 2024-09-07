@@ -1,5 +1,10 @@
 # Resource Detectors for Azure cloud environments
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@vishweshbankwar](https://github.com/vishweshbankwar), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.Azure)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.Azure)

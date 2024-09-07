@@ -1,3 +1,5 @@
+Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>
+Confluent.Kafka.OpenTelemetryConsumeResultExtensions
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>.InstrumentedConsumerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>
@@ -6,6 +8,9 @@ OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IConsumer<TKey, TValue>!
 override OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IProducer<TKey, TValue>!
+static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMessageAsync<TKey, TValue>(this Confluent.Kafka.IConsumer<TKey, TValue>! consumer, Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>! handler) -> System.Threading.Tasks.ValueTask<Confluent.Kafka.ConsumeResult<TKey, TValue>?>
+static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMessageAsync<TKey, TValue>(this Confluent.Kafka.IConsumer<TKey, TValue>! consumer, Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>! handler, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Confluent.Kafka.ConsumeResult<TKey, TValue>?>
+static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.TryExtractPropagationContext<TKey, TValue>(this Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, out OpenTelemetry.Context.Propagation.PropagationContext propagationContext) -> bool
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>! consumerBuilder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, string? name, OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedConsumerBuilder<TKey, TValue>? consumerBuilder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
@@ -18,3 +23,4 @@ static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaConsumerInstr
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>! producerBuilder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, OpenTelemetry.Instrumentation.ConfluentKafka.InstrumentedProducerBuilder<TKey, TValue>? producerBuilder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+virtual Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>.Invoke(Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, System.Diagnostics.Activity? activity, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask

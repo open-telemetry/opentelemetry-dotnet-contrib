@@ -26,6 +26,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -35,7 +36,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
             var scan_request = new ScanRequest
             {
@@ -47,16 +47,18 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Single(exportedItems);
-
-            Activity awssdk_activity = exportedItems[0];
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateDynamoActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateDynamoActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
     [Fact]
@@ -69,6 +71,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -78,7 +81,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             CustomResponses.SetResponse(ddb, null, requestId, true);
             var scan_request = new ScanRequest
             {
@@ -90,16 +92,18 @@ public class TestAWSClientInstrumentation
 #else
             await ddb.ScanAsync(scan_request);
 #endif
-            Assert.Single(exportedItems);
-
-            Activity awssdk_activity = exportedItems[0];
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateDynamoActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateDynamoActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
     [Fact]
@@ -112,6 +116,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -121,7 +126,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             AmazonServiceException amazonServiceException = new AmazonServiceException();
             amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
             amazonServiceException.RequestId = requestId;
@@ -140,20 +144,23 @@ public class TestAWSClientInstrumentation
                 await ddb.ScanAsync(scan_request);
 #endif
             }
-            catch (AmazonServiceException)
+            catch (AmazonServiceException ex)
             {
-                Assert.Single(exportedItems);
-
-                Activity awssdk_activity = exportedItems[0];
-
-                this.ValidateAWSActivity(awssdk_activity, parent);
-                this.ValidateDynamoActivityTags(awssdk_activity);
-
-                Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
-                Assert.Equal(Status.Error.WithDescription("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown."), awssdk_activity.GetStatus());
-                Assert.Equal("exception", awssdk_activity.Events.First().Name);
+                Assert.Equal(System.Net.HttpStatusCode.NotFound, ex.StatusCode);
             }
         }
+
+        Assert.NotEmpty(exportedItems);
+
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateDynamoActivityTags(awssdk_activity);
+
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(Status.Error.WithDescription("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown."), awssdk_activity.GetStatus());
+        Assert.Equal("exception", awssdk_activity.Events.First().Name);
     }
 
     [Fact]
@@ -166,6 +173,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
+        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -175,7 +183,6 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
             string dummyResponse = "{}";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
             var send_msg_req = new SendMessageRequest();
@@ -187,15 +194,17 @@ public class TestAWSClientInstrumentation
 #else
             await sqs.SendMessageAsync(send_msg_req);
 #endif
-            Assert.Single(exportedItems);
-            Activity awssdk_activity = exportedItems[0];
-
-            this.ValidateAWSActivity(awssdk_activity, parent);
-            this.ValidateSqsActivityTags(awssdk_activity);
-
-            Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
-            Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.requestId"));
         }
+
+        Assert.NotEmpty(exportedItems);
+        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SQS.SendMessage");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateSqsActivityTags(awssdk_activity);
+
+        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
@@ -207,9 +216,6 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "aws.service"));
-        Assert.Equal("Scan", Utils.GetTagValue(ddb_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(ddb_activity, "aws.region"));
         Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
@@ -220,9 +226,6 @@ public class TestAWSClientInstrumentation
     private void ValidateSqsActivityTags(Activity sqs_activity)
     {
         Assert.Equal("SQS.SendMessage", sqs_activity.DisplayName);
-        Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "aws.service"));
-        Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "aws.operation"));
-        Assert.Equal("us-east-1", Utils.GetTagValue(sqs_activity, "aws.region"));
         Assert.Equal("https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", Utils.GetTagValue(sqs_activity, "aws.queue_url"));
         Assert.Equal("aws-api", Utils.GetTagValue(sqs_activity, "rpc.system"));
         Assert.Equal("SQS", Utils.GetTagValue(sqs_activity, "rpc.service"));

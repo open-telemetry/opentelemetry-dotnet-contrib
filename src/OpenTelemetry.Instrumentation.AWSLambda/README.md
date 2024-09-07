@@ -1,5 +1,10 @@
 # AWS OTel .NET SDK for Lambda
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@ppittle](https://github.com/ppittle)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.AWSLambda)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.AWSLambda)
@@ -54,7 +59,7 @@ The parent extraction is supported for the input types listed in the table below
 
 | Type | Parent extraction source |
 |------|--------------------------|
-| `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest` | HTTP headers of the request |
+| `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest`, `ApplicationLoadBalancerRequest` | HTTP headers of the request |
 | `SQSEvent` | Attributes of the last `SQSMessage` (if `SetParentFromMessageBatch` is `true`) |
 | `SNSEvent` | Attributes of the last `SNSRecord` |
 
