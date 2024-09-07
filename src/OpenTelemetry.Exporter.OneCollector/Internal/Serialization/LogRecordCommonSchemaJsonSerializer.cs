@@ -16,6 +16,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
     private static readonly JsonEncodedText FormattedMessageProperty = JsonEncodedText.Encode("formattedMessage");
+    private static readonly JsonEncodedText NamespaceProperty = JsonEncodedText.Encode("namespace");
     private static readonly JsonEncodedText DistributedTraceExtensionProperty = JsonEncodedText.Encode("dt");
     private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
     private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
@@ -48,7 +49,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         {
             if (scopeAttribute.Key == "{OriginalFormat}")
             {
-                return;
+                continue;
             }
 
             if (AttributeKeyStartWithExtensionPrefix(scopeAttribute.Key))
@@ -88,7 +89,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         Debug.Assert(writer != null, "writer was null");
 
-        var eventName = this.eventNameManager.ResolveEventFullName(
+        var resolvedEventFullName = this.eventNameManager.ResolveEventFullName(
             item.CategoryName,
             item.EventId.Name);
 
@@ -98,9 +99,9 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
 #if DEBUG
-        writer.WriteRawValue(eventName, skipInputValidation: false);
+        writer.WriteRawValue(resolvedEventFullName.EventFullName, skipInputValidation: false);
 #else
-        writer.WriteRawValue(eventName, skipInputValidation: true);
+        writer.WriteRawValue(resolvedEventFullName.EventFullName, skipInputValidation: true);
 #endif
 
         writer.WriteString(CommonSchemaJsonSerializationHelper.TimeProperty, item.Timestamp);
@@ -112,6 +113,26 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
         if (item.EventId.Id != 0)
         {
             writer.WriteNumber(EventIdProperty, item.EventId.Id);
+        }
+
+        if (resolvedEventFullName.OriginalEventNamespace != null)
+        {
+            writer.WritePropertyName(NamespaceProperty);
+#if DEBUG
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: false);
+#else
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: true);
+#endif
+        }
+
+        if (resolvedEventFullName.OriginalEventName != null)
+        {
+            writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
+#if DEBUG
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: false);
+#else
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: true);
+#endif
         }
 
 #if EXPOSE_EXPERIMENTAL_FEATURES
