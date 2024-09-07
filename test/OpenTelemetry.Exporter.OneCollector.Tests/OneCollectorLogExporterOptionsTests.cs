@@ -134,9 +134,14 @@ public sealed class OneCollectorLogExporterOptionsTests
 
     [Theory]
     [InlineData("*", "ABCD")]
+    [InlineData("Some.Prefix", "ABCD")]
     [InlineData("*", "A.BC")]
+    [InlineData("Some.Prefix", "A.BC")]
     [InlineData("*", "A.B.C")]
+    [InlineData("Some.Prefix", "A.B.C")]
+    [InlineData("*", "*")]
     [InlineData("Some.Prefix", "*")]
+    [InlineData("Some_Name", "New.Name")]
     public void ValidEventFullNameMappingTests(string key, string? value)
     {
         var options = new OneCollectorLogExporterOptions()
