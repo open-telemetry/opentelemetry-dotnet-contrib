@@ -39,6 +39,10 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaMetricExporterOptions"/>.</param>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
@@ -72,11 +76,13 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         }
     }
 
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (this.isDisposed)

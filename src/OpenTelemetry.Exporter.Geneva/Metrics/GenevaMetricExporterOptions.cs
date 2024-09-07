@@ -6,6 +6,9 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains Geneva metrics exporter options.
+/// </summary>
 public class GenevaMetricExporterOptions
 {
     private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
