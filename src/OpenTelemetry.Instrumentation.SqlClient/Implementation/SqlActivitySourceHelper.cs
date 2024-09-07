@@ -24,8 +24,7 @@ internal sealed class SqlActivitySourceHelper
     public static readonly string ActivityName = ActivitySourceName + ".Execute";
 
     public static readonly string MeterName = AssemblyName.Name!;
-    public static readonly string MeterVersion = AssemblyName.Version!.ToString();
-    public static readonly Meter Meter = new(MeterName, MeterVersion);
+    public static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
 
     public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram<double>(
         "db.client.operation.duration",
