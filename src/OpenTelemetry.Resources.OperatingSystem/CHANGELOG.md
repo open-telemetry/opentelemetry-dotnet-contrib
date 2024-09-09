@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add a fallback mechanism for `build.id` for Linux.
+  ([#2047](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2047))
+
+
 ## 0.1.0-alpha.3
 
 Released 2024-Aug-30
