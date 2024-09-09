@@ -97,6 +97,47 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     }
 
     [Fact]
+    public void SetEventFullNameMappingsTest()
+    {
+        OneCollectorLogExporterOptions? options = null;
+
+        var mappings = new Dictionary<string, string>()
+        {
+            { "Key1", "Value1" },
+        };
+
+        using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(
+            builder =>
+            {
+                builder.AddOneCollectorExporter(
+                    "InstrumentationKey=token-extrainformation",
+                    configure => configure.SetEventFullNameMappings(mappings));
+            },
+            services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
+
+        Assert.NotNull(options);
+        Assert.Equal(mappings, options.EventFullNameMappings);
+    }
+
+    [Fact]
+    public void SetDefaultEventNamespaceTest()
+    {
+        OneCollectorLogExporterOptions? options = null;
+
+        using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(
+            builder =>
+            {
+                builder.AddOneCollectorExporter(
+                    "InstrumentationKey=token-extrainformation",
+                    configure => configure.SetDefaultEventNamespace("MyDefaultEventNamespace"));
+            },
+            services => services.Configure<OneCollectorLogExporterOptions>(o => options = o));
+
+        Assert.NotNull(options);
+        Assert.Equal("MyDefaultEventNamespace", options.DefaultEventNamespace);
+    }
+
+    [Fact]
     public void SetDefaultEventNameTest()
     {
         OneCollectorLogExporterOptions? options = null;

@@ -41,11 +41,11 @@ public class OperatingSystemDetectorTests
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemName, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemType, resourceAttributes.Keys);
         Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemVersion, resourceAttributes.Keys);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId, resourceAttributes.Keys);
 
         // Not checking on Linux because the description may vary depending on the distribution.
         if (expectedDescription != "Linux")
         {
-            Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId, resourceAttributes.Keys);
             Assert.Contains(expectedDescription, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemDescription]);
             Assert.Equal(5, resourceAttributes.Count);
         }
@@ -62,6 +62,7 @@ public class OperatingSystemDetectorTests
             OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
             null,
             null,
+            null,
             [path]);
         var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
@@ -74,15 +75,18 @@ public class OperatingSystemDetectorTests
     public void TestParseLinuxOsRelease()
     {
         string path = "Samples/os-release";
+        string kernelPath = "Samples/kernelOsrelease";
         var osDetector = new OperatingSystemDetector(
             OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
             null,
+            kernelPath,
             [path],
             null);
         var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal("Ubuntu", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
         Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
+        Assert.Equal("5.15.0-76-generic", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
     }
 #endif
 }
