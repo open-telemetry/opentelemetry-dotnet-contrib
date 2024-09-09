@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -47,6 +48,174 @@ public class AWSLambdaHttpUtilsTests
         };
 
         AssertTags(expectedTags, actualTags);
+    }
+
+    [Fact]
+    public void GetHttpTags_ApplicationLoadBalancerRequest_ReturnsCorrectTags()
+    {
+        var request = new ApplicationLoadBalancerRequest
+        {
+            Headers = new Dictionary<string, string>
+            {
+                { "X-Forwarded-Proto",  "https" },
+                { "Host", "localhost:1234" },
+            },
+            QueryStringParameters = new Dictionary<string, string>
+            {
+                { "q1",  "value1" },
+            },
+            HttpMethod = "GET",
+            Path = "/path/test",
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+        var expectedTags = new Dictionary<string, object>
+        {
+            { "http.scheme", "https" },
+            { "http.target", "/path/test?q1=value1" },
+            { "net.host.name", "localhost" },
+            { "net.host.port", 1234 },
+            { "http.method", "GET" },
+        };
+
+        AssertTags(expectedTags, actualTags);
+    }
+
+    [Fact]
+    public void GetHttpTags_ApplicationLoadBalancerRequestWithMultiValue_ReturnsCorrectTags()
+    {
+        var request = new ApplicationLoadBalancerRequest
+        {
+            MultiValueHeaders = new Dictionary<string, IList<string>>
+            {
+                { "X-Forwarded-Proto", new List<string> { "https" } },
+                { "Host", new List<string> { "localhost:1234" } },
+            },
+            MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
+            {
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
+                { "q1", new[] { "value1" } },
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
+            },
+            HttpMethod = "GET",
+            Path = "/path/test",
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+        var expectedTags = new Dictionary<string, object>
+        {
+            { "http.scheme", "https" },
+            { "http.target", "/path/test?q1=value1" },
+            { "net.host.name", "localhost" },
+            { "net.host.port", 1234 },
+            { "http.method", "GET" },
+        };
+
+        AssertTags(expectedTags, actualTags);
+    }
+
+    [Fact]
+    public void GetHttpTags_ApplicationLoadBalancerRequestWithMultiValueHeader_UsesLastValue()
+    {
+        var request = new ApplicationLoadBalancerRequest
+        {
+            MultiValueHeaders = new Dictionary<string, IList<string>>
+            {
+                { "X-Forwarded-Proto", new List<string> { "https", "http" } },
+                { "Host", new List<string> { "localhost:1234", "myhost:432" } },
+            },
+        };
+
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+
+        var expectedTags = new Dictionary<string, object>
+        {
+            { "http.target", string.Empty },
+            { "http.scheme", "http" },
+            { "net.host.name", "myhost" },
+            { "net.host.port", 432 },
+        };
+
+        AssertTags(expectedTags, actualTags);
+    }
+
+    [Fact]
+    public void SetHttpTagsFromResult_ApplicationLoadBalancerResponse_SetsCorrectTags()
+    {
+        var response = new ApplicationLoadBalancerResponse
+        {
+            StatusCode = 200,
+        };
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource("TestActivitySource")
+            .Build();
+
+        using var testActivitySource = new ActivitySource("TestActivitySource");
+        using var activity = testActivitySource.StartActivity("TestActivity");
+
+        AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
+
+        var expectedTags = new Dictionary<string, object>
+        {
+            { "http.status_code", 200 },
+        };
+
+        var actualTags = activity?.TagObjects
+            .Select(kvp => new KeyValuePair<string, object>(kvp.Key, kvp.Value ?? new object()));
+
+        AssertTags(expectedTags, actualTags);
+    }
+
+    [Theory]
+    [InlineData(null, "")]
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
+    [InlineData("", "?name=")]
+    [InlineData("value1", "?name=value1")]
+    [InlineData("value$a", "?name=value%24a")]
+    [InlineData("value 1", "?name=value+1")]
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
+    public void GetQueryString_ApplicationLoadBalancerRequest_CorrectQueryString(string? value, string expectedQueryString)
+    {
+        var request = new ApplicationLoadBalancerRequest();
+        if (value != null)
+        {
+            request.QueryStringParameters = new Dictionary<string, string>
+            {
+                { "name", value },
+            };
+        }
+
+        var queryString = AWSLambdaHttpUtils.GetQueryString(request);
+
+        Assert.Equal(expectedQueryString, queryString);
+    }
+
+    [Theory]
+    [InlineData(null, "")]
+#pragma warning disable CA1861 // Avoid constant arrays as arguments
+    [InlineData(new string[] { }, "")]
+    [InlineData(new[] { "value1" }, "?name=value1")]
+    [InlineData(new[] { "value$a" }, "?name=value%24a")]
+    [InlineData(new[] { "value 1" }, "?name=value+1")]
+    [InlineData(new[] { "value1", "value2" }, "?name=value1&name=value2")]
+#pragma warning restore CA1861 // Avoid constant arrays as arguments
+    public void GetQueryString_ApplicationLoadBalancerRequestMultiValue_CorrectQueryString(IList<string>? values, string expectedQueryString)
+    {
+        var request = new ApplicationLoadBalancerRequest();
+        if (values != null)
+        {
+            request.MultiValueQueryStringParameters = new Dictionary<string, IList<string>>
+            {
+                { "name", values },
+            };
+        }
+
+        var queryString = AWSLambdaHttpUtils.GetQueryString(request);
+
+        Assert.Equal(expectedQueryString, queryString);
     }
 
     [Fact]

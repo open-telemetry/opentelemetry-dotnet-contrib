@@ -6,7 +6,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSHistogram<T> : Histogram<T>
+internal sealed class AWSHistogram<T> : Histogram<T>
     where T : struct
 {
     private readonly System.Diagnostics.Metrics.Histogram<T> histogram;

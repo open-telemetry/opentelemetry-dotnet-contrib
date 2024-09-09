@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net6.0", "net7.0", "net8.0" ]'
+        default: '[ "net462", "net6.0", "net8.0" ]'
         required: false
         type: string
 
@@ -78,7 +78,6 @@ jobs:
       with:
         dotnet-version: |
           6.0.x
-          7.0.x
           8.0.x
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
