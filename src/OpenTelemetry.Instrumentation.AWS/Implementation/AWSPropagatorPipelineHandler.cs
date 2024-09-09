@@ -40,13 +40,21 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
         this.ProcessBeginRequest(executionContext);
 
         base.InvokeSync(executionContext);
+
+        ProcessEndRequest(executionContext);
     }
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
+        T? ret = null;
+
         this.ProcessBeginRequest(executionContext);
 
-        return await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
+        ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
+
+        ProcessEndRequest(executionContext);
+
+        return ret;
     }
 
 #if NET
@@ -59,25 +67,37 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
     {
         var service = requestContext.ServiceMetaData.ServiceId;
 
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
+        if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
             AmazonWebServiceRequest request = requestContext.OriginalRequest;
 
-            try
+            foreach (var parameter in parameters)
             {
-                var property = request.GetType().GetProperty(parameter);
-                if (property != null)
+                try
                 {
-                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    // for bedrock agent, we only extract one attribute based on the operation.
+                    if (AWSServiceType.IsBedrockAgentService(service))
                     {
-                        activity.SetTag(attribute, property.GetValue(request));
+                        if (AWSServiceHelper.OperationNameToResourceMap()[AWSServiceHelper.GetAWSOperationName(requestContext)] != parameter)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var property = request.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(request));
+                        }
                     }
                 }
-            }
-            catch (Exception)
-            {
-                // Guard against any reflection-related exceptions when running in AoT.
-                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                }
             }
         }
 
@@ -95,6 +115,95 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
             SnsRequestContextHelper.AddAttributes(
                 requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
         }
+        else if (AWSServiceType.IsBedrockRuntimeService(service))
+        {
+            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, "aws_bedrock");
+        }
+    }
+
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private static void AddResponseSpecificInformation(Activity activity, IExecutionContext executionContext)
+    {
+        var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
+        var responseContext = executionContext.ResponseContext;
+
+        if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
+        {
+            AmazonWebServiceResponse response = responseContext.Response;
+
+            foreach (var parameter in parameters)
+            {
+                try
+                {
+                    // for bedrock agent, extract attribute from object in response.
+                    if (AWSServiceType.IsBedrockAgentService(service))
+                    {
+                        var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
+                        if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
+                        {
+                            AddBedrockAgentResponseAttribute(activity, response, parameter);
+                        }
+                    }
+
+                    var property = response.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(response));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                }
+            }
+        }
+    }
+
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
+    {
+        var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
+        if (responseObject != null)
+        {
+            var attributeObject = responseObject.GetValue(response);
+            if (attributeObject != null)
+            {
+                var property = attributeObject.GetType().GetProperty(parameter);
+                if (property != null)
+                {
+                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    {
+                        activity.SetTag(attribute, property.GetValue(attributeObject));
+                    }
+                }
+            }
+        }
+    }
+
+    private static void ProcessEndRequest(IExecutionContext executionContext)
+    {
+        var currentActivity = Activity.Current;
+
+        if (currentActivity == null || !currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        AddResponseSpecificInformation(currentActivity, executionContext);
     }
 
     private void ProcessBeginRequest(IExecutionContext executionContext)
