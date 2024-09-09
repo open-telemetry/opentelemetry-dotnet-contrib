@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Dropped support for the `net7.0` target because .NET 7 is no longer supported.
+  ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
+
 * Update BaggageActivityProcessor to require baggage key predicate.
   ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
 
