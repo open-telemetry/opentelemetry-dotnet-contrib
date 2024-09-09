@@ -20,7 +20,7 @@ internal static class ActivityHelper
     /// </summary>
     internal const string ContextKey = "__AspnetInstrumentationContext__";
     internal static readonly object StartedButNotSampledObj = new();
-    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
+    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
 
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
