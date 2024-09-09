@@ -86,9 +86,11 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
             if (this.isFallBackEventToWriteSwitch)
             {
                 this.isFallBackEventToWriteSwitch = false;
-                //could be expensive operation, conditionally call once
+
+                // could be expensive operation, conditionally call once
                 AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
             }
+
             return this.FallbackSampler.ShouldSample(in samplingParameters);
         }
 
