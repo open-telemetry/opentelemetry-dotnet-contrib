@@ -73,6 +73,37 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Theory]
+    [InlineData("MyClass.Company", null, "MyNewEvent")]
+    [InlineData("MyClass.Company", "MyEvent", "MyNewEvent")]
+    [InlineData("MyClass.OtherCompany", "MyEvent", "MyDefaultEvent")]
+    [InlineData("NotMapped", null, "Namespace.Name")]
+    public void EventFullNameMappedJsonTest(string categoryName, string? eventName, string expectedEventFullName)
+    {
+        var eventFullNameMappings = new Dictionary<string, EventFullName>
+        {
+            { "MyClass.Company", EventFullName.Create("MyNewEvent") },
+            { "MyClass", EventFullName.Create("MyDefaultEvent") },
+        };
+
+        string json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.CategoryName = categoryName;
+                logRecord.EventId = new(0, eventName);
+            },
+            eventFullNameMappings: eventFullNameMappings);
+
+        string expectedName = eventName == null
+            ? string.Empty
+            : $"\"name\":\"{eventName}\",";
+
+        Assert.Equal(
+            $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"namespace":"{{{categoryName}}}",{{{expectedName}}}"severityText":"Trace","severityNumber":1}}""" + "\n",
+            json);
+    }
+
     [Fact]
     public void LogRecordEventIdJsonTest()
     {
@@ -261,10 +292,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
         ScopeProvider? scopeProvider = null,
-        bool includeStackTraceAsString = false)
+        bool includeStackTraceAsString = false,
+        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
-            new("Namespace", "Name"),
+            new EventNameManager("Namespace", "Name", eventFullNameMappings),
             "tenant-token",
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 

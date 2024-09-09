@@ -8,6 +8,9 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains extension methods to register the Geneva metrics exporter.
+/// </summary>
 public static class GenevaMetricExporterExtensions
 {
     /// <summary>
