@@ -109,9 +109,14 @@ public sealed class OneCollectorLogExporterOptionsTests
     [InlineData("Prefix", "ABC")]
     [InlineData("Prefix", "_.EventName")]
     [InlineData("Prefix", "Namespace.Event_Name")]
+    [InlineData("Prefix", "Event_Name")]
     [InlineData("Prefix", "Namespace.")]
+    [InlineData("Prefix", ".")]
     [InlineData("*", "*.EventName")]
     [InlineData("*", "*.*")]
+    [InlineData("*", "Namespace.*")]
+    [InlineData("Valid", "Invalid*")]
+    [InlineData("Valid", "In*valid")]
     public void InvalidEventFullNameMappingTests(string key, string? value)
     {
         var options = new OneCollectorLogExporterOptions()
@@ -129,9 +134,14 @@ public sealed class OneCollectorLogExporterOptionsTests
 
     [Theory]
     [InlineData("*", "ABCD")]
+    [InlineData("Some.Prefix", "ABCD")]
     [InlineData("*", "A.BC")]
+    [InlineData("Some.Prefix", "A.BC")]
     [InlineData("*", "A.B.C")]
+    [InlineData("Some.Prefix", "A.B.C")]
     [InlineData("*", "*")]
+    [InlineData("Some.Prefix", "*")]
+    [InlineData("Some_Name", "New.Name")]
     public void ValidEventFullNameMappingTests(string key, string? value)
     {
         var options = new OneCollectorLogExporterOptions()
