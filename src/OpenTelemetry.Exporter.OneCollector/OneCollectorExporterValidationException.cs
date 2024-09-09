@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET8_0_OR_GREATER
 using System.Runtime.Serialization;
+#endif
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
@@ -41,8 +43,10 @@ public sealed class OneCollectorExporterValidationException : Exception
     {
     }
 
+#if !NET8_0_OR_GREATER
     private OneCollectorExporterValidationException(SerializationInfo serializationInfo, StreamingContext streamingContext)
         : base(serializationInfo, streamingContext)
     {
     }
+#endif
 }
