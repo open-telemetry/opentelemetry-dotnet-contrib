@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${SCRIPT_DIR}/../"
 
 # freeze the spec version to make SemanticAttributes generation reproducible
-SPEC_VERSION=1.26.0
+SEMCONV_VERSION=1.26.0
 GENERATOR_VERSION=v0.9.1
 
 cd ${SCRIPT_DIR}
@@ -16,7 +16,7 @@ cd semantic-conventions
 
 git init
 git remote add origin https://github.com/open-telemetry/semantic-conventions.git
-git fetch origin "v$SPEC_VERSION"
+git fetch origin "v$SEMCONV_VERSION"
 git reset --hard FETCH_HEAD
 cd ${SCRIPT_DIR}
 

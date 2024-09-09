@@ -7,15 +7,15 @@ $GENERATOR_VERSION = "v0.9.1"
 
 Set-Location $SCRIPT_DIR
 
-# Remove-Item -r -fo semantic-conventions
-# mkdir semantic-conventions
-# Set-Location semantic-conventions
+Remove-Item -r -fo semantic-conventions
+mkdir semantic-conventions
+Set-Location semantic-conventions
 
-# git init
-# git remote add origin https://github.com/open-telemetry/semantic-conventions.git
-# git fetch origin v$SEMCONV_VERSION
-# git reset --hard FETCH_HEAD
-# Set-Location ${SCRIPT_DIR}
+git init
+git remote add origin https://github.com/open-telemetry/semantic-conventions.git
+git fetch origin v$SEMCONV_VERSION
+git reset --hard FETCH_HEAD
+Set-Location ${SCRIPT_DIR}
 
 docker run --rm `
   -v ${SCRIPT_DIR}/semantic-conventions/model:/source `
