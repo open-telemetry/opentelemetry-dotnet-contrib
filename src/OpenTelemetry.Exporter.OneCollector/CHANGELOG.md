@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.10.0-alpha.1
+
+Released 2024-Sep-06
+
+* Dropped support for the `net7.0` target because .NET 7 is no longer supported.
+  Added a `net8.0` target.
+  ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
+
+* Added `SetEventFullNameMappings` API on
+  `OneCollectorLogExportProcessorBuilder` which can be used to change the event
+  full name sent to the OneCollector service for a given `LogRecord`
+  (`CategoryName` and `EventId.Name` are used to derive the event full name by
+  default).
+  ([#2021](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2021))
+
 ## 1.9.2
 
 Released 2024-Aug-12
@@ -65,7 +80,7 @@ Released 2023-Sep-20
 * Update OpenTelemetry to 1.6.0
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
 
-* Added support for receiving tranmission failures via the
+* Added support for receiving transmission failures via the
   `RegisterPayloadTransmittedCallback` API.
   ([#1309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1309))
 

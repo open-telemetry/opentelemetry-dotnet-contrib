@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
+using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
@@ -42,6 +43,13 @@ internal class AWSLambdaHttpUtils
                 var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                 break;
+            case ApplicationLoadBalancerRequest albRequest:
+                httpScheme = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderXForwardedProto)?.LastOrDefault();
+                httpTarget = string.Concat(albRequest.Path ?? string.Empty, GetQueryString(albRequest));
+                httpMethod = albRequest.HttpMethod;
+                var albHostHeader = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderHost)?.LastOrDefault();
+                (hostName, hostPort) = GetHostAndPort(httpScheme, albHostHeader);
+                break;
             default:
                 return tags;
         }
@@ -69,6 +77,9 @@ internal class AWSLambdaHttpUtils
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
                 activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
+                break;
+            case ApplicationLoadBalancerResponse albResponse:
+                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, albResponse.StatusCode);
                 break;
         }
     }
@@ -101,6 +112,50 @@ internal class AWSLambdaHttpUtils
 
     internal static string? GetQueryString(APIGatewayHttpApiV2ProxyRequest request) =>
         string.IsNullOrEmpty(request.RawQueryString) ? string.Empty : "?" + request.RawQueryString;
+
+    internal static string? GetQueryString(ApplicationLoadBalancerRequest request)
+    {
+        // If the request has a query string value, one of the following properties will be set, depending on if
+        // "Multi value headers" is enabled on ELB Target Group.
+        if (request.MultiValueQueryStringParameters != null)
+        {
+            var queryString = new StringBuilder();
+            var separator = '?';
+            foreach (var parameterKvp in request.MultiValueQueryStringParameters)
+            {
+                // Multiple values for the same parameter will be added to query
+                // as ampersand separated: name=value1&name=value2
+                foreach (var value in parameterKvp.Value)
+                {
+                    queryString.Append(separator)
+                        .Append(HttpUtility.UrlEncode(parameterKvp.Key))
+                        .Append('=')
+                        .Append(HttpUtility.UrlEncode(value));
+                    separator = '&';
+                }
+            }
+
+            return queryString.ToString();
+        }
+
+        if (request.QueryStringParameters != null)
+        {
+            var queryString = new StringBuilder();
+            var separator = '?';
+            foreach (var parameterKvp in request.QueryStringParameters)
+            {
+                queryString.Append(separator)
+                    .Append(HttpUtility.UrlEncode(parameterKvp.Key))
+                    .Append('=')
+                    .Append(HttpUtility.UrlEncode(parameterKvp.Value));
+                separator = '&';
+            }
+
+            return queryString.ToString();
+        }
+
+        return string.Empty;
+    }
 
     internal static (string? Host, int? Port) GetHostAndPort(string? httpScheme, string? hostHeader)
     {

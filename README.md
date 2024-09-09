@@ -92,7 +92,6 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 * [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
-* [Vishwesh Bankwar](https://github.com/vishweshbankwar), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
@@ -104,6 +103,7 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)
+* [Vishwesh Bankwar](https://github.com/vishweshbankwar)
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership

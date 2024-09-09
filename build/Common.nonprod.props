@@ -21,23 +21,20 @@
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
     <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
-    <DotNetXUnitCliVer>[2.3.1,3.0)</DotNetXUnitCliVer>
     <MicrosoftExtensionsHostingPkgVer>8.0.0</MicrosoftExtensionsHostingPkgVer>
-    <MicrosoftNETTestSdkPkgVer>[17.9.0,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.11.1,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
-    <SupportedNetTargets>net8.0;net7.0;net6.0</SupportedNetTargets>
+    <SupportedNetTargets>net8.0;net6.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.0,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.5.58,2.0)</WiremockNetPkgVer>
+    <WiremockNetPkgVer>[1.6.1,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
-
-    <DotNetCliToolReference Include="dotnet-xunit" Version="$(DotNetXUnitCliVer)" />
   </ItemGroup>
 
   <Target Name="SkipVSTestForInvalidTargetFramework" BeforeTargets="VSTest" Condition="'$(IsTestProject)' == 'true'">
