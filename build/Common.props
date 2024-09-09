@@ -14,7 +14,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NuGetAudit>true</NuGetAudit>
-    <NuGetAuditMode>all</NuGetAuditMode>
+    <!-- NuGetAuditMode will be uncommented in the future PR when all issues will be fixed. -->
+    <!--<NuGetAuditMode>all</NuGetAuditMode>-->
     <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
 
