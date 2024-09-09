@@ -8,6 +8,9 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// An exporter for Geneva traces.
+/// </summary>
 public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     internal readonly bool IsUsingUnixDomainSocket;
@@ -20,6 +23,10 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
     private readonly IDisposable exporter;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaTraceExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaExporterOptions"/>.</param>
     public GenevaTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
@@ -76,11 +83,13 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         }
     }
 
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
         return this.exportActivity(in batch);
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (this.isDisposed)

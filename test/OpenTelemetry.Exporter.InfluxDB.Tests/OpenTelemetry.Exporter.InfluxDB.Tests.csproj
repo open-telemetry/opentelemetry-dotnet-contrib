@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net7.0'" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' != 'net6.0' AND '$(TargetFramework)' != 'net8.0'" />
   </ItemGroup>
 
   <ItemGroup>
