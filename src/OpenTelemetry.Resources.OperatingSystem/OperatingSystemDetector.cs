@@ -16,6 +16,7 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+    private const string KernelOsRelease = "/proc/sys/kernel/osrelease";
     private static readonly string[] DefaultEtcOsReleasePaths =
         [
             "/etc/os-release",
@@ -30,6 +31,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
     private readonly string? osType;
     private readonly string? registryKey;
+    private readonly string? kernelOsRelease;
     private readonly string[]? etcOsReleasePaths;
     private readonly string[]? plistFilePaths;
 
@@ -37,6 +39,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         : this(
             GetOSType(),
             RegistryKey,
+            KernelOsRelease,
             DefaultEtcOsReleasePaths,
             DefaultPlistFilePaths)
     {
@@ -47,12 +50,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     /// </summary>
     /// <param name="osType">The target platform identifier, specifying the operating system type from SemanticConventions.</param>
     /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
+    /// <param name="kernelOsRelease">The string path to the file used to obtain Linux build id.</param>
     /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
     /// <param name="plistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
-    internal OperatingSystemDetector(string? osType, string? registryKey, string[]? etcOsReleasePath, string[]? plistFilePaths)
+    internal OperatingSystemDetector(string? osType, string? registryKey, string? kernelOsRelease, string[]? etcOsReleasePath, string[]? plistFilePaths)
     {
         this.osType = osType;
         this.registryKey = registryKey;
+        this.kernelOsRelease = kernelOsRelease;
         this.etcOsReleasePaths = etcOsReleasePath;
         this.plistFilePaths = plistFilePaths;
     }
@@ -188,9 +193,17 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                     TryGetFieldValue(lineSpan, "VERSION_ID=", ref version);
             }
 
-            // TODO: fallback for buildId
+            string? buildIdContent = null;
+            if (buildId.IsEmpty)
+            {
+                buildIdContent = File.ReadAllText(this.kernelOsRelease!).Trim();
+            }
+            else
+            {
+                buildIdContent = buildId.ToString();
+            }
 
-            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildId.IsEmpty ? null : buildId.ToString());
+            AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildIdContent);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name.IsEmpty ? "Linux" : name.ToString());
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemVersion, version.IsEmpty ? null : version.ToString());
         }
