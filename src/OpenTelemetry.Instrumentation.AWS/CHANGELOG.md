@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added instrumentation support for AWS Bedrock, BedrockRuntime, BedrockAgent, BedrockAgentRuntime.
+  ([#1979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1979))
+
 ## 1.1.0-beta.5
 
 Released 2024-Aug-22

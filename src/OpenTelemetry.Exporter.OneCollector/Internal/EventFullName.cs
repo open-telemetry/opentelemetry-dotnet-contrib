@@ -86,5 +86,9 @@ internal sealed class EventFullName
                 throw new OneCollectorExporterValidationException($"The event full name mapping value provided for key '{key}' is shorter or longer than what is allowed.");
             }
         }
+        else if (this.EventNamespace.Length != 0)
+        {
+            throw new OneCollectorExporterValidationException($"The event full name mapping value provided for key '{key}' has an invalid wild card pattern.");
+        }
     }
 }
