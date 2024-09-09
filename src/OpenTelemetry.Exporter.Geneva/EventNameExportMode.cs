@@ -3,6 +3,9 @@
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains the event name export mode defintions.
+/// </summary>
 [Flags]
 public enum EventNameExportMode
 {
