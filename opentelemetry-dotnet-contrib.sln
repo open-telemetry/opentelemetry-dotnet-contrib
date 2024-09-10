@@ -54,7 +54,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\Common.targets = build\Common.targets
 		build\debug.snk = build\debug.snk
 		build\docker-compose.net6.0.yml = build\docker-compose.net6.0.yml
-		build\docker-compose.net7.0.yml = build\docker-compose.net7.0.yml
 		build\docker-compose.net8.0.yml = build\docker-compose.net8.0.yml
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
@@ -310,6 +309,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process", "src\OpenTelemetry.Resources.Process\OpenTelemetry.Resources.Process.csproj", "{A5FCDD8F-20FF-4657-804E-707EAD4FE31D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Process.Tests", "test\OpenTelemetry.Resources.Process.Tests\OpenTelemetry.Resources.Process.Tests.csproj", "{A5EF701C-439E-407F-8BB4-394166000C6D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.OperatingSystem", "src\OpenTelemetry.Resources.OperatingSystem\OpenTelemetry.Resources.OperatingSystem.csproj", "{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.OperatingSystem.Tests", "test\OpenTelemetry.Resources.OperatingSystem.Tests\OpenTelemetry.Resources.OperatingSystem.Tests.csproj", "{62B7060A-C35B-4D49-A0C2-3BF02880A200}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Resources.Host", "src\OpenTelemetry.Resources.Host\OpenTelemetry.Resources.Host.csproj", "{033CA8D4-1529-413A-B244-07958D5F9A48}"
 EndProject
@@ -803,6 +806,14 @@ Global
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -927,6 +938,8 @@ Global
 		{BE40900A-2859-471D-8802-21DFD73DDAA7} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{3A464E7A-42F3-44B0-B8D7-80521A7704A6} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

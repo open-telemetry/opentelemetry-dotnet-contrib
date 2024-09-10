@@ -9,6 +9,9 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains extension methods to register the Geneva trace exporter.
+/// </summary>
 public static class GenevaExporterHelperExtensions
 {
     /// <summary>

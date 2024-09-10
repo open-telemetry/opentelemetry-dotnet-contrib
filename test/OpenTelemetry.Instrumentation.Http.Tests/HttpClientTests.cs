@@ -172,6 +172,48 @@ public partial class HttpClientTests
     }
 #endif
 
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task HttpCancellationLogsError()
+    {
+        var activities = new List<Activity>();
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        try
+        {
+            using var c = new HttpClient();
+            using var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{this.url}/slow"),
+                Method = new HttpMethod("GET"),
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource(100);
+            await c.SendAsync(request, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // we expect this to be thrown here
+        }
+        finally
+        {
+            tracerProvider.Dispose();
+        }
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("Task Canceled", activity.StatusDescription);
+
+        var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
+        Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
+    }
+#endif
+
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,
         int port,

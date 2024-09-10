@@ -1,0 +1,6 @@
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventNamespace.get -> string!
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventNamespace.set -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.EventFullNameMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>?
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.EventFullNameMappings.set -> void
+OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetDefaultEventNamespace(string! defaultEventNamespace) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
+OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetEventFullNameMappings(System.Collections.Generic.IReadOnlyDictionary<string!, string!>? eventFullNameMappings) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
