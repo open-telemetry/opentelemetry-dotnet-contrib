@@ -12,29 +12,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
-#if NET8_0_OR_GREATER
-    internal static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
-#else
-    internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
-#endif
-
-    internal static readonly ThreadLocal<byte[]> Buffer = new();
-
-#if NET8_0_OR_GREATER
-    internal readonly FrozenSet<string> CustomFields;
-
-    internal readonly FrozenSet<string> DedicatedFields;
-#else
-    internal readonly HashSet<string> CustomFields;
-
-    internal readonly HashSet<string> DedicatedFields;
-#endif
-
-    private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
-
-    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
-
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
+    internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -51,6 +29,28 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.destination"] = "messagingDestination",
         ["messaging.url"] = "messagingUrl",
     };
+
+#if NET8_0_OR_GREATER
+    internal static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
+#else
+    internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
+#endif
+
+    internal readonly ThreadLocal<byte[]> Buffer = new();
+
+#if NET8_0_OR_GREATER
+    internal readonly FrozenSet<string> CustomFields;
+
+    internal readonly FrozenSet<string> DedicatedFields;
+#else
+    internal readonly HashSet<string> CustomFields;
+
+    internal readonly HashSet<string> DedicatedFields;
+#endif
+
+    private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+
+    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
     private readonly byte[] bufferPrologue;
     private readonly byte[] bufferEpilogue;
@@ -208,7 +208,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             try
             {
                 var cursor = this.SerializeActivity(activity);
-                this.dataTransport.Send(Buffer.Value, cursor - 0);
+                this.dataTransport.Send(this.Buffer.Value, cursor - 0);
             }
             catch (Exception ex)
             {
@@ -232,7 +232,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         try
         {
             (this.dataTransport as IDisposable)?.Dispose();
-            Buffer.Dispose();
+            this.Buffer.Dispose();
         }
         catch (Exception ex)
         {
@@ -244,12 +244,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal int SerializeActivity(Activity activity)
     {
-        var buffer = Buffer.Value;
+        var buffer = this.Buffer.Value;
         if (buffer == null)
         {
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
             System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
-            Buffer.Value = buffer;
+            this.Buffer.Value = buffer;
         }
 
         var cursor = this.bufferPrologue.Length;

@@ -246,7 +246,7 @@ public class GenevaTraceExporterTests
 
             var dedicatedFields = exporter.DedicatedFields;
             var CS40_PART_B_MAPPING = MsgPackTraceExporter.CS40_PART_B_MAPPING;
-            var m_buffer = MsgPackTraceExporter.Buffer;
+            var m_buffer = exporter.Buffer;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
 
