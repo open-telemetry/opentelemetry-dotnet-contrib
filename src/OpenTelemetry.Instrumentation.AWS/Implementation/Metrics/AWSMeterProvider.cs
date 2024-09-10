@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
 
@@ -8,6 +9,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
 internal sealed class AWSMeterProvider : MeterProvider
 {
+    private static readonly ConcurrentDictionary<string, AWSMeter> MetersDictionary = new ConcurrentDictionary<string, AWSMeter>();
+
     public override Meter GetMeter(string scope, Attributes? attributes = null)
     {
         // Passing attributes to the Meter is currently not possible due to version limitations
@@ -17,7 +20,15 @@ internal sealed class AWSMeterProvider : MeterProvider
         // update OpenTelemetry core component version(s) to `1.9.0` and allow passing tags to
         // the meter constructor.
 
-        var meter = new System.Diagnostics.Metrics.Meter(scope);
-        return new AWSMeter(meter);
+        if (MetersDictionary.TryGetValue(scope, out AWSMeter? meter))
+        {
+            return meter;
+        }
+
+        var awsMeter = MetersDictionary.GetOrAdd(
+            scope,
+            new AWSMeter(new System.Diagnostics.Metrics.Meter(scope)));
+
+        return awsMeter;
     }
 }
