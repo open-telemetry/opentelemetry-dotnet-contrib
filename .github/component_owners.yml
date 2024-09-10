@@ -93,21 +93,21 @@ components:
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
