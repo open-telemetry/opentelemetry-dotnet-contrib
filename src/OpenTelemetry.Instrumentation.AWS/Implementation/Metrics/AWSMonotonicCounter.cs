@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Metrics;
 
@@ -9,11 +10,25 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
     where T : struct
 {
-    private readonly System.Diagnostics.Metrics.Counter<T> counter;
+    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>> MonotonicCountersDictionary
+        = new ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>>();
 
-    public AWSMonotonicCounter(System.Diagnostics.Metrics.Counter<T> counter)
+    private readonly System.Diagnostics.Metrics.Counter<T> monotonicCounter;
+
+    public AWSMonotonicCounter(
+        System.Diagnostics.Metrics.Meter meter,
+        string name,
+        string? units = null,
+        string? description = null)
     {
-        this.counter = counter;
+        if (MonotonicCountersDictionary.TryGetValue(name, out System.Diagnostics.Metrics.Counter<T>? monotonicCounter))
+        {
+            this.monotonicCounter = monotonicCounter;
+        }
+
+        this.monotonicCounter = MonotonicCountersDictionary.GetOrAdd(
+            name,
+            meter.CreateCounter<T>(name, units, description));
     }
 
     public override void Add(T value, Attributes? attributes = null)
@@ -21,11 +36,11 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
         if (attributes != null)
         {
             // TODO: remove ToArray call and use when AttributesAsSpan expected to be added at AWS SDK v4.
-            this.counter.Add(value, attributes.AllAttributes.ToArray());
+            this.monotonicCounter.Add(value, attributes.AllAttributes.ToArray());
         }
         else
         {
-            this.counter.Add(value);
+            this.monotonicCounter.Add(value);
         }
     }
 }
