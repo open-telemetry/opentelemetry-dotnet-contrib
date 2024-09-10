@@ -311,6 +311,52 @@ the library you can do so as follows:
 });
 ```
 
+#### Enriching ASP.NET Core Request Metrics
+
+ASP.NET Core supports enriching request metrics using `IHttpMetricsTagsFeature`.
+This feature allows you to add custom tags to metrics like `http.server.request.duration`,
+which records the duration of HTTP requests on the server.
+
+Here's an example of enriching the `http.server.request.duration` metric:
+
+```csharp
+using Microsoft.AspNetCore.Http.Features;
+
+var builder = WebApplication.CreateBuilder();
+var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
+    if (tagsFeature != null)
+    {
+        var source = context.Request.Query["utm_medium"].ToString() switch
+        {
+            "" => "none",
+            "social" => "social",
+            "email" => "email",
+            "organic" => "organic",
+            _ => "other"
+        };
+        tagsFeature.Tags.Add(new KeyValuePair<string, object?>("mkt_medium", source));
+    }
+
+    await next.Invoke();
+});
+
+app.MapGet("/", () => "Hello World!");
+
+app.Run();
+```
+
+In this example:
+
+* Middleware is added to enrich the ASP.NET Core request metric.
+* `IHttpMetricsTagsFeature` is obtained from the `HttpContext`.
+  This feature is only available if someone is listening to the metric.
+* A custom tag `mkt_medium` is added to the `http.server.request.duration` metric.
+  The value of this tag is determined based on the `utm_medium` query string parameter.
+
 #### RecordException
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
