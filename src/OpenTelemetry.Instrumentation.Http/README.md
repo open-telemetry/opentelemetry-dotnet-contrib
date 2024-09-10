@@ -274,7 +274,7 @@ To enrich metrics, you can register callbacks with `HttpMetricsEnrichmentContext
 This requires setting up a custom `DelegatingHandler` that intercepts requests
 and adds custom tags before they are sent to the server.
 
-Here’s how you can implement a custom `DelegatingHandler` to enrich metrics:
+Here's how you can implement a custom `DelegatingHandler` to enrich metrics:
 
 ```csharp
 using System.Net.Http.Metrics;
