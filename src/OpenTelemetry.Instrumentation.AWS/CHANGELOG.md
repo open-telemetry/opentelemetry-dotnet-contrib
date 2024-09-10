@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Fix Memory Leak by Reusing ActivitySources, Meters, and Instruments
+  ([#2039](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2039))
 * Added instrumentation support for AWS Bedrock, BedrockRuntime, BedrockAgent, BedrockAgentRuntime.
   ([#1979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1979))
 

@@ -186,7 +186,8 @@ public class TestAWSClientMetricsInstrumentation
 
         var countAmount = 7;
         var counterName = "TestCounter";
-        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter($"{TelemetryConstants.TelemetryScopePrefix}.TestDisposedMeter");
+        var meterName = $"{TelemetryConstants.TelemetryScopePrefix}.TestDisposedMeter";
+        var meter = AWSConfigs.TelemetryProvider.MeterProvider.GetMeter(meterName);
         var counter = meter.CreateUpDownCounter<long>(counterName);
 
         meter.Dispose();
@@ -194,7 +195,7 @@ public class TestAWSClientMetricsInstrumentation
 
         meterProvider.ForceFlush();
 
-        var counterMetric = exportedItems.FirstOrDefault(i => i.Name == counterName);
+        var counterMetric = exportedItems.FirstOrDefault(i => i.MeterName == meterName && i.Name == counterName);
         Assert.Null(counterMetric);
     }
 
