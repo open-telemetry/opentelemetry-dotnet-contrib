@@ -23,7 +23,7 @@ internal static class JsonSerializer
 #endif
 
     private static readonly byte[] HEX_CODE;
-    private static readonly ThreadLocal<byte[]> threadLocalBuffer = new(() => null);
+    private static readonly ThreadLocal<byte[]> ThreadLocalBuffer = new();
 
     static JsonSerializer()
     {
@@ -43,11 +43,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeNull()
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = WriteString(buffer, 0, "null");
@@ -63,11 +63,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeString(string value)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeString(buffer, 0, value);
@@ -107,11 +107,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeArray<T>(T[] array)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeArray(buffer, 0, array);
@@ -145,11 +145,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeMap(IEnumerable<KeyValuePair<string, object>> map)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeMap(buffer, 0, map);
@@ -159,11 +159,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object>> listKVp, out int count)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         count = SerializeKeyValuePairList(buffer, 0, listKVp);
@@ -227,11 +227,11 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string Serialize(object obj)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = Serialize(buffer, 0, obj);
