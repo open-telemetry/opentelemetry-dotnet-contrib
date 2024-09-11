@@ -16,6 +16,8 @@
   <ItemGroup>
     <PackageReference Include="CassandraCSharpDriver" Version="$(CassandraCSharpDriverPkgVer)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <!-- Newtonsoft.Json is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-5crp-9r3c-p9vr -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
