@@ -98,7 +98,7 @@ public class GenevaTraceExporterTests
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // no ETW session name
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<NotSupportedException>(() =>
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
