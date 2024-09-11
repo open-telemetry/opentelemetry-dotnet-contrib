@@ -61,6 +61,8 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
         }
     }
 
+#pragma warning disable CA1822 // Mark members as static
+
     [Event(OtlpProtobufMetricEventId)]
     public void OtlpProtobufEvent()
     {
@@ -85,6 +87,8 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     public void TLVMetricEvent()
     {
     }
+
+#pragma warning restore CA1822 // Mark members as static
 
     protected override void Dispose(bool disposing)
     {

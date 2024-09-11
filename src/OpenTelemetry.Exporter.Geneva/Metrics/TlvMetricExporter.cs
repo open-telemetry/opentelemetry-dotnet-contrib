@@ -57,7 +57,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 }
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         unsafe
