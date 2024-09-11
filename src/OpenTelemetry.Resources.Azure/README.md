@@ -98,9 +98,9 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 ## Azure Container Apps Resource Detector
 
-Adds resource attributes for the applications running in Azure Container Apps or Azure Container App jobs.
-The following example shows how to add `AzureContainerAppsResourceDetector` to
-the `ResourceBuilder`.
+Adds resource attributes for the applications running in Azure Container Apps
+or Azure Container App jobs. The following example shows how to add
+`AzureContainerAppsResourceDetector` to the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
