@@ -24,17 +24,13 @@ public static class SqlClientMeterProviderBuilderExtensions
         var name = Options.DefaultName;
 
 #if NET6_0_OR_GREATER
-        var has = SqlActivitySourceHelper.ActivitySource.HasListeners();
 
-        if (!has)
+        builder.AddInstrumentation(sp =>
         {
-            builder.AddInstrumentation(sp =>
-            {
-                var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);
+            var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);
 
-                return new SqlClientInstrumentation(sqlOptions);
-            });
-        }
+            return new SqlClientInstrumentation(sqlOptions);
+        });
 
         builder.AddMeter(SqlActivitySourceHelper.MeterName);
 #endif
