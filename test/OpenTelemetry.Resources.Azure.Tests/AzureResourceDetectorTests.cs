@@ -129,7 +129,7 @@ public class AzureResourceDetectorTests : IDisposable
                 Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
             }
 
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, "containerAppName");
+            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, "containerAppJobName");
         }
         catch
         {
@@ -138,7 +138,7 @@ public class AzureResourceDetectorTests : IDisposable
         var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
         Assert.NotNull(resource);
 
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
 
         foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
         {
