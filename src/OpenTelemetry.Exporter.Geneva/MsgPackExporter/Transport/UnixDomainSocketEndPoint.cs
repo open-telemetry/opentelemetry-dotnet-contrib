@@ -27,13 +27,9 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         this.nativePath = Encoding.UTF8.GetBytes(path);
         if (this.nativePath.Length == 0 || this.nativePath.Length > MaximumNativePathLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(this.nativePath), "Path is of an invalid length for use with domain sockets.");
+            throw new ArgumentOutOfRangeException(nameof(path), "Path is of an invalid length for use with domain sockets.");
         }
     }
-
-    public override AddressFamily AddressFamily => AddressFamily.Unix;
-
-    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
 
     private UnixDomainSocketEndPoint(SocketAddress socketAddress)
     {
@@ -63,6 +59,10 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
             this.nativePath = Array.Empty<byte>();
         }
     }
+
+    public override AddressFamily AddressFamily => AddressFamily.Unix;
+
+    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
 
     public override SocketAddress Serialize()
     {

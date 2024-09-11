@@ -310,22 +310,10 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int Float32ToInt32(float value)
-    {
-        return *(int*)&value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeFloat64(byte[] buffer, int cursor, double value)
     {
         buffer[cursor++] = FLOAT64;
         return WriteInt64(buffer, cursor, Float64ToInt64(value));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe long Float64ToInt64(double value)
-    {
-        return *(long*)&value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -675,5 +663,17 @@ internal static class MessagePackSerializer
         value.CopyTo(buffer.AsSpan(cursor));
 
         return cursor + length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe long Float64ToInt64(double value)
+    {
+        return *(long*)&value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe int Float32ToInt32(float value)
+    {
+        return *(int*)&value;
     }
 }
