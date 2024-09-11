@@ -67,8 +67,8 @@ public static class GenevaMetricExporterExtensions
         return new PeriodicExportingMetricReader(
             exporter,
             options.MetricExportIntervalMilliseconds)
-            {
-                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
-            };
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
     }
 }
