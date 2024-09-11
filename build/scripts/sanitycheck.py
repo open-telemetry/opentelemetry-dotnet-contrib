@@ -8,11 +8,20 @@ CR = b'\r'
 CRLF = b'\r\n'
 LF = b'\n'
 
+# Add paths to exclude from sanity checks here
+exclude_folders = [
+    "src/OpenTelemetry.SemanticConventions/Attributes"
+]
+# Normalize paths so they work in windows/unix
+exclude_folders = [os.path.normpath(folder) for folder in exclude_folders]
+
 def sanitycheck(pattern, allow_utf8 = False, allow_eol = (CRLF, LF), indent = 1):
     error_count = 0
 
     for filename in glob.glob(pattern, recursive=True):
         if not os.path.isfile(filename):
+            continue
+        if any(filename.startswith(exclude_folder) for exclude_folder in exclude_folders):
             continue
         with open(filename, 'rb') as file:
             content = file.read()
