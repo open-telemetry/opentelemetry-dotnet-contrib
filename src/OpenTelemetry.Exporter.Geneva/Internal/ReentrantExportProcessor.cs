@@ -14,6 +14,8 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal class ReentrantExportProcessor<T> : BaseExportProcessor<T>
     where T : class
 {
+    private static readonly Func<T, Batch<T>> CreateBatch;
+
     static ReentrantExportProcessor()
     {
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -32,6 +34,4 @@ internal class ReentrantExportProcessor<T> : BaseExportProcessor<T>
     {
         this.exporter.Export(CreateBatch(data));
     }
-
-    private static readonly Func<T, Batch<T>> CreateBatch;
 }

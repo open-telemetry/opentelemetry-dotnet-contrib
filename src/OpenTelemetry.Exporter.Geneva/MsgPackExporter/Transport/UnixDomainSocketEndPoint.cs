@@ -31,10 +31,6 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         }
     }
 
-    public override AddressFamily AddressFamily => AddressFamily.Unix;
-
-    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
-
     private UnixDomainSocketEndPoint(SocketAddress socketAddress)
     {
         Guard.ThrowIfNull(socketAddress);
@@ -63,6 +59,10 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
             this.nativePath = Array.Empty<byte>();
         }
     }
+
+    public override AddressFamily AddressFamily => AddressFamily.Unix;
+
+    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
 
     public override SocketAddress Serialize()
     {
