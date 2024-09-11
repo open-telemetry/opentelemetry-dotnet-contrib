@@ -7,6 +7,164 @@ using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+#pragma warning disable SA1649 // File name should match first type name
+
+internal enum MetricEventType
+{
+    ULongMetric = 50,
+    DoubleMetric = 55,
+    ExternallyAggregatedULongDistributionMetric = 56,
+    TLV = 70,
+}
+
+internal enum PayloadType
+{
+    AccountName = 1,
+    Namespace = 2,
+    MetricName = 3,
+    Dimensions = 4,
+    ULongMetric = 5,
+    DoubleMetric = 6,
+    ExternallyAggregatedULongDistributionMetric = 8,
+    HistogramULongValueCountPairs = 12,
+    Exemplars = 15,
+}
+
+[Flags]
+internal enum ExemplarFlags : byte
+{
+    None = 0x0,
+    IsMetricValueDoubleStoredAsLong = 0x1,
+    IsTimestampAvailable = 0x2,
+    SpanIdExists = 0x4,
+    TraceIdExists = 0x8,
+    SampleCountExists = 0x10,
+}
+
+/// <summary>
+/// Represents the binary header for non-ETW transmitted metrics.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+internal struct BinaryHeader
+{
+    /// <summary>
+    /// The event ID that represents how it will be processed.
+    /// </summary>
+    [FieldOffset(0)]
+    public ushort EventId;
+
+    /// <summary>
+    /// The length of the body following the header.
+    /// </summary>
+    [FieldOffset(2)]
+    public ushort BodyLength;
+}
+
+/// <summary>
+/// Represents the fixed payload of a standard metric.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+internal struct MetricPayload
+{
+    /// <summary>
+    /// The dimension count.
+    /// </summary>
+    [FieldOffset(0)]
+    public ushort CountDimension;
+
+    /// <summary>
+    /// Reserved for alignment.
+    /// </summary>
+    [FieldOffset(2)]
+    public ushort ReservedWord; // for 8-byte aligned
+
+    /// <summary>
+    /// Reserved for alignment.
+    /// </summary>
+    [FieldOffset(4)]
+    public uint ReservedDword;
+
+    /// <summary>
+    /// The UTC timestamp of the metric.
+    /// </summary>
+    [FieldOffset(8)]
+    public ulong TimestampUtc;
+
+    /// <summary>
+    /// The value of the metric.
+    /// </summary>
+    [FieldOffset(16)]
+    public MetricData Data;
+}
+
+/// <summary>
+/// Represents the fixed payload of an externally aggregated metric.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+internal struct ExternalPayload
+{
+    /// <summary>
+    /// The dimension count.
+    /// </summary>
+    [FieldOffset(0)]
+    public ushort CountDimension;
+
+    /// <summary>
+    /// Reserved for alignment.
+    /// </summary>
+    [FieldOffset(2)]
+    public ushort ReservedWord; // for alignment
+
+    /// <summary>
+    /// The number of samples produced in the period.
+    /// </summary>
+    [FieldOffset(4)]
+    public uint Count;
+
+    /// <summary>
+    /// The UTC timestamp of the metric.
+    /// </summary>
+    [FieldOffset(8)]
+    public ulong TimestampUtc;
+
+    /// <summary>
+    /// The sum of the samples produced in the period.
+    /// </summary>
+    [FieldOffset(16)]
+    public MetricData Sum;
+
+    /// <summary>
+    /// The minimum value of the samples produced in the period.
+    /// </summary>
+    [FieldOffset(24)]
+    public MetricData Min;
+
+    /// <summary>
+    /// The maximum value of the samples produced in the period.
+    /// </summary>
+    [FieldOffset(32)]
+    public MetricData Max;
+}
+
+/// <summary>
+/// Represents the value of a metric.
+/// </summary>
+[StructLayout(LayoutKind.Explicit)]
+internal struct MetricData
+{
+    /// <summary>
+    /// The value represented as an integer.
+    /// </summary>
+    [FieldOffset(0)]
+    public ulong UInt64Value;
+
+    /// <summary>
+    /// The value represented as a double.
+    /// </summary>
+    [FieldOffset(0)]
+    public double DoubleValue;
+}
+
 internal static class MetricSerializer
 {
     /// <summary>
@@ -362,160 +520,4 @@ internal static class MetricSerializer
         source.CopyTo(target);
         bufferIndex += dataLength;
     }
-}
-
-internal enum MetricEventType
-{
-    ULongMetric = 50,
-    DoubleMetric = 55,
-    ExternallyAggregatedULongDistributionMetric = 56,
-    TLV = 70,
-}
-
-internal enum PayloadType
-{
-    AccountName = 1,
-    Namespace = 2,
-    MetricName = 3,
-    Dimensions = 4,
-    ULongMetric = 5,
-    DoubleMetric = 6,
-    ExternallyAggregatedULongDistributionMetric = 8,
-    HistogramULongValueCountPairs = 12,
-    Exemplars = 15,
-}
-
-[Flags]
-internal enum ExemplarFlags : byte
-{
-    None = 0x0,
-    IsMetricValueDoubleStoredAsLong = 0x1,
-    IsTimestampAvailable = 0x2,
-    SpanIdExists = 0x4,
-    TraceIdExists = 0x8,
-    SampleCountExists = 0x10,
-}
-
-/// <summary>
-/// Represents the binary header for non-ETW transmitted metrics.
-/// </summary>
-[StructLayout(LayoutKind.Explicit)]
-internal struct BinaryHeader
-{
-    /// <summary>
-    /// The event ID that represents how it will be processed.
-    /// </summary>
-    [FieldOffset(0)]
-    public ushort EventId;
-
-    /// <summary>
-    /// The length of the body following the header.
-    /// </summary>
-    [FieldOffset(2)]
-    public ushort BodyLength;
-}
-
-/// <summary>
-/// Represents the fixed payload of a standard metric.
-/// </summary>
-[StructLayout(LayoutKind.Explicit)]
-internal struct MetricPayload
-{
-    /// <summary>
-    /// The dimension count.
-    /// </summary>
-    [FieldOffset(0)]
-    public ushort CountDimension;
-
-    /// <summary>
-    /// Reserved for alignment.
-    /// </summary>
-    [FieldOffset(2)]
-    public ushort ReservedWord; // for 8-byte aligned
-
-    /// <summary>
-    /// Reserved for alignment.
-    /// </summary>
-    [FieldOffset(4)]
-    public uint ReservedDword;
-
-    /// <summary>
-    /// The UTC timestamp of the metric.
-    /// </summary>
-    [FieldOffset(8)]
-    public ulong TimestampUtc;
-
-    /// <summary>
-    /// The value of the metric.
-    /// </summary>
-    [FieldOffset(16)]
-    public MetricData Data;
-}
-
-/// <summary>
-/// Represents the fixed payload of an externally aggregated metric.
-/// </summary>
-[StructLayout(LayoutKind.Explicit)]
-internal struct ExternalPayload
-{
-    /// <summary>
-    /// The dimension count.
-    /// </summary>
-    [FieldOffset(0)]
-    public ushort CountDimension;
-
-    /// <summary>
-    /// Reserved for alignment.
-    /// </summary>
-    [FieldOffset(2)]
-    public ushort ReservedWord; // for alignment
-
-    /// <summary>
-    /// The number of samples produced in the period.
-    /// </summary>
-    [FieldOffset(4)]
-    public uint Count;
-
-    /// <summary>
-    /// The UTC timestamp of the metric.
-    /// </summary>
-    [FieldOffset(8)]
-    public ulong TimestampUtc;
-
-    /// <summary>
-    /// The sum of the samples produced in the period.
-    /// </summary>
-    [FieldOffset(16)]
-    public MetricData Sum;
-
-    /// <summary>
-    /// The minimum value of the samples produced in the period.
-    /// </summary>
-    [FieldOffset(24)]
-    public MetricData Min;
-
-    /// <summary>
-    /// The maximum value of the samples produced in the period.
-    /// </summary>
-    [FieldOffset(32)]
-    public MetricData Max;
-}
-
-/// <summary>
-/// Represents the value of a metric.
-/// </summary>
-[StructLayout(LayoutKind.Explicit)]
-internal struct MetricData
-{
-    /// <summary>
-    /// The value represented as an integer.
-    /// </summary>
-    [FieldOffset(0)]
-    public ulong UInt64Value;
-
-    /// <summary>
-    /// The value represented as a double.
-    /// </summary>
-    [FieldOffset(0)]
-    public double DoubleValue;
 }

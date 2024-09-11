@@ -12,32 +12,81 @@ public class OperatingSystemDetectorTests
     public void TestOperatingSystemAttributes()
     {
         var resource = ResourceBuilder.CreateEmpty().AddOperatingSystemDetector().Build();
-
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         string expectedPlatform;
+        string expectedDescription;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Windows;
+            expectedDescription = "Windows";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Linux;
+            expectedDescription = "Linux";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin;
+            expectedDescription = "Darwin";
         }
         else
         {
             throw new PlatformNotSupportedException("Unknown platform");
         }
 
-        Assert.Single(resourceAttributes);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemDescription, resourceAttributes.Keys);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemName, resourceAttributes.Keys);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemType, resourceAttributes.Keys);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemVersion, resourceAttributes.Keys);
+        Assert.Contains(OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId, resourceAttributes.Keys);
 
-        Assert.True(resourceAttributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemType));
+        // Not checking on Linux because the description may vary depending on the distribution.
+        if (expectedDescription != "Linux")
+        {
+            Assert.Contains(expectedDescription, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemDescription]);
+            Assert.Equal(5, resourceAttributes.Count);
+        }
 
-        Assert.Equal(resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType], expectedPlatform);
+        Assert.Equal(expectedPlatform, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
     }
+
+#if NET
+    [Fact]
+    public void TestParseMacOSPlist()
+    {
+        string path = "Samples/SystemVersion.plist";
+        var osDetector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
+            null,
+            null,
+            null,
+            [path]);
+        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        Assert.Equal("Mac OS X", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
+        Assert.Equal("10.6.8", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
+        Assert.Equal("10K549", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
+    }
+
+    [Fact]
+    public void TestParseLinuxOsRelease()
+    {
+        string path = "Samples/os-release";
+        string kernelPath = "Samples/kernelOsrelease";
+        var osDetector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
+            null,
+            kernelPath,
+            [path],
+            null);
+        var attributes = osDetector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        Assert.Equal("Ubuntu", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
+        Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
+        Assert.Equal("5.15.0-76-generic", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
+    }
+#endif
 }

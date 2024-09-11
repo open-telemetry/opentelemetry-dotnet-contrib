@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.4
+
+Released 2024-Sep-09
+
+* Add a fallback mechanism for `build.id` for Linux.
+  ([#2047](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2047))
+
+## 0.1.0-alpha.3
+
+Released 2024-Aug-30
+
+* Implement
+  `os.build_id`,
+  `os.description`,
+  `os.name`,
+  `os.version` attributes in
+  `OpenTelemetry.ResourceDetectors.OperatingSystem`.
+  ([#1983](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1983))
+
 ## 0.1.0-alpha.2
 
 Released 2024-Jul-22

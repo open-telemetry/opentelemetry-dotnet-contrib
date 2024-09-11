@@ -6,10 +6,13 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains Geneva metrics exporter options.
+/// </summary>
 public class GenevaMetricExporterOptions
 {
-    private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
-    private int _metricExporterIntervalMilliseconds = 60000;
+    private IReadOnlyDictionary<string, object> prepopulatedMetricDimensions;
+    private int metricExporterIntervalMilliseconds = 60000;
 
     /// <summary>
     /// Gets or sets the ConnectionString which contains semicolon separated list of key-value pairs.
@@ -24,14 +27,14 @@ public class GenevaMetricExporterOptions
     {
         get
         {
-            return this._metricExporterIntervalMilliseconds;
+            return this.metricExporterIntervalMilliseconds;
         }
 
         set
         {
             Guard.ThrowIfOutOfRange(value, min: 1000);
 
-            this._metricExporterIntervalMilliseconds = value;
+            this.metricExporterIntervalMilliseconds = value;
         }
     }
 
@@ -42,7 +45,7 @@ public class GenevaMetricExporterOptions
     {
         get
         {
-            return this._prepopulatedMetricDimensions;
+            return this.prepopulatedMetricDimensions;
         }
 
         set
@@ -78,7 +81,7 @@ public class GenevaMetricExporterOptions
                 copy[entry.Key] = entry.Value; // shallow copy
             }
 
-            this._prepopulatedMetricDimensions = copy;
+            this.prepopulatedMetricDimensions = copy;
         }
     }
 }

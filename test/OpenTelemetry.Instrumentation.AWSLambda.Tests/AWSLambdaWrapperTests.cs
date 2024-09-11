@@ -213,6 +213,30 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(activity);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void OnFunctionStart_ColdStart_ColdStartTagHasCorrectValue(int invocationsCount)
+    {
+        AWSLambdaWrapper.ResetColdStart();
+        Activity? activity = null;
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
+                   .Build())
+        {
+            for (int i = 1; i <= invocationsCount; i++)
+            {
+                activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
+            }
+        }
+
+        Assert.NotNull(activity);
+        Assert.NotNull(activity.TagObjects);
+        var expectedColdStartValue = invocationsCount == 1 ? true : false;
+        Assert.Contains(activity.TagObjects, x => x.Key == AWSLambdaSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
+    }
+
     private static ActivityContext CreateParentContext()
     {
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
