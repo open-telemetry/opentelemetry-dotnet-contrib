@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added support for [Azure Container Apps jobs](https://learn.microsoft.com/en-us/azure/container-apps/jobs?tabs=azure-cli).
+  ([#2064](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2064))
+
 ## 1.0.0-beta.8
 
 Released 2024-Jun-18
