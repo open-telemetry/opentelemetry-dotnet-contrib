@@ -75,7 +75,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (options.PrepopulatedFields != null)

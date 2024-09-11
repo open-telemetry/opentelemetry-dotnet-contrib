@@ -59,7 +59,16 @@ public static class GenevaMetricExporterExtensions
     private static PeriodicExportingMetricReader BuildGenevaMetricExporter(GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions> configure = null)
     {
         configure?.Invoke(options);
-        return new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
-        { TemporalityPreference = MetricReaderTemporalityPreference.Delta };
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var exporter = new GenevaMetricExporter(options);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+        return new PeriodicExportingMetricReader(
+            exporter,
+            options.MetricExportIntervalMilliseconds)
+            {
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+            };
     }
 }
