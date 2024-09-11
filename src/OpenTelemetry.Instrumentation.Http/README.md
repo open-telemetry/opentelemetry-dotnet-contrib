@@ -265,6 +265,9 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 #### Enriching HttpClient Metrics
 
+> [!IMPORTANT]
+> Only applicable for .NET 8 and newer.
+
 Metrics enrichment in HttpClient allows adding custom tags to metrics, such as
 `http.client.request.duration`. This is especially useful for categorizing
 metrics in dashboards or alerts.

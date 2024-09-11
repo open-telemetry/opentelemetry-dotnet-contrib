@@ -313,6 +313,9 @@ the library you can do so as follows:
 
 #### Enriching ASP.NET Core Request Metrics
 
+> [!IMPORTANT]
+> Only applicable for .NET 8 and newer.
+
 ASP.NET Core supports enriching request metrics using `IHttpMetricsTagsFeature`.
 This feature allows you to add custom tags to metrics like `http.server.request.duration`,
 which records the duration of HTTP requests on the server.
@@ -320,11 +323,31 @@ which records the duration of HTTP requests on the server.
 Here's an example of enriching the `http.server.request.duration` metric:
 
 ```csharp
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Http.Features;
 
-var builder = WebApplication.CreateBuilder();
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metricsBuilder =>
+    {
+        metricsBuilder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
+            .AddOtlpExporter()
+            .AddMeter("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel")
+            .AddView("http.server.request.duration",
+                new ExplicitBucketHistogramConfiguration
+                {
+                    Boundaries = new double[] { 0, 0.005, 0.01, 0.025, 0.05,
+                        0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 }
+                });
+    });
+
 var app = builder.Build();
 
+// Middleware to enrich the request metric with marketing source
 app.Use(async (context, next) =>
 {
     var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
@@ -344,7 +367,7 @@ app.Use(async (context, next) =>
     await next.Invoke();
 });
 
-app.MapGet("/", () => "Hello World!");
+app.MapGet("/", () => "Hello OpenTelemetry!");
 
 app.Run();
 ```
