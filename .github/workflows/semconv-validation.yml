@@ -6,7 +6,7 @@ on:
       - "src/OpenTelemetry.SemanticConventions/**"
 
 jobs:
-  run-dotnet-format:
+  run-semconv-checks:
     runs-on: ubuntu-latest
 
     steps:

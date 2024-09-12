@@ -12,7 +12,7 @@ $PsWeaverVersion = Select-String -Path $PowerShellScript -Pattern '\$GENERATOR_V
 # Bash semconv version
 $BashSemConvVersion = Select-String -Path $BashScript -Pattern 'SEMCONV_VERSION="([^"]+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
 # Bash weaver version
-$BashWeaverVersion = Select-String -Path $BashScript -Pattern 'SEMCONV_VERSION="([^"]+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
+$BashWeaverVersion = Select-String -Path $BashScript -Pattern 'GENERATOR_VERSION="([^"]+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
 
 # Check if the semconv versions match
 if ($PsSemConvVersion -ne $BashSemConvVersion) {
