@@ -1,0 +1,29 @@
+name: Semantic Conventions - validate
+
+on:
+  pull_request:
+    paths:
+      - "src/OpenTelemetry.SemanticConventions/**"
+
+jobs:
+  run-dotnet-format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: check out code
+      uses: actions/checkout@v4
+
+    - name: Check script versions
+      shell: pwsh
+      run: .\build\scripts\check-semconv-versions.ps1
+
+    - name: Generate semantic conventions
+      working-directory: src\OpenTelemetry.SemanticConventions
+      shell: pwsh
+      run: |
+        .\scripts\generate.ps1
+
+    - name: Verify no changes
+      working-directory: src\OpenTelemetry.SemanticConventions
+      run: |
+        git diff --exit-code '.' || (echo 'Manual changes to Semantic Convention attributes are not allowed. Please re-generate the files and commit.' && exit 1)
