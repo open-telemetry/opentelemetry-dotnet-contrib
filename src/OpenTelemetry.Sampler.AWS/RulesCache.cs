@@ -11,6 +11,7 @@ internal class RulesCache : IDisposable
     private const int CacheTTL = 60 * 60; // cache expires 1 hour after the refresh (in sec)
 
     private readonly ReaderWriterLockSlim rwLock;
+    private bool isFallBackEventToWriteSwitch = true;
 
     public RulesCache(Clock clock, string clientId, Resource resource, Trace.Sampler fallbackSampler)
     {
@@ -85,13 +86,19 @@ internal class RulesCache : IDisposable
         {
             if (ruleApplier.Matches(samplingParameters, this.Resource))
             {
+                this.isFallBackEventToWriteSwitch = true;
                 return ruleApplier.ShouldSample(in samplingParameters);
             }
         }
 
         // ideally the default rule should have matched.
         // if we are here then likely due to a bug.
-        AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+        if (this.isFallBackEventToWriteSwitch)
+        {
+            this.isFallBackEventToWriteSwitch = false;
+            AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+        }
+
         return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 

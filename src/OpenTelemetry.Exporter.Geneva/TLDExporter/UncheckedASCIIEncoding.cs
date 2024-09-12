@@ -23,6 +23,12 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     {
     }
 
+    #region Optional property overrides (performance/functionality improvement)
+
+    public override bool IsSingleByte => true;
+
+    #endregion
+
     #region Required implementation of Encoding abstract methods
 
     public override int GetMaxByteCount(int charCount)
@@ -114,8 +120,6 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     #endregion
 
     #region Optional overrides (performance/functionality improvement)
-
-    public override bool IsSingleByte => true;
 
     public override int GetByteCount(string chars)
     {
