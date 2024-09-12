@@ -15,6 +15,8 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
+    <!-- System.Text.Encodings.Web is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-ghhp-997w-qr28 -->
+    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>
