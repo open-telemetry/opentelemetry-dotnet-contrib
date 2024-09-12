@@ -52,10 +52,14 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
             TraceEvent = 100,
         }
 
+#pragma warning disable CA1822 // Mark members as static
+
         [Event((int)EtwEventId.TraceEvent, Version = 1, Level = EventLevel.Informational)]
         public void InformationalEvent()
         {
         }
+
+#pragma warning restore CA1822 // Mark members as static
 
         [NonEvent]
 #if NET

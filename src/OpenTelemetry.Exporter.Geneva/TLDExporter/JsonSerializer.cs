@@ -22,23 +22,8 @@ internal static class JsonSerializer
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
 
-    private static readonly byte[] HEX_CODE;
+    private static readonly byte[] HEX_CODE = InitializeHexCodeLookup();
     private static readonly ThreadLocal<byte[]> ThreadLocalBuffer = new();
-
-    static JsonSerializer()
-    {
-        var mapping = new byte[]
-        {
-            0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
-            0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
-        };
-        HEX_CODE = new byte[512];
-        for (int i = 0; i < 256; i++)
-        {
-            HEX_CODE[i] = mapping[i >> 4];
-            HEX_CODE[i + 256] = mapping[i & 0x0F];
-        }
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeNull()
@@ -341,6 +326,24 @@ internal static class JsonSerializer
 
                 return SerializeString(buffer, cursor, repr);
         }
+    }
+
+    private static byte[] InitializeHexCodeLookup()
+    {
+        var mapping = new byte[]
+        {
+            0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+            0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
+        };
+
+        var hexCodeLookup = new byte[512];
+        for (int i = 0; i < 256; i++)
+        {
+            hexCodeLookup[i] = mapping[i >> 4];
+            hexCodeLookup[i + 256] = mapping[i & 0x0F];
+        }
+
+        return hexCodeLookup;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

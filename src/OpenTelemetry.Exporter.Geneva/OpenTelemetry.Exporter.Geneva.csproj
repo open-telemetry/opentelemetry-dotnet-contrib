@@ -5,7 +5,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS</Description>
     <Authors>OpenTelemetry Authors</Authors>
-    <NoWarn>$(NoWarn),CA1810,CA1822,CA2000,CA2208</NoWarn>
     <!-- Tweak style rules for Geneva: Allow underscores in constant names and allow regions inside code blocks -->
     <NoWarn>$(NoWarn);SA1123;SA1310</NoWarn>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->

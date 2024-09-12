@@ -61,7 +61,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (useMsgPackExporter)

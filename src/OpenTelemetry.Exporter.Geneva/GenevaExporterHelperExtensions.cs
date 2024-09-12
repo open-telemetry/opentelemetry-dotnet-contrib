@@ -91,7 +91,10 @@ public static class GenevaExporterHelperExtensions
 
     private static BaseProcessor<Activity> BuildGenevaTraceExporter(GenevaExporterOptions options, BatchExportActivityProcessorOptions batchActivityExportProcessor)
     {
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaTraceExporter(options);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
         if (exporter.IsUsingUnixDomainSocket)
         {
             return new BatchActivityExportProcessor(

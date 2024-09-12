@@ -15,9 +15,10 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
+    internal static readonly ThreadLocal<byte[]> Buffer = new();
+
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private static readonly ThreadLocal<byte[]> Buffer = new();
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
     private static readonly string[] LogLevels = new string[7]
@@ -74,7 +75,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (options.PrepopulatedFields != null)
