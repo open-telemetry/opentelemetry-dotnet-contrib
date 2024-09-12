@@ -30,14 +30,18 @@ public static class GenevaLoggingExtensions
 
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaLogExporter(genevaOptions);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
         if (exporter.IsUsingUnixDomainSocket)
         {
-            return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
+            return options.AddProcessor(sp => new BatchLogRecordExportProcessor(exporter));
         }
         else
         {
-            return options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
+            return options.AddProcessor(sp => new ReentrantExportProcessor<LogRecord>(exporter));
         }
     }
 
@@ -123,7 +127,10 @@ public static class GenevaLoggingExtensions
     {
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaLogExporter(exporterOptions);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
         if (exporter.IsUsingUnixDomainSocket)
         {
             return new BatchLogRecordExportProcessor(

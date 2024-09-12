@@ -11,11 +11,11 @@ internal static class ProtobufSerializerHelper
 {
     private const int Fixed64Size = 8;
 
-    internal static Encoding Utf8Encoding => Encoding.UTF8;
-
     private const ulong Ulong128 = 128;
 
     private const uint Uint128 = 128;
+
+    internal static Encoding Utf8Encoding => Encoding.UTF8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteStringTag(byte[] buffer, ref int cursor, int fieldNumber, string value)

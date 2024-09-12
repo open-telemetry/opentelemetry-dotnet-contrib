@@ -17,6 +17,8 @@
     <PackageReference Include="Hangfire.Core" Version="[1.7.0,1.9.0)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <!-- Newtonsoft.Json is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-5crp-9r3c-p9vr -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
