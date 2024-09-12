@@ -18,7 +18,6 @@ jobs:
       run: ./build/scripts/check-semconv-versions.ps1
 
     - name: Generate semantic conventions
-      working-directory: src\OpenTelemetry.SemanticConventions
       shell: pwsh
       run: |
         ./src/OpenTelemetry.SemanticConventions/scripts/generate.ps1
