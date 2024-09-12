@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Migrate code generation to Weaver and upgrade to Semantic Conventions `v1.26.0`.
+* Updated to `v1.26.0` release of OpenTelemetry Semantic Conventions.
   ([#2040](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2040))
 
 * Updated to `1.25.0` release of OpenTelemetry Semantic Conventions.

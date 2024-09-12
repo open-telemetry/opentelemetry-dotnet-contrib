@@ -5,8 +5,6 @@
 
 #pragma warning disable CS1570 // XML comment has badly formed XML
 
-using System;
-
 namespace OpenTelemetry.SemanticConventions;
 
 /// <summary>
