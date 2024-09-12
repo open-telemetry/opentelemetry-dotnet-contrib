@@ -7,7 +7,7 @@ $GENERATOR_VERSION = "v0.9.2"
 
 Set-Location $SCRIPT_DIR
 
-Remove-Item -r -fo semantic-conventions
+Remove-Item -r -fo -ErrorAction SilentlyContinue semantic-conventions
 mkdir semantic-conventions
 Set-Location semantic-conventions
 
