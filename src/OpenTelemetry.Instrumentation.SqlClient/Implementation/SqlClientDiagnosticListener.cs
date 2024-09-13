@@ -235,6 +235,26 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 tags.Add(SemanticConventions.AttributeServerPort, port);
             }
         }
+        else
+        {
+            _ = this.commandFetcher.TryFetch(payload, out var command);
+
+            if (command != null)
+            {
+                _ = this.connectionFetcher.TryFetch(command, out var connection);
+                _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
+
+                if (dataSource != null)
+                {
+                    var connectionDetails = SqlConnectionDetails.GetOrAddCached((string)dataSource);
+
+                    if (!string.IsNullOrEmpty(connectionDetails.Port))
+                    {
+                        tags.Add(new(SemanticConventions.AttributeServerPort, connectionDetails.Port));
+                    }
+                }
+            }
+        }
 
         var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationromTimestamp();
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);

@@ -135,6 +135,17 @@ internal sealed class SqlConnectionDetails
         };
     }
 
+    internal static SqlConnectionDetails GetOrAddCached(string dataSource)
+    {
+        if (!ConnectionDetailCache.TryGetValue(dataSource, out SqlConnectionDetails? connectionDetails))
+        {
+            connectionDetails = ParseDataSource(dataSource);
+            ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
+        }
+
+        return connectionDetails;
+    }
+
     internal static void AddConnectionLevelDetailsToActivity(SqlClientTraceInstrumentationOptions options, string dataSource, Activity sqlActivity)
     {
         if (!options.EnableConnectionLevelAttributes)
@@ -143,11 +154,7 @@ internal sealed class SqlConnectionDetails
         }
         else
         {
-            if (!ConnectionDetailCache.TryGetValue(dataSource, out SqlConnectionDetails? connectionDetails))
-            {
-                connectionDetails = ParseDataSource(dataSource);
-                ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
-            }
+            var connectionDetails = GetOrAddCached(dataSource);
 
             if (!string.IsNullOrEmpty(connectionDetails.InstanceName))
             {

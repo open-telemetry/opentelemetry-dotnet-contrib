@@ -200,8 +200,16 @@ public class SqlClientTests : IDisposable
                 var count = metricPoint.GetHistogramCount();
                 var sum = metricPoint.GetHistogramSum();
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
+
+                var activityPort = activity.GetTagValue(SemanticConventions.AttributeServerPort);
+
+                if (activityPort != null)
+                {
+                    Assert.Equal(activityPort, tags[SemanticConventions.AttributeServerPort]);
+                }
             }
-        } else
+        }
+        else
         {
             Assert.Empty(dbClientOperationDurationMetrics);
         }
