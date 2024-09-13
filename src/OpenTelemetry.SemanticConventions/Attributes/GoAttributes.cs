@@ -12,29 +12,26 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class OtherAttributes
+public static class GoAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>db.client.connection.state</c> instead
+    /// The type of memory
     /// </summary>
-    [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-    public const string AttributeState = "state";
+    public const string AttributeGoMemoryType = "go.memory.type";
 
     /// <summary>
-    /// Deprecated, use <c>db.client.connection.state</c> instead
+    /// The type of memory
     /// </summary>
-    public static class StateValues
+    public static class GoMemoryTypeValues
     {
         /// <summary>
-        /// idle
+        /// Memory allocated from the heap that is reserved for stack space, whether or not it is currently in-use
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-        public const string Idle = "idle";
+        public const string Stack = "stack";
 
         /// <summary>
-        /// used
+        /// Memory used by the Go runtime, excluding other categories of memory usage described in this enumeration
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-        public const string Used = "used";
+        public const string Other = "other";
     }
 }

@@ -35,8 +35,9 @@ public static class ProcessAttributes
     public const string AttributeProcessContextSwitchType = "process.context_switch_type";
 
     /// <summary>
-    /// The CPU state of the process
+    /// Deprecated, use <c>cpu.mode</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>")]
     public const string AttributeProcessCpuState = "process.cpu.state";
 
     /// <summary>
@@ -110,7 +111,7 @@ public static class ProcessAttributes
     public const string AttributeProcessRuntimeDescription = "process.runtime.description";
 
     /// <summary>
-    /// The name of the runtime of this process. For compiled native binaries, this SHOULD be the name of the compiler
+    /// The name of the runtime of this process
     /// </summary>
     public const string AttributeProcessRuntimeName = "process.runtime.name";
 
@@ -169,23 +170,26 @@ public static class ProcessAttributes
     }
 
     /// <summary>
-    /// The CPU state of the process
+    /// Deprecated, use <c>cpu.mode</c> instead
     /// </summary>
     public static class ProcessCpuStateValues
     {
         /// <summary>
         /// system
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string System = "system";
 
         /// <summary>
         /// user
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string User = "user";
 
         /// <summary>
         /// wait
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Wait = "wait";
     }
 

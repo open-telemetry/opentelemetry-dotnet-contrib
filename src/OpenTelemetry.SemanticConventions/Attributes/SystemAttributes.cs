@@ -20,8 +20,9 @@ public static class SystemAttributes
     public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
 
     /// <summary>
-    /// The state of the CPU
+    /// Deprecated, use <c>cpu.mode</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>")]
     public const string AttributeSystemCpuState = "system.cpu.state";
 
     /// <summary>
@@ -86,43 +87,50 @@ public static class SystemAttributes
     public const string AttributeSystemProcessesStatus = "system.processes.status";
 
     /// <summary>
-    /// The state of the CPU
+    /// Deprecated, use <c>cpu.mode</c> instead
     /// </summary>
     public static class SystemCpuStateValues
     {
         /// <summary>
         /// user
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string User = "user";
 
         /// <summary>
         /// system
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string System = "system";
 
         /// <summary>
         /// nice
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Nice = "nice";
 
         /// <summary>
         /// idle
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Idle = "idle";
 
         /// <summary>
         /// iowait
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Iowait = "iowait";
 
         /// <summary>
         /// interrupt
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Interrupt = "interrupt";
 
         /// <summary>
         /// steal
         /// </summary>
+        [Obsolete("Replaced by <c>cpu.mode</c>")]
         public const string Steal = "steal";
     }
 
