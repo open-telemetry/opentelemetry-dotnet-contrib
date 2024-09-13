@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
+using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
@@ -45,7 +46,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         string? expectedInstanceName,
         string? expectedPort)
     {
-        var sqlConnectionDetails = SqlClientTraceInstrumentationOptions.ParseDataSource(dataSource);
+        var sqlConnectionDetails = SqlConnectionDetails.ParseDataSource(dataSource);
 
         Assert.NotNull(sqlConnectionDetails);
         Assert.Equal(expectedServerHostName, sqlConnectionDetails.ServerHostName);
@@ -75,7 +76,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         {
             EnableConnectionLevelAttributes = enableConnectionLevelAttributes,
         };
-        options.AddConnectionLevelDetailsToActivity(dataSource, activity);
+        SqlConnectionDetails.AddConnectionLevelDetailsToActivity(options, dataSource, activity);
 
         if (!enableConnectionLevelAttributes)
         {

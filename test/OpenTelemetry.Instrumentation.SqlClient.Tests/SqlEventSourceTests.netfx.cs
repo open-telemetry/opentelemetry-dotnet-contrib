@@ -226,7 +226,7 @@ public class SqlEventSourceTests
         }
         else
         {
-            var connectionDetails = SqlClientTraceInstrumentationOptions.ParseDataSource(dataSource);
+            var connectionDetails = SqlConnectionDetails.ParseDataSource(dataSource);
 
             if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
             {
