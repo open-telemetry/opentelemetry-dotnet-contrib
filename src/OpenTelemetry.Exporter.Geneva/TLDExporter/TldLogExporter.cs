@@ -16,17 +16,16 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private const int MaxSanitizedEventNameLength = 50;
 
     // TODO: Is using a single ThreadLocal a better idea?
-    private static readonly ThreadLocal<EventBuilder> eventBuilder = new(() => null);
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> envProperties = new(() => null);
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> partCFields = new(() => null); // This is used to temporarily store the PartC fields from tags
-
-    private static readonly string[] logLevels = new string[7]
+    private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
+    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> EnvProperties = new();
+    private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
+    private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
+    private static readonly string[] LogLevels = new string[7]
     {
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
     };
 
-    private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(() => null); // This is used for Scopes
-
+    private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes
     private readonly byte partAFieldsCount = 1; // At least one field: time
     private readonly bool shouldPassThruTableMappings;
     private readonly string defaultEventName = "Log";
@@ -34,7 +33,6 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private readonly Dictionary<string, string> tableMappings;
     private readonly Tuple<byte[], byte[]> repeatedPartAFields;
     private readonly ExceptionStackExportMode exceptionStackExportMode;
-
     private readonly EventProvider eventProvider;
 
     private bool isDisposed;
@@ -92,11 +90,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
             this.partAFieldsCount += prePopulatedFieldsCount;
 
-            var eb = eventBuilder.Value;
+            var eb = EventBuilder.Value;
             if (eb == null)
             {
                 eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
-                eventBuilder.Value = eb;
+                EventBuilder.Value = eb;
             }
 
             eb.Reset("_"); // EventName does not matter here as we only need the serialized key-value pairs
@@ -130,7 +128,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 try
                 {
                     this.SerializeLogRecord(activity);
-                    this.eventProvider.Write(eventBuilder.Value);
+                    this.eventProvider.Write(EventBuilder.Value);
                 }
                 catch (Exception ex)
                 {
@@ -213,11 +211,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             eventName = GetSanitizedCategoryName(categoryName);
         }
 
-        var eb = eventBuilder.Value;
+        var eb = EventBuilder.Value;
         if (eb == null)
         {
             eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
-            eventBuilder.Value = eb;
+            EventBuilder.Value = eb;
         }
 
         var timestamp = logRecord.Timestamp;
@@ -283,7 +281,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         var logLevel = logRecord.LogLevel;
 #pragma warning restore 0618
 
-        eb.AddCountedString("severityText", logLevels[(int)logLevel]);
+        eb.AddCountedString("severityText", LogLevels[(int)logLevel]);
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
 
         var eventId = logRecord.EventId;
@@ -298,11 +296,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         bool namePopulated = false;
 
         byte partCFieldsCountFromState = 0;
-        var kvpArrayForPartCFields = partCFields.Value;
+        var kvpArrayForPartCFields = PartCFields.Value;
         if (kvpArrayForPartCFields == null)
         {
             kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
-            partCFields.Value = kvpArrayForPartCFields;
+            PartCFields.Value = kvpArrayForPartCFields;
         }
 
         List<KeyValuePair<string, object>> envPropertiesList = null;
@@ -347,11 +345,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 if (hasEnvProperties == 0)
                 {
                     hasEnvProperties = 1;
-                    envPropertiesList = envProperties.Value;
+                    envPropertiesList = EnvProperties.Value;
                     if (envPropertiesList == null)
                     {
                         envPropertiesList = new List<KeyValuePair<string, object>>();
-                        envProperties.Value = envPropertiesList;
+                        EnvProperties.Value = envPropertiesList;
                     }
 
                     envPropertiesList.Clear();
@@ -388,7 +386,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         dataForScopes.HasEnvProperties = hasEnvProperties;
         dataForScopes.PartCFieldsCountFromState = partCFieldsCountFromState;
 
-        logRecord.ForEachScope(ProcessScopeForIndividualColumns, this);
+        logRecord.ForEachScope(ProcessScopeForIndividualColumnsAction, this);
 
         // Update the variables that could have been modified in ProcessScopeForIndividualColumns
         hasEnvProperties = dataForScopes.HasEnvProperties;
@@ -496,12 +494,12 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         return result.Slice(0, validNameLength).ToString();
     }
 
-    private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumns = (scope, state) =>
+    private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
     {
         var stateData = state.serializationData.Value;
         var customFields = state.customFields;
-        var kvpArrayForPartCFields = partCFields.Value;
-        var envPropertiesList = envProperties.Value;
+        var kvpArrayForPartCFields = PartCFields.Value;
+        var envPropertiesList = EnvProperties.Value;
 
         foreach (KeyValuePair<string, object> scopeItem in scope)
         {
@@ -526,7 +524,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     if (envPropertiesList == null)
                     {
                         envPropertiesList = new List<KeyValuePair<string, object>>();
-                        envProperties.Value = envPropertiesList;
+                        EnvProperties.Value = envPropertiesList;
                     }
 
                     envPropertiesList.Clear();
@@ -536,7 +534,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 envPropertiesList.Add(new(scopeItem.Key, scopeItem.Value));
             }
         }
-    };
+    }
 
     private sealed class SerializationDataForScopes
     {

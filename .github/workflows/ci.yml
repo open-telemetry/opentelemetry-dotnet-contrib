@@ -196,7 +196,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net6.0", "net8.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -219,7 +219,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.AWSLambda]
       code-cov-name: Instrumentation.AWSLambda
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net6.0", "net8.0" ]'
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -285,7 +285,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net6.0", "net8.0" ]'
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
@@ -590,6 +590,7 @@ jobs:
       lint-misspell-sanitycheck,
       detect-changes,
       lint-md,
+      lint-yml,
       lint-dotnet-format,
       build-test-exporter-geneva,
       build-test-exporter-influxdb,
@@ -633,7 +634,8 @@ jobs:
       build-test-contrib-shared-tests,
       verify-aot-compat
     ]
-    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
-    runs-on: windows-latest
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
     steps:
-    - run: echo 'build complete ✓'
+    - run: |
+          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

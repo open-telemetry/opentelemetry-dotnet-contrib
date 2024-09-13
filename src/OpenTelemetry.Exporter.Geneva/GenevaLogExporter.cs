@@ -8,18 +8,22 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// An exporter for Geneva logs.
+/// </summary>
 public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 {
     internal bool IsUsingUnixDomainSocket;
 
-    private bool isDisposed;
-
-    private delegate ExportResult ExportLogRecordFunc(in Batch<LogRecord> batch);
-
     private readonly ExportLogRecordFunc exportLogRecord;
-
     private readonly IDisposable exporter;
 
+    private bool isDisposed;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaLogExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaExporterOptions"/>.</param>
     public GenevaLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
@@ -57,7 +61,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (useMsgPackExporter)
@@ -76,11 +80,15 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         }
     }
 
+    private delegate ExportResult ExportLogRecordFunc(in Batch<LogRecord> batch);
+
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<LogRecord> batch)
     {
         return this.exportLogRecord(in batch);
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (this.isDisposed)
