@@ -186,6 +186,14 @@ public class SqlClientTests : IDisposable
             }
 
             var metricPoint = Assert.Single(metricPoints);
+            Dictionary<string, object?> tags = new(metricPoint.Tags.Count);
+            foreach (var tag in metricPoint.Tags)
+            {
+                tags.Add(tag.Key, tag.Value);
+            }
+
+            tags.TryGetValue(SemanticConventions.AttributeDbSystem, out var dbSystem);
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, dbSystem);
 
             if (tracingEnabled && activity != null)
             {

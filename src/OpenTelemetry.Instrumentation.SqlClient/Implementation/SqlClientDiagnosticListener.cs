@@ -33,6 +33,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly SqlClientTraceInstrumentationOptions options;
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
     public SqlClientDiagnosticListener(string sourceName, SqlClientTraceInstrumentationOptions? options)
         : base(sourceName)
@@ -60,6 +61,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                         return;
                     }
 
@@ -151,15 +153,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     activity.Stop();
+                    this.RecordDuration(activity, payload);
                 }
 
                 break;
@@ -169,11 +174,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
@@ -199,11 +206,49 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
+                        this.RecordDuration(activity, payload);
                     }
                 }
 
                 break;
         }
+    }
+
+    private void RecordDuration(Activity? activity, object? payload)
+    {
+        if (SqlActivitySourceHelper.DbClientOperationDuration.Enabled == false)
+        {
+            return;
+        }
+
+        var tags = new TagList
+        {
+            { SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName },
+        };
+
+        if (activity != null)
+        {
+            var port = activity.GetTagItem(SemanticConventions.AttributeServerPort);
+
+            if (port != null)
+            {
+                tags.Add(SemanticConventions.AttributeServerPort, port);
+            }
+        }
+
+        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationromTimestamp();
+        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private double CalculateDurationromTimestamp()
+    {
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var begin = this.beginTimestamp.Value;
+        var end = Stopwatch.GetTimestamp();
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
     }
 }
 #endif
