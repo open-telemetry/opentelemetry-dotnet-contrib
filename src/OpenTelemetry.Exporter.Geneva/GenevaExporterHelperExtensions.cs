@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -26,7 +28,7 @@ public static class GenevaExporterHelperExtensions
     /// Adds <see cref="GenevaTraceExporter"/> to the <see cref="TracerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
-    /// <param name="configure">Exporter configuration options.</param>
+    /// <param name="configure">Callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, Action<GenevaExporterOptions> configure)
         => AddGenevaTraceExporter(builder, name: null, configure);
@@ -35,10 +37,13 @@ public static class GenevaExporterHelperExtensions
     /// Adds <see cref="GenevaTraceExporter"/> to the <see cref="TracerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
-    /// /// <param name="name">Name which is used when retrieving options.</param>
-    /// <param name="configure">Exporter configuration options.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder AddGenevaTraceExporter(this TracerProviderBuilder builder, string name, Action<GenevaExporterOptions> configure)
+    public static TracerProviderBuilder AddGenevaTraceExporter(
+        this TracerProviderBuilder builder,
+        string? name,
+        Action<GenevaExporterOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -89,7 +94,9 @@ public static class GenevaExporterHelperExtensions
         });
     }
 
-    private static BaseProcessor<Activity> BuildGenevaTraceExporter(GenevaExporterOptions options, BatchExportActivityProcessorOptions batchActivityExportProcessor)
+    private static BaseProcessor<Activity> BuildGenevaTraceExporter(
+        GenevaExporterOptions options,
+        BatchExportActivityProcessorOptions batchActivityExportProcessor)
     {
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaTraceExporter(options);
