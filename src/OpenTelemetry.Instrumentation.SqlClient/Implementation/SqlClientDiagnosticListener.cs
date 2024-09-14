@@ -206,7 +206,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
-                        this.RecordDuration(activity, payload);
+                        this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
 
@@ -214,7 +214,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         }
     }
 
-    private void RecordDuration(Activity? activity, object? payload)
+    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
         if (SqlActivitySourceHelper.DbClientOperationDuration.Enabled == false)
         {
@@ -228,6 +228,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         if (activity != null)
         {
+            if (hasError)
+            {
+                // TODO extract exception from activity events?
+            }
             var port = activity.GetTagItem(SemanticConventions.AttributeServerPort);
 
             if (port != null)
@@ -241,6 +245,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
             if (command != null)
             {
+                if (hasError)
+                {
+                    if (this.exceptionFetcher.TryFetch(payload, out Exception? exception) && exception != null)
+                    {
+                        tags.Add(SemanticConventions.AttributeErrorType, exception.Message);
+                    }
+                }
+
                 _ = this.connectionFetcher.TryFetch(command, out var connection);
                 _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
