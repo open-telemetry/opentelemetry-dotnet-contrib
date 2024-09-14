@@ -226,7 +226,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             { SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName },
         };
 
-        if (activity != null)
+        if (activity != null && activity.IsAllDataRequested)
         {
             if (hasError)
             {
