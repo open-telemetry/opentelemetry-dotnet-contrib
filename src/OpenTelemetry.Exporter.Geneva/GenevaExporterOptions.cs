@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Text;
 using OpenTelemetry.Internal;
 
@@ -16,17 +18,17 @@ public class GenevaExporterOptions
         [Schema.V40.PartA.Ver] = "4.0",
     };
 
-    private IReadOnlyDictionary<string, string> tableNameMappings;
+    private IReadOnlyDictionary<string, string>? tableNameMappings;
 
     /// <summary>
     /// Gets or sets the connection string.
     /// </summary>
-    public string ConnectionString { get; set; }
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Gets or sets custom fields.
     /// </summary>
-    public IEnumerable<string> CustomFields { get; set; }
+    public IEnumerable<string>? CustomFields { get; set; }
 
     /// <summary>
     /// Gets or sets the exception stack trace export mode.
@@ -46,7 +48,7 @@ public class GenevaExporterOptions
     /// <summary>
     /// Gets or sets table name mappings.
     /// </summary>
-    public IReadOnlyDictionary<string, string> TableNameMappings
+    public IReadOnlyDictionary<string, string>? TableNameMappings
     {
         get => this.tableNameMappings;
         set
