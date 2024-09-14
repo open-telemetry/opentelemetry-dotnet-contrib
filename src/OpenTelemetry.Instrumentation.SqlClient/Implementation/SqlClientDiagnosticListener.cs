@@ -232,6 +232,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             {
                 // TODO extract exception from activity events?
             }
+
+            var serverAddress = activity.GetTagItem(SemanticConventions.AttributeServerAddress);
+
+            if (serverAddress != null)
+            {
+                tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
+            }
+
             var port = activity.GetTagItem(SemanticConventions.AttributeServerPort);
 
             if (port != null)
@@ -259,6 +267,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 if (dataSource != null)
                 {
                     var connectionDetails = SqlConnectionDetails.GetOrAddCached((string)dataSource);
+
+                    if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
+                    {
+                        tags.Add(SemanticConventions.AttributeServerAddress, connectionDetails.ServerHostName);
+                    }
+                    else
+                    {
+                        tags.Add(SemanticConventions.AttributeServerAddress, connectionDetails.ServerIpAddress);
+                    }
 
                     if (!string.IsNullOrEmpty(connectionDetails.Port))
                     {
