@@ -9,6 +9,7 @@ CRLF = b'\r\n'
 LF = b'\n'
 
 # Add paths to exclude from sanity checks here
+# Mostly used for auto-generated code
 exclude_folders = [
     "src/OpenTelemetry.SemanticConventions/Attributes"
 ]
