@@ -98,20 +98,25 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
             request.Headers.TryAddWithoutValidation("sdk-version", SdkVersion);
             request.Headers.TryAddWithoutValidation("x-apikey", this.instrumentationKey);
 
-            bool logResponseDetails = OneCollectorExporterEventSource.Log.IsInformationalLoggingEnabled();
+            bool infoLoggingEnabled = OneCollectorExporterEventSource.Log.IsInformationalLoggingEnabled();
 
-            if (!logResponseDetails)
+            if (!infoLoggingEnabled)
             {
                 request.Headers.TryAddWithoutValidation("NoResponseBody", "true");
             }
 
-            using var response = this.httpClient.Send(request, CancellationToken.None);
+            using var response = this.httpClient.Send(
+                request,
+                infoLoggingEnabled ? HttpCompletionOption.ResponseContentRead : HttpCompletionOption.ResponseHeadersRead,
+                CancellationToken.None);
 
-            try
+            if (response.IsSuccessStatusCode)
             {
-                response.EnsureSuccessStatusCode();
-
-                OneCollectorExporterEventSource.Log.WriteTransportDataSentEventIfEnabled(sendRequest.ItemType, sendRequest.NumberOfItems, this.Description);
+                if (infoLoggingEnabled)
+                {
+                    OneCollectorExporterEventSource.Log.TransportDataSent(
+                        sendRequest.ItemType, sendRequest.NumberOfItems, this.Description);
+                }
 
                 var root = this.payloadTransmittedSuccessCallbacks.Root;
                 if (root != null)
@@ -125,11 +130,13 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
 
                 return true;
             }
-            catch
+            else
             {
                 response.Headers.TryGetValues("Collector-Error", out var collectorErrors);
 
-                var errorDetails = logResponseDetails ? response.Content.ReadAsStringAsync().GetAwaiter().GetResult() : null;
+                var errorDetails = infoLoggingEnabled
+                    ? response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+                    : null;
 
                 OneCollectorExporterEventSource.Log.WriteHttpTransportErrorResponseReceivedEventIfEnabled(
                     this.Description,

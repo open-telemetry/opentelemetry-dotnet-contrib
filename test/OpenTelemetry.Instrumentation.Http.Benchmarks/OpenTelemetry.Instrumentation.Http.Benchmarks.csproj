@@ -3,7 +3,6 @@
     <OutputType>Exe</OutputType>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

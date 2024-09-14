@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET8_0_OR_GREATER
-using System.Collections.Frozen;
-#endif
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Reflection;
@@ -101,7 +98,7 @@ public class GenevaTraceExporterTests
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // no ETW session name
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Assert.Throws<NotSupportedException>(() =>
             {
                 using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
                 {
@@ -246,13 +243,10 @@ public class GenevaTraceExporterTests
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
-#if NET8_0_OR_GREATER
-            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as FrozenSet<string>;
-#else
-            var dedicatedFields = typeof(MsgPackTraceExporter).GetField("m_dedicatedFields", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as HashSet<string>;
-#endif
-            var CS40_PART_B_MAPPING = typeof(MsgPackTraceExporter).GetField("CS40_PART_B_MAPPING", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as IReadOnlyDictionary<string, string>;
-            var m_buffer = typeof(MsgPackTraceExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as ThreadLocal<byte[]>;
+
+            var dedicatedFields = exporter.DedicatedFields;
+            var CS40_PART_B_MAPPING = MsgPackTraceExporter.CS40_PART_B_MAPPING;
+            var m_buffer = exporter.Buffer;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
 

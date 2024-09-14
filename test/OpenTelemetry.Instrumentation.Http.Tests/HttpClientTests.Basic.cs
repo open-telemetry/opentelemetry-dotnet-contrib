@@ -32,12 +32,14 @@ public partial class HttpClientTests : IDisposable
         this.output = output;
 
         this.serverLifeTime = TestHttpServer.RunServer(
-            (ctx) =>
+            ctx =>
             {
-                string traceparent = ctx.Request.Headers["traceparent"];
-                string custom_traceparent = ctx.Request.Headers["custom_traceparent"];
-                if ((ctx.Request.Headers["contextRequired"] == null
-                    || bool.Parse(ctx.Request.Headers["contextRequired"]))
+                var traceparent = ctx.Request.Headers["traceparent"];
+                var custom_traceparent = ctx.Request.Headers["custom_traceparent"];
+                var contextRequired = ctx.Request.Headers["contextRequired"];
+                var responseCode = ctx.Request.Headers["responseCode"];
+                if ((contextRequired == null
+                     || bool.Parse(contextRequired))
                     &&
                     (string.IsNullOrWhiteSpace(traceparent)
                         && string.IsNullOrWhiteSpace(custom_traceparent)))
@@ -45,18 +47,24 @@ public partial class HttpClientTests : IDisposable
                     ctx.Response.StatusCode = 500;
                     ctx.Response.StatusDescription = "Missing trace context";
                 }
-                else if (ctx.Request.Url.PathAndQuery.Contains("500"))
+                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500"))
                 {
                     ctx.Response.StatusCode = 500;
                 }
-                else if (ctx.Request.Url.PathAndQuery.Contains("redirect"))
+                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("redirect"))
                 {
                     ctx.Response.RedirectLocation = "/";
                     ctx.Response.StatusCode = 302;
                 }
-                else if (ctx.Request.Headers["responseCode"] != null)
+                else if (responseCode != null)
                 {
-                    ctx.Response.StatusCode = int.Parse(ctx.Request.Headers["responseCode"]);
+                    ctx.Response.StatusCode = int.Parse(responseCode);
+                }
+                else if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("slow"))
+                {
+                    Thread.Sleep(10000);
+                    ctx.Response.RedirectLocation = "/";
+                    ctx.Response.StatusCode = 200;
                 }
                 else
                 {
@@ -78,15 +86,15 @@ public partial class HttpClientTests : IDisposable
     [Fact]
     public void AddHttpClientInstrumentation_NamedOptions()
     {
-        int defaultExporterOptionsConfigureOptionsInvocations = 0;
-        int namedExporterOptionsConfigureOptionsInvocations = 0;
+        var defaultExporterOptionsConfigureOptionsInvocations = 0;
+        var namedExporterOptionsConfigureOptionsInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
             {
-                services.Configure<HttpClientTraceInstrumentationOptions>(o => defaultExporterOptionsConfigureOptionsInvocations++);
+                services.Configure<HttpClientTraceInstrumentationOptions>(_ => defaultExporterOptionsConfigureOptionsInvocations++);
 
-                services.Configure<HttpClientTraceInstrumentationOptions>("Instrumentation2", o => namedExporterOptionsConfigureOptionsInvocations++);
+                services.Configure<HttpClientTraceInstrumentationOptions>("Instrumentation2", _ => namedExporterOptionsConfigureOptionsInvocations++);
             })
             .AddHttpClientInstrumentation()
             .AddHttpClientInstrumentation("Instrumentation2", configureHttpClientTraceInstrumentationOptions: null)
@@ -99,8 +107,8 @@ public partial class HttpClientTests : IDisposable
     [Fact]
     public void AddHttpClientInstrumentation_BadArgs()
     {
-        TracerProviderBuilder builder = null;
-        Assert.Throws<ArgumentNullException>(() => builder.AddHttpClientInstrumentation());
+        TracerProviderBuilder? builder = null;
+        Assert.Throws<ArgumentNullException>(() => builder!.AddHttpClientInstrumentation());
     }
 
     [Theory]
@@ -127,22 +135,22 @@ public partial class HttpClientTests : IDisposable
             {
                 if (shouldEnrich)
                 {
-                    o.EnrichWithHttpWebRequest = (activity, httpWebRequest) =>
+                    o.EnrichWithHttpWebRequest = (activity, _) =>
                     {
                         activity.SetTag("enrichedWithHttpWebRequest", "yes");
                     };
 
-                    o.EnrichWithHttpWebResponse = (activity, httpWebResponse) =>
+                    o.EnrichWithHttpWebResponse = (activity, _) =>
                     {
                         activity.SetTag("enrichedWithHttpWebResponse", "yes");
                     };
 
-                    o.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) =>
+                    o.EnrichWithHttpRequestMessage = (activity, _) =>
                     {
                         activity.SetTag("enrichedWithHttpRequestMessage", "yes");
                     };
 
-                    o.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) =>
+                    o.EnrichWithHttpResponseMessage = (activity, _) =>
                     {
                         activity.SetTag("enrichedWithHttpResponseMessage", "yes");
                     };
@@ -214,15 +222,13 @@ public partial class HttpClientTests : IDisposable
     {
         var propagator = new CustomTextMapPropagator();
         propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
-        propagator.InjectValues.Add("custom_traceState", context => Activity.Current.TraceStateString);
+        propagator.InjectValues.Add("custom_traceState", context => Activity.Current?.TraceStateString ?? string.Empty);
 
         var exportedItems = new List<Activity>();
 
-        using var request = new HttpRequestMessage
-        {
-            RequestUri = new Uri(this.url),
-            Method = new HttpMethod("GET"),
-        };
+        using var request = new HttpRequestMessage();
+        request.RequestUri = new Uri(this.url);
+        request.Method = new HttpMethod("GET");
 
         using var parent = new Activity("parent")
             .SetIdFormat(ActivityIdFormat.W3C)
@@ -264,29 +270,27 @@ public partial class HttpClientTests : IDisposable
         Assert.Equal("k1=v1,k2=v2", traceStates.Single());
 #endif
 
-        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-        {
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+        [
             new TraceContextPropagator(),
             new BaggagePropagator(),
-        }));
+        ]));
     }
 
-    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet/issues/5092")]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
     public async Task RespectsSuppress()
     {
         try
         {
             var propagator = new CustomTextMapPropagator();
             propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
-            propagator.InjectValues.Add("custom_traceState", context => Activity.Current.TraceStateString);
+            propagator.InjectValues.Add("custom_traceState", context => Activity.Current?.TraceStateString ?? string.Empty);
 
             var exportedItems = new List<Activity>();
 
-            using var request = new HttpRequestMessage
-            {
-                RequestUri = new Uri(this.url),
-                Method = new HttpMethod("GET"),
-            };
+            using var request = new HttpRequestMessage();
+            request.RequestUri = new Uri(this.url);
+            request.Method = new HttpMethod("GET");
 
             using var parent = new Activity("parent")
                 .SetIdFormat(ActivityIdFormat.W3C)
@@ -316,11 +320,11 @@ public partial class HttpClientTests : IDisposable
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(
+            [
                 new TraceContextPropagator(),
                 new BaggagePropagator(),
-            }));
+            ]));
         }
     }
 
@@ -339,9 +343,9 @@ public partial class HttpClientTests : IDisposable
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        int maxRetries = 3;
+        var maxRetries = 3;
         using var clientHandler = new HttpClientHandler();
-        using var retryHandler = new RetryHandler(clientHandler, maxRetries);
+        using var retryHandler = new RepeatHandler(clientHandler, maxRetries);
         using var httpClient = new HttpClient(retryHandler);
         await httpClient.SendAsync(request);
 
@@ -386,7 +390,7 @@ public partial class HttpClientTests : IDisposable
     [InlineData("Patch", "PATCH", "Patch")]
     [InlineData("Trace", "TRACE", "Trace")]
     [InlineData("CUSTOM", "_OTHER", "CUSTOM")]
-    public async Task HttpRequestMethodIsSetOnActivityAsPerSpec(string originalMethod, string expectedMethod, string expectedOriginalMethod)
+    public async Task HttpRequestMethodIsSetOnActivityAsPerSpec(string originalMethod, string expectedMethod, string? expectedOriginalMethod)
     {
         var exportedItems = new List<Activity>();
         using var request = new HttpRequestMessage
@@ -482,13 +486,13 @@ public partial class HttpClientTests : IDisposable
         var mp = metricPoints[0];
 
         // Inspect Metric Attributes
-        var attributes = new Dictionary<string, object>();
+        var attributes = new Dictionary<string, object?>();
         foreach (var tag in mp.Tags)
         {
             attributes[tag.Key] = tag.Value;
         }
 
-        Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value.ToString() == expectedMethod);
+        Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value?.ToString() == expectedMethod);
 
         Assert.DoesNotContain(attributes, t => t.Key == SemanticConventions.AttributeHttpRequestMethodOriginal);
     }
@@ -513,11 +517,11 @@ public partial class HttpClientTests : IDisposable
         // found. For now, this is not supported.
 
         Assert.Single(exportedItems);
-        Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int)t.Value == 200);
+        Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 200);
 #else
         Assert.Equal(2, exportedItems.Count);
-        Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int)t.Value == 302);
-        Assert.Contains(exportedItems[1].TagObjects, t => t.Key == "http.response.status_code" && (int)t.Value == 200);
+        Assert.Contains(exportedItems[0].TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 302);
+        Assert.Contains(exportedItems[1].TagObjects, t => t.Key == "http.response.status_code" && (int?)t.Value == 200);
 #endif
     }
 
@@ -526,22 +530,22 @@ public partial class HttpClientTests : IDisposable
     {
         var exportedItems = new List<Activity>();
 
-        bool httpWebRequestFilterApplied = false;
-        bool httpRequestMessageFilterApplied = false;
+        var httpWebRequestFilterApplied = false;
+        var httpRequestMessageFilterApplied = false;
 
         using (Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(
                 opt =>
                 {
-                    opt.FilterHttpWebRequest = (req) =>
+                    opt.FilterHttpWebRequest = req =>
                     {
                         httpWebRequestFilterApplied = true;
                         return !req.RequestUri.OriginalString.Contains(this.url);
                     };
-                    opt.FilterHttpRequestMessage = (req) =>
+                    opt.FilterHttpRequestMessage = req =>
                     {
                         httpRequestMessageFilterApplied = true;
-                        return !req.RequestUri.OriginalString.Contains(this.url);
+                        return req.RequestUri != null && !req.RequestUri.OriginalString.Contains(this.url);
                     };
                 })
             .AddInMemoryExporter(exportedItems)
@@ -569,10 +573,10 @@ public partial class HttpClientTests : IDisposable
 
         using (Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(
-                (opt) =>
+                opt =>
                 {
-                    opt.FilterHttpWebRequest = (req) => throw new Exception("From InstrumentationFilter");
-                    opt.FilterHttpRequestMessage = (req) => throw new Exception("From InstrumentationFilter");
+                    opt.FilterHttpWebRequest = _ => throw new Exception("From InstrumentationFilter");
+                    opt.FilterHttpRequestMessage = _ => throw new Exception("From InstrumentationFilter");
                 })
             .AddInMemoryExporter(exportedItems)
             .Build())
@@ -580,7 +584,7 @@ public partial class HttpClientTests : IDisposable
             using var c = new HttpClient();
             using var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log);
             await c.GetAsync(new Uri(this.url));
-            Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 4));
+            Assert.Single(inMemoryEventListener.Events.Where(e => e.EventId == 4));
         }
 
         Assert.Empty(exportedItems);
@@ -590,7 +594,7 @@ public partial class HttpClientTests : IDisposable
     public async Task ReportsExceptionEventForNetworkFailuresWithGetAsync()
     {
         var exportedItems = new List<Activity>();
-        bool exceptionThrown = false;
+        var exceptionThrown = false;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(o => o.RecordException = true)
@@ -616,7 +620,7 @@ public partial class HttpClientTests : IDisposable
     public async Task DoesNotReportExceptionEventOnErrorResponseWithGetAsync()
     {
         var exportedItems = new List<Activity>();
-        bool exceptionThrown = false;
+        var exceptionThrown = false;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(o => o.RecordException = true)
@@ -642,7 +646,7 @@ public partial class HttpClientTests : IDisposable
     public async Task DoesNotReportExceptionEventOnErrorResponseWithGetStringAsync()
     {
         var exportedItems = new List<Activity>();
-        bool exceptionThrown = false;
+        var exceptionThrown = false;
         using var request = new HttpRequestMessage
         {
             RequestUri = new Uri($"{this.url}500"),
@@ -704,7 +708,7 @@ public partial class HttpClientTests : IDisposable
         var exportedItems = new List<Activity>();
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string> { ["OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION"] = disableQueryRedaction.ToString() })
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_HTTPCLIENT_DISABLE_URL_QUERY_REDACTION"] = disableQueryRedaction.ToString() })
             .Build();
 
         // Arrange
@@ -737,15 +741,17 @@ public partial class HttpClientTests : IDisposable
     [InlineData(false, false)]
     public async Task CustomPropagatorCalled(bool sample, bool createParentActivity)
     {
+#if NETFRAMEWORK
         ActivityContext parentContext = default;
+#endif
         ActivityContext contextFromPropagator = default;
 
         var propagator = new CustomTextMapPropagator
         {
-            Injected = (context) => contextFromPropagator = context.ActivityContext,
+            Injected = context => contextFromPropagator = context.ActivityContext,
         };
         propagator.InjectValues.Add("custom_traceParent", context => $"00/{context.ActivityContext.TraceId}/{context.ActivityContext.SpanId}/01");
-        propagator.InjectValues.Add("custom_traceState", context => Activity.Current.TraceStateString);
+        propagator.InjectValues.Add("custom_traceState", context => Activity.Current?.TraceStateString ?? string.Empty);
 
         var exportedItems = new List<Activity>();
 
@@ -758,7 +764,7 @@ public partial class HttpClientTests : IDisposable
             var previousDefaultTextMapPropagator = Propagators.DefaultTextMapPropagator;
             Sdk.SetDefaultTextMapPropagator(propagator);
 
-            Activity parent = null;
+            Activity? parent = null;
             if (createParentActivity)
             {
                 parent = new Activity("parent")
@@ -768,14 +774,14 @@ public partial class HttpClientTests : IDisposable
                 parent.TraceStateString = "k1=v1,k2=v2";
                 parent.ActivityTraceFlags = ActivityTraceFlags.Recorded;
 
+#if NETFRAMEWORK
                 parentContext = parent.Context;
+#endif
             }
 
-            using var request = new HttpRequestMessage
-            {
-                RequestUri = new Uri(this.url),
-                Method = new HttpMethod("GET"),
-            };
+            using var request = new HttpRequestMessage();
+            request.RequestUri = new Uri(this.url);
+            request.Method = new HttpMethod("GET");
 
             using var c = new HttpClient();
             await c.SendAsync(request);

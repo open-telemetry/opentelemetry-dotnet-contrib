@@ -9,7 +9,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 internal class TestActivityProcessor : IActivityProcessor
 {
-    public IActivityProcessor NextProcessor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public IActivityProcessor? NextProcessor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
     {

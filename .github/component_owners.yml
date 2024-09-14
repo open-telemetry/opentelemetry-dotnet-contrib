@@ -6,9 +6,9 @@ components:
   src/OpenTelemetry.Exporter.Geneva/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
   src/OpenTelemetry.Exporter.Instana/:
@@ -36,7 +36,7 @@ components:
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ConfluentKafka/:
-    - g7ed6e    
+    - g7ed6e
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -53,24 +53,29 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
+    - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
     - twenzel
     - xiang17
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
   src/OpenTelemetry.PersistentStorage.Abstractions/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
-    - vishweshbankwar
+    - TimothyMothra
   src/OpenTelemetry.Resources.Container/:
     - iskiselev
   src/OpenTelemetry.Resources.Host/:
+    - Kielek
+    - lachmatt
+  src/OpenTelemetry.Resources.OperatingSystem/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.Process/:
@@ -88,21 +93,21 @@ components:
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
+    - rajkumar-rangaraj
     - reyang
     - utpilla
-    - Yun-Ting
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
@@ -133,7 +138,7 @@ components:
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
-    - g7ed6e    
+    - g7ed6e
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -148,19 +153,21 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
-    - vishweshbankwar
+    - TimothyMothra
   test/OpenTelemetry.Resources.Container.Tests/:
     - iskiselev
   test/OpenTelemetry.Resources.Host.Tests/:

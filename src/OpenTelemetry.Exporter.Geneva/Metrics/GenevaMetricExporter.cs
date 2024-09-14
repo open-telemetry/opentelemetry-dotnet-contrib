@@ -29,16 +29,16 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly IDisposable exporter;
 
-    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
-
     private readonly ExportMetricsFunc exportMetrics;
 
     private bool isDisposed;
 
     private Resource resource;
 
-    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaMetricExporterOptions"/>.</param>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
@@ -72,25 +72,14 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         }
     }
 
+    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            this.exporter.Dispose();
-        }
-
-        this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
@@ -109,7 +98,24 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
-#if NET7_0_OR_GREATER
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            this.exporter.Dispose();
+        }
+
+        this.isDisposed = true;
+        base.Dispose(disposing);
+    }
+
+#if NET8_0_OR_GREATER
     [GeneratedRegex(DisableRegexPattern)]
     private static partial Regex GetDisableRegexPattern();
 #else

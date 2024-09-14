@@ -1,5 +1,10 @@
 # QuartzNET Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@maldago](https://github.com/maldago)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Quartz)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Quartz)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Quartz)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Quartz)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Quartz)

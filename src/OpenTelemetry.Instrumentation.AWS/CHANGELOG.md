@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 1.1.0-beta.6
+
+Released 2024-Sep-10
+
+* Fix Memory Leak by Reusing ActivitySources, Meters, and Instruments
+  ([#2039](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2039))
+* Added instrumentation support for AWS Bedrock, BedrockRuntime, BedrockAgent, BedrockAgentRuntime.
+  ([#1979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1979))
+
+## 1.1.0-beta.5
+
+Released 2024-Aug-22
+
+* BREAKING: Update the instrumentation logic to use AWS TracerProvider.
+  ([#1974](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1974))
+* Add AWS metrics instrumentation.
+  ([#1980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
+* Updated dependency on AWS .NET SDK to version 3.7.400.
+  ([#1974](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1980))
 * Added `rpc.system`, `rpc.service`, and `rpc.method` to activity tags based on
   [semantic convention v1.26.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes).
   ([#1865](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1865))

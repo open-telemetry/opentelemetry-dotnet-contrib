@@ -12,6 +12,56 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
+    internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
+    {
+        ["db.system"] = "dbSystem",
+        ["db.name"] = "dbName",
+        ["db.statement"] = "dbStatement",
+
+        ["http.method"] = "httpMethod",
+        ["http.request.method"] = "httpMethod",
+        ["http.url"] = "httpUrl",
+        ["url.full"] = "httpUrl",
+        ["http.status_code"] = "httpStatusCode",
+        ["http.response.status_code"] = "httpStatusCode",
+
+        ["messaging.system"] = "messagingSystem",
+        ["messaging.destination"] = "messagingDestination",
+        ["messaging.url"] = "messagingUrl",
+    };
+
+#if NET8_0_OR_GREATER
+    internal static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
+#else
+    internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
+#endif
+
+    internal readonly ThreadLocal<byte[]> Buffer = new();
+
+#if NET8_0_OR_GREATER
+    internal readonly FrozenSet<string> CustomFields;
+
+    internal readonly FrozenSet<string> DedicatedFields;
+#else
+    internal readonly HashSet<string> CustomFields;
+
+    internal readonly HashSet<string> DedicatedFields;
+#endif
+
+    private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+
+    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
+
+    private readonly byte[] bufferPrologue;
+    private readonly byte[] bufferEpilogue;
+    private readonly ushort prepopulatedFieldsCount;
+    private readonly int timestampPatchIndex;
+    private readonly int mapSizePatchIndex;
+    private readonly IDataTransport dataTransport;
+    private readonly bool shouldIncludeTraceState;
+
+    private bool isDisposed;
+
     public MsgPackTraceExporter(GenevaExporterOptions options)
     {
         var partAName = "Span";
@@ -30,7 +80,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                     throw new ArgumentException("ETW cannot be used on non-Windows operating systems.");
                 }
 
-                this.m_dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
+                this.dataTransport = new EtwDataTransport(connectionStringBuilder.EtwSession);
                 break;
             case TransportProtocol.Unix:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -39,10 +89,10 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.m_dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
+                this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -68,9 +118,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
 
 #if NET8_0_OR_GREATER
-            this.m_customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
+            this.CustomFields = customFields.ToFrozenSet(StringComparer.Ordinal);
 #else
-            this.m_customFields = customFields;
+            this.CustomFields = customFields;
 #endif
 
             foreach (var name in CS40_PART_B_MAPPING.Keys)
@@ -82,13 +132,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             dedicatedFields.Add("otel.status_description");
 
 #if NET8_0_OR_GREATER
-            this.m_dedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
+            this.DedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
 #else
-            this.m_dedicatedFields = dedicatedFields;
+            this.DedicatedFields = dedicatedFields;
 #endif
         }
 
-        this.m_shouldIncludeTraceState = options.IncludeTraceStateForSpan;
+        this.shouldIncludeTraceState = options.IncludeTraceStateForSpan;
 
         var buffer = new byte[BUFFER_SIZE];
 
@@ -110,34 +160,36 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         // timestamp
         cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
-        this.m_idxTimestampPatch = cursor;
+        this.timestampPatchIndex = cursor;
         cursor += 12; // reserve 12 bytes for the timestamp
 
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
-        this.m_idxMapSizePatch = cursor - 2;
+        this.mapSizePatchIndex = cursor - 2;
 
-        this.m_cntPrepopulatedFields = 0;
+        this.prepopulatedFieldsCount = 0;
 
         // TODO: Do we support PartB as well?
         // Part A - core envelope
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
-        this.m_cntPrepopulatedFields += 1;
+        this.prepopulatedFieldsCount += 1;
 
         foreach (var entry in options.PrepopulatedFields)
         {
             var value = entry.Value;
             cursor = AddPartAField(buffer, cursor, entry.Key, value);
-            this.m_cntPrepopulatedFields += 1;
+            this.prepopulatedFieldsCount += 1;
         }
 
-        this.m_bufferPrologue = new byte[cursor - 0];
-        Buffer.BlockCopy(buffer, 0, this.m_bufferPrologue, 0, cursor - 0);
+        this.bufferPrologue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
 
         cursor = MessagePackSerializer.Serialize(buffer, 0, new Dictionary<string, object> { { "TimeFormat", "DateTime" } });
 
-        this.m_bufferEpilogue = new byte[cursor - 0];
-        Buffer.BlockCopy(buffer, 0, this.m_bufferEpilogue, 0, cursor - 0);
+        this.bufferEpilogue = new byte[cursor - 0];
+        System.Buffer.BlockCopy(buffer, 0, this.bufferEpilogue, 0, cursor - 0);
     }
+
+    internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
 
     public ExportResult Export(in Batch<Activity> batch)
     {
@@ -156,7 +208,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             try
             {
                 var cursor = this.SerializeActivity(activity);
-                this.m_dataTransport.Send(this.m_buffer.Value, cursor - 0);
+                this.dataTransport.Send(this.Buffer.Value, cursor - 0);
             }
             catch (Exception ex)
             {
@@ -170,29 +222,44 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return result;
     }
 
-    internal bool IsUsingUnixDomainSocket
+    public void Dispose()
     {
-        get => this.m_dataTransport is UnixDomainSocketDataTransport;
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            (this.dataTransport as IDisposable)?.Dispose();
+            this.Buffer.Dispose();
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("MsgPackTraceExporter Dispose failed.", ex);
+        }
+
+        this.isDisposed = true;
     }
 
     internal int SerializeActivity(Activity activity)
     {
-        var buffer = this.m_buffer.Value;
+        var buffer = this.Buffer.Value;
         if (buffer == null)
         {
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            Buffer.BlockCopy(this.m_bufferPrologue, 0, buffer, 0, this.m_bufferPrologue.Length);
-            this.m_buffer.Value = buffer;
+            System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
+            this.Buffer.Value = buffer;
         }
 
-        var cursor = this.m_bufferPrologue.Length;
-        var cntFields = this.m_cntPrepopulatedFields;
+        var cursor = this.bufferPrologue.Length;
+        var cntFields = this.prepopulatedFieldsCount;
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
         var dtEnd = new DateTime(tsEnd);
 
-        MessagePackSerializer.WriteTimestamp96(buffer, this.m_idxTimestampPatch, tsEnd);
+        MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
 
         #region Part A - core envelope
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
@@ -242,7 +309,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        if (this.m_shouldIncludeTraceState)
+        if (this.shouldIncludeTraceState)
         {
             var traceStateString = activity.TraceStateString;
             if (!string.IsNullOrEmpty(traceStateString))
@@ -311,7 +378,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
-            else if (this.m_customFields == null || this.m_customFields.Contains(entry.Key))
+            else if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
@@ -338,7 +405,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
-                if (this.m_dedicatedFields.Contains(entry.Key))
+                if (this.DedicatedFields.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -383,87 +450,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         }
         #endregion
 
-        MessagePackSerializer.WriteUInt16(buffer, this.m_idxMapSizePatch, cntFields);
+        MessagePackSerializer.WriteUInt16(buffer, this.mapSizePatchIndex, cntFields);
 
-        Buffer.BlockCopy(this.m_bufferEpilogue, 0, buffer, cursor, this.m_bufferEpilogue.Length);
-        cursor += this.m_bufferEpilogue.Length;
+        System.Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
+        cursor += this.bufferEpilogue.Length;
 
         return cursor;
     }
-
-    public void Dispose()
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        try
-        {
-            (this.m_dataTransport as IDisposable)?.Dispose();
-            this.m_buffer.Dispose();
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("MsgPackTraceExporter Dispose failed.", ex);
-        }
-
-        this.isDisposed = true;
-    }
-
-    private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
-
-    private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
-
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
-    {
-        ["db.system"] = "dbSystem",
-        ["db.name"] = "dbName",
-        ["db.statement"] = "dbStatement",
-
-        ["http.method"] = "httpMethod",
-        ["http.request.method"] = "httpMethod",
-        ["http.url"] = "httpUrl",
-        ["url.full"] = "httpUrl",
-        ["http.status_code"] = "httpStatusCode",
-        ["http.response.status_code"] = "httpStatusCode",
-
-        ["messaging.system"] = "messagingSystem",
-        ["messaging.destination"] = "messagingDestination",
-        ["messaging.url"] = "messagingUrl",
-    };
-
-#if NET8_0_OR_GREATER
-    private static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
-#else
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
-#endif
-
-    private readonly ThreadLocal<byte[]> m_buffer = new(() => null);
-
-    private readonly byte[] m_bufferPrologue;
-
-    private readonly byte[] m_bufferEpilogue;
-
-    private readonly ushort m_cntPrepopulatedFields;
-
-    private readonly int m_idxTimestampPatch;
-
-    private readonly int m_idxMapSizePatch;
-
-    private readonly IDataTransport m_dataTransport;
-
-#if NET8_0_OR_GREATER
-    private readonly FrozenSet<string> m_customFields;
-
-    private readonly FrozenSet<string> m_dedicatedFields;
-#else
-    private readonly HashSet<string> m_customFields;
-
-    private readonly HashSet<string> m_dedicatedFields;
-#endif
-
-    private readonly bool m_shouldIncludeTraceState;
-
-    private bool isDisposed;
 }

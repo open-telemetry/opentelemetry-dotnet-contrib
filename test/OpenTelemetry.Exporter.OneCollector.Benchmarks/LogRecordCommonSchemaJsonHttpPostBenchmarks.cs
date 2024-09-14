@@ -56,7 +56,10 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
         var sink = new WriteDirectlyToTransportSink<LogRecord>(
             new LogRecordCommonSchemaJsonSerializer(
-                new EventNameManager(exporterOptions.DefaultEventNamespace, exporterOptions.DefaultEventName),
+                new EventNameManager(
+                    exporterOptions.DefaultEventNamespace,
+                    exporterOptions.DefaultEventName,
+                    exporterOptions.ParsedEventFullNameMappings),
                 exporterOptions.TenantToken!,
                 exporterOptions.SerializationOptions.ExceptionStackTraceHandling,
                 transportOptions.MaxPayloadSizeInBytes == -1 ? int.MaxValue : transportOptions.MaxPayloadSizeInBytes,
@@ -153,7 +156,10 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
     private sealed class NoopHttpClient : IHttpClient
     {
-        public HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+        public HttpResponseMessage Send(
+            HttpRequestMessage request,
+            HttpCompletionOption completionOption,
+            CancellationToken cancellationToken)
         {
             return new HttpResponseMessage
             {

@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Runtime.InteropServices;
+#endif
 using Xunit;
 
 namespace OpenTelemetry.Resources.Host.Tests;
@@ -36,13 +39,15 @@ public class HostDetectorTests
           ""IOPlatformUUID"" = ""1AB2345C-03E4-57D4-A375-1234D48DE123""
         }";
 
+#if NET
     private static readonly IEnumerable<string> ETCMACHINEID = new[] { "Samples/etc_machineid" };
     private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
+#endif
 
     [Fact]
     public void TestHostAttributes()
     {
-        var resource = ResourceBuilder.CreateEmpty().AddDetector(new HostDetector()).Build();
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
@@ -52,6 +57,7 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 
+#if NET
     [Fact]
     public void TestHostMachineIdLinux()
     {
@@ -66,13 +72,12 @@ public class HostDetectorTests
         foreach (var (path, expected) in combos)
         {
             var detector = new HostDetector(
-                PlatformID.Unix,
+                osPlatform => osPlatform == OSPlatform.Linux,
                 () => path,
                 () => throw new Exception("should not be called"),
                 () => throw new Exception("should not be called"));
             var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
             var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
-
             if (string.IsNullOrEmpty(expected))
             {
                 Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId));
@@ -89,7 +94,7 @@ public class HostDetectorTests
     public void TestHostMachineIdMacOs()
     {
         var detector = new HostDetector(
-            PlatformID.MacOSX,
+            osPlatform => osPlatform == OSPlatform.OSX,
             () => Enumerable.Empty<string>(),
             () => MacOSMachineIdOutput,
             () => throw new Exception("should not be called"));
@@ -98,6 +103,7 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
+#endif
 
     [Fact]
     public void TestParseMacOsOutput()
@@ -109,14 +115,65 @@ public class HostDetectorTests
     [Fact]
     public void TestHostMachineIdWindows()
     {
-        var detector = new HostDetector(
-            PlatformID.Win32NT,
-            () => Enumerable.Empty<string>(),
-            () => throw new Exception("should not be called"),
-            () => "windows-machine-id");
+#if NET
+        var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+#else
+        var detector = new HostDetector(() => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+#endif
+
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.Equal("windows-machine-id", resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
+
+#if NET
+    [Fact]
+    public void TestPlatformSpecificMethodInvocation()
+    {
+        bool linuxMethodCalled = false;
+        bool macOsMethodCalled = false;
+        bool windowsMethodCalled = false;
+        var detector = new HostDetector(
+            () =>
+        {
+            linuxMethodCalled = true;
+            return Array.Empty<string>();
+        },
+            () =>
+        {
+            macOsMethodCalled = true;
+            return string.Empty;
+        },
+            () =>
+        {
+            windowsMethodCalled = true;
+            return string.Empty;
+        });
+        detector.Detect();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            Assert.True(linuxMethodCalled, "Linux method should have been called.");
+            Assert.False(windowsMethodCalled, "Windows method should not have been called.");
+            Assert.False(macOsMethodCalled, "MacOS method should not have been called.");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Assert.False(linuxMethodCalled, "Linux method should not have been called.");
+            Assert.True(windowsMethodCalled, "Windows method should have been called.");
+            Assert.False(macOsMethodCalled, "MacOS method should not have been called.");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            Assert.False(linuxMethodCalled, "Linux method should not have been called.");
+            Assert.False(windowsMethodCalled, "Windows method should not have been called.");
+            Assert.True(macOsMethodCalled, "MacOS method should have been called.");
+        }
+        else
+        {
+            Assert.Fail("Unexpected platform detected.");
+        }
+    }
+#endif
 }

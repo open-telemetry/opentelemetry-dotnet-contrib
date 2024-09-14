@@ -103,7 +103,7 @@ public partial class HttpClientTests
                 ",
             JsonSerializerOptions);
 
-        var t = (Task)this.GetType().InvokeMember(nameof(this.HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync), BindingFlags.InvokeMethod, null, this, HttpTestData.GetArgumentsFromTestCaseObject(input).First(), CultureInfo.InvariantCulture);
+        var t = (Task)this.GetType().InvokeMember(nameof(this.HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync), BindingFlags.InvokeMethod, null, this, HttpTestData.GetArgumentsFromTestCaseObject(input).First(), CultureInfo.InvariantCulture)!;
         await t;
     }
 #endif
@@ -172,6 +172,48 @@ public partial class HttpClientTests
     }
 #endif
 
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task HttpCancellationLogsError()
+    {
+        var activities = new List<Activity>();
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddHttpClientInstrumentation()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        try
+        {
+            using var c = new HttpClient();
+            using var request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"{this.url}/slow"),
+                Method = new HttpMethod("GET"),
+            };
+
+            var cancellationTokenSource = new CancellationTokenSource(100);
+            await c.SendAsync(request, cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // we expect this to be thrown here
+        }
+        finally
+        {
+            tracerProvider.Dispose();
+        }
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("Task Canceled", activity.StatusDescription);
+
+        var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
+        Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
+    }
+#endif
+
     private static async Task HttpOutCallsAreCollectedSuccessfullyBodyAsync(
         string host,
         int port,
@@ -200,13 +242,13 @@ public partial class HttpClientTests
         if (enableTracing)
         {
             tracerProviderBuilder
-                .AddHttpClientInstrumentation((opt) =>
+                .AddHttpClientInstrumentation(opt =>
                 {
-                    opt.EnrichWithHttpWebRequest = (activity, httpRequestMessage) => { enrichWithHttpWebRequestCalled = true; };
-                    opt.EnrichWithHttpWebResponse = (activity, httpResponseMessage) => { enrichWithHttpWebResponseCalled = true; };
-                    opt.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) => { enrichWithHttpRequestMessageCalled = true; };
-                    opt.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) => { enrichWithHttpResponseMessageCalled = true; };
-                    opt.EnrichWithException = (activity, exception) => { enrichWithExceptionCalled = true; };
+                    opt.EnrichWithHttpWebRequest = (_, _) => { enrichWithHttpWebRequestCalled = true; };
+                    opt.EnrichWithHttpWebResponse = (_, _) => { enrichWithHttpWebResponseCalled = true; };
+                    opt.EnrichWithHttpRequestMessage = (_, _) => { enrichWithHttpRequestMessageCalled = true; };
+                    opt.EnrichWithHttpResponseMessage = (_, _) => { enrichWithHttpResponseMessageCalled = true; };
+                    opt.EnrichWithException = (_, _) => { enrichWithExceptionCalled = true; };
                     opt.RecordException = tc.RecordException ?? false;
                 });
         }
@@ -293,7 +335,7 @@ public partial class HttpClientTests
             Assert.Equal(tc.SpanStatus, activity.Status.ToString());
             Assert.Null(activity.StatusDescription);
 
-            var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value.ToString());
+            var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
 
             int numberOfTags = activity.Status == ActivityStatusCode.Error ? 5 : 4;
 
@@ -301,18 +343,18 @@ public partial class HttpClientTests
 
             Assert.Equal(expectedAttributeCount, normalizedAttributes.Count);
 
-            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpRequestMethod]);
-            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
-            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
-            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeUrlFull && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull]);
+            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpRequestMethod]);
+            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
+            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
+            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeUrlFull && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull]);
             if (tc.ResponseExpected)
             {
-                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeNetworkProtocolVersion]);
-                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
+                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeNetworkProtocolVersion]);
+                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
 
                 if (tc.ResponseCode >= 400)
                 {
-                    Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
+                    Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
                 }
             }
             else
@@ -323,11 +365,11 @@ public partial class HttpClientTests
 #if NET8_0_OR_GREATER
                 // we are using fake address so it will be "name_resolution_error"
                 // TODO: test other error types.
-                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_error");
+                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "name_resolution_error");
 #elif NETFRAMEWORK
-                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_failure");
+                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "name_resolution_failure");
 #else
-                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "System.Net.Http.HttpRequestException");
+                Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Net.Http.HttpRequestException");
 #endif
             }
 
@@ -378,7 +420,7 @@ public partial class HttpClientTests
             }
 
             // Inspect Metric Attributes
-            var attributes = new Dictionary<string, object>();
+            var attributes = new Dictionary<string, object?>();
             foreach (var tag in metricPoint.Tags)
             {
                 attributes[tag.Key] = tag.Value;
@@ -399,19 +441,19 @@ public partial class HttpClientTests
 
             Assert.Equal(expectedAttributeCount, attributes.Count);
 
-            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpRequestMethod]);
-            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
-            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
-            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeUrlScheme && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeUrlScheme]);
+            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpRequestMethod]);
+            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
+            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
+            Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeUrlScheme && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeUrlScheme]);
 
             if (tc.ResponseExpected)
             {
-                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeNetworkProtocolVersion]);
-                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
+                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeNetworkProtocolVersion]);
+                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeHttpResponseStatusCode && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
 
                 if (tc.ResponseCode >= 400)
                 {
-                    Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
+                    Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpResponseStatusCode]);
                 }
             }
             else
@@ -422,12 +464,12 @@ public partial class HttpClientTests
 #if NET8_0_OR_GREATER
                 // we are using fake address so it will be "name_resolution_error"
                 // TODO: test other error types.
-                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_error");
+                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "name_resolution_error");
 #elif NETFRAMEWORK
-                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "name_resolution_failure");
+                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "name_resolution_failure");
 
 #else
-                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value.ToString() == "System.Net.Http.HttpRequestException");
+                Assert.Contains(attributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Net.Http.HttpRequestException");
 #endif
             }
 
@@ -463,11 +505,11 @@ public partial class HttpClientTests
             .SetSampler(sampler)
             .AddHttpClientInstrumentation(options =>
             {
-                options.EnrichWithHttpWebRequest = (activity, httpRequestMessage) => { enrichWithHttpWebRequestCalled = true; };
-                options.EnrichWithHttpWebResponse = (activity, httpResponseMessage) => { enrichWithHttpWebResponseCalled = true; };
+                options.EnrichWithHttpWebRequest = (_, _) => { enrichWithHttpWebRequestCalled = true; };
+                options.EnrichWithHttpWebResponse = (_, _) => { enrichWithHttpWebResponseCalled = true; };
 
-                options.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) => { enrichWithHttpRequestMessageCalled = true; };
-                options.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) => { enrichWithHttpResponseMessageCalled = true; };
+                options.EnrichWithHttpRequestMessage = (_, _) => { enrichWithHttpRequestMessageCalled = true; };
+                options.EnrichWithHttpResponseMessage = (_, _) => { enrichWithHttpResponseMessageCalled = true; };
             })
             .Build())
         {
