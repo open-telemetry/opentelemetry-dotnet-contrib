@@ -4,6 +4,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
     [Parameter(Mandatory=$true)][string]$component,
     [Parameter(Mandatory=$true)][string]$version,
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
+    [Parameter()][string]$releaseIssue,
     [Parameter()][string]$targetBranch="main",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
@@ -42,10 +43,19 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
       throw 'git switch failure'
   }
 
+  if ([string]::IsNullOrEmpty($releaseIssue) -eq $false)
+  {
+    $issueText =
+@"
+
+Release request: #$releaseIssue
+"@
+  }
+
   $body =
 @"
 Note: This PR was opened automatically by the [prepare release workflow](https://github.com/$gitRepository/actions/workflows/prepare-release.yml).
-
+$issueText
 Requested by: @$requestedByUserName
 
 ## Changes
@@ -305,9 +315,10 @@ Released $(Get-Date -UFormat '%Y-%b-%d')
 
 Export-ModuleMember -Function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest
 
-function TagCodeOwnersOnRequestReleaseIssue {
+function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$triggeringEventName,
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
     [Parameter(Mandatory=$true)][string]$issueNumber,
     [Parameter(Mandatory=$true)][string]$issueBody
@@ -328,15 +339,121 @@ function TagCodeOwnersOnRequestReleaseIssue {
   }
 
   $version = $match.Groups[1].Value
+  $versionMatch = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
 
-  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
+
+  $projectContent = Get-Content -Path src/$component/$component.csproj
+
+  $match = [regex]::Match($projectContent, '<MinVerTagPrefix>(.*)<\/MinVerTagPrefix>')
   if ($match.Success -eq $false)
   {
-      gh issue close $issueNumber --comment "The version ``$version`` is invalid. Please create a new issue with a valid version."
-      Return
+      throw 'Could not parse MinVerTagPrefix from project file'
   }
 
+  $minVerTagPrefix = $match.Groups[1].Value
 
+  $projectDirs = Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$minVerTagPrefix</MinVerTagPrefix>" -List | Select Path | Split-Path -Parent
+
+  $componentOwnersContent = Get-Content '.github/component_owners.yml' -Raw
+
+  $componentOwners = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+  foreach ($projectDir in $projectDirs)
+  {
+    $projectName = [System.IO.Path]::GetFileName($projectDir)
+
+    $match = [regex]::Match($componentOwnersContent, "src\/$projectName\/:([\w\W\s]*?)src")
+    if ($match.Success -eq $true)
+    {
+      $matches = [regex]::Matches($match.Groups[1].Value, "-\s*(.*)")
+      foreach ($match in $matches)
+      {
+        $owner = $match.Groups[1].Value
+        $_ = $componentOwners.Add($owner.Trim())
+      }
+    }
+  }
+
+  $kickOffWorkflow = $false
+  $kickOffWorkflowReason = ''
+
+  if ($requestedByUserPermission.permission -eq 'admin' -or $requestedByUserPermission.permission -eq 'write')
+  {
+    $kickOffWorkflow = $true
+    $kickOffWorkflowReason = "@$requestedByUserName has collaborator or greater permission"
+  }
+  elseif ($componentOwners.Contains($requestedByUserName) -eq $true)
+  {
+    $kickOffWorkflow = $true
+    $kickOffWorkflowReason = "@$requestedByUserName is a component owner"
+  }
+
+  if ($kickOffWorkflow -eq $true)
+  {
+    if ($versionMatch.Success -eq $false)
+    {
+      gh issue comment $issueNumber `
+        --body "$kickOffWorkflowReason but I can't proceed to kick off the prepare release workflow because the version requested is invalid. Please creare a new issue or edit the issue description, set a valid version, and then post a comment with `"/PrepareRelease`" in the body to restart the process."
+    }
+    else
+    {
+      gh workflow run "prepare-release.yml" `
+        --repo $gitRepository `
+        --ref "main" `
+        --field "component=$component" `
+        --field "version=$version" `
+        --field "releaseIssue=$issueNumber" `
+        --field "requestedByUserName=$requestedByUserName"
+
+      gh issue close $issueNumber `
+        --comment "I kicked off the prepare release workflow because $kickOffWorkflowReason."
+    }
+
+    return
+  }
+
+  if ($requestedByUserName -eq 'issues')
+  {
+    # Executed when issues are created
+    $componentOwners = ''
+    if ($componentOwners.Count -gt 0)
+    {
+      foreach ($componentOwner in $componentOwners)
+      {
+        $componentOwners += "@$componentOwner "
+      }
+    }
+
+    if ($versionMatch.Success -eq $false) {
+      $body =
+@"
+$componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
+
+It looks like a release has been requested for an invalid version ``$version``.
+
+Please create a new issue or edit the issue description, set a valid version, and then post a comment with "/PrepareRelease" in the body if you would like me to kick off the prepare release workflow for the component listed in the issue description.
+"@
+    }
+    else {
+      $body =
+@"
+$componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
+
+Post a comment with "/PrepareRelease" in the body if you would like me to kick off the prepare release workflow for the component and version listed in the issue description.
+"@
+    }
+
+    gh issue comment $issueNumber --body $body
+  }
+  else {
+    # Executed when issues are commented
+    if ($kickOffWorkflow -eq $false)
+    {
+      gh issue comment $issueNumber `
+        --body "I'm sorry @$requestedByUserPermission but you don't have permission to kick off the prepare release workflow. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command"
+    }
+  }
 }
 
-Export-ModuleMember -Function TagCodeOwnersOnRequestReleaseIssue
+Export-ModuleMember -Function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue
