@@ -57,11 +57,11 @@ on:
         required: true
       releaseIssue:
         type: string
-        description: 'Release issue'
+        description: 'Release request issue'
         required: false
       requestedByUserName:
         type: string
-        description: 'Requesting user name'
+        description: 'Requesting user login/username'
         required: false
 
   pull_request:
