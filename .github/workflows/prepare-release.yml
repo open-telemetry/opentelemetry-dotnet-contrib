@@ -259,7 +259,7 @@ jobs:
           -gitRepository '${{ github.repository }}' `
           -triggeringEventName '${{ github.event_name }}' `
           -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
-          -issueNumber ${{ github.event.issue.number }} `
+          -issueNumber '${{ github.event.issue.number }}' `
           -issueBody $env:ISSUE_BODY
       env:
         ISSUE_BODY: ${{ github.event.issue.body }}

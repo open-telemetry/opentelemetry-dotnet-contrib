@@ -324,17 +324,19 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     [Parameter(Mandatory=$true)][string]$issueBody
   )
 
-  $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$')
+  $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
   {
+      Write-Host 'Component could not be parsed from body'
       Return
   }
 
   $component = $match.Groups[1].Value
 
-  $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$')
+  $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
   {
+      Write-Host 'Version could not be parsed from body'
       Return
   }
 
