@@ -321,7 +321,8 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     [Parameter(Mandatory=$true)][string]$triggeringEventName,
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
     [Parameter(Mandatory=$true)][string]$issueNumber,
-    [Parameter(Mandatory=$true)][string]$issueBody
+    [Parameter(Mandatory=$true)][string]$issueBody,
+    [Parameter()][string]$targetBranch="main"
   )
 
   $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$', [Text.RegularExpressions.RegexOptions]::Multiline)
@@ -402,7 +403,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     {
       gh workflow run "prepare-release.yml" `
         --repo $gitRepository `
-        --ref "main" `
+        --ref $targetBranch `
         --field "component=$component" `
         --field "version=$version" `
         --field "releaseIssue=$issueNumber" `

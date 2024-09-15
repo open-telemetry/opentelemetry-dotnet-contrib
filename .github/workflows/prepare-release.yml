@@ -257,6 +257,7 @@ jobs:
 
         TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue `
           -gitRepository '${{ github.repository }}' `
+          -targetBranch '${{ github.event.repository.default_branch }}' `
           -triggeringEventName '${{ github.event_name }}' `
           -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
           -issueNumber '${{ github.event.issue.number }}' `
