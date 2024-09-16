@@ -3,7 +3,6 @@
 
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.ConfluentKafka;
 using OpenTelemetry.Internal;
 
@@ -58,18 +57,19 @@ public static partial class TracerProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        name ??= Options.DefaultName;
-
-        builder.ConfigureServices(services =>
-        {
-            services.Configure<ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>>(name, EnableTracing);
-        });
-
         return builder
             .AddSource(ConfluentKafkaCommon.InstrumentationName)
             .AddInstrumentation(sp =>
             {
-                producerBuilder ??= sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
+                if (name == null)
+                {
+                    producerBuilder ??= sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
+                }
+                else
+                {
+                    producerBuilder ??= sp.GetRequiredKeyedService<InstrumentedProducerBuilder<TKey, TValue>>(name);
+                }
+
                 EnableTracing(producerBuilder.Options);
                 return new ConfluentKafkaProducerInstrumentation<TKey, TValue>(producerBuilder);
             });

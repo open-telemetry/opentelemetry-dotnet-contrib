@@ -3,7 +3,6 @@
 
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.ConfluentKafka;
 using OpenTelemetry.Internal;
 
@@ -58,18 +57,19 @@ public static partial class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        name ??= Options.DefaultName;
-
-        builder.ConfigureServices(services =>
-        {
-            services.Configure<ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue>>(name, EnableMetrics);
-        });
-
         return builder
             .AddMeter(ConfluentKafkaCommon.InstrumentationName)
             .AddInstrumentation(sp =>
             {
-                consumerBuilder ??= sp.GetRequiredService<InstrumentedConsumerBuilder<TKey, TValue>>();
+                if (name == null)
+                {
+                    consumerBuilder ??= sp.GetRequiredService<InstrumentedConsumerBuilder<TKey, TValue>>();
+                }
+                else
+                {
+                    consumerBuilder ??= sp.GetRequiredKeyedService<InstrumentedConsumerBuilder<TKey, TValue>>(name);
+                }
+
                 EnableMetrics(consumerBuilder.Options);
                 return new ConfluentKafkaConsumerInstrumentation<TKey, TValue>(consumerBuilder);
             });
