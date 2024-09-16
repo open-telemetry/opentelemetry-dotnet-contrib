@@ -256,6 +256,7 @@ jobs:
           -gitRepository '${{ github.repository }}' `
           -targetBranch '${{ github.event.repository.default_branch }}' `
           -triggeringEventName '${{ github.event_name }}' `
+          -approvingGroups '@${{ github.repository_owner }}/dotnet-approvers @${{ github.repository_owner }}/dotnet-maintainers' `
           -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
           -issueNumber '${{ github.event.issue.number }}' `
           -issueBody $env:ISSUE_BODY `

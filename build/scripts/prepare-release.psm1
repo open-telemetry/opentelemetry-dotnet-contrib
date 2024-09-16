@@ -319,6 +319,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$triggeringEventName,
+    [Parameter(Mandatory=$true)][string]$approvingGroups,
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
     [Parameter(Mandatory=$true)][string]$issueNumber,
     [Parameter(Mandatory=$true)][string]$issueBody,
@@ -430,7 +431,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     return
   }
 
-  if ($requestedByUserName -eq 'issues')
+  if ($triggeringEventName -eq 'issues')
   {
     # Executed when issues are created or edited
     $componentOwners = ''
@@ -444,7 +445,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 
     $body =
 @"
-$componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
+$componentOwners$approvingGroups
 
 Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the description.
 "@
@@ -456,7 +457,7 @@ Post a comment with "/PrepareRelease" in the body if you would like me to execut
     if ($kickOffWorkflow -eq $false)
     {
       gh issue comment $issueNumber `
-        --body "I'm sorry @$requestedByUserPermission but you don't have permission to execute the prepare release script. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command."
+        --body "I'm sorry @$requestedByUserName but you don't have permission to execute the prepare release script. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command."
     }
   }
 }
