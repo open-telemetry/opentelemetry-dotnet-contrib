@@ -349,7 +349,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ($match.Success -eq $false)
   {
       gh issue comment $issueNumber `
-        --body "The version specified on the issue is invalid. Please create a new issue or edit the issue description and set a valid version."
+        --body "The version specified on the release request is invalid. Please create a new release request with a valid version or edit the description and set a valid version."
       Return
   }
 
@@ -358,7 +358,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ((Test-Path -Path $projectPath) -eq $false)
   {
       gh issue comment $issueNumber `
-        --body "I couldn't find the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
+        --body "I couldn't find the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
       Return
   }
 
@@ -368,7 +368,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ($match.Success -eq $false)
   {
       gh issue comment $issueNumber `
-        --body "I couldn't find ``MinVerTagPrefix`` in the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
+        --body "I couldn't find ``MinVerTagPrefix`` in the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
       Return
   }
 
@@ -446,13 +446,13 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 @"
 $componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
 
-Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the issue description.
+Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the description.
 "@
 
     gh issue comment $issueNumber --body $body
   }
   else {
-    # Executed when issues are commented
+    # Executed when issues are commented with the /PrepareRelease command
     if ($kickOffWorkflow -eq $false)
     {
       gh issue comment $issueNumber `
