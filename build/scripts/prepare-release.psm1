@@ -344,6 +344,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   }
 
   $version = $match.Groups[1].Value
+
   $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
   if ($match.Success -eq $false)
   {
@@ -352,15 +353,22 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
       Return
   }
 
-  $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
+  $projectPath = "src/$component/$component.csproj"
 
-  $projectContent = Get-Content -Path src/$component/$component.csproj
+  if ((Test-Path -Path $projectPath) -eq $false)
+  {
+      gh issue comment $issueNumber `
+        --body "I couldn't find the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
+      Return
+  }
+
+  $projectContent = Get-Content -Path $projectPath
 
   $match = [regex]::Match($projectContent, '<MinVerTagPrefix>(.*)<\/MinVerTagPrefix>')
   if ($match.Success -eq $false)
   {
       gh issue comment $issueNumber `
-        --body "I couldn't find the project file and/or a ``MinVerTagPrefix`` in the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
+        --body "I couldn't find ``MinVerTagPrefix`` in the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
       Return
   }
 
@@ -387,6 +395,8 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
       }
     }
   }
+
+  $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
 
   $kickOffWorkflow = $false
   $kickOffWorkflowReason = ''
