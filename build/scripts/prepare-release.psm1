@@ -434,18 +434,18 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   if ($triggeringEventName -eq 'issues')
   {
     # Executed when issues are created or edited
-    $componentOwners = ''
+    $componentOwnerApprovers = ''
     if ($componentOwners.Count -gt 0)
     {
       foreach ($componentOwner in $componentOwners)
       {
-        $componentOwners += "@$componentOwner "
+        $componentOwnerApprovers += "@$componentOwner "
       }
     }
 
     $body =
 @"
-$componentOwners$approvingGroups
+$componentOwnerApprovers$approvingGroups
 
 Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the description.
 "@
