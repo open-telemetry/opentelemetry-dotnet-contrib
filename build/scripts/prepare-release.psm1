@@ -322,7 +322,9 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
     [Parameter(Mandatory=$true)][string]$issueNumber,
     [Parameter(Mandatory=$true)][string]$issueBody,
-    [Parameter()][string]$targetBranch="main"
+    [Parameter()][string]$targetBranch="main",
+    [Parameter()][string]$gitUserName,
+    [Parameter()][string]$gitUserEmail
   )
 
   $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$', [Text.RegularExpressions.RegexOptions]::Multiline)
@@ -342,7 +344,13 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   }
 
   $version = $match.Groups[1].Value
-  $versionMatch = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  if ($match.Success -eq $false)
+  {
+      gh issue comment $issueNumber `
+        --body "The version specified on the issue is invalid. Please create a new issue or edit the issue description and set a valid version."
+      Return
+  }
 
   $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
 
@@ -351,7 +359,9 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
   $match = [regex]::Match($projectContent, '<MinVerTagPrefix>(.*)<\/MinVerTagPrefix>')
   if ($match.Success -eq $false)
   {
-      throw 'Could not parse MinVerTagPrefix from project file'
+      gh issue comment $issueNumber `
+        --body "I couldn't find the project file and/or a ``MinVerTagPrefix`` in the project file for the requested component. Please create a new issue or edit the issue description and set a valid component."
+      Return
   }
 
   $minVerTagPrefix = $match.Groups[1].Value
@@ -394,31 +404,25 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
 
   if ($kickOffWorkflow -eq $true)
   {
-    if ($versionMatch.Success -eq $false)
-    {
-      gh issue comment $issueNumber `
-        --body "$kickOffWorkflowReason but I can't proceed to kick off the prepare release workflow because the version requested is invalid. Please creare a new issue or edit the issue description, set a valid version, and then post a comment with `"/PrepareRelease`" in the body to restart the process."
-    }
-    else
-    {
-      gh workflow run "prepare-release.yml" `
-        --repo $gitRepository `
-        --ref $targetBranch `
-        --field "component=$component" `
-        --field "version=$version" `
-        --field "releaseIssue=$issueNumber" `
-        --field "requestedByUserName=$requestedByUserName"
+    CreatePullRequestToUpdateChangelogsAndPublicApis `
+      -gitRepository $gitRepository `
+      -component $component `
+      -version $version `
+      -requestedByUserName $requestedByUserName `
+      -releaseIssue $issueNumber `
+      -targetBranch $targetBranch `
+      -gitUserName $gitUserName `
+      -gitUserEmail $gitUserEmail
 
-      gh issue close $issueNumber `
-        --comment "I kicked off the prepare release workflow because $kickOffWorkflowReason."
-    }
+    gh issue close $issueNumber `
+      --comment "I executed the prepare release script for ``$component`` version ``$version``` because $kickOffWorkflowReason."
 
     return
   }
 
   if ($requestedByUserName -eq 'issues')
   {
-    # Executed when issues are created
+    # Executed when issues are created or edited
     $componentOwners = ''
     if ($componentOwners.Count -gt 0)
     {
@@ -428,24 +432,12 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
       }
     }
 
-    if ($versionMatch.Success -eq $false) {
-      $body =
+    $body =
 @"
 $componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
 
-It looks like a release has been requested for an invalid version ``$version``.
-
-Please create a new issue or edit the issue description, set a valid version, and then post a comment with "/PrepareRelease" in the body if you would like me to kick off the prepare release workflow for the component listed in the issue description.
+Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the issue description.
 "@
-    }
-    else {
-      $body =
-@"
-$componentOwners@open-telemetry/dotnet-approvers @open-telemetry/dotnet-maintainers
-
-Post a comment with "/PrepareRelease" in the body if you would like me to kick off the prepare release workflow for the component and version listed in the issue description.
-"@
-    }
 
     gh issue comment $issueNumber --body $body
   }
@@ -454,7 +446,7 @@ Post a comment with "/PrepareRelease" in the body if you would like me to kick o
     if ($kickOffWorkflow -eq $false)
     {
       gh issue comment $issueNumber `
-        --body "I'm sorry @$requestedByUserPermission but you don't have permission to kick off the prepare release workflow. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command"
+        --body "I'm sorry @$requestedByUserPermission but you don't have permission to execute the prepare release script. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command."
     }
   }
 }

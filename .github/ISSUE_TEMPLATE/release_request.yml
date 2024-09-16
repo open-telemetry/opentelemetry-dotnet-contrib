@@ -71,5 +71,11 @@ body:
         * 1.9.0
         * 1.10.0-rc.1
         * 0.2.0-alpha.3
+        * 1.12.0-beta.2
     validations:
       required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Any additional information you think may be relevant to this release request.

@@ -59,10 +59,6 @@ on:
         type: string
         description: 'Release request issue'
         required: false
-      requestedByUserName:
-        type: string
-        description: 'Requesting user login/username'
-        required: false
 
   pull_request:
     types:
@@ -71,6 +67,7 @@ on:
   issues:
     types:
     - opened
+    - edited
 
   issue_comment:
     types:
@@ -106,7 +103,7 @@ jobs:
           -gitRepository '${{ github.repository }}' `
           -component '${{ inputs.component }}' `
           -version '${{ inputs.version }}' `
-          -requestedByUserName '${{ inputs.requestedByUserName || github.event.sender.login }}' `
+          -requestedByUserName '${{ github.event.sender.login }}' `
           -releaseIssue '${{ inputs.releaseIssue }}' `
           -targetBranch '${{ github.ref_name }}' `
           -gitUserName '${{ needs.automation.outputs.username }}' `
@@ -261,7 +258,9 @@ jobs:
           -triggeringEventName '${{ github.event_name }}' `
           -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
           -issueNumber '${{ github.event.issue.number }}' `
-          -issueBody $env:ISSUE_BODY
+          -issueBody $env:ISSUE_BODY `
+          -gitUserName '${{ needs.automation.outputs.username }}' `
+          -gitUserEmail '${{ needs.automation.outputs.email }}'
       env:
         ISSUE_BODY: ${{ github.event.issue.body }}
 
