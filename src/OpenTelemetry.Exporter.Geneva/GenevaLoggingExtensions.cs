@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -20,11 +22,11 @@ public static class GenevaLoggingExtensions
     /// Adds <see cref="GenevaLogExporter"/> to the <see cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configure">Callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
         this OpenTelemetryLoggerOptions options,
-        Action<GenevaExporterOptions> configure)
+        Action<GenevaExporterOptions>? configure)
     {
         Guard.ThrowIfNull(options);
 
@@ -71,8 +73,8 @@ public static class GenevaLoggingExtensions
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
     public static LoggerProviderBuilder AddGenevaLogExporter(
         this LoggerProviderBuilder builder,
-        string name,
-        Action<GenevaExporterOptions> configureExporter)
+        string? name,
+        Action<GenevaExporterOptions>? configureExporter)
     {
         var finalOptionsName = name ?? Options.Options.DefaultName;
 
