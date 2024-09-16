@@ -6,9 +6,14 @@ OpenTelemetry.Exporter.Geneva.EventNameExportMode.None = 0 -> OpenTelemetry.Expo
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.Drop = 0 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.ExportAsString = 1 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
+OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>
 OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>.GenevaBaseExporter() -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterHelperExtensions
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.get -> string?
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.get -> System.Collections.Generic.IEnumerable<string!>?
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.EventNameExportMode.get -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.EventNameExportMode.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.get -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
@@ -16,36 +21,31 @@ OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ExceptionStackExportMode.set
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.GenevaExporterOptions() -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceStateForSpan.get -> bool
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeTraceStateForSpan.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object!>!
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableNameMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>?
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableNameMappings.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaLogExporter
+OpenTelemetry.Exporter.Geneva.GenevaLogExporter.GenevaLogExporter(OpenTelemetry.Exporter.Geneva.GenevaExporterOptions! options) -> void
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporter
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporter.GenevaMetricExporter(OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions! options) -> void
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporterExtensions
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.ConnectionString.get -> string?
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.ConnectionString.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.GenevaMetricExporterOptions() -> void
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.MetricExportIntervalMilliseconds.get -> int
 OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.MetricExportIntervalMilliseconds.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.PrepopulatedMetricDimensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object!>?
+OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.PrepopulatedMetricDimensions.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaTraceExporter
+OpenTelemetry.Exporter.Geneva.GenevaTraceExporter.GenevaTraceExporter(OpenTelemetry.Exporter.Geneva.GenevaExporterOptions! options) -> void
 override OpenTelemetry.Exporter.Geneva.GenevaLogExporter.Dispose(bool disposing) -> void
+override OpenTelemetry.Exporter.Geneva.GenevaLogExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Logs.LogRecord!> batch) -> OpenTelemetry.ExportResult
 override OpenTelemetry.Exporter.Geneva.GenevaMetricExporter.Dispose(bool disposing) -> void
+override OpenTelemetry.Exporter.Geneva.GenevaMetricExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Metrics.Metric!> batch) -> OpenTelemetry.ExportResult
 override OpenTelemetry.Exporter.Geneva.GenevaTraceExporter.Dispose(bool disposing) -> void
-~OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.get -> string
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.get -> System.Collections.Generic.IEnumerable<string>
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.PrepopulatedFields.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableNameMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
-~OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.TableNameMappings.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaLogExporter.GenevaLogExporter(OpenTelemetry.Exporter.Geneva.GenevaExporterOptions options) -> void
-~OpenTelemetry.Exporter.Geneva.GenevaMetricExporter.GenevaMetricExporter(OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions options) -> void
-~OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.ConnectionString.get -> string
-~OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.ConnectionString.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.PrepopulatedMetricDimensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-~OpenTelemetry.Exporter.Geneva.GenevaMetricExporterOptions.PrepopulatedMetricDimensions.set -> void
-~OpenTelemetry.Exporter.Geneva.GenevaTraceExporter.GenevaTraceExporter(OpenTelemetry.Exporter.Geneva.GenevaExporterOptions options) -> void
-~override OpenTelemetry.Exporter.Geneva.GenevaLogExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Logs.LogRecord> batch) -> OpenTelemetry.ExportResult
-~override OpenTelemetry.Exporter.Geneva.GenevaMetricExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Metrics.Metric> batch) -> OpenTelemetry.ExportResult
-~override OpenTelemetry.Exporter.Geneva.GenevaTraceExporter.Export(in OpenTelemetry.Batch<System.Diagnostics.Activity> batch) -> OpenTelemetry.ExportResult
+override OpenTelemetry.Exporter.Geneva.GenevaTraceExporter.Export(in OpenTelemetry.Batch<System.Diagnostics.Activity!> batch) -> OpenTelemetry.ExportResult
 static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
 static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions!>? configureExporter) -> OpenTelemetry.Logs.LoggerProviderBuilder!
 static Microsoft.Extensions.Logging.GenevaLoggingExtensions.AddGenevaLogExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, System.Action<OpenTelemetry.Exporter.Geneva.GenevaExporterOptions!>! configureExporter) -> OpenTelemetry.Logs.LoggerProviderBuilder!
