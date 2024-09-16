@@ -69,19 +69,8 @@ public static partial class MeterProviderBuilderExtensions
             .AddMeter(ConfluentKafkaCommon.InstrumentationName)
             .AddInstrumentation(sp =>
             {
-                if (producerBuilder == null)
-                {
-                    producerBuilder = sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
-                    var options = sp.GetRequiredService<IOptionsMonitor<ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>>>();
-                    producerBuilder.Options = options.Get(name);
-                }
-
-                if (producerBuilder.Options == null)
-                {
-                    producerBuilder.Options = new ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>();
-                    EnableMetrics(producerBuilder.Options);
-                }
-
+                producerBuilder ??= sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
+                EnableMetrics(producerBuilder.Options);
                 return new ConfluentKafkaProducerInstrumentation<TKey, TValue>(producerBuilder);
             });
     }

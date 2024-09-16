@@ -22,7 +22,10 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
     }
 
-    internal ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>? Options { get; set; }
+    /// <summary>
+    /// Gets instrumentation options.
+    /// </summary>
+    public ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> Options { get; } = new();
 
     /// <summary>
     /// Build a new IProducer instance.

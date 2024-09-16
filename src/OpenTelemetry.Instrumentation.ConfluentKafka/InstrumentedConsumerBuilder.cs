@@ -22,7 +22,10 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
     {
     }
 
-    internal ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue>? Options { get; set; }
+    /// <summary>
+    /// Gets instrumentation options.
+    /// </summary>
+    public ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> Options { get; } = new();
 
     /// <summary>
     /// Build a new IConsumer instance.
