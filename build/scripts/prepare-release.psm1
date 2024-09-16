@@ -334,12 +334,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
       Return
   }
 
-  $component = $match.Groups[1].Value
-  Write-Host "component: $component*"
-  Write-Host "componentCount: $($component.Count)"
-  $component = $component.Trim();
-  Write-Host "component: $component*"
-  Write-Host "componentCount: $($component.Count)"
+  $component = $match.Groups[1].Value.Trim()
 
   $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$', [Text.RegularExpressions.RegexOptions]::Multiline)
   if ($match.Success -eq $false)
@@ -348,12 +343,7 @@ function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
       Return
   }
 
-  $version = $match.Groups[1].Value
-  Write-Host "version: $version*"
-  Write-Host "versionCount: $($version.Count)"
-  $version = $version.Trim();
-  Write-Host "version: $version*"
-  Write-Host "versionCount: $($version.Count)"
+  $version = $match.Groups[1].Value.Trim()
 
   $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
   if ($match.Success -eq $false)
