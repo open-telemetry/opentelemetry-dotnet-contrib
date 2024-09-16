@@ -25,7 +25,7 @@ internal class RedisMetrics : IDisposable
         this.DurationHistogram = this.meter.CreateHistogram<double>(
             DurationMetricName,
             unit: "s",
-            description: "Total client request duration, including processing, queue and server duration.");
+            description: "Duration of database client operations.");
     }
 
     public static RedisMetrics Instance { get; } = new RedisMetrics();
