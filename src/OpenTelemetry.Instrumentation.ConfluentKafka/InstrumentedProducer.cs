@@ -27,8 +27,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     public string Name => this.producer.Name;
 
-    internal ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> Options => this.options;
-
     public int AddBrokers(string brokers)
     {
         return this.producer.AddBrokers(brokers);
