@@ -18,42 +18,118 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
 {
     [Trait("CategoryName", "KafkaIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(KafkaHelpers.KafkaEndPointEnvVarName)]
-    [InlineData(true, true, true, true)]
-    [InlineData(true, true, true, false)]
-    [InlineData(true, true, false, true)]
-    [InlineData(true, true, false, false)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, false, true, false)]
-    [InlineData(true, false, false, true)]
-    [InlineData(true, false, false, false)]
-    [InlineData(false, true, true, true)]
-    [InlineData(false, true, true, false)]
-    [InlineData(false, true, false, true)]
-    [InlineData(false, true, false, false)]
-    [InlineData(false, false, true, true)]
-    [InlineData(false, false, true, false)]
-    [InlineData(false, false, false, true)]
-    [InlineData(false, false, false, false)]
-    public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest(bool enableProducerMetrics, bool enableProducerTraces, bool enableConsumerMetrics, bool enableConsumerTraces)
+    [InlineData(true, true, true, true, true, true)]
+    [InlineData(true, true, true, true, true, false)]
+    [InlineData(true, true, true, true, false, true)]
+    [InlineData(true, true, true, true, false, false)]
+    [InlineData(true, true, true, false, true, true)]
+    [InlineData(true, true, true, false, true, false)]
+    [InlineData(true, true, true, false, false, true)]
+    [InlineData(true, true, true, false, false, false)]
+    [InlineData(true, true, false, true, true, true)]
+    [InlineData(true, true, false, true, true, false)]
+    [InlineData(true, true, false, true, false, true)]
+    [InlineData(true, true, false, true, false, false)]
+    [InlineData(true, true, false, false, true, true)]
+    [InlineData(true, true, false, false, true, false)]
+    [InlineData(true, true, false, false, false, true)]
+    [InlineData(true, true, false, false, false, false)]
+    [InlineData(true, false, true, true, true, true)]
+    [InlineData(true, false, true, true, true, false)]
+    [InlineData(true, false, true, true, false, true)]
+    [InlineData(true, false, true, true, false, false)]
+    [InlineData(true, false, true, false, true, true)]
+    [InlineData(true, false, true, false, true, false)]
+    [InlineData(true, false, true, false, false, true)]
+    [InlineData(true, false, true, false, false, false)]
+    [InlineData(true, false, false, true, true, true)]
+    [InlineData(true, false, false, true, true, false)]
+    [InlineData(true, false, false, true, false, true)]
+    [InlineData(true, false, false, true, false, false)]
+    [InlineData(true, false, false, false, true, true)]
+    [InlineData(true, false, false, false, true, false)]
+    [InlineData(true, false, false, false, false, true)]
+    [InlineData(true, false, false, false, false, false)]
+    [InlineData(false, true, true, true, true, true)]
+    [InlineData(false, true, true, true, true, false)]
+    [InlineData(false, true, true, true, false, true)]
+    [InlineData(false, true, true, true, false, false)]
+    [InlineData(false, true, true, false, true, true)]
+    [InlineData(false, true, true, false, true, false)]
+    [InlineData(false, true, true, false, false, true)]
+    [InlineData(false, true, true, false, false, false)]
+    [InlineData(false, true, false, true, true, true)]
+    [InlineData(false, true, false, true, true, false)]
+    [InlineData(false, true, false, true, false, true)]
+    [InlineData(false, true, false, true, false, false)]
+    [InlineData(false, true, false, false, true, true)]
+    [InlineData(false, true, false, false, true, false)]
+    [InlineData(false, true, false, false, false, true)]
+    [InlineData(false, true, false, false, false, false)]
+    [InlineData(false, false, true, true, true, true)]
+    [InlineData(false, false, true, true, true, false)]
+    [InlineData(false, false, true, true, false, true)]
+    [InlineData(false, false, true, true, false, false)]
+    [InlineData(false, false, true, false, true, true)]
+    [InlineData(false, false, true, false, true, false)]
+    [InlineData(false, false, true, false, false, true)]
+    [InlineData(false, false, true, false, false, false)]
+    [InlineData(false, false, false, true, true, true)]
+    [InlineData(false, false, false, true, true, false)]
+    [InlineData(false, false, false, true, false, true)]
+    [InlineData(false, false, false, true, false, false)]
+    [InlineData(false, false, false, false, true, true)]
+    [InlineData(false, false, false, false, true, false)]
+    [InlineData(false, false, false, false, false, true)]
+    [InlineData(false, false, false, false, false, false)]
+    public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest(bool enableProducerMetrics, bool enableProducerTraces, bool useNamedProducerInstrumentation, bool enableConsumerMetrics, bool enableConsumerTraces, bool useNamedConsumerInstrumentation)
     {
+        string? producerInstrumentationName = useNamedProducerInstrumentation ? "MyProducer" : null;
+        string? consumerInstrumentationName = useNamedConsumerInstrumentation ? "MyConsumer" : null;
         List<Metric> metrics = new();
         List<Activity> activities = new();
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {
-            services.AddSingleton(_ =>
-                new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
-                {
-                    BootstrapServers = KafkaHelpers.KafkaEndPoint,
-                }));
-            services.AddSingleton(_ =>
-                new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
-                {
-                    BootstrapServers = KafkaHelpers.KafkaEndPoint,
-                    GroupId = Guid.NewGuid().ToString(),
-                    AutoOffsetReset = AutoOffsetReset.Earliest,
-                    EnablePartitionEof = true,
-                }));
+            if (useNamedProducerInstrumentation)
+            {
+                services.AddKeyedSingleton(producerInstrumentationName, (_, _) =>
+                    new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
+                    {
+                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                    }));
+            }
+            else
+            {
+                services.AddSingleton(_ =>
+                    new InstrumentedProducerBuilder<string, string>(new ProducerConfig()
+                    {
+                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                    }));
+            }
+
+            if (useNamedConsumerInstrumentation)
+            {
+                services.AddKeyedSingleton(consumerInstrumentationName, (_, _) =>
+                    new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
+                    {
+                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        GroupId = Guid.NewGuid().ToString(),
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        EnablePartitionEof = true,
+                    }));
+            }
+            else
+            {
+                services.AddSingleton(_ =>
+                    new InstrumentedConsumerBuilder<string, string>(new ConsumerConfig()
+                    {
+                        BootstrapServers = KafkaHelpers.KafkaEndPoint,
+                        GroupId = Guid.NewGuid().ToString(),
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        EnablePartitionEof = true,
+                    }));
+            }
 
             services.AddOpenTelemetry().WithTracing(tracingBuilder =>
             {
@@ -62,12 +138,12 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                     .SetSampler(new TestSampler());
                 if (enableProducerTraces)
                 {
-                    tracingBuilder.AddKafkaProducerInstrumentation<string, string>();
+                    tracingBuilder.AddKafkaProducerInstrumentation<string, string>(name: producerInstrumentationName, producerBuilder: null);
                 }
 
                 if (enableConsumerTraces)
                 {
-                    tracingBuilder.AddKafkaConsumerInstrumentation<string, string>();
+                    tracingBuilder.AddKafkaConsumerInstrumentation<string, string>(name: consumerInstrumentationName, consumerBuilder: null);
                 }
             }).WithMetrics(metricsBuilder =>
             {
@@ -75,12 +151,12 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
                     .AddInMemoryExporter(metrics);
                 if (enableProducerMetrics)
                 {
-                    metricsBuilder.AddKafkaProducerInstrumentation<string, string>();
+                    metricsBuilder.AddKafkaProducerInstrumentation<string, string>(name: producerInstrumentationName, producerBuilder: null);
                 }
 
                 if (enableConsumerMetrics)
                 {
-                    metricsBuilder.AddKafkaConsumerInstrumentation<string, string>();
+                    metricsBuilder.AddKafkaConsumerInstrumentation<string, string>(name: consumerInstrumentationName, consumerBuilder: null);
                 }
             });
         });
@@ -89,17 +165,21 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
         {
             await host.StartAsync();
 
-            var producerOptions = host.Services
-                .GetRequiredService<InstrumentedProducerBuilder<string, string>>().Options;
+            var producerOptions = useNamedProducerInstrumentation
+                ? host.Services.GetRequiredKeyedService<InstrumentedProducerBuilder<string, string>>(producerInstrumentationName).Options
+                : host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>().Options;
             Assert.Equal(enableProducerMetrics, producerOptions.Metrics);
             Assert.Equal(enableProducerTraces, producerOptions.Traces);
-            var consumerOptions = host.Services
-                .GetRequiredService<InstrumentedConsumerBuilder<string, string>>().Options;
+            var consumerOptions = useNamedConsumerInstrumentation
+                ? host.Services.GetRequiredKeyedService<InstrumentedConsumerBuilder<string, string>>(consumerInstrumentationName).Options
+                : host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>().Options;
             Assert.Equal(enableConsumerMetrics, consumerOptions.Metrics);
             Assert.Equal(enableConsumerTraces, consumerOptions.Traces);
 
             string topic = $"otel-topic-{Guid.NewGuid()}";
-            using (var producer = host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>().Build())
+            using (var producer = (useNamedProducerInstrumentation
+                       ? host.Services.GetRequiredKeyedService<InstrumentedProducerBuilder<string, string>>(producerInstrumentationName)
+                       : host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>()).Build())
             {
                 for (int i = 0; i < 100; i++)
                 {
@@ -121,7 +201,9 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
 
             activities.Clear();
 
-            using (var consumer = host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>().Build())
+            using (var consumer = (useNamedConsumerInstrumentation
+                       ? host.Services.GetRequiredKeyedService<InstrumentedConsumerBuilder<string, string>>(consumerInstrumentationName)
+                       : host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>()).Build())
             {
                 consumer.Subscribe(topic);
 
