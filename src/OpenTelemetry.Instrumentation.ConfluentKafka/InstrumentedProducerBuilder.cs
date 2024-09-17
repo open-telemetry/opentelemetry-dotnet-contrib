@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Confluent.Kafka;
+using OpenTelemetry.Instrumentation.ConfluentKafka;
 
-namespace OpenTelemetry.Instrumentation.ConfluentKafka;
+namespace Confluent.Kafka;
 
 /// <summary>
 /// A builder of <see cref="IProducer{TKey,TValue}"/> with support for instrumentation.

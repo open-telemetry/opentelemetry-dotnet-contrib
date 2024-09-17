@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Globalization;
 using OpenTelemetry.Internal;
 
@@ -67,16 +69,22 @@ internal sealed class ConnectionStringBuilder
         set => this.parts[nameof(this.EtwSession)] = value;
     }
 
-    public string PrivatePreviewEnableTraceLoggingDynamic
+    public bool PrivatePreviewEnableTraceLoggingDynamic
     {
-        get => this.ThrowIfNotExists<string>(nameof(this.PrivatePreviewEnableTraceLoggingDynamic));
-        set => this.parts[nameof(this.PrivatePreviewEnableTraceLoggingDynamic)] = value;
+        get
+        {
+            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
-    public string PrivatePreviewEnableOtlpProtobufEncoding
+    public bool PrivatePreviewEnableOtlpProtobufEncoding
     {
-        get => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value) ? value : null;
-        set => this.parts[nameof(this.PrivatePreviewEnableOtlpProtobufEncoding)] = value;
+        get
+        {
+            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     public string Endpoint
@@ -94,8 +102,7 @@ internal sealed class ConnectionStringBuilder
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
                 if (this.parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    _ = this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var privatePreviewEnableTraceLoggingDynamic);
-                    if (privatePreviewEnableTraceLoggingDynamic != null && privatePreviewEnableTraceLoggingDynamic.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+                    if (this.PrivatePreviewEnableTraceLoggingDynamic)
                     {
                         return TransportProtocol.EtwTld;
                     }
@@ -127,7 +134,7 @@ internal sealed class ConnectionStringBuilder
     {
         get
         {
-            if (!this.parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string value))
+            if (!this.parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string? value))
             {
                 return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
             }

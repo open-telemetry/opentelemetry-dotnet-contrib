@@ -3,7 +3,6 @@
 
 using Confluent.Kafka;
 using Examples.ConfluentKafka;
-using OpenTelemetry.Instrumentation.ConfluentKafka;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 

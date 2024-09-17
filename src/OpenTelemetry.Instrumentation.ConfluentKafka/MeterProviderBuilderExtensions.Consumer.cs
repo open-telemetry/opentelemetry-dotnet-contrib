@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.ConfluentKafka;
@@ -30,7 +31,7 @@ public static partial class MeterProviderBuilderExtensions
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="consumerBuilder"><see cref="InstrumentedConsumerBuilder{TKey, TValue}"/> to instrument.</param>
+    /// <param name="consumerBuilder"><see cref="InstrumentedConsumerBuilder{TKey,TValue}"/> to instrument.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddKafkaConsumerInstrumentation<TKey, TValue>(
         this MeterProviderBuilder builder,
