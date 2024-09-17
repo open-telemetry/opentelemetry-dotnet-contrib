@@ -2,10 +2,8 @@
 
 ## Unreleased
 
-- Ensure options instances are hold by builder's instances.
-- Add named instrumentation support (using Keyed service
-to ease integration in .NET Aspire)
-- Add integration test variations
+- Add named instrumentation support
+  ([#2074](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2074))
 
 ## 0.1.0-alpha.1
 
