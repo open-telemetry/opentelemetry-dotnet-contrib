@@ -25,7 +25,7 @@ jobs:
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
-          exporter-infuxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
+          exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
