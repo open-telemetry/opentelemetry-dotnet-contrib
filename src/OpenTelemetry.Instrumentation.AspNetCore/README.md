@@ -317,15 +317,13 @@ the library you can do so as follows:
 > Only applicable for .NET 8 and newer.
 
 ASP.NET Core supports enriching request metrics using `IHttpMetricsTagsFeature`.
-This feature allows you to add custom tags to metrics like `http.server.request.duration`,
-which records the duration of HTTP requests on the server.
+This feature allows you to add custom tags to metrics.
 
 Here's an example of enriching the `http.server.request.duration` metric:
 
 ```csharp
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -336,32 +334,20 @@ builder.Services.AddOpenTelemetry()
         metricsBuilder
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
             .AddOtlpExporter()
-            .AddMeter("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel")
-            .AddView("http.server.request.duration",
-                new ExplicitBucketHistogramConfiguration
-                {
-                    Boundaries = new double[] { 0, 0.005, 0.01, 0.025, 0.05,
-                        0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 }
-                });
+            .AddMeter("Microsoft.AspNetCore.Hosting");
     });
 
 var app = builder.Build();
 
-// Middleware to enrich the request metric with marketing source
+// Middleware to enrich the request metric with a custom tag
 app.Use(async (context, next) =>
 {
     var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
     if (tagsFeature != null)
     {
-        var source = context.Request.Query["utm_medium"].ToString() switch
-        {
-            "" => "none",
-            "social" => "social",
-            "email" => "email",
-            "organic" => "organic",
-            _ => "other"
-        };
-        tagsFeature.Tags.Add(new KeyValuePair<string, object?>("mkt_medium", source));
+        // Add a custom tag based on the "utm_medium" query parameter
+        var source = context.Request.Query["utm_medium"].ToString();
+        tagsFeature.Tags.Add(new KeyValuePair<string, object?>("utm_medium", source));
     }
 
     await next.Invoke();
@@ -374,11 +360,10 @@ app.Run();
 
 In this example:
 
-* Middleware is added to enrich the ASP.NET Core request metric.
+* Middleware is used to add a custom tag `utm_medium` to the
+  `http.server.request.duration` metric.
 * `IHttpMetricsTagsFeature` is obtained from the `HttpContext`.
   This feature is only available if someone is listening to the metric.
-* A custom tag `mkt_medium` is added to the `http.server.request.duration` metric.
-  The value of this tag is determined based on the `utm_medium` query string parameter.
 
 #### RecordException
 

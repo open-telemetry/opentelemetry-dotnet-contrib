@@ -268,9 +268,8 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 > [!IMPORTANT]
 > Only applicable for .NET 8 and newer.
 
-Metrics enrichment in HttpClient allows adding custom tags to metrics, such as
-`http.client.request.duration`. This is especially useful for categorizing
-metrics in dashboards or alerts.
+Metrics enrichment in HttpClient allows adding custom tags to metrics.
+ This is especially useful for categorizing metrics in dashboards or alerts.
 
 Using `HttpMetricsEnrichmentContext` for Enrichment
 To enrich metrics, you can register callbacks with `HttpMetricsEnrichmentContext`.
@@ -284,8 +283,7 @@ using System.Net.Http.Metrics;
 
 using HttpClient client = new(new EnrichmentHandler() { InnerHandler = new HttpClientHandler() });
 
-await client.GetStringAsync("https://httpbin.org/response-headers?Enrichment-Value=A");
-await client.GetStringAsync("https://httpbin.org/response-headers?Enrichment-Value=B");
+await client.GetStringAsync("https://example.com");
 
 sealed class EnrichmentHandler : DelegatingHandler
 {
@@ -293,23 +291,22 @@ sealed class EnrichmentHandler : DelegatingHandler
     {
         HttpMetricsEnrichmentContext.AddCallback(request, static context =>
         {
-            if (context.Response is not null) // Response is null when an exception occurs.
+            if (context.Request is not null) // Ensure the request is available.
             {
-                // Use any information available on the request or the response to emit custom tags.
-                string? value = context.Response.Headers.GetValues("Enrichment-Value").FirstOrDefault();
-                if (value != null)
-                {
-                    context.AddCustomTag("enrichment_value", value);
-                }
+                // Use request information to add custom tags
+                string? userAgent = context.Request.Headers.UserAgent.ToString();
+                context.AddCustomTag("user_agent", userAgent ?? "unknown");
             }
         });
+
         return base.SendAsync(request, cancellationToken);
     }
 }
+
 ```
 
-If you're working with IHttpClientFactory, you can use AddHttpMessageHandler
-to register the EnrichmentHandler:
+If you're working with `IHttpClientFactory`, you can use `AddHttpMessageHandler`
+to register the `EnrichmentHandler`:
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -322,8 +319,7 @@ services.AddHttpClient(Options.DefaultName).AddHttpMessageHandler(() => new Enri
 ServiceProvider serviceProvider = services.BuildServiceProvider();
 HttpClient client = serviceProvider.GetRequiredService<HttpClient>();
 
-await client.GetStringAsync("https://httpbin.org/response-headers?Enrichment-Value=A");
-await client.GetStringAsync("https://httpbin.org/response-headers?Enrichment-Value=B");
+await client.GetStringAsync("https://example.com");
 ```
 
 #### .NET Framework
