@@ -70,11 +70,8 @@ public static partial class MeterProviderBuilderExtensions
                     producerBuilder ??= sp.GetRequiredKeyedService<InstrumentedProducerBuilder<TKey, TValue>>(name);
                 }
 
-                EnableMetrics(producerBuilder.Options);
+                producerBuilder.EnableMetrics = true;
                 return new ConfluentKafkaProducerInstrumentation<TKey, TValue>(producerBuilder);
             });
     }
-
-    private static void EnableMetrics<TKey, TValue>(ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options) =>
-        options.Metrics = true;
 }

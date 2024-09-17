@@ -165,16 +165,16 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
         {
             await host.StartAsync();
 
-            var producerOptions = useNamedProducerInstrumentation
-                ? host.Services.GetRequiredKeyedService<InstrumentedProducerBuilder<string, string>>(producerInstrumentationName).Options
-                : host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>().Options;
-            Assert.Equal(enableProducerMetrics, producerOptions.Metrics);
-            Assert.Equal(enableProducerTraces, producerOptions.Traces);
-            var consumerOptions = useNamedConsumerInstrumentation
-                ? host.Services.GetRequiredKeyedService<InstrumentedConsumerBuilder<string, string>>(consumerInstrumentationName).Options
-                : host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>().Options;
-            Assert.Equal(enableConsumerMetrics, consumerOptions.Metrics);
-            Assert.Equal(enableConsumerTraces, consumerOptions.Traces);
+            var producerBuilder = useNamedProducerInstrumentation
+                ? host.Services.GetRequiredKeyedService<InstrumentedProducerBuilder<string, string>>(producerInstrumentationName)
+                : host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>();
+            Assert.Equal(enableProducerMetrics, producerBuilder.EnableMetrics);
+            Assert.Equal(enableProducerTraces, producerBuilder.EnableTraces);
+            var consumerBuilder = useNamedConsumerInstrumentation
+                ? host.Services.GetRequiredKeyedService<InstrumentedConsumerBuilder<string, string>>(consumerInstrumentationName)
+                : host.Services.GetRequiredService<InstrumentedConsumerBuilder<string, string>>();
+            Assert.Equal(enableConsumerMetrics, consumerBuilder.EnableMetrics);
+            Assert.Equal(enableConsumerTraces, consumerBuilder.EnableTraces);
 
             string topic = $"otel-topic-{Guid.NewGuid()}";
             using (var producer = (useNamedProducerInstrumentation

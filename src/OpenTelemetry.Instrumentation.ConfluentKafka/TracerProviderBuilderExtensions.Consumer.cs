@@ -70,11 +70,8 @@ public static partial class TracerProviderBuilderExtensions
                     consumerBuilder ??= sp.GetRequiredKeyedService<InstrumentedConsumerBuilder<TKey, TValue>>(name);
                 }
 
-                EnableTracing(consumerBuilder.Options);
+                consumerBuilder.EnableTraces = true;
                 return new ConfluentKafkaConsumerInstrumentation<TKey, TValue>(consumerBuilder);
             });
     }
-
-    private static void EnableTracing<TKey, TValue>(ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options) =>
-        options.Traces = true;
 }

@@ -70,11 +70,8 @@ public static partial class TracerProviderBuilderExtensions
                     producerBuilder ??= sp.GetRequiredKeyedService<InstrumentedProducerBuilder<TKey, TValue>>(name);
                 }
 
-                EnableTracing(producerBuilder.Options);
+                producerBuilder.EnableTraces = true;
                 return new ConfluentKafkaProducerInstrumentation<TKey, TValue>(producerBuilder);
             });
     }
-
-    private static void EnableTracing<TKey, TValue>(ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options) =>
-        options.Traces = true;
 }

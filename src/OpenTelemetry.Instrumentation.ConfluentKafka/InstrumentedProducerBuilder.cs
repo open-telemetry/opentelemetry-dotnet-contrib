@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using OpenTelemetry.Instrumentation.ConfluentKafka;
 
 namespace Confluent.Kafka;
@@ -13,6 +12,8 @@ namespace Confluent.Kafka;
 /// <typeparam name="TValue">Type of value.</typeparam>
 public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<TKey, TValue>
 {
+    private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="InstrumentedProducerBuilder{TKey, TValue}"/> class.
     /// </summary>
@@ -23,9 +24,22 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     }
 
     /// <summary>
-    /// Gets instrumentation options.
+    /// Gets or sets a value indicating whether metrics are enabled or not.
     /// </summary>
-    public ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> Options { get; } = new();
+    public bool EnableMetrics
+    {
+        get => this.options.Metrics;
+        set => this.options.Metrics = value;
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether traces are enabled or not.
+    /// </summary>
+    public bool EnableTraces
+    {
+        get => this.options.Traces;
+        set => this.options.Traces = value;
+    }
 
     /// <summary>
     /// Build a new IProducer instance.
@@ -33,8 +47,6 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        Debug.Assert(this.Options != null, "Options should not be null.");
-
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.Options!);
+        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options);
     }
 }
