@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -23,7 +25,7 @@ internal sealed class TableNameSerializer
     private static readonly StringComparer DictionaryKeyComparer = StringComparer.Ordinal;
 
     private readonly byte[] defaultTableName;
-    private readonly Dictionary<string, byte[]> tableMappings;
+    private readonly Dictionary<string, byte[]>? tableMappings;
     private readonly bool shouldPassThruTableMappings;
     private readonly object lockObject = new();
     private TableNameCacheDictionary tableNameCache = new();
@@ -35,7 +37,7 @@ internal sealed class TableNameSerializer
 
         this.defaultTableName = BuildStr8BufferForAsciiString(defaultTableName);
 
-        if (options.TableNameMappings != null)
+        if (options!.TableNameMappings != null)
         {
             var tempTableMappings = new Dictionary<string, byte[]>(options.TableNameMappings.Count, DictionaryKeyComparer);
             foreach (var kv in options.TableNameMappings)
@@ -164,7 +166,7 @@ internal sealed class TableNameSerializer
     {
         var tableNameCache = this.tableNameCache;
 
-        if (tableNameCache.TryGetValue(categoryName, out byte[] tableName))
+        if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
         {
             return tableName;
         }
@@ -174,7 +176,7 @@ internal sealed class TableNameSerializer
 
     private byte[] ResolveTableMappingForCategoryNameRare(string categoryName)
     {
-        byte[] mappedTableName = null;
+        byte[]? mappedTableName = null;
 
         // If user configured table name mappings run resolution logic.
         if (this.tableMappings != null
@@ -182,7 +184,7 @@ internal sealed class TableNameSerializer
         {
             // Find best match if an exact match was not found.
 
-            string currentKey = null;
+            string? currentKey = null;
 
             foreach (var mapping in this.tableMappings)
             {
@@ -230,7 +232,7 @@ internal sealed class TableNameSerializer
 
             // Check if another thread added the mapping while we waited on the
             // lock.
-            if (tableNameCache.TryGetValue(categoryName, out byte[] tableName))
+            if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
             {
                 return tableName;
             }
