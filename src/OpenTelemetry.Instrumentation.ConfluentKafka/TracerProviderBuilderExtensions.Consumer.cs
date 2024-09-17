@@ -30,6 +30,18 @@ public static partial class TracerProviderBuilderExtensions
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="name">The name of the instrumentation.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddKafkaConsumerInstrumentation<TKey, TValue>(
+        this TracerProviderBuilder builder, string? name)
+        => AddKafkaConsumerInstrumentation<TKey, TValue>(builder, name: name, consumerBuilder: null);
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Kafka.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="consumerBuilder"><see cref="InstrumentedConsumerBuilder{TKey,TValue}"/> to instrument.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKafkaConsumerInstrumentation<TKey, TValue>(
@@ -47,7 +59,7 @@ public static partial class TracerProviderBuilderExtensions
     /// <typeparam name="TKey">The type of the key.</typeparam>
     /// <typeparam name="TValue">The type of the value.</typeparam>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="name">The name of the instrumentation.</param>
     /// <param name="consumerBuilder">Optional <see cref="InstrumentedConsumerBuilder{TKey, TValue}"/> to instrument.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKafkaConsumerInstrumentation<TKey, TValue>(
