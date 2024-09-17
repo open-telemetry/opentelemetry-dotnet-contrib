@@ -16,6 +16,14 @@ public static class MeterProviderBuilderExtensions
     /// Enables EventCounter instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddEventCountersInstrumentation(this MeterProviderBuilder builder)
+    => builder.AddEventCountersInstrumentation(null, null);
+
+    /// <summary>
+    /// Enables EventCounter instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="configuration">The configuration section used to configure <see cref="EventCountersInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddEventCountersInstrumentation(
