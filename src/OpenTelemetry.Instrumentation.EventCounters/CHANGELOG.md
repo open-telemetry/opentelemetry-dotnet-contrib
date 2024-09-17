@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Added support for configuring EventCounters instrumentation using dependency
+  injection APIs. You can now enable Event Counters instrumentation and provide
+  options via IConfigurationSection using the AddEventCountersInstrumentation
+  method in conjunction with IDeferredMeterProviderBuilder. This enhancement
+  allows easier configuration and integration in applications using DI-based setups
+  ([]())
+
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
