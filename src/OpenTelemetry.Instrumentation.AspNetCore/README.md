@@ -329,13 +329,9 @@ using Microsoft.AspNetCore.Http.Features;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenTelemetry()
-    .WithMetrics(metricsBuilder =>
-    {
-        metricsBuilder
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"))
-            .AddOtlpExporter()
-            .AddMeter("Microsoft.AspNetCore.Hosting");
-    });
+        .WithMetrics(builder => builder
+            .AddAspNetCoreInstrumentation()
+            .AddConsoleExporter());
 
 var app = builder.Build();
 
