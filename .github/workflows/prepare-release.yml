@@ -264,4 +264,3 @@ jobs:
           -gitUserEmail '${{ needs.automation.outputs.email }}'
       env:
         ISSUE_BODY: ${{ github.event.issue.body }}
-
