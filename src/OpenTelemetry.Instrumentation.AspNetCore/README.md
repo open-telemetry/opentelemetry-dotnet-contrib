@@ -341,9 +341,12 @@ app.Use(async (context, next) =>
     var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
     if (tagsFeature != null)
     {
-        // Add a custom tag based on the "utm_medium" query parameter
-        var source = context.Request.Query["utm_medium"].ToString();
-        tagsFeature.Tags.Add(new KeyValuePair<string, object?>("utm_medium", source));
+        string utmMediumKey = "utm_medium";
+
+        if (context.Request.Query.TryGetValue(utmMediumKey, out var source) && !StringValues.IsNullOrEmpty(source))
+        {
+            tagsFeature.Tags.Add(new KeyValuePair<string, object?>(utmMediumKey, source));
+        }
     }
 
     await next.Invoke();
