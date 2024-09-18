@@ -58,22 +58,7 @@ public static class MeterProviderBuilderExtensions
 
         var options = new EventCountersInstrumentationOptions();
         configure?.Invoke(options);
-
-        // configuration?.Bind(options);
-
-        if (configuration != null)
-        {
-            if (int.TryParse(configuration["EventCounters:RefreshIntervalSecs"], out var refreshInterval))
-            {
-                options.RefreshIntervalSecs = refreshInterval;
-            }
-
-            var eventSourceNames = configuration.GetSection("EventCounters:EventSourceNames").Get<string[]>();
-            if (eventSourceNames != null)
-            {
-                options.AddEventSources(eventSourceNames);
-            }
-        }
+        configuration?.Bind(options);
 
         builder.AddMeter(EventCountersMetrics.MeterInstance.Name);
         return builder.AddInstrumentation(() => new EventCountersMetrics(options));
