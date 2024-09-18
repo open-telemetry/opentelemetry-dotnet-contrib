@@ -23,19 +23,13 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
     }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether metrics are enabled or not.
-    /// </summary>
-    public bool EnableMetrics
+    internal bool EnableMetrics
     {
         get => this.options.Metrics;
         set => this.options.Metrics = value;
     }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether traces are enabled or not.
-    /// </summary>
-    public bool EnableTraces
+    internal bool EnableTraces
     {
         get => this.options.Traces;
         set => this.options.Traces = value;

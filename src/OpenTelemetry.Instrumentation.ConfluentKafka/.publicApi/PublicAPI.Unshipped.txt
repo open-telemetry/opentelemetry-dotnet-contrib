@@ -1,14 +1,6 @@
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>
-Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.EnableMetrics.get -> bool
-Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.EnableMetrics.set -> void
-Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.EnableTraces.get -> bool
-Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.EnableTraces.set -> void
 Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.InstrumentedConsumerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>
-Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.EnableMetrics.get -> bool
-Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.EnableMetrics.set -> void
-Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.EnableTraces.get -> bool
-Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.EnableTraces.set -> void
 Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>.InstrumentedProducerBuilder(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, string!>>! config) -> void
 Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>
 Confluent.Kafka.OpenTelemetryConsumerBuilderExtensions
