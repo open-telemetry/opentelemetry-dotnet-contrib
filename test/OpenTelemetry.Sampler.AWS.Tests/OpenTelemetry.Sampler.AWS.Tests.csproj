@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Wiremock.Net" Version="$(WiremockNetPkgVer)" />
+    <!-- System.Text.RegularExpressions is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-cmhx-cq75-c4mj -->
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>

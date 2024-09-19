@@ -27,8 +27,6 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     public string Name => this.producer.Name;
 
-    internal ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> Options => this.options;
-
     public int AddBrokers(string brokers)
     {
         return this.producer.AddBrokers(brokers);
@@ -326,6 +324,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)
     {
+        if (!this.options.Traces)
+        {
+            return null;
+        }
+
         var spanName = string.Concat(topic, " ", ConfluentKafkaCommon.PublishOperationName);
         var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
         if (activity == null)
