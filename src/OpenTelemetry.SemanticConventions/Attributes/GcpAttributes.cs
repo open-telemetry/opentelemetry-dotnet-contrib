@@ -15,6 +15,14 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GcpAttributes
 {
     /// <summary>
+    /// Identifies the Google Cloud service for which the official client library is intended
+    /// </summary>
+    /// <remarks>
+    /// Intended to be a stable identifier for Google Cloud client libraries that is uniform across implementation languages. The value should be derived from the canonical service domain for the service; for example, 'foo.googleapis.com' should result in a value of 'foo'
+    /// </remarks>
+    public const string AttributeGcpClientService = "gcp.client.service";
+
+    /// <summary>
     /// The name of the Cloud Run <a href="https://cloud.google.com/run/docs/managing/job-executions">execution</a> being run for the Job, as set by the <a href="https://cloud.google.com/run/docs/container-contract#jobs-env-vars"><c>CLOUD_RUN_EXECUTION</c></a> environment variable
     /// </summary>
     public const string AttributeGcpCloudRunJobExecution = "gcp.cloud_run.job.execution";

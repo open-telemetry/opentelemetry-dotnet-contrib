@@ -62,7 +62,7 @@ public static class CloudAttributes
     ///   <li><strong>AWS Lambda:</strong> The function <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a>.
     /// Take care not to use the "invoked ARN" directly but replace any
     /// <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html">alias suffix</a>
-    /// with the resolved function version, as the same runtime instance may be invokable with
+    /// with the resolved function version, as the same runtime instance may be invocable with
     /// multiple different aliases.</li>
     ///   <li><strong>GCP:</strong> The <a href="https://cloud.google.com/iam/docs/full-resource-names">URI of the resource</a></li>
     ///   <li><strong>Azure:</strong> The <a href="https://docs.microsoft.com/rest/api/resources/resources/get-by-id">Fully Qualified Resource ID</a> of the invoked function,

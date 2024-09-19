@@ -287,6 +287,11 @@ public static class NetworkAttributes
         /// Unix domain socket
         /// </summary>
         public const string Unix = "unix";
+
+        /// <summary>
+        /// QUIC
+        /// </summary>
+        public const string Quic = "quic";
     }
 
     /// <summary>

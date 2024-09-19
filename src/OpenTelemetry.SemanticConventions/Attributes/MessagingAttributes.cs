@@ -28,6 +28,14 @@ public static class MessagingAttributes
     public const string AttributeMessagingClientId = "messaging.client.id";
 
     /// <summary>
+    /// The name of the consumer group with which a consumer is associated
+    /// </summary>
+    /// <remarks>
+    /// Semantic conventions for individual messaging systems SHOULD document whether <c>messaging.consumer.group.name</c> is applicable and what it means in the context of that system
+    /// </remarks>
+    public const string AttributeMessagingConsumerGroupName = "messaging.consumer.group.name";
+
+    /// <summary>
     /// A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name)
     /// </summary>
     public const string AttributeMessagingDestinationAnonymous = "messaging.destination.anonymous";
@@ -47,6 +55,14 @@ public static class MessagingAttributes
     public const string AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id";
 
     /// <summary>
+    /// The name of the destination subscription from which a message is consumed
+    /// </summary>
+    /// <remarks>
+    /// Semantic conventions for individual messaging systems SHOULD document whether <c>messaging.destination.subscription.name</c> is applicable and what it means in the context of that system
+    /// </remarks>
+    public const string AttributeMessagingDestinationSubscriptionName = "messaging.destination.subscription.name";
+
+    /// <summary>
     /// Low cardinality representation of the messaging destination name
     /// </summary>
     /// <remarks>
@@ -60,22 +76,21 @@ public static class MessagingAttributes
     public const string AttributeMessagingDestinationTemporary = "messaging.destination.temporary";
 
     /// <summary>
-    /// A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name)
+    /// Deprecated, no replacement at this time
     /// </summary>
+    [Obsolete("No replacement at this time")]
     public const string AttributeMessagingDestinationPublishAnonymous = "messaging.destination_publish.anonymous";
 
     /// <summary>
-    /// The name of the original destination the message was published to
+    /// Deprecated, no replacement at this time
     /// </summary>
-    /// <remarks>
-    /// The name SHOULD uniquely identify a specific queue, topic, or other entity within the broker. If
-    /// the broker doesn't have such notion, the original destination name SHOULD uniquely identify the broker
-    /// </remarks>
+    [Obsolete("No replacement at this time")]
     public const string AttributeMessagingDestinationPublishName = "messaging.destination_publish.name";
 
     /// <summary>
-    /// The name of the consumer group the event consumer is associated with
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c>")]
     public const string AttributeMessagingEventhubsConsumerGroup = "messaging.eventhubs.consumer.group";
 
     /// <summary>
@@ -104,8 +119,9 @@ public static class MessagingAttributes
     public const string AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key";
 
     /// <summary>
-    /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c>")]
     public const string AttributeMessagingKafkaConsumerGroup = "messaging.kafka.consumer.group";
 
     /// <summary>
@@ -123,14 +139,20 @@ public static class MessagingAttributes
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
 
     /// <summary>
-    /// The offset of a record in the corresponding Kafka partition
+    /// Deprecated, use <c>messaging.kafka.offset</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.kafka.offset</c>")]
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
 
     /// <summary>
     /// A boolean that is true if the message is a tombstone
     /// </summary>
     public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
+
+    /// <summary>
+    /// The offset of a record in the corresponding Kafka partition
+    /// </summary>
+    public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset";
 
     /// <summary>
     /// The size of the message body in bytes
@@ -190,8 +212,9 @@ public static class MessagingAttributes
     public const string AttributeMessagingRabbitmqMessageDeliveryTag = "messaging.rabbitmq.message.delivery_tag";
 
     /// <summary>
-    /// Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c> on the consumer spans. No replacement for producer spans")]
     public const string AttributeMessagingRocketmqClientGroup = "messaging.rocketmq.client_group";
 
     /// <summary>
@@ -235,8 +258,9 @@ public static class MessagingAttributes
     public const string AttributeMessagingRocketmqNamespace = "messaging.rocketmq.namespace";
 
     /// <summary>
-    /// The name of the subscription in the topic messages are received from
+    /// Deprecated, use <c>messaging.servicebus.destination.subscription_name</c> instead
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.servicebus.destination.subscription_name</c>")]
     public const string AttributeMessagingServicebusDestinationSubscriptionName = "messaging.servicebus.destination.subscription_name";
 
     /// <summary>
@@ -283,14 +307,19 @@ public static class MessagingAttributes
         public const string Receive = "receive";
 
         /// <summary>
-        /// One or more messages are delivered to or processed by a consumer
+        /// One or more messages are processed by a consumer
         /// </summary>
-        public const string Deliver = "process";
+        public const string Process = "process";
 
         /// <summary>
         /// One or more messages are settled
         /// </summary>
         public const string Settle = "settle";
+
+        /// <summary>
+        /// Deprecated. Use <c>process</c> instead
+        /// </summary>
+        public const string Deliver = "deliver";
     }
 
     /// <summary>
@@ -415,5 +444,10 @@ public static class MessagingAttributes
         /// Apache RocketMQ
         /// </summary>
         public const string Rocketmq = "rocketmq";
+
+        /// <summary>
+        /// Apache Pulsar
+        /// </summary>
+        public const string Pulsar = "pulsar";
     }
 }
