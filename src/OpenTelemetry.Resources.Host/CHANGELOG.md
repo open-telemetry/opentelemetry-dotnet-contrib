@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Making the inclusion of `host.name` to the `Resource` configurable.
+  Use the `AddHostDetector(bool includeHostName)` overload to control this behavior.
+  ([#2084](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2084))
+
 ## 0.1.0-beta.3
 
 Released 2024-Aug-30
