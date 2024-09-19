@@ -68,8 +68,9 @@ public static class TlsAttributes
     public const string AttributeTlsClientNotBefore = "tls.client.not_before";
 
     /// <summary>
-    /// Also called an SNI, this tells the server which hostname to which the client is attempting to connect to
+    /// Deprecated, use <c>server.address</c> instead
     /// </summary>
+    [Obsolete("Replaced by `server.address")]
     public const string AttributeTlsClientServerName = "tls.client.server_name";
 
     /// <summary>

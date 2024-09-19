@@ -12,29 +12,26 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class OtherAttributes
+public static class LinuxAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>db.client.connection.state</c> instead
+    /// The Linux Slab memory state
     /// </summary>
-    [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-    public const string AttributeState = "state";
+    public const string AttributeLinuxMemorySlabState = "linux.memory.slab.state";
 
     /// <summary>
-    /// Deprecated, use <c>db.client.connection.state</c> instead
+    /// The Linux Slab memory state
     /// </summary>
-    public static class StateValues
+    public static class LinuxMemorySlabStateValues
     {
         /// <summary>
-        /// idle
+        /// reclaimable
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-        public const string Idle = "idle";
+        public const string Reclaimable = "reclaimable";
 
         /// <summary>
-        /// used
+        /// unreclaimable
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connection.state</c>")]
-        public const string Used = "used";
+        public const string Unreclaimable = "unreclaimable";
     }
 }
