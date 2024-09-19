@@ -18,7 +18,7 @@ public static class ProcessResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder)
     {
-        return AddProcessDetector(builder, true);
+        return AddProcessDetector(builder, includeProcessOwner: true);
     }
 
     /// <summary>

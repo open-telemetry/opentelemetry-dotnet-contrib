@@ -18,7 +18,7 @@ public static class HostResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddHostDetector(this ResourceBuilder builder)
     {
-        return AddHostDetector(builder, true);
+        return AddHostDetector(builder, includeHostName: true);
     }
 
     /// <summary>
