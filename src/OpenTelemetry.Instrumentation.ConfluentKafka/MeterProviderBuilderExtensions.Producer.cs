@@ -3,7 +3,6 @@
 
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.ConfluentKafka;
 using OpenTelemetry.Internal;
 
@@ -24,6 +23,18 @@ public static partial class MeterProviderBuilderExtensions
     public static MeterProviderBuilder AddKafkaProducerInstrumentation<TKey, TValue>(
         this MeterProviderBuilder builder)
         => AddKafkaProducerInstrumentation<TKey, TValue>(builder, name: null, producerBuilder: null);
+
+    /// <summary>
+    /// Enables automatic data collection of outgoing requests to Kafka.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the key.</typeparam>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
+    /// <param name="name">The name of the instrumentation.</param>
+    /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
+    public static MeterProviderBuilder AddKafkaProducerInstrumentation<TKey, TValue>(
+        this MeterProviderBuilder builder, string? name)
+        => AddKafkaProducerInstrumentation<TKey, TValue>(builder, name: name, producerBuilder: null);
 
     /// <summary>
     /// Enables automatic data collection of outgoing requests to Kafka.
@@ -58,34 +69,21 @@ public static partial class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        name ??= Options.DefaultName;
-
-        builder.ConfigureServices(services =>
-        {
-            services.Configure<ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>>(name, EnableMetrics);
-        });
-
         return builder
             .AddMeter(ConfluentKafkaCommon.InstrumentationName)
             .AddInstrumentation(sp =>
             {
-                if (producerBuilder == null)
+                if (name == null)
                 {
-                    producerBuilder = sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
-                    var options = sp.GetRequiredService<IOptionsMonitor<ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>>>();
-                    producerBuilder.Options = options.Get(name);
+                    producerBuilder ??= sp.GetRequiredService<InstrumentedProducerBuilder<TKey, TValue>>();
+                }
+                else
+                {
+                    producerBuilder ??= sp.GetRequiredKeyedService<InstrumentedProducerBuilder<TKey, TValue>>(name);
                 }
 
-                if (producerBuilder.Options == null)
-                {
-                    producerBuilder.Options = new ConfluentKafkaProducerInstrumentationOptions<TKey, TValue>();
-                    EnableMetrics(producerBuilder.Options);
-                }
-
+                producerBuilder.EnableMetrics = true;
                 return new ConfluentKafkaProducerInstrumentation<TKey, TValue>(producerBuilder);
             });
     }
-
-    private static void EnableMetrics<TKey, TValue>(ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options) =>
-        options.Metrics = true;
 }
