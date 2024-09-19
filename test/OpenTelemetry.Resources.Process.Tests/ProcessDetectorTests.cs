@@ -19,4 +19,17 @@ public class ProcessDetectorTests
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessOwner]);
         Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessPid]);
     }
+
+    [Fact]
+    public void TestProcessAttributes_ExcludeProcessOwner()
+    {
+        var resource = ResourceBuilder.CreateEmpty().AddProcessDetector(includeProcessOwner: false).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Single(resourceAttributes);
+
+        Assert.False(resourceAttributes.ContainsKey(ProcessSemanticConventions.AttributeProcessOwner));
+        Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessPid]);
+    }
 }

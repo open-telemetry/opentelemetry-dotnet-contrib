@@ -1,2 +1,3 @@
 OpenTelemetry.Resources.ProcessResourceBuilderExtensions
 static OpenTelemetry.Resources.ProcessResourceBuilderExtensions.AddProcessDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.ProcessResourceBuilderExtensions.AddProcessDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, bool includeProcessOwner) -> OpenTelemetry.Resources.ResourceBuilder!

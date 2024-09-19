@@ -18,7 +18,18 @@ public static class HostResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddHostDetector(this ResourceBuilder builder)
     {
+        return AddHostDetector(builder, true);
+    }
+
+    /// <summary>
+    /// Enables host resource detector.
+    /// </summary>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="includeHostName">Determines whether to include host name in the resource attributes.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
+    public static ResourceBuilder AddHostDetector(this ResourceBuilder builder, bool includeHostName)
+    {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new HostDetector());
+        return builder.AddDetector(new HostDetector(includeHostName));
     }
 }

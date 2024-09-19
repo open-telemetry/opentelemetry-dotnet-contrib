@@ -18,7 +18,18 @@ public static class ProcessResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder)
     {
+        return AddProcessDetector(builder, true);
+    }
+
+    /// <summary>
+    /// Enables process resource detector.
+    /// </summary>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="includeProcessOwner">A flag indicating whether or not to include the process owner in the resource.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
+    public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder, bool includeProcessOwner)
+    {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new ProcessDetector());
+        return builder.AddDetector(new ProcessDetector(includeProcessOwner));
     }
 }

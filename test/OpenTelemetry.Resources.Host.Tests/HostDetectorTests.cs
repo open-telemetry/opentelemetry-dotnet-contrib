@@ -57,6 +57,18 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
     }
 
+    [Fact]
+    public void TestHostAttributesWithoutHostName()
+    {
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector(includeHostName: false).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        Assert.Single(resourceAttributes);
+
+        Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+    }
+
 #if NET
     [Fact]
     public void TestHostMachineIdLinux()
