@@ -20,6 +20,8 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     private static readonly Func<IOwinRequest, string, IEnumerable<string>> OwinRequestHeaderValuesGetter
         = (request, name) => request.Headers.GetValues(name);
 
+    private static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DiagnosticsMiddleware"/> class.
     /// </summary>
@@ -84,39 +86,26 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         {
             var request = owinContext.Request;
 
-            /*
-             * Note: Display name is intentionally set to a low cardinality
-             * value because OWIN does not expose any kind of
-             * route/template. See:
-             * https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name
-             */
-            activity.DisplayName = request.Method switch
-            {
-                "GET" => "HTTP GET",
-                "POST" => "HTTP POST",
-                "PUT" => "HTTP PUT",
-                "DELETE" => "HTTP DELETE",
-                _ => $"HTTP {request.Method}",
-            };
+            // Note: Display name is intentionally set to a low cardinality
+            // value because OWIN does not expose any kind of
+            // route/template. See:
+            // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name
+            RequestDataHelper.SetActivityDisplayName(activity, request.Method);
 
             if (activity.IsAllDataRequested)
             {
-                if (request.Uri.Port == 80 || request.Uri.Port == 443)
-                {
-                    activity.SetTag(SemanticConventions.AttributeHttpHost, request.Uri.Host);
-                }
-                else
-                {
-                    activity.SetTag(SemanticConventions.AttributeHttpHost, request.Uri.Host + ":" + request.Uri.Port);
-                }
+                RequestDataHelper.SetHttpMethodTag(activity, request.Method);
+                activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
+                activity.SetTag(SemanticConventions.AttributeServerPort, request.Uri.Port);
+                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, request.Protocol);
 
-                activity.SetTag(SemanticConventions.AttributeHttpMethod, request.Method);
-                activity.SetTag(SemanticConventions.AttributeHttpTarget, request.Uri.AbsolutePath);
-                activity.SetTag(SemanticConventions.AttributeHttpUrl, GetUriTagValueFromRequestUri(request.Uri, OwinInstrumentationActivitySource.Options.DisableUrlQueryRedaction));
+                activity.SetTag(SemanticConventions.AttributeUrlPath, request.Uri.AbsolutePath);
+                activity.SetTag(SemanticConventions.AttributeUrlQuery, request.Query);
+                activity.SetTag(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme);
 
                 if (request.Headers.TryGetValue("User-Agent", out string[] userAgent) && userAgent.Length > 0)
                 {
-                    activity.SetTag(SemanticConventions.AttributeHttpUserAgent, userAgent[0]);
+                    activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent[0]);
                 }
 
                 try
@@ -163,7 +152,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 {
                     activity.SetStatus(Status.Error);
 
-                    if (OwinInstrumentationActivitySource.Options != null && OwinInstrumentationActivitySource.Options.RecordException)
+                    if (OwinInstrumentationActivitySource.Options?.RecordException == true)
                     {
                         activity.RecordException(exception);
                     }
@@ -173,7 +162,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                     activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
                 }
 
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+                activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, response.StatusCode);
 
                 try
                 {

@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -29,7 +31,8 @@ internal class ReentrantExportProcessor<T> : BaseExportProcessor<T>
     private static Func<T, Batch<T>> BuildCreateBatchDelegate()
     {
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-        var ctor = typeof(Batch<T>).GetConstructor(flags, null, new Type[] { typeof(T) }, null);
+        var ctor = typeof(Batch<T>).GetConstructor(flags, null, new Type[] { typeof(T) }, null)
+            ?? throw new InvalidOperationException("Batch ctor accepting a single item could not be found reflectively");
         var value = Expression.Parameter(typeof(T), null);
         var lambda = Expression.Lambda<Func<T, Batch<T>>>(Expression.New(ctor, value), value);
         return lambda.Compile();
