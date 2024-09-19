@@ -3,7 +3,8 @@
 ## Unreleased
 
 * Making the inclusion of `process.owner` to the `Resource` configurable.
-  Use the `AddProcessDetector(bool includeProcessOwner)` overload to control this behavior.
+  Use the `AddProcessDetector(bool includeProcessOwner)` overload to control
+  this behavior.
   ([#2084](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2084))
 
 ## 0.1.0-beta.2
