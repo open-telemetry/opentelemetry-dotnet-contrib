@@ -162,5 +162,8 @@ public class AzureResourceDetectorTests : IDisposable
         {
             Environment.SetEnvironmentVariable(kvp.Value, null);
         }
+
+        Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, null);
+        Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, null);
     }
 }
