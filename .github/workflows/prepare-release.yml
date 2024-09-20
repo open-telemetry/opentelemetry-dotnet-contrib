@@ -55,10 +55,19 @@ on:
         type: string
         description: 'Release version'
         required: true
+      releaseIssue:
+        type: string
+        description: 'Release request issue'
+        required: false
 
   pull_request:
     types:
     - closed
+
+  issues:
+    types:
+    - opened
+    - edited
 
   issue_comment:
     types:
@@ -95,6 +104,7 @@ jobs:
           -component '${{ inputs.component }}' `
           -version '${{ inputs.version }}' `
           -requestedByUserName '${{ github.event.sender.login }}' `
+          -releaseIssue '${{ inputs.releaseIssue }}' `
           -targetBranch '${{ github.ref_name }}' `
           -gitUserName '${{ needs.automation.outputs.username }}' `
           -gitUserEmail '${{ needs.automation.outputs.email }}'
@@ -209,3 +219,48 @@ jobs:
           -commentUserName '${{ github.event.comment.user.login }}' `
           -gitUserName '${{ needs.automation.outputs.username }}' `
           -gitUserEmail '${{ needs.automation.outputs.email }}'
+
+  process-release-request-issue:
+    runs-on: ubuntu-latest
+
+    needs: automation
+
+    if: |
+      startsWith(github.event.issue.title, '[release request] ')
+      && github.event.issue.pull_request == null
+      && needs.automation.outputs.enabled
+      && (
+          (github.event_name == 'issues')
+        ||
+          (github.event_name == 'issue_comment'
+          && github.event.issue.state == 'open'
+          && contains(github.event.comment.body, '/PrepareRelease')
+          && github.event.comment.user.login != needs.automation.outputs.username)
+      )
+
+    env:
+      GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+
+    steps:
+    - name: check out code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+
+    - name: Process release request issue being opened or commented
+      shell: pwsh
+      run: |
+        Import-Module .\build\scripts\prepare-release.psm1
+
+        TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue `
+          -gitRepository '${{ github.repository }}' `
+          -targetBranch '${{ github.event.repository.default_branch }}' `
+          -triggeringEventName '${{ github.event_name }}' `
+          -approvingGroups '@${{ github.repository_owner }}/dotnet-approvers @${{ github.repository_owner }}/dotnet-maintainers' `
+          -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
+          -issueNumber '${{ github.event.issue.number }}' `
+          -issueBody $env:ISSUE_BODY `
+          -gitUserName '${{ needs.automation.outputs.username }}' `
+          -gitUserEmail '${{ needs.automation.outputs.email }}'
+      env:
+        ISSUE_BODY: ${{ github.event.issue.body }}
