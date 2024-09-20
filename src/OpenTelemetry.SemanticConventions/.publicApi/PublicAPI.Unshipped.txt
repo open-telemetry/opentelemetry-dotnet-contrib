@@ -3,6 +3,13 @@ const OpenTelemetry.SemanticConventions.AndroidAttributes.AndroidStateValues.Cre
 const OpenTelemetry.SemanticConventions.AndroidAttributes.AndroidStateValues.Foreground = "foreground" -> string!
 const OpenTelemetry.SemanticConventions.AndroidAttributes.AttributeAndroidOsApiLevel = "android.os.api_level" -> string!
 const OpenTelemetry.SemanticConventions.AndroidAttributes.AttributeAndroidState = "android.state" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactAttestationFilename = "artifact.attestation.filename" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactAttestationHash = "artifact.attestation.hash" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactAttestationId = "artifact.attestation.id" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactFilename = "artifact.filename" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactHash = "artifact.hash" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactPurl = "artifact.purl" -> string!
+const OpenTelemetry.SemanticConventions.ArtifactAttributes.AttributeArtifactVersion = "artifact.version" -> string!
 const OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreDiagnosticsExceptionResultValues.Aborted = "aborted" -> string!
 const OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreDiagnosticsExceptionResultValues.Handled = "handled" -> string!
 const OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreDiagnosticsExceptionResultValues.Skipped = "skipped" -> string!
@@ -64,10 +71,20 @@ const OpenTelemetry.SemanticConventions.AwsAttributes.AttributeAwsS3PartNumber =
 const OpenTelemetry.SemanticConventions.AwsAttributes.AttributeAwsS3UploadId = "aws.s3.upload_id" -> string!
 const OpenTelemetry.SemanticConventions.AwsAttributes.AwsEcsLaunchtypeValues.Ec2 = "ec2" -> string!
 const OpenTelemetry.SemanticConventions.AwsAttributes.AwsEcsLaunchtypeValues.Fargate = "fargate" -> string!
+const OpenTelemetry.SemanticConventions.AzAttributes.AttributeAzServiceRequestId = "az.service_request_id" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserBrands = "browser.brands" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserLanguage = "browser.language" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserMobile = "browser.mobile" -> string!
 const OpenTelemetry.SemanticConventions.BrowserAttributes.AttributeBrowserPlatform = "browser.platform" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineName = "cicd.pipeline.name" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineRunId = "cicd.pipeline.run.id" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineTaskName = "cicd.pipeline.task.name" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineTaskRunId = "cicd.pipeline.task.run.id" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineTaskRunUrlFull = "cicd.pipeline.task.run.url.full" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.AttributeCicdPipelineTaskType = "cicd.pipeline.task.type" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.CicdPipelineTaskTypeValues.Build = "build" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.CicdPipelineTaskTypeValues.Deploy = "deploy" -> string!
+const OpenTelemetry.SemanticConventions.CicdAttributes.CicdPipelineTaskTypeValues.Test = "test" -> string!
 const OpenTelemetry.SemanticConventions.ClientAttributes.AttributeClientAddress = "client.address" -> string!
 const OpenTelemetry.SemanticConventions.ClientAttributes.AttributeClientPort = "client.port" -> string!
 const OpenTelemetry.SemanticConventions.CloudAttributes.AttributeCloudAccountId = "cloud.account.id" -> string!
@@ -138,6 +155,15 @@ const OpenTelemetry.SemanticConventions.ContainerAttributes.AttributeContainerRu
 const OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues.Kernel = "kernel" -> string!
 const OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues.System = "system" -> string!
 const OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues.User = "user" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.AttributeCpuMode = "cpu.mode" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Idle = "idle" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Interrupt = "interrupt" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Iowait = "iowait" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Kernel = "kernel" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Nice = "nice" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.Steal = "steal" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.System = "system" -> string!
+const OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues.User = "user" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraConsistencyLevel = "db.cassandra.consistency_level" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraCoordinatorDc = "db.cassandra.coordinator.dc" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraCoordinatorId = "db.cassandra.coordinator.id" -> string!
@@ -145,8 +171,10 @@ const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraIdempot
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraPageSize = "db.cassandra.page_size" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraSpeculativeExecutionCount = "db.cassandra.speculative_execution_count" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCassandraTable = "db.cassandra.table" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionPoolName = "db.client.connection.pool.name" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionsPoolName = "db.client.connections.pool.name" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionsState = "db.client.connections.state" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbClientConnectionState = "db.client.connection.state" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCollectionName = "db.collection.name" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbConnectionString = "db.connection_string" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbCosmosdbClientId = "db.cosmosdb.client_id" -> string!
@@ -167,6 +195,7 @@ const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbMssqlInstanceNam
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbName = "db.name" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbNamespace = "db.namespace" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbOperation = "db.operation" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbOperationBatchSize = "db.operation.batch.size" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbOperationName = "db.operation.name" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbQueryParameterTemplate = "db.query.parameter" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.AttributeDbQueryText = "db.query.text" -> string!
@@ -188,6 +217,8 @@ const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevel
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues.Two = "two" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues.Idle = "idle" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues.Used = "used" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionStateValues.Idle = "idle" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionStateValues.Used = "used" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues.Direct = "direct" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues.Gateway = "gateway" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbOperationTypeValues.Batch = "Batch" -> string!
@@ -229,10 +260,12 @@ const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Hanadb = "ha
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Hbase = "hbase" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Hive = "hive" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Hsqldb = "hsqldb" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Influxdb = "influxdb" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Informix = "informix" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Ingres = "ingres" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Instantdb = "instantdb" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Interbase = "interbase" -> string!
+const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.IntersystemsCache = "intersystems_cache" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Mariadb = "mariadb" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Maxdb = "maxdb" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Memcached = "memcached" -> string!
@@ -258,6 +291,12 @@ const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Teradata = "
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Trino = "trino" -> string!
 const OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues.Vertica = "vertica" -> string!
 const OpenTelemetry.SemanticConventions.DeploymentAttributes.AttributeDeploymentEnvironment = "deployment.environment" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.AttributeDeploymentEnvironmentName = "deployment.environment.name" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.AttributeDeploymentId = "deployment.id" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.AttributeDeploymentName = "deployment.name" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.AttributeDeploymentStatus = "deployment.status" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.DeploymentStatusValues.Failed = "failed" -> string!
+const OpenTelemetry.SemanticConventions.DeploymentAttributes.DeploymentStatusValues.Succeeded = "succeeded" -> string!
 const OpenTelemetry.SemanticConventions.DestinationAttributes.AttributeDestinationAddress = "destination.address" -> string!
 const OpenTelemetry.SemanticConventions.DestinationAttributes.AttributeDestinationPort = "destination.port" -> string!
 const OpenTelemetry.SemanticConventions.DeviceAttributes.AttributeDeviceId = "device.id" -> string!
@@ -315,23 +354,42 @@ const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileExtension = 
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileName = "file.name" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFilePath = "file.path" -> string!
 const OpenTelemetry.SemanticConventions.FileAttributes.AttributeFileSize = "file.size" -> string!
+const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpClientService = "gcp.client.service" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpCloudRunJobExecution = "gcp.cloud_run.job.execution" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpCloudRunJobTaskIndex = "gcp.cloud_run.job.task_index" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceHostname = "gcp.gce.instance.hostname" -> string!
 const OpenTelemetry.SemanticConventions.GcpAttributes.AttributeGcpGceInstanceName = "gcp.gce.instance.name" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiCompletion = "gen_ai.completion" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiOperationName = "gen_ai.operation.name" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiPrompt = "gen_ai.prompt" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestFrequencyPenalty = "gen_ai.request.frequency_penalty" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestMaxTokens = "gen_ai.request.max_tokens" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestModel = "gen_ai.request.model" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestPresencePenalty = "gen_ai.request.presence_penalty" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestStopSequences = "gen_ai.request.stop_sequences" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestTemperature = "gen_ai.request.temperature" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestTopK = "gen_ai.request.top_k" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiRequestTopP = "gen_ai.request.top_p" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseFinishReasons = "gen_ai.response.finish_reasons" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseId = "gen_ai.response.id" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiResponseModel = "gen_ai.response.model" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiSystem = "gen_ai.system" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiTokenType = "gen_ai.token.type" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsageInputTokens = "gen_ai.usage.input_tokens" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsageOutputTokens = "gen_ai.usage.output_tokens" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiOperationNameValues.Chat = "chat" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiOperationNameValues.TextCompletion = "text_completion" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues.Anthropic = "anthropic" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues.Cohere = "cohere" -> string!
 const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues.Openai = "openai" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues.VertexAi = "vertex_ai" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiTokenTypeValues.Completion = "output" -> string!
+const OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiTokenTypeValues.Input = "input" -> string!
+const OpenTelemetry.SemanticConventions.GoAttributes.AttributeGoMemoryType = "go.memory.type" -> string!
+const OpenTelemetry.SemanticConventions.GoAttributes.GoMemoryTypeValues.Other = "other" -> string!
+const OpenTelemetry.SemanticConventions.GoAttributes.GoMemoryTypeValues.Stack = "stack" -> string!
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlDocument = "graphql.document" -> string!
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlOperationName = "graphql.operation.name" -> string!
 const OpenTelemetry.SemanticConventions.GraphqlAttributes.AttributeGraphqlOperationType = "graphql.operation.type" -> string!
@@ -454,11 +512,15 @@ const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sReplicasetName
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sReplicasetUid = "k8s.replicaset.uid" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sStatefulsetName = "k8s.statefulset.name" -> string!
 const OpenTelemetry.SemanticConventions.K8sAttributes.AttributeK8sStatefulsetUid = "k8s.statefulset.uid" -> string!
+const OpenTelemetry.SemanticConventions.LinuxAttributes.AttributeLinuxMemorySlabState = "linux.memory.slab.state" -> string!
+const OpenTelemetry.SemanticConventions.LinuxAttributes.LinuxMemorySlabStateValues.Reclaimable = "reclaimable" -> string!
+const OpenTelemetry.SemanticConventions.LinuxAttributes.LinuxMemorySlabStateValues.Unreclaimable = "unreclaimable" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogFileName = "log.file.name" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogFileNameResolved = "log.file.name_resolved" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogFilePath = "log.file.path" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogFilePathResolved = "log.file.path_resolved" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogIostream = "log.iostream" -> string!
+const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogRecordOriginal = "log.record.original" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.AttributeLogRecordUid = "log.record.uid" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.LogIostreamValues.Stderr = "stderr" -> string!
 const OpenTelemetry.SemanticConventions.LogAttributes.LogIostreamValues.Stdout = "stdout" -> string!
@@ -470,11 +532,13 @@ const OpenTelemetry.SemanticConventions.MessageAttributes.MessageTypeValues.Rece
 const OpenTelemetry.SemanticConventions.MessageAttributes.MessageTypeValues.Sent = "SENT" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingBatchMessageCount = "messaging.batch.message_count" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingClientId = "messaging.client.id" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingConsumerGroupName = "messaging.consumer.group.name" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationAnonymous = "messaging.destination.anonymous" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationName = "messaging.destination.name" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationPublishAnonymous = "messaging.destination_publish.anonymous" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationPublishName = "messaging.destination_publish.name" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationSubscriptionName = "messaging.destination.subscription.name" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationTemplate = "messaging.destination.template" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingDestinationTemporary = "messaging.destination.temporary" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingEventhubsConsumerGroup = "messaging.eventhubs.consumer.group" -> string!
@@ -488,6 +552,7 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKa
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingKafkaOffset = "messaging.kafka.offset" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMessageBodySize = "messaging.message.body.size" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMessageConversationId = "messaging.message.conversation_id" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingMessageEnvelopeSize = "messaging.message.envelope.size" -> string!
@@ -512,7 +577,8 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingSe
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingServicebusMessageEnqueuedTime = "messaging.servicebus.message.enqueued_time" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.AttributeMessagingSystem = "messaging.system" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Create = "create" -> string!
-const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Deliver = "process" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Deliver = "deliver" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Process = "process" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Publish = "publish" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Receive = "receive" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingOperationTypeValues.Settle = "settle" -> string!
@@ -533,6 +599,7 @@ const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValue
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.GcpPubsub = "gcp_pubsub" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Jms = "jms" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Kafka = "kafka" -> string!
+const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Pulsar = "pulsar" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Rabbitmq = "rabbitmq" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Rocketmq = "rocketmq" -> string!
 const OpenTelemetry.SemanticConventions.MessagingAttributes.MessagingSystemValues.Servicebus = "servicebus" -> string!
@@ -603,6 +670,7 @@ const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkConnectionTypeV
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkIoDirectionValues.Receive = "receive" -> string!
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkIoDirectionValues.Transmit = "transmit" -> string!
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkTransportValues.Pipe = "pipe" -> string!
+const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkTransportValues.Quic = "quic" -> string!
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkTransportValues.Tcp = "tcp" -> string!
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkTransportValues.Udp = "udp" -> string!
 const OpenTelemetry.SemanticConventions.NetworkAttributes.NetworkTransportValues.Unix = "unix" -> string!
@@ -826,6 +894,18 @@ const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguage
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Rust = "rust" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Swift = "swift" -> string!
 const OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues.Webjs = "webjs" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.AttributeTestCaseName = "test.case.name" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.AttributeTestCaseResultStatus = "test.case.result.status" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.AttributeTestSuiteName = "test.suite.name" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.AttributeTestSuiteRunStatus = "test.suite.run.status" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestCaseResultStatusValues.Fail = "fail" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestCaseResultStatusValues.Pass = "pass" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.Aborted = "aborted" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.Failure = "failure" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.InProgress = "in_progress" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.Skipped = "skipped" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.Success = "success" -> string!
+const OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues.TimedOut = "timed_out" -> string!
 const OpenTelemetry.SemanticConventions.ThreadAttributes.AttributeThreadId = "thread.id" -> string!
 const OpenTelemetry.SemanticConventions.ThreadAttributes.AttributeThreadName = "thread.name" -> string!
 const OpenTelemetry.SemanticConventions.TlsAttributes.AttributeTlsCipher = "tls.cipher" -> string!
@@ -875,18 +955,47 @@ const OpenTelemetry.SemanticConventions.UrlAttributes.AttributeUrlTopLevelDomain
 const OpenTelemetry.SemanticConventions.UserAgentAttributes.AttributeUserAgentName = "user_agent.name" -> string!
 const OpenTelemetry.SemanticConventions.UserAgentAttributes.AttributeUserAgentOriginal = "user_agent.original" -> string!
 const OpenTelemetry.SemanticConventions.UserAgentAttributes.AttributeUserAgentVersion = "user_agent.version" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserEmail = "user.email" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserFullName = "user.full_name" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserHash = "user.hash" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserId = "user.id" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserName = "user.name" -> string!
+const OpenTelemetry.SemanticConventions.UserAttributes.AttributeUserRoles = "user.roles" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.AttributeV8jsGcType = "v8js.gc.type" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.AttributeV8jsHeapSpaceName = "v8js.heap.space.name" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsGcTypeValues.Incremental = "incremental" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsGcTypeValues.Major = "major" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsGcTypeValues.Minor = "minor" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsGcTypeValues.Weakcb = "weakcb" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues.CodeSpace = "code_space" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues.LargeObjectSpace = "large_object_space" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues.MapSpace = "map_space" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues.NewSpace = "new_space" -> string!
+const OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues.OldSpace = "old_space" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryChangeId = "vcs.repository.change.id" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryChangeTitle = "vcs.repository.change.title" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryRefName = "vcs.repository.ref.name" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryRefRevision = "vcs.repository.ref.revision" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryRefType = "vcs.repository.ref.type" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.AttributeVcsRepositoryUrlFull = "vcs.repository.url.full" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.VcsRepositoryRefTypeValues.Branch = "branch" -> string!
+const OpenTelemetry.SemanticConventions.VcsAttributes.VcsRepositoryRefTypeValues.Tag = "tag" -> string!
 const OpenTelemetry.SemanticConventions.WebengineAttributes.AttributeWebengineDescription = "webengine.description" -> string!
 const OpenTelemetry.SemanticConventions.WebengineAttributes.AttributeWebengineName = "webengine.name" -> string!
 const OpenTelemetry.SemanticConventions.WebengineAttributes.AttributeWebengineVersion = "webengine.version" -> string!
 OpenTelemetry.SemanticConventions.AndroidAttributes
 OpenTelemetry.SemanticConventions.AndroidAttributes.AndroidStateValues
+OpenTelemetry.SemanticConventions.ArtifactAttributes
 OpenTelemetry.SemanticConventions.AspnetcoreAttributes
 OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreDiagnosticsExceptionResultValues
 OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreRateLimitingResultValues
 OpenTelemetry.SemanticConventions.AspnetcoreAttributes.AspnetcoreRoutingMatchStatusValues
 OpenTelemetry.SemanticConventions.AwsAttributes
 OpenTelemetry.SemanticConventions.AwsAttributes.AwsEcsLaunchtypeValues
+OpenTelemetry.SemanticConventions.AzAttributes
 OpenTelemetry.SemanticConventions.BrowserAttributes
+OpenTelemetry.SemanticConventions.CicdAttributes
+OpenTelemetry.SemanticConventions.CicdAttributes.CicdPipelineTaskTypeValues
 OpenTelemetry.SemanticConventions.ClientAttributes
 OpenTelemetry.SemanticConventions.CloudAttributes
 OpenTelemetry.SemanticConventions.CloudAttributes.CloudPlatformValues
@@ -895,13 +1004,17 @@ OpenTelemetry.SemanticConventions.CloudeventsAttributes
 OpenTelemetry.SemanticConventions.CodeAttributes
 OpenTelemetry.SemanticConventions.ContainerAttributes
 OpenTelemetry.SemanticConventions.ContainerAttributes.ContainerCpuStateValues
+OpenTelemetry.SemanticConventions.CpuAttributes
+OpenTelemetry.SemanticConventions.CpuAttributes.CpuModeValues
 OpenTelemetry.SemanticConventions.DbAttributes
 OpenTelemetry.SemanticConventions.DbAttributes.DbCassandraConsistencyLevelValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionsStateValues
+OpenTelemetry.SemanticConventions.DbAttributes.DbClientConnectionStateValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbConnectionModeValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbCosmosdbOperationTypeValues
 OpenTelemetry.SemanticConventions.DbAttributes.DbSystemValues
 OpenTelemetry.SemanticConventions.DeploymentAttributes
+OpenTelemetry.SemanticConventions.DeploymentAttributes.DeploymentStatusValues
 OpenTelemetry.SemanticConventions.DestinationAttributes
 OpenTelemetry.SemanticConventions.DeviceAttributes
 OpenTelemetry.SemanticConventions.DiskAttributes
@@ -920,7 +1033,11 @@ OpenTelemetry.SemanticConventions.FeatureFlagAttributes
 OpenTelemetry.SemanticConventions.FileAttributes
 OpenTelemetry.SemanticConventions.GcpAttributes
 OpenTelemetry.SemanticConventions.GenAiAttributes
+OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiOperationNameValues
 OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiSystemValues
+OpenTelemetry.SemanticConventions.GenAiAttributes.GenAiTokenTypeValues
+OpenTelemetry.SemanticConventions.GoAttributes
+OpenTelemetry.SemanticConventions.GoAttributes.GoMemoryTypeValues
 OpenTelemetry.SemanticConventions.GraphqlAttributes
 OpenTelemetry.SemanticConventions.GraphqlAttributes.GraphqlOperationTypeValues
 OpenTelemetry.SemanticConventions.HerokuAttributes
@@ -936,6 +1053,8 @@ OpenTelemetry.SemanticConventions.JvmAttributes
 OpenTelemetry.SemanticConventions.JvmAttributes.JvmMemoryTypeValues
 OpenTelemetry.SemanticConventions.JvmAttributes.JvmThreadStateValues
 OpenTelemetry.SemanticConventions.K8sAttributes
+OpenTelemetry.SemanticConventions.LinuxAttributes
+OpenTelemetry.SemanticConventions.LinuxAttributes.LinuxMemorySlabStateValues
 OpenTelemetry.SemanticConventions.LogAttributes
 OpenTelemetry.SemanticConventions.LogAttributes.LogIostreamValues
 OpenTelemetry.SemanticConventions.MessageAttributes
@@ -995,9 +1114,18 @@ OpenTelemetry.SemanticConventions.SystemAttributes.SystemProcessesStatusValues
 OpenTelemetry.SemanticConventions.SystemAttributes.SystemProcessStatusValues
 OpenTelemetry.SemanticConventions.TelemetryAttributes
 OpenTelemetry.SemanticConventions.TelemetryAttributes.TelemetrySdkLanguageValues
+OpenTelemetry.SemanticConventions.TestAttributes
+OpenTelemetry.SemanticConventions.TestAttributes.TestCaseResultStatusValues
+OpenTelemetry.SemanticConventions.TestAttributes.TestSuiteRunStatusValues
 OpenTelemetry.SemanticConventions.ThreadAttributes
 OpenTelemetry.SemanticConventions.TlsAttributes
 OpenTelemetry.SemanticConventions.TlsAttributes.TlsProtocolNameValues
 OpenTelemetry.SemanticConventions.UrlAttributes
 OpenTelemetry.SemanticConventions.UserAgentAttributes
+OpenTelemetry.SemanticConventions.UserAttributes
+OpenTelemetry.SemanticConventions.V8jsAttributes
+OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsGcTypeValues
+OpenTelemetry.SemanticConventions.V8jsAttributes.V8jsHeapSpaceNameValues
+OpenTelemetry.SemanticConventions.VcsAttributes
+OpenTelemetry.SemanticConventions.VcsAttributes.VcsRepositoryRefTypeValues
 OpenTelemetry.SemanticConventions.WebengineAttributes

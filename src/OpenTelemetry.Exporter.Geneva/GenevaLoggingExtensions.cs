@@ -130,7 +130,7 @@ public static class GenevaLoggingExtensions
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var exporter = new GenevaLogExporter(exporterOptions);
+        var exporter = new GenevaLogExporter(exporterOptions!);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         if (exporter.IsUsingUnixDomainSocket)
