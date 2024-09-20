@@ -13,7 +13,6 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// </summary>
 internal sealed class SqlClientInstrumentation : IDisposable
 {
-    // Fake change to trigger CI
     internal const string SqlClientDiagnosticListenerName = "SqlClientDiagnosticListener";
 #if NET
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
