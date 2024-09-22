@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>SqlClient instrumentation for OpenTelemetry .NET</Description>
+    <Description>SqlClient instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.SqlClient-</MinVerTagPrefix>
   </PropertyGroup>

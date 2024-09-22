@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
-    <Description>AWS client instrumentation for OpenTelemetry .NET</Description>
+    <Description>AWS client instrumentation for OpenTelemetry .NET.</Description>
 	  <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 

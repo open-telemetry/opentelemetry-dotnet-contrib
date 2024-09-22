@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
-    <Description>dotnet process instrumentation for OpenTelemetry .NET</Description>
+    <Description>dotnet process instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);process</PackageTags>
     <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
   </PropertyGroup>

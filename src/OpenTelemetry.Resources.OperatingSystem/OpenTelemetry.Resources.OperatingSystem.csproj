@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
-    <Description>OpenTelemetry Extensions - Operating System Resource Detector for .NET</Description>
+    <Description>OpenTelemetry Extensions - Operating System Resource Detector for .NET.</Description>
     <MinVerTagPrefix>Resources.OperatingSystem-</MinVerTagPrefix>
   </PropertyGroup>
 

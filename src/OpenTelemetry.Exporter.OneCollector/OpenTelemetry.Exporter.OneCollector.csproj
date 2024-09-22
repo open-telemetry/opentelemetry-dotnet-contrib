@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector</Description>
+    <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector.</Description>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <!-- Note: SYSLIB1100;SYSLIB1101 - Configuration.Binder: Can't create

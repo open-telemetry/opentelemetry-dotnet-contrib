@@ -4,11 +4,8 @@
     <Description>Stackdriver .NET Exporter for OpenTelemetry.</Description>
     <PackageTags>$(PackageTags);Stackdriver;Google;GCP;distributed-tracing</PackageTags>
     <MinVerTagPrefix>Exporter.Stackdriver-</MinVerTagPrefix>
-  </PropertyGroup>
-
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
-  <PropertyGroup>
+    <!--Do not run Package Baseline Validation as this package has never released a stable version.
+    Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
 
