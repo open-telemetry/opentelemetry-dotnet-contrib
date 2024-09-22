@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(TargetFrameworksForAotCompatibilityTests)</TargetFrameworks>
+    <TargetFramework>$(TargetFrameworksForAotCompatibilityTests)</TargetFramework>
     <PublishAot>true</PublishAot>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <EventSourceSupport>true</EventSourceSupport>
