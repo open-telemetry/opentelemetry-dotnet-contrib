@@ -1,19 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>$(TargetFrameworksForTests)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry HTTP instrumentations</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\CustomTextMapPropagator.cs" Link="/Includes/CustomTextMapPropagator.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="/Includes/EventSourceTestHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\InMemoryEventListener.cs" Link="/Includes/InMemoryEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="/Includes/SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="/Includes/TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="/Includes/TestHttpServer.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,5 +33,4 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj" />
   </ItemGroup>
-
 </Project>

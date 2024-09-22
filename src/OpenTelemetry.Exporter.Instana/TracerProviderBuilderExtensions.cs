@@ -18,10 +18,14 @@ public static class TracerProviderBuilderExtensions
     /// <exception cref="ArgumentNullException">Tracer provider builder is null.</exception>
     public static TracerProviderBuilder AddInstanaExporter(this TracerProviderBuilder options)
     {
+#if NET
+        ArgumentNullException.ThrowIfNull(options);
+#else
         if (options == null)
         {
             throw new ArgumentNullException(nameof(options));
         }
+#endif
 
 #pragma warning disable CA2000
         return options.AddProcessor(new BatchActivityExportProcessor(new InstanaExporter()));

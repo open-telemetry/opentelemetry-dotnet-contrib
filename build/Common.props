@@ -6,9 +6,6 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)debug.snk</AssemblyOriginatorKeyFile>
     <DefineConstants>$(DefineConstants);SIGNED</DefineConstants>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
-    <NetMinimumSupportedVersion>net6.0</NetMinimumSupportedVersion>
-    <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <Nullable>enable</Nullable>
@@ -16,6 +13,26 @@
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <NuGetAuditLevel>low</NuGetAuditLevel>
+  </PropertyGroup>
+
+  <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+  <PropertyGroup>
+    <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
+    <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
+
+    <!-- production TFMs -->
+    <TargetFrameworksForLibraries>net8.0;net6.0;netstandard2.0</TargetFrameworksForLibraries>
+    <TargetFrameworksForExporterStackdriver>net8.0;net6.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworksForExporterStackdriver>
+    <TargetFrameworksForInstrumentationAspNetCore>net8.0;net6.0</TargetFrameworksForInstrumentationAspNetCore>
+    <TargetFrameworksForInstrumentationAWSLambda>net8.0;net6.0</TargetFrameworksForInstrumentationAWSLambda>
+
+    <!-- non-production TFMs -->
+    <TargetFrameworksForAotCompatibilityTests>net8.0</TargetFrameworksForAotCompatibilityTests>
+    <TargetFrameworksForTests>net8.0;net6.0</TargetFrameworksForTests>
+    <TargetFrameworksForTests Condition="$(OS) == 'Windows_NT'">
+      $(TargetFrameworksForTests);$(NetFrameworkMinimumSupportedVersion)
+    </TargetFrameworksForTests>
+    <TargetFrameworksNetForTests>net8.0;net6.0</TargetFrameworksNetForTests>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

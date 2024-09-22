@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
+#if NET || NETSTANDARD
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 #endif
@@ -18,16 +18,16 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
     private const string KernelOsRelease = "/proc/sys/kernel/osrelease";
     private static readonly string[] DefaultEtcOsReleasePaths =
-        [
-            "/etc/os-release",
-            "/usr/lib/os-release"
-        ];
+    [
+        "/etc/os-release",
+        "/usr/lib/os-release"
+    ];
 
     private static readonly string[] DefaultPlistFilePaths =
-        [
-            "/System/Library/CoreServices/SystemVersion.plist",
-            "/System/Library/CoreServices/ServerVersion.plist"
-        ];
+    [
+        "/System/Library/CoreServices/SystemVersion.plist",
+        "/System/Library/CoreServices/ServerVersion.plist"
+    ];
 
     private readonly string? osType;
     private readonly string? registryKey;
@@ -84,7 +84,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             case OperatingSystemsValues.Windows:
                 this.AddWindowsAttributes(attributes);
                 break;
-#if NET
+#if NET || NETSTANDARD
             case OperatingSystemsValues.Linux:
                 this.AddLinuxAttributes(attributes);
                 break;
@@ -167,7 +167,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     }
 #pragma warning restore CA1416
 
-#if NET
+#if NET || NETSTANDARD
     // based on:
     // https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Linux/os-release/Interop.OSReleaseFile.cs
     private void AddLinuxAttributes(List<KeyValuePair<string, object>> attributes)
@@ -188,9 +188,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             {
                 ReadOnlySpan<char> lineSpan = line.AsSpan();
 
-                _ = TryGetFieldValue(lineSpan, "BUILD_ID=", ref buildId) ||
-                    TryGetFieldValue(lineSpan, "NAME=", ref name) ||
-                    TryGetFieldValue(lineSpan, "VERSION_ID=", ref version);
+                _ = TryGetFieldValue(lineSpan, "BUILD_ID=".AsSpan(), ref buildId) ||
+                    TryGetFieldValue(lineSpan, "NAME=".AsSpan(), ref name) ||
+                    TryGetFieldValue(lineSpan, "VERSION_ID=".AsSpan(), ref version);
             }
 
             string? buildIdContent = null;
@@ -224,9 +224,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
             // Remove enclosing quotes if present.
             if (fieldValue.Length >= 2 &&
                 (fieldValue[0] == '"' || fieldValue[0] == '\'') &&
-                fieldValue[0] == fieldValue[^1])
+                fieldValue[0] == fieldValue[fieldValue.Length - 1])
             {
-                fieldValue = fieldValue[1..^1];
+                fieldValue = fieldValue.Slice(1, fieldValue.Length - 1 - 1);
             }
 
             value = fieldValue;

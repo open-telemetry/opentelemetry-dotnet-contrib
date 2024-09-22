@@ -1,10 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <PackageTags>Instana Tracing APM</PackageTags>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>Instana .NET Exporter for OpenTelemetry</Description>
+    <PackageTags>Instana Tracing APM</PackageTags>
     <MinVerTagPrefix>Exporter.Instana-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.3</PackageValidationBaselineVersion>
   </PropertyGroup>
@@ -27,5 +25,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
-
 </Project>

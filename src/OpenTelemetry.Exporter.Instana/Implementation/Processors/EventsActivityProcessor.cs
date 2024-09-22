@@ -29,7 +29,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
             {
                 if (eventTag.Value != null)
                 {
-                    spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString();
+                    spanEvent.Tags[eventTag.Key] = eventTag.Value.ToString()!;
                 }
             }
 

@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-      <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-      <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
-    </PropertyGroup>
-
+  <PropertyGroup>
+    <TargetFrameworks>$(TargetFrameworksForTests)</TargetFrameworks>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
@@ -13,7 +10,6 @@
     <!-- System.Text.Json is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-hh2w-p6rv-4g7w -->
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
-
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundFactAttribute.cs" />

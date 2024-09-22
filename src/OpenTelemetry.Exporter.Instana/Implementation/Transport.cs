@@ -19,8 +19,8 @@ internal static class Transport
     private static readonly byte[] TracesBuffer = new byte[MultiSpanBufferSize];
     private static bool isConfigured;
     private static int backendTimeout;
-    private static string configuredEndpoint = string.Empty;
-    private static string configuredAgentKey = string.Empty;
+    private static string? configuredEndpoint;
+    private static string? configuredAgentKey;
     private static string bundleUrl = string.Empty;
 
     static Transport()
@@ -48,7 +48,7 @@ internal static class Transport
 
                     // peek instead of dequeue, because we don't yet know whether the next span
                     // fits within our MULTI_SPAN_BUFFER_LIMIT
-                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MultiSpanBufferLimit)
+                    while (spanQueue.TryPeek(out var span) && sendBuffer.Position < MultiSpanBufferLimit)
                     {
                         if (!first)
                         {
@@ -148,8 +148,8 @@ internal static class Transport
 #pragma warning disable CA2000
         var configuredHandler = new HttpClientHandler();
 #pragma warning restore CA2000
-        string proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
-        if (Uri.TryCreate(proxy, UriKind.Absolute, out Uri proxyAddress))
+        var proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
+        if (Uri.TryCreate(proxy, UriKind.Absolute, out var proxyAddress))
         {
             configuredHandler.Proxy = new WebProxy(proxyAddress, true);
             configuredHandler.UseProxy = true;

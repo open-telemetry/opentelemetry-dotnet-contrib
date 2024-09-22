@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
+#if !NETFRAMEWORK && !NETSTANDARD
 using System.Text;
 using OpenTelemetry.Resources.AWS.Models;
 

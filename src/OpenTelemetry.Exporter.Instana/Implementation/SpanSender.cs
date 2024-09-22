@@ -33,7 +33,7 @@ internal sealed class SpanSender : ISpanSender
         while (true)
         {
             // check if we can send spans
-            if (this.spansQueue.TryPeek(out InstanaSpan _))
+            if (this.spansQueue.TryPeek(out var _))
             {
                 // actually send spans
                 await Transport.SendSpansAsync(this.spansQueue).ConfigureAwait(false);

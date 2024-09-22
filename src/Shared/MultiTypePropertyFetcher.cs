@@ -67,7 +67,7 @@ internal sealed class MultiTypePropertyFetcher<T>
         /// Create a property fetcher from a .NET Reflection PropertyInfo class that
         /// represents a property of a particular type.
         /// </summary>
-        public static PropertyFetch FetcherForProperty(PropertyInfo propertyInfo)
+        public static PropertyFetch FetcherForProperty(PropertyInfo? propertyInfo)
         {
             if (propertyInfo == null || !typeof(T).IsAssignableFrom(propertyInfo.PropertyType))
             {
@@ -77,8 +77,8 @@ internal sealed class MultiTypePropertyFetcher<T>
 
             var typedPropertyFetcher = typeof(TypedPropertyFetch<,>);
             var instantiatedTypedPropertyFetcher = typedPropertyFetcher.MakeGenericType(
-                typeof(T), propertyInfo.DeclaringType, propertyInfo.PropertyType);
-            return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo);
+                typeof(T), propertyInfo.DeclaringType!, propertyInfo.PropertyType);
+            return (PropertyFetch)Activator.CreateInstance(instantiatedTypedPropertyFetcher, propertyInfo)!;
         }
 
         public virtual T? Fetch(object obj)
@@ -95,7 +95,7 @@ internal sealed class MultiTypePropertyFetcher<T>
 
             public TypedPropertyFetch(PropertyInfo property)
             {
-                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
+                this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod!.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
             }
 
             public override T? Fetch(object obj)

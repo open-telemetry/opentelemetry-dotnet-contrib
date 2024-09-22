@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry OWIN instrumentation</Description>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry OWIN instrumentation</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +12,4 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Owin\OpenTelemetry.Instrumentation.Owin.csproj" />
   </ItemGroup>
-
 </Project>

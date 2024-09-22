@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(TargetFrameworksNetForTests)</TargetFrameworks>
+    <NoWarn>$(NoWarn);CS8981</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +20,4 @@
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\TestTextMapPropagator.cs" Link="Includes\TestTextMapPropagator.cs" />
   </ItemGroup>
-
 </Project>

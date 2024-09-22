@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
+    <TargetFrameworks>$(TargetFrameworksNetForTests)</TargetFrameworks>
     <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,5 +16,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
   </ItemGroup>
-
 </Project>

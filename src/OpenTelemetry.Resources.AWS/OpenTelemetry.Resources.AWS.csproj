@@ -1,9 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - AWS Resource Detectors for ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>Resources.AWS-</MinVerTagPrefix>
   </PropertyGroup>
@@ -18,7 +15,7 @@
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETStandard'">
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
@@ -33,5 +30,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationHandler.cs" Link="Includes\ServerCertificateValidationHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationProvider.cs" Link="Includes\ServerCertificateValidationProvider.cs" />
   </ItemGroup>
-
 </Project>

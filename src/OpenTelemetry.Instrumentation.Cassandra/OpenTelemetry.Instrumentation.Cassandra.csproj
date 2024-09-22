@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>OpenTelemetry Cassandra Instrumentation</Description>
     <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
     <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
@@ -24,5 +23,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
-
 </Project>

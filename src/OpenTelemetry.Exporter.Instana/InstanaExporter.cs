@@ -59,7 +59,14 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         From from = new From();
         if (this.instanaExporterHelper.IsWindows())
         {
-            from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
+            from = new From
+            {
+#if NET
+                E = Environment.ProcessId.ToString(CultureInfo.InvariantCulture),
+#else
+                E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture),
+#endif
+            };
         }
 
         string serviceName = this.ExtractServiceName(ref from);
@@ -118,15 +125,15 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                 {
                     if (resourceAttribute.Key.Equals("service.instance.id", StringComparison.OrdinalIgnoreCase))
                     {
-                        serviceId = resourceAttribute.Value.ToString();
+                        serviceId = resourceAttribute.Value.ToString()!;
                     }
                     else if (resourceAttribute.Key.Equals("process.pid", StringComparison.OrdinalIgnoreCase))
                     {
-                        processId = resourceAttribute.Value.ToString();
+                        processId = resourceAttribute.Value.ToString()!;
                     }
                     else if (resourceAttribute.Key.Equals("host.id", StringComparison.OrdinalIgnoreCase))
                     {
-                        hostId = resourceAttribute.Value.ToString();
+                        hostId = resourceAttribute.Value.ToString()!;
                     }
                 }
             }

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
     <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
     <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>

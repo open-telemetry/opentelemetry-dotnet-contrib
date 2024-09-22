@@ -23,8 +23,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     internal const string AttributeDbMethod = "db.method";
 
     internal static readonly Assembly Assembly = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string ActivitySourceName = AssemblyName.Name;
+    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     private static readonly Regex ParseRequest = new(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
@@ -91,7 +90,11 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
 
         // operations starting with _ are not indices (_cat, _search, etc.)
+#if NET
+        if (uri.Segments[1].StartsWith('_'))
+#else
         if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
+#endif
         {
             return null;
         }
@@ -99,12 +102,20 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var elasticType = Uri.UnescapeDataString(uri.Segments[1]);
 
         // multiple indices used, return null to avoid high cardinality
+#if NET
+        if (elasticType.Contains(',', StringComparison.Ordinal))
+#else
         if (elasticType.Contains(','))
+#endif
         {
             return null;
         }
 
+#if NET
+        if (elasticType.EndsWith('/'))
+#else
         if (elasticType.EndsWith("/", StringComparison.Ordinal))
+#endif
         {
             elasticType = elasticType.Substring(0, elasticType.Length - 1);
         }

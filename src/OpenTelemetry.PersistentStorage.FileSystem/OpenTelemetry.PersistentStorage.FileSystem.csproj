@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion);net462</TargetFrameworks>
     <Description>OpenTelemetry Persistent Storage</Description>
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <NoWarn>$(NoWarn),1591</NoWarn>
   </PropertyGroup>
 
@@ -22,5 +17,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
   </ItemGroup>
-
 </Project>

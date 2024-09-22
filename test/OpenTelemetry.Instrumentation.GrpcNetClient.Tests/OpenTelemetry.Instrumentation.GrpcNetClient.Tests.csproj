@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <TargetFrameworks>$(TargetFrameworksForTests)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry Grpc for .NET instrumentation</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <NoWarn>$(NoWarn),CS8981</NoWarn>
   </PropertyGroup>
 
@@ -36,5 +35,4 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestActivityExportProcessor.cs" Link="Includes\TestActivityExportProcessor.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
   </ItemGroup>
-
 </Project>

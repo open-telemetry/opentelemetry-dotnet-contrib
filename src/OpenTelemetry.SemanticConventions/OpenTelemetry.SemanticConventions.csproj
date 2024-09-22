@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Semantic Conventions</Description>
     <PackageTags>$(PackageTags);semantic-conventions</PackageTags>
     <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>

@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForTests)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,5 +19,4 @@
     <None Update="Data\GetSamplingTargetsResponse.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Data\GetSamplingTargetsResponseOptionalFields.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
 </Project>

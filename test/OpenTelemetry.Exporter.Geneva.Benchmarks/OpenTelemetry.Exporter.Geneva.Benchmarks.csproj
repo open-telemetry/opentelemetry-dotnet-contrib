@@ -3,9 +3,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForTests)</TargetFrameworks>
     <NoWarn>$(NoWarn),SA1201,SA1202,SA1204,SA1311,SA1123</NoWarn>
     <Nullable>disable</Nullable>
   </PropertyGroup>
@@ -18,5 +16,4 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
   </ItemGroup>
-
 </Project>

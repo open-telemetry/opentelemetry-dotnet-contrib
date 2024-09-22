@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Hangfire Instrumentation</Description>
     <PackageTags>$(PackageTags);Hangfire</PackageTags>
     <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>

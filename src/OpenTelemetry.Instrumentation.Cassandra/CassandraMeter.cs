@@ -11,7 +11,7 @@ internal static class CassandraMeter
     static CassandraMeter()
     {
         var assembly = typeof(CassandraMeter).Assembly;
-        Instance = new Meter(assembly.GetName().Name, assembly.GetPackageVersion());
+        Instance = new Meter(assembly.GetName().Name!, assembly.GetPackageVersion());
     }
 
     public static Meter Instance { get; }

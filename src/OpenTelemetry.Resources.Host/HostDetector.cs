@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET
+#if NET || NETSTANDARD
 using System.Runtime.InteropServices;
 #endif
 using System.Text;
@@ -18,7 +18,7 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-#if NET
+#if NET || NETSTANDARD
     private readonly Func<OSPlatform, bool> isOsPlatform;
 #endif
     private readonly Func<IEnumerable<string>> getFilePaths;
@@ -30,7 +30,7 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
-#if NET
+#if NET || NETSTANDARD
         RuntimeInformation.IsOSPlatform,
 #endif
         GetFilePaths,
@@ -39,7 +39,7 @@ internal sealed class HostDetector : IResourceDetector
     {
     }
 
-#if NET
+#if NET || NETSTANDARD
     public HostDetector(
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
@@ -54,21 +54,21 @@ internal sealed class HostDetector : IResourceDetector
 #endif
 
     internal HostDetector(
-#if NET
+#if NET || NETSTANDARD
         Func<OSPlatform, bool> isOsPlatform,
 #endif
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
         Func<string?> getWindowsMachineId)
     {
-#if NET
+#if NET || NETSTANDARD
         Guard.ThrowIfNull(isOsPlatform);
 #endif
         Guard.ThrowIfNull(getFilePaths);
         Guard.ThrowIfNull(getMacOsMachineId);
         Guard.ThrowIfNull(getWindowsMachineId);
 
-#if NET
+#if NET || NETSTANDARD
         this.isOsPlatform = isOsPlatform;
 #endif
         this.getFilePaths = getFilePaths;
@@ -117,7 +117,7 @@ internal sealed class HostDetector : IResourceDetector
 
         foreach (var line in lines)
         {
-#if NETFRAMEWORK
+#if NETFRAMEWORK || NETSTANDARD
             if (line.IndexOf("IOPlatformUUID", StringComparison.OrdinalIgnoreCase) >= 0)
 #else
             if (line.Contains("IOPlatformUUID", StringComparison.OrdinalIgnoreCase))
