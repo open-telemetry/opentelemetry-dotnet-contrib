@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using System.Text.Json;
 
 namespace OpenTelemetry.Resources.Azure;

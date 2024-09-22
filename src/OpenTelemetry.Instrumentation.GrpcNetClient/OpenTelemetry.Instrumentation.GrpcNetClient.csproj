@@ -32,5 +32,6 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttp)" Condition="'$(TargetFramework)' == 'net462'" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 
 namespace OpenTelemetry.Instrumentation.GrpcNetClient;
 

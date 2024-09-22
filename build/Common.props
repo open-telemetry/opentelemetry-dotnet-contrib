@@ -21,9 +21,9 @@
     <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
 
     <!-- production TFMs -->
-    <TargetFrameworksForLibraries>net8.0;net6.0;netstandard2.0</TargetFrameworksForLibraries>
+    <TargetFrameworksForLibraries>net8.0;net6.0;netstandard2.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworksForLibraries>
     <TargetFrameworksForExporterStackdriver>net8.0;net6.0;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworksForExporterStackdriver>
-    <TargetFrameworksForInstrumentationAspNetCore>net8.0;net6.0</TargetFrameworksForInstrumentationAspNetCore>
+    <TargetFrameworksForInstrumentationAspNetCore>net8.0;net6.0;netstandard2.0</TargetFrameworksForInstrumentationAspNetCore>
     <TargetFrameworksForInstrumentationAWSLambda>net8.0;net6.0</TargetFrameworksForInstrumentationAWSLambda>
 
     <!-- non-production TFMs -->

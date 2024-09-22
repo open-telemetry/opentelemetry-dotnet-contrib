@@ -3,6 +3,9 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using System.Reflection;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
