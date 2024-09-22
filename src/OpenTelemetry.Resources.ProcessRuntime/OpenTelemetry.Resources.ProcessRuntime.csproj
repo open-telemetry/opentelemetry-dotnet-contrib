@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>$(TargetFrameworksForLibraries);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>OpenTelemetry Extensions - Process Runtime Resource Detector for .NET runtime.</Description>
     <MinVerTagPrefix>Resources.ProcessRuntime-</MinVerTagPrefix>
   </PropertyGroup>
