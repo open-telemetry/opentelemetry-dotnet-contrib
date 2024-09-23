@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.MsgPackExporter;
 using OpenTelemetry.Exporter.Geneva.TldExporter;
 using OpenTelemetry.Internal;
 

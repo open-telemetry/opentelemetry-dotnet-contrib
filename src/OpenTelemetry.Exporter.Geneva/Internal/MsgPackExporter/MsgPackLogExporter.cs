@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
 
 internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {

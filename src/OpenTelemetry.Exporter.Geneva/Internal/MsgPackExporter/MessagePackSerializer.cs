@@ -10,7 +10,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
 
 internal static class MessagePackSerializer
 {

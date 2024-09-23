@@ -11,7 +11,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {

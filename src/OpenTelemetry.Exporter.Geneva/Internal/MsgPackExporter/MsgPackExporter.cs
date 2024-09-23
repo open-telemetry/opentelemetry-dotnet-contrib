@@ -7,7 +7,7 @@
 using System.Collections.Frozen;
 #endif
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
 
 internal abstract class MsgPackExporter
 {
