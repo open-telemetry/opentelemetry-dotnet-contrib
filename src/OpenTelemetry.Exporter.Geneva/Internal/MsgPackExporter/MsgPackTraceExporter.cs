@@ -9,6 +9,7 @@ using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;

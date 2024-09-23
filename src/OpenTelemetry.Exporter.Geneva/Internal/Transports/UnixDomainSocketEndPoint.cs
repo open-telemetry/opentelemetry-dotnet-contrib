@@ -1,14 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET
+
 #nullable enable
 
-using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace System.Net.Sockets;
 
 internal sealed class UnixDomainSocketEndPoint : EndPoint
 {
@@ -80,3 +80,5 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
 
     public override string ToString() => this.path;
 }
+
+#endif

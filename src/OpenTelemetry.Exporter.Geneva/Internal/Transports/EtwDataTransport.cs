@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Diagnostics.Tracing;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal sealed class EtwDataTransport : IDataTransport, IDisposable
 {

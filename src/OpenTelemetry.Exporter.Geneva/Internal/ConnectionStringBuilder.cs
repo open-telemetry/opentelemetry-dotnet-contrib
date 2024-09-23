@@ -5,6 +5,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;

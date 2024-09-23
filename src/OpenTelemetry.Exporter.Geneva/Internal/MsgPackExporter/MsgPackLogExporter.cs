@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 

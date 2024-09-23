@@ -3,7 +3,7 @@
 
 #nullable enable
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal interface IDataTransport
 {

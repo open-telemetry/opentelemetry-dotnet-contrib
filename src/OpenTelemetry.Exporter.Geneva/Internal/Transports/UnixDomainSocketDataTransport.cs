@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 {
