@@ -15,73 +15,73 @@ namespace OpenTelemetry.SemanticConventions;
 public static class TestAttributes
 {
     /// <summary>
-    /// The fully qualified human readable name of the <a href="https://en.wikipedia.org/wiki/Test_case">test case</a>
+    /// The fully qualified human readable name of the <a href="https://en.wikipedia.org/wiki/Test_case">test case</a>.
     /// </summary>
     public const string AttributeTestCaseName = "test.case.name";
 
     /// <summary>
-    /// The status of the actual test case result from test execution
+    /// The status of the actual test case result from test execution.
     /// </summary>
     public const string AttributeTestCaseResultStatus = "test.case.result.status";
 
     /// <summary>
-    /// The human readable name of a <a href="https://en.wikipedia.org/wiki/Test_suite">test suite</a>
+    /// The human readable name of a <a href="https://en.wikipedia.org/wiki/Test_suite">test suite</a>.
     /// </summary>
     public const string AttributeTestSuiteName = "test.suite.name";
 
     /// <summary>
-    /// The status of the test suite run
+    /// The status of the test suite run.
     /// </summary>
     public const string AttributeTestSuiteRunStatus = "test.suite.run.status";
 
     /// <summary>
-    /// The status of the actual test case result from test execution
+    /// The status of the actual test case result from test execution.
     /// </summary>
     public static class TestCaseResultStatusValues
     {
         /// <summary>
-        /// pass
+        /// pass.
         /// </summary>
         public const string Pass = "pass";
 
         /// <summary>
-        /// fail
+        /// fail.
         /// </summary>
         public const string Fail = "fail";
     }
 
     /// <summary>
-    /// The status of the test suite run
+    /// The status of the test suite run.
     /// </summary>
     public static class TestSuiteRunStatusValues
     {
         /// <summary>
-        /// success
+        /// success.
         /// </summary>
         public const string Success = "success";
 
         /// <summary>
-        /// failure
+        /// failure.
         /// </summary>
         public const string Failure = "failure";
 
         /// <summary>
-        /// skipped
+        /// skipped.
         /// </summary>
         public const string Skipped = "skipped";
 
         /// <summary>
-        /// aborted
+        /// aborted.
         /// </summary>
         public const string Aborted = "aborted";
 
         /// <summary>
-        /// timed_out
+        /// timed_out.
         /// </summary>
         public const string TimedOut = "timed_out";
 
         /// <summary>
-        /// in_progress
+        /// in_progress.
         /// </summary>
         public const string InProgress = "in_progress";
     }
