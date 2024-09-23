@@ -11,7 +11,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
+namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
@@ -68,7 +68,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     public MsgPackTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var partAName = "Span";
         if (options.TableNameMappings != null

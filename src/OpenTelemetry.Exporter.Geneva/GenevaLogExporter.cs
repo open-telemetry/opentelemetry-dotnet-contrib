@@ -4,8 +4,8 @@
 #nullable enable
 
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.MsgPackExporter;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
@@ -30,7 +30,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
     public GenevaLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);

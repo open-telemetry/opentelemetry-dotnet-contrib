@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Exporter.Geneva.MsgPackExporter;
+namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
@@ -53,7 +53,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     public MsgPackLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         this.tableNameSerializer = new(options, defaultTableName: "Log");
         this.exportExceptionStack = options.ExceptionStackExportMode;

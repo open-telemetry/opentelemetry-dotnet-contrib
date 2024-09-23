@@ -3,8 +3,9 @@
 
 #nullable enable
 
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -22,9 +23,9 @@ internal sealed class ConnectionStringBuilder
 {
     private readonly Dictionary<string, string> parts = new(StringComparer.Ordinal);
 
-    public ConnectionStringBuilder(string connectionString)
+    public ConnectionStringBuilder([NotNull] string? connectionString)
     {
-        Debug.Assert(!string.IsNullOrWhiteSpace(connectionString), "connectionString was null or whitespace");
+        Guard.ThrowIfNullOrWhitespace(connectionString);
 
         const char Semicolon = ';';
         const char EqualSign = '=';
