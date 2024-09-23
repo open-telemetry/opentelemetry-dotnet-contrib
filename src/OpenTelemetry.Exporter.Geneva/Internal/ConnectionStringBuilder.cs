@@ -3,8 +3,8 @@
 
 #nullable enable
 
+using System.Diagnostics;
 using System.Globalization;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -20,11 +20,11 @@ internal enum TransportProtocol
 
 internal sealed class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> parts = new Dictionary<string, string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> parts = new(StringComparer.Ordinal);
 
     public ConnectionStringBuilder(string connectionString)
     {
-        Guard.ThrowIfNullOrWhitespace(connectionString);
+        Debug.Assert(!string.IsNullOrWhiteSpace(connectionString), "connectionString was null or whitespace");
 
         const char Semicolon = ';';
         const char EqualSign = '=';
