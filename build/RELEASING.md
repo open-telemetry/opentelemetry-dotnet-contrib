@@ -106,6 +106,7 @@ Post-build:
    workflow to update the `PackageValidationBaselineVersion` property in project
    files (`.csproj`) to the just released stable version. Merge that PR once the
    build passes (this requires the packages be available on NuGet).
+
 </details>
 
 ## Manual process
