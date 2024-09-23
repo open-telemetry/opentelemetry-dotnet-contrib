@@ -15,71 +15,71 @@ namespace OpenTelemetry.SemanticConventions;
 public static class V8jsAttributes
 {
     /// <summary>
-    /// The type of garbage collection
+    /// The type of garbage collection.
     /// </summary>
     public const string AttributeV8jsGcType = "v8js.gc.type";
 
     /// <summary>
-    /// The name of the space type of heap memory
+    /// The name of the space type of heap memory.
     /// </summary>
     /// <remarks>
-    /// Value can be retrieved from value <c>space_name</c> of <a href="https://nodejs.org/api/v8.html#v8getheapspacestatistics"><c>v8.getHeapSpaceStatistics()</c></a>
+    /// Value can be retrieved from value <c>space_name</c> of <a href="https://nodejs.org/api/v8.html#v8getheapspacestatistics"><c>v8.getHeapSpaceStatistics()</c></a>.
     /// </remarks>
     public const string AttributeV8jsHeapSpaceName = "v8js.heap.space.name";
 
     /// <summary>
-    /// The type of garbage collection
+    /// The type of garbage collection.
     /// </summary>
     public static class V8jsGcTypeValues
     {
         /// <summary>
-        /// Major (Mark Sweep Compact)
+        /// Major (Mark Sweep Compact).
         /// </summary>
         public const string Major = "major";
 
         /// <summary>
-        /// Minor (Scavenge)
+        /// Minor (Scavenge).
         /// </summary>
         public const string Minor = "minor";
 
         /// <summary>
-        /// Incremental (Incremental Marking)
+        /// Incremental (Incremental Marking).
         /// </summary>
         public const string Incremental = "incremental";
 
         /// <summary>
-        /// Weak Callbacks (Process Weak Callbacks)
+        /// Weak Callbacks (Process Weak Callbacks).
         /// </summary>
         public const string Weakcb = "weakcb";
     }
 
     /// <summary>
-    /// The name of the space type of heap memory
+    /// The name of the space type of heap memory.
     /// </summary>
     public static class V8jsHeapSpaceNameValues
     {
         /// <summary>
-        /// New memory space
+        /// New memory space.
         /// </summary>
         public const string NewSpace = "new_space";
 
         /// <summary>
-        /// Old memory space
+        /// Old memory space.
         /// </summary>
         public const string OldSpace = "old_space";
 
         /// <summary>
-        /// Code memory space
+        /// Code memory space.
         /// </summary>
         public const string CodeSpace = "code_space";
 
         /// <summary>
-        /// Map memory space
+        /// Map memory space.
         /// </summary>
         public const string MapSpace = "map_space";
 
         /// <summary>
-        /// Large object memory space
+        /// Large object memory space.
         /// </summary>
         public const string LargeObjectSpace = "large_object_space";
     }

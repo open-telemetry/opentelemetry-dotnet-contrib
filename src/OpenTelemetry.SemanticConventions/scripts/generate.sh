@@ -6,7 +6,7 @@ ROOT_DIR="${SCRIPT_DIR}/../"
 
 # freeze the spec version to make SemanticAttributes generation reproducible
 SEMCONV_VERSION="1.27.0"
-GENERATOR_VERSION="v0.9.2"
+GENERATOR_VERSION="v0.10.0"
 
 cd ${SCRIPT_DIR}
 
