@@ -27,7 +27,7 @@ public static class OpenTelemetryConsumeResultExtensions
         this ConsumeResult<TKey, TValue> consumeResult,
         out PropagationContext propagationContext)
     {
-#if NETFRAMEWORK
+#if !NET6_0_OR_GREATER
         if (consumeResult == null)
         {
             throw new ArgumentNullException(nameof(consumeResult));
@@ -75,7 +75,7 @@ public static class OpenTelemetryConsumeResultExtensions
         OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue> handler,
         CancellationToken cancellationToken)
     {
-#if NETFRAMEWORK
+#if !NET6_0_OR_GREATER
         if (consumer == null)
         {
             throw new ArgumentNullException(nameof(consumer));
@@ -89,7 +89,7 @@ public static class OpenTelemetryConsumeResultExtensions
             throw new ArgumentException("Invalid consumer type.", nameof(consumer));
         }
 
-#if NETFRAMEWORK
+#if !NET6_0_OR_GREATER
         if (handler is null)
         {
             throw new ArgumentNullException(nameof(handler));
