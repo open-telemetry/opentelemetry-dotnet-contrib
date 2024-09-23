@@ -15,20 +15,20 @@ namespace OpenTelemetry.SemanticConventions;
 public static class EnduserAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>user.id</c> instead
+    /// Deprecated, use <c>user.id</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>user.id</c> attribute")]
+    [Obsolete("Replaced by <c>user.id</c> attribute.")]
     public const string AttributeEnduserId = "enduser.id";
 
     /// <summary>
-    /// Deprecated, use <c>user.roles</c> instead
+    /// Deprecated, use <c>user.roles</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>user.roles</c> attribute")]
+    [Obsolete("Replaced by <c>user.roles</c> attribute.")]
     public const string AttributeEnduserRole = "enduser.role";
 
     /// <summary>
-    /// Deprecated, no replacement at this time
+    /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("Removed")]
+    [Obsolete("Removed.")]
     public const string AttributeEnduserScope = "enduser.scope";
 }

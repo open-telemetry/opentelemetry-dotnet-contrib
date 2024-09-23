@@ -15,22 +15,22 @@ namespace OpenTelemetry.SemanticConventions;
 public static class LinuxAttributes
 {
     /// <summary>
-    /// The Linux Slab memory state
+    /// The Linux Slab memory state.
     /// </summary>
     public const string AttributeLinuxMemorySlabState = "linux.memory.slab.state";
 
     /// <summary>
-    /// The Linux Slab memory state
+    /// The Linux Slab memory state.
     /// </summary>
     public static class LinuxMemorySlabStateValues
     {
         /// <summary>
-        /// reclaimable
+        /// reclaimable.
         /// </summary>
         public const string Reclaimable = "reclaimable";
 
         /// <summary>
-        /// unreclaimable
+        /// unreclaimable.
         /// </summary>
         public const string Unreclaimable = "unreclaimable";
     }

@@ -4,6 +4,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
     [Parameter(Mandatory=$true)][string]$component,
     [Parameter(Mandatory=$true)][string]$version,
     [Parameter(Mandatory=$true)][string]$requestedByUserName,
+    [Parameter()][string]$releaseIssue,
     [Parameter()][string]$targetBranch="main",
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
@@ -42,10 +43,19 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
       throw 'git switch failure'
   }
 
+  if ([string]::IsNullOrEmpty($releaseIssue) -eq $false)
+  {
+    $issueText =
+@"
+
+Release request: #$releaseIssue
+"@
+  }
+
   $body =
 @"
 Note: This PR was opened automatically by the [prepare release workflow](https://github.com/$gitRepository/actions/workflows/prepare-release.yml).
-
+$issueText
 Requested by: @$requestedByUserName
 
 ## Changes
@@ -304,3 +314,152 @@ Released $(Get-Date -UFormat '%Y-%b-%d')
 }
 
 Export-ModuleMember -Function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest
+
+function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue {
+  param(
+    [Parameter(Mandatory=$true)][string]$gitRepository,
+    [Parameter(Mandatory=$true)][string]$triggeringEventName,
+    [Parameter(Mandatory=$true)][string]$approvingGroups,
+    [Parameter(Mandatory=$true)][string]$requestedByUserName,
+    [Parameter(Mandatory=$true)][string]$issueNumber,
+    [Parameter(Mandatory=$true)][string]$issueBody,
+    [Parameter()][string]$targetBranch="main",
+    [Parameter()][string]$gitUserName,
+    [Parameter()][string]$gitUserEmail
+  )
+
+  $match = [regex]::Match($issueBody, '^[#]+ Component\s*(OpenTelemetry\.(?:.|\w+)+)$', [Text.RegularExpressions.RegexOptions]::Multiline)
+  if ($match.Success -eq $false)
+  {
+      Write-Host 'Component could not be parsed from body'
+      Return
+  }
+
+  $component = $match.Groups[1].Value.Trim()
+
+  $match = [regex]::Match($issueBody, '^[#]+ Version\s*(.*)$', [Text.RegularExpressions.RegexOptions]::Multiline)
+  if ($match.Success -eq $false)
+  {
+      Write-Host 'Version could not be parsed from body'
+      Return
+  }
+
+  $version = $match.Groups[1].Value.Trim()
+
+  $match = [regex]::Match($version, '^(\d+\.\d+\.\d+)(?:-((?:alpha)|(?:beta)|(?:rc))\.(\d+))?$')
+  if ($match.Success -eq $false)
+  {
+      gh issue comment $issueNumber `
+        --body "The version specified on the release request is invalid. Please create a new release request with a valid version or edit the description and set a valid version."
+      Return
+  }
+
+  $projectPath = "src/$component/$component.csproj"
+
+  if ((Test-Path -Path $projectPath) -eq $false)
+  {
+      gh issue comment $issueNumber `
+        --body "I couldn't find the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
+      Return
+  }
+
+  $projectContent = Get-Content -Path $projectPath
+
+  $match = [regex]::Match($projectContent, '<MinVerTagPrefix>(.*)<\/MinVerTagPrefix>')
+  if ($match.Success -eq $false)
+  {
+      gh issue comment $issueNumber `
+        --body "I couldn't find ``MinVerTagPrefix`` in the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
+      Return
+  }
+
+  $minVerTagPrefix = $match.Groups[1].Value
+
+  $projectDirs = Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$minVerTagPrefix</MinVerTagPrefix>" -List | Select Path | Split-Path -Parent
+
+  $componentOwnersContent = Get-Content '.github/component_owners.yml' -Raw
+
+  $componentOwners = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+  foreach ($projectDir in $projectDirs)
+  {
+    $projectName = [System.IO.Path]::GetFileName($projectDir)
+
+    $match = [regex]::Match($componentOwnersContent, "src\/$projectName\/:([\w\W\s]*?)src")
+    if ($match.Success -eq $true)
+    {
+      $matches = [regex]::Matches($match.Groups[1].Value, "-\s*(.*)")
+      foreach ($match in $matches)
+      {
+        $owner = $match.Groups[1].Value
+        $_ = $componentOwners.Add($owner.Trim())
+      }
+    }
+  }
+
+  $requestedByUserPermission = gh api "repos/$gitRepository/collaborators/$requestedByUserName/permission" | ConvertFrom-Json
+
+  $kickOffWorkflow = $false
+  $kickOffWorkflowReason = ''
+
+  if ($requestedByUserPermission.permission -eq 'admin' -or $requestedByUserPermission.permission -eq 'write')
+  {
+    $kickOffWorkflow = $true
+    $kickOffWorkflowReason = "@$requestedByUserName has collaborator or greater permission"
+  }
+  elseif ($componentOwners.Contains($requestedByUserName) -eq $true)
+  {
+    $kickOffWorkflow = $true
+    $kickOffWorkflowReason = "@$requestedByUserName is a component owner"
+  }
+
+  if ($kickOffWorkflow -eq $true)
+  {
+    CreatePullRequestToUpdateChangelogsAndPublicApis `
+      -gitRepository $gitRepository `
+      -component $component `
+      -version $version `
+      -requestedByUserName $requestedByUserName `
+      -releaseIssue $issueNumber `
+      -targetBranch $targetBranch `
+      -gitUserName $gitUserName `
+      -gitUserEmail $gitUserEmail
+
+    gh issue close $issueNumber `
+      --comment "I executed the prepare release script for ``$component`` version ``$version``` because $kickOffWorkflowReason."
+
+    return
+  }
+
+  if ($triggeringEventName -eq 'issues')
+  {
+    # Executed when issues are created or edited
+    $componentOwnerApprovers = ''
+    if ($componentOwners.Count -gt 0)
+    {
+      foreach ($componentOwner in $componentOwners)
+      {
+        $componentOwnerApprovers += "@$componentOwner "
+      }
+    }
+
+    $body =
+@"
+$componentOwnerApprovers$approvingGroups
+
+Post a comment with "/PrepareRelease" in the body if you would like me to execute the prepare release script for the component and version listed in the description.
+"@
+
+    gh issue comment $issueNumber --body $body
+  }
+  else {
+    # Executed when issues are commented with the /PrepareRelease command
+    if ($kickOffWorkflow -eq $false)
+    {
+      gh issue comment $issueNumber `
+        --body "I'm sorry @$requestedByUserName but you don't have permission to execute the prepare release script. Only maintainers, approvers, and/or owners of the component may use the `"/PrepareRelease`" command."
+    }
+  }
+}
+
+Export-ModuleMember -Function TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue

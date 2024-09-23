@@ -15,87 +15,87 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OsAttributes
 {
     /// <summary>
-    /// Unique identifier for a particular build or compilation of the operating system
+    /// Unique identifier for a particular build or compilation of the operating system.
     /// </summary>
     public const string AttributeOsBuildId = "os.build_id";
 
     /// <summary>
-    /// Human readable (not intended to be parsed) OS version information, like e.g. reported by <c>ver</c> or <c>lsb_release -a</c> commands
+    /// Human readable (not intended to be parsed) OS version information, like e.g. reported by <c>ver</c> or <c>lsb_release -a</c> commands.
     /// </summary>
     public const string AttributeOsDescription = "os.description";
 
     /// <summary>
-    /// Human readable operating system name
+    /// Human readable operating system name.
     /// </summary>
     public const string AttributeOsName = "os.name";
 
     /// <summary>
-    /// The operating system type
+    /// The operating system type.
     /// </summary>
     public const string AttributeOsType = "os.type";
 
     /// <summary>
-    /// The version string of the operating system as defined in <a href="/docs/resource/README.md#version-attributes">Version Attributes</a>
+    /// The version string of the operating system as defined in <a href="/docs/resource/README.md#version-attributes">Version Attributes</a>.
     /// </summary>
     public const string AttributeOsVersion = "os.version";
 
     /// <summary>
-    /// The operating system type
+    /// The operating system type.
     /// </summary>
     public static class OsTypeValues
     {
         /// <summary>
-        /// Microsoft Windows
+        /// Microsoft Windows.
         /// </summary>
         public const string Windows = "windows";
 
         /// <summary>
-        /// Linux
+        /// Linux.
         /// </summary>
         public const string Linux = "linux";
 
         /// <summary>
-        /// Apple Darwin
+        /// Apple Darwin.
         /// </summary>
         public const string Darwin = "darwin";
 
         /// <summary>
-        /// FreeBSD
+        /// FreeBSD.
         /// </summary>
         public const string Freebsd = "freebsd";
 
         /// <summary>
-        /// NetBSD
+        /// NetBSD.
         /// </summary>
         public const string Netbsd = "netbsd";
 
         /// <summary>
-        /// OpenBSD
+        /// OpenBSD.
         /// </summary>
         public const string Openbsd = "openbsd";
 
         /// <summary>
-        /// DragonFly BSD
+        /// DragonFly BSD.
         /// </summary>
         public const string Dragonflybsd = "dragonflybsd";
 
         /// <summary>
-        /// HP-UX (Hewlett Packard Unix)
+        /// HP-UX (Hewlett Packard Unix).
         /// </summary>
         public const string Hpux = "hpux";
 
         /// <summary>
-        /// AIX (Advanced Interactive eXecutive)
+        /// AIX (Advanced Interactive eXecutive).
         /// </summary>
         public const string Aix = "aix";
 
         /// <summary>
-        /// SunOS, Oracle Solaris
+        /// SunOS, Oracle Solaris.
         /// </summary>
         public const string Solaris = "solaris";
 
         /// <summary>
-        /// IBM z/OS
+        /// IBM z/OS.
         /// </summary>
         public const string ZOs = "z_os";
     }

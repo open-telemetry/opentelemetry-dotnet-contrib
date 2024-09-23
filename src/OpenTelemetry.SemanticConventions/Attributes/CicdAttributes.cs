@@ -15,52 +15,52 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CicdAttributes
 {
     /// <summary>
-    /// The human readable name of the pipeline within a CI/CD system
+    /// The human readable name of the pipeline within a CI/CD system.
     /// </summary>
     public const string AttributeCicdPipelineName = "cicd.pipeline.name";
 
     /// <summary>
-    /// The unique identifier of a pipeline run within a CI/CD system
+    /// The unique identifier of a pipeline run within a CI/CD system.
     /// </summary>
     public const string AttributeCicdPipelineRunId = "cicd.pipeline.run.id";
 
     /// <summary>
-    /// The human readable name of a task within a pipeline. Task here most closely aligns with a <a href="https://en.wikipedia.org/wiki/Pipeline_(computing)">computing process</a> in a pipeline. Other terms for tasks include commands, steps, and procedures
+    /// The human readable name of a task within a pipeline. Task here most closely aligns with a <a href="https://en.wikipedia.org/wiki/Pipeline_(computing)">computing process</a> in a pipeline. Other terms for tasks include commands, steps, and procedures.
     /// </summary>
     public const string AttributeCicdPipelineTaskName = "cicd.pipeline.task.name";
 
     /// <summary>
-    /// The unique identifier of a task run within a pipeline
+    /// The unique identifier of a task run within a pipeline.
     /// </summary>
     public const string AttributeCicdPipelineTaskRunId = "cicd.pipeline.task.run.id";
 
     /// <summary>
-    /// The <a href="https://en.wikipedia.org/wiki/URL">URL</a> of the pipeline run providing the complete address in order to locate and identify the pipeline run
+    /// The <a href="https://en.wikipedia.org/wiki/URL">URL</a> of the pipeline run providing the complete address in order to locate and identify the pipeline run.
     /// </summary>
     public const string AttributeCicdPipelineTaskRunUrlFull = "cicd.pipeline.task.run.url.full";
 
     /// <summary>
-    /// The type of the task within a pipeline
+    /// The type of the task within a pipeline.
     /// </summary>
     public const string AttributeCicdPipelineTaskType = "cicd.pipeline.task.type";
 
     /// <summary>
-    /// The type of the task within a pipeline
+    /// The type of the task within a pipeline.
     /// </summary>
     public static class CicdPipelineTaskTypeValues
     {
         /// <summary>
-        /// build
+        /// build.
         /// </summary>
         public const string Build = "build";
 
         /// <summary>
-        /// test
+        /// test.
         /// </summary>
         public const string Test = "test";
 
         /// <summary>
-        /// deploy
+        /// deploy.
         /// </summary>
         public const string Deploy = "deploy";
     }

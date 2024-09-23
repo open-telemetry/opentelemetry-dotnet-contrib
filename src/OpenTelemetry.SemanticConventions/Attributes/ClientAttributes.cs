@@ -15,18 +15,18 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ClientAttributes
 {
     /// <summary>
-    /// Client address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name
+    /// Client address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
     /// <remarks>
-    /// When observed from the server side, and when communicating through an intermediary, <c>client.address</c> SHOULD represent the client address behind any intermediaries,  for example proxies, if it's available
+    /// When observed from the server side, and when communicating through an intermediary, <c>client.address</c> SHOULD represent the client address behind any intermediaries,  for example proxies, if it's available.
     /// </remarks>
     public const string AttributeClientAddress = "client.address";
 
     /// <summary>
-    /// Client port number
+    /// Client port number.
     /// </summary>
     /// <remarks>
-    /// When observed from the server side, and when communicating through an intermediary, <c>client.port</c> SHOULD represent the client port behind any intermediaries,  for example proxies, if it's available
+    /// When observed from the server side, and when communicating through an intermediary, <c>client.port</c> SHOULD represent the client port behind any intermediaries,  for example proxies, if it's available.
     /// </remarks>
     public const string AttributeClientPort = "client.port";
 }
