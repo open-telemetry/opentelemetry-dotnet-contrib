@@ -71,13 +71,15 @@ book-keeping/routine tasks needed to be done in the release process:
   proceed from this point.
 
 Pre-build:
- * `CHANGELOG` updates.
- * Public API file (`.publicApi` folder) updates (for stable releases only).
+
+* `CHANGELOG` updates.
+* Public API file (`.publicApi` folder) updates (for stable releases only).
 
 Post-build:
- * NuGet push.
- * GitHub release creation.
- * `PackageValidationBaselineVersion` updates (for stable releases only).
+
+* NuGet push.
+* GitHub release creation.
+* `PackageValidationBaselineVersion` updates (for stable releases only).
 
 <details>
 <summary>Instructions for approvers and maintainers</summary>

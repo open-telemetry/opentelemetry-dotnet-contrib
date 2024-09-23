@@ -175,9 +175,9 @@ next alpha/beta release.
 
 ## Release process
 
-For details about the relaese process and information about how to request a
-release for a component in this repository see: [Release
-process](./build/RELEASING.md).
+For details about the release process and information about how to request a
+release for a component in this repository see: [Requesting a
+release](./build/RELEASING.md#requesting-a-release).
 
 ## Style guide
 
@@ -216,9 +216,10 @@ things you should do to ensure that your project is automatically built and
 shipped through CI.
 
 > [!NOTE]
-> Here is a reference PR (adding the OpenTelemetry.Resources.OperatingSystem
-  project) to use as a guide when adding new projects to the repository:
-  https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1943
+> It is generally helpful to reference a previous pull request when adding a new
+  project to the repository. A good example to follow is the pull request which
+  added the `OpenTelemetry.Resources.OperatingSystem` project:
+  [#1943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1943).
 
 * Based on what your project is, you may need to depend on the [OpenTelemetry
   SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry

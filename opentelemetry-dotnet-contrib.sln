@@ -9,6 +9,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{07AA0F83-22F6-4B8C-921D-029D3384CB17}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.markdownlint.yaml = .markdownlint.yaml
 		CODEOWNERS = CODEOWNERS
 		CONTRIBUTING.md = CONTRIBUTING.md
 		global.json = global.json
