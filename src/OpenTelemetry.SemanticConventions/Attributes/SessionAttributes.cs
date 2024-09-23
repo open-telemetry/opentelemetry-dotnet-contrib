@@ -15,12 +15,12 @@ namespace OpenTelemetry.SemanticConventions;
 public static class SessionAttributes
 {
     /// <summary>
-    /// A unique id to identify a session
+    /// A unique id to identify a session.
     /// </summary>
     public const string AttributeSessionId = "session.id";
 
     /// <summary>
-    /// The previous <c>session.id</c> for this user, when known
+    /// The previous <c>session.id</c> for this user, when known.
     /// </summary>
     public const string AttributeSessionPreviousId = "session.previous_id";
 }

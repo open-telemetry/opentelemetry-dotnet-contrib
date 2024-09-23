@@ -15,12 +15,12 @@ namespace OpenTelemetry.SemanticConventions;
 public static class K8sAttributes
 {
     /// <summary>
-    /// The name of the cluster
+    /// The name of the cluster.
     /// </summary>
     public const string AttributeK8sClusterName = "k8s.cluster.name";
 
     /// <summary>
-    /// A pseudo-ID for the cluster, set to the UID of the <c>kube-system</c> namespace
+    /// A pseudo-ID for the cluster, set to the UID of the <c>kube-system</c> namespace.
     /// </summary>
     /// <remarks>
     /// K8s doesn't have support for obtaining a cluster ID. If this is ever
@@ -46,123 +46,123 @@ public static class K8sAttributes
     /// 
     /// <p>
     /// Therefore, UIDs between clusters should be extremely unlikely to
-    /// conflict
+    /// conflict.
     /// </remarks>
     public const string AttributeK8sClusterUid = "k8s.cluster.uid";
 
     /// <summary>
-    /// The name of the Container from Pod specification, must be unique within a Pod. Container runtime usually uses different globally unique name (<c>container.name</c>)
+    /// The name of the Container from Pod specification, must be unique within a Pod. Container runtime usually uses different globally unique name (<c>container.name</c>).
     /// </summary>
     public const string AttributeK8sContainerName = "k8s.container.name";
 
     /// <summary>
-    /// Number of times the container was restarted. This attribute can be used to identify a particular container (running or stopped) within a container spec
+    /// Number of times the container was restarted. This attribute can be used to identify a particular container (running or stopped) within a container spec.
     /// </summary>
     public const string AttributeK8sContainerRestartCount = "k8s.container.restart_count";
 
     /// <summary>
-    /// Last terminated reason of the Container
+    /// Last terminated reason of the Container.
     /// </summary>
     public const string AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason";
 
     /// <summary>
-    /// The name of the CronJob
+    /// The name of the CronJob.
     /// </summary>
     public const string AttributeK8sCronjobName = "k8s.cronjob.name";
 
     /// <summary>
-    /// The UID of the CronJob
+    /// The UID of the CronJob.
     /// </summary>
     public const string AttributeK8sCronjobUid = "k8s.cronjob.uid";
 
     /// <summary>
-    /// The name of the DaemonSet
+    /// The name of the DaemonSet.
     /// </summary>
     public const string AttributeK8sDaemonsetName = "k8s.daemonset.name";
 
     /// <summary>
-    /// The UID of the DaemonSet
+    /// The UID of the DaemonSet.
     /// </summary>
     public const string AttributeK8sDaemonsetUid = "k8s.daemonset.uid";
 
     /// <summary>
-    /// The name of the Deployment
+    /// The name of the Deployment.
     /// </summary>
     public const string AttributeK8sDeploymentName = "k8s.deployment.name";
 
     /// <summary>
-    /// The UID of the Deployment
+    /// The UID of the Deployment.
     /// </summary>
     public const string AttributeK8sDeploymentUid = "k8s.deployment.uid";
 
     /// <summary>
-    /// The name of the Job
+    /// The name of the Job.
     /// </summary>
     public const string AttributeK8sJobName = "k8s.job.name";
 
     /// <summary>
-    /// The UID of the Job
+    /// The UID of the Job.
     /// </summary>
     public const string AttributeK8sJobUid = "k8s.job.uid";
 
     /// <summary>
-    /// The name of the namespace that the pod is running in
+    /// The name of the namespace that the pod is running in.
     /// </summary>
     public const string AttributeK8sNamespaceName = "k8s.namespace.name";
 
     /// <summary>
-    /// The name of the Node
+    /// The name of the Node.
     /// </summary>
     public const string AttributeK8sNodeName = "k8s.node.name";
 
     /// <summary>
-    /// The UID of the Node
+    /// The UID of the Node.
     /// </summary>
     public const string AttributeK8sNodeUid = "k8s.node.uid";
 
     /// <summary>
-    /// The annotation key-value pairs placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value
+    /// The annotation key-value pairs placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value.
     /// </summary>
     public const string AttributeK8sPodAnnotationTemplate = "k8s.pod.annotation";
 
     /// <summary>
-    /// The label key-value pairs placed on the Pod, the <c><key></c> being the label name, the value being the label value
+    /// The label key-value pairs placed on the Pod, the <c><key></c> being the label name, the value being the label value.
     /// </summary>
     public const string AttributeK8sPodLabelTemplate = "k8s.pod.label";
 
     /// <summary>
-    /// Deprecated, use <c>k8s.pod.label</c> instead
+    /// Deprecated, use <c>k8s.pod.label</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>k8s.pod.label</c>")]
+    [Obsolete("Replaced by <c>k8s.pod.label</c>.")]
     public const string AttributeK8sPodLabelsTemplate = "k8s.pod.labels";
 
     /// <summary>
-    /// The name of the Pod
+    /// The name of the Pod.
     /// </summary>
     public const string AttributeK8sPodName = "k8s.pod.name";
 
     /// <summary>
-    /// The UID of the Pod
+    /// The UID of the Pod.
     /// </summary>
     public const string AttributeK8sPodUid = "k8s.pod.uid";
 
     /// <summary>
-    /// The name of the ReplicaSet
+    /// The name of the ReplicaSet.
     /// </summary>
     public const string AttributeK8sReplicasetName = "k8s.replicaset.name";
 
     /// <summary>
-    /// The UID of the ReplicaSet
+    /// The UID of the ReplicaSet.
     /// </summary>
     public const string AttributeK8sReplicasetUid = "k8s.replicaset.uid";
 
     /// <summary>
-    /// The name of the StatefulSet
+    /// The name of the StatefulSet.
     /// </summary>
     public const string AttributeK8sStatefulsetName = "k8s.statefulset.name";
 
     /// <summary>
-    /// The UID of the StatefulSet
+    /// The UID of the StatefulSet.
     /// </summary>
     public const string AttributeK8sStatefulsetUid = "k8s.statefulset.uid";
 }

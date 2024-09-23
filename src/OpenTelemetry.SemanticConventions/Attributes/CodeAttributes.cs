@@ -15,32 +15,32 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CodeAttributes
 {
     /// <summary>
-    /// The column number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>
+    /// The column number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>.
     /// </summary>
     public const string AttributeCodeColumn = "code.column";
 
     /// <summary>
-    /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path)
+    /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path).
     /// </summary>
     public const string AttributeCodeFilepath = "code.filepath";
 
     /// <summary>
-    /// The method or function name, or equivalent (usually rightmost part of the code unit's name)
+    /// The method or function name, or equivalent (usually rightmost part of the code unit's name).
     /// </summary>
     public const string AttributeCodeFunction = "code.function";
 
     /// <summary>
-    /// The line number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>
+    /// The line number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>.
     /// </summary>
     public const string AttributeCodeLineno = "code.lineno";
 
     /// <summary>
-    /// The "namespace" within which <c>code.function</c> is defined. Usually the qualified class or module name, such that <c>code.namespace</c> + some separator + <c>code.function</c> form a unique identifier for the code unit
+    /// The "namespace" within which <c>code.function</c> is defined. Usually the qualified class or module name, such that <c>code.namespace</c> + some separator + <c>code.function</c> form a unique identifier for the code unit.
     /// </summary>
     public const string AttributeCodeNamespace = "code.namespace";
 
     /// <summary>
-    /// A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG
+    /// A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.
     /// </summary>
     public const string AttributeCodeStacktrace = "code.stacktrace";
 }

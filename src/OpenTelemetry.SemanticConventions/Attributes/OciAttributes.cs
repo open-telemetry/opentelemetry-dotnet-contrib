@@ -15,11 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OciAttributes
 {
     /// <summary>
-    /// The digest of the OCI image manifest. For container images specifically is the digest by which the container image is known
+    /// The digest of the OCI image manifest. For container images specifically is the digest by which the container image is known.
     /// </summary>
     /// <remarks>
     /// Follows <a href="https://github.com/opencontainers/image-spec/blob/main/manifest.md">OCI Image Manifest Specification</a>, and specifically the <a href="https://github.com/opencontainers/image-spec/blob/main/descriptor.md#digests">Digest property</a>.
-    /// An example can be found in <a href="https://docs.docker.com/registry/spec/manifest-v2-2/#example-image-manifest">Example Image Manifest</a>
+    /// An example can be found in <a href="https://docs.docker.com/registry/spec/manifest-v2-2/#example-image-manifest">Example Image Manifest</a>.
     /// </remarks>
     public const string AttributeOciManifestDigest = "oci.manifest.digest";
 }

@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -35,6 +38,8 @@ internal abstract class TldExporter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static void Serialize(EventBuilder eb, string key, object value)
     {
+        Debug.Assert(value != null, "value was null");
+
         switch (value)
         {
             case bool vb:
@@ -124,11 +129,11 @@ internal abstract class TldExporter
                 string repr;
                 try
                 {
-                    repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+                    repr = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
                 }
                 catch
                 {
-                    repr = $"ERROR: type {value.GetType().FullName} is not supported";
+                    repr = $"ERROR: type {value!.GetType().FullName} is not supported";
                 }
 
                 eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));

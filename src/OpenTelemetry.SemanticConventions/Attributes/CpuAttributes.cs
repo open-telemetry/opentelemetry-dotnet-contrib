@@ -15,52 +15,52 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CpuAttributes
 {
     /// <summary>
-    /// The mode of the CPU
+    /// The mode of the CPU.
     /// </summary>
     public const string AttributeCpuMode = "cpu.mode";
 
     /// <summary>
-    /// The mode of the CPU
+    /// The mode of the CPU.
     /// </summary>
     public static class CpuModeValues
     {
         /// <summary>
-        /// user
+        /// user.
         /// </summary>
         public const string User = "user";
 
         /// <summary>
-        /// system
+        /// system.
         /// </summary>
         public const string System = "system";
 
         /// <summary>
-        /// nice
+        /// nice.
         /// </summary>
         public const string Nice = "nice";
 
         /// <summary>
-        /// idle
+        /// idle.
         /// </summary>
         public const string Idle = "idle";
 
         /// <summary>
-        /// iowait
+        /// iowait.
         /// </summary>
         public const string Iowait = "iowait";
 
         /// <summary>
-        /// interrupt
+        /// interrupt.
         /// </summary>
         public const string Interrupt = "interrupt";
 
         /// <summary>
-        /// steal
+        /// steal.
         /// </summary>
         public const string Steal = "steal";
 
         /// <summary>
-        /// kernel
+        /// kernel.
         /// </summary>
         public const string Kernel = "kernel";
     }

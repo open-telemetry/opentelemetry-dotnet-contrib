@@ -15,12 +15,12 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ThreadAttributes
 {
     /// <summary>
-    /// Current "managed" thread ID (as opposed to OS thread ID)
+    /// Current "managed" thread ID (as opposed to OS thread ID).
     /// </summary>
     public const string AttributeThreadId = "thread.id";
 
     /// <summary>
-    /// Current thread name
+    /// Current thread name.
     /// </summary>
     public const string AttributeThreadName = "thread.name";
 }

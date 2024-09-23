@@ -15,15 +15,15 @@ namespace OpenTelemetry.SemanticConventions;
 public static class SourceAttributes
 {
     /// <summary>
-    /// Source address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name
+    /// Source address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
     /// <remarks>
-    /// When observed from the destination side, and when communicating through an intermediary, <c>source.address</c> SHOULD represent the source address behind any intermediaries, for example proxies, if it's available
+    /// When observed from the destination side, and when communicating through an intermediary, <c>source.address</c> SHOULD represent the source address behind any intermediaries, for example proxies, if it's available.
     /// </remarks>
     public const string AttributeSourceAddress = "source.address";
 
     /// <summary>
-    /// Source port number
+    /// Source port number.
     /// </summary>
     public const string AttributeSourcePort = "source.port";
 }
