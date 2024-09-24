@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added support for [Azure Container Apps jobs](https://learn.microsoft.com/en-us/azure/container-apps/jobs?tabs=azure-cli).
+  ([#2064](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2064))
+
 * Added direct reference to `System.Text.Encodings.Web` with minimum version of
   `4.7.2` in response to [CVE-2021-26701](https://github.com/dotnet/runtime/issues/49377).
   ([#2056](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2056))

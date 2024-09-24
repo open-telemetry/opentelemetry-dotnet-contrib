@@ -15,13 +15,13 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DeploymentAttributes
 {
     /// <summary>
-    /// 'Deprecated, use <c>deployment.environment.name</c> instead.'
+    /// 'Deprecated, use <c>deployment.environment.name</c> instead.'.
     /// </summary>
-    [Obsolete("Deprecated, use <c>deployment.environment.name</c> instead")]
+    [Obsolete("Deprecated, use <c>deployment.environment.name</c> instead.")]
     public const string AttributeDeploymentEnvironment = "deployment.environment";
 
     /// <summary>
-    /// Name of the <a href="https://wikipedia.org/wiki/Deployment_environment">deployment environment</a> (aka deployment tier)
+    /// Name of the <a href="https://wikipedia.org/wiki/Deployment_environment">deployment environment</a> (aka deployment tier).
     /// </summary>
     /// <remarks>
     /// <c>deployment.environment.name</c> does not affect the uniqueness constraints defined through
@@ -31,38 +31,38 @@ public static class DeploymentAttributes
     /// <p>
     /// <ul>
     ///   <li><c>service.name=frontend</c>, <c>deployment.environment.name=production</c></li>
-    ///   <li><c>service.name=frontend</c>, <c>deployment.environment.name=staging</c></li>
+    ///   <li><c>service.name=frontend</c>, <c>deployment.environment.name=staging</c>.</li>
     /// </ul>
     /// </remarks>
     public const string AttributeDeploymentEnvironmentName = "deployment.environment.name";
 
     /// <summary>
-    /// The id of the deployment
+    /// The id of the deployment.
     /// </summary>
     public const string AttributeDeploymentId = "deployment.id";
 
     /// <summary>
-    /// The name of the deployment
+    /// The name of the deployment.
     /// </summary>
     public const string AttributeDeploymentName = "deployment.name";
 
     /// <summary>
-    /// The status of the deployment
+    /// The status of the deployment.
     /// </summary>
     public const string AttributeDeploymentStatus = "deployment.status";
 
     /// <summary>
-    /// The status of the deployment
+    /// The status of the deployment.
     /// </summary>
     public static class DeploymentStatusValues
     {
         /// <summary>
-        /// failed
+        /// failed.
         /// </summary>
         public const string Failed = "failed";
 
         /// <summary>
-        /// succeeded
+        /// succeeded.
         /// </summary>
         public const string Succeeded = "succeeded";
     }

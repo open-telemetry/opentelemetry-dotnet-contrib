@@ -15,15 +15,15 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DestinationAttributes
 {
     /// <summary>
-    /// Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name
+    /// Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
     /// </summary>
     /// <remarks>
-    /// When observed from the source side, and when communicating through an intermediary, <c>destination.address</c> SHOULD represent the destination address behind any intermediaries, for example proxies, if it's available
+    /// When observed from the source side, and when communicating through an intermediary, <c>destination.address</c> SHOULD represent the destination address behind any intermediaries, for example proxies, if it's available.
     /// </remarks>
     public const string AttributeDestinationAddress = "destination.address";
 
     /// <summary>
-    /// Destination port number
+    /// Destination port number.
     /// </summary>
     public const string AttributeDestinationPort = "destination.port";
 }
