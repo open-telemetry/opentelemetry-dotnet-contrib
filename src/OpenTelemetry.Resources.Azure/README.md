@@ -98,9 +98,9 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 ## Azure Container Apps Resource Detector
 
-Adds resource attributes for the applications running in Azure Container Apps.
-The following example shows how to add `AzureContainerAppsResourceDetector` to
-the `ResourceBuilder`.
+Adds resource attributes for the applications running in Azure Container Apps
+or Azure Container App jobs. The following example shows how to add
+`AzureContainerAppsResourceDetector` to the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
@@ -122,5 +122,5 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 | cloud.platform          | The cloud platform. Here, it's always "azure_container_apps".                                                                                                                                             |
 | cloud.provider          | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
 | service.instance.id     | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                                                                                                         |
-| service.name            | The name of the Azure Container Apps.                                                                                                                                                                     |
-| service.version         | The current revision or version of Azure Container Apps.                                                                                                                                                  |
+| service.name            | The name of the Azure Container Apps or Azure Container Apps job.                                                                                                                                         |
+| service.version         | The current revision or version of Azure Container Apps, or in case of a Azure Container Apps job - the job execution name.                                                                               |
