@@ -8,20 +8,36 @@ namespace OpenTelemetry.Resources.Process;
 /// </summary>
 internal sealed class ProcessDetector : IResourceDetector
 {
+    private readonly bool includeProcessOwner;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProcessDetector"/> class.
+    /// </summary>
+    /// <param name="includeProcessOwner">Determines whether to include process owner in the resource attributes.</param>
+    public ProcessDetector(bool includeProcessOwner = true)
+    {
+        this.includeProcessOwner = includeProcessOwner;
+    }
+
     /// <summary>
     ///     Detects the resource attributes for process.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return new Resource(new List<KeyValuePair<string, object>>(2)
+        var attributes = new List<KeyValuePair<string, object>>(2);
+
+        if (this.includeProcessOwner)
         {
-            new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName));
+        }
+
 #if NET
-            new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
+        attributes.Add(new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId));
 #else
-            new(ProcessSemanticConventions.AttributeProcessPid, System.Diagnostics.Process.GetCurrentProcess().Id),
+        attributes.Add(new(ProcessSemanticConventions.AttributeProcessPid, System.Diagnostics.Process.GetCurrentProcess().Id));
 #endif
-        });
+
+        return new Resource(attributes);
     }
 }

@@ -24,18 +24,21 @@ internal sealed class HostDetector : IResourceDetector
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
+    private readonly bool includeHostName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HostDetector"/> class.
     /// </summary>
-    public HostDetector()
+    /// <param name="includeHostName">Determines whether to include host name in the resource attributes.</param>
+    public HostDetector(bool includeHostName = true)
         : this(
 #if NET
         RuntimeInformation.IsOSPlatform,
 #endif
         GetFilePaths,
         GetMachineIdMacOs,
-        GetMachineIdWindows)
+        GetMachineIdWindows,
+        includeHostName)
     {
     }
 
@@ -43,12 +46,14 @@ internal sealed class HostDetector : IResourceDetector
     public HostDetector(
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        bool includeHostName = true)
         : this(
             RuntimeInformation.IsOSPlatform,
             getFilePaths,
             getMacOsMachineId,
-            getWindowsMachineId)
+            getWindowsMachineId,
+            includeHostName)
     {
     }
 #endif
@@ -59,7 +64,8 @@ internal sealed class HostDetector : IResourceDetector
 #endif
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        bool includeHostName = true)
     {
 #if NET
         Guard.ThrowIfNull(isOsPlatform);
@@ -74,6 +80,7 @@ internal sealed class HostDetector : IResourceDetector
         this.getFilePaths = getFilePaths;
         this.getMacOsMachineId = getMacOsMachineId;
         this.getWindowsMachineId = getWindowsMachineId;
+        this.includeHostName = includeHostName;
     }
 
     /// <summary>
@@ -84,10 +91,13 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var attributes = new List<KeyValuePair<string, object>>(2)
+            var attributes = new List<KeyValuePair<string, object>>(2);
+
+            if (this.includeHostName)
             {
-                new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
-            };
+                attributes.Add(new(HostSemanticConventions.AttributeHostName, Environment.MachineName));
+            }
+
             var machineId = this.GetMachineId();
 
             if (machineId != null && !string.IsNullOrEmpty(machineId))
