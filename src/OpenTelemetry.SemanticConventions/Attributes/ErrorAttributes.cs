@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ErrorAttributes
 {
     /// <summary>
-    /// Describes a class of error the operation ended with
+    /// Describes a class of error the operation ended with.
     /// </summary>
     /// <remarks>
     /// The <c>error.type</c> SHOULD be predictable, and SHOULD have low cardinality.
@@ -37,18 +37,18 @@ public static class ErrorAttributes
     /// <p>
     /// <ul>
     ///   <li>Use a domain-specific attribute</li>
-    ///   <li>Set <c>error.type</c> to capture all errors, regardless of whether they are defined within the domain-specific set or not</li>
+    ///   <li>Set <c>error.type</c> to capture all errors, regardless of whether they are defined within the domain-specific set or not.</li>
     /// </ul>
     /// </remarks>
     public const string AttributeErrorType = "error.type";
 
     /// <summary>
-    /// Describes a class of error the operation ended with
+    /// Describes a class of error the operation ended with.
     /// </summary>
     public static class ErrorTypeValues
     {
         /// <summary>
-        /// A fallback error value to be used when the instrumentation doesn't define a custom value
+        /// A fallback error value to be used when the instrumentation doesn't define a custom value.
         /// </summary>
         public const string Other = "_OTHER";
     }

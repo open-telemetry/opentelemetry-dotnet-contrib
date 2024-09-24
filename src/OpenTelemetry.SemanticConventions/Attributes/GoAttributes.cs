@@ -15,22 +15,22 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GoAttributes
 {
     /// <summary>
-    /// The type of memory
+    /// The type of memory.
     /// </summary>
     public const string AttributeGoMemoryType = "go.memory.type";
 
     /// <summary>
-    /// The type of memory
+    /// The type of memory.
     /// </summary>
     public static class GoMemoryTypeValues
     {
         /// <summary>
-        /// Memory allocated from the heap that is reserved for stack space, whether or not it is currently in-use
+        /// Memory allocated from the heap that is reserved for stack space, whether or not it is currently in-use.
         /// </summary>
         public const string Stack = "stack";
 
         /// <summary>
-        /// Memory used by the Go runtime, excluding other categories of memory usage described in this enumeration
+        /// Memory used by the Go runtime, excluding other categories of memory usage described in this enumeration.
         /// </summary>
         public const string Other = "other";
     }

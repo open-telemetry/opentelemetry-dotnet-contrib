@@ -15,25 +15,25 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OpentracingAttributes
 {
     /// <summary>
-    /// Parent-child Reference type
+    /// Parent-child Reference type.
     /// </summary>
     /// <remarks>
-    /// The causal relationship between a child Span and a parent Span
+    /// The causal relationship between a child Span and a parent Span.
     /// </remarks>
     public const string AttributeOpentracingRefType = "opentracing.ref_type";
 
     /// <summary>
-    /// Parent-child Reference type
+    /// Parent-child Reference type.
     /// </summary>
     public static class OpentracingRefTypeValues
     {
         /// <summary>
-        /// The parent Span depends on the child Span in some capacity
+        /// The parent Span depends on the child Span in some capacity.
         /// </summary>
         public const string ChildOf = "child_of";
 
         /// <summary>
-        /// The parent Span doesn't depend in any way on the result of the child Span
+        /// The parent Span doesn't depend in any way on the result of the child Span.
         /// </summary>
         public const string FollowsFrom = "follows_from";
     }

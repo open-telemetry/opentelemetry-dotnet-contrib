@@ -15,35 +15,35 @@ namespace OpenTelemetry.SemanticConventions;
 public static class UserAttributes
 {
     /// <summary>
-    /// User email address
+    /// User email address.
     /// </summary>
     public const string AttributeUserEmail = "user.email";
 
     /// <summary>
-    /// User's full name
+    /// User's full name.
     /// </summary>
     public const string AttributeUserFullName = "user.full_name";
 
     /// <summary>
-    /// Unique user hash to correlate information for a user in anonymized form
+    /// Unique user hash to correlate information for a user in anonymized form.
     /// </summary>
     /// <remarks>
-    /// Useful if <c>user.id</c> or <c>user.name</c> contain confidential information and cannot be used
+    /// Useful if <c>user.id</c> or <c>user.name</c> contain confidential information and cannot be used.
     /// </remarks>
     public const string AttributeUserHash = "user.hash";
 
     /// <summary>
-    /// Unique identifier of the user
+    /// Unique identifier of the user.
     /// </summary>
     public const string AttributeUserId = "user.id";
 
     /// <summary>
-    /// Short name or login/username of the user
+    /// Short name or login/username of the user.
     /// </summary>
     public const string AttributeUserName = "user.name";
 
     /// <summary>
-    /// Array of user roles at the time of the event
+    /// Array of user roles at the time of the event.
     /// </summary>
     public const string AttributeUserRoles = "user.roles";
 }

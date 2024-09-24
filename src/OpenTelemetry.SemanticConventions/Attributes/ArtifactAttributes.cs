@@ -15,33 +15,33 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ArtifactAttributes
 {
     /// <summary>
-    /// The provenance filename of the built attestation which directly relates to the build artifact filename. This filename SHOULD accompany the artifact at publish time. See the <a href="https://slsa.dev/spec/v1.0/distributing-provenance#relationship-between-artifacts-and-attestations">SLSA Relationship</a> specification for more information
+    /// The provenance filename of the built attestation which directly relates to the build artifact filename. This filename SHOULD accompany the artifact at publish time. See the <a href="https://slsa.dev/spec/v1.0/distributing-provenance#relationship-between-artifacts-and-attestations">SLSA Relationship</a> specification for more information.
     /// </summary>
     public const string AttributeArtifactAttestationFilename = "artifact.attestation.filename";
 
     /// <summary>
-    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, of the built attestation. Some envelopes in the software attestation space also refer to this as the <a href="https://github.com/in-toto/attestation/blob/main/spec/README.md#in-toto-attestation-framework-spec">digest</a>
+    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, of the built attestation. Some envelopes in the software attestation space also refer to this as the <a href="https://github.com/in-toto/attestation/blob/main/spec/README.md#in-toto-attestation-framework-spec">digest</a>.
     /// </summary>
     public const string AttributeArtifactAttestationHash = "artifact.attestation.hash";
 
     /// <summary>
-    /// The id of the build <a href="https://slsa.dev/attestation-model">software attestation</a>
+    /// The id of the build <a href="https://slsa.dev/attestation-model">software attestation</a>.
     /// </summary>
     public const string AttributeArtifactAttestationId = "artifact.attestation.id";
 
     /// <summary>
-    /// The human readable file name of the artifact, typically generated during build and release processes. Often includes the package name and version in the file name
+    /// The human readable file name of the artifact, typically generated during build and release processes. Often includes the package name and version in the file name.
     /// </summary>
     /// <remarks>
     /// This file name can also act as the <a href="https://slsa.dev/spec/v1.0/terminology#package-model">Package Name</a>
     /// in cases where the package ecosystem maps accordingly.
     /// Additionally, the artifact <a href="https://slsa.dev/spec/v1.0/terminology#software-supply-chain">can be published</a>
-    /// for others, but that is not a guarantee
+    /// for others, but that is not a guarantee.
     /// </remarks>
     public const string AttributeArtifactFilename = "artifact.filename";
 
     /// <summary>
-    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, often found in checksum.txt on a release of the artifact and used to verify package integrity
+    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, often found in checksum.txt on a release of the artifact and used to verify package integrity.
     /// </summary>
     /// <remarks>
     /// The specific algorithm used to create the cryptographic hash value is
@@ -51,17 +51,17 @@ public static class ArtifactAttributes
     /// that is suitable for the situation and consistent with the
     /// corresponding attestation. The implementer can then provide the other
     /// hash values through an additional set of attribute extensions as they
-    /// deem necessary
+    /// deem necessary.
     /// </remarks>
     public const string AttributeArtifactHash = "artifact.hash";
 
     /// <summary>
-    /// The <a href="https://github.com/package-url/purl-spec">Package URL</a> of the <a href="https://slsa.dev/spec/v1.0/terminology#package-model">package artifact</a> provides a standard way to identify and locate the packaged artifact
+    /// The <a href="https://github.com/package-url/purl-spec">Package URL</a> of the <a href="https://slsa.dev/spec/v1.0/terminology#package-model">package artifact</a> provides a standard way to identify and locate the packaged artifact.
     /// </summary>
     public const string AttributeArtifactPurl = "artifact.purl";
 
     /// <summary>
-    /// The version of the artifact
+    /// The version of the artifact.
     /// </summary>
     public const string AttributeArtifactVersion = "artifact.version";
 }
