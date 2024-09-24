@@ -23,7 +23,7 @@ internal sealed class ProcessDetector : IResourceDetector
 #else
             new(ProcessSemanticConventions.AttributeProcessPid, GetProcessPid()),
         });
-        static readonly int GetProcessPid()
+        static int GetProcessPid()
         {
             using var process = System.Diagnostics.Process.GetCurrentProcess();
             return process.Id;
