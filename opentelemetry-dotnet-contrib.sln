@@ -9,6 +9,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{07AA0F83-22F6-4B8C-921D-029D3384CB17}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.markdownlint.yaml = .markdownlint.yaml
 		CODEOWNERS = CODEOWNERS
 		CONTRIBUTING.md = CONTRIBUTING.md
 		global.json = global.json
@@ -58,6 +59,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{824BD1DE
 		build\opentelemetry-icon-color.png = build\opentelemetry-icon-color.png
 		build\OpenTelemetryContrib.prod.ruleset = build\OpenTelemetryContrib.prod.ruleset
 		build\OpenTelemetryContrib.test.ruleset = build\OpenTelemetryContrib.test.ruleset
+		build\RELEASING.md = build\RELEASING.md
 		build\stylecop.json = build\stylecop.json
 	EndProjectSection
 EndProject
@@ -382,6 +384,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ISSUE_TEMPLATE", "ISSUE_TEM
 	ProjectSection(SolutionItems) = preProject
 		.github\ISSUE_TEMPLATE\bug_report.yml = .github\ISSUE_TEMPLATE\bug_report.yml
 		.github\ISSUE_TEMPLATE\feature_request.yml = .github\ISSUE_TEMPLATE\feature_request.yml
+		.github\ISSUE_TEMPLATE\release_request.yml = .github\ISSUE_TEMPLATE\release_request.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ConfluentKafka", "src\OpenTelemetry.Instrumentation.ConfluentKafka\OpenTelemetry.Instrumentation.ConfluentKafka.csproj", "{96341E23-990E-4144-A7E3-9EF0DAFF3232}"
@@ -722,6 +725,14 @@ Global
 		{A5EF701C-439E-407F-8BB4-394166000C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5EF701C-439E-407F-8BB4-394166000C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5EF701C-439E-407F-8BB4-394166000C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.Build.0 = Release|Any CPU
 		{033CA8D4-1529-413A-B244-07958D5F9A48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{033CA8D4-1529-413A-B244-07958D5F9A48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{033CA8D4-1529-413A-B244-07958D5F9A48}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -806,14 +817,6 @@ Global
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -913,6 +916,8 @@ Global
 		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{36271347-2055-438E-9659-B71542A17A73} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
@@ -938,8 +943,6 @@ Global
 		{BE40900A-2859-471D-8802-21DFD73DDAA7} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{3A464E7A-42F3-44B0-B8D7-80521A7704A6} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

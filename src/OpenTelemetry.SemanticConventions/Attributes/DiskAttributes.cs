@@ -15,22 +15,22 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DiskAttributes
 {
     /// <summary>
-    /// The disk IO operation direction
+    /// The disk IO operation direction.
     /// </summary>
     public const string AttributeDiskIoDirection = "disk.io.direction";
 
     /// <summary>
-    /// The disk IO operation direction
+    /// The disk IO operation direction.
     /// </summary>
     public static class DiskIoDirectionValues
     {
         /// <summary>
-        /// read
+        /// read.
         /// </summary>
         public const string Read = "read";
 
         /// <summary>
-        /// write
+        /// write.
         /// </summary>
         public const string Write = "write";
     }

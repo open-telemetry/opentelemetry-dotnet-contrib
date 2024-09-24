@@ -20,7 +20,8 @@ comment_formats:
     inline_code_snippet: "<c>{{code}}</c>"
     block_code_snippet: "<code>{{code}}</<code>"
     trim: true
-    remove_trailing_dots: true
+    remove_trailing_dots: false
+    enforce_trailing_dots: true
 default_comment_format: csharp
 
 templates:

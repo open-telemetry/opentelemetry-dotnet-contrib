@@ -15,17 +15,17 @@ namespace OpenTelemetry.SemanticConventions;
 public static class FeatureFlagAttributes
 {
     /// <summary>
-    /// The unique identifier of the feature flag
+    /// The unique identifier of the feature flag.
     /// </summary>
     public const string AttributeFeatureFlagKey = "feature_flag.key";
 
     /// <summary>
-    /// The name of the service provider that performs the flag evaluation
+    /// The name of the service provider that performs the flag evaluation.
     /// </summary>
     public const string AttributeFeatureFlagProviderName = "feature_flag.provider_name";
 
     /// <summary>
-    /// SHOULD be a semantic identifier for a value. If one is unavailable, a stringified version of the value can be used
+    /// SHOULD be a semantic identifier for a value. If one is unavailable, a stringified version of the value can be used.
     /// </summary>
     /// <remarks>
     /// A semantic identifier, commonly referred to as a variant, provides a means
@@ -35,7 +35,7 @@ public static class FeatureFlagAttributes
     /// <p>
     /// A stringified version of the value can be used in situations where a
     /// semantic identifier is unavailable. String representation of the value
-    /// should be determined by the implementer
+    /// should be determined by the implementer.
     /// </remarks>
     public const string AttributeFeatureFlagVariant = "feature_flag.variant";
 }
