@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class PeerAttributes
 {
     /// <summary>
-    /// The <a href="/docs/resource/README.md#service"><c>service.name</c></a> of the remote service. SHOULD be equal to the actual <c>service.name</c> resource attribute of the remote service if any
+    /// The <a href="/docs/resource/README.md#service"><c>service.name</c></a> of the remote service. SHOULD be equal to the actual <c>service.name</c> resource attribute of the remote service if any.
     /// </summary>
     public const string AttributePeerService = "peer.service";
 }
