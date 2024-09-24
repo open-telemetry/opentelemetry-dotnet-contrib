@@ -3,8 +3,6 @@
 
 using System.Data;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using DotNet.Testcontainers.Containers;
 using Microsoft.Data.SqlClient;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -14,22 +12,16 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
-public sealed class SqlClientIntegrationTests : IAsyncLifetime
+[Trait("CategoryName", "SqlIntegrationTests")]
+public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrationTestsFixture>
 {
-    // The Microsoft SQL Server Docker image is not compatible with ARM devices, such as Macs with Apple Silicon.
-    private readonly IContainer databaseContainer = Architecture.Arm64.Equals(RuntimeInformation.ProcessArchitecture) ? new SqlEdgeBuilder().Build() : new MsSqlBuilder().Build();
+    private readonly SqlClientIntegrationTestsFixture fixture;
 
-    public Task InitializeAsync()
+    public SqlClientIntegrationTests(SqlClientIntegrationTestsFixture fixture)
     {
-        return this.databaseContainer.StartAsync();
+        this.fixture = fixture;
     }
 
-    public Task DisposeAsync()
-    {
-        return this.databaseContainer.DisposeAsync().AsTask();
-    }
-
-    [Trait("CategoryName", "SqlIntegrationTests")]
     [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
     [InlineData(CommandType.Text, "select 1/1", false)]
     [InlineData(CommandType.Text, "select 1/1", false, true)]
@@ -105,14 +97,14 @@ public sealed class SqlClientIntegrationTests : IAsyncLifetime
 
     private string GetConnectionString()
     {
-        switch (this.databaseContainer)
+        switch (this.fixture.DatabaseContainer)
         {
             case SqlEdgeContainer container:
                 return container.GetConnectionString();
             case MsSqlContainer container:
                 return container.GetConnectionString();
             default:
-                throw new InvalidOperationException($"Container type ${this.databaseContainer.GetType().Name} not supported.");
+                throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported.");
         }
     }
 }
