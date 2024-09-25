@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -435,7 +436,7 @@ public class GenevaTraceExporterTests
 
                 using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
                 {
-                    messagePackDataSize = exporter.SerializeActivity(activity);
+                    messagePackDataSize = exporter.SerializeActivity(activity).Count;
                 }
 
                 // Read the data sent via socket.
@@ -450,7 +451,7 @@ public class GenevaTraceExporterTests
                 {
                     using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
                     {
-                        messagePackDataSize = exporter.SerializeActivity(activity);
+                        messagePackDataSize = exporter.SerializeActivity(activity).Count;
                     }
                 });
                 thread.Start();

@@ -9,7 +9,7 @@ using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal sealed class TldTraceExporter : TldExporter, IDisposable
 {
@@ -50,7 +50,6 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
     public TldTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);

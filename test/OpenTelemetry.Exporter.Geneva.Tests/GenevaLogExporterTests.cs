@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using Xunit;
 
@@ -859,8 +860,7 @@ public class GenevaLogExporterTests
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
 
-                int messagePackDataSize;
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                int messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
 
                 // Read the data sent via socket.
                 var receivedData = new byte[1024];
@@ -882,7 +882,7 @@ public class GenevaLogExporterTests
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
 
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
                 receivedDataSize = serverSocket.Receive(receivedData);
                 Assert.Equal(messagePackDataSize, receivedDataSize);
             }

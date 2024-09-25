@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NET
+
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -67,3 +69,5 @@ public class UnixDomainSocketEndPointTests
         return sa;
     }
 }
+
+#endif

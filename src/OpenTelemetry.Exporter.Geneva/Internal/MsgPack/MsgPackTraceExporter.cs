@@ -1,14 +1,18 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.Transports;
+using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
@@ -39,13 +43,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     internal readonly ThreadLocal<byte[]> Buffer = new();
 
 #if NET8_0_OR_GREATER
-    internal readonly FrozenSet<string> CustomFields;
+    internal readonly FrozenSet<string>? CustomFields;
 
-    internal readonly FrozenSet<string> DedicatedFields;
+    internal readonly FrozenSet<string>? DedicatedFields;
 #else
-    internal readonly HashSet<string> CustomFields;
+    internal readonly HashSet<string>? CustomFields;
 
-    internal readonly HashSet<string> DedicatedFields;
+    internal readonly HashSet<string>? DedicatedFields;
 #endif
 
     private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
@@ -64,6 +68,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     public MsgPackTraceExporter(GenevaExporterOptions options)
     {
+        Guard.ThrowIfNull(options);
+
         var partAName = "Span";
         if (options.TableNameMappings != null
             && options.TableNameMappings.TryGetValue("Span", out var customTableName))
@@ -203,12 +209,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         // }
 
         var result = ExportResult.Success;
+
         foreach (var activity in batch)
         {
             try
             {
-                var cursor = this.SerializeActivity(activity);
-                this.dataTransport.Send(this.Buffer.Value, cursor - 0);
+                var data = this.SerializeActivity(activity);
+
+                this.dataTransport.Send(data.Array!, data.Count);
             }
             catch (Exception ex)
             {
@@ -242,7 +250,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
-    internal int SerializeActivity(Activity activity)
+    internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
         if (buffer == null)
@@ -355,27 +363,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         // i.e all PartB fields and opt-in part c fields.
         bool hasEnvProperties = false;
         bool isStatusSuccess = true;
-        string statusDescription = string.Empty;
+        string? statusDescription = null;
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string? replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
             }
-            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+            else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
             {
-                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
-                {
-                    isStatusSuccess = false;
-                }
-
-                continue;
-            }
-            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-            {
-                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 continue;
             }
             else if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
@@ -405,7 +403,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
                 // TODO: check name collision
-                if (this.DedicatedFields.Contains(entry.Key))
+                if (this.DedicatedFields!.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -435,17 +433,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 cntFields += 1;
             }
         }
-        else
+        else if (!isStatusSuccess)
         {
-            if (!isStatusSuccess)
+            MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
+
+            if (!string.IsNullOrEmpty(statusDescription))
             {
-                MessagePackSerializer.SerializeBool(buffer, idxSuccessPatch, false);
-                if (!string.IsNullOrEmpty(statusDescription))
-                {
-                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
-                    cntFields += 1;
-                }
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "statusMessage");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, statusDescription);
+                cntFields += 1;
             }
         }
         #endregion
@@ -455,6 +451,34 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         System.Buffer.BlockCopy(this.bufferEpilogue, 0, buffer, cursor, this.bufferEpilogue.Length);
         cursor += this.bufferEpilogue.Length;
 
-        return cursor;
+        return new(buffer, 0, cursor);
+    }
+
+    private static bool IfTagMatchesStatusOrStatusDescription(
+        KeyValuePair<string, object?> entry,
+        ref bool isStatusSuccess,
+        ref string? statusDescription)
+    {
+        if (entry.Key.StartsWith("otel.status_", StringComparison.Ordinal))
+        {
+            var keyPart = entry.Key.AsSpan().Slice(12);
+            if (keyPart is "code")
+            {
+                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
+                {
+                    isStatusSuccess = false;
+                }
+
+                return true;
+            }
+
+            if (keyPart is "description")
+            {
+                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
