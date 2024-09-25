@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.0-beta.7
+
+Released 2024-Sep-25
+
 * Properly dispose of System.Diagnostics.Process class instances
   ([#2101](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2101))
 
