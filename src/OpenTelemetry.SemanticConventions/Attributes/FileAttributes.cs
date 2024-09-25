@@ -15,30 +15,30 @@ namespace OpenTelemetry.SemanticConventions;
 public static class FileAttributes
 {
     /// <summary>
-    /// Directory where the file is located. It should include the drive letter, when appropriate
+    /// Directory where the file is located. It should include the drive letter, when appropriate.
     /// </summary>
     public const string AttributeFileDirectory = "file.directory";
 
     /// <summary>
-    /// File extension, excluding the leading dot
+    /// File extension, excluding the leading dot.
     /// </summary>
     /// <remarks>
-    /// When the file name has multiple extensions (example.tar.gz), only the last one should be captured ("gz", not "tar.gz")
+    /// When the file name has multiple extensions (example.tar.gz), only the last one should be captured ("gz", not "tar.gz").
     /// </remarks>
     public const string AttributeFileExtension = "file.extension";
 
     /// <summary>
-    /// Name of the file including the extension, without the directory
+    /// Name of the file including the extension, without the directory.
     /// </summary>
     public const string AttributeFileName = "file.name";
 
     /// <summary>
-    /// Full path to the file, including the file name. It should include the drive letter, when appropriate
+    /// Full path to the file, including the file name. It should include the drive letter, when appropriate.
     /// </summary>
     public const string AttributeFilePath = "file.path";
 
     /// <summary>
-    /// File size in bytes
+    /// File size in bytes.
     /// </summary>
     public const string AttributeFileSize = "file.size";
 }

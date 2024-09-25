@@ -15,44 +15,44 @@ namespace OpenTelemetry.SemanticConventions;
 public static class MessageAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>rpc.message.compressed_size</c> instead
+    /// Deprecated, use <c>rpc.message.compressed_size</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.message.compressed_size</c>")]
+    [Obsolete("Replaced by <c>rpc.message.compressed_size</c>.")]
     public const string AttributeMessageCompressedSize = "message.compressed_size";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.message.id</c> instead
+    /// Deprecated, use <c>rpc.message.id</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.message.id</c>")]
+    [Obsolete("Replaced by <c>rpc.message.id</c>.")]
     public const string AttributeMessageId = "message.id";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.message.type</c> instead
+    /// Deprecated, use <c>rpc.message.type</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.message.type</c>")]
+    [Obsolete("Replaced by <c>rpc.message.type</c>.")]
     public const string AttributeMessageType = "message.type";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.message.uncompressed_size</c> instead
+    /// Deprecated, use <c>rpc.message.uncompressed_size</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>rpc.message.uncompressed_size</c>")]
+    [Obsolete("Replaced by <c>rpc.message.uncompressed_size</c>.")]
     public const string AttributeMessageUncompressedSize = "message.uncompressed_size";
 
     /// <summary>
-    /// Deprecated, use <c>rpc.message.type</c> instead
+    /// Deprecated, use <c>rpc.message.type</c> instead.
     /// </summary>
     public static class MessageTypeValues
     {
         /// <summary>
-        /// sent
+        /// sent.
         /// </summary>
-        [Obsolete("Replaced by <c>rpc.message.type</c>")]
+        [Obsolete("Replaced by <c>rpc.message.type</c>.")]
         public const string Sent = "SENT";
 
         /// <summary>
-        /// received
+        /// received.
         /// </summary>
-        [Obsolete("Replaced by <c>rpc.message.type</c>")]
+        [Obsolete("Replaced by <c>rpc.message.type</c>.")]
         public const string Received = "RECEIVED";
     }
 }
