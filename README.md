@@ -71,6 +71,7 @@ component's `Readme.md` file.
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
 * [Martin Thwaites](https://github.com/martinjt), Honeycomb
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Microsoft
 
 *Find more about the triager role in [community
 repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager).*
