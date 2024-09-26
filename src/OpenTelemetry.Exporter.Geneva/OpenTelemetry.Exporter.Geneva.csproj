@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project=".\Common.GenevaExporter.props"/>
+
+  <Import Project=".\Common.GenevaExporter.props" />
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

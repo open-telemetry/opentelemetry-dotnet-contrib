@@ -73,7 +73,7 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
+            ExporterEventSource.Log.TransportException(nameof(UnixDomainSocketDataTransport), "Connection failure", ex);
 
             return false;
         }

@@ -18,6 +18,8 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_ERROR = 4; // Other common exporter exceptions
     private const int EVENT_ID_OTLP_PROTOBUF_METRIC = 5; // Failed to serialize metric
     private const int EVENT_ID_COMPLETED_EXPORT = 6; // Completed export
+    private const int EVENT_ID_TRANSPORT_ERROR = 7; // Transport error
+    private const int EVENT_ID_TRANSPORT_EXCEPTION = 8; // Transport exception
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -76,6 +78,16 @@ internal sealed class ExporterEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void TransportException(string transportType, string message, Exception ex)
+    {
+        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            // TODO: Do not hit ETW size limit even for external library exception stack.
+            this.TransportException(transportType, message, ex.ToInvariantString());
+        }
+    }
+
     [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
     public void FailedToSendTraceData(string error)
     {
@@ -110,5 +122,17 @@ internal sealed class ExporterEventSource : EventSource
     public void ExportCompleted(string exporterName)
     {
         this.WriteEvent(EVENT_ID_COMPLETED_EXPORT, exporterName);
+    }
+
+    [Event(EVENT_ID_TRANSPORT_ERROR, Message = "Transport '{0}' error. Message: {1}", Level = EventLevel.Error)]
+    public void TransportError(string transportType, string error)
+    {
+        this.WriteEvent(EVENT_ID_TRANSPORT_ERROR, transportType, error);
+    }
+
+    [Event(EVENT_ID_TRANSPORT_EXCEPTION, Message = "Transport '{0}' error. Message: {1}, Exception: {2}", Level = EventLevel.Error)]
+    public void TransportException(string transportType, string error, string ex)
+    {
+        this.WriteEvent(EVENT_ID_TRANSPORT_EXCEPTION, transportType, error, ex);
     }
 }
