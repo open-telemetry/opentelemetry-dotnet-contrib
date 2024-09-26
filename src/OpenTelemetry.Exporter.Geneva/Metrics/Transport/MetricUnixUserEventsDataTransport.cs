@@ -44,8 +44,6 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
             "v0.19.00"u8,
             [bufferRelLoc],
             buffer);
-
-        Console.WriteLine("Wrote metrics!");
     }
 
     public void Dispose()
