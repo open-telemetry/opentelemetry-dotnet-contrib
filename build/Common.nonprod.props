@@ -11,6 +11,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DefaultTargetFrameworkForExampleApps>net8.0</DefaultTargetFrameworkForExampleApps>
+  </PropertyGroup>
+
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>

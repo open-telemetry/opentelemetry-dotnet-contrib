@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0;net462</TargetFrameworks>
+    <TargetFrameworks>$(DefaultTargetFrameworkForExampleApps);net462</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
@@ -20,5 +18,4 @@
     <!-- System.Drawing.Common is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-rxg9-xrhp-64gj -->
     <PackageReference Include="System.Drawing.Common" Version="4.7.3" />
   </ItemGroup>
-
 </Project>

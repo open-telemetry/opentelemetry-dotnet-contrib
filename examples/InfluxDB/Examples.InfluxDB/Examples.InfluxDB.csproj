@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFrameworkForExampleApps)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Examples.InfluxDB</RootNamespace>
   </PropertyGroup>
 
@@ -13,5 +12,4 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.InfluxDB\OpenTelemetry.Exporter.InfluxDB.csproj" />
   </ItemGroup>
-
 </Project>
