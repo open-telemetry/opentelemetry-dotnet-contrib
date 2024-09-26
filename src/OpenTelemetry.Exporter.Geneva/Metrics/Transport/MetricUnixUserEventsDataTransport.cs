@@ -35,15 +35,18 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
 
     public void SendOtlpProtobufEvent(byte[] body, int size)
     {
-        var buffer = new ReadOnlySpan<byte>(body, 0, size);
+        if (this.metricsTracepoint.IsEnabled)
+        {
+            var buffer = new ReadOnlySpan<byte>(body, 0, size);
 
-        var bufferRelLoc = 0u | ((uint)buffer.Length << 16);
+            var bufferRelLoc = 0u | ((uint)buffer.Length << 16);
 
-        this.metricsTracepoint.Write(
-            [0U],
-            "v0.19.00"u8,
-            [bufferRelLoc],
-            buffer);
+            this.metricsTracepoint.Write(
+                [0U],
+                "v0.19.00"u8,
+                [bufferRelLoc],
+                buffer);
+        }
     }
 
     public void Dispose()
