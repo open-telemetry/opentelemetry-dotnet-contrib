@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>$(NetFrameworkMinimumSupportedVersion)</TargetFramework>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
