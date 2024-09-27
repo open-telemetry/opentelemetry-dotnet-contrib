@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>$(DefaultTargetFrameworkForExampleApps)</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -8,4 +9,5 @@
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="$(OpenTelemetryCoreUnstableLatestVersion)" />
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Runtime\OpenTelemetry.Instrumentation.Runtime.csproj" />
   </ItemGroup>
+
 </Project>

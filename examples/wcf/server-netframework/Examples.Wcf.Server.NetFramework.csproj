@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>$(NetFrameworkMinimumSupportedVersion)</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -16,4 +17,5 @@
   <ItemGroup>
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
+
 </Project>
