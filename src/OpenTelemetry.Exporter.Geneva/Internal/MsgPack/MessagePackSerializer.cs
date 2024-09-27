@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 #if NET
 using System.Buffers.Binary;
 #endif
@@ -8,7 +10,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal static class MessagePackSerializer
 {
@@ -310,22 +312,10 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int Float32ToInt32(float value)
-    {
-        return *(int*)&value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeFloat64(byte[] buffer, int cursor, double value)
     {
         buffer[cursor++] = FLOAT64;
         return WriteInt64(buffer, cursor, Float64ToInt64(value));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe long Float64ToInt64(double value)
-    {
-        return *(long*)&value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -343,7 +333,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeAsciiString(byte[] buffer, int cursor, string value)
+    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -413,13 +403,19 @@ internal static class MessagePackSerializer
 #if NET
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
             return SerializeNull(buffer, cursor);
         }
 
+        return SerializeUnicodeString(buffer, cursor, value.AsSpan());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    {
         int start = cursor;
         var cch = value.Length;
         int cb;
@@ -450,7 +446,7 @@ internal static class MessagePackSerializer
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -508,7 +504,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeArray<T>(byte[] buffer, int cursor, T[] array)
+    public static int SerializeArray<T>(byte[] buffer, int cursor, T[]? array)
     {
         if (array == null)
         {
@@ -546,7 +542,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeMap(byte[] buffer, int cursor, IDictionary<string, object> map)
+    public static int SerializeMap(byte[] buffer, int cursor, IDictionary<string, object>? map)
     {
         if (map == null)
         {
@@ -594,7 +590,7 @@ internal static class MessagePackSerializer
         return SerializeTimestamp96(buffer, cursor, utc.Ticks);
     }
 
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
         if (obj == null)
         {
@@ -648,7 +644,7 @@ internal static class MessagePackSerializer
 #endif
 
             default:
-                string repr;
+                string? repr;
 
                 try
                 {
@@ -675,5 +671,17 @@ internal static class MessagePackSerializer
         value.CopyTo(buffer.AsSpan(cursor));
 
         return cursor + length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe long Float64ToInt64(double value)
+    {
+        return *(long*)&value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe int Float32ToInt32(float value)
+    {
+        return *(int*)&value;
     }
 }

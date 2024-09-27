@@ -5,6 +5,11 @@
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
+* Updated `InfluxDB.Client` to `4.18.0` to mitigate [CVE-2024-45302](https://github.com/advisories/GHSA-4rr6-2v9v-wcpc)
+  and [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w)
+  in transitive dependencies.
+  ([#2073](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2073))
+
 ## 1.0.0-alpha.3
 
 Released 2023-Oct-13

@@ -19,9 +19,15 @@ internal sealed class ProcessDetector : IResourceDetector
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
 #if NET
             new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
-#else
-            new(ProcessSemanticConventions.AttributeProcessPid, System.Diagnostics.Process.GetCurrentProcess().Id),
-#endif
         });
+#else
+            new(ProcessSemanticConventions.AttributeProcessPid, GetProcessPid()),
+        });
+        static int GetProcessPid()
+        {
+            using var process = System.Diagnostics.Process.GetCurrentProcess();
+            return process.Id;
+        }
+#endif
     }
 }

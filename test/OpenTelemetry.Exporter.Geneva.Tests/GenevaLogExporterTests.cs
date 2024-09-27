@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using Xunit;
 
@@ -173,7 +174,6 @@ public class GenevaLogExporterTests
             using var exporter = new MsgPackLogExporter(exporterOptions);
 
             ILogger logger;
-            ThreadLocal<byte[]> m_buffer;
             object fluentdData;
             string actualTableName;
             string defaultLogTable = "Log";
@@ -187,9 +187,8 @@ public class GenevaLogExporterTests
                         logger.LogError("this does not matter");
 
                         Assert.Single(logRecordList);
-                        m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
                         _ = exporter.SerializeLogRecord(logRecordList[0]);
-                        fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                        fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                         actualTableName = (fluentdData as object[])[0] as string;
                         Assert.Equal(mapping.Value, actualTableName);
                         logRecordList.Clear();
@@ -205,9 +204,8 @@ public class GenevaLogExporterTests
                 logger.LogError("this does not matter");
 
                 Assert.Single(logRecordList);
-                m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
                 actualTableName = (fluentdData as object[])[0] as string;
                 Assert.Equal(defaultLogTable, actualTableName);
                 logRecordList.Clear();
@@ -295,10 +293,9 @@ public class GenevaLogExporterTests
             using var exporter = new MsgPackLogExporter(exporterOptions);
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
-            ThreadLocal<byte[]> m_buffer;
+            ThreadLocal<byte[]> m_buffer = MsgPackLogExporter.Buffer;
             object fluentdData;
             string actualTableName;
-            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
 
             // Verify that the category table mappings specified by the users in the Geneva Configuration are mapped correctly.
             foreach (var mapping in userInitializedCategoryToTableNameMappings)
@@ -417,8 +414,7 @@ public class GenevaLogExporterTests
             byte[] serializedData;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
-                serializedData = m_buffer.Value;
+                serializedData = MsgPackLogExporter.Buffer.Value;
             }
             else
             {
@@ -548,9 +544,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var body = GetField(fluentdData, "body");
 
             // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
@@ -573,9 +568,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
 
             // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
@@ -595,9 +589,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             body = GetField(fluentdData, "body");
 
             // Even though Formatter is null, body is populated with the state
@@ -620,9 +613,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             Assert.Equal("Value1", GetField(fluentdData, "Key1"));
 
             body = GetField(fluentdData, "body");
@@ -758,7 +750,7 @@ public class GenevaLogExporterTests
             // logRecordList should have 14 logRecord entries as there were 14 Log calls
             Assert.Equal(14, logRecordList.Count);
 
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
+            var m_buffer = MsgPackLogExporter.Buffer;
 
             foreach (var logRecord in logRecordList)
             {
@@ -868,8 +860,7 @@ public class GenevaLogExporterTests
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
 
-                int messagePackDataSize;
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                int messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
 
                 // Read the data sent via socket.
                 var receivedData = new byte[1024];
@@ -891,7 +882,7 @@ public class GenevaLogExporterTests
                 // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
                 Assert.Single(logRecordList);
 
-                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]);
+                messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
                 receivedDataSize = serverSocket.Receive(receivedData);
                 Assert.Equal(messagePackDataSize, receivedDataSize);
             }
@@ -961,9 +952,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var exceptionType = GetField(fluentdData, "env_ex_type");
             var exceptionMessage = GetField(fluentdData, "env_ex_msg");
             Assert.Equal("System.Exception", exceptionType);
@@ -1055,9 +1045,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
@@ -1077,7 +1066,7 @@ public class GenevaLogExporterTests
             logger.LogInformation(eventId: new EventId(1, "TestEventNameWithLogExtensionMethod"), "Hello from {Name} {Price}.", "tomato", 2.99);
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
@@ -1096,7 +1085,7 @@ public class GenevaLogExporterTests
             logger.LogInformation(eventId: 1, "Hello from {Name} {Price}.", "tomato", 2.99);
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             eventName = GetField(fluentdData, "env_name");
             Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
             #endregion
@@ -1200,9 +1189,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -1304,9 +1292,8 @@ public class GenevaLogExporterTests
 
             // VALIDATE
             Assert.Single(logRecordList);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
 
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;

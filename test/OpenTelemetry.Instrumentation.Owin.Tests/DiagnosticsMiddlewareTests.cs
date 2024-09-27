@@ -195,12 +195,12 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Activity activity = stoppedActivities[0];
                 Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-                Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-                Assert.Equal(requestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+                Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+                Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
+                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
 
-                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpStatusCode).Value);
                 if (generateRemoteException)
                 {
                     Assert.Equal(Status.Error, activity.GetStatus());
@@ -248,13 +248,13 @@ public class DiagnosticsMiddlewareTests : IDisposable
             {
                 switch (tag.Key)
                 {
-                    case SemanticConventions.AttributeHttpMethod:
+                    case SemanticConventions.AttributeHttpRequestMethod:
                         Assert.Equal("GET", tag.Value);
                         break;
                     case SemanticConventions.AttributeHttpScheme:
                         Assert.Equal(requestUri.Scheme, tag.Value);
                         break;
-                    case SemanticConventions.AttributeHttpStatusCode:
+                    case SemanticConventions.AttributeHttpResponseStatusCode:
                         Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
                         break;
                 }
@@ -343,10 +343,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Activity activity = stoppedActivities[0];
             Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-            Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-            Assert.Equal(expectedRequestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+            Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+            Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
         }
         finally
         {

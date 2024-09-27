@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -20,24 +22,28 @@ public static class GenevaLoggingExtensions
     /// Adds <see cref="GenevaLogExporter"/> to the <see cref="OpenTelemetryLoggerOptions"/>.
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
-    /// <param name="configure">Callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
         this OpenTelemetryLoggerOptions options,
-        Action<GenevaExporterOptions> configure)
+        Action<GenevaExporterOptions>? configure)
     {
         Guard.ThrowIfNull(options);
 
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaLogExporter(genevaOptions);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
         if (exporter.IsUsingUnixDomainSocket)
         {
-            return options.AddProcessor(new BatchLogRecordExportProcessor(exporter));
+            return options.AddProcessor(sp => new BatchLogRecordExportProcessor(exporter));
         }
         else
         {
-            return options.AddProcessor(new ReentrantExportProcessor<LogRecord>(exporter));
+            return options.AddProcessor(sp => new ReentrantExportProcessor<LogRecord>(exporter));
         }
     }
 
@@ -67,8 +73,8 @@ public static class GenevaLoggingExtensions
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
     public static LoggerProviderBuilder AddGenevaLogExporter(
         this LoggerProviderBuilder builder,
-        string name,
-        Action<GenevaExporterOptions> configureExporter)
+        string? name,
+        Action<GenevaExporterOptions>? configureExporter)
     {
         var finalOptionsName = name ?? Options.Options.DefaultName;
 
@@ -123,7 +129,10 @@ public static class GenevaLoggingExtensions
     {
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
-        var exporter = new GenevaLogExporter(exporterOptions);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var exporter = new GenevaLogExporter(exporterOptions!);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
         if (exporter.IsUsingUnixDomainSocket)
         {
             return new BatchLogRecordExportProcessor(

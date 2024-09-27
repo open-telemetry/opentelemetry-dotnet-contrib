@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Reflection;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
@@ -29,15 +31,11 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly IDisposable exporter;
 
-    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
-
     private readonly ExportMetricsFunc exportMetrics;
 
     private bool isDisposed;
 
-    private Resource resource;
-
-    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+    private Resource? resource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
@@ -46,7 +44,6 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
@@ -55,7 +52,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             DisableOpenTelemetrySdkMetricNameValidation();
         }
 
-        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
         {
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
@@ -76,10 +73,30 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         }
     }
 
+    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
+    }
+
+    internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
+    {
+        var meterProviderBuilderSdkType = Type.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk, OpenTelemetry", throwOnError: false)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk type could not be found reflectively.");
+
+        var instrumentNameRegexProperty = meterProviderBuilderSdkType.GetProperty("InstrumentNameRegex", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk.InstrumentNameRegex property could not be found reflectively.");
+
+        return instrumentNameRegexProperty;
+    }
+
+    internal static void DisableOpenTelemetrySdkMetricNameValidation()
+    {
+        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
     /// <inheritdoc/>
@@ -97,22 +114,6 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
         this.isDisposed = true;
         base.Dispose(disposing);
-    }
-
-    internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
-    {
-        var meterProviderBuilderSdkType = Type.GetType("OpenTelemetry.Metrics.MeterProviderBuilderSdk, OpenTelemetry", throwOnError: false)
-            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk type could not be found reflectively.");
-
-        var instrumentNameRegexProperty = meterProviderBuilderSdkType.GetProperty("InstrumentNameRegex", BindingFlags.Public | BindingFlags.Static)
-            ?? throw new InvalidOperationException("OpenTelemetry.Metrics.MeterProviderBuilderSdk.InstrumentNameRegex property could not be found reflectively.");
-
-        return instrumentNameRegexProperty;
-    }
-
-    internal static void DisableOpenTelemetrySdkMetricNameValidation()
-    {
-        GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
 #if NET8_0_OR_GREATER

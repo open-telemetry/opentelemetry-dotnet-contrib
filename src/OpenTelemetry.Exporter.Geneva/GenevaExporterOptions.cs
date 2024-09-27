@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Text;
 using OpenTelemetry.Internal;
 
@@ -11,22 +13,22 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaExporterOptions
 {
-    private IReadOnlyDictionary<string, object> _fields = new Dictionary<string, object>(1)
+    private IReadOnlyDictionary<string, object> fields = new Dictionary<string, object>(1)
     {
         [Schema.V40.PartA.Ver] = "4.0",
     };
 
-    private IReadOnlyDictionary<string, string> _tableNameMappings;
+    private IReadOnlyDictionary<string, string>? tableNameMappings;
 
     /// <summary>
     /// Gets or sets the connection string.
     /// </summary>
-    public string ConnectionString { get; set; }
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Gets or sets custom fields.
     /// </summary>
-    public IEnumerable<string> CustomFields { get; set; }
+    public IEnumerable<string>? CustomFields { get; set; }
 
     /// <summary>
     /// Gets or sets the exception stack trace export mode.
@@ -46,9 +48,9 @@ public class GenevaExporterOptions
     /// <summary>
     /// Gets or sets table name mappings.
     /// </summary>
-    public IReadOnlyDictionary<string, string> TableNameMappings
+    public IReadOnlyDictionary<string, string>? TableNameMappings
     {
-        get => this._tableNameMappings;
+        get => this.tableNameMappings;
         set
         {
             Guard.ThrowIfNull(value);
@@ -89,7 +91,7 @@ public class GenevaExporterOptions
                 copy[entry.Key] = entry.Value;
             }
 
-            this._tableNameMappings = copy;
+            this.tableNameMappings = copy;
         }
     }
 
@@ -98,7 +100,7 @@ public class GenevaExporterOptions
     /// </summary>
     public IReadOnlyDictionary<string, object> PrepopulatedFields
     {
-        get => this._fields;
+        get => this.fields;
         set
         {
             Guard.ThrowIfNull(value);
@@ -153,7 +155,7 @@ public class GenevaExporterOptions
                 copy[entry.Key] = val; // shallow copy
             }
 
-            this._fields = copy;
+            this.fields = copy;
         }
     }
 }

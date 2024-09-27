@@ -1,9 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -15,13 +18,10 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     internal readonly bool IsUsingUnixDomainSocket;
 
-    private bool isDisposed;
-
-    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch);
-
     private readonly ExportActivityFunc exportActivity;
-
     private readonly IDisposable exporter;
+
+    private bool isDisposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GenevaTraceExporter"/> class.
@@ -30,7 +30,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
     public GenevaTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
@@ -64,7 +63,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (useMsgPackExporter)
@@ -82,6 +81,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
             this.exporter = tldTraceExporter;
         }
     }
+
+    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch);
 
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)

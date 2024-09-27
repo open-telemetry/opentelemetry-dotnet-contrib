@@ -1,12 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Net;
-using System.Net.Sockets;
+#if !NET
+
+#nullable enable
+
 using System.Text;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace System.Net.Sockets;
 
 internal sealed class UnixDomainSocketEndPoint : EndPoint
 {
@@ -27,13 +29,9 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         this.nativePath = Encoding.UTF8.GetBytes(path);
         if (this.nativePath.Length == 0 || this.nativePath.Length > MaximumNativePathLength)
         {
-            throw new ArgumentOutOfRangeException(nameof(this.nativePath), "Path is of an invalid length for use with domain sockets.");
+            throw new ArgumentOutOfRangeException(nameof(path), "Path is of an invalid length for use with domain sockets.");
         }
     }
-
-    public override AddressFamily AddressFamily => AddressFamily.Unix;
-
-    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
 
     private UnixDomainSocketEndPoint(SocketAddress socketAddress)
     {
@@ -64,6 +62,10 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         }
     }
 
+    public override AddressFamily AddressFamily => AddressFamily.Unix;
+
+    public override EndPoint Create(SocketAddress socketAddress) => new UnixDomainSocketEndPoint(socketAddress);
+
     public override SocketAddress Serialize()
     {
         var socketAddress = new SocketAddress(AddressFamily.Unix, NativePathOffset + this.nativePath.Length + 1);
@@ -78,3 +80,5 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
 
     public override string ToString() => this.path;
 }
+
+#endif
