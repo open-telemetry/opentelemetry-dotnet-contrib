@@ -1,11 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal abstract class MsgPackExporter
 {
@@ -37,9 +39,9 @@ internal abstract class MsgPackExporter
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = PART_A_MAPPING_DICTIONARY;
 #endif
 
-    protected static int AddPartAField(byte[] buffer, int cursor, string name, object value)
+    protected static int AddPartAField(byte[] buffer, int cursor, string name, object? value)
     {
-        if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
+        if (V40_PART_A_MAPPING.TryGetValue(name, out string? replacementKey))
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
         }
@@ -54,7 +56,7 @@ internal abstract class MsgPackExporter
 
     protected static int AddPartAField(byte[] buffer, int cursor, string name, ReadOnlySpan<byte> value)
     {
-        if (V40_PART_A_MAPPING.TryGetValue(name, out string replacementKey))
+        if (V40_PART_A_MAPPING.TryGetValue(name, out string? replacementKey))
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
         }

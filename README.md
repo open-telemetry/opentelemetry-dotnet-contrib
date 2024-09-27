@@ -71,9 +71,10 @@ component's `Readme.md` file.
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
 * [Martin Thwaites](https://github.com/martinjt), Honeycomb
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Microsoft
 
 *Find more about the triager role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).*
 
 ### Approvers
 
@@ -82,7 +83,7 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 There are no approvers today.
 
 *Find more about the approver role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
 
 ### Maintainers
 
@@ -94,11 +95,11 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 
 *Find more about the maintainer role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
+repository](h[ttps://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer)).*
 
 ### Emeritus
 
-[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
 
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)

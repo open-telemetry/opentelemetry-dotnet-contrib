@@ -4,6 +4,7 @@
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
