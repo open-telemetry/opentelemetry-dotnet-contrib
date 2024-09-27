@@ -1,10 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFrameworkForExampleApps)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="$(OpenTelemetryCoreUnstableLatestVersion)" />
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Process\OpenTelemetry.Instrumentation.Process.csproj" />
   </ItemGroup>
+
 </Project>

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>$(NetFrameworkMinimumSupportedVersion)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net462</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,9 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Wcf\OpenTelemetry.Instrumentation.Wcf.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\shared\Examples.Wcf.Shared.csproj" />
   </ItemGroup>
 
