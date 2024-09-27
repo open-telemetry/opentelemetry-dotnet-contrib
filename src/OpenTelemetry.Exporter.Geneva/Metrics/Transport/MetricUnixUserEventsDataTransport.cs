@@ -5,17 +5,24 @@
 
 #nullable enable
 
+using System.Text;
 using Microsoft.LinuxTracepoints.Provider;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
 {
+    public const uint MetricsProtocol = 0U;
+    public const string MetricsVersion = "v0.19.00";
+    public const string MetricsTracepointName = "otlp_metrics";
+    public const string MetricsTracepointNameArgs = $"{MetricsTracepointName} u32 protocol;char[8] version;__rel_loc u8[] buffer";
+
+    private static readonly ReadOnlyMemory<byte> MetricsVersionUtf8 = Encoding.UTF8.GetBytes(MetricsVersion);
     private readonly PerfTracepoint metricsTracepoint;
 
     private MetricUnixUserEventsDataTransport()
     {
-        this.metricsTracepoint = new PerfTracepoint("otlp_metrics u32 protocol;char[8] version;__rel_loc u8[] buffer");
+        this.metricsTracepoint = new PerfTracepoint(MetricsTracepointNameArgs);
         if (this.metricsTracepoint.RegisterResult != 0)
         {
             ExporterEventSource.Log.TransportError(
@@ -25,8 +32,6 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
     }
 
     public static MetricUnixUserEventsDataTransport Instance { get; } = new();
-
-    public bool IsEnabled() => this.metricsTracepoint.IsEnabled;
 
     public void Send(MetricEventType eventType, byte[] body, int size)
     {
@@ -42,8 +47,8 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
             var bufferRelLoc = 0u | ((uint)buffer.Length << 16);
 
             this.metricsTracepoint.Write(
-                [0U],
-                "v0.19.00"u8,
+                [MetricsProtocol],
+                MetricsVersionUtf8.Span,
                 [bufferRelLoc],
                 buffer);
         }
