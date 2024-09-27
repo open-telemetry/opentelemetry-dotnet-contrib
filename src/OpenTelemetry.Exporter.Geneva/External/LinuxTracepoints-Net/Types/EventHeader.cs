@@ -1,6 +1,4 @@
-// Source: https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb/Types/EventHeader.cs
-
-#if NET6_0_OR_GREATER
+#nullable enable
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
@@ -158,9 +156,6 @@ The following header extensions are defined:
   Float64, Char32, Uuid) and complex (e.g. NulTerminatedString8,
   CountedString16, Binary, Struct, Array) types are supported.
 */
-
-#nullable enable
-
 namespace Microsoft.LinuxTracepoints
 {
     using System;
@@ -305,5 +300,3 @@ namespace Microsoft.LinuxTracepoints
         // Followed by: EventHeaderExtension block(s), then event payload.
     }
 }
-
-#endif

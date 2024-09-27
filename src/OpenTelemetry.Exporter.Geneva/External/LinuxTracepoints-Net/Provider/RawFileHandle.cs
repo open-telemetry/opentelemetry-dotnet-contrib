@@ -1,11 +1,7 @@
-// Source: https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb/Provider/RawFileHandle.cs
-
-#if NET6_0_OR_GREATER
+#nullable enable
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-#nullable enable
 
 namespace Microsoft.LinuxTracepoints.Provider;
 
@@ -154,8 +150,6 @@ internal sealed class RawFileHandle
 
     private unsafe static class NativeMethods
     {
-#pragma warning disable CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
-
         [DllImport("libc", SetLastError = true)]
         public static extern int close(Int32 fd);
 
@@ -167,9 +161,5 @@ internal sealed class RawFileHandle
 
         [DllImport("libc", SetLastError = true)]
         public static extern IntPtr writev(Int32 fd, DataSegment* iovec, Int32 iovecCount);
-
-#pragma warning restore CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
     }
 }
-
-#endif
