@@ -1,6 +1,9 @@
+Import-Module .\build.psm1
+
 function AddLabelsOnIssuesForComponentFoundInBody {
   param(
     [Parameter(Mandatory=$true)][int]$issueNumber,
+    [Parameter(Mandatory=$true)][string]$issueLabels,
     [Parameter(Mandatory=$true)][string]$issueBody
   )
 
@@ -10,7 +13,36 @@ function AddLabelsOnIssuesForComponentFoundInBody {
       Return
   }
 
-  gh issue edit $issueNumber --add-label $("comp:" + $match.Groups[1].Value.ToLower())
+  $component = $match.Groups[1].Value;
+
+  gh issue edit $issueNumber --add-label $("comp:" + $component.ToLower())
+
+  if ($issueLabels.Contains('bug') -or $issueLabels.Contains('enhancement'))
+  {
+     $componentOwners = $null
+
+     FindComponentOwners `
+         -component $component `
+         -componentOwners ([ref]$componentOwners)
+
+     if ($componentOwners.Count -gt 0)
+     {
+       $componentOwnerApprovers = ''
+       foreach ($componentOwner in $componentOwners)
+       {
+         $componentOwnerApprovers += "@$componentOwner "
+       }
+
+       $body =
+@"
+Tagging component owner(s).
+
+$componentOwnerApprovers
+"@
+
+       gh issue comment $issueNumber --body $body
+     }
+  }
 }
 
 Export-ModuleMember -Function AddLabelsOnIssuesForComponentFoundInBody
