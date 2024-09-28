@@ -1,4 +1,4 @@
-Import-Module .\build.psm1
+Import-Module $PSScriptRoot\build.psm1
 
 function CreatePullRequestToUpdateChangelogsAndPublicApis {
   param(
