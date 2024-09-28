@@ -1,7 +1,9 @@
-This code came from the https://github.com/microsoft/LinuxTracepoints-Net repo.
+# LinuxTracepoints-Net
 
-Permalink to the commit:
-https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb
+The code in this folder came from the
+[LinuxTracepoints-Net](https://github.com/microsoft/LinuxTracepoints-Net) repo
+([commit
+974c475](https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb)).
 
 Only the files required to build
 `Microsoft.LinuxTracepoints.Provider.PerfTracepoint` were included.
