@@ -13,7 +13,7 @@ function AddLabelsOnIssuesForComponentFoundInBody {
       Return
   }
 
-  $component = $match.Groups[1].Value;
+  $component = $match.Groups[1].Value.Trim()
 
   gh issue edit $issueNumber --add-label $("comp:" + $component.ToLower())
 
@@ -22,7 +22,7 @@ function AddLabelsOnIssuesForComponentFoundInBody {
      $componentOwners = $null
 
      FindComponentOwners `
-         -component $component `
+         -component "OpenTelemetry.$component" `
          -componentOwners ([ref]$componentOwners)
 
      if ($componentOwners.Count -gt 0)
