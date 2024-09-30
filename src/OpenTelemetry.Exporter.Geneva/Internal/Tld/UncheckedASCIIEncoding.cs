@@ -83,7 +83,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetBytes(char* charPtr, int charCount, byte* bytePtr, int byteCount)
     {
-#if NET8_0_OR_GREATER
+#if NET
         ArgumentOutOfRangeException.ThrowIfLessThan(byteCount, charCount);
 #else
         if (byteCount < charCount)
@@ -102,7 +102,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
 
     public override unsafe int GetChars(byte* bytePtr, int byteCount, char* charPtr, int charCount)
     {
-#if NET8_0_OR_GREATER
+#if NET
         ArgumentOutOfRangeException.ThrowIfLessThan(charCount, byteCount);
 #else
         if (charCount < byteCount)
