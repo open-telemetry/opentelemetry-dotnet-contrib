@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props" />
 
   <PropertyGroup>
-    <Description>Unit test project for Geneva Exporters for OpenTelemetry</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
-    <NoWarn>$(NoWarn),SA1311,SA1312,SA1313,SA1123,SA1202,OTEL1002</NoWarn>
+    <Description>Unit test project for Geneva Exporters for OpenTelemetry.</Description>
+    <NoWarn>$(NoWarn);SA1311;SA1312;SA1313;SA1123;SA1202;OTEL1002</NoWarn>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
