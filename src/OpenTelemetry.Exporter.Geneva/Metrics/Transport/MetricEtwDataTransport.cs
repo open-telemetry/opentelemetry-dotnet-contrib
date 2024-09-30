@@ -15,8 +15,6 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
     private readonly int fixedPayloadEndIndex;
     private bool isDisposed;
 
-    public static MetricEtwDataTransport Instance { get; private set; } = new();
-
     private MetricEtwDataTransport()
     {
         unsafe
@@ -24,6 +22,8 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
             this.fixedPayloadEndIndex = sizeof(BinaryHeader);
         }
     }
+
+    public static MetricEtwDataTransport Instance { get; private set; } = new();
 
     [NonEvent]
 #if NET
@@ -61,30 +61,34 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
         }
     }
 
+#pragma warning disable CA1822 // Mark members as static
+
     [Event(OtlpProtobufMetricEventId)]
-    private void OtlpProtobufEvent()
+    public void OtlpProtobufEvent()
     {
     }
 
     [Event((int)MetricEventType.ULongMetric)]
-    private void ULongMetricEvent()
+    public void ULongMetricEvent()
     {
     }
 
     [Event((int)MetricEventType.DoubleMetric)]
-    private void DoubleMetricEvent()
+    public void DoubleMetricEvent()
     {
     }
 
     [Event((int)MetricEventType.ExternallyAggregatedULongDistributionMetric)]
-    private void ExternallyAggregatedDoubleDistributionMetric()
+    public void ExternallyAggregatedDoubleDistributionMetric()
     {
     }
 
     [Event((int)MetricEventType.TLV)]
-    private void TLVMetricEvent()
+    public void TLVMetricEvent()
     {
     }
+
+#pragma warning restore CA1822 // Mark members as static
 
     protected override void Dispose(bool disposing)
     {

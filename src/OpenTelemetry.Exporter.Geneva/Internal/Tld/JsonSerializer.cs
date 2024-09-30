@@ -1,11 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal static class JsonSerializer
 {
@@ -22,32 +24,17 @@ internal static class JsonSerializer
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
 
-    private static readonly byte[] HEX_CODE;
-    private static readonly ThreadLocal<byte[]> threadLocalBuffer = new(() => null);
-
-    static JsonSerializer()
-    {
-        var mapping = new byte[]
-        {
-            0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
-            0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
-        };
-        HEX_CODE = new byte[512];
-        for (int i = 0; i < 256; i++)
-        {
-            HEX_CODE[i] = mapping[i >> 4];
-            HEX_CODE[i + 256] = mapping[i & 0x0F];
-        }
-    }
+    private static readonly byte[] HEX_CODE = InitializeHexCodeLookup();
+    private static readonly ThreadLocal<byte[]> ThreadLocalBuffer = new();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string SerializeNull()
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = WriteString(buffer, 0, "null");
@@ -61,13 +48,13 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeString(string value)
+    public static string SerializeString(string? value)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeString(buffer, 0, value);
@@ -75,7 +62,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeString(byte[] buffer, int cursor, string value)
+    public static int SerializeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -105,13 +92,13 @@ internal static class JsonSerializer
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeArray<T>(T[] array)
+    public static string SerializeArray<T>(T[]? array)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeArray(buffer, 0, array);
@@ -119,7 +106,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeArray<T>(byte[] buffer, int cursor, T[] array)
+    public static int SerializeArray<T>(byte[] buffer, int cursor, T[]? array)
     {
         if (array == null)
         {
@@ -143,13 +130,13 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeMap(IEnumerable<KeyValuePair<string, object>> map)
+    public static string SerializeMap(IEnumerable<KeyValuePair<string, object?>>? map)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = SerializeMap(buffer, 0, map);
@@ -157,13 +144,13 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object>> listKVp, out int count)
+    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object?>>? listKVp, out int count)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         count = SerializeKeyValuePairList(buffer, 0, listKVp);
@@ -171,7 +158,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeMap(byte[] buffer, int cursor, IEnumerable<KeyValuePair<string, object>> map)
+    public static int SerializeMap(byte[] buffer, int cursor, IEnumerable<KeyValuePair<string, object?>>? map)
     {
         if (map == null)
         {
@@ -198,7 +185,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object>> listKvp)
+    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object?>>? listKvp)
     {
         if (listKvp == null)
         {
@@ -225,13 +212,13 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string Serialize(object obj)
+    public static string Serialize(object? obj)
     {
-        var buffer = threadLocalBuffer.Value;
+        var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
         {
             buffer = new byte[65360];
-            threadLocalBuffer.Value = buffer;
+            ThreadLocalBuffer.Value = buffer;
         }
 
         var count = Serialize(buffer, 0, obj);
@@ -239,7 +226,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
         if (obj == null)
         {
@@ -262,7 +249,7 @@ internal static class JsonSerializer
             case float:
             case double:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                (obj as ISpanFormattable).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
+                ((ISpanFormattable)obj).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
             case DateTime dt:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
@@ -312,7 +299,7 @@ internal static class JsonSerializer
                 return SerializeArray(buffer, cursor, vdtarray);
             case string v:
                 return SerializeString(buffer, cursor, v);
-            case IEnumerable<KeyValuePair<string, object>> v:
+            case IEnumerable<KeyValuePair<string, object?>> v:
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
@@ -329,7 +316,7 @@ internal static class JsonSerializer
 #endif
 
             default:
-                string repr;
+                string? repr;
                 try
                 {
                     repr = Convert.ToString(obj, CultureInfo.InvariantCulture);
@@ -341,6 +328,24 @@ internal static class JsonSerializer
 
                 return SerializeString(buffer, cursor, repr);
         }
+    }
+
+    private static byte[] InitializeHexCodeLookup()
+    {
+        var mapping = new byte[]
+        {
+            0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+            0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
+        };
+
+        var hexCodeLookup = new byte[512];
+        for (int i = 0; i < 256; i++)
+        {
+            hexCodeLookup[i] = mapping[i >> 4];
+            hexCodeLookup[i + 256] = mapping[i & 0x0F];
+        }
+
+        return hexCodeLookup;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

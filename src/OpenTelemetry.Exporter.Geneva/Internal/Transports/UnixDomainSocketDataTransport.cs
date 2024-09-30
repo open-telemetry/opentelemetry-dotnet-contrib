@@ -1,17 +1,20 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposable
 {
     public const int DefaultTimeoutMilliseconds = 15000;
     private readonly EndPoint unixEndpoint;
+    private readonly int timeoutMilliseconds;
     private Socket socket;
-    private int timeoutMilliseconds;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnixDomainSocketDataTransport"/> class.
@@ -29,14 +32,8 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
     {
         this.unixEndpoint = new UnixDomainSocketEndPoint(unixDomainSocketPath);
         this.timeoutMilliseconds = timeoutMilliseconds;
-        try
-        {
-            this.Connect();
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("UDS unavailable at startup.", ex);
-        }
+
+        this.Connect();
     }
 
     public bool IsEnabled()
@@ -46,21 +43,13 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
 
     public void Send(byte[] data, int size)
     {
-        try
+        if (!this.socket.Connected
+            && !this.Reconnect())
         {
-            if (!this.socket.Connected)
-            {
-                // Socket connection is off! Server might have stopped. Trying to reconnect.
-                this.Reconnect();
-            }
+            throw new InvalidOperationException("UDS not connected.");
+        }
 
-            this.socket.Send(data, size, SocketFlags.None);
-        }
-        catch (Exception)
-        {
-            // Re-throw the exception so that Export method catches it and sets the ExportResult correctly.
-            throw;
-        }
+        this.socket.Send(data, size, SocketFlags.None);
     }
 
     public void Dispose()
@@ -68,30 +57,31 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
         this.socket.Dispose();
     }
 
-    private void Connect()
+    [MemberNotNull(nameof(socket))]
+    private bool Connect()
     {
+        this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
+        {
+            SendTimeout = this.timeoutMilliseconds,
+        };
+
         try
         {
-            this.socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-            {
-                SendTimeout = this.timeoutMilliseconds,
-            };
             this.socket.Connect(this.unixEndpoint);
+
+            return true;
         }
         catch (Exception ex)
         {
             ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
 
-            // Re-throw the exception to
-            // 1. fail fast in Geneva exporter contructor, or
-            // 2. fail in the Reconnect attempt.
-            throw;
+            return false;
         }
     }
 
-    private void Reconnect()
+    private bool Reconnect()
     {
         this.socket.Close();
-        this.Connect();
+        return this.Connect();
     }
 }

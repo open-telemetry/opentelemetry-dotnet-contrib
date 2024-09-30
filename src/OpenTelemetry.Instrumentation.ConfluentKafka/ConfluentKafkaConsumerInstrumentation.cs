@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Confluent.Kafka;
+
 namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 
 internal class ConfluentKafkaConsumerInstrumentation;

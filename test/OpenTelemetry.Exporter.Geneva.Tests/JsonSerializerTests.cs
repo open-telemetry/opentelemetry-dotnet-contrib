@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Text;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;

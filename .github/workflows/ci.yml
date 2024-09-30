@@ -25,7 +25,7 @@ jobs:
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
-          exporter-infuxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
+          exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
@@ -590,6 +590,7 @@ jobs:
       lint-misspell-sanitycheck,
       detect-changes,
       lint-md,
+      lint-yml,
       lint-dotnet-format,
       build-test-exporter-geneva,
       build-test-exporter-influxdb,
@@ -633,7 +634,8 @@ jobs:
       build-test-contrib-shared-tests,
       verify-aot-compat
     ]
-    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
-    runs-on: windows-latest
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
     steps:
-    - run: echo 'build complete ✓'
+    - run: |
+          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

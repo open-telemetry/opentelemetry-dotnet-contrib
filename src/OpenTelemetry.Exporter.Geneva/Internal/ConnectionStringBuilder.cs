@@ -1,7 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -18,9 +22,9 @@ internal enum TransportProtocol
 
 internal sealed class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> _parts = new Dictionary<string, string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> parts = new(StringComparer.Ordinal);
 
-    public ConnectionStringBuilder(string connectionString)
+    public ConnectionStringBuilder([NotNull] string? connectionString)
     {
         Guard.ThrowIfNullOrWhitespace(connectionString);
 
@@ -52,10 +56,10 @@ internal sealed class ConnectionStringBuilder
                 throw new ArgumentException("Connection string cannot contain empty keys or values.");
             }
 
-            this._parts[key] = value;
+            this.parts[key] = value;
         }
 
-        if (this._parts.Count == 0)
+        if (this.parts.Count == 0)
         {
             throw new ArgumentNullException(nameof(connectionString), $"{nameof(connectionString)} is invalid.");
         }
@@ -64,25 +68,31 @@ internal sealed class ConnectionStringBuilder
     public string EtwSession
     {
         get => this.ThrowIfNotExists<string>(nameof(this.EtwSession));
-        set => this._parts[nameof(this.EtwSession)] = value;
+        set => this.parts[nameof(this.EtwSession)] = value;
     }
 
-    public string PrivatePreviewEnableTraceLoggingDynamic
+    public bool PrivatePreviewEnableTraceLoggingDynamic
     {
-        get => this.ThrowIfNotExists<string>(nameof(this.PrivatePreviewEnableTraceLoggingDynamic));
-        set => this._parts[nameof(this.PrivatePreviewEnableTraceLoggingDynamic)] = value;
+        get
+        {
+            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
-    public string PrivatePreviewEnableOtlpProtobufEncoding
+    public bool PrivatePreviewEnableOtlpProtobufEncoding
     {
-        get => this._parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value) ? value : null;
-        set => this._parts[nameof(this.PrivatePreviewEnableOtlpProtobufEncoding)] = value;
+        get
+        {
+            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+        }
     }
 
     public string Endpoint
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));
-        set => this._parts[nameof(this.Endpoint)] = value;
+        set => this.parts[nameof(this.Endpoint)] = value;
     }
 
     public TransportProtocol Protocol
@@ -92,10 +102,9 @@ internal sealed class ConnectionStringBuilder
             try
             {
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
-                if (this._parts.ContainsKey(nameof(this.EtwSession)))
+                if (this.parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    _ = this._parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var privatePreviewEnableTraceLoggingDynamic);
-                    if (privatePreviewEnableTraceLoggingDynamic != null && privatePreviewEnableTraceLoggingDynamic.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+                    if (this.PrivatePreviewEnableTraceLoggingDynamic)
                     {
                         return TransportProtocol.EtwTld;
                     }
@@ -103,7 +112,7 @@ internal sealed class ConnectionStringBuilder
                     return TransportProtocol.Etw;
                 }
 
-                if (!this._parts.ContainsKey(nameof(this.Endpoint)))
+                if (!this.parts.ContainsKey(nameof(this.Endpoint)))
                 {
                     return TransportProtocol.Unspecified;
                 }
@@ -123,41 +132,11 @@ internal sealed class ConnectionStringBuilder
         }
     }
 
-    /// <summary>
-    /// Replace first charater of string if it matches with <paramref name="oldChar"/> with <paramref name="newChar"/>.
-    /// </summary>
-    /// <param name="str">String to be updated.</param>
-    /// <param name="oldChar">Old character to be replaced.</param>
-    /// <param name="newChar">New character to be replaced with.</param>
-    /// <returns>Updated string.</returns>
-    internal static string ReplaceFirstChar(string str, char oldChar, char newChar)
-    {
-        if (str.Length > 0 && str[0] == oldChar)
-        {
-            return $"{newChar}{str.Substring(1)}";
-        }
-
-        return str;
-    }
-
-    public string ParseUnixDomainSocketPath()
-    {
-        try
-        {
-            var endpoint = new Uri(this.Endpoint);
-            return ReplaceFirstChar(endpoint.AbsolutePath, '@', '\0');
-        }
-        catch (UriFormatException ex)
-        {
-            throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
-        }
-    }
-
     public int TimeoutMilliseconds
     {
         get
         {
-            if (!this._parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string value))
+            if (!this.parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string? value))
             {
                 return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
             }
@@ -186,7 +165,7 @@ internal sealed class ConnectionStringBuilder
                     ex);
             }
         }
-        set => this._parts[nameof(this.TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);
+        set => this.parts[nameof(this.TimeoutMilliseconds)] = value.ToString(CultureInfo.InvariantCulture);
     }
 
     public string Host
@@ -229,32 +208,62 @@ internal sealed class ConnectionStringBuilder
     public string Account
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Account));
-        set => this._parts[nameof(this.Account)] = value;
+        set => this.parts[nameof(this.Account)] = value;
     }
 
     public string Namespace
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Namespace));
-        set => this._parts[nameof(this.Namespace)] = value;
+        set => this.parts[nameof(this.Namespace)] = value;
     }
 
     public bool DisableMetricNameValidation
     {
         get
         {
-            if (!this._parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value))
+            if (!this.parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value))
             {
                 return false;
             }
 
             return string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
         }
-        set => this._parts[nameof(this.DisableMetricNameValidation)] = value ? bool.TrueString : bool.FalseString;
+        set => this.parts[nameof(this.DisableMetricNameValidation)] = value ? bool.TrueString : bool.FalseString;
+    }
+
+    public string ParseUnixDomainSocketPath()
+    {
+        try
+        {
+            var endpoint = new Uri(this.Endpoint);
+            return ReplaceFirstChar(endpoint.AbsolutePath, '@', '\0');
+        }
+        catch (UriFormatException ex)
+        {
+            throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
+        }
+    }
+
+    /// <summary>
+    /// Replace first charater of string if it matches with <paramref name="oldChar"/> with <paramref name="newChar"/>.
+    /// </summary>
+    /// <param name="str">String to be updated.</param>
+    /// <param name="oldChar">Old character to be replaced.</param>
+    /// <param name="newChar">New character to be replaced with.</param>
+    /// <returns>Updated string.</returns>
+    internal static string ReplaceFirstChar(string str, char oldChar, char newChar)
+    {
+        if (str.Length > 0 && str[0] == oldChar)
+        {
+            return $"{newChar}{str.Substring(1)}";
+        }
+
+        return str;
     }
 
     private T ThrowIfNotExists<T>(string name)
     {
-        if (!this._parts.TryGetValue(name, out var value))
+        if (!this.parts.TryGetValue(name, out var value))
         {
             throw new ArgumentException($"'{name}' value is missing in connection string.");
         }

@@ -3,7 +3,8 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 

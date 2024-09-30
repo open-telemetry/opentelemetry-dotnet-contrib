@@ -1,10 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Text;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 /// <summary>
 /// Like ASCIIEncoding but instead of checking for non-ASCII characters, it just
@@ -22,6 +24,12 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         : base(20127)
     {
     }
+
+    #region Optional property overrides (performance/functionality improvement)
+
+    public override bool IsSingleByte => true;
+
+    #endregion
 
     #region Required implementation of Encoding abstract methods
 
@@ -114,8 +122,6 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     #endregion
 
     #region Optional overrides (performance/functionality improvement)
-
-    public override bool IsSingleByte => true;
 
     public override int GetByteCount(string chars)
     {

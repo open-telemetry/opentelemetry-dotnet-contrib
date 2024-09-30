@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>netstandard2.0;net462</TargetFrameworks>
+    <TargetFrameworks>$(DefaultTargetFrameworkForExampleApps);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
@@ -10,8 +9,15 @@
     <Reference Include="System.ServiceModel.Web" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Security.Cryptography.Xml is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-rxg9-xrhp-64gj -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="4.7.1" />
+    <!-- System.Drawing.Common is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-rxg9-xrhp-64gj -->
+    <PackageReference Include="System.Drawing.Common" Version="4.7.3" />
   </ItemGroup>
 
 </Project>
