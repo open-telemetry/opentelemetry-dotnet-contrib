@@ -3,7 +3,7 @@
 
 #nullable enable
 
-#if NET8_0_OR_GREATER
+#if NET
 using System.Collections.Frozen;
 #endif
 
@@ -33,7 +33,7 @@ internal abstract class MsgPackExporter
         [Schema.V40.PartA.Extensions.Os.Ver] = "env_os_ver",
     };
 
-#if NET8_0_OR_GREATER
+#if NET
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = PART_A_MAPPING_DICTIONARY.ToFrozenDictionary();
 #else
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_MAPPING = PART_A_MAPPING_DICTIONARY;
