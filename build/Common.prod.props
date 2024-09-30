@@ -7,7 +7,7 @@
     <PackageProjectUrl>https://OpenTelemetry.io</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackagePrimaryLicenseFile>$(RepoRoot)\LICENSE.txt</PackagePrimaryLicenseFile>
+    <PackagePrimaryLicenseFile>$(RepoRoot)\LICENSE.TXT</PackagePrimaryLicenseFile>
     <PackageIcon>opentelemetry-icon-color.png</PackageIcon>
     <Authors>OpenTelemetry Authors</Authors>
     <Copyright>Copyright The OpenTelemetry Authors</Copyright>
