@@ -36,7 +36,7 @@ internal sealed class TestPlatformHelpers
     private static class SystemNativeUnix
     {
 #pragma warning disable CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
-        [DllImport("System.Native", EntryPoint = "SystemNative_GetEUid")]
+        [DllImport("libc", SetLastError = true)]
         internal static extern uint GetEUid();
 #pragma warning restore CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
     }
@@ -56,12 +56,14 @@ internal sealed class SkipUnlessPlatformMatchesFactAttribute : FactAttribute
         if (!RuntimeInformation.IsOSPlatform(osPlatform))
         {
             this.Skip = $"Skipped because current platform does not match requested '{platform}' platform.";
+            return;
         }
 
         if (requireElevatedProcess
             && !TestPlatformHelpers.IsProcessElevated(platform))
         {
             this.Skip = $"Skipped because current process isn't elevated.";
+            return;
         }
     }
 }
@@ -80,12 +82,14 @@ internal sealed class SkipUnlessPlatformMatchesTheoryAttribute : TheoryAttribute
         if (!RuntimeInformation.IsOSPlatform(osPlatform))
         {
             this.Skip = $"Skipped because current platform does not match requested '{platform}' platform.";
+            return;
         }
 
         if (requireElevatedProcess
             && !TestPlatformHelpers.IsProcessElevated(platform))
         {
             this.Skip = $"Skipped because current process isn't elevated.";
+            return;
         }
     }
 }
