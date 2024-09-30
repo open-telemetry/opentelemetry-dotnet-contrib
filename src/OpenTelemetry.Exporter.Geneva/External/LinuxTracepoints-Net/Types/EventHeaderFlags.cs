@@ -1,11 +1,7 @@
-#if NET6_0_OR_GREATER
-
-// Source: https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb/Types/EventHeaderFlags.cs
+#nullable enable
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-#nullable enable
 
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
 
@@ -38,5 +34,3 @@ namespace Microsoft.LinuxTracepoints
         Extension = 0x04,
     }
 }
-
-#endif

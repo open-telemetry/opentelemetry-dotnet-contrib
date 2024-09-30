@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported.
+  ([#2117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2117))
+
 * Added support for exporting metrics via
   [user_events](https://docs.kernel.org/trace/user_events.html) on Linux when
   OTLP protobuf encoding is enabled via the

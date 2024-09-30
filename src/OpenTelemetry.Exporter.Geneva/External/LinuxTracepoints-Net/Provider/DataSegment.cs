@@ -1,11 +1,7 @@
-// Source: https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb/Provider/DataSegment.cs
-
-#if NET6_0_OR_GREATER
+#nullable enable
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-
-#nullable enable
 
 namespace Microsoft.LinuxTracepoints.Provider;
 
@@ -26,5 +22,3 @@ internal unsafe struct DataSegment
         this.Length = length;
     }
 }
-
-#endif
