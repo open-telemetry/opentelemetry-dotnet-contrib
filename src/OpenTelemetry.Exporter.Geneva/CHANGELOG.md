@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Drop support for .NET 7 as this target is no longer supported.
+* Drop support for .NET 6 as this target is no longer supported.
   ([#2117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2117))
 
 ## 1.9.0
