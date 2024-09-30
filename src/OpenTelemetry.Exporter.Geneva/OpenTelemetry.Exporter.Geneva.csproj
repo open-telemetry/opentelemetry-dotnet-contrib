@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <Import Project=".\Common.GenevaExporter.props"/>
 
   <PropertyGroup>
@@ -18,6 +19,11 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.0.0" Condition="'$(TargetFramework)' == 'net462'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Note: Only include LinuxTracepoints-Net files for net8.0+ targets -->
+    <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>
