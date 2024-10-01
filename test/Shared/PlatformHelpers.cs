@@ -16,6 +16,7 @@ internal enum TestPlatform
     Unknown = 0,
     Windows = 1,
     Linux = 2,
+    OSX = 3,
 }
 
 internal sealed class TestPlatformHelpers
@@ -50,6 +51,7 @@ internal sealed class SkipUnlessPlatformMatchesFactAttribute : FactAttribute
         {
             TestPlatform.Windows => OSPlatform.Windows,
             TestPlatform.Linux => OSPlatform.Linux,
+            TestPlatform.OSX => OSPlatform.OSX,
             _ => throw new NotSupportedException($"TestPlatform '{platform}' is not supported"),
         };
 
@@ -76,6 +78,7 @@ internal sealed class SkipUnlessPlatformMatchesTheoryAttribute : TheoryAttribute
         {
             TestPlatform.Windows => OSPlatform.Windows,
             TestPlatform.Linux => OSPlatform.Linux,
+            TestPlatform.OSX => OSPlatform.OSX,
             _ => throw new NotSupportedException($"TestPlatform '{platform}' is not supported"),
         };
 
