@@ -5,7 +5,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal readonly struct BatchSerializationResult
 {
-#if NET8_0_OR_GREATER
+#if NET
     public required int NumberOfItemsSerialized { get; init; }
 
     public required int NumberOfItemsDropped { get; init; }
