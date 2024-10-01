@@ -80,3 +80,62 @@ function ResolveProject {
 }
 
 Export-ModuleMember -Function ResolveProject
+
+function FindComponentOwners {
+  param(
+    [Parameter(Mandatory=$true)][string]$component,
+    [Parameter()][string]$issueNumber,
+    [Parameter()][ref]$componentOwners
+  )
+
+  $projectPath = "src/$component/$component.csproj"
+
+  if ((Test-Path -Path $projectPath) -eq $false)
+  {
+      if ([string]::IsNullOrEmpty($issueNumber) -eq $false)
+      {
+        gh issue comment $issueNumber `
+          --body "I couldn't find the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
+      }
+      Return
+  }
+
+  $projectContent = Get-Content -Path $projectPath
+
+  $match = [regex]::Match($projectContent, '<MinVerTagPrefix>(.*)<\/MinVerTagPrefix>')
+  if ($match.Success -eq $false)
+  {
+      if ([string]::IsNullOrEmpty($issueNumber) -eq $false)
+      {
+        gh issue comment $issueNumber `
+          --body "I couldn't find ``MinVerTagPrefix`` in the project file for the requested component. Please create a new release request and select a valid component or edit the description and set a valid component."
+      }
+      Return
+  }
+
+  $minVerTagPrefix = $match.Groups[1].Value
+
+  $projectDirs = Get-ChildItem -Path src/**/*.csproj | Select-String "<MinVerTagPrefix>$minVerTagPrefix</MinVerTagPrefix>" -List | Select Path | Split-Path -Parent
+
+  $componentOwnersContent = Get-Content '.github/component_owners.yml' -Raw
+
+  $componentOwners.Value = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+  foreach ($projectDir in $projectDirs)
+  {
+    $projectName = [System.IO.Path]::GetFileName($projectDir)
+
+    $match = [regex]::Match($componentOwnersContent, "src\/$projectName\/:([\w\W\s]*?)src")
+    if ($match.Success -eq $true)
+    {
+      $matches = [regex]::Matches($match.Groups[1].Value, "-\s*(.*)")
+      foreach ($match in $matches)
+      {
+        $owner = $match.Groups[1].Value
+        $_ = $componentOwners.Value.Add($owner.Trim())
+      }
+    }
+  }
+}
+
+Export-ModuleMember -Function FindComponentOwners
