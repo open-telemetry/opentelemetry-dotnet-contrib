@@ -39,10 +39,14 @@ internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     internal AutoFlushActivityProcessor(Func<Activity, bool> predicate, int timeoutMilliseconds)
     {
         this.predicate = predicate ?? throw new ArgumentNullException(nameof(predicate));
+#if NET
+        ArgumentOutOfRangeException.ThrowIfLessThan(timeoutMilliseconds, Timeout.Infinite);
+#else
         if (timeoutMilliseconds < Timeout.Infinite)
         {
             throw new ArgumentOutOfRangeException(nameof(timeoutMilliseconds));
         }
+#endif
 
         this.timeoutMilliseconds = timeoutMilliseconds;
     }
