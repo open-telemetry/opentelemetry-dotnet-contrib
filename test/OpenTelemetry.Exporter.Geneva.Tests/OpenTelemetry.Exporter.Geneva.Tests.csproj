@@ -33,6 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\PlatformHelpers.cs" Link="Includes\PlatformHelpers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="**/*.proto" Access="internal">
       <ProtoRoot>Proto</ProtoRoot>
     </Protobuf>

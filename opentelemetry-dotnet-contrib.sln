@@ -359,6 +359,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{70CA77
 		test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs = test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs
 		test\Shared\EventSourceTestHelper.cs = test\Shared\EventSourceTestHelper.cs
 		test\Shared\InMemoryEventListener.cs = test\Shared\InMemoryEventListener.cs
+		test\Shared\PlatformHelpers.cs = test\Shared\PlatformHelpers.cs
 		test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs = test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs
 		test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs = test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs
 		test\Shared\TestActivityExportProcessor.cs = test\Shared\TestActivityExportProcessor.cs
