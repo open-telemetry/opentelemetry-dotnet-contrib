@@ -8,6 +8,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS.</Description>
+    <PackageThirdPartyNoticesFile>THIRD-PARTY-NOTICES.TXT</PackageThirdPartyNoticesFile>
     <!-- Tweak style rules for Geneva: Allow underscores in constant names and allow regions inside code blocks -->
     <NoWarn>$(NoWarn);SA1123;SA1310</NoWarn>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>

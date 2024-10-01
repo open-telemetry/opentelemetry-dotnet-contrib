@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector</Description>
-    <Authors>OpenTelemetry Authors</Authors>
-    <TargetFrameworks>net8.0;net6.0;netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;netstandard2.1;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector.</Description>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <!-- Note: SYSLIB1100;SYSLIB1101 - Configuration.Binder: Can't create
@@ -24,7 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFramework)' != 'net8.0' AND '$(TargetFramework)' != 'net6.0'" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsConfigurationBinderPkgVer)" />
   </ItemGroup>
 
