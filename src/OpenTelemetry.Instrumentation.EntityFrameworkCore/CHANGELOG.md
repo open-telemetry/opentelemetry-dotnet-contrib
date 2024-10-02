@@ -13,7 +13,7 @@
 
 Released 2024-Jun-18
 
-* Update `Microsoft.Extensio²ns.Options` to `8.0.0`.
+* Update `Microsoft.Extensions.Options` to `8.0.0`.
   ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
 
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
