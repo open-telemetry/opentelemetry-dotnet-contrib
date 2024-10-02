@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <Description>Unit test project for Geneva Exporters for OpenTelemetry.</Description>
     <NoWarn>$(NoWarn);SA1311;SA1312;SA1313;SA1123;SA1202;OTEL1002</NoWarn>
