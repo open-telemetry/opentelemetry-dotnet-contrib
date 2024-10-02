@@ -230,7 +230,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             if (hasError)
             {
-                // TODO extract exception from activity events?
+                var exceptionType = activity.Tags.SingleOrDefault(t => t.Key == SemanticConventions.AttributeExceptionType);
+
+                if (exceptionType.Value != null)
+                {
+                    tags.Add(SemanticConventions.AttributeErrorType, exceptionType.Value);
+                }
             }
 
             var serverAddress = activity.GetTagItem(SemanticConventions.AttributeServerAddress);
