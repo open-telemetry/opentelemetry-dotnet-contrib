@@ -4,16 +4,16 @@
 
 * Some attributes have been updated to align with
   the latest version of Semantic Conventions:
-    - Rename `db.name` to `db.namespace`
-    - Rename `db.statement` to `db.query.text`
-    - Rename `peer.service` to `server.address`
+    * Rename `db.name` to `db.namespace`
+    * Rename `db.statement` to `db.query.text`
+    * Rename `peer.service` to `server.address`
   ([#2130](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2130))
 
 ## 1.0.0-beta.12
 
 Released 2024-Jun-18
 
-* Update `Microsoft.Extensions.Options` to `8.0.0`.
+* Update `Microsoft.Extensio²ns.Options` to `8.0.0`.
   ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
 
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
