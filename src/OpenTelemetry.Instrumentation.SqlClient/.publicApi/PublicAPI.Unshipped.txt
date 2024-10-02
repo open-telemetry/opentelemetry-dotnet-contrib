@@ -14,6 +14,8 @@ OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Set
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbStatementForText.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SqlClientTraceInstrumentationOptions() -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
+OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddSqlClientInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddSqlClientInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions!>? configureSqlClientTraceInstrumentationOptions) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddSqlClientInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions!>! configureSqlClientTraceInstrumentationOptions) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions.AddSqlClientInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!

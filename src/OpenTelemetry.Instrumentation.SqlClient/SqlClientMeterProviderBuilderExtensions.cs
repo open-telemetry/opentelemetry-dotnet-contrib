@@ -3,12 +3,15 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Instrumentation.SqlClient;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Metrics;
 
-namespace OpenTelemetry.Instrumentation.SqlClient;
+namespace OpenTelemetry.Metrics;
 
+/// <summary>
+/// Extension methods to simplify registering of SqlClient instrumentation.
+/// </summary>
 public static class SqlClientMeterProviderBuilderExtensions
 {
     /// <summary>
@@ -24,7 +27,6 @@ public static class SqlClientMeterProviderBuilderExtensions
         var name = Options.DefaultName;
 
 #if NET6_0_OR_GREATER
-
         builder.AddInstrumentation(sp =>
         {
             var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);
