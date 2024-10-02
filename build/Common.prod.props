@@ -12,7 +12,7 @@
     <Authors>OpenTelemetry Authors</Authors>
     <Copyright>Copyright The OpenTelemetry Authors</Copyright>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1573,1712</NoWarn>
+    <NoWarn>$(NoWarn);1573;1712</NoWarn>
     <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>

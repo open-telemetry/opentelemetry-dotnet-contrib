@@ -5,6 +5,15 @@
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET Standard 2.0 target.
+  ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
+
+* Update Google Cloud libraries:
+  * Google.Cloud.Monitoring.V3 3.4.0 -> 3.8.0
+  * Google.Cloud.Trace.V2 3.3.0 -> 3.5.0
+  ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
+
 ## 1.0.0-beta.6
 
 Released 2024-Apr-22
