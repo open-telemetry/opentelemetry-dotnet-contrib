@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Some attributes have been updated to align with
+  the latest version of Semantic Conventions:
+  - Rename `db.name` to `db.namespace`
+  - Rename `db.statement` to `db.query.text`
+  - Rename `peer.service` to `server.address`
+  ([#2130](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2130))
+
 ## 1.0.0-beta.12
 
 Released 2024-Jun-18
