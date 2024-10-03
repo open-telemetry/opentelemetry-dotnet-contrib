@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal abstract class TldExporter
 {

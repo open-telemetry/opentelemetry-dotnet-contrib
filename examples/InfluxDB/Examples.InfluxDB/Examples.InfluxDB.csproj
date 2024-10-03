@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>$(DefaultTargetFrameworkForExampleApps)</TargetFramework>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Examples.InfluxDB</RootNamespace>
   </PropertyGroup>
 

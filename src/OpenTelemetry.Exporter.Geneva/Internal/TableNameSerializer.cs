@@ -6,6 +6,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 
 namespace OpenTelemetry.Exporter.Geneva;
 

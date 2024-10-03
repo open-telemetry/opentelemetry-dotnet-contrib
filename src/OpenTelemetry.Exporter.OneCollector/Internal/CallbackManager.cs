@@ -20,7 +20,7 @@ internal sealed class CallbackManager<T> : IDisposable
 
         lock (this.lockObject)
         {
-#if NET8_0_OR_GREATER
+#if NET
             ObjectDisposedException.ThrowIf(this.disposed, nameof(CallbackManager<T>));
 #else
             if (this.disposed)

@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props"/>
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
-    <NoWarn>$(NoWarn),SA1201,SA1202,SA1204,SA1311,SA1123</NoWarn>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);SA1201;SA1202;SA1204;SA1311;SA1123</NoWarn>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryLatestPreReleasePkgVer)" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>

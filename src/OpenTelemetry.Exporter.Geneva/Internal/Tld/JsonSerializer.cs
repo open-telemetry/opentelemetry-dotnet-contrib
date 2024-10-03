@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal static class JsonSerializer
 {
