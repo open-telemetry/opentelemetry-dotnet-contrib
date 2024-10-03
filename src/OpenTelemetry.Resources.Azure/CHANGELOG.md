@@ -6,6 +6,9 @@
   [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w).
   ([#2149](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2149))
 
+* Update `System.Text.Encodings.Web` to `8.0.0`.
+  ([#2149](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2149))
+
 ## 1.0.0-beta.9
 
 Released 2024-Sep-24
