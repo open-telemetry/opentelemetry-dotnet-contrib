@@ -6,6 +6,9 @@
   ([#2037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2037))
 * Add HTTP server span attributes for Application Loadbalancer triggers
   ([#2033](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2033))
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET 8/.NET Standard 2.0 targets.
+  ([#2140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2140))
 
 ## 1.3.0-beta.1
 
