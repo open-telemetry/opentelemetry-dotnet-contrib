@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
@@ -7,8 +8,8 @@
     <MinVerTagPrefix>Instrumentation.AspNet-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
@@ -31,4 +32,5 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
+
 </Project>

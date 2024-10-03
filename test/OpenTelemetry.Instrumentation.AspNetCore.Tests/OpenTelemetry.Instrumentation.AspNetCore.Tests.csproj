@@ -1,13 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry ASP.NET Core instrumentation</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-  </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'" >
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.33" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.33"/>
-  </ItemGroup>
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry ASP.NET Core instrumentation.</Description>
+  </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'" >
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.8" />
@@ -37,4 +33,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>
