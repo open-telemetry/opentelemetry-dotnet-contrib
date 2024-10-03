@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using CommandLine;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Exporter.Geneva.Stress;

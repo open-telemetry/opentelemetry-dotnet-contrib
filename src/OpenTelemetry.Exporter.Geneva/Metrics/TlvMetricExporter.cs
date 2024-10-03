@@ -43,12 +43,12 @@ internal sealed class TlvMetricExporter : IDisposable
                 }
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
+                this.metricDataTransport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.metricDataTransport = MetricEtwDataTransport.Instance;
+                    this.metricDataTransport = MetricWindowsEventTracingDataTransport.Instance;
                     break;
                 }
                 else
@@ -77,7 +77,7 @@ internal sealed class TlvMetricExporter : IDisposable
         {
             // The ETW data transport singleton on Windows should NOT be disposed.
             // On Linux, Unix Domain Socket is used and should be disposed.
-            if (this.metricDataTransport != MetricEtwDataTransport.Instance)
+            if (this.metricDataTransport != MetricWindowsEventTracingDataTransport.Instance)
             {
                 this.metricDataTransport.Dispose();
             }

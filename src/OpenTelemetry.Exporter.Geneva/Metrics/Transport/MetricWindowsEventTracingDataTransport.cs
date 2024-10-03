@@ -9,13 +9,13 @@ using System.Diagnostics.Tracing;
 namespace OpenTelemetry.Exporter.Geneva;
 
 [EventSource(Name = "OpenTelemetryGenevaMetricExporter", Guid = "{edc24920-e004-40f6-a8e1-0e6e48f39d84}")]
-internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
+internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMetricDataTransport
 {
     private const int OtlpProtobufMetricEventId = 81;
     private readonly int fixedPayloadEndIndex;
     private bool isDisposed;
 
-    private MetricEtwDataTransport()
+    private MetricWindowsEventTracingDataTransport()
     {
         unsafe
         {
@@ -23,7 +23,7 @@ internal sealed class MetricEtwDataTransport : EventSource, IMetricDataTransport
         }
     }
 
-    public static MetricEtwDataTransport Instance { get; private set; } = new();
+    public static MetricWindowsEventTracingDataTransport Instance { get; private set; } = new();
 
     [NonEvent]
 #if NET

@@ -5,7 +5,8 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -29,7 +30,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
     public GenevaTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);

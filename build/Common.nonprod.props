@@ -11,6 +11,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DefaultTargetFrameworkForExampleApps>net8.0</DefaultTargetFrameworkForExampleApps>
+  </PropertyGroup>
+
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -24,8 +28,8 @@
     <MicrosoftExtensionsHostingPkgVer>8.0.0</MicrosoftExtensionsHostingPkgVer>
     <MicrosoftNETTestSdkPkgVer>[17.11.1,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
-    <OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>$(OpenTelemetryCoreLatestPrereleaseVersion)</OpenTelemetryExporterInMemoryLatestPreReleasePkgVer>
     <SupportedNetTargets>net8.0;net6.0</SupportedNetTargets>
+    <SupportedNetTargetsWithoutNet6>net8.0</SupportedNetTargetsWithoutNet6>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.0,3.0)</XUnitPkgVer>
     <WiremockNetPkgVer>[1.6.3,2.0)</WiremockNetPkgVer>
