@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry Grpc for .NET instrumentation</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <NoWarn>$(NoWarn),CS8981</NoWarn>
+    <Description>Unit test project for OpenTelemetry Grpc for .NET instrumentation.</Description>
+    <NoWarn>$(NoWarn);CS8981</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
