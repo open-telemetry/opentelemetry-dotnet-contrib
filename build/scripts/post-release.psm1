@@ -201,18 +201,18 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  $diabledTag = "<DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>"
+  $disabledTag = "<DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>"
 
   $disabledProjects = Get-ChildItem -Path src/**/*.csproj |
     where { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
-    where { $_ | Select-String $diabledTag }
+    where { $_ | Select-String $disabledTag }
 
   if ($disabledProjects.Length -ne 0)
   {
     foreach ($project in $disabledProjects) {
       $content = (Get-Content $project -Raw)
 
-      $content = $content -replace $diabledTag, "<PackageValidationBaselineVersion>$version</PackageValidationBaselineVersion>"
+      $content = $content -replace $disabledTag, "<PackageValidationBaselineVersion>$version</PackageValidationBaselineVersion>"
 
       $content = $content -replace "<!--\s*?Do not run Package Baseline Validation[\S\s]*?-->\s*", ""
 
