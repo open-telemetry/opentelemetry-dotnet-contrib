@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargetsWithout6)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
