@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>OpenTelemetry Cassandra Instrumentation</Description>
+    <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
+    <Description>OpenTelemetry Cassandra Instrumentation.</Description>
     <PackageTags>$(PackageTags);Cassandra;CassandraCSharpDriver</PackageTags>
     <MinVerTagPrefix>Instrumentation.Cassandra-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
