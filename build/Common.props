@@ -51,7 +51,7 @@
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.556,2.0)</StyleCopAnalyzersPkgVer>
     <SystemNetHttp>[4.3.4,)</SystemNetHttp>
     <SystemReflectionEmitLightweightPkgVer>4.7.0</SystemReflectionEmitLightweightPkgVer>
-    <SystemTextEncodingsWebPkgVer>8.0.0</SystemTextEncodingsWebPkgVer>
+    <SystemTextEncodingsWebPkgVer>[8.0.0,)</SystemTextEncodingsWebPkgVer>
     <SystemTextJsonPkgVer>[8.0.4,)</SystemTextJsonPkgVer>
   </PropertyGroup>
 
