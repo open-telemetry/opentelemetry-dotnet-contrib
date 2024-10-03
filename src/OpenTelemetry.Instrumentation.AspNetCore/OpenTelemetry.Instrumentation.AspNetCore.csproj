@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
-    <Description>ASP.NET Core instrumentation for OpenTelemetry .NET<</Description>
+    <Description>ASP.NET Core instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNetCore</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNetCore-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
