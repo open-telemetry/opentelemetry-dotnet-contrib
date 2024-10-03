@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(SupportedNetTargetsWithoutNet6)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Tools" Version="2.38.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.66.0" />
     <PackageReference Include="Grpc" Version="[2.46.6,3.0)" />
   </ItemGroup>
 
