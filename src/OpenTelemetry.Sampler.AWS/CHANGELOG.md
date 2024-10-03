@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Update `System.Text.Json` to `8.0.4` to mitigate
+  [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w).
+  ([#2149](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2149))
+
 ## 0.1.0-alpha.2
 
 Released 2024-Sep-09
