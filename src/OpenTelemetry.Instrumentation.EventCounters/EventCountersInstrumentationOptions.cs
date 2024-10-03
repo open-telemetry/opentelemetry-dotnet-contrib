@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.Configuration;
+
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
 /// <summary>
@@ -9,6 +11,35 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 public class EventCountersInstrumentationOptions
 {
     internal readonly HashSet<string> EventSourceNames = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EventCountersInstrumentationOptions"/> class.
+    /// </summary>
+    public EventCountersInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EventCountersInstrumentationOptions"/> class with the specified configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration section used to initialize options.</param>
+    internal EventCountersInstrumentationOptions(IConfiguration configuration)
+    {
+        if (configuration.TryGetIntValue(
+            "OTEL_EVENTCOUNTERS_REFRESH_INTERVAL_SECS",
+            out var refreshIntervalSecs))
+        {
+            this.RefreshIntervalSecs = refreshIntervalSecs;
+        }
+
+        if (configuration.TryGetStringValues(
+            "OTEL_EVENTCOUNTERS_SOURCES",
+            out var eventSourceNames))
+        {
+            this.AddEventSources(eventSourceNames);
+        }
+    }
 
     /// <summary>
     /// Gets or sets the subscription interval in seconds for reading values

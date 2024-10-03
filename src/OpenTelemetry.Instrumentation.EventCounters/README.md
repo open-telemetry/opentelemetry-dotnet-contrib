@@ -32,6 +32,8 @@ dotnet add package OpenTelemetry.Instrumentation.EventCounters --prerelease
 
 ### Step 2: Enable EventCounters Instrumentation
 
+#### Using Direct Configuration
+
 EventCounters instrumentation should be enabled at application startup using the
 `AddEventCountersInstrumentation` extension on the `MeterProviderBuilder`:
 
@@ -49,6 +51,27 @@ Additionally, the above snippet sets up the OpenTelemetry Prometheus exporter, w
 requires adding the package
 [`OpenTelemetry.Exporter.Prometheus`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Prometheus.HttpListener/README.md)
 to the application.
+
+#### Using Dependency Injection (DI)
+
+To enable EventCounters instrumentation via DI, configure it as follows:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddOpenTelemetryMetrics(builder =>
+    {
+        builder.AddEventCountersInstrumentation(options =>
+        {
+            options.RefreshIntervalSecs = 1;
+            options.AddEventSources("MyEventSource");
+        });
+    });
+}
+```
+
+This method allows providing options via `IConfigurationSection`
+and integrates seamlessly with DI-based setups.
 
 ### Step 3: Create EventCounters
 
