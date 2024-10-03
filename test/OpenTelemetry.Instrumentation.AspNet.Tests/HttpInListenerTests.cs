@@ -147,6 +147,7 @@ public class HttpInListenerTests
                     {
                         ExpectedUrlPath = expectedUrlPath,
                         ExpectedHttpRequestMethod = expectedRequestMethod,
+                        ExpectedOriginalRequestMethod = expectedOriginalRequestMethod,
                     })
                 .Build())
             {
@@ -257,7 +258,7 @@ public class HttpInListenerTests
         var activityProcessor = new TestActivityProcessor();
         Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .SetSampler(new TestSampler(samplingDecision))
+            .SetSampler(new TestSampler(samplingDecision) { ExpectedHttpRequestMethod = "GET", ExpectedUrlPath = "/" })
             .AddAspNetInstrumentation()
             .AddProcessor(activityProcessor).Build())
         {
@@ -317,19 +318,43 @@ public class HttpInListenerTests
 
         public string? ExpectedHttpRequestMethod { get; set; }
 
+        public string? ExpectedOriginalRequestMethod { get; set; }
+
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
+            var expectedTagsCount = 0;
+            Assert.NotNull(samplingParameters.Tags);
             if (!string.IsNullOrEmpty(this.ExpectedUrlPath))
             {
-                Assert.NotNull(samplingParameters.Tags);
                 Assert.Contains(samplingParameters.Tags, t => t.Key == "url.path" && (t.Value as string) == this.ExpectedUrlPath);
+                expectedTagsCount++;
+            }
+            else
+            {
+                Assert.DoesNotContain(samplingParameters.Tags, t => t.Key == "url.path");
             }
 
             if (!string.IsNullOrEmpty(this.ExpectedHttpRequestMethod))
             {
-                Assert.NotNull(samplingParameters.Tags);
                 Assert.Contains(samplingParameters.Tags, t => t.Key == "http.request.method" && (t.Value as string) == this.ExpectedHttpRequestMethod);
+                expectedTagsCount++;
             }
+            else
+            {
+                Assert.DoesNotContain(samplingParameters.Tags, t => t.Key == "http.request.method");
+            }
+
+            if (!string.IsNullOrEmpty(this.ExpectedOriginalRequestMethod))
+            {
+                Assert.Contains(samplingParameters.Tags, t => t.Key == "http.request.method_original" && (t.Value as string) == this.ExpectedOriginalRequestMethod);
+                expectedTagsCount++;
+            }
+            else
+            {
+                Assert.DoesNotContain(samplingParameters.Tags, t => t.Key == "http.request.method_original");
+            }
+
+            Assert.Equal(expectedTagsCount, samplingParameters.Tags.Count());
 
             return new SamplingResult(this.samplingDecision);
         }

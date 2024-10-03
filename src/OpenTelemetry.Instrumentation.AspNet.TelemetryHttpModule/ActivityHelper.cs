@@ -7,6 +7,7 @@ using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -29,7 +30,7 @@ internal static class ActivityHelper
         typeof(ActivityHelper).Assembly.GetPackageVersion());
 
     [ThreadStatic]
-    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
+    private static List<KeyValuePair<string, object?>>? cachedTagsStorage;
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
@@ -64,40 +65,28 @@ internal static class ActivityHelper
     {
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        KeyValuePair<string, object?>[]? tags;
         string? path = context.Request?.Unvalidated?.Path;
         string? originalHttpMethod = context.Request?.HttpMethod;
 
         string normalizedHttpMethod = RequestDataHelper.GetNormalizedHttpMethod(originalHttpMethod ?? string.Empty);
-        string method = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        // Determine the number of available tags and initialize the array accordingly
-        int tagCount = (path is not null ? 1 : 0) + (method is not null ? 1 : 0);
-        tags = tagCount > 0 ? cachedTagsStorage ??= new KeyValuePair<string, object?>[tagCount] : null;
+        List<KeyValuePair<string, object?>> tags = cachedTagsStorage ??= new List<KeyValuePair<string, object?>>(3); // use max capacity
 
-        int tagIndex = 0;
-        if (tags is not null)
+        if (path is not null)
         {
-            if (path is not null)
-            {
-                tags[tagIndex++] = new KeyValuePair<string, object?>("url.path", path);
-            }
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlPath, path));
+        }
 
-            if (method is not null)
-            {
-                tags[tagIndex] = new KeyValuePair<string, object?>("http.request.method", method);
-            }
+        tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod));
+
+        if (originalHttpMethod != null && originalHttpMethod != normalizedHttpMethod)
+        {
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod));
         }
 
         Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
-        if (tags is not null)
-        {
-            for (int i = 0; i < tags.Length; i++)
-            {
-                tags[i] = default(KeyValuePair<string, object?>);
-            }
-        }
+        tags.Clear();
 
         if (activity != null)
         {
