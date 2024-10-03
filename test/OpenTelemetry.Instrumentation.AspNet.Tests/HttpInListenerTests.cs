@@ -21,14 +21,14 @@ public class HttpInListenerTests
     {
 #pragma warning disable SA1602 // Enumeration items should be documented
         DisableViaEnvVar,
-        DiableViaIConfiguration,
+        DisableViaIConfiguration,
 #pragma warning restore SA1602 // Enumeration items should be documented
     }
 
     [Theory]
     [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET")]
     [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DiableViaIConfiguration, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
     [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=Redacted&baz=Redacted", null, "localhost", 80, "POST", "POST", null, 0, null, "POST", true)]
     [InlineData("https://localhost/", "https", "/", null, null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null, "HTTP")]
     [InlineData("https://user:pass@localhost/", "https", "/", null, null, "localhost", 443, "GeT", "GET", "GeT", 0, null, "GET")] // Test URL sanitization
@@ -36,7 +36,7 @@ public class HttpInListenerTests
     [InlineData("https://localhost:80/", "https", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test https over 80
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", null, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL
-    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DiableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL sanitization
+    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, "GET")] // Test complex URL sanitization
     [InlineData("http://localhost:80/Index", "http", "/Index", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET {controller}/{action}/{id}")]
     [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", "HEAD about_attr_route/{customerId}")]
     [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET api/{controller}/{id}")]
@@ -80,7 +80,7 @@ public class HttpInListenerTests
             using (Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services =>
                 {
-                    if (disableQueryRedaction == QueryRedactionDisableBehavior.DiableViaIConfiguration)
+                    if (disableQueryRedaction == QueryRedactionDisableBehavior.DisableViaIConfiguration)
                     {
                         var config = new ConfigurationBuilder()
                             .AddInMemoryCollection(new Dictionary<string, string?>()
