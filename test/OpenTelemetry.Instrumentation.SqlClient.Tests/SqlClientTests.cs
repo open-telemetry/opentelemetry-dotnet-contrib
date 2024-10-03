@@ -102,6 +102,7 @@ public class SqlClientTests : IDisposable
             });
             traceProviderBuilder.AddInMemoryExporter(activities);
         }
+
         var traceProvider = traceProviderBuilder.Build();
 
         var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
@@ -216,20 +217,20 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError, false, true)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError, false, true)]
-    public void SqlClientErrorsAreCollectedSuccessfully(string beforeCommand, string errorCommand, bool shouldEnrich = true, bool recordException = false)
+    [MemberData(nameof(SqlTestData.SqlClientErrorsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
+
+    public void SqlClientErrorsAreCollectedSuccessfully(string beforeCommand, string errorCommand, bool shouldEnrich = true, bool recordException = false, bool tracingEnabled = true, bool metricsEnabled = true)
     {
         using var sqlConnection = new SqlConnection(TestConnectionString);
         using var sqlCommand = sqlConnection.CreateCommand();
 
         var activities = new List<Activity>();
-        using (Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
+        var metrics = new List<Metric>();
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+        if (tracingEnabled)
+        {
+            traceProviderBuilder.AddSqlClientInstrumentation(options =>
             {
                 options.RecordException = recordException;
                 if (shouldEnrich)
@@ -237,8 +238,21 @@ public class SqlClientTests : IDisposable
                     options.Enrich = ActivityEnrichment;
                 }
             })
-            .AddInMemoryExporter(activities)
-            .Build())
+            .AddInMemoryExporter(activities);
+        }
+
+        using var traceProvider = traceProviderBuilder.Build();
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (metricsEnabled)
+        {
+            meterProviderBuilder.AddSqlClientInstrumentation();
+            meterProviderBuilder.AddInMemoryExporter(metrics);
+        }
+
+        using var meterProvider = meterProviderBuilder.Build();
+
+        try
         {
             var operationId = Guid.NewGuid();
             sqlCommand.CommandText = "SP_GetOrders";
@@ -267,20 +281,34 @@ public class SqlClientTests : IDisposable
                 errorCommand,
                 commandErrorEventData);
         }
+        finally
+        {
+            traceProvider.Dispose();
+            meterProvider.Dispose();
+        }
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        if (tracingEnabled)
+        {
+            Assert.Single(activities);
+            var activity = activities[0];
 
-        VerifyActivityData(
-            sqlCommand.CommandType,
-            sqlCommand.CommandText,
-            true,
-            false,
-            true,
-            recordException,
-            shouldEnrich,
-            sqlConnection.DataSource,
-            activity);
+            VerifyActivityData(
+                sqlCommand.CommandType,
+                sqlCommand.CommandText,
+                true,
+                false,
+                true,
+                recordException,
+                shouldEnrich,
+                sqlConnection.DataSource,
+                activity);
+        }
+
+        if (metricsEnabled)
+        {
+            var metric = Assert.Single(metrics);
+            Assert.NotNull(metric);
+        }
     }
 
     [Theory]

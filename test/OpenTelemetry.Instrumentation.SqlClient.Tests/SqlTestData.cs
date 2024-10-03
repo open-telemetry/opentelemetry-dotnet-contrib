@@ -38,5 +38,28 @@ internal class SqlTestData
                     metricsEnabled,
                };
     }
+
+    public static IEnumerable<object[]> SqlClientErrorsAreCollectedSuccessfullyCases()
+    {
+        var bools = new[] { true, false };
+        return from beforeCommand in new[] { SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand }
+               from shouldEnrich in bools
+               from recordException in bools
+               from tracingEnabled in bools
+               from metricsEnabled in bools
+               let errorCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+                   ? SqlClientDiagnosticListener.SqlDataWriteCommandError
+                   : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError
+               let captureStoredProcedureCommandName = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+               select new object[]
+               {
+                    beforeCommand,
+                    errorCommand,
+                    shouldEnrich,
+                    recordException,
+                    tracingEnabled,
+                    metricsEnabled,
+               };
+    }
 #endif
 }
