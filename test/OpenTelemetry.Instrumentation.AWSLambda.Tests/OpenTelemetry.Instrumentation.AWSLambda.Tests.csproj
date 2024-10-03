@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <Description>Unit test project of OpenTelemetry instrumentation for AWS Lambda.</Description>
   </PropertyGroup>
 
   <ItemGroup>
