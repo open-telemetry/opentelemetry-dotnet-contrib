@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0;net462</TargetFrameworks>
+    <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion);net462</TargetFrameworks>
     <Description>Confluent.Kafka instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Kafka;Confluent.Kafka</PackageTags>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
