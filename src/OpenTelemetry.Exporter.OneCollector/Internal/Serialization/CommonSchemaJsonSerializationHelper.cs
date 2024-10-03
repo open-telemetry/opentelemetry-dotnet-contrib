@@ -101,7 +101,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 writer.WriteStringValue(v);
                 return;
 
-#if NET8_0_OR_GREATER
+#if NET
             case DateOnly v:
                 JsonMetadataServices.DateOnlyConverter.Write(writer, v, null!);
                 return;
@@ -111,7 +111,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 JsonMetadataServices.TimeSpanConverter.Write(writer, v, null!);
                 return;
 
-#if NET8_0_OR_GREATER
+#if NET
             case TimeOnly v:
                 JsonMetadataServices.TimeOnlyConverter.Write(writer, v, null!);
                 return;

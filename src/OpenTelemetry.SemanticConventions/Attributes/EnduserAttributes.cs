@@ -15,17 +15,20 @@ namespace OpenTelemetry.SemanticConventions;
 public static class EnduserAttributes
 {
     /// <summary>
-    /// Username or client_id extracted from the access token or <a href="https://tools.ietf.org/html/rfc7235#section-4.2">Authorization</a> header in the inbound request from outside the system
+    /// Deprecated, use <c>user.id</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>user.id</c> attribute.")]
     public const string AttributeEnduserId = "enduser.id";
 
     /// <summary>
-    /// Actual/assumed role the client is making the request under extracted from token or application security context
+    /// Deprecated, use <c>user.roles</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>user.roles</c> attribute.")]
     public const string AttributeEnduserRole = "enduser.role";
 
     /// <summary>
-    /// Scopes or granted authorities the client currently possesses extracted from token or application security context. The value would come from the scope associated with an <a href="https://tools.ietf.org/html/rfc6749#section-3.3">OAuth 2.0 Access Token</a> or an attribute value in a <a href="http://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html">SAML 2.0 Assertion</a>
+    /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("Removed.")]
     public const string AttributeEnduserScope = "enduser.scope";
 }

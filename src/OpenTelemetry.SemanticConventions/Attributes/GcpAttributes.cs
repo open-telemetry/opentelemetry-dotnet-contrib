@@ -15,22 +15,30 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GcpAttributes
 {
     /// <summary>
-    /// The name of the Cloud Run <a href="https://cloud.google.com/run/docs/managing/job-executions">execution</a> being run for the Job, as set by the <a href="https://cloud.google.com/run/docs/container-contract#jobs-env-vars"><c>CLOUD_RUN_EXECUTION</c></a> environment variable
+    /// Identifies the Google Cloud service for which the official client library is intended.
+    /// </summary>
+    /// <remarks>
+    /// Intended to be a stable identifier for Google Cloud client libraries that is uniform across implementation languages. The value should be derived from the canonical service domain for the service; for example, 'foo.googleapis.com' should result in a value of 'foo'.
+    /// </remarks>
+    public const string AttributeGcpClientService = "gcp.client.service";
+
+    /// <summary>
+    /// The name of the Cloud Run <a href="https://cloud.google.com/run/docs/managing/job-executions">execution</a> being run for the Job, as set by the <a href="https://cloud.google.com/run/docs/container-contract#jobs-env-vars"><c>CLOUD_RUN_EXECUTION</c></a> environment variable.
     /// </summary>
     public const string AttributeGcpCloudRunJobExecution = "gcp.cloud_run.job.execution";
 
     /// <summary>
-    /// The index for a task within an execution as provided by the <a href="https://cloud.google.com/run/docs/container-contract#jobs-env-vars"><c>CLOUD_RUN_TASK_INDEX</c></a> environment variable
+    /// The index for a task within an execution as provided by the <a href="https://cloud.google.com/run/docs/container-contract#jobs-env-vars"><c>CLOUD_RUN_TASK_INDEX</c></a> environment variable.
     /// </summary>
     public const string AttributeGcpCloudRunJobTaskIndex = "gcp.cloud_run.job.task_index";
 
     /// <summary>
-    /// The hostname of a GCE instance. This is the full value of the default or <a href="https://cloud.google.com/compute/docs/instances/custom-hostname-vm">custom hostname</a>
+    /// The hostname of a GCE instance. This is the full value of the default or <a href="https://cloud.google.com/compute/docs/instances/custom-hostname-vm">custom hostname</a>.
     /// </summary>
     public const string AttributeGcpGceInstanceHostname = "gcp.gce.instance.hostname";
 
     /// <summary>
-    /// The instance name of a GCE instance. This is the value provided by <c>host.name</c>, the visible name of the instance in the Cloud Console UI, and the prefix for the default hostname of the instance as defined by the <a href="https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names">default internal DNS name</a>
+    /// The instance name of a GCE instance. This is the value provided by <c>host.name</c>, the visible name of the instance in the Cloud Console UI, and the prefix for the default hostname of the instance as defined by the <a href="https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names">default internal DNS name</a>.
     /// </summary>
     public const string AttributeGcpGceInstanceName = "gcp.gce.instance.name";
 }

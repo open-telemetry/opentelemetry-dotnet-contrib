@@ -15,405 +15,439 @@ namespace OpenTelemetry.SemanticConventions;
 public static class MessagingAttributes
 {
     /// <summary>
-    /// The number of messages sent, received, or processed in the scope of the batching operation
+    /// The number of messages sent, received, or processed in the scope of the batching operation.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD NOT set <c>messaging.batch.message_count</c> on spans that operate with a single message. When a messaging client library supports both batch and single-message API for the same operation, instrumentations SHOULD use <c>messaging.batch.message_count</c> for batching APIs and SHOULD NOT use it for single-message APIs
+    /// Instrumentations SHOULD NOT set <c>messaging.batch.message_count</c> on spans that operate with a single message. When a messaging client library supports both batch and single-message API for the same operation, instrumentations SHOULD use <c>messaging.batch.message_count</c> for batching APIs and SHOULD NOT use it for single-message APIs.
     /// </remarks>
     public const string AttributeMessagingBatchMessageCount = "messaging.batch.message_count";
 
     /// <summary>
-    /// A unique identifier for the client that consumes or produces a message
+    /// A unique identifier for the client that consumes or produces a message.
     /// </summary>
     public const string AttributeMessagingClientId = "messaging.client.id";
 
     /// <summary>
-    /// A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name)
+    /// The name of the consumer group with which a consumer is associated.
+    /// </summary>
+    /// <remarks>
+    /// Semantic conventions for individual messaging systems SHOULD document whether <c>messaging.consumer.group.name</c> is applicable and what it means in the context of that system.
+    /// </remarks>
+    public const string AttributeMessagingConsumerGroupName = "messaging.consumer.group.name";
+
+    /// <summary>
+    /// A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).
     /// </summary>
     public const string AttributeMessagingDestinationAnonymous = "messaging.destination.anonymous";
 
     /// <summary>
-    /// The message destination name
+    /// The message destination name.
     /// </summary>
     /// <remarks>
     /// Destination name SHOULD uniquely identify a specific queue, topic or other entity within the broker. If
-    /// the broker doesn't have such notion, the destination name SHOULD uniquely identify the broker
+    /// the broker doesn't have such notion, the destination name SHOULD uniquely identify the broker.
     /// </remarks>
     public const string AttributeMessagingDestinationName = "messaging.destination.name";
 
     /// <summary>
-    /// The identifier of the partition messages are sent to or received from, unique within the <c>messaging.destination.name</c>
+    /// The identifier of the partition messages are sent to or received from, unique within the <c>messaging.destination.name</c>.
     /// </summary>
     public const string AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id";
 
     /// <summary>
-    /// Low cardinality representation of the messaging destination name
+    /// The name of the destination subscription from which a message is consumed.
     /// </summary>
     /// <remarks>
-    /// Destination names could be constructed from templates. An example would be a destination name involving a user name or product id. Although the destination name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation
+    /// Semantic conventions for individual messaging systems SHOULD document whether <c>messaging.destination.subscription.name</c> is applicable and what it means in the context of that system.
+    /// </remarks>
+    public const string AttributeMessagingDestinationSubscriptionName = "messaging.destination.subscription.name";
+
+    /// <summary>
+    /// Low cardinality representation of the messaging destination name.
+    /// </summary>
+    /// <remarks>
+    /// Destination names could be constructed from templates. An example would be a destination name involving a user name or product id. Although the destination name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation.
     /// </remarks>
     public const string AttributeMessagingDestinationTemplate = "messaging.destination.template";
 
     /// <summary>
-    /// A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed
+    /// A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed.
     /// </summary>
     public const string AttributeMessagingDestinationTemporary = "messaging.destination.temporary";
 
     /// <summary>
-    /// A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name)
+    /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("No replacement at this time.")]
     public const string AttributeMessagingDestinationPublishAnonymous = "messaging.destination_publish.anonymous";
 
     /// <summary>
-    /// The name of the original destination the message was published to
+    /// Deprecated, no replacement at this time.
     /// </summary>
-    /// <remarks>
-    /// The name SHOULD uniquely identify a specific queue, topic, or other entity within the broker. If
-    /// the broker doesn't have such notion, the original destination name SHOULD uniquely identify the broker
-    /// </remarks>
+    [Obsolete("No replacement at this time.")]
     public const string AttributeMessagingDestinationPublishName = "messaging.destination_publish.name";
 
     /// <summary>
-    /// The name of the consumer group the event consumer is associated with
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c>.")]
     public const string AttributeMessagingEventhubsConsumerGroup = "messaging.eventhubs.consumer.group";
 
     /// <summary>
-    /// The UTC epoch seconds at which the message has been accepted and stored in the entity
+    /// The UTC epoch seconds at which the message has been accepted and stored in the entity.
     /// </summary>
     public const string AttributeMessagingEventhubsMessageEnqueuedTime = "messaging.eventhubs.message.enqueued_time";
 
     /// <summary>
-    /// The ack deadline in seconds set for the modify ack deadline request
+    /// The ack deadline in seconds set for the modify ack deadline request.
     /// </summary>
     public const string AttributeMessagingGcpPubsubMessageAckDeadline = "messaging.gcp_pubsub.message.ack_deadline";
 
     /// <summary>
-    /// The ack id for a given message
+    /// The ack id for a given message.
     /// </summary>
     public const string AttributeMessagingGcpPubsubMessageAckId = "messaging.gcp_pubsub.message.ack_id";
 
     /// <summary>
-    /// The delivery attempt for a given message
+    /// The delivery attempt for a given message.
     /// </summary>
     public const string AttributeMessagingGcpPubsubMessageDeliveryAttempt = "messaging.gcp_pubsub.message.delivery_attempt";
 
     /// <summary>
-    /// The ordering key for a given message. If the attribute is not present, the message does not have an ordering key
+    /// The ordering key for a given message. If the attribute is not present, the message does not have an ordering key.
     /// </summary>
     public const string AttributeMessagingGcpPubsubMessageOrderingKey = "messaging.gcp_pubsub.message.ordering_key";
 
     /// <summary>
-    /// Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c>.")]
     public const string AttributeMessagingKafkaConsumerGroup = "messaging.kafka.consumer.group";
 
     /// <summary>
-    /// Deprecated, use <c>messaging.destination.partition.id</c> instead
+    /// Deprecated, use <c>messaging.destination.partition.id</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>messaging.destination.partition.id</c>")]
+    [Obsolete("Replaced by <c>messaging.destination.partition.id</c>.")]
     public const string AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition";
 
     /// <summary>
-    /// Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from <c>messaging.message.id</c> in that they're not unique. If the key is <c>null</c>, the attribute MUST NOT be set
+    /// Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from <c>messaging.message.id</c> in that they're not unique. If the key is <c>null</c>, the attribute MUST NOT be set.
     /// </summary>
     /// <remarks>
-    /// If the key type is not string, it's string representation has to be supplied for the attribute. If the key has no unambiguous, canonical string form, don't include its value
+    /// If the key type is not string, it's string representation has to be supplied for the attribute. If the key has no unambiguous, canonical string form, don't include its value.
     /// </remarks>
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
 
     /// <summary>
-    /// The offset of a record in the corresponding Kafka partition
+    /// Deprecated, use <c>messaging.kafka.offset</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.kafka.offset</c>.")]
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
 
     /// <summary>
-    /// A boolean that is true if the message is a tombstone
+    /// A boolean that is true if the message is a tombstone.
     /// </summary>
     public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
 
     /// <summary>
-    /// The size of the message body in bytes
+    /// The offset of a record in the corresponding Kafka partition.
+    /// </summary>
+    public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset";
+
+    /// <summary>
+    /// The size of the message body in bytes.
     /// </summary>
     /// <remarks>
     /// This can refer to both the compressed or uncompressed body size. If both sizes are known, the uncompressed
-    /// body size should be used
+    /// body size should be used.
     /// </remarks>
     public const string AttributeMessagingMessageBodySize = "messaging.message.body.size";
 
     /// <summary>
-    /// The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID"
+    /// The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID".
     /// </summary>
     public const string AttributeMessagingMessageConversationId = "messaging.message.conversation_id";
 
     /// <summary>
-    /// The size of the message body and metadata in bytes
+    /// The size of the message body and metadata in bytes.
     /// </summary>
     /// <remarks>
     /// This can refer to both the compressed or uncompressed size. If both sizes are known, the uncompressed
-    /// size should be used
+    /// size should be used.
     /// </remarks>
     public const string AttributeMessagingMessageEnvelopeSize = "messaging.message.envelope.size";
 
     /// <summary>
-    /// A value used by the messaging system as an identifier for the message, represented as a string
+    /// A value used by the messaging system as an identifier for the message, represented as a string.
     /// </summary>
     public const string AttributeMessagingMessageId = "messaging.message.id";
 
     /// <summary>
-    /// Deprecated, use <c>messaging.operation.type</c> instead
+    /// Deprecated, use <c>messaging.operation.type</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>messaging.operation.type</c>")]
+    [Obsolete("Replaced by <c>messaging.operation.type</c>.")]
     public const string AttributeMessagingOperation = "messaging.operation";
 
     /// <summary>
-    /// The system-specific name of the messaging operation
+    /// The system-specific name of the messaging operation.
     /// </summary>
     public const string AttributeMessagingOperationName = "messaging.operation.name";
 
     /// <summary>
-    /// A string identifying the type of the messaging operation
+    /// A string identifying the type of the messaging operation.
     /// </summary>
     /// <remarks>
-    /// If a custom value is used, it MUST be of low cardinality
+    /// If a custom value is used, it MUST be of low cardinality.
     /// </remarks>
     public const string AttributeMessagingOperationType = "messaging.operation.type";
 
     /// <summary>
-    /// RabbitMQ message routing key
+    /// RabbitMQ message routing key.
     /// </summary>
     public const string AttributeMessagingRabbitmqDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key";
 
     /// <summary>
-    /// RabbitMQ message delivery tag
+    /// RabbitMQ message delivery tag.
     /// </summary>
     public const string AttributeMessagingRabbitmqMessageDeliveryTag = "messaging.rabbitmq.message.delivery_tag";
 
     /// <summary>
-    /// Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind
+    /// Deprecated, use <c>messaging.consumer.group.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.consumer.group.name</c> on the consumer spans. No replacement for producer spans.")]
     public const string AttributeMessagingRocketmqClientGroup = "messaging.rocketmq.client_group";
 
     /// <summary>
-    /// Model of message consumption. This only applies to consumer spans
+    /// Model of message consumption. This only applies to consumer spans.
     /// </summary>
     public const string AttributeMessagingRocketmqConsumptionModel = "messaging.rocketmq.consumption_model";
 
     /// <summary>
-    /// The delay time level for delay message, which determines the message delay time
+    /// The delay time level for delay message, which determines the message delay time.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageDelayTimeLevel = "messaging.rocketmq.message.delay_time_level";
 
     /// <summary>
-    /// The timestamp in milliseconds that the delay message is expected to be delivered to consumer
+    /// The timestamp in milliseconds that the delay message is expected to be delivered to consumer.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageDeliveryTimestamp = "messaging.rocketmq.message.delivery_timestamp";
 
     /// <summary>
-    /// It is essential for FIFO message. Messages that belong to the same message group are always processed one by one within the same consumer group
+    /// It is essential for FIFO message. Messages that belong to the same message group are always processed one by one within the same consumer group.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageGroup = "messaging.rocketmq.message.group";
 
     /// <summary>
-    /// Key(s) of message, another way to mark message besides message id
+    /// Key(s) of message, another way to mark message besides message id.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageKeys = "messaging.rocketmq.message.keys";
 
     /// <summary>
-    /// The secondary classifier of message besides topic
+    /// The secondary classifier of message besides topic.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageTag = "messaging.rocketmq.message.tag";
 
     /// <summary>
-    /// Type of message
+    /// Type of message.
     /// </summary>
     public const string AttributeMessagingRocketmqMessageType = "messaging.rocketmq.message.type";
 
     /// <summary>
-    /// Namespace of RocketMQ resources, resources in different namespaces are individual
+    /// Namespace of RocketMQ resources, resources in different namespaces are individual.
     /// </summary>
     public const string AttributeMessagingRocketmqNamespace = "messaging.rocketmq.namespace";
 
     /// <summary>
-    /// The name of the subscription in the topic messages are received from
+    /// Deprecated, use <c>messaging.servicebus.destination.subscription_name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>messaging.servicebus.destination.subscription_name</c>.")]
     public const string AttributeMessagingServicebusDestinationSubscriptionName = "messaging.servicebus.destination.subscription_name";
 
     /// <summary>
-    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>
+    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>.
     /// </summary>
     public const string AttributeMessagingServicebusDispositionStatus = "messaging.servicebus.disposition_status";
 
     /// <summary>
-    /// Number of deliveries that have been attempted for this message
+    /// Number of deliveries that have been attempted for this message.
     /// </summary>
     public const string AttributeMessagingServicebusMessageDeliveryCount = "messaging.servicebus.message.delivery_count";
 
     /// <summary>
-    /// The UTC epoch seconds at which the message has been accepted and stored in the entity
+    /// The UTC epoch seconds at which the message has been accepted and stored in the entity.
     /// </summary>
     public const string AttributeMessagingServicebusMessageEnqueuedTime = "messaging.servicebus.message.enqueued_time";
 
     /// <summary>
-    /// The messaging system as identified by the client instrumentation
+    /// The messaging system as identified by the client instrumentation.
     /// </summary>
     /// <remarks>
-    /// The actual messaging system may differ from the one known by the client. For example, when using Kafka client libraries to communicate with Azure Event Hubs, the <c>messaging.system</c> is set to <c>kafka</c> based on the instrumentation's best knowledge
+    /// The actual messaging system may differ from the one known by the client. For example, when using Kafka client libraries to communicate with Azure Event Hubs, the <c>messaging.system</c> is set to <c>kafka</c> based on the instrumentation's best knowledge.
     /// </remarks>
     public const string AttributeMessagingSystem = "messaging.system";
 
     /// <summary>
-    /// A string identifying the type of the messaging operation
+    /// A string identifying the type of the messaging operation.
     /// </summary>
     public static class MessagingOperationTypeValues
     {
         /// <summary>
-        /// One or more messages are provided for publishing to an intermediary. If a single message is published, the context of the "Publish" span can be used as the creation context and no "Create" span needs to be created
+        /// One or more messages are provided for publishing to an intermediary. If a single message is published, the context of the "Publish" span can be used as the creation context and no "Create" span needs to be created.
         /// </summary>
         public const string Publish = "publish";
 
         /// <summary>
-        /// A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch publishing scenarios
+        /// A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch publishing scenarios.
         /// </summary>
         public const string Create = "create";
 
         /// <summary>
-        /// One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages
+        /// One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages.
         /// </summary>
         public const string Receive = "receive";
 
         /// <summary>
-        /// One or more messages are delivered to or processed by a consumer
+        /// One or more messages are processed by a consumer.
         /// </summary>
-        public const string Deliver = "process";
+        public const string Process = "process";
 
         /// <summary>
-        /// One or more messages are settled
+        /// One or more messages are settled.
         /// </summary>
         public const string Settle = "settle";
+
+        /// <summary>
+        /// Deprecated. Use <c>process</c> instead.
+        /// </summary>
+        public const string Deliver = "deliver";
     }
 
     /// <summary>
-    /// Model of message consumption. This only applies to consumer spans
+    /// Model of message consumption. This only applies to consumer spans.
     /// </summary>
     public static class MessagingRocketmqConsumptionModelValues
     {
         /// <summary>
-        /// Clustering consumption model
+        /// Clustering consumption model.
         /// </summary>
         public const string Clustering = "clustering";
 
         /// <summary>
-        /// Broadcasting consumption model
+        /// Broadcasting consumption model.
         /// </summary>
         public const string Broadcasting = "broadcasting";
     }
 
     /// <summary>
-    /// Type of message
+    /// Type of message.
     /// </summary>
     public static class MessagingRocketmqMessageTypeValues
     {
         /// <summary>
-        /// Normal message
+        /// Normal message.
         /// </summary>
         public const string Normal = "normal";
 
         /// <summary>
-        /// FIFO message
+        /// FIFO message.
         /// </summary>
         public const string Fifo = "fifo";
 
         /// <summary>
-        /// Delay message
+        /// Delay message.
         /// </summary>
         public const string Delay = "delay";
 
         /// <summary>
-        /// Transaction message
+        /// Transaction message.
         /// </summary>
         public const string Transaction = "transaction";
     }
 
     /// <summary>
-    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>
+    /// Describes the <a href="https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock">settlement type</a>.
     /// </summary>
     public static class MessagingServicebusDispositionStatusValues
     {
         /// <summary>
-        /// Message is completed
+        /// Message is completed.
         /// </summary>
         public const string Complete = "complete";
 
         /// <summary>
-        /// Message is abandoned
+        /// Message is abandoned.
         /// </summary>
         public const string Abandon = "abandon";
 
         /// <summary>
-        /// Message is sent to dead letter queue
+        /// Message is sent to dead letter queue.
         /// </summary>
         public const string DeadLetter = "dead_letter";
 
         /// <summary>
-        /// Message is deferred
+        /// Message is deferred.
         /// </summary>
         public const string Defer = "defer";
     }
 
     /// <summary>
-    /// The messaging system as identified by the client instrumentation
+    /// The messaging system as identified by the client instrumentation.
     /// </summary>
     public static class MessagingSystemValues
     {
         /// <summary>
-        /// Apache ActiveMQ
+        /// Apache ActiveMQ.
         /// </summary>
         public const string Activemq = "activemq";
 
         /// <summary>
-        /// Amazon Simple Queue Service (SQS)
+        /// Amazon Simple Queue Service (SQS).
         /// </summary>
         public const string AwsSqs = "aws_sqs";
 
         /// <summary>
-        /// Azure Event Grid
+        /// Azure Event Grid.
         /// </summary>
         public const string Eventgrid = "eventgrid";
 
         /// <summary>
-        /// Azure Event Hubs
+        /// Azure Event Hubs.
         /// </summary>
         public const string Eventhubs = "eventhubs";
 
         /// <summary>
-        /// Azure Service Bus
+        /// Azure Service Bus.
         /// </summary>
         public const string Servicebus = "servicebus";
 
         /// <summary>
-        /// Google Cloud Pub/Sub
+        /// Google Cloud Pub/Sub.
         /// </summary>
         public const string GcpPubsub = "gcp_pubsub";
 
         /// <summary>
-        /// Java Message Service
+        /// Java Message Service.
         /// </summary>
         public const string Jms = "jms";
 
         /// <summary>
-        /// Apache Kafka
+        /// Apache Kafka.
         /// </summary>
         public const string Kafka = "kafka";
 
         /// <summary>
-        /// RabbitMQ
+        /// RabbitMQ.
         /// </summary>
         public const string Rabbitmq = "rabbitmq";
 
         /// <summary>
-        /// Apache RocketMQ
+        /// Apache RocketMQ.
         /// </summary>
         public const string Rocketmq = "rocketmq";
+
+        /// <summary>
+        /// Apache Pulsar.
+        /// </summary>
+        public const string Pulsar = "pulsar";
     }
 }

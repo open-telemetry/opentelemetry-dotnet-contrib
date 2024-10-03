@@ -1,11 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal static class JsonSerializer
 {
@@ -46,7 +48,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeString(string value)
+    public static string SerializeString(string? value)
     {
         var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
@@ -60,7 +62,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeString(byte[] buffer, int cursor, string value)
+    public static int SerializeString(byte[] buffer, int cursor, string? value)
     {
         if (value == null)
         {
@@ -90,7 +92,7 @@ internal static class JsonSerializer
 #endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeArray<T>(T[] array)
+    public static string SerializeArray<T>(T[]? array)
     {
         var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
@@ -104,7 +106,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeArray<T>(byte[] buffer, int cursor, T[] array)
+    public static int SerializeArray<T>(byte[] buffer, int cursor, T[]? array)
     {
         if (array == null)
         {
@@ -128,7 +130,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string SerializeMap(IEnumerable<KeyValuePair<string, object>> map)
+    public static string SerializeMap(IEnumerable<KeyValuePair<string, object?>>? map)
     {
         var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
@@ -142,7 +144,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object>> listKVp, out int count)
+    public static byte[] SerializeKeyValuePairsListAsBytes(List<KeyValuePair<string, object?>>? listKVp, out int count)
     {
         var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
@@ -156,7 +158,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeMap(byte[] buffer, int cursor, IEnumerable<KeyValuePair<string, object>> map)
+    public static int SerializeMap(byte[] buffer, int cursor, IEnumerable<KeyValuePair<string, object?>>? map)
     {
         if (map == null)
         {
@@ -183,7 +185,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object>> listKvp)
+    public static int SerializeKeyValuePairList(byte[] buffer, int cursor, List<KeyValuePair<string, object?>>? listKvp)
     {
         if (listKvp == null)
         {
@@ -210,7 +212,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string Serialize(object obj)
+    public static string Serialize(object? obj)
     {
         var buffer = ThreadLocalBuffer.Value;
         if (buffer == null)
@@ -224,7 +226,7 @@ internal static class JsonSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int Serialize(byte[] buffer, int cursor, object obj)
+    public static int Serialize(byte[] buffer, int cursor, object? obj)
     {
         if (obj == null)
         {
@@ -247,7 +249,7 @@ internal static class JsonSerializer
             case float:
             case double:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                (obj as ISpanFormattable).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
+                ((ISpanFormattable)obj).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
             case DateTime dt:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
@@ -297,7 +299,7 @@ internal static class JsonSerializer
                 return SerializeArray(buffer, cursor, vdtarray);
             case string v:
                 return SerializeString(buffer, cursor, v);
-            case IEnumerable<KeyValuePair<string, object>> v:
+            case IEnumerable<KeyValuePair<string, object?>> v:
                 return SerializeMap(buffer, cursor, v);
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
@@ -314,7 +316,7 @@ internal static class JsonSerializer
 #endif
 
             default:
-                string repr;
+                string? repr;
                 try
                 {
                     repr = Convert.ToString(obj, CultureInfo.InvariantCulture);

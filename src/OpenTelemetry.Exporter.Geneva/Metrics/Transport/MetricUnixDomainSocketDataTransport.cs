@@ -1,15 +1,17 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Exporter.Geneva.Transports;
+
 namespace OpenTelemetry.Exporter.Geneva;
 
-internal sealed class MetricUnixDataTransport : IMetricDataTransport
+internal sealed class MetricUnixDomainSocketDataTransport : IMetricDataTransport
 {
     private readonly int fixedPayloadLength;
     private readonly UnixDomainSocketDataTransport udsDataTransport;
     private bool isDisposed;
 
-    public MetricUnixDataTransport(
+    public MetricUnixDomainSocketDataTransport(
         string unixDomainSocketPath,
         int timeoutMilliseconds = UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds)
     {

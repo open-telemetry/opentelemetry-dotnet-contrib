@@ -15,82 +15,182 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GenAiAttributes
 {
     /// <summary>
-    /// The full response received from the LLM
+    /// The full response received from the GenAI model.
     /// </summary>
     /// <remarks>
-    /// It's RECOMMENDED to format completions as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>
+    /// It's RECOMMENDED to format completions as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>.
     /// </remarks>
     public const string AttributeGenAiCompletion = "gen_ai.completion";
 
     /// <summary>
-    /// The full prompt sent to an LLM
+    /// The name of the operation being performed.
     /// </summary>
     /// <remarks>
-    /// It's RECOMMENDED to format prompts as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>
+    /// If one of the predefined values applies, but specific system uses a different name it's RECOMMENDED to document it in the semantic conventions for specific GenAI system and use system-specific name in the instrumentation. If a different name is not documented, instrumentation libraries SHOULD use applicable predefined value.
+    /// </remarks>
+    public const string AttributeGenAiOperationName = "gen_ai.operation.name";
+
+    /// <summary>
+    /// The full prompt sent to the GenAI model.
+    /// </summary>
+    /// <remarks>
+    /// It's RECOMMENDED to format prompts as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>.
     /// </remarks>
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
 
     /// <summary>
-    /// The maximum number of tokens the LLM generates for a request
+    /// The frequency penalty setting for the GenAI request.
+    /// </summary>
+    public const string AttributeGenAiRequestFrequencyPenalty = "gen_ai.request.frequency_penalty";
+
+    /// <summary>
+    /// The maximum number of tokens the model generates for a request.
     /// </summary>
     public const string AttributeGenAiRequestMaxTokens = "gen_ai.request.max_tokens";
 
     /// <summary>
-    /// The name of the LLM a request is being made to
+    /// The name of the GenAI model a request is being made to.
     /// </summary>
     public const string AttributeGenAiRequestModel = "gen_ai.request.model";
 
     /// <summary>
-    /// The temperature setting for the LLM request
+    /// The presence penalty setting for the GenAI request.
+    /// </summary>
+    public const string AttributeGenAiRequestPresencePenalty = "gen_ai.request.presence_penalty";
+
+    /// <summary>
+    /// List of sequences that the model will use to stop generating further tokens.
+    /// </summary>
+    public const string AttributeGenAiRequestStopSequences = "gen_ai.request.stop_sequences";
+
+    /// <summary>
+    /// The temperature setting for the GenAI request.
     /// </summary>
     public const string AttributeGenAiRequestTemperature = "gen_ai.request.temperature";
 
     /// <summary>
-    /// The top_p sampling setting for the LLM request
+    /// The top_k sampling setting for the GenAI request.
+    /// </summary>
+    public const string AttributeGenAiRequestTopK = "gen_ai.request.top_k";
+
+    /// <summary>
+    /// The top_p sampling setting for the GenAI request.
     /// </summary>
     public const string AttributeGenAiRequestTopP = "gen_ai.request.top_p";
 
     /// <summary>
-    /// Array of reasons the model stopped generating tokens, corresponding to each generation received
+    /// Array of reasons the model stopped generating tokens, corresponding to each generation received.
     /// </summary>
     public const string AttributeGenAiResponseFinishReasons = "gen_ai.response.finish_reasons";
 
     /// <summary>
-    /// The unique identifier for the completion
+    /// The unique identifier for the completion.
     /// </summary>
     public const string AttributeGenAiResponseId = "gen_ai.response.id";
 
     /// <summary>
-    /// The name of the LLM a response was generated from
+    /// The name of the model that generated the response.
     /// </summary>
     public const string AttributeGenAiResponseModel = "gen_ai.response.model";
 
     /// <summary>
-    /// The Generative AI product as identified by the client instrumentation
+    /// The Generative AI product as identified by the client or server instrumentation.
     /// </summary>
     /// <remarks>
-    /// The actual GenAI product may differ from the one identified by the client. For example, when using OpenAI client libraries to communicate with Mistral, the <c>gen_ai.system</c> is set to <c>openai</c> based on the instrumentation's best knowledge
+    /// The <c>gen_ai.system</c> describes a family of GenAI models with specific model identified
+    /// by <c>gen_ai.request.model</c> and <c>gen_ai.response.model</c> attributes.
+    /// <p>
+    /// The actual GenAI product may differ from the one identified by the client.
+    /// For example, when using OpenAI client libraries to communicate with Mistral, the <c>gen_ai.system</c>
+    /// is set to <c>openai</c> based on the instrumentation's best knowledge.
+    /// <p>
+    /// For custom model, a custom friendly name SHOULD be used.
+    /// If none of these options apply, the <c>gen_ai.system</c> SHOULD be set to <c>_OTHER</c>.
     /// </remarks>
     public const string AttributeGenAiSystem = "gen_ai.system";
 
     /// <summary>
-    /// The number of tokens used in the LLM response (completion)
+    /// The type of token being counted.
     /// </summary>
+    public const string AttributeGenAiTokenType = "gen_ai.token.type";
+
+    /// <summary>
+    /// Deprecated, use <c>gen_ai.usage.output_tokens</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c> attribute.")]
     public const string AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens";
 
     /// <summary>
-    /// The number of tokens used in the LLM prompt
+    /// The number of tokens used in the GenAI input (prompt).
     /// </summary>
+    public const string AttributeGenAiUsageInputTokens = "gen_ai.usage.input_tokens";
+
+    /// <summary>
+    /// The number of tokens used in the GenAI response (completion).
+    /// </summary>
+    public const string AttributeGenAiUsageOutputTokens = "gen_ai.usage.output_tokens";
+
+    /// <summary>
+    /// Deprecated, use <c>gen_ai.usage.input_tokens</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c> attribute.")]
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
 
     /// <summary>
-    /// The Generative AI product as identified by the client instrumentation
+    /// The name of the operation being performed.
+    /// </summary>
+    public static class GenAiOperationNameValues
+    {
+        /// <summary>
+        /// Chat completion operation such as <a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat API</a>.
+        /// </summary>
+        public const string Chat = "chat";
+
+        /// <summary>
+        /// Text completions operation such as <a href="https://platform.openai.com/docs/api-reference/completions">OpenAI Completions API (Legacy)</a>.
+        /// </summary>
+        public const string TextCompletion = "text_completion";
+    }
+
+    /// <summary>
+    /// The Generative AI product as identified by the client or server instrumentation.
     /// </summary>
     public static class GenAiSystemValues
     {
         /// <summary>
-        /// OpenAI
+        /// OpenAI.
         /// </summary>
         public const string Openai = "openai";
+
+        /// <summary>
+        /// Vertex AI.
+        /// </summary>
+        public const string VertexAi = "vertex_ai";
+
+        /// <summary>
+        /// Anthropic.
+        /// </summary>
+        public const string Anthropic = "anthropic";
+
+        /// <summary>
+        /// Cohere.
+        /// </summary>
+        public const string Cohere = "cohere";
+    }
+
+    /// <summary>
+    /// The type of token being counted.
+    /// </summary>
+    public static class GenAiTokenTypeValues
+    {
+        /// <summary>
+        /// Input tokens (prompt, input, etc.).
+        /// </summary>
+        public const string Input = "input";
+
+        /// <summary>
+        /// Output tokens (completion, response, etc.).
+        /// </summary>
+        public const string Completion = "output";
     }
 }
