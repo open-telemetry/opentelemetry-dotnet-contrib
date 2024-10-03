@@ -17,11 +17,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants Condition="$(OpenTelemetryCoreLatestVersion.Contains('alpha')) OR $(OpenTelemetryCoreLatestVersion.Contains('beta')) OR $(OpenTelemetryCoreLatestVersion.Contains('rc'))">$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
+    <DefineConstants Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
     <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsConfigurationBinderPkgVer)" />
   </ItemGroup>
