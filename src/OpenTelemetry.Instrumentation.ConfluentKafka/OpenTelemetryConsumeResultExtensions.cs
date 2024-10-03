@@ -27,13 +27,13 @@ public static class OpenTelemetryConsumeResultExtensions
         this ConsumeResult<TKey, TValue> consumeResult,
         out PropagationContext propagationContext)
     {
-#if NETFRAMEWORK
+#if NET
+        ArgumentNullException.ThrowIfNull(consumeResult);
+#else
         if (consumeResult == null)
         {
             throw new ArgumentNullException(nameof(consumeResult));
         }
-#else
-        ArgumentNullException.ThrowIfNull(consumeResult);
 #endif
 
         try
@@ -75,13 +75,13 @@ public static class OpenTelemetryConsumeResultExtensions
         OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue> handler,
         CancellationToken cancellationToken)
     {
-#if NETFRAMEWORK
+#if NET
+        ArgumentNullException.ThrowIfNull(consumer);
+#else
         if (consumer == null)
         {
             throw new ArgumentNullException(nameof(consumer));
         }
-#else
-        ArgumentNullException.ThrowIfNull(consumer);
 #endif
 
         if (consumer is not InstrumentedConsumer<TKey, TValue> instrumentedConsumer)
@@ -89,13 +89,13 @@ public static class OpenTelemetryConsumeResultExtensions
             throw new ArgumentException("Invalid consumer type.", nameof(consumer));
         }
 
-#if NETFRAMEWORK
-        if (handler is null)
+#if NET
+        ArgumentNullException.ThrowIfNull(handler);
+#else
+        if (handler == null)
         {
             throw new ArgumentNullException(nameof(handler));
         }
-#else
-        ArgumentNullException.ThrowIfNull(handler);
 #endif
 
         var consumeResult = instrumentedConsumer.Consume(cancellationToken);
