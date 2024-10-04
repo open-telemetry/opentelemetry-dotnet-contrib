@@ -1,11 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
+#if !NETFRAMEWORK
 using System.Runtime.InteropServices;
+#endif
+#if NET
 using System.Xml.Linq;
 #endif
-
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
 
 namespace OpenTelemetry.Resources.OperatingSystem;
@@ -18,16 +19,16 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
     private const string KernelOsRelease = "/proc/sys/kernel/osrelease";
     private static readonly string[] DefaultEtcOsReleasePaths =
-        [
-            "/etc/os-release",
-            "/usr/lib/os-release"
-        ];
+    [
+        "/etc/os-release",
+        "/usr/lib/os-release"
+    ];
 
     private static readonly string[] DefaultPlistFilePaths =
-        [
-            "/System/Library/CoreServices/SystemVersion.plist",
-            "/System/Library/CoreServices/ServerVersion.plist"
-        ];
+    [
+        "/System/Library/CoreServices/SystemVersion.plist",
+        "/System/Library/CoreServices/ServerVersion.plist"
+    ];
 
     private readonly string? osType;
     private readonly string? registryKey;
