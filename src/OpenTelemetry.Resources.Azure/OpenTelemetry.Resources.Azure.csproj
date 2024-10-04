@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry Resource Detectors for Azure cloud environments</Description>
+    <Description>OpenTelemetry Resource Detectors for Azure cloud environments.</Description>
     <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
     <MinVerTagPrefix>Resources.Azure-</MinVerTagPrefix>
   </PropertyGroup>
