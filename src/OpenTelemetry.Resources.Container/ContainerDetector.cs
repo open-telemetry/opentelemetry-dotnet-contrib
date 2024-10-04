@@ -152,7 +152,11 @@ internal sealed class ContainerDetector : IResourceDetector
                     {
                         containerId = GetIdFromLineV1(line);
                     }
+#if NET
                     else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
+#else
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
+#endif
                     {
                         containerId = GetIdFromLineV2(line);
                     }
