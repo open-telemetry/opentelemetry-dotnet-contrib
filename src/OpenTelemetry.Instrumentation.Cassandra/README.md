@@ -14,6 +14,11 @@ This is an
 which instruments [CassandraCSharpDriver](https://github.com/datastax/csharp-driver)
 and collects telemetry about cassandra metrics.
 
+> [!NOTE]
+> This package provides support for metrics only.
+  You can enable tracing using [`Cassandra.OpenTelemetry`](https://docs.datastax.com/en/developer/csharp-driver/3.22/features/opentelemetry/index.html)
+  package.
+
 ## Steps to enable OpenTelemetry.Instrumentation.Cassandra
 
 ### Step 1: Install Package
