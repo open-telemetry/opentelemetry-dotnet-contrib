@@ -16,7 +16,7 @@
     <PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
     <PackageReference Include="Grpc" Version="2.46.6" />
     <PackageReference Include="KaitaiStruct.Runtime.CSharp" Version="0.10.0" />
-    <PackageReference Include="MessagePack" Version="1.9.11" />
+    <PackageReference Include="MessagePack" Version="2.5.172" />
     <!--KaitaiStruct.Runtime.CSharp which is used to deserialize metrics data is not a strong-named assembly.
     StrongNamer signs any unsigned assemblies present in the project dependencies -->
     <PackageReference Include="StrongNamer" Version="0.2.5" />
