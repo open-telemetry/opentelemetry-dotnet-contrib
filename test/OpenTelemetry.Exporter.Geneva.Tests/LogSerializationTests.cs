@@ -126,7 +126,7 @@ public class LogSerializationTests
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }
