@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Persistent Storage Abstractions.</Description>
     <NoWarn>$(NoWarn);1591</NoWarn>
