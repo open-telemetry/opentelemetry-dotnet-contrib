@@ -29,7 +29,7 @@ public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
     private static SqlEdgeContainer CreateSqlEdge()
     {
         // Note: The Testcontainers.SqlEdge package has been deprecated. Seems
-        // it will not work with newer GItHub-hosted runners. Need to find an
+        // it will not work with newer GitHub-hosted runners. Need to find an
         // alternative solution. See:
         // https://github.com/testcontainers/testcontainers-dotnet/pull/1265
         return new SqlEdgeBuilder().Build();
