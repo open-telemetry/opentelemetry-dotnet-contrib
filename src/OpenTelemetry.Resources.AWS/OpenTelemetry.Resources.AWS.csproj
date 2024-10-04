@@ -4,7 +4,7 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry Extensions - AWS Resource Detectors for ElasticBeanstalk, EC2, ECS, EKS.</Description>
+    <Description>OpenTelemetry Resource Detectors for AWS ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>Resources.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 
