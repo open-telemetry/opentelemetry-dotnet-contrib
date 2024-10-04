@@ -257,7 +257,7 @@ public class GenevaTraceExporterTests
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                 invocationCount++;
             };
