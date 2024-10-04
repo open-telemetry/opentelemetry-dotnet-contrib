@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>
