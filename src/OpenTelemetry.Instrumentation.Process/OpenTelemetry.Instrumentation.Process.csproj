@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Description>dotnet process instrumentation for OpenTelemetry .NET</Description>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <Description>dotnet process instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);process</PackageTags>
     <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
