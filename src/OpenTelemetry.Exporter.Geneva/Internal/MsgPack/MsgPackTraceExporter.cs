@@ -3,7 +3,7 @@
 
 #nullable enable
 
-#if NET8_0_OR_GREATER
+#if NET
 using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
@@ -34,7 +34,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.url"] = "messagingUrl",
     };
 
-#if NET8_0_OR_GREATER
+#if NET
     internal static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
 #else
     internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
@@ -42,7 +42,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal readonly ThreadLocal<byte[]> Buffer = new();
 
-#if NET8_0_OR_GREATER
+#if NET
     internal readonly FrozenSet<string>? CustomFields;
 
     internal readonly FrozenSet<string>? DedicatedFields;
@@ -123,7 +123,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 dedicatedFields.Add(name);
             }
 
-#if NET8_0_OR_GREATER
+#if NET
             this.CustomFields = customFields.ToFrozenSet(StringComparer.Ordinal);
 #else
             this.CustomFields = customFields;
@@ -137,7 +137,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             dedicatedFields.Add("otel.status_code");
             dedicatedFields.Add("otel.status_description");
 
-#if NET8_0_OR_GREATER
+#if NET
             this.DedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
 #else
             this.DedicatedFields = dedicatedFields;

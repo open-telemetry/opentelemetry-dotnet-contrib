@@ -6,12 +6,13 @@
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
     <PackageProjectUrl>https://OpenTelemetry.io</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageIcon>opentelemetry-icon-color.png</PackageIcon>
-    <Authors>OpenTelemetry authors</Authors>
-    <Copyright>Copyright The OpenTelemetry Authors</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackagePrimaryLicenseFile>$(RepoRoot)\LICENSE.TXT</PackagePrimaryLicenseFile>
+    <PackageIcon>opentelemetry-icon-color.png</PackageIcon>
+    <Authors>OpenTelemetry Authors</Authors>
+    <Copyright>Copyright The OpenTelemetry Authors</Copyright>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1573,1712</NoWarn>
+    <NoWarn>$(NoWarn);1573;1712</NoWarn>
     <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
@@ -19,13 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)opentelemetry-icon-color.png" Pack="true" PackagePath="\"/>
-
-    <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" Condition="'$(IntegrationBuild)' != 'true'">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" Condition="'$(EnablePublicApi)'!='false'" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
@@ -55,11 +52,14 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(Deterministic)'=='true'">
-    <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)opentelemetry-icon-color.png" Pack="true" PackagePath="\"/>
+    <SourceRoot Include="$(MSBuildThisFileDirectory)/" Condition="'$(Deterministic)' == 'true'" />
+    <!-- Note: This includes all the PublicApiAnalyzers files in projects to make editing easier in the IDE -->
+    <None Include=".publicApi\**\PublicAPI.*.txt" Condition="'$(EnablePublicApi)' != 'false'" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(Deterministic)'=='true'">
+  <PropertyGroup Condition="'$(Deterministic)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
@@ -69,14 +69,9 @@
     <Error Text="Cannot perform package validation without a baseline package version." />
   </Target>
 
-  <ItemGroup Condition="'$(EnablePublicApi)'!='false'">
-    <!-- Note: This includes all the PublicApiAnalyzers files in projects to make editing easier in the IDE -->
-    <None Include=".publicApi\**\PublicAPI.*.txt" />
-  </ItemGroup>
-
   <Target Name="ResolvePublicApiFiles"
           BeforeTargets="CoreCompile"
-          Condition="'$(EnablePublicApi)'!='false'">
+          Condition="'$(EnablePublicApi)' != 'false'">
     <ItemGroup>
       <!-- Note: This resolves all the PublicApiAnalyzers files which are actually used by the analyzer -->
       <AdditionalFiles Include=".publicApi\PublicAPI.*.txt" />

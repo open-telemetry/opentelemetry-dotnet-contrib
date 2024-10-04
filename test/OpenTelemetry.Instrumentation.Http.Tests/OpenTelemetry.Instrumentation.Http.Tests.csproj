@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry HTTP instrumentations</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry HTTP instrumentations.</Description>
   </PropertyGroup>
 
   <ItemGroup>

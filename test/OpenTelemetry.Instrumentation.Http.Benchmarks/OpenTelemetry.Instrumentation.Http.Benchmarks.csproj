@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
     <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryLatestPreReleasePkgVer)" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>

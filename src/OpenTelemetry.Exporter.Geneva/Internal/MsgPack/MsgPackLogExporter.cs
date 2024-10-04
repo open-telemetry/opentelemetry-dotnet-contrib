@@ -3,7 +3,7 @@
 
 #nullable enable
 
-#if NET8_0_OR_GREATER
+#if NET
 using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
@@ -33,7 +33,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
 
-#if NET8_0_OR_GREATER
+#if NET
     private readonly FrozenSet<string>? customFields;
     private readonly FrozenDictionary<string, object>? prepopulatedFields;
 #else
@@ -94,7 +94,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 this.prepopulatedFieldKeys.Add(kv.Key);
             }
 
-#if NET8_0_OR_GREATER
+#if NET
             this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
 #else
             this.prepopulatedFields = tempPrepopulatedFields;
@@ -110,7 +110,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 customFields.Add(name);
             }
 
-#if NET8_0_OR_GREATER
+#if NET
             this.customFields = customFields.ToFrozenSet(StringComparer.Ordinal);
 #else
             this.customFields = customFields;
