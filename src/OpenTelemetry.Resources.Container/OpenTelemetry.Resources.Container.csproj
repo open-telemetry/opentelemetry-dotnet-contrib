@@ -7,6 +7,11 @@
     <MinVerTagPrefix>Resources.Container-</MinVerTagPrefix>
   </PropertyGroup>
 
+  <!-- Disable the nullable warnings when compiling for .NET Standard 2.0 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <NoWarn>$(NoWarn);nullable</NoWarn>
+  </PropertyGroup>
+
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
   Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
@@ -15,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

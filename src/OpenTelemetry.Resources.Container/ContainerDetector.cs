@@ -92,9 +92,9 @@ internal sealed class ContainerDetector : IResourceDetector
                         containerId = GetIdFromLineV1(line);
                     }
 #if NET
-                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
+                    else if (parseMode == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
 #else
-                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
+                    else if (parseMode == ParseMode.V2 && line.Contains(Hostname))
 #endif
                     {
                         containerId = GetIdFromLineV2(line);

@@ -6,7 +6,7 @@ using System.Net.Http;
 #endif
 using System.Text;
 using System.Text.Json;
-#if NET
+#if !NETFRAMEWORK
 using System.Text.Json.Serialization.Metadata;
 #endif
 
@@ -17,7 +17,7 @@ namespace OpenTelemetry.Resources;
 /// </summary>
 internal static class ResourceDetectorUtils
 {
-#if !NET
+#if NETFRAMEWORK
     private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web);
 #endif
 
@@ -47,20 +47,7 @@ internal static class ResourceDetectorUtils
         }
     }
 
-#if NET
-    internal static T? DeserializeFromFile<T>(string filePath, JsonTypeInfo<T> jsonTypeInfo)
-    {
-        using (var stream = GetStream(filePath))
-        {
-            return JsonSerializer.Deserialize(stream, jsonTypeInfo);
-        }
-    }
-
-    internal static T? DeserializeFromString<T>(string json, JsonTypeInfo<T> jsonTypeInfo)
-    {
-        return JsonSerializer.Deserialize(json, jsonTypeInfo);
-    }
-#else
+#if NETFRAMEWORK
     internal static T? DeserializeFromFile<T>(string filePath)
     {
         using (var stream = GetStream(filePath))
@@ -72,6 +59,19 @@ internal static class ResourceDetectorUtils
     internal static T? DeserializeFromString<T>(string json)
     {
         return JsonSerializer.Deserialize<T>(json, JsonSerializerOptions);
+    }
+#else
+    internal static T? DeserializeFromFile<T>(string filePath, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        using (var stream = GetStream(filePath))
+        {
+            return JsonSerializer.Deserialize(stream, jsonTypeInfo);
+        }
+    }
+
+    internal static T? DeserializeFromString<T>(string json, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        return JsonSerializer.Deserialize(json, jsonTypeInfo);
     }
 #endif
 
