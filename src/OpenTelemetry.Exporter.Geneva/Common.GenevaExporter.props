@@ -1,9 +1,5 @@
 <Project>
-  <PropertyGroup>
-    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">
+  <PropertyGroup Condition="$(OpenTelemetryCoreLatestVersion.Contains('alpha')) OR $(OpenTelemetryCoreLatestVersion.Contains('beta')) OR $(OpenTelemetryCoreLatestVersion.Contains('rc'))">
     <DefineConstants>$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
   </PropertyGroup>
 </Project>

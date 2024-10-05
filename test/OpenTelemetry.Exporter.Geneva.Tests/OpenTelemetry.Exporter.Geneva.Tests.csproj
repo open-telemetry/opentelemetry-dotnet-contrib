@@ -21,7 +21,7 @@
     StrongNamer signs any unsigned assemblies present in the project dependencies -->
     <PackageReference Include="StrongNamer" Version="0.2.5" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OTelSdkVersion)" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
     <!-- System.Text.RegularExpressions is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-cmhx-cq75-c4mj -->
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <!-- System.Net.Http is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-7jgj-8wvc-jh57 -->
