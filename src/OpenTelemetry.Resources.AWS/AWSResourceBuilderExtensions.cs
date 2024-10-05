@@ -33,7 +33,7 @@ public static class AWSResourceBuilderExtensions
         return builder.AddDetector(new AWSEC2Detector());
     }
 
-#if !NETFRAMEWORK
+#if NET
     /// <summary>
     /// Enables AWS ECS resource detector.
     /// </summary>
