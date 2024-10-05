@@ -3,7 +3,7 @@
 
 #nullable enable
 
-#if NET
+#if NET8_0_OR_GREATER
 using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
@@ -21,7 +21,7 @@ internal sealed class RequestDataHelper
 
     private static readonly char[] SplitChars = new[] { ',' };
 
-#if NET
+#if NET8_0_OR_GREATER
     private readonly FrozenDictionary<string, string> knownHttpMethods;
 #else
     private readonly Dictionary<string, string> knownHttpMethods;
@@ -46,7 +46,7 @@ internal sealed class RequestDataHelper
                 ["CONNECT"] = "CONNECT",
             };
 
-#if NET
+#if NET8_0_OR_GREATER
         this.knownHttpMethods = knownMethodSet.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 #else
         this.knownHttpMethods = knownMethodSet;
