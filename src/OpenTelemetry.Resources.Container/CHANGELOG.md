@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET 8/.NET Standard 2.0 targets.
+  ([#2166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2166))
+
 * Add Kubernetes support.
   ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
 
