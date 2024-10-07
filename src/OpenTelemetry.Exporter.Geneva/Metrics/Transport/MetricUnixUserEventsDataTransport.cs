@@ -25,8 +25,16 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
         this.metricsTracepoint = new PerfTracepoint(MetricsTracepointNameArgs);
         if (this.metricsTracepoint.RegisterResult != 0)
         {
-            throw new NotSupportedException(
-                $"Tracepoint registration for 'otlp_metrics' failed with result: '{this.metricsTracepoint.RegisterResult}'. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
+            // ENOENT (2): No such file or directory
+            if (this.metricsTracepoint.RegisterResult == 2)
+            {
+                throw new NotSupportedException(
+                    $"Tracepoint registration for 'otlp_metrics' failed with result: '{this.metricsTracepoint.RegisterResult}'. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
+            }
+
+            ExporterEventSource.Log.TransportInformation(
+                nameof(MetricUnixUserEventsDataTransport),
+                $"Tracepoint registration for 'otlp_metrics' failed with recoverable result: '{this.metricsTracepoint.RegisterResult}'. Entering running state.");
         }
     }
 

@@ -20,6 +20,7 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_COMPLETED_EXPORT = 6; // Completed export
     private const int EVENT_ID_TRANSPORT_ERROR = 7; // Transport error
     private const int EVENT_ID_TRANSPORT_EXCEPTION = 8; // Transport exception
+    private const int EVENT_ID_TRANSPORT_INFO = 9; // Transport info
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -134,5 +135,11 @@ internal sealed class ExporterEventSource : EventSource
     public void TransportException(string transportType, string error, string ex)
     {
         this.WriteEvent(EVENT_ID_TRANSPORT_EXCEPTION, transportType, error, ex);
+    }
+
+    [Event(EVENT_ID_TRANSPORT_INFO, Message = "Transport '{0}' information. Message: {1}", Level = EventLevel.Informational)]
+    public void TransportInformation(string transportType, string error)
+    {
+        this.WriteEvent(EVENT_ID_TRANSPORT_INFO, transportType, error);
     }
 }
