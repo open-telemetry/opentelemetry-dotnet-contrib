@@ -6,7 +6,7 @@ using System.Net.Http;
 #endif
 using System.Text;
 using System.Text.Json;
-#if !NETFRAMEWORK
+#if NET
 using System.Text.Json.Serialization.Metadata;
 #endif
 
