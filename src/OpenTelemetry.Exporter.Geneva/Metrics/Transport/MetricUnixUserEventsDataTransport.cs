@@ -25,9 +25,8 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
         this.metricsTracepoint = new PerfTracepoint(MetricsTracepointNameArgs);
         if (this.metricsTracepoint.RegisterResult != 0)
         {
-            ExporterEventSource.Log.TransportError(
-                nameof(MetricUnixUserEventsDataTransport),
-                $"Tracepoint for 'otlp_metrics' user events could not be registered: '{this.metricsTracepoint.RegisterResult}'");
+            throw new NotSupportedException(
+                $"Tracepoint registration for 'otlp_metrics' failed with result: '{this.metricsTracepoint.RegisterResult}'. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
         }
     }
 
