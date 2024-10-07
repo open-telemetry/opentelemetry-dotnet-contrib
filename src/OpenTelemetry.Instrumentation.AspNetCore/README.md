@@ -384,7 +384,7 @@ In this example:
   added to the request's metrics context. These tags will automatically appear in
   the exported data for any related metrics.
 * Customizing Exported Metrics: To focus on enriching or exporting a specific
-  metric (e.g., http.server.request.duration), you can control this at the exporting
+  metric (e.g. `http.server.request.duration`), you can control this at the exporting
   stage, either by filtering specific metrics in the exporter or by customizing
   the telemetry pipeline configuration.
 
