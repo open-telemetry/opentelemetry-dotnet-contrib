@@ -269,7 +269,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 > Only applicable for .NET 8 and newer.
 
 Metrics enrichment in HttpClient allows adding custom tags to metrics.
- This is especially useful for categorizing metrics in dashboards or alerts.
+This is especially useful for categorizing metrics in dashboards or alerts.
 
 Using `HttpMetricsEnrichmentContext` for Enrichment
 To enrich metrics, you can register callbacks with `HttpMetricsEnrichmentContext`.
