@@ -377,8 +377,8 @@ app.Run();
 
 In this example:
 
-* Automatic Metric Enrichment: The IHttpMetricsTagsFeature enriches all relevant
-  HTTP metrics(like http.server.request.duration) by default. There is no need to
+* Automatic Metric Enrichment: The `IHttpMetricsTagsFeature` enriches all relevant
+  HTTP metrics (like `http.server.request.duration`) by default. There is no need to
   explicitly specify the metric you want to enrich.
 * Context-Specific Tags: In the middleware, custom tags such as utm_medium are
   added to the request's metrics context. These tags will automatically appear in
