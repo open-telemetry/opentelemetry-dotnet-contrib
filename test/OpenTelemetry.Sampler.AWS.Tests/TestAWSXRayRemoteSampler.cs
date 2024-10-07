@@ -22,7 +22,7 @@ public class TestAWSXRayRemoteSampler
         AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(pollingInterval)
             .SetEndpoint(endpoint)
-            .Build();
+            .BuildXraySampler();
 
         Assert.Equal(pollingInterval, sampler.PollingInterval);
         Assert.Equal(endpoint, sampler.Endpoint);
@@ -33,7 +33,7 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerWithDefaults()
     {
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
+        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).BuildXraySampler();
 
         Assert.Equal(TimeSpan.FromMinutes(5), sampler.PollingInterval);
         Assert.Equal("http://localhost:2000", sampler.Endpoint);
@@ -53,7 +53,7 @@ public class TestAWSXRayRemoteSampler
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
             .SetEndpoint(mockServer.Url!)
             .SetClock(clock)
-            .Build();
+            .BuildXraySampler();
 
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));

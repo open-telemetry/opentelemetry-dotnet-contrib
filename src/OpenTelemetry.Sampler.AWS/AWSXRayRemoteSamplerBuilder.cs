@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -66,8 +67,17 @@ public class AWSXRayRemoteSamplerBuilder
     /// <summary>
     /// Returns a <see cref="AWSXRayRemoteSampler"/> with configuration of this builder.
     /// </summary>
-    /// <returns>an instance of <see cref="AWSXRayRemoteSampler"/>.</returns>
-    public AWSXRayRemoteSampler Build()
+    /// <returns>an instance of <see cref="ParentBasedSampler"/>.</returns>
+    public ParentBasedSampler Build()
+    {
+        using var rootSampler = this.BuildXraySampler();
+        return new ParentBasedSampler(rootSampler);
+    }
+
+    // This is intended for testing to check that the XRayRemoteSampler is built with the correct attributes
+    // Should not be exposed to public as the public build method should return the sampler wrapped inside
+    // ParentBasedSampler.
+    internal AWSXRayRemoteSampler BuildXraySampler()
     {
         return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
     }
