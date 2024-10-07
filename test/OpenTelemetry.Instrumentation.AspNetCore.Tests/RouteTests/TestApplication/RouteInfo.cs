@@ -5,7 +5,7 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-#if NET8_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.Http.Metadata;
 #endif
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -40,7 +40,7 @@ public class RouteInfo
         this.Path = $"{context.Request.Path}{context.Request.QueryString}";
         var endpoint = context.GetEndpoint();
         this.RawText = (endpoint as RouteEndpoint)?.RoutePattern.RawText;
-#if NET8_0_OR_GREATER
+#if NET
         this.RouteDiagnosticMetadata = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
 #endif
         this.RouteData = new Dictionary<string, string?>();
