@@ -4,7 +4,6 @@
 #if NET
 using System.Collections.Frozen;
 #endif
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -500,9 +499,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static void OnProcessScopeForEnvProperties(LogRecordScope scope, MsgPackLogExporter state)
     {
-        Debug.Assert(state.serializationData.Value != null, "state.serializationData.Value was null");
+        Guard.ThrowIfNull(state.serializationData.Value);
 
-        var stateData = state.serializationData.Value!;
+        var stateData = state.serializationData.Value;
         var customFields = state.customFields;
 
         foreach (KeyValuePair<string, object?> scopeItem in scope)
@@ -514,8 +513,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
             if (!customFields!.Contains(scopeItem.Key))
             {
-                stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer!, stateData.Cursor, scopeItem.Key);
-                stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer!, stateData.Cursor, scopeItem.Value);
+                stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
+                stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
                 stateData.EnvPropertiesCount += 1;
             }
         }
