@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
+  ([#2172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2172))
+
 * Update `System.Text.Json` to `8.0.4` to mitigate
   [CVE-2024-30105](https://github.com/advisories/GHSA-hh2w-p6rv-4g7w).
   ([#2149](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2149))

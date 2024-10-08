@@ -196,7 +196,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net6.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -219,7 +219,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.AWSLambda]
       code-cov-name: Instrumentation.AWSLambda
-      tfm-list: '[ "net6.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -285,7 +285,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
