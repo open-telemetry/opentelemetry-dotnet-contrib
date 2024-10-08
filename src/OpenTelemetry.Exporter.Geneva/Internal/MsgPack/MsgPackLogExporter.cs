@@ -469,9 +469,9 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, MsgPackLogExporter state)
     {
-        Debug.Assert(state.serializationData.Value != null, "state.serializationData.Value was null");
+        Guard.ThrowIfNull(state.serializationData.Value);
 
-        var stateData = state.serializationData.Value!;
+        var stateData = state.serializationData.Value;
         var customFields = state.customFields;
 
         foreach (KeyValuePair<string, object?> scopeItem in scope)
@@ -486,8 +486,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 if (scopeItem.Value != null)
                 {
                     // null is not supported.
-                    stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer!, stateData.Cursor, scopeItem.Key);
-                    stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer!, stateData.Cursor, scopeItem.Value);
+                    stateData.Cursor = MessagePackSerializer.SerializeUnicodeString(stateData.Buffer, stateData.Cursor, scopeItem.Key);
+                    stateData.Cursor = MessagePackSerializer.Serialize(stateData.Buffer, stateData.Cursor, scopeItem.Value);
                     stateData.FieldsCount += 1;
                 }
             }
