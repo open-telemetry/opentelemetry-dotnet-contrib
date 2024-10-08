@@ -82,14 +82,4 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
         this.socket.Close();
         return this.Connect();
     }
-
-    private Socket CreateSocket()
-    {
-        var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP)
-        {
-            SendTimeout = this.timeoutMilliseconds,
-        };
-
-        return socket;
-    }
 }

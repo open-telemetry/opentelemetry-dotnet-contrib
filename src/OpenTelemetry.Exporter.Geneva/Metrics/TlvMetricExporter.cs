@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,10 +13,10 @@ namespace OpenTelemetry.Exporter.Geneva.Metrics;
 internal sealed class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
-    private readonly int fixedPayloadStartIndex;
-    private readonly IMetricDataTransport metricDataTransport;
     private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
     private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
+    private readonly int fixedPayloadStartIndex;
+    private readonly IMetricDataTransport metricDataTransport;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
     private readonly string defaultMonitoringAccount;
     private readonly string defaultMetricNamespace;
@@ -65,6 +66,10 @@ internal sealed class TlvMetricExporter : IDisposable
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
         }
     }
+
+    [MemberNotNullWhen(true, nameof(serializedPrepopulatedDimensionsKeys))]
+    [MemberNotNullWhen(true, nameof(serializedPrepopulatedDimensionsValues))]
+    private bool ArePrepopulatedDimensionsNotEmpty => this.prepopulatedDimensionsCount > 0;
 
     public void Dispose()
     {
@@ -600,13 +605,13 @@ internal sealed class TlvMetricExporter : IDisposable
         ushort dimensionsWritten = 0;
 
         // Serialize PrepopulatedDimensions keys
-        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        if (this.ArePrepopulatedDimensionsNotEmpty)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
-        }
+            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+            {
+                MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+            }
 
-        if (this.prepopulatedDimensionsCount > 0)
-        {
             dimensionsWritten += this.prepopulatedDimensionsCount;
         }
 
@@ -633,9 +638,12 @@ internal sealed class TlvMetricExporter : IDisposable
         dimensionsWritten += (ushort)(tags.Count - reservedTags);
 
         // Serialize PrepopulatedDimensions values
-        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        if (this.ArePrepopulatedDimensionsNotEmpty)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
+            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+            {
+                MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+            }
         }
 
         // Serialize MetricPoint Dimension values
@@ -693,7 +701,7 @@ internal sealed class TlvMetricExporter : IDisposable
         var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
         foreach (var value in values)
         {
-            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture)!;
+            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
             serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
         }
 

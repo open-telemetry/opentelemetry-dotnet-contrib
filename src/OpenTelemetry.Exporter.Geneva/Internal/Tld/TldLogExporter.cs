@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -480,12 +479,12 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
     {
-        Debug.Assert(state.serializationData.Value != null, "state.serializationData was null");
-        Debug.Assert(PartCFields.Value != null, "PartCFields.Value was null");
+        Guard.ThrowIfNull(state.serializationData.Value);
+        Guard.ThrowIfNull(PartCFields.Value);
 
-        var stateData = state.serializationData.Value!;
+        var stateData = state.serializationData.Value;
         var customFields = state.customFields;
-        var kvpArrayForPartCFields = PartCFields.Value!;
+        var kvpArrayForPartCFields = PartCFields.Value;
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
@@ -500,7 +499,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             {
                 if (scopeItem.Value != null)
                 {
-                    kvpArrayForPartCFields![stateData!.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
+                    kvpArrayForPartCFields[stateData!.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
                     stateData.PartCFieldsCountFromState++;
                 }
             }

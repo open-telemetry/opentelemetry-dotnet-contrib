@@ -148,7 +148,7 @@ internal sealed class OtlpProtobufSerializer
             {
                 case char:
                 case string:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
                     break;
                 case bool b:
                     ProtobufSerializerHelper.WriteBoolWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_bool_value, (bool)value);
@@ -168,7 +168,7 @@ internal sealed class OtlpProtobufSerializer
                     ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_double_value, Convert.ToDouble(value, CultureInfo.InvariantCulture));
                     break;
                 default:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture)!);
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
                     break;
 
                     // TODO: Handle array type.
