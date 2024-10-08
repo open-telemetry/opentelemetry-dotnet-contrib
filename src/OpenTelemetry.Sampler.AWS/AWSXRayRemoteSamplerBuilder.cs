@@ -67,8 +67,8 @@ public class AWSXRayRemoteSamplerBuilder
     /// <summary>
     /// Returns a <see cref="AWSXRayRemoteSampler"/> with configuration of this builder.
     /// </summary>
-    /// <returns>an instance of <see cref="ParentBasedSampler"/>.</returns>
-    public ParentBasedSampler Build()
+    /// <returns>an instance of <see cref="Trace.Sampler"/>.</returns>
+    public Trace.Sampler Build()
     {
         using var rootSampler = this.BuildXraySampler();
         return new ParentBasedSampler(rootSampler);
