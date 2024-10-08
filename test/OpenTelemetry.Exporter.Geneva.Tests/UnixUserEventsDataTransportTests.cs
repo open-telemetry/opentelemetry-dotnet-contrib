@@ -33,7 +33,7 @@ public class UnixUserEventsDataTransportTests
      *
      * How these tests work:
      *
-     *  1) The tests make sure the otlp_metrics tracepoint is registered.
+     *  1) The tests validate user_events are enabled and make sure the otlp_metrics tracepoint is registered.
      *
      *  2) A process is spawned to run cat /sys/kernel/debug/tracing/trace_pipe. This is what is listening for events.
      *
@@ -55,6 +55,8 @@ public class UnixUserEventsDataTransportTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true)]
     public void UserEvents_Enabled_Succes_Linux()
     {
+        EnsureUserEventsEnabled();
+
         var listener = new PerfTracepointListener(
             MetricUnixUserEventsDataTransport.MetricsTracepointName,
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
@@ -112,6 +114,8 @@ public class UnixUserEventsDataTransportTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true)]
     public void UserEvents_Disabled_Succes_Linux()
     {
+        EnsureUserEventsEnabled();
+
         var listener = new PerfTracepointListener(
             MetricUnixUserEventsDataTransport.MetricsTracepointName,
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
@@ -129,6 +133,15 @@ public class UnixUserEventsDataTransportTests
         finally
         {
             listener.Dispose();
+        }
+    }
+
+    private static void EnsureUserEventsEnabled()
+    {
+        using var userEventsEnableTest = ConsoleCommand.Run("cat", "/sys/kernel/tracing/user_events_status");
+        if (userEventsEnableTest.Errors.Any())
+        {
+            throw new NotSupportedException("Kernel does not support user_events. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
         }
     }
 
