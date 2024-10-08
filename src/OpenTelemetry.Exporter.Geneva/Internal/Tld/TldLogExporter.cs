@@ -351,7 +351,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         if (!namePopulated)
         {
-            eb.AddCountedAnsiString("name", logRecord.CategoryName, Encoding.UTF8);
+            eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)

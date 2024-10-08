@@ -136,7 +136,7 @@ internal abstract class TldExporter
                     repr = $"ERROR: type {value!.GetType().FullName} is not supported";
                 }
 
-                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr?.Length ?? 0, StringLengthLimit));
+                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
                 break;
         }
     }

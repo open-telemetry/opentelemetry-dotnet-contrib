@@ -14,8 +14,8 @@ internal sealed class TlvMetricExporter : IDisposable
     private readonly ushort prepopulatedDimensionsCount;
     private readonly int fixedPayloadStartIndex;
     private readonly IMetricDataTransport metricDataTransport;
-    private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
-    private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
     private readonly string defaultMonitoringAccount;
     private readonly string defaultMetricNamespace;

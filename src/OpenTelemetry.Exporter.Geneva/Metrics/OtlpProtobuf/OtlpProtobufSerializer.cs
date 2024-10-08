@@ -15,13 +15,13 @@ internal sealed class OtlpProtobufSerializer
     private const int TagAndLengthSize = 4;
 
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
-    private readonly string metricNamespace;
-    private readonly string metricAccount;
-    private readonly byte[] prepopulatedNumberDataPointAttributes;
+    private readonly string? metricNamespace;
+    private readonly string? metricAccount;
+    private readonly byte[]? prepopulatedNumberDataPointAttributes;
     private readonly int prepopulatedNumberDataPointAttributesLength;
-    private readonly byte[] prepopulatedHistogramDataPointAttributes;
+    private readonly byte[]? prepopulatedHistogramDataPointAttributes;
     private readonly int prepopulatedHistogramDataPointAttributesLength;
-    private readonly byte[] prepopulatedExponentialHistogramDataPointAttributes;
+    private readonly byte[]? prepopulatedExponentialHistogramDataPointAttributes;
     private readonly int prepopulatedExponentialHistogramDataPointAttributesLength;
     private int resourceMetricTagAndLengthIndex;
     private int scopeMetricsTagAndLengthIndex;
@@ -35,7 +35,7 @@ internal sealed class OtlpProtobufSerializer
     private int metricPointValueIndex;
     private ExportResult metricExportResult;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object?>? prepopulatedMetricDimensions)
     {
         Guard.ThrowIfNull(metricDataTransport);
 
@@ -102,7 +102,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    internal static void SerializeInstrumentationScope(byte[] buffer, ref int cursor, string name, IEnumerable<KeyValuePair<string, object>> meterTags)
+    internal static void SerializeInstrumentationScope(byte[] buffer, ref int cursor, string name, IEnumerable<KeyValuePair<string, object?>>? meterTags)
     {
         int tagAndLengthIndex = cursor;
         cursor += TagAndLengthSize;
@@ -148,7 +148,7 @@ internal sealed class OtlpProtobufSerializer
             {
                 case char:
                 case string:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture));
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture)!);
                     break;
                 case bool b:
                     ProtobufSerializerHelper.WriteBoolWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_bool_value, (bool)value);
@@ -168,7 +168,7 @@ internal sealed class OtlpProtobufSerializer
                     ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_double_value, Convert.ToDouble(value, CultureInfo.InvariantCulture));
                     break;
                 default:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture));
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture)!);
                     break;
 
                     // TODO: Handle array type.
@@ -280,11 +280,11 @@ internal sealed class OtlpProtobufSerializer
         {
             // Casting to ulong is ok here as the bit representation for long versus ulong will be the same
             // The difference would in the way the bit representation is interpreted on decoding side (signed versus unsigned)
-            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_int, (ulong)(long)(object)value);
+            ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_int, (ulong)(long)(object)value!);
         }
         else if (typeof(T) == typeof(double))
         {
-            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_double, (double)(object)value);
+            ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.Exemplar_as_double, (double)(object)value!);
         }
 
         var time = (ulong)exemplar.Timestamp.ToUnixTimeNanoseconds();
@@ -309,11 +309,14 @@ internal sealed class OtlpProtobufSerializer
     {
         foreach (var tag in tags)
         {
-            SerializeTag(buffer, ref cursor, tag.Key, tag.Value, FieldNumberConstants.Exemplar_attributes);
+            if (tag.Value != null)
+            {
+                SerializeTag(buffer, ref cursor, tag.Key, tag.Value, FieldNumberConstants.Exemplar_attributes);
+            }
         }
     }
 
-    private static void SerializeTags(byte[] buffer, ref int cursor, IEnumerable<KeyValuePair<string, object>> attributes, int fieldNumber)
+    private static void SerializeTags(byte[] buffer, ref int cursor, IEnumerable<KeyValuePair<string, object?>>? attributes, int fieldNumber)
     {
         if (attributes != null)
         {
