@@ -190,7 +190,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var cursor = 0;
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 3);
 
-        var categoryName = logRecord.CategoryName;
+        var categoryName = logRecord.CategoryName!;
 
         cursor = this.m_tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out ReadOnlySpan<byte> eventName);
 

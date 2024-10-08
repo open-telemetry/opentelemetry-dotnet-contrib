@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Globalization;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -53,8 +54,10 @@ internal sealed class OtlpProtobufSerializer
 
     internal IMetricDataTransport MetricDataTransport;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object?> prepopulatedMetricDimensions)
+    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder? connectionStringBuilder, IReadOnlyDictionary<string, object?>? prepopulatedMetricDimensions)
     {
+        Guard.ThrowIfNull(metricDataTransport);
+
         this.MetricDataTransport = metricDataTransport;
 
         // Taking a arbitrary number here for writing attributes.
