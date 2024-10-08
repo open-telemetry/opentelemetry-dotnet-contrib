@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Reflection;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
@@ -29,20 +31,19 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly IDisposable exporter;
 
-    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
-
     private readonly ExportMetricsFunc exportMetrics;
 
     private bool isDisposed;
 
     private Resource? resource;
 
-    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaMetricExporterOptions"/>.</param>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
@@ -51,7 +52,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             DisableOpenTelemetrySdkMetricNameValidation();
         }
 
-        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
         {
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
@@ -72,25 +73,14 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         }
     }
 
+    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            this.exporter.Dispose();
-        }
-
-        this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
@@ -109,7 +99,24 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
-#if NET7_0_OR_GREATER
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            this.exporter.Dispose();
+        }
+
+        this.isDisposed = true;
+        base.Dispose(disposing);
+    }
+
+#if NET
     [GeneratedRegex(DisableRegexPattern)]
     private static partial Regex GetDisableRegexPattern();
 #else

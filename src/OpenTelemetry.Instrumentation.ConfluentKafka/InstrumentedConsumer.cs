@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Text;
 using Confluent.Kafka;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
@@ -11,8 +10,6 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 
 internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
-    private const string ReceiveOperationName = "receive";
-    private const string KafkaMessagingSystem = "kafka";
     private readonly IConsumer<TKey, TValue> consumer;
     private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
 
@@ -265,17 +262,6 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private static string FormatConsumeException(ConsumeException consumeException) =>
         $"ConsumeException: {consumeException.Error}";
 
-    private static PropagationContext ExtractPropagationContext(Headers? headers)
-        => Propagators.DefaultTextMapPropagator.Extract(default, headers, ExtractTraceContext);
-
-    private static IEnumerable<string> ExtractTraceContext(Headers? headers, string value)
-    {
-        if (headers?.TryGetLastBytes(value, out var bytes) == true)
-        {
-            yield return Encoding.UTF8.GetString(bytes);
-        }
-    }
-
     private static ConsumeResult ExtractConsumeResult(ConsumeResult<TKey, TValue> result) => result switch
     {
         null => new ConsumeResult(null, null),
@@ -296,10 +282,10 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         {
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingOperation,
-                ReceiveOperationName),
+                ConfluentKafkaCommon.ReceiveOperationName),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingSystem,
-                KafkaMessagingSystem),
+                ConfluentKafkaCommon.KafkaMessagingSystem),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingDestinationName,
                 topic),
@@ -335,7 +321,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         if (this.options.Traces)
         {
             PropagationContext propagationContext = consumeResult.Headers != null
-                ? ExtractPropagationContext(consumeResult.Headers)
+                ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
                 : default;
 
             using Activity? activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
@@ -364,8 +350,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
     {
         var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
-            ? ReceiveOperationName
-            : string.Concat(topicPartitionOffset!.Topic, " ", ReceiveOperationName);
+            ? ConfluentKafkaCommon.ReceiveOperationName
+            : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ReceiveOperationName);
 
         ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
             ? new[] { new ActivityLink(propagationContext.ActivityContext) }
@@ -374,13 +360,13 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, KafkaMessagingSystem);
+            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
             activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
             activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset?.Topic);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, topicPartitionOffset?.Partition.Value);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageOffset, topicPartitionOffset?.Offset.Value);
             activity.SetTag(SemanticConventions.AttributeMessagingKafkaConsumerGroup, this.GroupId);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ReceiveOperationName);
+            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.ReceiveOperationName);
             if (key != null)
             {
                 activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);

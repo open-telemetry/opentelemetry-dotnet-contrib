@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Internal;
@@ -8,6 +10,9 @@ using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains extension methods to register the Geneva metrics exporter.
+/// </summary>
 public static class GenevaMetricExporterExtensions
 {
     /// <summary>
@@ -22,7 +27,7 @@ public static class GenevaMetricExporterExtensions
     /// Adds <see cref="GenevaMetricExporter"/> to the <see cref="MeterProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> builder to use.</param>
-    /// <param name="configure">Exporter configuration options.</param>
+    /// <param name="configure">Callback action for configuring <see cref="GenevaMetricExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddGenevaMetricExporter(this MeterProviderBuilder builder, Action<GenevaMetricExporterOptions> configure)
         => AddGenevaMetricExporter(builder, name: null, configure);
@@ -31,10 +36,13 @@ public static class GenevaMetricExporterExtensions
     /// Adds <see cref="GenevaMetricExporter"/> to the <see cref="MeterProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> builder to use.</param>
-    /// /// <param name="name">Name which is used when retrieving options.</param>
-    /// <param name="configure">Exporter configuration options.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaMetricExporterOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
-    public static MeterProviderBuilder AddGenevaMetricExporter(this MeterProviderBuilder builder, string? name, Action<GenevaMetricExporterOptions>? configure)
+    public static MeterProviderBuilder AddGenevaMetricExporter(
+        this MeterProviderBuilder builder,
+        string? name,
+        Action<GenevaMetricExporterOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -53,10 +61,21 @@ public static class GenevaMetricExporterExtensions
         });
     }
 
-    private static PeriodicExportingMetricReader BuildGenevaMetricExporter(GenevaMetricExporterOptions options, Action<GenevaMetricExporterOptions>? configure = null)
+    private static PeriodicExportingMetricReader BuildGenevaMetricExporter(
+        GenevaMetricExporterOptions options,
+        Action<GenevaMetricExporterOptions>? configure = null)
     {
         configure?.Invoke(options);
-        return new PeriodicExportingMetricReader(new GenevaMetricExporter(options), options.MetricExportIntervalMilliseconds)
-        { TemporalityPreference = MetricReaderTemporalityPreference.Delta };
+
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var exporter = new GenevaMetricExporter(options);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
+        return new PeriodicExportingMetricReader(
+            exporter,
+            options.MetricExportIntervalMilliseconds)
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
     }
 }

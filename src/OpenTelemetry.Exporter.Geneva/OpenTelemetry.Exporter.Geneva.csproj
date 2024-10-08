@@ -1,14 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <Import Project=".\Common.GenevaExporter.props"/>
 
   <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS</Description>
-    <Authors>OpenTelemetry Authors</Authors>
-    <NoWarn>$(NoWarn),CS1591,SA1123,SA1310,CA1810,CA1822,CA2000,CA2208,SA1201,SA1202,SA1308,SA1309,SA1311,SA1402,SA1602,SA1649,OTEL1002</NoWarn>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0;net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS.</Description>
+    <PackageThirdPartyNoticesFile>THIRD-PARTY-NOTICES.TXT</PackageThirdPartyNoticesFile>
+    <!-- Tweak style rules for Geneva: Allow underscores in constant names and allow regions inside code blocks -->
+    <NoWarn>$(NoWarn);SA1123;SA1310</NoWarn>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
   </PropertyGroup>
@@ -16,6 +18,11 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.0.0" Condition="'$(TargetFramework)' == 'net462'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Note: Only include LinuxTracepoints-Net files for net8.0+ targets -->
+    <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

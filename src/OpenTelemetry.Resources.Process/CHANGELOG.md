@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET 8/.NET Standard 2.0 targets.
+  ([#2170](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2170))
+
+## 0.1.0-beta.3
+
+Released 2024-Sep-25
+
+* Properly dispose of System.Diagnostics.Process class instances
+  ([#2101](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2101))
+
 ## 0.1.0-beta.2
 
 Released 2024-Jun-18

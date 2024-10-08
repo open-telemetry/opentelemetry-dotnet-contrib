@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET</Description>
+    <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWSLambda-</MinVerTagPrefix>
   </PropertyGroup>
@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
+    <PackageReference Include="Amazon.Lambda.ApplicationLoadBalancerEvents" Version="2.2.0" />
     <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
     <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
     <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />

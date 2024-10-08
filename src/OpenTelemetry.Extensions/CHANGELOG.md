@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Dropped support for the `net7.0` target because .NET 7 is no longer supported.
+  ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
+
 * Update BaggageActivityProcessor to require baggage key predicate.
   ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
 
@@ -12,6 +15,9 @@
 rate per second. For details see
   [RateLimitingSampler](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Extensions#ratelimitingsampler).
   ([#1996](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1996))
+
+* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
+  ([#2124](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2124))
 
 ## 1.0.0-beta.5
 

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
+  ([#2172](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2172))
+
+## 0.1.0-alpha.2
+
+Released 2024-Sep-09
+
+* Performance problem fix for calling event source when required.
+  ([#2046](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2046))
+
 ## 0.1.0-alpha.1
 
 Released 2024-Jun-20

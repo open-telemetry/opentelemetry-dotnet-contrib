@@ -3,7 +3,7 @@
 | Status        |           |
 | ------------- |-----------|
 | Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@vishweshbankwar](https://github.com/vishweshbankwar), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj)|
+| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj), [@TimothyMothra](https://github.com/TimothyMothra)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)
@@ -98,9 +98,9 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 ## Azure Container Apps Resource Detector
 
-Adds resource attributes for the applications running in Azure Container Apps.
-The following example shows how to add `AzureContainerAppsResourceDetector` to
-the `ResourceBuilder`.
+Adds resource attributes for the applications running in Azure Container Apps
+or Azure Container App jobs. The following example shows how to add
+`AzureContainerAppsResourceDetector` to the `ResourceBuilder`.
 
 ```csharp
 using OpenTelemetry;
@@ -122,5 +122,5 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 | cloud.platform          | The cloud platform. Here, it's always "azure_container_apps".                                                                                                                                             |
 | cloud.provider          | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
 | service.instance.id     | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                                                                                                         |
-| service.name            | The name of the Azure Container Apps.                                                                                                                                                                     |
-| service.version         | The current revision or version of Azure Container Apps.                                                                                                                                                  |
+| service.name            | The name of the Azure Container Apps or Azure Container Apps job.                                                                                                                                         |
+| service.version         | The current revision or version of Azure Container Apps, or in case of a Azure Container Apps job - the job execution name.                                                                               |

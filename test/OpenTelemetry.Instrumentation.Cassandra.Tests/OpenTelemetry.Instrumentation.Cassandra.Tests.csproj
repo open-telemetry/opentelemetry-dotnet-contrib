@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-      <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-      <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+      <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+      <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     </PropertyGroup>
 
 
@@ -10,6 +10,8 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsHostingPkgVer)" />
+    <!-- System.Text.Json is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-hh2w-p6rv-4g7w -->
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
 
@@ -20,4 +22,5 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Cassandra\OpenTelemetry.Instrumentation.Cassandra.csproj" />
   </ItemGroup>
+
 </Project>

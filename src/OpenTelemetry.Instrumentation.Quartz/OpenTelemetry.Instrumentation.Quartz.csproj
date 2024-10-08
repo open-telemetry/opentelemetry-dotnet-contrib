@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
+    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Quartz.NET Instrumentation</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
@@ -26,4 +27,5 @@
     <Compile Include="$(RepoRoot)\src\Shared\ListenerHandler.cs" Link="Includes\ListenerHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
   </ItemGroup>
+
 </Project>

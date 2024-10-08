@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using Xunit;
 using Xunit.Sdk;
 
@@ -24,11 +25,11 @@ public class MessagePackSerializerTests
         }
     }
 
-    private void MessagePackSerializer_TestSerialization(object obj)
+    private void MessagePackSerializer_TestSerialization<T>(T value)
     {
         var buffer = new byte[64 * 1024];
-        var length = MessagePackSerializer.Serialize(buffer, 0, obj);
-        this.AssertBytes(MessagePack.MessagePackSerializer.Serialize(obj), buffer, length);
+        var length = MessagePackSerializer.Serialize(buffer, 0, value);
+        this.AssertBytes(MessagePack.MessagePackSerializer.Serialize(value), buffer, length);
     }
 
     private void MessagePackSerializer_TestASCIIStringSerialization(string input)
@@ -133,7 +134,7 @@ public class MessagePackSerializerTests
     [Fact]
     public void MessagePackSerializer_Null()
     {
-        this.MessagePackSerializer_TestSerialization(null);
+        this.MessagePackSerializer_TestSerialization<object>(null);
     }
 
     [Fact]

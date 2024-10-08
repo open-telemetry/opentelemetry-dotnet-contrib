@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for ASP.NET HttpModule</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Unit test project for ASP.NET HttpModule.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,4 +27,5 @@
       <Link>Resources\web.config.uninstall.xdt</Link>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>

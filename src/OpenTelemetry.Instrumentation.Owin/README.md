@@ -59,6 +59,25 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
         .Build();
 ```
 
+Following list of attributes are added by default on activity. See
+[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md)
+for more details about each individual attribute:
+
+* `http.request.method`
+* `http.request.method_original`
+* `http.response.status_code`
+* `network.protocol.version`
+* `user_agent.original`
+* `server.address`
+* `server.port`
+* `url.path`
+* `url.query` - By default, the values in the query component are replaced with
+  the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
+  `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
+  environment variable
+  `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
+* `url.scheme`
+
 #### Configure OpenTelemetry MeterProvider
 
 Call the `AddOwinInstrumentation` `MeterProviderBuilder` extension to register

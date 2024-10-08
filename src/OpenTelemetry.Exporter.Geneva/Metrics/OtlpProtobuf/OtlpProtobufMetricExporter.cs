@@ -25,7 +25,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
         this.getResource = getResource;
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricWindowsEventTracingDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
     }
 
     public ExportResult Export(in Batch<Metric> batch)

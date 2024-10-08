@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry Quartz.NET instrumentation</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net472</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry Quartz.NET instrumentation.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-    <PackageReference Include="Quartz" Version="3.3.2" />
+    <PackageReference Include="Quartz" Version="3.6.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,4 +20,5 @@
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
   </ItemGroup>
+
 </Project>

@@ -5,7 +5,7 @@ using Amazon.Runtime.Telemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
-internal class AWSMeter : Meter
+internal sealed class AWSMeter : Meter
 {
     private readonly System.Diagnostics.Metrics.Meter meter;
 
@@ -24,8 +24,7 @@ internal class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        var upDownCounter = this.meter.CreateUpDownCounter<T>(name, units, description);
-        return new AWSUpDownCounter<T>(upDownCounter);
+        return new AWSUpDownCounter<T>(this.meter, name, units, description);
     }
 
     public override MonotonicCounter<T> CreateMonotonicCounter<T>(
@@ -34,8 +33,7 @@ internal class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        var counter = this.meter.CreateCounter<T>(name, units, description);
-        return new AWSMonotonicCounter<T>(counter);
+        return new AWSMonotonicCounter<T>(this.meter, name, units, description);
     }
 
     public override Histogram<T> CreateHistogram<T>(
@@ -44,8 +42,7 @@ internal class AWSMeter : Meter
         string? description = null)
         where T : struct
     {
-        var histogram = this.meter.CreateHistogram<T>(name, units, description);
-        return new AWSHistogram<T>(histogram);
+        return new AWSHistogram<T>(this.meter, name, units, description);
     }
 
     protected override void Dispose(bool disposing)

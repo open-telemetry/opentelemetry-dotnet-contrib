@@ -70,6 +70,9 @@ that is larger than the buffer size of the recording session.
 Most ETW decoding tools are unable to decode an event with more than 128
 fields.
 */
+
+#nullable enable
+
 namespace OpenTelemetry.Exporter.Geneva.External;
 
 using System;
@@ -315,7 +318,7 @@ internal sealed class EventProvider
 
             // Guid = Hash[0..15], with Hash[7] tweaked approximately following RFC 4122
             byte[] guidBytes = new byte[16];
-            Buffer.BlockCopy(sha1.Hash, 0, guidBytes, 0, 16);
+            Buffer.BlockCopy(sha1.Hash!, 0, guidBytes, 0, 16);
             guidBytes[7] = (byte)((guidBytes[7] & 0x0F) | 0x50);
             return new Guid(guidBytes);
         }
