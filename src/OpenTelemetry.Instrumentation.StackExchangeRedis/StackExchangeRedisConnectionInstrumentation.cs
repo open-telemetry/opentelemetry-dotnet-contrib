@@ -17,16 +17,14 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
-    internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
-    internal const string RedisFlagsKeyName = "db.redis.flags";
     internal static readonly Assembly Assembly = typeof(StackExchangeRedisConnectionInstrumentation).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
-    internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
-    {
+    internal static readonly KeyValuePair<string, object?>[] CreationTags =
+    [
         new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
-    };
+    ];
 
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
         = new();
@@ -50,6 +48,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     {
         Guard.ThrowIfNull(connection);
 
+        this.Connection = connection;
         this.options = options ?? new StackExchangeRedisInstrumentationOptions();
 
         this.drainThread = new Thread(this.DrainEntries)
@@ -61,6 +60,8 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
         connection.RegisterProfiler(this.GetProfilerSessionsFactory());
     }
+
+    internal IConnectionMultiplexer Connection { get; }
 
     /// <summary>
     /// Returns session for the Redis calls recording.
@@ -108,7 +109,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 
     internal void Flush()
     {
-        RedisProfilerEntryToActivityConverter.DrainSession(null, this.defaultSession.FinishProfiling(), this.options);
+        RedisProfilerEntryInstrumenter.DrainSession(null, this.defaultSession.FinishProfiling(), RedisMetrics.Instance, this.options);
 
         foreach (var entry in this.Cache)
         {
@@ -120,7 +121,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             }
 
             ProfilingSession session = entry.Value.Session;
-            RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
+            RedisProfilerEntryInstrumenter.DrainSession(parent, session.FinishProfiling(), RedisMetrics.Instance, this.options);
             this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
         }
     }
