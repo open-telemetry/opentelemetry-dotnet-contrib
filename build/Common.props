@@ -35,8 +35,8 @@
     <MinVerPkgVer>[5.0.0,6.0)</MinVerPkgVer>
     <MicrosoftExtensionsConfigurationBinderPkgVer>[8.0.1,)</MicrosoftExtensionsConfigurationBinderPkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
-    <MicrosoftExtensionsConfigurationPkgVer>8.0.0</MicrosoftExtensionsConfigurationPkgVer>
-    <MicrosoftExtensionsOptionsPkgVer>8.0.0</MicrosoftExtensionsOptionsPkgVer>
+    <MicrosoftExtensionsConfigurationPkgVer>[8.0.0,)</MicrosoftExtensionsConfigurationPkgVer>
+    <MicrosoftExtensionsOptionsPkgVer>[8.0.0,)</MicrosoftExtensionsOptionsPkgVer>
     <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.11.0-beta1.23525.2]</MicrosoftPublicApiAnalyzersPkgVer>
@@ -49,8 +49,13 @@
     <CassandraCSharpDriverPkgVer>[3.16.0,4.0)</CassandraCSharpDriverPkgVer>
     <StyleCopAnalyzersPkgVer>[1.2.0-beta.556,2.0)</StyleCopAnalyzersPkgVer>
     <SystemNetHttp>[4.3.4,)</SystemNetHttp>
-    <SystemReflectionEmitLightweightPkgVer>4.7.0</SystemReflectionEmitLightweightPkgVer>
-    <SystemTextJsonPkgVer>[6.0.0,)</SystemTextJsonPkgVer>
+    <SystemReflectionEmitLightweightPkgVer>[4.7.0,)</SystemReflectionEmitLightweightPkgVer>
+
+    <!-- Note: Special handling is performed for System.Text.Json. -->
+    <SystemTextEncodingsWebMinimumOutOfBandPkgVer>[4.7.2,)</SystemTextEncodingsWebMinimumOutOfBandPkgVer>
+    <SystemTextJsonMinimumOutOfBandPkgVer>[4.7.2,)</SystemTextJsonMinimumOutOfBandPkgVer>
+    <SystemTextJsonLatestNet6OutOfBandPkgVer>[6.0.10,)</SystemTextJsonLatestNet6OutOfBandPkgVer>
+    <SystemTextJsonLatestNet8OutOfBandPkgVer>[8.0.5,)</SystemTextJsonLatestNet8OutOfBandPkgVer>
   </PropertyGroup>
 
   <ItemGroup>
