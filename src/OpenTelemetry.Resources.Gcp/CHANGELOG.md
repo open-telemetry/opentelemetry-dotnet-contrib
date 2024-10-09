@@ -15,4 +15,4 @@
 * Added direct reference to `System.Text.Json` for the `net8.0` target with
   minimum version of `8.0.5` in response to
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
-  ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2198))
+  ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2198))
