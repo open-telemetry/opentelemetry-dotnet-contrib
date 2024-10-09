@@ -23,12 +23,12 @@ public static class ContainerAttributes
     public const string AttributeContainerCommand = "container.command";
 
     /// <summary>
-    /// All the command arguments (including the command/executable itself) run by the container. [2].
+    /// All the command arguments (including the command/executable itself) run by the container.
     /// </summary>
     public const string AttributeContainerCommandArgs = "container.command_args";
 
     /// <summary>
-    /// The full command run by the container as a single string representing the full command. [2].
+    /// The full command run by the container as a single string representing the full command.
     /// </summary>
     public const string AttributeContainerCommandLine = "container.command_line";
 
@@ -39,7 +39,23 @@ public static class ContainerAttributes
     public const string AttributeContainerCpuState = "container.cpu.state";
 
     /// <summary>
-    /// Container ID. Usually a UUID, as for example used to <a href="https://docs.docker.com/engine/reference/run/#container-identification">identify Docker containers</a>. The UUID might be abbreviated.
+    /// The name of the CSI (<a href="https://github.com/container-storage-interface/spec">Container Storage Interface</a>) plugin used by the volume.
+    /// </summary>
+    /// <remarks>
+    /// This can sometimes be referred to as a "driver" in CSI implementations. This should represent the <c>name</c> field of the GetPluginInfo RPC.
+    /// </remarks>
+    public const string AttributeContainerCsiPluginName = "container.csi.plugin.name";
+
+    /// <summary>
+    /// The unique volume ID returned by the CSI (<a href="https://github.com/container-storage-interface/spec">Container Storage Interface</a>) plugin.
+    /// </summary>
+    /// <remarks>
+    /// This can sometimes be referred to as a "volume handle" in CSI implementations. This should represent the <c>Volume.volume_id</c> field in CSI spec.
+    /// </remarks>
+    public const string AttributeContainerCsiVolumeId = "container.csi.volume.id";
+
+    /// <summary>
+    /// Container ID. Usually a UUID, as for example used to <a href="https://docs.docker.com/engine/containers/run/#container-identification">identify Docker containers</a>. The UUID might be abbreviated.
     /// </summary>
     public const string AttributeContainerId = "container.id";
 
