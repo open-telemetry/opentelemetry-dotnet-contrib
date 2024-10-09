@@ -8,7 +8,7 @@
 * Bumped `System.Text.Json` reference to `6.0.10` for runtimes older than
   `net8.0` and bumped to `8.0.5` on `net8.0` in response to
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet/pull/XXXX))
+  ([#2196](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2196))
 
 ## 1.10.0-alpha.1
 
