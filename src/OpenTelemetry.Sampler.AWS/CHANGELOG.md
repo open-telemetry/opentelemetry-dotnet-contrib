@@ -10,7 +10,7 @@
   `net8.0` in response to
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2197](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2197),
-  [#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  [#2199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2199))
 
 * Removed the `System.Net.Http` package reference from all targets.
   ([#2197](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2197))

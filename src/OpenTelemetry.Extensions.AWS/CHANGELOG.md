@@ -10,7 +10,7 @@
   `net8.0` in response to
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2197](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2197),
-  [#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  [#2199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2199))
 
 ## 1.3.0-beta.2
 
