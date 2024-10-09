@@ -6,6 +6,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Resource Detectors for AWS ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>Resources.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -16,7 +17,6 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

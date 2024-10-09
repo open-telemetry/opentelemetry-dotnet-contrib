@@ -14,6 +14,7 @@
     in the future (hopefully .NET 9) see https://github.com/dotnet/runtime/issues/92509 -->
     <NoWarn>$(NoWarn);SYSLIB1100;SYSLIB1101</NoWarn>
     <PackageValidationBaselineVersion>1.9.2</PackageValidationBaselineVersion>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,12 +24,11 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsConfigurationBinderPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net462'" />
+    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
   </ItemGroup>
 
   <ItemGroup>
