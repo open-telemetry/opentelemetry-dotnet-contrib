@@ -10,7 +10,7 @@
     -->
     <PackageReference Include="System.Text.Encodings.Web"
                       Version="$(SystemTextEncodingsWebMinimumOutOfBandPkgVer)"
-                      Condition="'$(SystemTextJsonMinimumRequiredPkgVer)' == '4.7.2' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+                      Condition="($(SystemTextJsonMinimumRequiredPkgVer.StartsWith('[4.7.2')) OR '$(SystemTextJsonMinimumRequiredPkgVer)' == '4.7.2') AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Text.Json"
                       Version="$(SystemTextJsonMinimumRequiredPkgVer)"
                       Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
