@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry Quartz.NET Instrumentation</Description>
+    <Description>OpenTelemetry Quartz.NET Instrumentation.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
   </PropertyGroup>
