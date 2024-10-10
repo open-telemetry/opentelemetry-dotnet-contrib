@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Condition="'$(TargetFramework)' == 'net462'"/>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'"/>
   </ItemGroup>
 
   <ItemGroup>

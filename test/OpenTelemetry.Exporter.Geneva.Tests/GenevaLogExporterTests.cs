@@ -183,7 +183,7 @@ public class GenevaLogExporterTests
 
                         Assert.Single(logRecordList);
                         _ = exporter.SerializeLogRecord(logRecordList[0]);
-                        fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                        fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                         actualTableName = (fluentdData as object[])[0] as string;
                         Assert.Equal(mapping.Value, actualTableName);
                         logRecordList.Clear();
@@ -200,7 +200,7 @@ public class GenevaLogExporterTests
 
                 Assert.Single(logRecordList);
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
                 Assert.Equal(defaultLogTable, actualTableName);
                 logRecordList.Clear();
@@ -302,7 +302,7 @@ public class GenevaLogExporterTests
                     Assert.Single(logRecordList);
 
                     _ = exporter.SerializeLogRecord(logRecordList[0]);
-                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                    fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                     actualTableName = (fluentdData as object[])[0] as string;
                     userInitializedCategoryToTableNameMappings.TryGetValue(mapping.Key, out var expectedTableNme);
                     Assert.Equal(expectedTableNme, actualTableName);
@@ -319,7 +319,7 @@ public class GenevaLogExporterTests
                 Assert.Single(logRecordList);
 
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
-                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
                 string expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
@@ -418,7 +418,7 @@ public class GenevaLogExporterTests
                 _ = receiverSocket.Receive(serializedData);
             }
 
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -540,7 +540,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var body = GetField(fluentdData, "body");
 
             // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
@@ -564,7 +564,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             body = GetField(fluentdData, "body");
 
             // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
@@ -585,7 +585,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             body = GetField(fluentdData, "body");
 
             // Even though Formatter is null, body is populated with the state
@@ -609,7 +609,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             Assert.Equal("Value1", GetField(fluentdData, "Key1"));
 
             body = GetField(fluentdData, "body");
@@ -750,7 +750,7 @@ public class GenevaLogExporterTests
             foreach (var logRecord in logRecordList)
             {
                 _ = exporter.SerializeLogRecord(logRecord);
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
             }
         }
@@ -942,7 +942,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var exceptionType = GetField(fluentdData, "env_ex_type");
             var exceptionMessage = GetField(fluentdData, "env_ex_msg");
             Assert.Equal("System.Exception", exceptionType);
@@ -1035,7 +1035,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
@@ -1055,7 +1055,7 @@ public class GenevaLogExporterTests
             logger.LogInformation(eventId: new EventId(1, "TestEventNameWithLogExtensionMethod"), "Hello from {Name} {Price}.", "tomato", 2.99);
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
@@ -1074,7 +1074,7 @@ public class GenevaLogExporterTests
             logger.LogInformation(eventId: 1, "Hello from {Name} {Price}.", "tomato", 2.99);
 
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             eventName = GetField(fluentdData, "env_name");
             Assert.Equal(hasTableNameMapping ? "CustomTableName" : "Log", eventName);
             #endregion
@@ -1179,7 +1179,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -1282,7 +1282,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;

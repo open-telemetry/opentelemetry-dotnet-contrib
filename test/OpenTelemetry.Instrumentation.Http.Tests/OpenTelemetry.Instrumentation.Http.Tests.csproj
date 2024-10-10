@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry HTTP instrumentations</Description>
-    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry HTTP instrumentations.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>

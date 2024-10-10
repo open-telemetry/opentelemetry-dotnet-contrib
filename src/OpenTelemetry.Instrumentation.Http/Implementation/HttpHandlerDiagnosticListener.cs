@@ -310,7 +310,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
     private static string? GetErrorType(Exception exc)
     {
-#if NET8_0_OR_GREATER
+#if NET
         // For net8.0 and above exception type can be found using HttpRequestError.
         // https://learn.microsoft.com/dotnet/api/system.net.http.httprequesterror?view=net-8.0
         if (exc is HttpRequestException httpRequestException)
