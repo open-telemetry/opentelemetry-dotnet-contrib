@@ -5,7 +5,7 @@
 * Added a direct reference to `System.Text.Json` at `8.0.5` for the
   `netstandard2.0` target in response to
   [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#2202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2202))
 
 ## 1.0.0-alpha.4
 
