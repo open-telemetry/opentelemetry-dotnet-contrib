@@ -6,6 +6,9 @@
   and add .NET 8/.NET Standard 2.0 targets.
   ([#2166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2166))
 
+* Add Kubernetes support.
+  ([#1699](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1699))
+
 ## 1.0.0-beta.9
 
 Released 2024-Jun-18
