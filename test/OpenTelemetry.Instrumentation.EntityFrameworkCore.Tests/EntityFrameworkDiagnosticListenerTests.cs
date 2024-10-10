@@ -66,7 +66,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 {
                     var stateDisplayName = $"{command.CommandType} main";
                     activity1.DisplayName = stateDisplayName;
-                    activity1.SetTag("db.name", stateDisplayName);
+                    activity1.SetTag("db.namespace", stateDisplayName);
                 };
             }).Build();
 
@@ -235,9 +235,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
-        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributeServerAddress);
 
-        Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
 
         if (!isError)
         {
