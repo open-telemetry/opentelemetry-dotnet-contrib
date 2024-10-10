@@ -37,7 +37,7 @@ internal sealed class TestPlatformHelpers
     private static class SystemNativeUnix
     {
 #pragma warning disable CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
-        [DllImport("libc", SetLastError = true)]
+        [DllImport("libc", EntryPoint = "geteuid", SetLastError = true)]
         internal static extern uint GetEUid();
 #pragma warning restore CA5392 // Use DefaultDllImportSearchPaths attribute for P/Invokes
     }
