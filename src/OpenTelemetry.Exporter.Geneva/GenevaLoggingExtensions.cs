@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
@@ -127,7 +124,7 @@ public static class GenevaLoggingExtensions
        BatchExportLogRecordProcessorOptions batchExportLogRecordProcessorOptions,
        GenevaExporterOptions exporterOptions)
     {
-        Debug.Assert(exporterOptions != null, "exporterOptions was null");
+        Guard.ThrowIfNull(batchExportLogRecordProcessorOptions);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
         var exporter = new GenevaLogExporter(exporterOptions!);

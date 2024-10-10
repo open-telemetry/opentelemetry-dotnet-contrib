@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;

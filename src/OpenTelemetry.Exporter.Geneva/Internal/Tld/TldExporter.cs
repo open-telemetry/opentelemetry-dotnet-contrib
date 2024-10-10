@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -36,7 +34,7 @@ internal abstract class TldExporter
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Serialize(EventBuilder eb, string key, object value)
+    protected static void Serialize(EventBuilder eb, string key, object? value)
     {
         Debug.Assert(value != null, "value was null");
 
@@ -126,7 +124,7 @@ internal abstract class TldExporter
                 eb.AddFileTimeArray(key, vdtarray);
                 break;
             default:
-                string repr;
+                string? repr;
                 try
                 {
                     repr = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;

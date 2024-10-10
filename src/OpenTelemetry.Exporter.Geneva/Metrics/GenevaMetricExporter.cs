@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Reflection;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
@@ -57,7 +55,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
                 connectionStringBuilder,
-                options.PrepopulatedMetricDimensions);
+                options.PrepopulatedMetricDimensions!);
 
             this.exporter = otlpProtobufExporter;
 
