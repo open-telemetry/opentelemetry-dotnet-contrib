@@ -15,7 +15,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net6.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net8.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     private readonly ITestOutputHelper output;
 
