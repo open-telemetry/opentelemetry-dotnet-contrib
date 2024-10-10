@@ -5,7 +5,7 @@
     <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS.</Description>
-    <MinVerTagPrefix>Extensions.AWS-</MinVerTagPrefix>
+    <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
     <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonMinimumOutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
