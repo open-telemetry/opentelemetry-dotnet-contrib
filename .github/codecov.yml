@@ -63,6 +63,13 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.AspNetCore
 
+  unittests-Instrumentation.AWS:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.AWS
+      - src/OpenTelemetry.Instrumentation.AWS
+      - src/OpenTelemetry.Instrumentation.AWSLambda
+
   unittests-Instrumentation.ConfluentKafka:
     carryforward: true
     paths:
@@ -119,6 +126,11 @@ flags:
       - src/OpenTelemetry.PersistentStorage.Abstractions
       - src/OpenTelemetry.PersistentStorage.FileSystem
 
+  unittests-Resources.AWS:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Resources.AWS
+
   unittests-Resources.Azure:
     carryforward: true
     paths:
@@ -148,6 +160,11 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Resources.ProcessRuntime
+
+  unittests-Sampler.AWS:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Sampler.AWS
 
   unittests-SemanticConventions:
     carryforward: true
