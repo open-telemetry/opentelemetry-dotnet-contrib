@@ -11,6 +11,10 @@
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2196](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2196))
 
+* Fixed a bug causing extension data specified on `LogRecord`s in a batch to
+  also be applied to subsequent `LogRecord`s in the same batch.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+
 ## 1.10.0-alpha.1
 
 Released 2024-Sep-06
