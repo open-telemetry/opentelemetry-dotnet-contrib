@@ -10,7 +10,7 @@
   OTLP protobuf encoding is enabled via the
   `PrivatePreviewEnableOtlpProtobufEncoding=true` connection string switch. With
   this, `PrivatePreviewEnableOtlpProtobufEncoding=true` is now supported on both
-  Widows and Linux. Windows uses ETW as transport, while Linux uses user-events
+  Widows and Linux. Windows uses ETW as transport, while Linux uses user_events
   as transport.
   ([#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113))
 
