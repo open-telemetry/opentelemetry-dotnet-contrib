@@ -73,7 +73,7 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.TransportException(nameof(UnixDomainSocketDataTransport), "Connection failure", ex);
+            ExporterEventSource.Log.TransportException(nameof(UnixDomainSocketDataTransport), "Attempt to connect to socket failed. Connection will be retried periodically until established.", ex);
 
             return false;
         }
