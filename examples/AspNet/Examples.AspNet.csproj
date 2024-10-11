@@ -57,7 +57,7 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="1.8.0-rc.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="$(OpenTelemetryCoreUnstableLatestVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNet\OpenTelemetry.Instrumentation.AspNet.csproj" />
