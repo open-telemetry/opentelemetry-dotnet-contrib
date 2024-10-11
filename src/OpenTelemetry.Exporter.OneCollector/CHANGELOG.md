@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.9.3
+
+Released 2024-Oct-11
+
 * Fixed a bug causing extension data specified on `LogRecord`s in a batch to
   also be applied to subsequent `LogRecord`s in the same batch.
   ([#2208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2208))
