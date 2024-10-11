@@ -6,7 +6,7 @@
   ([#2125](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2125))
 
 * Removed the unused `System.Text.Json` reference.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#2209](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2209))
 
 ## 1.3.0-beta.2
 
