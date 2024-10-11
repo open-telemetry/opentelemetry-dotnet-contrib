@@ -79,6 +79,7 @@ public static class DbAttributes
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
     /// If the collection name is parsed from the query text, it SHOULD be the first collection name found in the query and it SHOULD match the value provided in the query text including any schema and database name prefix.
     /// For batch operations, if the individual operations are known to have the same collection name then that collection name SHOULD be used, otherwise <c>db.collection.name</c> SHOULD NOT be captured.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbCollectionName = "db.collection.name";
 
@@ -105,7 +106,7 @@ public static class DbAttributes
     public const string AttributeDbCosmosdbContainer = "db.cosmosdb.container";
 
     /// <summary>
-    /// CosmosDB Operation Type.
+    /// Cosmos DB Operation Type.
     /// </summary>
     public const string AttributeDbCosmosdbOperationType = "db.cosmosdb.operation_type";
 
@@ -120,8 +121,9 @@ public static class DbAttributes
     public const string AttributeDbCosmosdbRequestContentLength = "db.cosmosdb.request_content_length";
 
     /// <summary>
-    /// Cosmos DB status code.
+    /// Deprecated, use <c>db.response.status_code</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.response.status_code</c>.")]
     public const string AttributeDbCosmosdbStatusCode = "db.cosmosdb.status_code";
 
     /// <summary>
@@ -185,6 +187,7 @@ public static class DbAttributes
     /// If a database system has multiple namespace components, they SHOULD be concatenated (potentially using database system specific conventions) from most general to most specific namespace component, and more specific namespaces SHOULD NOT be captured without the more general namespaces, to ensure that "startswith" queries for the more general namespaces will be valid.
     /// Semantic conventions for individual database systems SHOULD document what <c>db.namespace</c> means in the context of that system.
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbNamespace = "db.namespace";
 
@@ -195,10 +198,11 @@ public static class DbAttributes
     public const string AttributeDbOperation = "db.operation";
 
     /// <summary>
-    /// The number of queries included in a <a href="/docs/database/database-spans.md#batch-operations">batch operation</a>.
+    /// The number of queries included in a batch operation.
     /// </summary>
     /// <remarks>
     /// Operations are only considered batches when they contain two or more operations, and so <c>db.operation.batch.size</c> SHOULD never be <c>1</c>.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
 
@@ -209,6 +213,7 @@ public static class DbAttributes
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
     /// If the operation name is parsed from the query text, it SHOULD be the first operation name found in the query.
     /// For batch operations, if the individual operations are known to have the same operation name then that operation name SHOULD be used prepended by <c>BATCH </c>, otherwise <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database system specific term if more applicable.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationName = "db.operation.name";
 
@@ -218,6 +223,7 @@ public static class DbAttributes
     /// <remarks>
     /// Query parameters should only be captured when <c>db.query.text</c> is parameterized with placeholders.
     /// If a parameter has no name and instead is referenced only by index, then <c><key></c> SHOULD be the 0-based index.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbQueryParameterTemplate = "db.query.parameter";
 
@@ -228,6 +234,7 @@ public static class DbAttributes
     /// For sanitization see <a href="../../docs/database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
     /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
     /// Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbQueryText = "db.query.text";
 
@@ -236,6 +243,16 @@ public static class DbAttributes
     /// </summary>
     [Obsolete("Replaced by <c>db.namespace</c>.")]
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
+
+    /// <summary>
+    /// Database response status code.
+    /// </summary>
+    /// <remarks>
+    /// The status code returned by the database. Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
+    /// Semantic conventions for individual database systems SHOULD document what <c>db.response.status_code</c> means in the context of that system.
+    /// This attribute has stability level RELEASE CANDIDATE.
+    /// </remarks>
+    public const string AttributeDbResponseStatusCode = "db.response.status_code";
 
     /// <summary>
     /// Deprecated, use <c>db.collection.name</c> instead.
@@ -254,6 +271,7 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// The actual DBMS may differ from the one identified by the client. For example, when using PostgreSQL client libraries to connect to a CockroachDB, the <c>db.system</c> is set to <c>postgresql</c> based on the instrumentation's best knowledge.
+    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbSystem = "db.system";
 
@@ -375,84 +393,84 @@ public static class DbAttributes
     }
 
     /// <summary>
-    /// CosmosDB Operation Type.
+    /// Cosmos DB Operation Type.
     /// </summary>
     public static class DbCosmosdbOperationTypeValues
     {
         /// <summary>
-        /// invalid.
+        /// batch.
         /// </summary>
-        public const string Invalid = "Invalid";
+        public const string Batch = "batch";
 
         /// <summary>
         /// create.
         /// </summary>
-        public const string Create = "Create";
-
-        /// <summary>
-        /// patch.
-        /// </summary>
-        public const string Patch = "Patch";
-
-        /// <summary>
-        /// read.
-        /// </summary>
-        public const string Read = "Read";
-
-        /// <summary>
-        /// read_feed.
-        /// </summary>
-        public const string ReadFeed = "ReadFeed";
+        public const string Create = "create";
 
         /// <summary>
         /// delete.
         /// </summary>
-        public const string Delete = "Delete";
-
-        /// <summary>
-        /// replace.
-        /// </summary>
-        public const string Replace = "Replace";
+        public const string Delete = "delete";
 
         /// <summary>
         /// execute.
         /// </summary>
-        public const string Execute = "Execute";
-
-        /// <summary>
-        /// query.
-        /// </summary>
-        public const string Query = "Query";
-
-        /// <summary>
-        /// head.
-        /// </summary>
-        public const string Head = "Head";
-
-        /// <summary>
-        /// head_feed.
-        /// </summary>
-        public const string HeadFeed = "HeadFeed";
-
-        /// <summary>
-        /// upsert.
-        /// </summary>
-        public const string Upsert = "Upsert";
-
-        /// <summary>
-        /// batch.
-        /// </summary>
-        public const string Batch = "Batch";
-
-        /// <summary>
-        /// query_plan.
-        /// </summary>
-        public const string QueryPlan = "QueryPlan";
+        public const string Execute = "execute";
 
         /// <summary>
         /// execute_javascript.
         /// </summary>
-        public const string ExecuteJavascript = "ExecuteJavaScript";
+        public const string ExecuteJavascript = "execute_javascript";
+
+        /// <summary>
+        /// invalid.
+        /// </summary>
+        public const string Invalid = "invalid";
+
+        /// <summary>
+        /// head.
+        /// </summary>
+        public const string Head = "head";
+
+        /// <summary>
+        /// head_feed.
+        /// </summary>
+        public const string HeadFeed = "head_feed";
+
+        /// <summary>
+        /// patch.
+        /// </summary>
+        public const string Patch = "patch";
+
+        /// <summary>
+        /// query.
+        /// </summary>
+        public const string Query = "query";
+
+        /// <summary>
+        /// query_plan.
+        /// </summary>
+        public const string QueryPlan = "query_plan";
+
+        /// <summary>
+        /// read.
+        /// </summary>
+        public const string Read = "read";
+
+        /// <summary>
+        /// read_feed.
+        /// </summary>
+        public const string ReadFeed = "read_feed";
+
+        /// <summary>
+        /// replace.
+        /// </summary>
+        public const string Replace = "replace";
+
+        /// <summary>
+        /// upsert.
+        /// </summary>
+        public const string Upsert = "upsert";
     }
 
     /// <summary>
@@ -616,7 +634,7 @@ public static class DbAttributes
         public const string Interbase = "interbase";
 
         /// <summary>
-        /// MariaDB.
+        /// MariaDB (This value has stability level RELEASE CANDIDATE).
         /// </summary>
         public const string Mariadb = "mariadb";
 
@@ -636,7 +654,7 @@ public static class DbAttributes
         public const string Mongodb = "mongodb";
 
         /// <summary>
-        /// Microsoft SQL Server.
+        /// Microsoft SQL Server (This value has stability level RELEASE CANDIDATE).
         /// </summary>
         public const string Mssql = "mssql";
 
@@ -646,7 +664,7 @@ public static class DbAttributes
         public const string Mssqlcompact = "mssqlcompact";
 
         /// <summary>
-        /// MySQL.
+        /// MySQL (This value has stability level RELEASE CANDIDATE).
         /// </summary>
         public const string Mysql = "mysql";
 
@@ -681,7 +699,7 @@ public static class DbAttributes
         public const string Pointbase = "pointbase";
 
         /// <summary>
-        /// PostgreSQL.
+        /// PostgreSQL (This value has stability level RELEASE CANDIDATE).
         /// </summary>
         public const string Postgresql = "postgresql";
 

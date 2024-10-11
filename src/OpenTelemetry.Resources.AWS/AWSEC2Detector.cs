@@ -83,10 +83,10 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
-#if NET
-        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
-#else
+#if NETFRAMEWORK
         return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
+#else
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
 #endif
     }
 

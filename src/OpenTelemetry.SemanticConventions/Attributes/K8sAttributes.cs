@@ -165,4 +165,50 @@ public static class K8sAttributes
     /// The UID of the StatefulSet.
     /// </summary>
     public const string AttributeK8sStatefulsetUid = "k8s.statefulset.uid";
+
+    /// <summary>
+    /// The name of the K8s volume.
+    /// </summary>
+    public const string AttributeK8sVolumeName = "k8s.volume.name";
+
+    /// <summary>
+    /// The type of the K8s volume.
+    /// </summary>
+    public const string AttributeK8sVolumeType = "k8s.volume.type";
+
+    /// <summary>
+    /// The type of the K8s volume.
+    /// </summary>
+    public static class K8sVolumeTypeValues
+    {
+        /// <summary>
+        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim">persistentVolumeClaim</a> volume.
+        /// </summary>
+        public const string PersistentVolumeClaim = "persistentVolumeClaim";
+
+        /// <summary>
+        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#configmap">configMap</a> volume.
+        /// </summary>
+        public const string ConfigMap = "configMap";
+
+        /// <summary>
+        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#downwardapi">downwardAPI</a> volume.
+        /// </summary>
+        public const string DownwardApi = "downwardAPI";
+
+        /// <summary>
+        /// An <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#emptydir">emptyDir</a> volume.
+        /// </summary>
+        public const string EmptyDir = "emptyDir";
+
+        /// <summary>
+        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#secret">secret</a> volume.
+        /// </summary>
+        public const string Secret = "secret";
+
+        /// <summary>
+        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#local">local</a> volume.
+        /// </summary>
+        public const string Local = "local";
+    }
 }
