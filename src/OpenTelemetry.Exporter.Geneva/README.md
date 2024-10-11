@@ -268,14 +268,25 @@ On Linux provide an `Endpoint` in addition to the `Account` and `Namespace`.
 For example:
 `Endpoint=unix:{UDS Path};Account={MetricAccount};Namespace={MetricNamespace}`.
 
-Set `PrivatePreviewEnableOtlpProtobufEncoding=true` to opt-in to the
-experimental feature for changing the underlying serialization format to binary
-protobuf following the schema defined in [OTLP
+##### OtlpProtobufEncoding
+
+On Windows set `PrivatePreviewEnableOtlpProtobufEncoding=true` on the
+`ConnectionString` to opt-in to the experimental feature for changing the
+underlying serialization format to binary protobuf following the schema defined
+in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
-> [!NOTE]
- > `PrivatePreviewEnableOtlpProtobufEncoding` is currently
- > only supported in Windows environment.
+As of `1.10.0` `PrivatePreviewEnableOtlpProtobufEncoding=true` is also supported
+on Linux. On Linux when using `PrivatePreviewEnableOtlpProtobufEncoding=true` an
+`Endpoint` is **NOT** required to be provided on `ConnectionString`. For
+example: `Endpoint=unix:Account={MetricAccount};Namespace={MetricNamespace}`.
+
+> [!IMPORTANT]
+> When `PrivatePreviewEnableOtlpProtobufEncoding` is enabled on Linux metrics
+> are written using
+> [user_events](https://docs.kernel.org/trace/user_events.html). `user_events`
+> are a newer feature of the Linux kernel and require a distro with the feature
+> enabled.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
