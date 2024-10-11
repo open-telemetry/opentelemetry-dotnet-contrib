@@ -286,7 +286,7 @@ example: `Endpoint=unix:Account={MetricAccount};Namespace={MetricNamespace}`.
 > are written using
 > [user_events](https://docs.kernel.org/trace/user_events.html). `user_events`
 > are a newer feature of the Linux kernel and require a distro with the feature
-> enabled. Please also ensure you have the latest agent deployed.
+> enabled.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
