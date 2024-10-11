@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFramework)' != 'net7.0' AND '$(TargetFramework)' != 'net6.0'" />
+    <PackageReference Include="System.Text.Json" Version="6.0.10" Condition="'$(TargetFramework)' != 'net7.0' AND '$(TargetFramework)' != 'net6.0'" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsConfigurationBinderPkgVer)" />
   </ItemGroup>
 

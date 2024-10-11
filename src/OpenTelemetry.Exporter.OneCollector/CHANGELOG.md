@@ -6,6 +6,11 @@
   also be applied to subsequent `LogRecord`s in the same batch.
   ([#2208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2208))
 
+* Bumped the `System.Text.Json` reference to `6.0.10` for the `net462`,
+  `netstandard2.0`, and `netstandard2.1` targets in response to
+  [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).
+  ([#2208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2208))
+
 ## 1.9.2
 
 Released 2024-Aug-12
