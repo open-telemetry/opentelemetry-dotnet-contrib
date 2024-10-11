@@ -34,7 +34,7 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
 
             ExporterEventSource.Log.TransportInformation(
                 nameof(MetricUnixUserEventsDataTransport),
-                $"Tracepoint registration for 'otlp_metrics' failed with recoverable result: '{this.metricsTracepoint.RegisterResult}'. Entering running state.");
+                $"Tracepoint registration operation for 'otlp_metrics' returned result '{this.metricsTracepoint.RegisterResult}' which is considered recoverable. Entering running state.");
         }
     }
 
