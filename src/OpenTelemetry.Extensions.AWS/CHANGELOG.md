@@ -5,12 +5,8 @@
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2125](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2125))
 
-* Lowered the `System.Text.Json` reference to `4.7.2` for runtimes older than
-  `net8.0` and added a direct reference for `System.Text.Json` at `8.0.5` on
-  `net8.0` in response to
-  [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
-  ([#2197](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2197),
-  [#2199](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2199))
+* Removed the unused `System.Text.Json` reference.
+  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
 
 ## 1.3.0-beta.2
 
