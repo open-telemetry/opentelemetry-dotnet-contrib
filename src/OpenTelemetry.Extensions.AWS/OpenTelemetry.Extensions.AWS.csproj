@@ -6,7 +6,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry extensions for AWS.</Description>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
-    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonMinimumOutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
