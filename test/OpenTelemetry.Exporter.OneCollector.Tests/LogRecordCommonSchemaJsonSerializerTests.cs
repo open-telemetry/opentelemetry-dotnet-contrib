@@ -274,7 +274,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             .Build();
 
         string json = GetLogRecordJson(
-            1,
+            2,
             (index, logRecord) =>
             {
                 logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
@@ -283,7 +283,8 @@ public class LogRecordCommonSchemaJsonSerializerTests
             scopeProvider);
 
         Assert.Equal(
-            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n"
+            + """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n",
             json);
     }
 
