@@ -13,7 +13,7 @@
 
 * Fixed a bug causing extension data specified on `LogRecord`s in a batch to
   also be applied to subsequent `LogRecord`s in the same batch.
-  ([#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX))
+  ([#2205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2205))
 
 ## 1.10.0-alpha.1
 
