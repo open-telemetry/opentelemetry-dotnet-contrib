@@ -142,6 +142,14 @@ internal sealed class CommonSchemaJsonSerializationState
     {
         this.itemType = itemType;
         this.Writer = writer;
+    }
+
+    public void BeginItem()
+    {
+        if (this.allValues.Count <= 0)
+        {
+            return;
+        }
 
         for (int i = 0; i < this.nextKeysToAllValuesLookupIndex; i++)
         {
