@@ -44,7 +44,6 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
@@ -117,7 +116,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         base.Dispose(disposing);
     }
 
-#if NET8_0_OR_GREATER
+#if NET
     [GeneratedRegex(DisableRegexPattern)]
     private static partial Regex GetDisableRegexPattern();
 #else

@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -92,29 +94,26 @@ public class GenevaTraceExporterTests
         Assert.Null(exception);
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void GenevaTraceExporter_constructor_Invalid_Input_Windows()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        // no ETW session name
+        Assert.Throws<NotSupportedException>(() =>
         {
-            // no ETW session name
-            Assert.Throws<NotSupportedException>(() =>
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "key=value",
-                });
+                ConnectionString = "key=value",
             });
+        });
 
-            // empty ETW session name
-            Assert.Throws<ArgumentException>(() =>
+        // empty ETW session name
+        Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
             {
-                using var exporter = new GenevaTraceExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "EtwSession=",
-                });
+                ConnectionString = "EtwSession=",
             });
-        }
+        });
     }
 
     [Fact]
@@ -129,60 +128,57 @@ public class GenevaTraceExporterTests
         });
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void GenevaTraceExporter_Success_Windows()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+        // the ActivitySource used by other unit tests.
+        var sourceName = GetTestMethodName();
+
+        // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource(sourceName)
+            .AddGenevaTraceExporter(options =>
+            {
+                options.ConnectionString = "EtwSession=OpenTelemetry";
+                options.PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                };
+            })
+            .Build();
+
+        var source = new ActivitySource(sourceName);
+        using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
         {
-            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
-            // the ActivitySource used by other unit tests.
-            var sourceName = GetTestMethodName();
-
-            // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
-            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .SetSampler(new AlwaysOnSampler())
-                .AddSource(sourceName)
-                .AddGenevaTraceExporter(options =>
-                {
-                    options.ConnectionString = "EtwSession=OpenTelemetry";
-                    options.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                })
-                .Build();
-
-            var source = new ActivitySource(sourceName);
-            using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
+            parent.SetTag("http.method", "GET");
+            parent.SetTag("http.url", "https://localhost/wiki/Rabbit");
+            using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
             {
-                parent.SetTag("http.method", "GET");
-                parent.SetTag("http.url", "https://localhost/wiki/Rabbit");
-                using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
-                {
-                    child.SetTag("http.method", "GET");
-                    child.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
-                    child.SetTag("http.status_code", 404);
-                }
-
-                parent?.SetTag("http.status_code", 200);
+                child.SetTag("http.method", "GET");
+                child.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+                child.SetTag("http.status_code", 404);
             }
 
-            var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
-            using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, new ActivityLink[] { link }))
-            {
-            }
+            parent?.SetTag("http.status_code", 200);
+        }
 
-            using (var activity = source.StartActivity("Bar"))
-            {
-                activity.SetStatus(Status.Error);
-            }
+        var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
+        using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, new ActivityLink[] { link }))
+        {
+        }
 
-            using (var activity = source.StartActivity("Baz"))
-            {
-                activity.SetStatus(Status.Ok);
-            }
+        using (var activity = source.StartActivity("Bar"))
+        {
+            activity.SetStatus(Status.Error);
+        }
+
+        using (var activity = source.StartActivity("Baz"))
+        {
+            activity.SetStatus(Status.Ok);
         }
     }
 
@@ -336,162 +332,71 @@ public class GenevaTraceExporterTests
         }
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            string path = GetRandomFilePath();
+        string path = GetRandomFilePath();
 
-            // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
-            try
-            {
-                // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
-                // the ActivitySource used by other unit tests.
-                var sourceName = GetTestMethodName();
-                using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                    .SetSampler(new AlwaysOnSampler())
-                    .AddSource(sourceName)
-                    .AddGenevaTraceExporter(options =>
-                    {
-                        options.ConnectionString = "Endpoint=unix:" + path;
-                    })
-                    .Build();
-
-                // GenevaExporter would not throw if it was not able to connect to the UDS socket in ctor. It would
-                // keep attempting to connect to the socket when sending telemetry.
-                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
-            }
-            catch (SocketException ex)
-            {
-                // There is no one to listent to the socket.
-                Assert.Contains("Cannot assign requested address", ex.Message);
-            }
-
-            try
-            {
-                var exporter = new GenevaTraceExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "Endpoint=unix:" + path,
-                });
-                Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
-            }
-            catch (SocketException ex)
-            {
-                // There is no one to listent to the socket.
-                Assert.Contains("Cannot assign requested address", ex.Message);
-            }
-        }
-    }
-
-    [Fact]
-    public void GenevaTraceExporter_Success_Linux()
-    {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            string path = GetRandomFilePath();
-            try
-            {
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
-
-                // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
-                // the ActivitySource used by other unit tests.
-                var sourceName = GetTestMethodName();
-                using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                    .SetSampler(new AlwaysOnSampler())
-                    .AddSource(sourceName)
-                    .AddGenevaTraceExporter(options =>
-                    {
-                        options.ConnectionString = "Endpoint=unix:" + path;
-                        options.PrepopulatedFields = new Dictionary<string, object>
-                        {
-                            ["cloud.role"] = "BusyWorker",
-                            ["cloud.roleInstance"] = "CY1SCH030021417",
-                            ["cloud.roleVer"] = "9.0.15289.2",
-                        };
-                    })
-                    .Build();
-                using Socket serverSocket = server.Accept();
-                serverSocket.ReceiveTimeout = 10000;
-
-                // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-                var exporter = new MsgPackTraceExporter(new GenevaExporterOptions
-                {
-                    ConnectionString = "Endpoint=unix:" + path,
-                    PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    },
-                });
-
-                // Emit trace and grab a copy of internal buffer for validation.
-                var source = new ActivitySource(sourceName);
-                int messagePackDataSize = 0;
-
-                using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
-                {
-                    messagePackDataSize = exporter.SerializeActivity(activity);
-                }
-
-                // Read the data sent via socket.
-                var receivedData = new byte[1024];
-                int receivedDataSize = serverSocket.Receive(receivedData);
-
-                // Validation
-                Assert.Equal(messagePackDataSize, receivedDataSize);
-
-                // Create activity on a different thread to test for multithreading scenarios
-                var thread = new Thread(() =>
-                {
-                    using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
-                    {
-                        messagePackDataSize = exporter.SerializeActivity(activity);
-                    }
-                });
-                thread.Start();
-                thread.Join();
-
-                receivedDataSize = serverSocket.Receive(receivedData);
-                Assert.Equal(messagePackDataSize, receivedDataSize);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                try
-                {
-                    File.Delete(path);
-                }
-                catch
-                {
-                }
-            }
-        }
-    }
-
-    [Fact]
-    public void TLDTraceExporter_Success_Windows()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
+        try
         {
             // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
             // the ActivitySource used by other unit tests.
             var sourceName = GetTestMethodName();
-
-            // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
             using var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
                 .AddSource(sourceName)
                 .AddGenevaTraceExporter(options =>
                 {
-                    options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
+                    options.ConnectionString = "Endpoint=unix:" + path;
+                })
+                .Build();
+
+            // GenevaExporter would not throw if it was not able to connect to the UDS socket in ctor. It would
+            // keep attempting to connect to the socket when sending telemetry.
+            Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
+        }
+        catch (SocketException ex)
+        {
+            // There is no one to listent to the socket.
+            Assert.Contains("Cannot assign requested address", ex.Message);
+        }
+
+        try
+        {
+            var exporter = new GenevaTraceExporter(new GenevaExporterOptions
+            {
+                ConnectionString = "Endpoint=unix:" + path,
+            });
+            Assert.True(true, "GenevaTraceExporter should not fail in constructor.");
+        }
+        catch (SocketException ex)
+        {
+            // There is no one to listent to the socket.
+            Assert.Contains("Cannot assign requested address", ex.Message);
+        }
+    }
+
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
+    public void GenevaTraceExporter_Success_Linux()
+    {
+        string path = GetRandomFilePath();
+        try
+        {
+            var endpoint = new UnixDomainSocketEndPoint(path);
+            using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+            server.Bind(endpoint);
+            server.Listen(1);
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddSource(sourceName)
+                .AddGenevaTraceExporter(options =>
+                {
+                    options.ConnectionString = "Endpoint=unix:" + path;
                     options.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",
@@ -500,17 +405,99 @@ public class GenevaTraceExporterTests
                     };
                 })
                 .Build();
+            using Socket serverSocket = server.Accept();
+            serverSocket.ReceiveTimeout = 10000;
 
-            var source = new ActivitySource(sourceName);
-            using (var activity = source.StartActivity("SayHello"))
+            // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
+            var exporter = new MsgPackTraceExporter(new GenevaExporterOptions
             {
-                activity?.SetTag("foo", 1);
-                activity?.SetTag("bar", "Hello, World!");
-#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-                activity?.SetTag("baz", new int[] { 1, 2, 3 });
-#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-                activity?.SetStatus(ActivityStatusCode.Ok);
+                ConnectionString = "Endpoint=unix:" + path,
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                },
+            });
+
+            // Emit trace and grab a copy of internal buffer for validation.
+            var source = new ActivitySource(sourceName);
+            int messagePackDataSize = 0;
+
+            using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
+            {
+                messagePackDataSize = exporter.SerializeActivity(activity).Count;
             }
+
+            // Read the data sent via socket.
+            var receivedData = new byte[1024];
+            int receivedDataSize = serverSocket.Receive(receivedData);
+
+            // Validation
+            Assert.Equal(messagePackDataSize, receivedDataSize);
+
+            // Create activity on a different thread to test for multithreading scenarios
+            var thread = new Thread(() =>
+            {
+                using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
+                {
+                    messagePackDataSize = exporter.SerializeActivity(activity).Count;
+                }
+            });
+            thread.Start();
+            thread.Join();
+
+            receivedDataSize = serverSocket.Receive(receivedData);
+            Assert.Equal(messagePackDataSize, receivedDataSize);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
+    public void TLDTraceExporter_Success_Windows()
+    {
+        // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+        // the ActivitySource used by other unit tests.
+        var sourceName = GetTestMethodName();
+
+        // TODO: Setup a mock or spy for eventLogger to assert that eventLogger.LogInformationalEvent is actually called.
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(new AlwaysOnSampler())
+            .AddSource(sourceName)
+            .AddGenevaTraceExporter(options =>
+            {
+                options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
+                options.PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                };
+            })
+            .Build();
+
+        var source = new ActivitySource(sourceName);
+        using (var activity = source.StartActivity("SayHello"))
+        {
+            activity?.SetTag("foo", 1);
+            activity?.SetTag("bar", "Hello, World!");
+#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
+            activity?.SetTag("baz", new int[] { 1, 2, 3 });
+#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
     }
 
@@ -559,16 +546,9 @@ public class GenevaTraceExporterTests
     [Fact]
     public void AddGenevaBatchExportProcessorOptions()
     {
-        string connectionString = null;
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            connectionString = "EtwSession=OpenTelemetry";
-        }
-        else
-        {
-            connectionString = "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
-        }
+        var connectionString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "EtwSession=OpenTelemetry"
+            : "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
 
         var sp = new ServiceCollection();
         sp.AddOpenTelemetry().WithTracing(builder => builder

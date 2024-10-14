@@ -15,8 +15,8 @@ namespace OpenTelemetry.SemanticConventions;
 public static class PoolAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>db.client.connections.pool.name</c> instead
+    /// Deprecated, use <c>db.client.connection.pool.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.client.connections.pool.name</c>")]
+    [Obsolete("Replaced by <c>db.client.connection.pool.name</c>.")]
     public const string AttributePoolName = "pool.name";
 }

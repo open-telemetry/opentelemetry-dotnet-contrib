@@ -20,7 +20,7 @@ internal readonly struct TransportSendRequest
 #endif
     }
 
-#if NET8_0_OR_GREATER
+#if NET
     public required string ItemType { get; init; }
 
     public required OneCollectorExporterSerializationFormatType ItemSerializationFormat { get; init; }

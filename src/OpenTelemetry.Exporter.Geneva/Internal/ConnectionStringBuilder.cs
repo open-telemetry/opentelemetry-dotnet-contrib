@@ -3,7 +3,9 @@
 
 #nullable enable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
@@ -20,9 +22,9 @@ internal enum TransportProtocol
 
 internal sealed class ConnectionStringBuilder
 {
-    private readonly Dictionary<string, string> parts = new Dictionary<string, string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> parts = new(StringComparer.Ordinal);
 
-    public ConnectionStringBuilder(string connectionString)
+    public ConnectionStringBuilder([NotNull] string? connectionString)
     {
         Guard.ThrowIfNullOrWhitespace(connectionString);
 

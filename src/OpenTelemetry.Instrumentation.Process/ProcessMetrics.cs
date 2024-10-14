@@ -24,7 +24,8 @@ internal sealed class ProcessMetrics
             "process.memory.usage",
             () =>
             {
-                return Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+                using var process = Diagnostics.Process.GetCurrentProcess();
+                return process.WorkingSet64;
             },
             unit: "By",
             description: "The amount of physical memory in use.");
@@ -33,7 +34,8 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                return Diagnostics.Process.GetCurrentProcess().VirtualMemorySize64;
+                using var process = Diagnostics.Process.GetCurrentProcess();
+                return process.VirtualMemorySize64;
             },
             unit: "By",
             description: "The amount of committed virtual memory.");
@@ -42,7 +44,7 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () =>
             {
-                var process = Diagnostics.Process.GetCurrentProcess();
+                using var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
                     new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "user")),
@@ -65,7 +67,8 @@ internal sealed class ProcessMetrics
             "process.thread.count",
             () =>
             {
-                return Diagnostics.Process.GetCurrentProcess().Threads.Count;
+                using var process = Diagnostics.Process.GetCurrentProcess();
+                return process.Threads.Count;
             },
             unit: "{thread}",
             description: "Process threads count.");

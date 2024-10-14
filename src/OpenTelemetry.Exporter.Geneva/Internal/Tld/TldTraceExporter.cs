@@ -1,24 +1,26 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Geneva.TldExporter;
+namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal sealed class TldTraceExporter : TldExporter, IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
-    private static readonly ThreadLocal<List<KeyValuePair<string, object>>> KeyValuePairs = new();
+    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> KeyValuePairs = new();
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> CS40_PART_B_MAPPING = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
@@ -38,8 +40,8 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     private readonly string partAName = "Span";
     private readonly byte partAFieldsCount = 3; // At least three fields: time, ext_dt_traceId, ext_dt_spanId
-    private readonly HashSet<string> customFields;
-    private readonly Tuple<byte[], byte[]> repeatedPartAFields;
+    private readonly HashSet<string>? customFields;
+    private readonly Tuple<byte[], byte[]>? repeatedPartAFields;
     private readonly bool shouldIncludeTraceState;
     private readonly EventProvider eventProvider;
 
@@ -48,7 +50,6 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
     public TldTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
@@ -67,9 +68,9 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             // Seed customFields with Span PartB
             customFields.Add("azureResourceProvider");
 
-            foreach (var name in CS40_PART_B_MAPPING.Values)
+            foreach (var mapping in CS40_PART_B_MAPPING)
             {
-                customFields.Add(name);
+                customFields.Add(mapping.Key);
             }
 
             foreach (var name in options.CustomFields)
@@ -85,12 +86,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
             this.partAFieldsCount += prePopulatedFieldsCount;
 
-            var eb = EventBuilder.Value;
-            if (eb == null)
-            {
-                eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
-                EventBuilder.Value = eb;
-            }
+            var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
 
             eb.Reset(this.partAName);
 
@@ -104,7 +100,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string? replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -117,15 +113,17 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
     public ExportResult Export(in Batch<Activity> batch)
     {
-        var result = ExportResult.Success;
         if (this.eventProvider.IsEnabled())
         {
+            var result = ExportResult.Success;
+
             foreach (var activity in batch)
             {
                 try
                 {
-                    this.SerializeActivity(activity);
-                    this.eventProvider.Write(EventBuilder.Value);
+                    var eventBuilder = this.SerializeActivity(activity);
+
+                    this.eventProvider.Write(eventBuilder);
                 }
                 catch (Exception ex)
                 {
@@ -133,13 +131,11 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     result = ExportResult.Failure;
                 }
             }
-        }
-        else
-        {
-            return ExportResult.Failure;
+
+            return result;
         }
 
-        return result;
+        return ExportResult.Failure;
     }
 
     public void Dispose()
@@ -162,14 +158,9 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         this.isDisposed = true;
     }
 
-    internal void SerializeActivity(Activity activity)
+    internal EventBuilder SerializeActivity(Activity activity)
     {
-        var eb = EventBuilder.Value;
-        if (eb == null)
-        {
-            eb = new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
-            EventBuilder.Value = eb;
-        }
+        var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
 
         eb.Reset(this.partAName);
         eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
@@ -209,7 +200,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             var traceStateString = activity.TraceStateString;
             if (!string.IsNullOrEmpty(traceStateString))
             {
-                eb.AddCountedAnsiString("traceState", traceStateString, Encoding.UTF8);
+                eb.AddCountedAnsiString("traceState", traceStateString!, Encoding.UTF8);
                 partBFieldsCount++;
             }
         }
@@ -217,12 +208,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         var linkEnumerator = activity.EnumerateLinks();
         if (linkEnumerator.MoveNext())
         {
-            var keyValuePairsForLinks = KeyValuePairs.Value;
-            if (keyValuePairsForLinks == null)
-            {
-                keyValuePairsForLinks = new List<KeyValuePair<string, object>>();
-                KeyValuePairs.Value = keyValuePairsForLinks;
-            }
+            var keyValuePairsForLinks = KeyValuePairs.Value ??= new();
 
             keyValuePairsForLinks.Clear();
 
@@ -247,61 +233,64 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         string statusDescription = string.Empty;
 
         int partCFieldsCountFromTags = 0;
-        var kvpArrayForPartCFields = PartCFields.Value;
-        if (kvpArrayForPartCFields == null)
-        {
-            kvpArrayForPartCFields = new KeyValuePair<string, object>[120];
-            PartCFields.Value = kvpArrayForPartCFields;
-        }
+        var kvpArrayForPartCFields = PartCFields.Value ??= new KeyValuePair<string, object>[120];
 
-        List<KeyValuePair<string, object>> envPropertiesList = null;
+        List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
+            if (entry.Value == null)
+            {
+                continue;
+            }
+
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string? replacementKey))
             {
                 Serialize(eb, replacementKey, entry.Value);
                 partBFieldsCount++;
+                continue;
             }
-            else if (string.Equals(entry.Key, "otel.status_code", StringComparison.Ordinal))
+
+            if (entry.Key.StartsWith("otel.status_", StringComparison.Ordinal))
             {
-                if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
+                var keyPart = entry.Key.AsSpan().Slice(12);
+                if (keyPart is "code")
                 {
-                    isStatusSuccess = 0;
+                    if (string.Equals(Convert.ToString(entry.Value, CultureInfo.InvariantCulture), "ERROR", StringComparison.Ordinal))
+                    {
+                        isStatusSuccess = 0;
+                    }
+
+                    continue;
                 }
 
-                continue;
+                if (keyPart is "description")
+                {
+                    statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty;
+                    continue;
+                }
             }
-            else if (string.Equals(entry.Key, "otel.status_description", StringComparison.Ordinal))
-            {
-                statusDescription = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
-                continue;
-            }
-            else if (this.customFields == null || this.customFields.Contains(entry.Key))
+
+            if (this.customFields == null || this.customFields.Contains(entry.Key))
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 kvpArrayForPartCFields[partCFieldsCountFromTags] = new(entry.Key, entry.Value);
                 partCFieldsCountFromTags++;
+                continue;
             }
-            else
+
+            if (hasEnvProperties == 0)
             {
-                if (hasEnvProperties == 0)
-                {
-                    hasEnvProperties = 1;
-                    envPropertiesList = KeyValuePairs.Value;
-                    if (envPropertiesList == null)
-                    {
-                        envPropertiesList = new List<KeyValuePair<string, object>>();
-                        KeyValuePairs.Value = envPropertiesList;
-                    }
+                hasEnvProperties = 1;
 
-                    envPropertiesList.Clear();
-                }
+                envPropertiesList = KeyValuePairs.Value ??= new();
 
-                // TODO: This could lead to unbounded memory usage.
-                envPropertiesList.Add(new(entry.Key, entry.Value));
+                envPropertiesList.Clear();
             }
+
+            // TODO: This could lead to unbounded memory usage.
+            envPropertiesList!.Add(new(entry.Key, entry.Value));
         }
 
         if (activity.Status != ActivityStatusCode.Unset)
@@ -313,17 +302,14 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
             if (!string.IsNullOrEmpty(activity.StatusDescription))
             {
-                eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
+                eb.AddCountedAnsiString("statusMessage", statusDescription!, Encoding.UTF8);
                 partBFieldsCount++;
             }
         }
-        else
+        else if (!string.IsNullOrEmpty(activity.StatusDescription))
         {
-            if (!string.IsNullOrEmpty(activity.StatusDescription))
-            {
-                eb.AddCountedAnsiString("statusMessage", statusDescription, Encoding.UTF8);
-                partBFieldsCount++;
-            }
+            eb.AddCountedAnsiString("statusMessage", statusDescription!, Encoding.UTF8);
+            partBFieldsCount++;
         }
 
         // Do not increment partBFieldsCount here as the field "success" has already been accounted for
@@ -351,5 +337,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                 eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
             }
         }
+
+        return eb;
     }
 }

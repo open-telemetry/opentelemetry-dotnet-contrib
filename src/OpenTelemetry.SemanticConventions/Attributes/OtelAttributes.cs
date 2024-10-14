@@ -15,37 +15,37 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OtelAttributes
 {
     /// <summary>
-    /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP)
+    /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP).
     /// </summary>
     public const string AttributeOtelScopeName = "otel.scope.name";
 
     /// <summary>
-    /// The version of the instrumentation scope - (<c>InstrumentationScope.Version</c> in OTLP)
+    /// The version of the instrumentation scope - (<c>InstrumentationScope.Version</c> in OTLP).
     /// </summary>
     public const string AttributeOtelScopeVersion = "otel.scope.version";
 
     /// <summary>
-    /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET
+    /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
     /// </summary>
     public const string AttributeOtelStatusCode = "otel.status_code";
 
     /// <summary>
-    /// Description of the Status if it has a value, otherwise not set
+    /// Description of the Status if it has a value, otherwise not set.
     /// </summary>
     public const string AttributeOtelStatusDescription = "otel.status_description";
 
     /// <summary>
-    /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET
+    /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
     /// </summary>
     public static class OtelStatusCodeValues
     {
         /// <summary>
-        /// The operation has been validated by an Application developer or Operator to have completed successfully
+        /// The operation has been validated by an Application developer or Operator to have completed successfully.
         /// </summary>
         public const string Ok = "OK";
 
         /// <summary>
-        /// The operation contains an error
+        /// The operation contains an error.
         /// </summary>
         public const string Error = "ERROR";
     }

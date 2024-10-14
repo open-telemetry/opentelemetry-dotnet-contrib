@@ -27,6 +27,7 @@ jobs:
 
           AddLabelsOnIssuesForComponentFoundInBody `
             -issueNumber ${{ github.event.issue.number }} `
+            -issueLabels '${{ join(github.event.issue.labels.*.name, ', ') }}' `
             -issueBody $env:ISSUE_BODY
         env:
           GH_TOKEN: ${{ github.token }}

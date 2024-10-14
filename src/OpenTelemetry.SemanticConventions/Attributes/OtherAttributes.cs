@@ -15,26 +15,26 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OtherAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>db.client.connections.state</c> instead
+    /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.client.connections.state</c>")]
+    [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
     public const string AttributeState = "state";
 
     /// <summary>
-    /// Deprecated, use <c>db.client.connections.state</c> instead
+    /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
     public static class StateValues
     {
         /// <summary>
-        /// idle
+        /// idle.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connections.state</c>")]
+        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Idle = "idle";
 
         /// <summary>
-        /// used
+        /// used.
         /// </summary>
-        [Obsolete("Replaced by <c>db.client.connections.state</c>")]
+        [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
         public const string Used = "used";
     }
 }

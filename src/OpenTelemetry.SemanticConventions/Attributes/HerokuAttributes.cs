@@ -15,17 +15,17 @@ namespace OpenTelemetry.SemanticConventions;
 public static class HerokuAttributes
 {
     /// <summary>
-    /// Unique identifier for the application
+    /// Unique identifier for the application.
     /// </summary>
     public const string AttributeHerokuAppId = "heroku.app.id";
 
     /// <summary>
-    /// Commit hash for the current release
+    /// Commit hash for the current release.
     /// </summary>
     public const string AttributeHerokuReleaseCommit = "heroku.release.commit";
 
     /// <summary>
-    /// Time and date the release was created
+    /// Time and date the release was created.
     /// </summary>
     public const string AttributeHerokuReleaseCreationTimestamp = "heroku.release.creation_timestamp";
 }
