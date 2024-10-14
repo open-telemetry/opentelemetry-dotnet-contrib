@@ -57,8 +57,6 @@ public static class MeterProviderBuilderExtensions
             {
                 services.Configure(name, configure);
             }
-
-            // services.RegisterOptionsFactory(configuration => new EventCountersInstrumentationOptions(configuration));
         });
 
         if (builder is IDeferredMeterProviderBuilder deferredMeterProviderBuilder)
