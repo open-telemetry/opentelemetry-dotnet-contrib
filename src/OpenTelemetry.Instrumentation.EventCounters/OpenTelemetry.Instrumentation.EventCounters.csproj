@@ -24,7 +24,6 @@
     <Compile Include="$(RepoRoot)\src\Shared\Configuration\*.cs" Link="Includes\Configuration\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\EnvironmentVariables\*.cs" Link="Includes\EnvironmentVariables\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\Options\*.cs" Link="Includes\Options\%(Filename).cs" />
   </ItemGroup>
 
 </Project>
