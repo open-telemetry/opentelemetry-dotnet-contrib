@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <Description>OpenTelemetry Metrics instrumentation for Dotnet EventCounters</Description>
+    <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
+    <Description>OpenTelemetry Metrics instrumentation for .NET EventCounters.</Description>
     <PackageTags>$(PackageTags);metrics;eventcounters</PackageTags>
     <MinVerTagPrefix>Instrumentation.EventCounters-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
@@ -25,4 +26,5 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Options\*.cs" Link="Includes\Options\%(Filename).cs" />
   </ItemGroup>
+
 </Project>

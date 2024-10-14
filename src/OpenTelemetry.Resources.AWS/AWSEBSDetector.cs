@@ -84,10 +84,10 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
-#if NET
-        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
-#else
+#if NETFRAMEWORK
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
+#else
+        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #endif
     }
 }

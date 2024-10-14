@@ -15,6 +15,38 @@ namespace OpenTelemetry.SemanticConventions;
 public static class FileAttributes
 {
     /// <summary>
+    /// Time when the file was last accessed, in ISO 8601 format.
+    /// </summary>
+    /// <remarks>
+    /// This attribute might not be supported by some file systems — NFS, FAT32, in embedded OS, etc.
+    /// </remarks>
+    public const string AttributeFileAccessed = "file.accessed";
+
+    /// <summary>
+    /// Array of file attributes.
+    /// </summary>
+    /// <remarks>
+    /// Attributes names depend on the OS or file system. Here’s a non-exhaustive list of values expected for this attribute: <c>archive</c>, <c>compressed</c>, <c>directory</c>, <c>encrypted</c>, <c>execute</c>, <c>hidden</c>, <c>immutable</c>, <c>journaled</c>, <c>read</c>, <c>readonly</c>, <c>symbolic link</c>, <c>system</c>, <c>temporary</c>, <c>write</c>.
+    /// </remarks>
+    public const string AttributeFileAttributes = "file.attributes";
+
+    /// <summary>
+    /// Time when the file attributes or metadata was last changed, in ISO 8601 format.
+    /// </summary>
+    /// <remarks>
+    /// <c>file.changed</c> captures the time when any of the file's properties or attributes (including the content) are changed, while <c>file.modified</c> captures the timestamp when the file content is modified.
+    /// </remarks>
+    public const string AttributeFileChanged = "file.changed";
+
+    /// <summary>
+    /// Time when the file was created, in ISO 8601 format.
+    /// </summary>
+    /// <remarks>
+    /// This attribute might not be supported by some file systems — NFS, FAT32, in embedded OS, etc.
+    /// </remarks>
+    public const string AttributeFileCreated = "file.created";
+
+    /// <summary>
     /// Directory where the file is located. It should include the drive letter, when appropriate.
     /// </summary>
     public const string AttributeFileDirectory = "file.directory";
@@ -28,9 +60,53 @@ public static class FileAttributes
     public const string AttributeFileExtension = "file.extension";
 
     /// <summary>
+    /// Name of the fork. A fork is additional data associated with a filesystem object.
+    /// </summary>
+    /// <remarks>
+    /// On Linux, a resource fork is used to store additional data with a filesystem object. A file always has at least one fork for the data portion, and additional forks may exist.
+    /// On NTFS, this is analogous to an Alternate Data Stream (ADS), and the default data stream for a file is just called $DATA. Zone.Identifier is commonly used by Windows to track contents downloaded from the Internet. An ADS is typically of the form: C:\path\to\filename.extension:some_fork_name, and some_fork_name is the value that should populate <c>fork_name</c>. <c>filename.extension</c> should populate <c>file.name</c>, and <c>extension</c> should populate <c>file.extension</c>. The full path, <c>file.path</c>, will include the fork name.
+    /// </remarks>
+    public const string AttributeFileForkName = "file.fork_name";
+
+    /// <summary>
+    /// Primary Group ID (GID) of the file.
+    /// </summary>
+    public const string AttributeFileGroupId = "file.group.id";
+
+    /// <summary>
+    /// Primary group name of the file.
+    /// </summary>
+    public const string AttributeFileGroupName = "file.group.name";
+
+    /// <summary>
+    /// Inode representing the file in the filesystem.
+    /// </summary>
+    public const string AttributeFileInode = "file.inode";
+
+    /// <summary>
+    /// Mode of the file in octal representation.
+    /// </summary>
+    public const string AttributeFileMode = "file.mode";
+
+    /// <summary>
+    /// Time when the file content was last modified, in ISO 8601 format.
+    /// </summary>
+    public const string AttributeFileModified = "file.modified";
+
+    /// <summary>
     /// Name of the file including the extension, without the directory.
     /// </summary>
     public const string AttributeFileName = "file.name";
+
+    /// <summary>
+    /// The user ID (UID) or security identifier (SID) of the file owner.
+    /// </summary>
+    public const string AttributeFileOwnerId = "file.owner.id";
+
+    /// <summary>
+    /// Username of the file owner.
+    /// </summary>
+    public const string AttributeFileOwnerName = "file.owner.name";
 
     /// <summary>
     /// Full path to the file, including the file name. It should include the drive letter, when appropriate.
@@ -41,4 +117,12 @@ public static class FileAttributes
     /// File size in bytes.
     /// </summary>
     public const string AttributeFileSize = "file.size";
+
+    /// <summary>
+    /// Path to the target of a symbolic link.
+    /// </summary>
+    /// <remarks>
+    /// This attribute is only applicable to symbolic links.
+    /// </remarks>
+    public const string AttributeFileSymbolicLinkTargetPath = "file.symbolic_link.target_path";
 }

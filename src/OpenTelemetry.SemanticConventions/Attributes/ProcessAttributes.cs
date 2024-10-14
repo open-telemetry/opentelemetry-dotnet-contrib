@@ -15,6 +15,14 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ProcessAttributes
 {
     /// <summary>
+    /// Length of the process.command_args array.
+    /// </summary>
+    /// <remarks>
+    /// This field can be useful for querying or performing bucket analysis on how many arguments were provided to start a process. More arguments may be an indication of suspicious activity.
+    /// </remarks>
+    public const string AttributeProcessArgsCount = "process.args_count";
+
+    /// <summary>
     /// The command used to launch the process (i.e. the command name). On Linux based systems, can be set to the zeroth string in <c>proc/[pid]/cmdline</c>. On Windows, can be set to the first parameter extracted from <c>GetCommandLineW</c>.
     /// </summary>
     public const string AttributeProcessCommand = "process.command";
@@ -44,6 +52,21 @@ public static class ProcessAttributes
     /// The date and time the process was created, in ISO 8601 format.
     /// </summary>
     public const string AttributeProcessCreationTime = "process.creation.time";
+
+    /// <summary>
+    /// The GNU build ID as found in the <c>.note.gnu.build-id</c> ELF section (hex string).
+    /// </summary>
+    public const string AttributeProcessExecutableBuildIdGnu = "process.executable.build_id.gnu";
+
+    /// <summary>
+    /// The Go build ID as retrieved by <c>go tool buildid <go executable></c>.
+    /// </summary>
+    public const string AttributeProcessExecutableBuildIdGo = "process.executable.build_id.go";
+
+    /// <summary>
+    /// Profiling specific build ID for executables. See the OTel specification for Profiles for more information.
+    /// </summary>
+    public const string AttributeProcessExecutableBuildIdProfiling = "process.executable.build_id.profiling";
 
     /// <summary>
     /// The name of the process executable. On Linux based systems, can be set to the <c>Name</c> in <c>proc/[pid]/status</c>. On Windows, can be set to the base name of <c>GetProcessImageFileNameW</c>.
@@ -136,6 +159,14 @@ public static class ProcessAttributes
     public const string AttributeProcessSessionLeaderPid = "process.session_leader.pid";
 
     /// <summary>
+    /// Process title (proctitle).
+    /// </summary>
+    /// <remarks>
+    /// In many Unix-like systems, process title (proctitle), is the string that represents the name or command line of a running process, displayed by system monitoring tools like ps, top, and htop.
+    /// </remarks>
+    public const string AttributeProcessTitle = "process.title";
+
+    /// <summary>
     /// The effective user ID (EUID) of the process.
     /// </summary>
     public const string AttributeProcessUserId = "process.user.id";
@@ -152,6 +183,11 @@ public static class ProcessAttributes
     /// The process ID within a PID namespace. This is not necessarily unique across all processes on the host but it is unique within the process namespace that the process exists within.
     /// </remarks>
     public const string AttributeProcessVpid = "process.vpid";
+
+    /// <summary>
+    /// The working directory of the process.
+    /// </summary>
+    public const string AttributeProcessWorkingDirectory = "process.working_directory";
 
     /// <summary>
     /// Specifies whether the context switches for this data point were voluntary or involuntary.
