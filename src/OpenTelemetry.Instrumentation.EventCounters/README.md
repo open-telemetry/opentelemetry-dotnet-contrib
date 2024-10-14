@@ -1,9 +1,9 @@
 # EventCounters Instrumentation for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Alpha](../../README.md#alpha)|
-| Code Owners   |  [@hananiel](https://github.com/hananiel), [@mic-max](https://github.com/mic-max)|
+| Status      |                                                                                  |
+| ----------- | -------------------------------------------------------------------------------- |
+| Stability   | [Alpha](../../README.md#alpha)                                                   |
+| Code Owners | [@hananiel](https://github.com/hananiel), [@mic-max](https://github.com/mic-max) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EventCounters)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EventCounters)
@@ -59,19 +59,45 @@ To enable EventCounters instrumentation via DI, configure it as follows:
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    services.AddOpenTelemetryMetrics(builder =>
+    services.AddOpenTelemetry().WithMetrics(builder =>
     {
         builder.AddEventCountersInstrumentation(options =>
         {
             options.RefreshIntervalSecs = 1;
             options.AddEventSources("MyEventSource");
-        });
+        })
+        .AddConsoleExporter();
     });
 }
 ```
 
 This method allows providing options via `IConfigurationSection`
 and integrates seamlessly with DI-based setups.
+
+Alternatively, you can configure the EventCounters instrumentation using settings
+from an IConfigurationSection. This allows you to integrate configuration with
+your app's settings (e.g., appsettings.json or environment variables).
+
+Example using IConfigurationSection:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddOpenTelemetryMetrics((builder, config) =>
+    {
+        var eventCountersSection = config.GetSection("EventCountersOptions");
+        builder.AddEventCountersInstrumentation(eventCountersSection);
+    });
+}
+```
+
+This method allows seamless integration with DI-based setups and leverages
+configuration files or environment variables:
+
+| Parameter                                         | Type                 | Description                                        | Example                         |
+| ------------------------------------------------- | -------------------- | -------------------------------------------------- | ------------------------------- |
+| `OTEL_DOTNET_EVENTCOUNTERS_REFRESH_INTERVAL_SECS` | Number               | Specifies the refresh interval for event counters. | 1                               |
+| `OTEL_DOTNET_EVENTCOUNTERS_SOURCES`               | Comma-separated list | Defines the sources for event counters.            | "MyEventSource1,MyEventSource2" |
 
 ### Step 3: Create EventCounters
 

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
@@ -10,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
-    internal readonly HashSet<string> EventSourceNames = new();
+    internal readonly HashSet<string> EventSourceNames = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventCountersInstrumentationOptions"/> class.
@@ -20,22 +21,23 @@ public class EventCountersInstrumentationOptions
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EventCountersInstrumentationOptions"/> class with the specified configuration.
-    /// </summary>
-    /// <param name="configuration">The configuration section used to initialize options.</param>
     internal EventCountersInstrumentationOptions(IConfiguration configuration)
     {
-        if (configuration.TryGetIntValue(
-            "OTEL_EVENTCOUNTERS_REFRESH_INTERVAL_SECS",
-            out var refreshIntervalSecs))
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetIntValue(
+                EventCountersInstrumentationEventSource.Log,
+                "OTEL_DOTNET_EVENTCOUNTERS_REFRESH_INTERVAL_SECS",
+                out var refreshIntervalSecs))
         {
             this.RefreshIntervalSecs = refreshIntervalSecs;
         }
 
-        if (configuration.TryGetStringValues(
-            "OTEL_EVENTCOUNTERS_SOURCES",
-            out var eventSourceNames))
+        if (configuration!.TryGetValue<string[]>(
+                EventCountersInstrumentationEventSource.Log,
+                "OTEL_DOTNET_EVENTCOUNTERS_SOURCES",
+                this.TrySplitString,
+                out var eventSourceNames) && eventSourceNames != null)
         {
             this.AddEventSources(eventSourceNames);
         }
@@ -69,5 +71,23 @@ public class EventCountersInstrumentationOptions
     internal bool ShouldListenToSource(string eventSourceName)
     {
         return this.EventSourceNames.Contains(eventSourceName);
+    }
+
+    /// <summary>
+    /// Tries to split the provided string using a comma as the separator.
+    /// </summary>
+    /// <param name="value">The string to split.</param>
+    /// <param name="parsedValue">The array of strings after the split.</param>
+    /// <returns><c>true</c> if the split was successful; otherwise, <c>false</c>.</returns>
+    private bool TrySplitString(string value, out string[]? parsedValue)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            parsedValue = value.Split(',');
+            return true;
+        }
+
+        parsedValue = null;
+        return false;
     }
 }

@@ -2,10 +2,14 @@
 
 ## Unreleased
 
-* Added support for configuring `EventCounters` instrumentation using dependency
-  injection APIs. You can now enable Event Counters instrumentation and provide
-  options via `IConfigurationSection` using the `AddEventCountersInstrumentation`
-  method in conjunction with `IDeferredMeterProviderBuilder`.
+* Added support for configuring `EventCounters` instrumentation via dependency
+  injection APIs: You can now enable `EventCounters` instrumentation and
+  configure options using the `AddEventCountersInstrumentation` method alongside
+  `IDeferredMeterProviderBuilder`. Configuration can be provided through
+  an `IConfigurationSection`, allowing easier setup through app configuration.
+  New environment variables introduced for further customization:
+  `OTEL_DOTNET_EVENTCOUNTERS_REFRESH_INTERVAL_SECS`: Specifies the refresh interval.
+  `OTEL_DOTNET_EVENTCOUNTERS_SOURCES`: Defines the sources.
   ([#2078](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2078))
 
 * `Meter.Version` is set to NuGet package version.
