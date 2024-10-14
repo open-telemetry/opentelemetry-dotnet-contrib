@@ -4,7 +4,7 @@
 #nullable enable
 
 using System.Diagnostics;
-#if !NETFRAMEWORK && !NETSTANDARD2_0
+#if NET || NETSTANDARD2_1
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
@@ -15,7 +15,7 @@ internal static class OpenTelemetryConfigurationExtensions
 {
     public delegate bool TryParseFunc<T>(
         string value,
-#if !NETFRAMEWORK && !NETSTANDARD2_0
+#if NET || NETSTANDARD2_1
         [NotNullWhen(true)]
 #endif
         out T? parsedValue);
@@ -23,7 +23,7 @@ internal static class OpenTelemetryConfigurationExtensions
     public static bool TryGetStringValue(
         this IConfiguration configuration,
         string key,
-#if !NETFRAMEWORK && !NETSTANDARD2_0
+#if NET || NETSTANDARD2_1
         [NotNullWhen(true)]
 #endif
         out string? value)
@@ -39,7 +39,7 @@ internal static class OpenTelemetryConfigurationExtensions
         this IConfiguration configuration,
         IConfigurationExtensionsLogger logger,
         string key,
-#if !NETFRAMEWORK && !NETSTANDARD2_0
+#if NET || NETSTANDARD2_1
         [NotNullWhen(true)]
 #endif
         out Uri? value)
@@ -112,7 +112,7 @@ internal static class OpenTelemetryConfigurationExtensions
         IConfigurationExtensionsLogger logger,
         string key,
         TryParseFunc<T> tryParseFunc,
-#if !NETFRAMEWORK && !NETSTANDARD2_0
+#if NET || NETSTANDARD2_1
         [NotNullWhen(true)]
 #endif
         out T? value)

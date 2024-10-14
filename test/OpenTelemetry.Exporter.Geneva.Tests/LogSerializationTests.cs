@@ -15,7 +15,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net6.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net8.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     private readonly ITestOutputHelper output;
 
@@ -126,7 +126,7 @@ public class LogSerializationTests
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }

@@ -17,7 +17,7 @@ public static class OpenTelemetryProducerBuilderExtensions
     /// <typeparam name="TValue">Type of the value.</typeparam>
     /// <param name="producerBuilder">The <see cref="ProducerBuilder{TKey, TValue}"/> instance.</param>
     /// <returns>An <see cref="InstrumentedProducerBuilder{TKey, TValue}"/> instance.</returns>
-#if !NETFRAMEWORK
+#if NET
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Use 'InstrumentedProducerBuilder<TKey, TValue>' constructor to avoid reflection.")]
 #endif
     public static InstrumentedProducerBuilder<TKey, TValue> AsInstrumentedProducerBuilder<TKey, TValue>(this ProducerBuilder<TKey, TValue> producerBuilder)

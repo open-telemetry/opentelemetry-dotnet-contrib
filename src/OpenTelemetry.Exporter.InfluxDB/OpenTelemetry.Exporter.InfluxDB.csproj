@@ -17,6 +17,9 @@
   <ItemGroup>
     <PackageReference Include="InfluxDB.Client" Version="4.18.0" />
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+
+    <!-- System.Text.Json is indirect reference through InfluxDB.Client package. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-8g4q-xg66-9fp4 -->
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

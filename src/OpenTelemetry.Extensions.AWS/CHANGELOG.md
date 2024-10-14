@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
+  ([#2125](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2125))
+
+* Removed the unused `System.Text.Json` reference.
+  ([#2209](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2209))
+
 ## 1.3.0-beta.2
 
 Released 2024-Sep-24
@@ -11,9 +17,6 @@ Released 2024-Sep-24
 
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
-
-* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
-  ([#2125](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2125))
 
 ## 1.3.0-beta.1
 

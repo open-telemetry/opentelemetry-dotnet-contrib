@@ -17,7 +17,7 @@ public static class OpenTelemetryConsumerBuilderExtensions
     /// <typeparam name="TValue">Type of the value.</typeparam>
     /// <param name="consumerBuilder">The <see cref="ConsumerBuilder{TKey, TValue}"/> instance.</param>
     /// <returns>An <see cref="InstrumentedConsumerBuilder{TKey, TValue}"/> instance.</returns>
-#if !NETFRAMEWORK
+#if NET
     [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Use 'InstrumentedConsumerBuilder<TKey, TValue>' constructor to avoid reflection.")]
 #endif
     public static InstrumentedConsumerBuilder<TKey, TValue> AsInstrumentedConsumerBuilder<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
