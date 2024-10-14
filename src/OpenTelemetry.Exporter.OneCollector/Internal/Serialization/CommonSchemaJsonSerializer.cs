@@ -53,6 +53,8 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
         while (state.TryGetNextItem(out var item))
         {
+            jsonSerializerState.BeginItem();
+
             this.SerializeItemToJson(resource, item!, jsonSerializerState);
 
             var currentItemSizeInBytes = writer.BytesCommitted + writer.BytesPending + 1;

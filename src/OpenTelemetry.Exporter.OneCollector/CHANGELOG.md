@@ -9,7 +9,24 @@
   `net8.0` and added a direct reference for `System.Text.Json` at `8.0.5` on
   `net8.0` in response to
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
-  ([#2196](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2196))
+  ([#2196](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2196))
+
+* Fixed a bug causing extension data specified on `LogRecord`s in a batch to
+  also be applied to subsequent `LogRecord`s in the same batch.
+  ([#2205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2205))
+
+## 1.9.3
+
+Released 2024-Oct-11
+
+* Fixed a bug causing extension data specified on `LogRecord`s in a batch to
+  also be applied to subsequent `LogRecord`s in the same batch.
+  ([#2208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2208))
+
+* Bumped the `System.Text.Json` reference to `6.0.10` for the `net462`,
+  `netstandard2.0`, and `netstandard2.1` targets in response to
+  [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).
+  ([#2208](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2208))
 
 ## 1.10.0-alpha.1
 
