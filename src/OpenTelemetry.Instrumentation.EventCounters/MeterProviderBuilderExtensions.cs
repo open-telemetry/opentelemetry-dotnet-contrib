@@ -48,6 +48,9 @@ public static class MeterProviderBuilderExtensions
 
         name ??= Options.DefaultName;
 
+        var options = new EventCountersInstrumentationOptions();
+        configure?.Invoke(options);
+
         builder.ConfigureServices(services =>
         {
             if (configure != null)
