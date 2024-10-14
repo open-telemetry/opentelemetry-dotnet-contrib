@@ -66,7 +66,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
                 {
                     var stateDisplayName = $"{command.CommandType} main";
                     activity1.DisplayName = stateDisplayName;
-                    activity1.SetTag("db.namespace", stateDisplayName);
+                    activity1.SetTag("db.name", stateDisplayName);
                 };
             }).Build();
 
@@ -84,6 +84,40 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         var activity = exportedItems[0];
 
         VerifyActivityData(activity, altDisplayName: $"{expectedDisplayName}");
+    }
+
+    [Fact]
+    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand_New()
+    {
+        var exportedItems = new List<Activity>();
+        var expectedDisplayName = "Text main";
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.EnrichWithIDbCommand = (activity1, command) =>
+                {
+                    var stateDisplayName = $"{command.CommandType} main";
+                    activity1.DisplayName = stateDisplayName;
+                    activity1.SetTag("db.namespace", stateDisplayName);
+                };
+                options.EmitNewAttributes = true;
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            Assert.Equal(3, items.Count);
+            Assert.Equal("ItemOne", items[0].Name);
+            Assert.Equal("ItemThree", items[1].Name);
+            Assert.Equal("ItemTwo", items[2].Name);
+        }
+
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
+
+        VerifyActivityData(activity, altDisplayName: $"{expectedDisplayName}", emitNewAttributes: true);
     }
 
     [Fact]
@@ -227,7 +261,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null, bool emitNewAttributes = false)
     {
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
@@ -235,9 +269,17 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
-        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributeServerAddress);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
 
-        Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
+        if (!emitNewAttributes)
+        {
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
+        }
 
         if (!isError)
         {

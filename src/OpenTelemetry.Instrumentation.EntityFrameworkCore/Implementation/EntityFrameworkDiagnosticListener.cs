@@ -18,9 +18,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
+    internal const string AttributePeerService = "peer.service";
     internal const string AttributeServerAddress = "server.address";
     internal const string AttributeDbSystem = "db.system";
+    internal const string AttributeDbName = "db.name";
     internal const string AttributeDbNamespace = "db.namespace";
+    internal const string AttributeDbStatement = "db.statement";
     internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
@@ -33,7 +36,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> dbContextFetcher = new("Context");
     private readonly PropertyFetcher<object> dbContextDatabaseFetcher = new("Database");
     private readonly PropertyFetcher<string> providerNameFetcher = new("ProviderName");
-    private readonly PropertyFetcher<object> hostFetcher = new("Host");
+    private readonly PropertyFetcher<object> dataSourceFetcher = new("DataSource");
     private readonly PropertyFetcher<object> databaseFetcher = new("Database");
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
@@ -138,12 +141,20 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                         }
 
-                        activity.AddTag(AttributeDbNamespace, database);
-
-                        var host = (string)this.hostFetcher.Fetch(connection);
-                        if (!string.IsNullOrEmpty(host))
+                        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+                        if (!string.IsNullOrEmpty(dataSource))
                         {
-                            activity.AddTag(AttributeServerAddress, host);
+                            activity.AddTag(AttributeServerAddress, dataSource);
+                        }
+
+                        if (this.options.EmitOldAttributes)
+                        {
+                            activity.AddTag(AttributeDbName, database);
+                        }
+
+                        if (this.options.EmitNewAttributes)
+                        {
+                            activity.AddTag(AttributeDbNamespace, database);
                         }
                     }
                 }
@@ -197,7 +208,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.StoredProcedure:
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
-                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
@@ -205,7 +224,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
