@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       run-tests:
-        required: true
+        required: false
         default: true
         type: boolean
       code-cov-name:
