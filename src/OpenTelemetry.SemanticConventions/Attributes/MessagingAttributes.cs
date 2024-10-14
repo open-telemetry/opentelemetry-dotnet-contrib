@@ -258,9 +258,9 @@ public static class MessagingAttributes
     public const string AttributeMessagingRocketmqNamespace = "messaging.rocketmq.namespace";
 
     /// <summary>
-    /// Deprecated, use <c>messaging.servicebus.destination.subscription_name</c> instead.
+    /// Deprecated, use <c>messaging.destination.subscription.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>messaging.servicebus.destination.subscription_name</c>.")]
+    [Obsolete("Replaced by <c>messaging.destination.subscription.name</c>.")]
     public const string AttributeMessagingServicebusDestinationSubscriptionName = "messaging.servicebus.destination.subscription_name";
 
     /// <summary>
@@ -292,14 +292,14 @@ public static class MessagingAttributes
     public static class MessagingOperationTypeValues
     {
         /// <summary>
-        /// One or more messages are provided for publishing to an intermediary. If a single message is published, the context of the "Publish" span can be used as the creation context and no "Create" span needs to be created.
-        /// </summary>
-        public const string Publish = "publish";
-
-        /// <summary>
-        /// A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch publishing scenarios.
+        /// A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch sending scenarios.
         /// </summary>
         public const string Create = "create";
+
+        /// <summary>
+        /// One or more messages are provided for sending to an intermediary. If a single message is sent, the context of the "Send" span can be used as the creation context and no "Create" span needs to be created.
+        /// </summary>
+        public const string Send = "send";
 
         /// <summary>
         /// One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages.
@@ -320,6 +320,11 @@ public static class MessagingAttributes
         /// Deprecated. Use <c>process</c> instead.
         /// </summary>
         public const string Deliver = "deliver";
+
+        /// <summary>
+        /// Deprecated. Use <c>send</c> instead.
+        /// </summary>
+        public const string Publish = "publish";
     }
 
     /// <summary>

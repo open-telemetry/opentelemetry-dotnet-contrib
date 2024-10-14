@@ -70,7 +70,7 @@ public static class TlsAttributes
     /// <summary>
     /// Deprecated, use <c>server.address</c> instead.
     /// </summary>
-    [Obsolete("Replaced by `server.address.")]
+    [Obsolete("Replaced by <c>server.address</c>.")]
     public const string AttributeTlsClientServerName = "tls.client.server_name";
 
     /// <summary>

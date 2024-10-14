@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry .NET OneCollectorExporter.</Description>
   </PropertyGroup>
 
