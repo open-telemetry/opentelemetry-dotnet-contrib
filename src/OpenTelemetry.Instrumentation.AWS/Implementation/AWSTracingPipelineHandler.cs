@@ -177,7 +177,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
-            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, AWSSemanticConventions.AttributeAWSeBedrock);
+            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, AWSSemanticConventions.AttributeAWSBedrock);
         }
     }
 
