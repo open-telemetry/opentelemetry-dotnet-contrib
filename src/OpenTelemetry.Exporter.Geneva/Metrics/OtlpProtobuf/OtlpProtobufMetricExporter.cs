@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -15,17 +16,32 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     private readonly Func<Resource> getResource;
 
-    public OtlpProtobufMetricExporter(Func<Resource> getResource, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    public OtlpProtobufMetricExporter(
+        Func<Resource> getResource,
+        ConnectionStringBuilder connectionStringBuilder,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
+        Debug.Assert(getResource != null, "getResource was null");
+
+        this.getResource = getResource!;
+
+#if NET6_0_OR_GREATER
+        IMetricDataTransport transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? MetricUnixUserEventsDataTransport.Instance
+            : MetricWindowsEventTracingDataTransport.Instance;
+#else
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            // Temporary until we add support for user_events.
             throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
         }
 
-        this.getResource = getResource;
+        var transport = MetricWindowsEventTracingDataTransport.Instance;
+#endif
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricWindowsEventTracingDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(
+            transport,
+            connectionStringBuilder,
+            prepopulatedMetricDimensions);
     }
 
     public ExportResult Export(in Batch<Metric> batch)

@@ -3,8 +3,6 @@
 
 #if !NET
 
-#nullable enable
-
 using System.Text;
 using OpenTelemetry.Internal;
 

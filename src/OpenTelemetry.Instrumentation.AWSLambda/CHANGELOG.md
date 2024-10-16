@@ -9,6 +9,9 @@
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET 8/.NET Standard 2.0 targets.
   ([#2140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2140))
+* Add a direct reference to `System.Text.Json` at `6.0.10` for the
+  `netstandard2.0` target and at `8.0.5` for the `net8.0` target.
+  ([#2203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2203))
 
 ## 1.3.0-beta.1
 
