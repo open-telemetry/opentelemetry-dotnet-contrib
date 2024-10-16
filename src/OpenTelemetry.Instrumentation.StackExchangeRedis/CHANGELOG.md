@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Add `OpenTelemetry.Instrumentation.StackExchangeRedis` meter. Supported metrics:
+  * `db.client.operation.duration`,
+  * `db.client.operation.queue_time`,
+  * `db.client.operation.server_time`.
+  ([#1982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1982))
+
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2160))
 
