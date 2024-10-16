@@ -4,14 +4,19 @@
     <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
-    <MinVerTagPrefix>Instrumentation.AWSLambda-</MinVerTagPrefix>
+    <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
@@ -19,7 +24,6 @@
     <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
     <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
     <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
   </ItemGroup>
 
   <ItemGroup>

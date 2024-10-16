@@ -24,7 +24,6 @@ comment:
 
 ignore:
   - "**.md"
-  - "src/Shared" # copied from main OTel project and has code coverage there
   - "test"
   - "examples"
   - "build"
@@ -32,25 +31,40 @@ ignore:
   - ".vscode"
 
 flags:
-  unittests-Solution:
-    carryforward: true
-    paths:
-      - src
-
   unittests-Exporter.Geneva:
     carryforward: true
     paths:
       - src/OpenTelemetry.Exporter.Geneva
+
+  unittests-Exporter.InfluxDB:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.InfluxDB
+
+  unittests-Exporter.Instana:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.Instana
 
   unittests-Exporter.OneCollector:
     carryforward: true
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
+  unittests-Exporter.Stackdriver:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.Stackdriver
+
   unittests-Extensions:
     carryforward: true
     paths:
       - src/OpenTelemetry.Extensions
+
+  unittests-Extensions.Enrichment:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.Enrichment
 
   unittests-Instrumentation.AspNet:
     carryforward: true
@@ -63,25 +77,58 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.AspNetCore
 
+  unittests-Instrumentation.AWS:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.AWS
+      - src/OpenTelemetry.Instrumentation.AWS
+      - src/OpenTelemetry.Instrumentation.AWSLambda
+
+  # Note: No unit tests currently for Cassandra being run in CI.
+  #unittests-Instrumentation.Cassandra:
+  #  carryforward: true
+  #  paths:
+  #    - src/OpenTelemetry.Instrumentation.Cassandra
+
   unittests-Instrumentation.ConfluentKafka:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.ConfluentKafka
+
+  unittests-Instrumentation.ElasticsearchClient:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.ElasticsearchClient
+
+  unittests-Instrumentation.EntityFrameworkCore:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.EntityFrameworkCore
 
   unittests-Instrumentation.EventCounters:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.EventCounters
 
-  unittests-Instrumentation.Http:
+  unittests-Instrumentation.GrpcCore:
     carryforward: true
     paths:
-      - src/OpenTelemetry.Instrumentation.Http
+      - src/OpenTelemetry.Instrumentation.GrpcCore
 
   unittests-Instrumentation.GrpcNetClient:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.GrpcNetClient
+
+  unittests-Instrumentation.Hangfire:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Hangfire
+
+  unittests-Instrumentation.Http:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Http
 
   unittests-Instrumentation.Owin:
     carryforward: true
@@ -92,6 +139,11 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Process
+
+  unittests-Instrumentation.Quartz:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.Quartz
 
   unittests-Instrumentation.Runtime:
     carryforward: true
@@ -119,10 +171,20 @@ flags:
       - src/OpenTelemetry.PersistentStorage.Abstractions
       - src/OpenTelemetry.PersistentStorage.FileSystem
 
+  unittests-Resources.AWS:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Resources.AWS
+
   unittests-Resources.Azure:
     carryforward: true
     paths:
       - src/OpenTelemetry.Resources.Azure
+
+  unittests-Resources.Container:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Resources.Container
 
   unittests-Resources.Gcp:
     carryforward: true
@@ -149,7 +211,18 @@ flags:
     paths:
       - src/OpenTelemetry.Resources.ProcessRuntime
 
-  unittests-SemanticConventions:
+  unittests-Sampler.AWS:
     carryforward: true
     paths:
-      - src/OpenTelemetry.SemanticConventions
+      - src/OpenTelemetry.Sampler.AWS
+
+  # Note: No unit tests currently for SemanticConventions being run in CI.
+  #unittests-SemanticConventions:
+  #  carryforward: true
+  #  paths:
+  #    - src/OpenTelemetry.SemanticConventions
+
+  unittests-Contrib.Shared.Tests:
+    carryforward: true
+    paths:
+      - src/Shared

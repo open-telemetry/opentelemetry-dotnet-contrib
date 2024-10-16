@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
@@ -73,7 +71,7 @@ internal sealed class UnixDomainSocketDataTransport : IDataTransport, IDisposabl
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("UDS Connect failed.", ex);
+            ExporterEventSource.Log.TransportException(nameof(UnixDomainSocketDataTransport), "Attempt to connect to socket failed. Connection will be retried periodically until established.", ex);
 
             return false;
         }

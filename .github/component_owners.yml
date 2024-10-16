@@ -29,6 +29,7 @@ components:
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - ppittle
+    - muhammad-othman
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
@@ -131,6 +132,7 @@ components:
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
     - ppittle
+    - muhammad-othman
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00

@@ -30,12 +30,10 @@ jobs:
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
-          extensions-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '!**/*.md']
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
           instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
-          instrumentation-aws: ['*/OpenTelemetry.Instrumentation.AWS/**', '*/OpenTelemetry.Instrumentation.AWS.Tests/**', '!**/*.md']
-          instrumentation-aws-lambda: ['*/OpenTelemetry.Instrumentation.AWSLambda/**', '*/OpenTelemetry.Instrumentation.AWSLambda.Tests/**', '!**/*.md']
+          instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
           instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
           instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
@@ -61,7 +59,7 @@ jobs:
           resources-operatingsystem: ['*/OpenTelemetry.Resources.OperatingSystem/**', '*/OpenTelemetry.Resources.OperatingSystem.Tests/**', '!**/*.md']
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
-          sampler-aws: ['*/OpenTelemetry.Sampler.AWS**/**', '!**/*.md']
+          sampler-aws: ['*/OpenTelemetry.Sampler.AWS*/**', '!**/*.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
 
   lint-md:
@@ -151,17 +149,6 @@ jobs:
       project-name: Component[OpenTelemetry.Extensions]
       code-cov-name: Extensions
 
-  build-test-extensions-aws:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'extensions-aws')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Extensions.AWS]
-      code-cov-name: Extensions.AWS
-
   build-test-extensions-enrichment:
     needs: detect-changes
     if: |
@@ -196,7 +183,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net6.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -206,20 +193,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: Component[OpenTelemetry.Instrumentation.AWS]
+      project-name: OpenTelemetry.Instrumentation.AWS
       code-cov-name: Instrumentation.AWS
-
-  build-test-instrumentation-awslambda:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'instrumentation-awslambda')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Instrumentation.AWSLambda]
-      code-cov-name: Instrumentation.AWSLambda
-      tfm-list: '[ "net6.0", "net8.0" ]'
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -231,6 +206,11 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
+      run-tests: false
+       # Note: There is a unit test project for Cassandra but it only contains
+       # integration tests, which get skipped. This results in empty coverage
+       # files which messes with codecov. Enable tests if any real unit tests
+       # get added.
 
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
@@ -285,7 +265,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
@@ -524,7 +504,7 @@ jobs:
   build-test-sampler-aws:
     needs: detect-changes
     if: |
-      contains(needs.detect-changes.outputs.changes, 'resources-sampler-aws')
+      contains(needs.detect-changes.outputs.changes, 'sampler-aws')
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
@@ -542,6 +522,7 @@ jobs:
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
+      run-tests: false # Note: No test project
 
   build-test-contrib-shared-tests:
     needs: detect-changes
@@ -563,7 +544,6 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
-      || contains(needs.detect-changes.outputs.changes, 'instrumentation-awslambda')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
@@ -598,12 +578,10 @@ jobs:
       build-test-exporter-onecollector,
       build-test-exporter-stackdriver,
       build-test-extensions,
-      build-test-extensions-aws,
       build-test-extensions-enrichment,
       build-test-instrumentation-aspnet,
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
-      build-test-instrumentation-awslambda,
       build-test-instrumentation-cassandra,
       build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
