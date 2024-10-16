@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,15 +16,17 @@ internal sealed class TlvMetricExporter : IDisposable
     private readonly ushort prepopulatedDimensionsCount;
     private readonly int fixedPayloadStartIndex;
     private readonly IMetricDataTransport metricDataTransport;
-    private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
-    private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
     private readonly string defaultMonitoringAccount;
     private readonly string defaultMetricNamespace;
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    internal TlvMetricExporter(
+        ConnectionStringBuilder connectionStringBuilder,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
@@ -581,6 +585,21 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
+    private static string? ConvertTagValueToString(object? value)
+    {
+        string? repr;
+        try
+        {
+            repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            repr = $"ERROR: type {value?.GetType().FullName} is not supported";
+        }
+
+        return repr;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
     {
@@ -602,7 +621,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions keys
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
         }
 
         if (this.prepopulatedDimensionsCount > 0)
@@ -635,7 +654,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions values
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
         }
 
         // Serialize MetricPoint Dimension values
@@ -661,8 +680,8 @@ internal sealed class TlvMetricExporter : IDisposable
                 continue;
             }
 
-            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-            if (dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
+            var dimensionValue = ConvertTagValueToString(tag.Value);
+            if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
             {
                 // TODO: Data Validation
             }
@@ -693,8 +712,11 @@ internal sealed class TlvMetricExporter : IDisposable
         var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
         foreach (var value in values)
         {
-            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture);
-            serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            var valueAsString = ConvertTagValueToString(value);
+            if (valueAsString != null)
+            {
+                serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            }
         }
 
         return serializedValues;

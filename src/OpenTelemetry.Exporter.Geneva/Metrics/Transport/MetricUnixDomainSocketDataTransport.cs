@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using OpenTelemetry.Exporter.Geneva.Transports;
 
 namespace OpenTelemetry.Exporter.Geneva;
