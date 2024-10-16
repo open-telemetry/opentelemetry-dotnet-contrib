@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry OWIN instrumentation</Description>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>Unit test project for OpenTelemetry OWIN instrumentation.</Description>
   </PropertyGroup>
 
   <ItemGroup>

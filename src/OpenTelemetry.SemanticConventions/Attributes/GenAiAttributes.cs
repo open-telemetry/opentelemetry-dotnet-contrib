@@ -15,12 +15,30 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GenAiAttributes
 {
     /// <summary>
-    /// The full response received from the GenAI model.
+    /// Deprecated, use Event API to report completions contents.
     /// </summary>
-    /// <remarks>
-    /// It's RECOMMENDED to format completions as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>.
-    /// </remarks>
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiCompletion = "gen_ai.completion";
+
+    /// <summary>
+    /// The response format that is requested.
+    /// </summary>
+    public const string AttributeGenAiOpenaiRequestResponseFormat = "gen_ai.openai.request.response_format";
+
+    /// <summary>
+    /// Requests with same seed value more likely to return same result.
+    /// </summary>
+    public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
+
+    /// <summary>
+    /// The service tier requested. May be a specific tier, detault, or auto.
+    /// </summary>
+    public const string AttributeGenAiOpenaiRequestServiceTier = "gen_ai.openai.request.service_tier";
+
+    /// <summary>
+    /// The service tier used for the response.
+    /// </summary>
+    public const string AttributeGenAiOpenaiResponseServiceTier = "gen_ai.openai.response.service_tier";
 
     /// <summary>
     /// The name of the operation being performed.
@@ -31,11 +49,9 @@ public static class GenAiAttributes
     public const string AttributeGenAiOperationName = "gen_ai.operation.name";
 
     /// <summary>
-    /// The full prompt sent to the GenAI model.
+    /// Deprecated, use Event API to report prompt contents.
     /// </summary>
-    /// <remarks>
-    /// It's RECOMMENDED to format prompts as JSON string matching <a href="https://platform.openai.com/docs/guides/text-generation">OpenAI messages format</a>.
-    /// </remarks>
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
 
     /// <summary>
@@ -135,6 +151,43 @@ public static class GenAiAttributes
     /// </summary>
     [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c> attribute.")]
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
+
+    /// <summary>
+    /// The response format that is requested.
+    /// </summary>
+    public static class GenAiOpenaiRequestResponseFormatValues
+    {
+        /// <summary>
+        /// Text response format.
+        /// </summary>
+        public const string Text = "text";
+
+        /// <summary>
+        /// JSON object response format.
+        /// </summary>
+        public const string JsonObject = "json_object";
+
+        /// <summary>
+        /// JSON schema response format.
+        /// </summary>
+        public const string JsonSchema = "json_schema";
+    }
+
+    /// <summary>
+    /// The service tier requested. May be a specific tier, detault, or auto.
+    /// </summary>
+    public static class GenAiOpenaiRequestServiceTierValues
+    {
+        /// <summary>
+        /// The system will utilize scale tier credits until they are exhausted.
+        /// </summary>
+        public const string Auto = "auto";
+
+        /// <summary>
+        /// The system will utilize the default scale tier.
+        /// </summary>
+        public const string Default = "default";
+    }
 
     /// <summary>
     /// The name of the operation being performed.

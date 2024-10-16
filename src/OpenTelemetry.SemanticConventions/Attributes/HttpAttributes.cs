@@ -98,9 +98,9 @@ public static class HttpAttributes
     public const string AttributeHttpRequestSize = "http.request.size";
 
     /// <summary>
-    /// Deprecated, use <c>http.request.header.content-length</c> instead.
+    /// Deprecated, use <c>http.request.header.<key></c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.request.header.content-length</c>.")]
+    [Obsolete("Replaced by <c>http.request.header.<key></c>.")]
     public const string AttributeHttpRequestContentLength = "http.request_content_length";
 
     /// <summary>
@@ -135,9 +135,9 @@ public static class HttpAttributes
     public const string AttributeHttpResponseStatusCode = "http.response.status_code";
 
     /// <summary>
-    /// Deprecated, use <c>http.response.header.content-length</c> instead.
+    /// Deprecated, use <c>http.response.header.<key></c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
+    [Obsolete("Replaced by <c>http.response.header.<key></c>.")]
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
 
     /// <summary>

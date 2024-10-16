@@ -1,10 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -31,8 +31,8 @@ internal sealed class TableNameSerializer
 
     public TableNameSerializer(GenevaExporterOptions options, string defaultTableName)
     {
-        Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrEmpty(defaultTableName);
+        Debug.Assert(options != null, "options were null");
+        Debug.Assert(!string.IsNullOrWhiteSpace(defaultTableName), "defaultEventName was null or whitespace");
 
         this.defaultTableName = BuildStr8BufferForAsciiString(defaultTableName);
 

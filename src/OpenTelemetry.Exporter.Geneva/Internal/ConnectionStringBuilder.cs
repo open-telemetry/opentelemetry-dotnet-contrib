@@ -242,6 +242,16 @@ internal sealed class ConnectionStringBuilder
         }
     }
 
+    public bool TryGetMetricsAccountAndNamespace(
+        [NotNullWhen(true)] out string? metricsAccount,
+        [NotNullWhen(true)] out string? metricsNamespace)
+    {
+        var hasAccount = this.parts.TryGetValue(nameof(this.Account), out metricsAccount);
+        var hasNamespace = this.parts.TryGetValue(nameof(this.Namespace), out metricsNamespace);
+
+        return hasAccount && hasNamespace;
+    }
+
     /// <summary>
     /// Replace first charater of string if it matches with <paramref name="oldChar"/> with <paramref name="newChar"/>.
     /// </summary>

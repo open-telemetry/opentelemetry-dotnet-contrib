@@ -5,6 +5,7 @@
     <Description>OpenTelemetry Resource Detectors for Google Cloud Platform environments.</Description>
     <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
     <MinVerTagPrefix>Resources.Gcp-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonMinimumOutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -16,9 +17,6 @@
   <ItemGroup>
     <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <!-- System.Text.Encodings.Web is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-ghhp-997w-qr28 -->
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics.CodeAnalysis;
+#nullable enable
+
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -13,17 +14,19 @@ namespace OpenTelemetry.Exporter.Geneva.Metrics;
 internal sealed class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
-    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
-    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
     private readonly int fixedPayloadStartIndex;
     private readonly IMetricDataTransport metricDataTransport;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
     private readonly string defaultMonitoringAccount;
     private readonly string defaultMetricNamespace;
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
+    internal TlvMetricExporter(
+        ConnectionStringBuilder connectionStringBuilder,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
@@ -66,10 +69,6 @@ internal sealed class TlvMetricExporter : IDisposable
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
         }
     }
-
-    [MemberNotNullWhen(true, nameof(serializedPrepopulatedDimensionsKeys))]
-    [MemberNotNullWhen(true, nameof(serializedPrepopulatedDimensionsValues))]
-    private bool ArePrepopulatedDimensionsNotEmpty => this.prepopulatedDimensionsCount > 0;
 
     public void Dispose()
     {
@@ -586,6 +585,21 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
+    private static string? ConvertTagValueToString(object? value)
+    {
+        string? repr;
+        try
+        {
+            repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            repr = $"ERROR: type {value?.GetType().FullName} is not supported";
+        }
+
+        return repr;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
     {
@@ -605,13 +619,13 @@ internal sealed class TlvMetricExporter : IDisposable
         ushort dimensionsWritten = 0;
 
         // Serialize PrepopulatedDimensions keys
-        if (this.ArePrepopulatedDimensionsNotEmpty)
+        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
-            }
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
+        }
 
+        if (this.prepopulatedDimensionsCount > 0)
+        {
             dimensionsWritten += this.prepopulatedDimensionsCount;
         }
 
@@ -638,12 +652,9 @@ internal sealed class TlvMetricExporter : IDisposable
         dimensionsWritten += (ushort)(tags.Count - reservedTags);
 
         // Serialize PrepopulatedDimensions values
-        if (this.ArePrepopulatedDimensionsNotEmpty)
+        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
-            {
-                MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
-            }
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
         }
 
         // Serialize MetricPoint Dimension values
@@ -669,8 +680,8 @@ internal sealed class TlvMetricExporter : IDisposable
                 continue;
             }
 
-            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-            if (dimensionValue != null && dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
+            var dimensionValue = ConvertTagValueToString(tag.Value);
+            if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
             {
                 // TODO: Data Validation
             }
@@ -701,8 +712,11 @@ internal sealed class TlvMetricExporter : IDisposable
         var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
         foreach (var value in values)
         {
-            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
-            serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            var valueAsString = ConvertTagValueToString(value);
+            if (valueAsString != null)
+            {
+                serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            }
         }
 
         return serializedValues;

@@ -1,3 +1,23 @@
 <Project>
 
+  <ItemGroup Condition="'$(SystemTextJsonMinimumRequiredPkgVer)' != ''">
+    <!--
+        Note: System.Text.Encodings.Web is referenced when System.Text.Json is
+        using v4.7.2 because System.Text.Json v4.7.2 depends on
+        System.Text.Encodings.Web
+        >= v4.7.1 but System.Text.Encodings.Web needs to be at v4.7.2 to be
+        safe.
+    -->
+    <PackageReference Include="System.Text.Encodings.Web"
+                      Version="$(SystemTextEncodingsWebMinimumOutOfBandPkgVer)"
+                      Condition="($(SystemTextJsonMinimumRequiredPkgVer.StartsWith('[4.7.2')) OR '$(SystemTextJsonMinimumRequiredPkgVer)' == '4.7.2') AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Text.Json"
+                      Version="$(SystemTextJsonMinimumRequiredPkgVer)"
+                      Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+
+    <PackageReference Include="System.Text.Json"
+                      Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)"
+                      Condition="'$(TargetFramework)' == 'net8.0'" />
+  </ItemGroup>
+
 </Project>

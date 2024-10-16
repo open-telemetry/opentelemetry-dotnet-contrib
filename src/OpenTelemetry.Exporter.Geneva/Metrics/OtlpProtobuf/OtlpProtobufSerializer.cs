@@ -1,8 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
+using System.Diagnostics;
 using System.Globalization;
-using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -35,11 +37,14 @@ internal sealed class OtlpProtobufSerializer
     private int metricPointValueIndex;
     private ExportResult metricExportResult;
 
-    public OtlpProtobufSerializer(IMetricDataTransport metricDataTransport, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object?>? prepopulatedMetricDimensions)
+    public OtlpProtobufSerializer(
+        IMetricDataTransport metricDataTransport,
+        ConnectionStringBuilder? connectionStringBuilder,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
-        Guard.ThrowIfNull(metricDataTransport);
+        Debug.Assert(metricDataTransport != null, "metricDataTransport was null");
 
-        this.MetricDataTransport = metricDataTransport;
+        this.MetricDataTransport = metricDataTransport!;
 
         // Taking a arbitrary number here for writing attributes.
         byte[] temp = new byte[20000];
@@ -47,40 +52,31 @@ internal sealed class OtlpProtobufSerializer
         {
             // Initialize numberDataPoint attributes.
             int cursor = 0;
-            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.NumberDataPoint_attributes);
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions!, FieldNumberConstants.NumberDataPoint_attributes);
             this.prepopulatedNumberDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedNumberDataPointAttributes, cursor);
             this.prepopulatedNumberDataPointAttributesLength = cursor;
 
             // Initialize histogramDataPoint attributes.
             cursor = 0;
-            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.HistogramDataPoint_attributes);
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions!, FieldNumberConstants.HistogramDataPoint_attributes);
             this.prepopulatedHistogramDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedHistogramDataPointAttributes, cursor);
             this.prepopulatedHistogramDataPointAttributesLength = cursor;
 
             cursor = 0;
-            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
+            SerializeTags(temp, ref cursor, prepopulatedMetricDimensions!, FieldNumberConstants.ExponentialHistogramDataPoint_attributes);
             this.prepopulatedExponentialHistogramDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedExponentialHistogramDataPointAttributes, cursor);
             this.prepopulatedExponentialHistogramDataPointAttributesLength = cursor;
         }
 
-        try
+        if (connectionStringBuilder?.TryGetMetricsAccountAndNamespace(
+            out var metricsAccount,
+            out var metricsNamespace) == true)
         {
-            if (connectionStringBuilder != null && connectionStringBuilder.Namespace != null)
-            {
-                this.metricNamespace = connectionStringBuilder.Namespace;
-            }
-
-            if (connectionStringBuilder != null && connectionStringBuilder.Account != null)
-            {
-                this.metricAccount = connectionStringBuilder.Account;
-            }
-        }
-        catch
-        {
-            // TODO: add log.
+            this.metricAccount = metricsAccount;
+            this.metricNamespace = metricsNamespace;
         }
     }
 
@@ -148,7 +144,7 @@ internal sealed class OtlpProtobufSerializer
             {
                 case char:
                 case string:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture)!);
                     break;
                 case bool b:
                     ProtobufSerializerHelper.WriteBoolWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_bool_value, (bool)value);
@@ -168,7 +164,17 @@ internal sealed class OtlpProtobufSerializer
                     ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_double_value, Convert.ToDouble(value, CultureInfo.InvariantCulture));
                     break;
                 default:
-                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+                    string repr;
+                    try
+                    {
+                        repr = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+                    }
+                    catch
+                    {
+                        repr = $"ERROR: type {value.GetType().FullName} is not supported";
+                    }
+
+                    ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, repr);
                     break;
 
                     // TODO: Handle array type.

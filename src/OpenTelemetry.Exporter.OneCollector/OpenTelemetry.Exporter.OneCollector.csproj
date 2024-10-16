@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;netstandard2.1;netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
+    <TargetFrameworks>net8.0;netstandard2.1;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector.</Description>
     <MinVerTagPrefix>Exporter.OneCollector-</MinVerTagPrefix>
@@ -13,7 +13,8 @@
     this at the call site but there is a bug. This could possibly be cleaned up
     in the future (hopefully .NET 9) see https://github.com/dotnet/runtime/issues/92509 -->
     <NoWarn>$(NoWarn);SYSLIB1100;SYSLIB1101</NoWarn>
-    <PackageValidationBaselineVersion>1.9.2</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.9.3</PackageValidationBaselineVersion>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,12 +24,11 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(MicrosoftExtensionsConfigurationBinderPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == 'net462'" />
+    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
   </ItemGroup>
 
   <ItemGroup>

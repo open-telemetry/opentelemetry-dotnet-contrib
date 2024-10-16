@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable enable
+
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -397,6 +399,7 @@ internal static class MetricSerializer
         {
             if (bufferIndex + value!.Length + sizeof(short) >= buffer.Length)
             {
+                // TODO: What should we do when the data is invalid?
             }
 
             var encodedValue = Encoding.UTF8.GetBytes(value);

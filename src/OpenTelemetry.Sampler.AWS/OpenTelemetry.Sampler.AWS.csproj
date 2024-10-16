@@ -6,6 +6,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry remote sampler for AWS X-Ray.</Description>
     <MinVerTagPrefix>Sampler.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -16,11 +17,10 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardMinimumSupportedVersion)' Or '$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
