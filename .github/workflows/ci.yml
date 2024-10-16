@@ -206,6 +206,11 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
+      run-tests: false
+       # Note: There is a unit test project for Cassandra but it only contains
+       # integration tests, which get skipped. This results in empty coverage
+       # files which messes with codecov. Enable tests if any real unit tests
+       # get added.
 
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
@@ -517,6 +522,7 @@ jobs:
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
+      run-tests: false # Note: No test project
 
   build-test-contrib-shared-tests:
     needs: detect-changes
