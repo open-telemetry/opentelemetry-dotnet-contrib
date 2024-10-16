@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
 /// <summary>
@@ -8,7 +11,37 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
-    internal readonly HashSet<string> EventSourceNames = new();
+    internal readonly HashSet<string> EventSourceNames = [];
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EventCountersInstrumentationOptions"/> class.
+    /// </summary>
+    public EventCountersInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
+    {
+    }
+
+    internal EventCountersInstrumentationOptions(IConfiguration configuration)
+    {
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetIntValue(
+                EventCountersInstrumentationEventSource.Log,
+                "OTEL_DOTNET_EVENTCOUNTERS_REFRESH_INTERVAL_SECS",
+                out var refreshIntervalSecs))
+        {
+            this.RefreshIntervalSecs = refreshIntervalSecs;
+        }
+
+        if (configuration!.TryGetValue<string[]>(
+                EventCountersInstrumentationEventSource.Log,
+                "OTEL_DOTNET_EVENTCOUNTERS_SOURCES",
+                this.TrySplitString,
+                out var eventSourceNames) && eventSourceNames != null)
+        {
+            this.AddEventSources(eventSourceNames);
+        }
+    }
 
     /// <summary>
     /// Gets or sets the subscription interval in seconds for reading values
@@ -38,5 +71,23 @@ public class EventCountersInstrumentationOptions
     internal bool ShouldListenToSource(string eventSourceName)
     {
         return this.EventSourceNames.Contains(eventSourceName);
+    }
+
+    /// <summary>
+    /// Tries to split the provided string using a comma as the separator.
+    /// </summary>
+    /// <param name="value">The string to split.</param>
+    /// <param name="parsedValue">The array of strings after the split.</param>
+    /// <returns><c>true</c> if the split was successful; otherwise, <c>false</c>.</returns>
+    private bool TrySplitString(string value, out string[]? parsedValue)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            parsedValue = value.Split(',');
+            return true;
+        }
+
+        parsedValue = null;
+        return false;
     }
 }

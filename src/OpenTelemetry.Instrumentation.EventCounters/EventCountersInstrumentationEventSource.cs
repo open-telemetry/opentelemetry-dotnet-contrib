@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using Microsoft.Extensions.Configuration;
 
 namespace OpenTelemetry.Instrumentation.EventCounters;
 
@@ -9,9 +10,14 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// EventSource events emitted from the project.
 /// </summary>
 [EventSource(Name = "OpenTelemetry-Instrumentation-EventCounters")]
-internal sealed class EventCountersInstrumentationEventSource : EventSource
+internal sealed class EventCountersInstrumentationEventSource : EventSource, IConfigurationExtensionsLogger
 {
     public static readonly EventCountersInstrumentationEventSource Log = new();
+
+    void IConfigurationExtensionsLogger.LogInvalidConfigurationValue(string key, string value)
+    {
+        this.InvalidConfigurationValue(key, value);
+    }
 
     [Event(1, Level = EventLevel.Warning, Message = "Error while writing event from source: {0} - {1}.")]
     internal void ErrorWhileWritingEvent(string eventSourceName, string exceptionMessage)
@@ -41,5 +47,11 @@ internal sealed class EventCountersInstrumentationEventSource : EventSource
     internal void IgnoreNonEventCountersName(string eventSourceName)
     {
         this.WriteEvent(5, eventSourceName);
+    }
+
+    [Event(6, Level = EventLevel.Warning, Message = "Configuration key '{0}' has an invalid value: '{1}'")]
+    internal void InvalidConfigurationValue(string key, string value)
+    {
+        this.WriteEvent(6, key, value);
     }
 }
