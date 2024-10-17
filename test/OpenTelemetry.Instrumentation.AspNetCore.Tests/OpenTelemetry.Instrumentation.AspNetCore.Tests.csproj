@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry ASP.NET Core instrumentation.</Description>
   </PropertyGroup>
 

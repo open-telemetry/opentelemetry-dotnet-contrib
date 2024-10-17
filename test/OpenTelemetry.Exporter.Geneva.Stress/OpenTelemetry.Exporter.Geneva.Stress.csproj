@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <NoWarn>$(NoWarn);SA1308;SA1201</NoWarn>

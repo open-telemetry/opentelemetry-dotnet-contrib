@@ -79,10 +79,6 @@ jobs:
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          6.0.x
-          8.0.x
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
