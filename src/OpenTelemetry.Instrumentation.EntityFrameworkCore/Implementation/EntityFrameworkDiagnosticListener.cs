@@ -19,9 +19,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
     internal const string AttributePeerService = "peer.service";
+    internal const string AttributeServerAddress = "server.address";
     internal const string AttributeDbSystem = "db.system";
     internal const string AttributeDbName = "db.name";
+    internal const string AttributeDbNamespace = "db.namespace";
     internal const string AttributeDbStatement = "db.statement";
+    internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name;
@@ -139,10 +142,19 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        activity.AddTag(AttributeDbName, database);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            activity.AddTag(AttributePeerService, dataSource);
+                            activity.AddTag(AttributeServerAddress, dataSource);
+                        }
+
+                        if (this.options.EmitOldAttributes)
+                        {
+                            activity.AddTag(AttributeDbName, database);
+                        }
+
+                        if (this.options.EmitNewAttributes)
+                        {
+                            activity.AddTag(AttributeDbNamespace, database);
                         }
                     }
                 }
@@ -196,7 +208,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.StoredProcedure:
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
-                                        activity.AddTag(AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
@@ -204,7 +224,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        activity.AddTag(AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
