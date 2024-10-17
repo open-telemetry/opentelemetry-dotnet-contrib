@@ -94,6 +94,22 @@ jobs:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
 
+  build-test-exporter-geneva-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'exporter-geneva')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Exporter.Geneva]
+      code-cov-name: Exporter.Geneva
+      os-list: '[ "ubuntu-24.04" ]' # Note: This may be switched to latest once ubuntu-latest has a kernel version >= 6.8.0-1014-azure
+      tfm-list: '[ "net8.0" ]' # Note: Should be able to remove this once the above is using ubuntu-latest
+      test-case-filter: CategoryName=Geneva:user_events:metrics
+      test-require-elevated: true
+      pack: false
+
   build-test-exporter-influxdb:
     needs: detect-changes
     if: |
@@ -573,6 +589,7 @@ jobs:
       lint-yml,
       lint-dotnet-format,
       build-test-exporter-geneva,
+      build-test-exporter-geneva-integration,
       build-test-exporter-influxdb,
       build-test-exporter-instana,
       build-test-exporter-onecollector,

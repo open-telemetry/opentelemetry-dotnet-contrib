@@ -34,6 +34,11 @@
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</AssemblyVersion>
       <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</Version>
       <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(RevisionNumber)</FileVersion>
+
+      <!-- Note: If MinVerVersion is set to the default value we disable
+      PackageValidation because this most likely means we are running on a fork
+      without a valid tag to use for versioning and it will fail. -->
+      <EnablePackageValidation Condition="$(MinVerVersion.StartsWith('0.0.0-alpha.0'))">false</EnablePackageValidation>
     </PropertyGroup>
 
     <!-- Note: The '$(TargetFramework)' != '' check here is to reduce log spam
