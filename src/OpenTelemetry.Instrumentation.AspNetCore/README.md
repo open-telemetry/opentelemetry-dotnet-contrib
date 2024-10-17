@@ -311,6 +311,83 @@ the library you can do so as follows:
 });
 ```
 
+#### Enriching ASP.NET Core Request Metrics
+
+> [!IMPORTANT]
+> Only applicable for .NET 8 and newer.
+
+ASP.NET Core supports enriching request metrics using `IHttpMetricsTagsFeature`.
+This feature allows you to add custom tags to the default HTTP metrics collected
+ by ASP.NET Core.
+
+### Automatic Application to HTTP Metrics
+
+The tags added via `IHttpMetricsTagsFeature` are automatically applied to **all**
+the HTTP metrics provided by ASP.NET Core's OpenTelemetry instrumentation, such as:
+
+* `http.server.request.duration`
+* `http.server.request.count`
+* `http.server.request.size`
+* `http.server.response.size`
+
+If you are enriching metrics using `IHttpMetricsTagsFeature`, the enrichment will
+apply to **all** relevant HTTP metrics unless further filtering is done during
+the metrics collection/export phase.
+
+### Example: Enriching `http.server.request.duration` Metric
+
+Here's an example of enriching the `http.server.request.duration` metric by
+adding a custom tag:
+
+```csharp
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using Microsoft.AspNetCore.Http.Features;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+        .WithMetrics(builder => builder
+            .AddAspNetCoreInstrumentation()
+            .AddConsoleExporter());
+
+var app = builder.Build();
+
+// Middleware to enrich the request metric with a custom tag
+app.Use(async (context, next) =>
+{
+    var tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
+    if (tagsFeature != null)
+    {
+        string utmMediumKey = "utm_medium";
+
+        if (context.Request.Query.TryGetValue(utmMediumKey, out var source) && !StringValues.IsNullOrEmpty(source))
+        {
+            tagsFeature.Tags.Add(new KeyValuePair<string, object?>(utmMediumKey, source));
+        }
+    }
+
+    await next.Invoke();
+});
+
+app.MapGet("/", () => "Hello OpenTelemetry!");
+
+app.Run();
+```
+
+In this example:
+
+* Automatic Metric Enrichment: The `IHttpMetricsTagsFeature` enriches all relevant
+  HTTP metrics (like `http.server.request.duration`) by default. There is no
+  need to explicitly specify the metric you want to enrich.
+* Context-Specific Tags: In the middleware, custom tags such as utm_medium are
+  added to the request's metrics context. These tags will automatically appear in
+  the exported data for any related metrics.
+* Customizing Exported Metrics: To focus on enriching or exporting a specific
+  metric (e.g. `http.server.request.duration`), you can control this at the exporting
+  stage, either by filtering specific metrics in the exporter or by customizing
+  the telemetry pipeline configuration.
+
 #### RecordException
 
 This instrumentation automatically sets Activity Status to Error if an unhandled

@@ -263,6 +263,65 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+#### Enriching HttpClient Metrics
+
+> [!IMPORTANT]
+> Only applicable for .NET 8 and newer.
+
+Metrics enrichment in HttpClient allows adding custom tags to metrics.
+This is especially useful for categorizing metrics in dashboards or alerts.
+
+Using `HttpMetricsEnrichmentContext` for Enrichment
+To enrich metrics, you can register callbacks with `HttpMetricsEnrichmentContext`.
+This requires setting up a custom `DelegatingHandler` that intercepts requests
+and adds custom tags before they are sent to the server.
+
+Here's how you can implement a custom `DelegatingHandler` to enrich metrics:
+
+```csharp
+using System.Net.Http.Metrics;
+
+using HttpClient client = new(new EnrichmentHandler() { InnerHandler = new HttpClientHandler() });
+
+await client.GetStringAsync("https://example.com");
+
+sealed class EnrichmentHandler : DelegatingHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        HttpMetricsEnrichmentContext.AddCallback(request, static context =>
+        {
+            if (context.Request is not null) // Ensure the request is available.
+            {
+                // Use request information to add custom tags
+                string? userAgent = context.Request.Headers.UserAgent.ToString();
+                context.AddCustomTag("user_agent", userAgent ?? "unknown");
+            }
+        });
+
+        return base.SendAsync(request, cancellationToken);
+    }
+}
+
+```
+
+If you're working with `IHttpClientFactory`, you can use `AddHttpMessageHandler`
+to register the `EnrichmentHandler`:
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Metrics;
+
+ServiceCollection services = new();
+services.AddHttpClient(Options.DefaultName).AddHttpMessageHandler(() => new EnrichmentHandler());
+
+ServiceProvider serviceProvider = services.BuildServiceProvider();
+HttpClient client = serviceProvider.GetRequiredService<HttpClient>();
+
+await client.GetStringAsync("https://example.com");
+```
+
 #### .NET Framework
 
 ##### Filter HttpWebRequest API
