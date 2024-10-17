@@ -105,7 +105,7 @@ jobs:
       project-name: Component[OpenTelemetry.Exporter.Geneva]
       code-cov-name: Exporter.Geneva
       os-list: '[ "ubuntu-24.04" ]' # Note: This may be switched to latest once ubuntu-latest has a kernel version >= 6.8.0-1014-azure
-      tfm-list: '[ net8.0 ]' # Note: Should be able to remove this once the above is using ubuntu-latest
+      tfm-list: '[ "net8.0" ]' # Note: Should be able to remove this once the above is using ubuntu-latest
       test-case-filter: CategoryName=Geneva:user_events:metrics
       test-require-elevated: true
       pack: false
