@@ -18,6 +18,7 @@ internal static class AWSSemanticConventions
     public const string AttributeAWSBedrockDataSourceId = "aws.bedrock.data_source.id";
     public const string AttributeAWSBedrockGuardrailId = "aws.bedrock.guardrail.id";
     public const string AttributeAWSBedrockKnowledgeBaseId = "aws.bedrock.knowledge_base.id";
+    public const string AttributeAWSBedrock = "aws_bedrock";
 
     // should be global convention for Gen AI attributes
     public const string AttributeGenAiModelId = "gen_ai.request.model";
