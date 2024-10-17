@@ -7,6 +7,7 @@ using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -20,6 +21,7 @@ internal static class ActivityHelper
     /// </summary>
     internal const string ContextKey = "__AspnetInstrumentationContext__";
     internal static readonly object StartedButNotSampledObj = new();
+    internal static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
 
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
@@ -28,7 +30,7 @@ internal static class ActivityHelper
         typeof(ActivityHelper).Assembly.GetPackageVersion());
 
     [ThreadStatic]
-    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
+    private static List<KeyValuePair<string, object?>>? cachedTagsStorage;
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
@@ -63,24 +65,28 @@ internal static class ActivityHelper
     {
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        KeyValuePair<string, object?>[]? tags;
-        if (context.Request?.Unvalidated?.Path is string path)
-        {
-            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
+        string? path = context.Request?.Unvalidated?.Path;
+        string? originalHttpMethod = context.Request?.HttpMethod;
 
-            tags[0] = new KeyValuePair<string, object?>("url.path", path);
-        }
-        else
+        string normalizedHttpMethod = RequestDataHelper.GetNormalizedHttpMethod(originalHttpMethod ?? string.Empty);
+
+        List<KeyValuePair<string, object?>> tags = cachedTagsStorage ??= new List<KeyValuePair<string, object?>>(3); // use max capacity
+
+        if (path is not null)
         {
-            tags = null;
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlPath, path));
+        }
+
+        tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod));
+
+        if (originalHttpMethod != null && originalHttpMethod != normalizedHttpMethod)
+        {
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod));
         }
 
         Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
-        if (tags is not null)
-        {
-            tags[0] = default;
-        }
+        tags.Clear();
 
         if (activity != null)
         {
