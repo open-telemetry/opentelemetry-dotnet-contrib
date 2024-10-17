@@ -19,11 +19,11 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
     public OtlpProtobufMetricExporter(
         Func<Resource> getResource,
         ConnectionStringBuilder connectionStringBuilder,
-        IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         Debug.Assert(getResource != null, "getResource was null");
 
-        this.getResource = getResource;
+        this.getResource = getResource!;
 
 #if NET6_0_OR_GREATER
         IMetricDataTransport transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
