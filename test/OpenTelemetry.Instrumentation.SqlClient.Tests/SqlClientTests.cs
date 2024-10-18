@@ -165,7 +165,6 @@ public class SqlClientTests : IDisposable
             false,
             false,
             shouldEnrich,
-            sqlConnection.DataSource,
             activity,
             emitOldAttributes,
             emitNewAttributes);
@@ -235,7 +234,6 @@ public class SqlClientTests : IDisposable
             true,
             recordException,
             shouldEnrich,
-            sqlConnection.DataSource,
             activity);
     }
 
@@ -329,7 +327,6 @@ public class SqlClientTests : IDisposable
         bool isFailure,
         bool recordException,
         bool shouldEnrich,
-        string dataSource,
         Activity activity,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
