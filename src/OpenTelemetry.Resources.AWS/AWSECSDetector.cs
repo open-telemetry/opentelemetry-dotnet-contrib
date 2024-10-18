@@ -4,6 +4,7 @@
 #if NET
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using OpenTelemetry.SemanticConventions;
 
 namespace OpenTelemetry.Resources.AWS;
 
@@ -38,7 +39,7 @@ internal sealed class AWSECSDetector : IResourceDetector
             var containerId = GetECSContainerId(AWSECSMetadataPath);
             if (containerId != null)
             {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId));
+                resourceAttributes.Add(new KeyValuePair<string, object>(ContainerAttributes.AttributeContainerId, containerId));
             }
         }
         catch (Exception ex)
