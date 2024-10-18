@@ -44,7 +44,6 @@ internal static class SemanticConventions
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
     public const string AttributeHttpResponseContentLengthUncompressed = "http.response_content_length_uncompressed";
 
-    public const string AttributeDbSystem = "db.system";
     public const string AttributeDbConnectionString = "db.connection_string";
     public const string AttributeDbUser = "db.user";
     public const string AttributeDbMsSqlInstanceName = "db.mssql.instance_name";
@@ -135,6 +134,17 @@ internal static class SemanticConventions
     public const string AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition";
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
+
+    // New database conventions as of commit:
+    // https://github.com/open-telemetry/semantic-conventions/blob/25f74191d749645fdd5ec42ae661438cf2c1cf51/docs/database/database-spans.md#common-attributes
+    public const string AttributeDbSystem = "db.system";
+    public const string AttributeDbCollectionName = "db.collection.name";
+    public const string AttributeDbNamespace = "db.namespace";
+    public const string AttributeDbOperationName = "db.operation.name";
+    public const string AttributeResponseStatusCode = "db.response.status_code";
+    public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
+    public const string AttributeDbQuerySummary = "db.query.summary";
+    public const string AttributeDbQueryText = "db.query.text";
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

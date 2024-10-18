@@ -165,12 +165,11 @@ command text will be captured.
 > [!NOTE]
 > EnableConnectionLevelAttributes is supported on all runtimes.
 
-By default, `EnabledConnectionLevelAttributes` is disabled and this
-instrumentation sets the `peer.service` attribute to the
-[`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
-property of the connection. If `EnabledConnectionLevelAttributes` is enabled,
-the `DataSource` will be parsed and the server name will be sent as the
-`net.peer.name` or `net.peer.ip` attribute, the instance name will be sent as
+By default, `EnabledConnectionLevelAttributes` is disabled.
+If `EnabledConnectionLevelAttributes` is enabled,
+the [`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
+will be parsed and the server name or IP address will be sent as
+the `server.address` attribute, the instance name will be sent as
 the `db.mssql.instance_name` attribute, and the port will be sent as the
 `net.peer.port` attribute if it is not 1433 (the default port).
 
