@@ -152,7 +152,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
                 if (this.options.EmitNewAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeQueryText, commandText);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                 }
             }
         }
