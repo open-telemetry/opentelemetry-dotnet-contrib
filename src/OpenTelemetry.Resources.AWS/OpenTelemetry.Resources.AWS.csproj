@@ -31,4 +31,8 @@
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationProvider.cs" Link="Includes\ServerCertificateValidationProvider.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
+  </ItemGroup>
+
 </Project>

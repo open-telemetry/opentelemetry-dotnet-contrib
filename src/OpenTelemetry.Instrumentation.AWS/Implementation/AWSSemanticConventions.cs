@@ -1,17 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.SemanticConventions;
+
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal static class AWSSemanticConventions
 {
-    public const string AttributeAWSServiceName = "aws.service";
-    public const string AttributeAWSOperationName = "aws.operation";
-    public const string AttributeAWSRegion = "aws.region";
-    public const string AttributeAWSRequestId = "aws.requestId";
-
-    public const string AttributeAWSDynamoTableName = "aws.table_name";
-    public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
+    public const string AttributeAWSDynamoTableName = AwsAttributes.AttributeAwsDynamodbTableNames; // todo - confirm in java;
+    public const string AttributeAWSSQSQueueUrl = "aws.queue_url"; // todo - confirm in java;
 
     // AWS Bedrock service attributes not yet defined in semantic conventions
     public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
@@ -21,15 +18,10 @@ internal static class AWSSemanticConventions
     public const string AttributeAWSBedrock = "aws_bedrock";
 
     // should be global convention for Gen AI attributes
-    public const string AttributeGenAiModelId = "gen_ai.request.model";
-    public const string AttributeGenAiSystem = "gen_ai.system";
+    public const string AttributeGenAiModelId = GenAiAttributes.AttributeGenAiRequestModel;
+    public const string AttributeGenAiSystem = GenAiAttributes.AttributeGenAiSystem;
 
-    public const string AttributeHttpStatusCode = "http.status_code";
-    public const string AttributeHttpResponseContentLength = "http.response_content_length";
+    //public const string AttributeHttpStatusCode = "http.status_code";
 
-    public const string AttributeValueDynamoDb = "dynamodb";
-
-    public const string AttributeValueRPCSystem = "rpc.system";
-    public const string AttributeValueRPCService = "rpc.service";
-    public const string AttributeValueRPCMethod = "rpc.method";
+    public const string AttributeValueDynamoDb = DbAttributes.DbSystemValues.Dynamodb;
 }
