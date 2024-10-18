@@ -278,7 +278,6 @@ public class SqlEventSourceTests
             Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
-
         if (captureText)
         {
             if (emitOldAttributes)
