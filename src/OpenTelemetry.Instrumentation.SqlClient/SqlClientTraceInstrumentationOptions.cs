@@ -5,7 +5,9 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Trace;
+using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.SqlClient;
 
@@ -49,6 +51,21 @@ public class SqlClientTraceInstrumentationOptions
     private static readonly Regex NamedPipeRegex = new("pipe\\\\MSSQL\\$(.*?)\\\\", RegexOptions.Compiled);
 
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
+    /// </summary>
+    public SqlClientTraceInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
+    {
+    }
+
+    internal SqlClientTraceInstrumentationOptions(IConfiguration configuration)
+    {
+        var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
+        this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
+        this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see
@@ -169,6 +186,16 @@ public class SqlClientTraceInstrumentationOptions
     /// </remarks>
     public bool RecordException { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the old database attributes should be emitted.
+    /// </summary>
+    internal bool EmitOldAttributes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the new database attributes should be emitted.
+    /// </summary>
+    internal bool EmitNewAttributes { get; set; }
+
     internal static SqlConnectionDetails ParseDataSource(string dataSource)
     {
         Match match = DataSourceRegex.Match(dataSource);
@@ -255,11 +282,9 @@ public class SqlClientTraceInstrumentationOptions
 
     internal void AddConnectionLevelDetailsToActivity(string dataSource, Activity sqlActivity)
     {
-        if (!this.EnableConnectionLevelAttributes)
-        {
-            sqlActivity.SetTag(SemanticConventions.AttributePeerService, dataSource);
-        }
-        else
+        // TODO: The attributes added here are required. We need to consider
+        // collecting these attributes by default.
+        if (this.EnableConnectionLevelAttributes)
         {
             if (!ConnectionDetailCache.TryGetValue(dataSource, out SqlConnectionDetails? connectionDetails))
             {
@@ -267,7 +292,9 @@ public class SqlClientTraceInstrumentationOptions
                 ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
             }
 
-            if (!string.IsNullOrEmpty(connectionDetails.InstanceName))
+            // TODO: In the new conventions, instance name should now be captured
+            // as a part of db.namespace, when available.
+            if (this.EmitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
             {
                 sqlActivity.SetTag(SemanticConventions.AttributeDbMsSqlInstanceName, connectionDetails.InstanceName);
             }
@@ -278,12 +305,11 @@ public class SqlClientTraceInstrumentationOptions
             }
             else
             {
-                sqlActivity.SetTag(SemanticConventions.AttributeServerSocketAddress, connectionDetails.ServerIpAddress);
+                sqlActivity.SetTag(SemanticConventions.AttributeServerAddress, connectionDetails.ServerIpAddress);
             }
 
             if (!string.IsNullOrEmpty(connectionDetails.Port))
             {
-                // TODO: Should we continue to emit this if the default port (1433) is being used?
                 sqlActivity.SetTag(SemanticConventions.AttributeServerPort, connectionDetails.Port);
             }
         }
