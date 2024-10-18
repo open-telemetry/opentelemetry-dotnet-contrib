@@ -24,11 +24,12 @@
   specification for more information regarding the new database
   semantic conventions for
   [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229))
 * **Breaking change**: The `peer.service` and `server.socket.address` attributes
   are no longer emitted. Users should rely on the `server.address` attribute
   for the same information. Note that `server.address` is only included when
   the `EnableConnectionLevelAttributes` option is enabled.
+  ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229))
 
 ## 1.9.0-beta.1
 
