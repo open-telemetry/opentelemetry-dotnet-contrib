@@ -29,8 +29,7 @@
     <MicrosoftExtensionsHostingPkgVer>8.0.1</MicrosoftExtensionsHostingPkgVer>
     <MicrosoftNETTestSdkPkgVer>[17.11.1,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
-    <SupportedNetTargets>net8.0;net6.0</SupportedNetTargets>
-    <SupportedNetTargetsWithoutNet6>net8.0</SupportedNetTargetsWithoutNet6>
+    <SupportedNetTargets>net8.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.0,3.0)</XUnitPkgVer>
     <WiremockNetPkgVer>[1.6.3,2.0)</WiremockNetPkgVer>
