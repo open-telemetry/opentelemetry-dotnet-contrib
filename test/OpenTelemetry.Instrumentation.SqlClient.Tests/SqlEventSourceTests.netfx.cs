@@ -123,6 +123,8 @@ public class SqlEventSourceTests
             {
                 options.SetDbStatementForText = captureText;
                 options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
+                options.emitOldAttributes = emitOldAttributes;
+                options.emitNewAttributes = emitNewAttributes;
             })
             .Build();
 
