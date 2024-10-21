@@ -248,7 +248,7 @@ public class SqlEventSourceTests
 
         if (enableConnectionLevelAttributes)
         {
-            var connectionDetails = SqlClientTraceInstrumentationOptions.ParseDataSource(dataSource);
+            var connectionDetails = SqlConnectionDetails.ParseDataSource(dataSource);
 
             if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
             {
