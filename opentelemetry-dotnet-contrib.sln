@@ -398,6 +398,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka", "kafka", "{3A464E7A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.ConfluentKafka", "examples\kafka\Examples.ConfluentKafka.csproj", "{9B994669-E839-4C42-A0F1-DF9DD058C1DC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting", "src\OpenTelemetry.Instrumentation.ServiceFabricRemoting\OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj", "{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -820,6 +822,10 @@ Global
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -946,6 +952,7 @@ Global
 		{BE40900A-2859-471D-8802-21DFD73DDAA7} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{3A464E7A-42F3-44B0-B8D7-80521A7704A6} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
+		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
