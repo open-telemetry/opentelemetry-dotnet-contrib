@@ -7,16 +7,25 @@ using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
+public enum EventNameDelimiter
+{
+    Period,
+    Underscore
+}
+
 internal sealed class EventNameManager
 {
     // Note: OneCollector will silently drop events which have a name less than 4 characters.
     internal const int MinimumEventFullNameLength = 4;
     internal const int MaximumEventFullNameLength = 100;
+
+    // Make change to allow underscore in eventnamespace below.
     private static readonly Regex EventNamespaceValidationRegex = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
     private static readonly Regex EventNameValidationRegex = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
     private readonly string defaultEventNamespace;
     private readonly string defaultEventName;
+    private readonly EventNameDelimiter defaultEventNameDelimiter;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly ResolvedEventFullName defaultEventFullName;
     private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
@@ -24,7 +33,8 @@ internal sealed class EventNameManager
     public EventNameManager(
         string defaultEventNamespace,
         string defaultEventName,
-        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null)
+        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null,
+        EventNameDelimiter eventNameDelimiter = EventNameDelimiter.Period)
     {
         Debug.Assert(defaultEventNamespace != null, "defaultEventNamespace was null");
         Debug.Assert(defaultEventName != null, "defaultEventName was null");
@@ -32,9 +42,10 @@ internal sealed class EventNameManager
         this.defaultEventNamespace = defaultEventNamespace!;
         this.defaultEventName = defaultEventName!;
         this.eventFullNameMappings = eventFullNameMappings;
+        this.defaultEventNameDelimiter = eventNameDelimiter;
 
         this.defaultEventFullName = new(
-            eventFullName: BuildEventFullName(this.defaultEventNamespace, this.defaultEventName),
+            eventFullName: BuildEventFullName(this.defaultEventNamespace, this.defaultEventName, this.defaultEventNameDelimiter),
             originalEventNamespace: null,
             originalEventName: null);
 
@@ -54,7 +65,8 @@ internal sealed class EventNameManager
 
     public ResolvedEventFullName ResolveEventFullName(
         string? eventNamespace,
-        string? eventName)
+        string? eventName,
+        EventNameDelimiter eventNameDelimiter = EventNameDelimiter.Period)
     {
         var originalEventNamespace = eventNamespace;
         var originalEventName = eventName;
@@ -112,7 +124,7 @@ internal sealed class EventNameManager
         return resolvedEventFullName;
     }
 
-    private static byte[] BuildEventFullName(string eventNamespace, string eventName)
+    private static byte[] BuildEventFullName(string eventNamespace, string eventName, EventNameDelimiter eventNameDelimiter = EventNameDelimiter.Period)
     {
         Span<byte> destination = stackalloc byte[128];
 
@@ -124,7 +136,8 @@ internal sealed class EventNameManager
         {
             WriteEventFullNameComponent(eventNamespace, destination, ref cursor);
 
-            destination[cursor++] = (byte)'.';
+            byte delimiter = eventNameDelimiter == EventNameDelimiter.Period ? (byte)'.' : (byte)'_';
+            destination[cursor++] = delimiter;
         }
 
         WriteEventFullNameComponent(eventName, destination, ref cursor);
