@@ -130,7 +130,8 @@ public class SqlEventSourceTests
 
         int objectId = Guid.NewGuid().GetHashCode();
 
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1\\instanceName,port", "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
+        var dataSource = "127.0.0.1\\instanceName,port";
+        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
         // success is stored in the first bit in compositeState 0b001
         int successFlag = !isFailure ? 1 : 0;
@@ -149,7 +150,7 @@ public class SqlEventSourceTests
 
         var activity = exportedItems[0];
 
-        VerifyActivityData(commandText, captureText, isFailure, "127.0.0.1", activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+        VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
     }
 
     [Theory]
