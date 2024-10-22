@@ -130,7 +130,7 @@ public class SqlEventSourceTests
 
         int objectId = Guid.NewGuid().GetHashCode();
 
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
+        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1\\instanceName,port", "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
         // success is stored in the first bit in compositeState 0b001
         int successFlag = !isFailure ? 1 : 0;
@@ -270,7 +270,7 @@ public class SqlEventSourceTests
 
             if (connectionDetails.Port.HasValue)
             {
-                Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+                Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
             }
         }
 
