@@ -91,7 +91,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-        SqlClientTests.VerifyActivityData(commandType, commandText, captureStoredProcedureCommandName, captureTextCommandContent, isFailure, recordException, shouldEnrich, dataSource, activity);
+        SqlClientTests.VerifyActivityData(commandType, commandText, captureStoredProcedureCommandName, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
         SqlClientTests.VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
