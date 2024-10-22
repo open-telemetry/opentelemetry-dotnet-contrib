@@ -30,6 +30,9 @@
   for the same information. Note that `server.address` is only included when
   the `EnableConnectionLevelAttributes` option is enabled.
   ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229))
+* Fix bug where `server.port` attribute was captured as a string. It should be an
+  integer.
+  ([#2233](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2233))
 
 ## 1.9.0-beta.1
 
