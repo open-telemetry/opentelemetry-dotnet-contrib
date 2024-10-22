@@ -268,7 +268,7 @@ public class SqlEventSourceTests
                 Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
             }
 
-            if (!string.IsNullOrEmpty(connectionDetails.Port))
+            if (connectionDetails.Port.HasValue)
             {
                 Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
             }
