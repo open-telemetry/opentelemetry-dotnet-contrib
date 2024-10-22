@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using OpenTelemetry.Exporter.Geneva.Transports;
@@ -242,6 +240,16 @@ internal sealed class ConnectionStringBuilder
         {
             throw new ArgumentException($"{nameof(this.Endpoint)} value is malformed.", ex);
         }
+    }
+
+    public bool TryGetMetricsAccountAndNamespace(
+        [NotNullWhen(true)] out string? metricsAccount,
+        [NotNullWhen(true)] out string? metricsNamespace)
+    {
+        var hasAccount = this.parts.TryGetValue(nameof(this.Account), out metricsAccount);
+        var hasNamespace = this.parts.TryGetValue(nameof(this.Namespace), out metricsNamespace);
+
+        return hasAccount && hasNamespace;
     }
 
     /// <summary>

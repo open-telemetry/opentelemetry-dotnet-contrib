@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 #if NET
 using System.Collections.Frozen;
 #endif
@@ -175,7 +173,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
         IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
-
         if (logRecord.StateValues != null)
         {
             listKvp = logRecord.StateValues;

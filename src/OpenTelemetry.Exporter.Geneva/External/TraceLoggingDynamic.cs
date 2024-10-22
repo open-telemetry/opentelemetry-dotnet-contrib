@@ -71,7 +71,6 @@ Most ETW decoding tools are unable to decode an event with more than 128
 fields.
 */
 
-#nullable enable
 
 namespace OpenTelemetry.Exporter.Geneva.External;
 
