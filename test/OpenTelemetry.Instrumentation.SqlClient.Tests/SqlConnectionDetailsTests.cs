@@ -23,14 +23,14 @@ public class SqlConnectionDetailsTests
     [InlineData("np:\\\\localhost\\pipe\\sql\\query", "localhost", null, null, null)]
     [InlineData("np : \\\\localhost\\pipe\\sql\\query", "localhost", null, null, null)]
     [InlineData("np:\\\\localhost\\pipe\\MSSQL$instanceName\\sql\\query", "localhost", null, "instanceName", null)]
-    public void ParseDataSourceTests(
+    public void ParseFromDataSourceTests(
         string dataSource,
         string? expectedServerHostName,
         string? expectedServerIpAddress,
         string? expectedInstanceName,
         int? expectedPort)
     {
-        var sqlConnectionDetails = SqlConnectionDetails.ParseDataSource(dataSource);
+        var sqlConnectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
         Assert.NotNull(sqlConnectionDetails);
         Assert.Equal(expectedServerHostName, sqlConnectionDetails.ServerHostName);

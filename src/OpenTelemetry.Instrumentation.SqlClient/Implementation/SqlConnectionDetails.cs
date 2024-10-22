@@ -41,6 +41,10 @@ internal sealed class SqlConnectionDetails
 
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
 
+    private SqlConnectionDetails()
+    {
+    }
+
     public string? ServerHostName { get; private set; }
 
     public string? ServerIpAddress { get; private set; }
@@ -49,7 +53,7 @@ internal sealed class SqlConnectionDetails
 
     public int? Port { get; private set; }
 
-    public static SqlConnectionDetails ParseDataSource(string dataSource)
+    public static SqlConnectionDetails ParseFromDataSource(string dataSource)
     {
         if (ConnectionDetailCache.TryGetValue(dataSource, out SqlConnectionDetails? connectionDetails))
         {

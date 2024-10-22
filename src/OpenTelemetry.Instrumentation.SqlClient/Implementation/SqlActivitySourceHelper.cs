@@ -33,7 +33,7 @@ internal sealed class SqlActivitySourceHelper
         // collecting these attributes by default.
         if (options.EnableConnectionLevelAttributes)
         {
-            var connectionDetails = SqlConnectionDetails.ParseDataSource((string)dataSource);
+            var connectionDetails = SqlConnectionDetails.ParseFromDataSource((string)dataSource);
 
             // TODO: In the new conventions, instance name should now be captured
             // as a part of db.namespace, when available.
