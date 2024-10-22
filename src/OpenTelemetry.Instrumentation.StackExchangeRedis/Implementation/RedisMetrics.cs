@@ -9,8 +9,6 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
 internal class RedisMetrics : IDisposable
 {
-    internal const string DurationMetricName = "db.client.operation.duration";
-
     internal static readonly Assembly Assembly = typeof(StackExchangeRedisInstrumentation).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
     internal static readonly string InstrumentationName = AssemblyName.Name!;
@@ -23,7 +21,7 @@ internal class RedisMetrics : IDisposable
         this.meter = new Meter(InstrumentationName, InstrumentationVersion);
 
         this.DurationHistogram = this.meter.CreateHistogram<double>(
-            DurationMetricName,
+            "db.client.operation.duration",
             unit: "s",
             description: "Duration of database client operations.");
     }
