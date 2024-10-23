@@ -20,7 +20,7 @@ internal static class HttpRequestMessagePropertyWrapper
 
     public static bool IsHttpFunctionalityEnabled => ReflectedValues != null;
 
-    public static string Name
+    public static string? Name
     {
         get
         {
@@ -29,13 +29,13 @@ internal static class HttpRequestMessagePropertyWrapper
         }
     }
 
-    public static object CreateNew()
+    public static object? CreateNew()
     {
         AssertHttpEnabled();
         return Activator.CreateInstance(ReflectedValues!.Type);
     }
 
-    public static WebHeaderCollection GetHeaders(object httpRequestMessageProperty)
+    public static WebHeaderCollection GetHeaders(object? httpRequestMessageProperty)
     {
         AssertHttpEnabled();
         AssertIsFrameworkMessageProperty(httpRequestMessageProperty);
@@ -51,6 +51,11 @@ internal static class HttpRequestMessagePropertyWrapper
                 "System.ServiceModel.Channels.HttpRequestMessageProperty, System.ServiceModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 true);
 
+            if (type == null)
+            {
+                throw new NotSupportedException("HttpRequestMessageProperty type not found");
+            }
+
             var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), Array.Empty<Type>(), null);
             if (headersProp == null)
             {
@@ -65,7 +70,7 @@ internal static class HttpRequestMessagePropertyWrapper
 
             return new ReflectedInfo(
                 type: type,
-                name: (string)nameProp.GetValue(null),
+                name: (string?)nameProp.GetValue(null),
                 headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
         }
         catch (Exception ex)
@@ -86,7 +91,7 @@ internal static class HttpRequestMessagePropertyWrapper
     }
 
     [Conditional("DEBUG")]
-    private static void AssertIsFrameworkMessageProperty(object httpRequestMessageProperty)
+    private static void AssertIsFrameworkMessageProperty(object? httpRequestMessageProperty)
     {
         AssertHttpEnabled();
         if (httpRequestMessageProperty == null || !httpRequestMessageProperty.GetType().Equals(ReflectedValues!.Type))
@@ -98,10 +103,10 @@ internal static class HttpRequestMessagePropertyWrapper
     private sealed class ReflectedInfo
     {
         public Type Type;
-        public string Name;
+        public string? Name;
         public PropertyFetcher<WebHeaderCollection> HeadersFetcher;
 
-        public ReflectedInfo(Type type, string name, PropertyFetcher<WebHeaderCollection> headersFetcher)
+        public ReflectedInfo(Type type, string? name, PropertyFetcher<WebHeaderCollection> headersFetcher)
         {
             this.Type = type;
             this.Name = name;
