@@ -12,7 +12,9 @@ namespace Microsoft.Extensions.Options;
 #if NET
 internal sealed class SingletonOptionsManager<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TOptions> : IOptionsMonitor<TOptions>, IOptionsSnapshot<TOptions>
 #else
+#pragma warning disable CA1812 // Is an internal class that is apparently never instantiated
 internal sealed class SingletonOptionsManager<TOptions> : IOptionsMonitor<TOptions>, IOptionsSnapshot<TOptions>
+#pragma warning restore CA1812 // Is an internal class that is apparently never instantiated
 #endif
     where TOptions : class
 {
