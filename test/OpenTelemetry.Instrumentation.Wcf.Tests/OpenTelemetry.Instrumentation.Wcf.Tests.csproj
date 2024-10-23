@@ -20,12 +20,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'">
-    <PackageReference Include="System.ServiceModel.Http" Version="8.0.0" />
-    <PackageReference Include="System.ServiceModel.NetTcp" Version="8.0.0" />
-    <!-- System.Security.Cryptography.Pkcs. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-555c-2p6r-68mm -->
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
-    <!-- System.Formats.Asn1 is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-447r-wph3-92pm -->
-    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
+    <PackageReference Include="System.ServiceModel.Http" Version="4.7.0" />
+    <PackageReference Include="System.ServiceModel.NetTcp" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
