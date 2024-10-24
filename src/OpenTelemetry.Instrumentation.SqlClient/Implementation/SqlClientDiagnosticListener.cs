@@ -116,7 +116,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         if (dataSource != null)
                         {
-                            this.options.AddConnectionLevelDetailsToActivity((string)dataSource, activity);
+                            SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity((string)dataSource, activity, this.options);
                         }
 
                         if (this.commandTypeFetcher.TryFetch(command, out CommandType commandType))

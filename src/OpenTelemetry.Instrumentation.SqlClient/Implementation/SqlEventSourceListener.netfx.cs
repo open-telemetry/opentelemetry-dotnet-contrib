@@ -140,7 +140,7 @@ internal sealed class SqlEventSourceListener : EventListener
                 activity.SetTag(SemanticConventions.AttributeDbNamespace, databaseName);
             }
 
-            this.options.AddConnectionLevelDetailsToActivity((string)eventData.Payload[1], activity);
+            SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity((string)eventData.Payload[1], activity, this.options);
 
             string commandText = (string)eventData.Payload[3];
             if (!string.IsNullOrEmpty(commandText) && this.options.SetDbStatementForText)

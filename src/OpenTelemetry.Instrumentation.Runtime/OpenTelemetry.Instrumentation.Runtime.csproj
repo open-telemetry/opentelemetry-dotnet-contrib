@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>.NET runtime instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
