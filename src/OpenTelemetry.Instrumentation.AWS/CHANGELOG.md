@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Move adding request and response info to AWSTracingPipelineHandler
+  ([#2137](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2137))
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2139](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2139))
 
