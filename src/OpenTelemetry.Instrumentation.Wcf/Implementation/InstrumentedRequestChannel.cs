@@ -99,14 +99,21 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
     private IAsyncResult InternalBeginRequest(Message message, Func<AsyncCallback, object?, IAsyncResult> beginRequestDelegate, AsyncCallback callback, object? state)
     {
         IAsyncResult? result = null;
-        ContextCallback executeInChildContext = _ =>
+
+        void ExecuteInChildContext(object? unused)
         {
             var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
             var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
             result = new AsyncResultWithTelemetryState(beginRequestDelegate(asyncCallback, state), telemetryState);
-        };
+        }
 
-        ExecutionContext.Run(ExecutionContext.Capture(), executeInChildContext, null);
+        var executionContext = ExecutionContext.Capture();
+        if (executionContext == null)
+        {
+            throw new InvalidOperationException("Cannot fetch execution context");
+        }
+
+        ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         return result!;
     }
 }
