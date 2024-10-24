@@ -141,12 +141,11 @@ internal static class RequestTelemetryStateTracker
 
         public int CompareTo(object? obj)
         {
-            if (obj == null)
+            if (obj is not EntryTimeoutProperties other)
             {
                 return 1;
             }
 
-            var other = (EntryTimeoutProperties)obj;
             var result = this.ExpiresAt.CompareTo(other.ExpiresAt);
             if (result == 0)
             {
