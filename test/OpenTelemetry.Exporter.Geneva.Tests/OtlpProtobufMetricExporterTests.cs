@@ -238,9 +238,11 @@ public class OtlpProtobufMetricExporterTests
 
         var testTransport = new TestTransport();
 
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -410,7 +412,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -535,8 +538,12 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -656,7 +663,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -811,8 +819,12 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -982,7 +994,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -1133,8 +1146,12 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -1264,7 +1281,8 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null, null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 
@@ -1424,8 +1442,11 @@ public class OtlpProtobufMetricExporterTests
 
         var testTransport = new TestTransport();
 
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
 

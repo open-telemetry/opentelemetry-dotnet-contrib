@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -18,29 +17,20 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     public OtlpProtobufMetricExporter(
         Func<Resource> getResource,
-        ConnectionStringBuilder connectionStringBuilder,
+        IMetricDataTransport transport,
+        string? metricsAccount,
+        string? metricsNamespace,
         IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         Debug.Assert(getResource != null, "getResource was null");
+        Debug.Assert(transport != null, "transport was null");
 
         this.getResource = getResource!;
 
-#if NET6_0_OR_GREATER
-        IMetricDataTransport transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? MetricUnixUserEventsDataTransport.Instance
-            : MetricWindowsEventTracingDataTransport.Instance;
-#else
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
-        }
-
-        var transport = MetricWindowsEventTracingDataTransport.Instance;
-#endif
-
         this.otlpProtobufSerializer = new OtlpProtobufSerializer(
-            transport,
-            connectionStringBuilder,
+            transport!,
+            metricsAccount,
+            metricsNamespace,
             prepopulatedMetricDimensions);
     }
 
@@ -59,5 +49,9 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     public void Dispose()
     {
+        if (this.otlpProtobufSerializer.MetricDataTransport is MetricUnixDomainSocketDataTransport udsTransport)
+        {
+            udsTransport.Dispose();
+        }
     }
 }

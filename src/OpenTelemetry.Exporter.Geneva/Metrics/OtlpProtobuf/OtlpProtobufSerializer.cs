@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
 using OpenTelemetry.Metrics;
@@ -17,6 +18,7 @@ internal sealed class OtlpProtobufSerializer
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
     private readonly string? metricNamespace;
     private readonly string? metricAccount;
+    private readonly bool prefixBufferWithUInt32LittleEndianLength;
     private readonly byte[]? prepopulatedNumberDataPointAttributes;
     private readonly int prepopulatedNumberDataPointAttributesLength;
     private readonly byte[]? prepopulatedHistogramDataPointAttributes;
@@ -37,12 +39,16 @@ internal sealed class OtlpProtobufSerializer
 
     public OtlpProtobufSerializer(
         IMetricDataTransport metricDataTransport,
-        ConnectionStringBuilder? connectionStringBuilder,
+        string? metricsAccount,
+        string? metricsNamespace,
         IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         Debug.Assert(metricDataTransport != null, "metricDataTransport was null");
 
         this.MetricDataTransport = metricDataTransport!;
+        this.metricAccount = metricsAccount;
+        this.metricNamespace = metricsNamespace;
+        this.prefixBufferWithUInt32LittleEndianLength = metricDataTransport is MetricUnixDomainSocketDataTransport;
 
         // Taking a arbitrary number here for writing attributes.
         byte[] temp = new byte[20000];
@@ -67,14 +73,6 @@ internal sealed class OtlpProtobufSerializer
             this.prepopulatedExponentialHistogramDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedExponentialHistogramDataPointAttributes, cursor);
             this.prepopulatedExponentialHistogramDataPointAttributesLength = cursor;
-        }
-
-        if (connectionStringBuilder?.TryGetMetricsAccountAndNamespace(
-            out var metricsAccount,
-            out var metricsNamespace) == true)
-        {
-            this.metricAccount = metricsAccount;
-            this.metricNamespace = metricsNamespace;
         }
     }
 
@@ -224,7 +222,7 @@ internal sealed class OtlpProtobufSerializer
     {
         int cursor = 0;
 
-        this.resourceMetricTagAndLengthIndex = cursor;
+        this.resourceMetricTagAndLengthIndex = cursor + (this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0);
 
         this.resourceMetricValueIndex = cursor + TagAndLengthSize;
 
@@ -734,11 +732,15 @@ internal sealed class OtlpProtobufSerializer
 
         // Write resource metric tag and length
         ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref resourceMetricIndex, cursor - this.resourceMetricValueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
+
+        if (this.prefixBufferWithUInt32LittleEndianLength)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer, (uint)cursor);
+        }
     }
 
     private void SendMetricPoint(byte[] buffer, ref int cursor)
     {
-        // TODO: Extend this for user_events.
         this.MetricDataTransport.SendOtlpProtobufEvent(buffer, cursor);
     }
 
