@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net8.0;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to InfluxDB.</Description>
     <MinVerTagPrefix>Exporter.InfluxDB-</MinVerTagPrefix>
