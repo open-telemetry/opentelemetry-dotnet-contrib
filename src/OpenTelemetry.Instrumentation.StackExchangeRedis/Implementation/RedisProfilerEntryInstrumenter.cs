@@ -7,15 +7,18 @@ using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
 using StackExchange.Redis.Profiling;
+
 #if NET
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-#endif
 
+#endif
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis.Implementation;
 
-internal static class RedisProfilerEntryToActivityConverter
+internal static class RedisProfilerEntryInstrumenter
 {
+    private const int DefaultPort = 6379;
+
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
         Type profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
@@ -73,7 +76,11 @@ internal static class RedisProfilerEntryToActivityConverter
         });
     });
 
-    public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
+    public static Activity? ProfilerCommandInstrument(
+        Activity? parentActivity,
+        IProfiledCommand command,
+        RedisMetrics metrics,
+        StackExchangeRedisInstrumentationOptions options)
     {
         var name = command.Command; // Example: SET;
         if (string.IsNullOrEmpty(name))
@@ -88,30 +95,38 @@ internal static class RedisProfilerEntryToActivityConverter
             StackExchangeRedisConnectionInstrumentation.CreationTags,
             startTime: command.CommandCreated);
 
-        if (activity == null)
+        if (activity is null && metrics.Enabled is false)
         {
             return null;
         }
 
-        activity.SetEndTime(command.CommandCreated + command.ElapsedTime);
+        activity?.SetEndTime(command.CommandCreated + command.ElapsedTime);
+        var meterTags = metrics.Enabled ?
+            new TagList(StackExchangeRedisConnectionInstrumentation.CreationTags) :
+            default(IList<KeyValuePair<string, object?>>);
 
-        if (activity.IsAllDataRequested)
+        // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+
+        // Timing example:
+        // command.CommandCreated; //2019-01-10 22:18:28Z
+
+        // command.CreationToEnqueued;      // 00:00:32.4571995
+        // command.EnqueuedToSending;       // 00:00:00.0352838
+        // command.SentToResponse;          // 00:00:00.0060586
+        // command.ResponseToCompletion;    // 00:00:00.0002601
+
+        // Total:
+        // command.ElapsedTime;             // 00:00:32.4988020
+
+        activity?.SetTag(SemanticConventions.AttributeDbRedisFlagsKeyName, command.Flags.ToString());
+
+        if (command.Command != null)
         {
-            // see https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+            meterTags?.Add(SemanticConventions.AttributeDbOperationName, command.Command);
+        }
 
-            // Timing example:
-            // command.CommandCreated; //2019-01-10 22:18:28Z
-
-            // command.CreationToEnqueued;      // 00:00:32.4571995
-            // command.EnqueuedToSending;       // 00:00:00.0352838
-            // command.SentToResponse;          // 00:00:00.0060586
-            // command.ResponseToCompletion;    // 00:00:00.0002601
-
-            // Total:
-            // command.ElapsedTime;             // 00:00:32.4988020
-
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
-
+        if (activity != null)
+        {
             if (options.SetVerboseDatabaseStatements)
             {
                 var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
@@ -135,31 +150,59 @@ internal static class RedisProfilerEntryToActivityConverter
                 // Example: "db.statement": SET;
                 activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
             }
+        }
 
-            if (command.EndPoint != null)
+        if (command.EndPoint != null)
+        {
+            if (command.EndPoint is IPEndPoint ipEndPoint)
             {
-                if (command.EndPoint is IPEndPoint ipEndPoint)
+                var ip = ipEndPoint.Address.ToString();
+                var port = ipEndPoint.Port;
+
+                activity?.SetTag(SemanticConventions.AttributeNetPeerIp, ip);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerPort, port);
+
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, ip);
+                meterTags?.Add(SemanticConventions.AttributeNetworkPeerAddress, ip);
+                if (port != DefaultPort)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, ipEndPoint.Address.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, ipEndPoint.Port);
-                }
-                else if (command.EndPoint is DnsEndPoint dnsEndPoint)
-                {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerName, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, dnsEndPoint.Port);
-                }
-                else
-                {
-                    activity.SetTag(SemanticConventions.AttributePeerService, command.EndPoint.ToString());
+                    meterTags?.Add(SemanticConventions.AttributeServerPort, port);
+                    meterTags?.Add(SemanticConventions.AttributeNetworkPeerPort, port);
                 }
             }
+            else if (command.EndPoint is DnsEndPoint dnsEndPoint)
+            {
+                var host = dnsEndPoint.Host;
+                var port = dnsEndPoint.Port;
 
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerName, host);
+                activity?.SetTag(SemanticConventions.AttributeNetPeerPort, port);
 
-            // TODO: deal with the re-transmission
-            // command.RetransmissionOf;
-            // command.RetransmissionReason;
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, host);
+                if (port != DefaultPort)
+                {
+                    meterTags?.Add(SemanticConventions.AttributeServerPort, port);
+                }
+            }
+            else
+            {
+                var service = command.EndPoint.ToString();
 
+                activity?.SetTag(SemanticConventions.AttributePeerService, service);
+                meterTags?.Add(SemanticConventions.AttributeServerAddress, service);
+            }
+        }
+
+        var db = command.Db;
+        activity?.SetTag(SemanticConventions.AttributeDbRedisDatabaseIndex, db);
+        meterTags?.Add(SemanticConventions.AttributeDbNamespace, db);
+
+        // TODO: deal with the re-transmission
+        // command.RetransmissionOf;
+        // command.RetransmissionReason;
+
+        if (activity?.IsAllDataRequested ?? false)
+        {
             var enqueued = command.CommandCreated.Add(command.CreationToEnqueued);
             var send = enqueued.Add(command.EnqueuedToSending);
             var response = send.Add(command.SentToResponse);
@@ -174,16 +217,25 @@ internal static class RedisProfilerEntryToActivityConverter
             options.Enrich?.Invoke(activity, command);
         }
 
-        activity.Stop();
+        if (metrics.Enabled && meterTags is TagList meterTagList)
+        {
+            metrics.DurationHistogram.Record(command.ElapsedTime.TotalSeconds, meterTagList);
+        }
+
+        activity?.Stop();
 
         return activity;
     }
 
-    public static void DrainSession(Activity? parentActivity, IEnumerable<IProfiledCommand> sessionCommands, StackExchangeRedisInstrumentationOptions options)
+    public static void DrainSession(
+        Activity? parentActivity,
+        IEnumerable<IProfiledCommand> sessionCommands,
+        RedisMetrics redisMetrics,
+        StackExchangeRedisInstrumentationOptions options)
     {
         foreach (var command in sessionCommands)
         {
-            ProfilerCommandToActivity(parentActivity, command, options);
+            ProfilerCommandInstrument(parentActivity, command, redisMetrics, options);
         }
     }
 
@@ -228,5 +280,10 @@ internal static class RedisProfilerEntryToActivityConverter
         }
 
         return null;
+    }
+
+    private static void Add(this IList<KeyValuePair<string, object?>> tags, string ket, object? value)
+    {
+        tags?.Add(new KeyValuePair<string, object?>(ket, value));
     }
 }

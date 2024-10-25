@@ -20,7 +20,7 @@ public sealed class StackExchangeRedisInstrumentation : IDisposable
         this.options = options;
     }
 
-    internal List<StackExchangeRedisConnectionInstrumentation> InstrumentedConnections { get; } = new();
+    internal List<StackExchangeRedisConnectionInstrumentation> InstrumentedConnections { get; } = [];
 
     /// <summary>
     /// Adds an <see cref="IConnectionMultiplexer"/> to the instrumentation.
@@ -45,9 +45,13 @@ public sealed class StackExchangeRedisInstrumentation : IDisposable
 
         lock (this.InstrumentedConnections)
         {
-            var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name, options);
+            var instrumentation = this.InstrumentedConnections.FirstOrDefault(i => i.Connection == connection);
+            if (instrumentation is null)
+            {
+                instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name, options);
 
-            this.InstrumentedConnections.Add(instrumentation);
+                this.InstrumentedConnections.Add(instrumentation);
+            }
 
             return new StackExchangeRedisConnectionInstrumentationRegistration(() =>
             {
@@ -76,15 +80,10 @@ public sealed class StackExchangeRedisInstrumentation : IDisposable
         }
     }
 
-    private sealed class StackExchangeRedisConnectionInstrumentationRegistration : IDisposable
+    private sealed class StackExchangeRedisConnectionInstrumentationRegistration(
+        Action disposalAction) : IDisposable
     {
-        private readonly Action disposalAction;
-
-        public StackExchangeRedisConnectionInstrumentationRegistration(
-            Action disposalAction)
-        {
-            this.disposalAction = disposalAction;
-        }
+        private readonly Action disposalAction = disposalAction;
 
         public void Dispose()
         {
