@@ -36,7 +36,7 @@
   Previously, it was written as a string.
   ([#2233](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2233))
 * The `EnableConnectionLevelAttributes` option is now enabled by default.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#2249](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2249))
 
 ## 1.9.0-beta.1
 
