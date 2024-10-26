@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Net.Http;
 using System.Web;
 using System.Web.Routing;
 
@@ -39,6 +40,75 @@ internal static class RouteTestHelper
                 routeData.Values.Add(
                     "MS_SubRoutes",
                     value);
+                break;
+            case 5: // Multi-method attribute routing WebAPI.
+                routeData = new RouteData();
+                var multiMethodSubroutes = new[]
+                {
+                    new
+                    {
+                        Route = new
+                        {
+                            RouteTemplate = routeTemplate,
+                            DataTokens = new Dictionary<string, object>
+                            {
+                                ["actions"] = new[]
+                                {
+                                    new
+                                    {
+                                        SupportedHttpMethods = new[]
+                                        {
+                                            HttpMethod.Get,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    new
+                    {
+                        Route = new
+                        {
+                            RouteTemplate = routeTemplate,
+                            DataTokens = new Dictionary<string, object>
+                            {
+                                ["actions"] = new[]
+                                {
+                                    new
+                                    {
+                                        SupportedHttpMethods = new[]
+                                        {
+                                            HttpMethod.Put,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    new
+                    {
+                        Route = new
+                        {
+                            RouteTemplate = routeTemplate,
+                            DataTokens = new Dictionary<string, object>
+                            {
+                                ["actions"] = new[]
+                                {
+                                    new
+                                    {
+                                        SupportedHttpMethods = new[]
+                                        {
+                                            HttpMethod.Delete,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                };
+                routeData.Values.Add(
+                    "MS_SubRoutes",
+                    multiMethodSubroutes);
                 break;
             default:
                 throw new NotSupportedException();
