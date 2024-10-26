@@ -735,7 +735,7 @@ internal sealed class OtlpProtobufSerializer
 
         if (this.prefixBufferWithUInt32LittleEndianLength)
         {
-            BinaryPrimitives.WriteUInt32LittleEndian(buffer, (uint)cursor);
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer, (uint)cursor - 4);
         }
     }
 
