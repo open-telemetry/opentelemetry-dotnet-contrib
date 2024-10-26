@@ -8,42 +8,47 @@ using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
+/// <summary>
+/// Provides an implementation of Microsoft.ServiceFabric.Services.Remoting.V2.Runtime.IServiceRemotingMessageHandler
+/// that can dispatch messages to the service implementing Microsoft.ServiceFabric.Services.Remoting.IService interface.
+/// </summary>
 public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMessageDispatcher
 {
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TraceContextEnrichedServiceV2RemotingDispatcher"/> class.
+    /// </summary>
+    /// <param name="serviceContext">Service context.</param>
+    /// <param name="serviceImplementation">Service implementation that implements interfaces of type Microsoft.ServiceFabric.Services.Remoting.IService.</param>
     public TraceContextEnrichedServiceV2RemotingDispatcher(ServiceContext serviceContext, IService serviceImplementation)
         : base(serviceContext, serviceImplementation)
     {
     }
 
-    // Summary:
-    //     Handles a message from the client that requires a response from the service.
-    //
-    //
-    // Parameters:
-    //   requestContext:
-    //     Request context - contains additional information about the request
-    //
-    //   requestMessage:
-    //     Request message
-    //
-    // Returns:
-    //     A System.Threading.Tasks.Task representing the asynchronous operation. The result
-    //     of the task is the response for the received request.
+    /// <summary>
+    /// Handles a message from the client that requires a response from the service.
+    /// </summary>
+    /// <param name="requestContext">Request context - contains additional information about the request.</param>
+    /// <param name="requestMessage">Request message.</param>
+    /// <returns> The response for the received request.</returns>
     public override async Task<IServiceRemotingResponseMessage> HandleRequestResponseAsync(IServiceRemotingRequestContext requestContext, IServiceRemotingRequestMessage requestMessage)
     {
+        Guard.ThrowIfNull(requestMessage);
+
         if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
         {
-            //If we filter out the request we don't need to process anything related to the activity
+            // If we filter out the request we don't need to process anything related to the activity
             return await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
         }
         else
         {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage?.GetHeader();
+            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+            Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
             // Extract the PropagationContext of the upstream parent from the message headers.
             PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, this.ExtractTraceContextFromRequestMessageHeader);
@@ -51,7 +56,7 @@ public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMe
 
             string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
 
-            using (Activity activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
+            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
             {
                 IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 

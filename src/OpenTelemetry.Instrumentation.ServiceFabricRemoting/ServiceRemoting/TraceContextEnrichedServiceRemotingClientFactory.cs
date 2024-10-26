@@ -22,7 +22,12 @@ public class TraceContextEnrichedServiceRemotingClientFactory : IServiceRemoting
 {
     private readonly FabricTransportServiceRemotingClientFactory innerFactory;
 
-    public TraceContextEnrichedServiceRemotingClientFactory(FabricTransportRemotingSettings fabricTransportRemotingSettings, IServiceRemotingCallbackMessageHandler callbackMessageHandler)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TraceContextEnrichedServiceRemotingClientFactory"/> class.
+    /// </summary>
+    /// <param name="fabricTransportRemotingSettings">The settings for the fabric transport. If the settings are not provided or null, default settings with no security.</param>
+    /// <param name="callbackMessageHandler">The callback client that receives the callbacks from the service.</param>
+    public TraceContextEnrichedServiceRemotingClientFactory(FabricTransportRemotingSettings fabricTransportRemotingSettings, IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
         this.innerFactory = new FabricTransportServiceRemotingClientFactory(
            fabricTransportRemotingSettings,
@@ -32,23 +37,34 @@ public class TraceContextEnrichedServiceRemotingClientFactory : IServiceRemoting
            traceId: null);
     }
 
+    /// <summary>
+    /// Event handler that is fired when a client is connected to the service endpoint.
+    /// </summary>
     public event EventHandler<CommunicationClientEventArgs<IServiceRemotingClient>> ClientConnected
     {
         add { this.innerFactory.ClientConnected += value; }
         remove { this.innerFactory.ClientConnected -= value; }
     }
 
+    /// <summary>
+    /// Event handler that is fired when a client is disconnected from the service endpoint.
+    /// </summary>
     public event EventHandler<CommunicationClientEventArgs<IServiceRemotingClient>> ClientDisconnected
     {
         add { this.innerFactory.ClientDisconnected += value; }
         remove { this.innerFactory.ClientDisconnected -= value; }
     }
 
+    /// <summary>
+    /// Gets a factory for creating the remoting message bodies.
+    /// </summary>
+    /// <returns>A factory for creating the remoting message bodies.</returns>
     public IServiceRemotingMessageBodyFactory GetRemotingMessageBodyFactory()
     {
         return this.innerFactory.GetRemotingMessageBodyFactory();
     }
 
+    /// <inheritdoc/>
     public async Task<IServiceRemotingClient> GetClientAsync(Uri serviceUri, ServicePartitionKey partitionKey, TargetReplicaSelector targetReplicaSelector, string listenerName, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
         IServiceRemotingClient serviceRemotingClient = await this.innerFactory.GetClientAsync(
@@ -57,11 +73,12 @@ public class TraceContextEnrichedServiceRemotingClientFactory : IServiceRemoting
             targetReplicaSelector,
             listenerName,
             retrySettings,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         return new TraceContextEnrichedServiceRemotingClientAdapter(serviceRemotingClient);
     }
 
+    /// <inheritdoc/>
     public async Task<IServiceRemotingClient> GetClientAsync(ResolvedServicePartition previousRsp, TargetReplicaSelector targetReplicaSelector, string listenerName, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
         IServiceRemotingClient serviceRemotingClient = await this.innerFactory.GetClientAsync(
@@ -69,15 +86,16 @@ public class TraceContextEnrichedServiceRemotingClientFactory : IServiceRemoting
             targetReplicaSelector,
             listenerName,
             retrySettings,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         return new TraceContextEnrichedServiceRemotingClientAdapter(serviceRemotingClient);
     }
 
+    /// <inheritdoc/>
     public Task<OperationRetryControl> ReportOperationExceptionAsync(IServiceRemotingClient client, ExceptionInformation exceptionInformation, OperationRetrySettings retrySettings, CancellationToken cancellationToken)
     {
         IServiceRemotingClient innerClient = client;
-        TraceContextEnrichedServiceRemotingClientAdapter clientAdapter = client as TraceContextEnrichedServiceRemotingClientAdapter;
+        TraceContextEnrichedServiceRemotingClientAdapter? clientAdapter = client as TraceContextEnrichedServiceRemotingClientAdapter;
         if (clientAdapter != null)
         {
             innerClient = clientAdapter.InnerClient;

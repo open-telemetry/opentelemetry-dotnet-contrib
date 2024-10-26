@@ -7,11 +7,15 @@ using System.Text;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
-public class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemotingClient
+/// <summary>
+/// An IServiceRemotingClient that enriches the outgoing request with the current Activity (if any).
+/// </summary>
+internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemotingClient
 {
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
@@ -47,17 +51,21 @@ public class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoting
 
     public async Task<IServiceRemotingResponseMessage> RequestResponseAsync(IServiceRemotingRequestMessage requestMessage)
     {
+        Guard.ThrowIfNull(requestMessage);
+
         if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
         {
-            //If we filter out the request we don't need to process anything related to the activity
+            // If we filter out the request we don't need to process anything related to the activity
             return await this.innerClient.RequestResponseAsync(requestMessage).ConfigureAwait(false);
         }
         else
         {
-            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage?.GetHeader();
-            string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+            IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage.GetHeader();
+            Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
-            using (Activity activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client))
+            string activityName = requestMessageHeader.MethodName ?? ServiceFabricRemotingActivitySource.OutgoingRequestActivityName;
+
+            using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Client))
             {
                 // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
                 // If it is created, then propagate its context.
@@ -114,7 +122,7 @@ public class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoting
 
                         try
                         {
-                            ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, null, ex);
+                            ServiceFabricRemotingActivitySource.Options?.EnrichAtClientFromResponse?.Invoke(activity, /* serviceRemotingResponseMessage */ null, ex);
                         }
                         catch (Exception)
                         {

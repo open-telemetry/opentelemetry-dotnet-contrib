@@ -11,24 +11,30 @@ using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
+/// <summary>
+/// This attributes allows to set Fabric TCP transport as the default service remoting transport provider in the assembly and customization of it.
+/// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
 public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : FabricTransportServiceRemotingProviderAttribute
 {
     private const string DefaultV2listenerName = "V2Listener";
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TraceContextEnrichedServiceRemotingProviderAttribute"/> class.
+    /// </summary>
     public TraceContextEnrichedServiceRemotingProviderAttribute()
     {
         this.RemotingClientVersion = RemotingClientVersion.V2;
         this.RemotingListenerVersion = RemotingListenerVersion.V2;
     }
 
-    // Summary:
-    //     Creates a V2 service remoting listener for remoting the service interface.
-    //
-    // Returns:
-    //     A Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime.FabricTransportServiceRemotingListener
-    //     as Microsoft.ServiceFabric.Services.Remoting.Runtime.IServiceRemotingListener
-    //     for the specified service implementation.
+    /// <summary>
+    /// Creates a V2 service remoting listener for remoting the service interface.
+    /// </summary>
+    /// <returns>
+    ///  A Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime.FabricTransportServiceRemotingListener
+    ///  as Microsoft.ServiceFabric.Services.Remoting.Runtime.IServiceRemotingListener for the specified service implementation.
+    /// </returns>
     public override Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>> CreateServiceRemotingListeners()
     {
         Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>> dictionary = new Dictionary<string, Func<ServiceContext, IService, IServiceRemotingListener>>();
@@ -44,21 +50,17 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
         return dictionary;
     }
 
-    // Summary:
-    //     Creates a V2 service remoting client factory for connecting to the service over
-    //     remoted service interfaces.
-    //
-    // Parameters:
-    //   callbackMessageHandler:
-    //     The client implementation where the callbacks should be dispatched.
-    //
-    // Returns:
-    //     A Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client.FabricTransportServiceRemotingClientFactory
-    //     as Microsoft.ServiceFabric.Services.Remoting.V2.Client.IServiceRemotingClientFactory
-    //     that can be used with Microsoft.ServiceFabric.Services.Remoting.Client.ServiceProxyFactory
-    //     to generate service proxy to talk to a stateless or stateful service over remoted
-    //     actor interface.
-    public override IServiceRemotingClientFactory CreateServiceRemotingClientFactoryV2(IServiceRemotingCallbackMessageHandler callbackMessageHandler)
+    /// <summary>
+    /// Creates a V2 service remoting client factory for connecting to the service over remoted service interfaces.
+    /// </summary>
+    /// <param name="callbackMessageHandler"> The client implementation where the callbacks should be dispatched.</param>
+    /// <returns>
+    /// A Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client.FabricTransportServiceRemotingClientFactory
+    /// as Microsoft.ServiceFabric.Services.Remoting.V2.Client.IServiceRemotingClientFactory
+    /// that can be used with Microsoft.ServiceFabric.Services.Remoting.Client.ServiceProxyFactory
+    /// to generate service proxy to talk to a stateless or stateful service over remoted actor interface.
+    /// </returns>
+    public override IServiceRemotingClientFactory CreateServiceRemotingClientFactoryV2(IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
         FabricTransportRemotingSettings fabricTransportRemotingSettings = new FabricTransportRemotingSettings();
         fabricTransportRemotingSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(fabricTransportRemotingSettings.MaxMessageSize);

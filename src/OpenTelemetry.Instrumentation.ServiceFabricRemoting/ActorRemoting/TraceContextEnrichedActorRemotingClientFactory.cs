@@ -26,7 +26,7 @@ public class TraceContextEnrichedActorRemotingClientFactory : IServiceRemotingCl
     /// </summary>
     /// <param name="fabricTransportRemotingSettings">The settings for the fabric transport. If the settings are not provided or null, default settings with no security.</param>
     /// <param name="callbackMessageHandler">The callback client that receives the callbacks from the service.</param>
-    public TraceContextEnrichedActorRemotingClientFactory(FabricTransportRemotingSettings fabricTransportRemotingSettings, IServiceRemotingCallbackMessageHandler callbackMessageHandler)
+    public TraceContextEnrichedActorRemotingClientFactory(FabricTransportRemotingSettings fabricTransportRemotingSettings, IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
         this.innerFactory = new FabricTransportActorRemotingClientFactory(
            fabricTransportRemotingSettings,

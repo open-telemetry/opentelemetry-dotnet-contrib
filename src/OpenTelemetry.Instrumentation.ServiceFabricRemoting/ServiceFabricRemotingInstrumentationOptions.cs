@@ -31,7 +31,7 @@ public class ServiceFabricRemotingInstrumentationOptions
     /// <summary>
     /// Gets or sets an action to enrich the <see cref="Activity"/> created by the client instrumentation, from the response.
     /// </summary>
-    public Action<Activity, IServiceRemotingResponseMessage, Exception>? EnrichAtClientFromResponse { get; set; }
+    public Action<Activity, IServiceRemotingResponseMessage?, Exception?>? EnrichAtClientFromResponse { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the exception will be recorded as <see cref="ActivityEvent"/> or not.

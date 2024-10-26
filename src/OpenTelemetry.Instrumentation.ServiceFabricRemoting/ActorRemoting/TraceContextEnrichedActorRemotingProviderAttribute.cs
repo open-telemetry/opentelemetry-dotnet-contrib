@@ -9,7 +9,6 @@ using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -54,9 +53,10 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
     /// <summary>
     ///  Creates a service remoting client factory that can be used by the Microsoft.ServiceFabric.Services.Remoting.V2.Client.ServiceProxyFactory
     ///  to create a proxy for the remoted interface of the service.
-    /// </summary>.
-    /// <returns> An Microsoft.ServiceFabric.Services.Remoting.V2.Client.IServiceRemotingClientFactory.</returns>
-    public override IServiceRemotingClientFactory CreateServiceRemotingClientFactory(IServiceRemotingCallbackMessageHandler callbackMessageHandler)
+    /// </summary>
+    /// <param name="callbackMessageHandler">Client implementation where the callbacks should be dispatched.</param>
+    /// <returns> An <see cref="IServiceRemotingClientFactory"/>.</returns>
+    public override IServiceRemotingClientFactory CreateServiceRemotingClientFactory(IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
     {
         FabricTransportRemotingSettings settings = new FabricTransportRemotingSettings();
         settings.MaxMessageSize = this.GetAndValidateMaxMessageSize(settings.MaxMessageSize);
@@ -67,18 +67,7 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
         return new TraceContextEnrichedActorRemotingClientFactory(settings, callbackMessageHandler);
     }
 
-    private FabricTransportRemotingListenerSettings InitializeListenerSettings(ActorService actorService)
-    {
-        FabricTransportRemotingListenerSettings listenerSettings = this.GetActorListenerSettings(actorService);
-
-        listenerSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(listenerSettings.MaxMessageSize);
-        listenerSettings.OperationTimeout = this.GetAndValidateOperationTimeout(listenerSettings.OperationTimeout);
-        listenerSettings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(listenerSettings.KeepAliveTimeout);
-
-        return listenerSettings;
-    }
-
-    private FabricTransportRemotingListenerSettings GetActorListenerSettings(ActorService actorService)
+    private static FabricTransportRemotingListenerSettings GetActorListenerSettings(ActorService actorService)
     {
         string sectionName = ActorNameFormat.GetFabricServiceTransportSettingsSectionName(actorService.ActorTypeInformation.ImplementationType);
 
@@ -87,6 +76,17 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
         {
             listenerSettings = new FabricTransportRemotingListenerSettings();
         }
+
+        return listenerSettings;
+    }
+
+    private FabricTransportRemotingListenerSettings InitializeListenerSettings(ActorService actorService)
+    {
+        FabricTransportRemotingListenerSettings listenerSettings = GetActorListenerSettings(actorService);
+
+        listenerSettings.MaxMessageSize = this.GetAndValidateMaxMessageSize(listenerSettings.MaxMessageSize);
+        listenerSettings.OperationTimeout = this.GetAndValidateOperationTimeout(listenerSettings.OperationTimeout);
+        listenerSettings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(listenerSettings.KeepAliveTimeout);
 
         return listenerSettings;
     }
