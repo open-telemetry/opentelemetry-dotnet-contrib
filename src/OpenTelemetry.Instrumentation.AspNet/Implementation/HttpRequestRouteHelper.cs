@@ -28,18 +28,15 @@ internal sealed class HttpRequestRouteHelper
         {
             // WebAPI attribute routing flows here. Use reflection to not take a dependency on microsoft.aspnet.webapi.core\[version]\lib\[framework]\System.Web.Http.
 
-            if (msSubRoutes is Array attributeRouting)
+            if (msSubRoutes is Array attributeRouting && attributeRouting.Length >= 1)
             {
                 // There could be more than one subroute, each with a different method.
                 // But the template is the same across them, so we simply take the template
                 // from the first route.
-                if (attributeRouting.Length >= 1)
-                {
-                    var subRouteData = attributeRouting.GetValue(0);
+                var subRouteData = attributeRouting.GetValue(0);
 
-                    _ = this.routeFetcher.TryFetch(subRouteData, out var route);
-                    _ = this.routeTemplateFetcher.TryFetch(route, out template);
-                }
+                _ = this.routeFetcher.TryFetch(subRouteData, out var route);
+                _ = this.routeTemplateFetcher.TryFetch(route, out template);
             }
         }
         else if (routeData.Route is Route route)
