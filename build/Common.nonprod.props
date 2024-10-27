@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DefaultTargetFrameworkForExampleApps>net8.0</DefaultTargetFrameworkForExampleApps>
+    <DefaultTargetFrameworkForExampleApps>$(NetMinimumSupportedVersion)</DefaultTargetFrameworkForExampleApps>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">

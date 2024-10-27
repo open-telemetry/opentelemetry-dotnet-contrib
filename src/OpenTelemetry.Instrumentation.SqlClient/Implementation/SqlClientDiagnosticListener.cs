@@ -94,10 +94,21 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         _ = this.connectionFetcher.TryFetch(command, out var connection);
                         _ = this.databaseFetcher.TryFetch(connection, out var database);
 
+                        // TODO: Need to understand what scenario (if any) database will be null here
+                        // so that we set DisplayName and db.name/db.namespace correctly.
                         if (database != null)
                         {
                             activity.DisplayName = (string)database;
-                            activity.SetTag(SemanticConventions.AttributeDbName, database);
+
+                            if (this.options.EmitOldAttributes)
+                            {
+                                activity.SetTag(SemanticConventions.AttributeDbName, database);
+                            }
+
+                            if (this.options.EmitNewAttributes)
+                            {
+                                activity.SetTag(SemanticConventions.AttributeDbNamespace, database);
+                            }
                         }
 
                         _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
@@ -105,7 +116,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         if (dataSource != null)
                         {
-                            this.options.AddConnectionLevelDetailsToActivity((string)dataSource, activity);
+                            SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity((string)dataSource, activity, this.options);
                         }
 
                         if (this.commandTypeFetcher.TryFetch(command, out CommandType commandType))
@@ -115,7 +126,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 case CommandType.StoredProcedure:
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
-                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
@@ -123,7 +142,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;

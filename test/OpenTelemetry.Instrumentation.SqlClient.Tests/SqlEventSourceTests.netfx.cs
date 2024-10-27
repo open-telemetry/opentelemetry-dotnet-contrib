@@ -83,6 +83,26 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true)]
     [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false)]
     [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true)]
+
+    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
+
+    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
+    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
     public void EventSourceFakeTests(
         Type eventSourceType,
         CommandType commandType,
@@ -90,7 +110,9 @@ public class SqlEventSourceTests
         bool captureText,
         bool isFailure = false,
         int sqlExceptionNumber = 0,
-        bool enableConnectionLevelAttributes = false)
+        bool enableConnectionLevelAttributes = false,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
     {
         using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
@@ -101,12 +123,15 @@ public class SqlEventSourceTests
             {
                 options.SetDbStatementForText = captureText;
                 options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
+                options.EmitOldAttributes = emitOldAttributes;
+                options.EmitNewAttributes = emitNewAttributes;
             })
             .Build();
 
         int objectId = Guid.NewGuid().GetHashCode();
 
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
+        var dataSource = "127.0.0.1\\instanceName,port";
+        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
         // success is stored in the first bit in compositeState 0b001
         int successFlag = !isFailure ? 1 : 0;
@@ -125,7 +150,7 @@ public class SqlEventSourceTests
 
         var activity = exportedItems[0];
 
-        VerifyActivityData(commandText, captureText, isFailure, "127.0.0.1", activity, enableConnectionLevelAttributes);
+        VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
     }
 
     [Theory]
@@ -214,49 +239,68 @@ public class SqlEventSourceTests
         bool isFailure,
         string dataSource,
         Activity activity,
-        bool enableConnectionLevelAttributes = false)
+        bool enableConnectionLevelAttributes = false,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
     {
         Assert.Equal("master", activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
-        if (!enableConnectionLevelAttributes)
+        if (enableConnectionLevelAttributes)
         {
-            Assert.Equal(dataSource, activity.GetTagValue(SemanticConventions.AttributePeerService));
-        }
-        else
-        {
-            var connectionDetails = SqlClientTraceInstrumentationOptions.ParseDataSource(dataSource);
+            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
             if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
             {
-                Assert.Equal(connectionDetails.ServerHostName, activity.GetTagValue(SemanticConventions.AttributeNetPeerName));
+                Assert.Equal(connectionDetails.ServerHostName, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
             }
             else
             {
-                Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
+                Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
             }
 
-            if (!string.IsNullOrEmpty(connectionDetails.InstanceName))
+            if (emitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
             {
                 Assert.Equal(connectionDetails.InstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
             }
-
-            if (!string.IsNullOrEmpty(connectionDetails.Port))
+            else
             {
-                Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+                Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+            }
+
+            if (connectionDetails.Port.HasValue)
+            {
+                Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
             }
         }
 
-        Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
+        if (emitOldAttributes)
+        {
+            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        }
 
         if (captureText)
         {
-            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            if (emitOldAttributes)
+            {
+                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            }
+
+            if (emitNewAttributes)
+            {
+                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            }
         }
         else
         {
             Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
         }
 
         if (!isFailure)
