@@ -89,7 +89,7 @@ public class WeatherForecastController : ApiController
     [HttpPost]
     public async Task<HttpResponseMessage> PostData()
     {
-        string value1 = Baggage.GetBaggage("key1");
+        var value1 = Baggage.GetBaggage("key1");
         if (string.IsNullOrEmpty(value1))
         {
             throw new InvalidOperationException("Key1 was not found on Baggage.");
