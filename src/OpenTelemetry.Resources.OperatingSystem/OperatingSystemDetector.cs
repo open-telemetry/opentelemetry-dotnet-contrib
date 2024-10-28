@@ -93,6 +93,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 this.AddMacOSAttributes(attributes);
                 break;
 #endif
+            default:
+                break;
         }
 
         return new Resource(attributes);
