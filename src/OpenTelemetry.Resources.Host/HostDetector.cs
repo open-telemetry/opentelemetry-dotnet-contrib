@@ -162,8 +162,8 @@ internal sealed class HostDetector : IResourceDetector
                 var isExited = process.WaitForExit(5000);
                 if (isExited)
                 {
-                    string output = process.StandardOutput.ReadToEnd();
-                    string error = process.StandardError.ReadToEnd();
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
 
                     if (!string.IsNullOrEmpty(error))
                     {
