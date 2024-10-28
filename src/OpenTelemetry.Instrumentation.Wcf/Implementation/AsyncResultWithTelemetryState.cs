@@ -15,7 +15,7 @@ internal sealed class AsyncResultWithTelemetryState : IAsyncResult
 
     public RequestTelemetryState TelemetryState { get; }
 
-    object IAsyncResult.AsyncState => this.Inner.AsyncState;
+    object? IAsyncResult.AsyncState => this.Inner.AsyncState;
 
     WaitHandle IAsyncResult.AsyncWaitHandle => this.Inner.AsyncWaitHandle;
 

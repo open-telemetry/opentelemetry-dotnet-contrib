@@ -48,8 +48,7 @@ internal static class TelemetryPropagationWriter
             return;
         }
 
-        object prop;
-        if (!request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out prop))
+        if (!request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var prop))
         {
             prop = HttpRequestMessagePropertyWrapper.CreateNew();
             request.Properties.Add(HttpRequestMessagePropertyWrapper.Name, prop);

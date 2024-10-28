@@ -82,7 +82,7 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state)
     {
         Guard.ThrowIfNull(state);
 
@@ -128,7 +128,7 @@ internal static class ClientChannelInstrumentation
         if (request.Properties.TryGetValue(TelemetryContextMessageProperty.Name, out object telemetryContextProperty))
         {
             var actionMappings = (telemetryContextProperty as TelemetryContextMessageProperty)?.ActionMappings;
-            if (actionMappings != null && actionMappings.TryGetValue(action, out ActionMetadata metadata))
+            if (actionMappings != null && actionMappings.TryGetValue(action, out var metadata))
             {
                 actionMetadata = metadata;
             }
