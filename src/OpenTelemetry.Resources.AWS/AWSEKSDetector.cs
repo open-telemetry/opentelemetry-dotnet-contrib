@@ -83,15 +83,13 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         try
         {
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            using var streamReader = ResourceDetectorUtils.GetStreamReader(path);
+            while (!streamReader.EndOfStream)
             {
-                while (!streamReader.EndOfStream)
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
                 {
-                    var trimmedLine = streamReader.ReadLine()?.Trim();
-                    if (trimmedLine?.Length > 64)
-                    {
-                        return trimmedLine.Substring(trimmedLine.Length - 64);
-                    }
+                    return trimmedLine.Substring(trimmedLine.Length - 64);
                 }
             }
         }
