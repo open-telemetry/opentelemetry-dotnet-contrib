@@ -4,10 +4,11 @@
 #if !NETFRAMEWORK
 using System.Data;
 using System.Diagnostics;
-using OpenTelemetry.Trace;
 #if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Globalization;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
@@ -32,6 +33,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+    private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly SqlClientTraceInstrumentationOptions options;
 
     public SqlClientDiagnosticListener(string sourceName, SqlClientTraceInstrumentationOptions? options)
@@ -210,6 +212,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         {
                             if (this.exceptionFetcher.TryFetch(payload, out Exception? exception) && exception != null)
                             {
+                                activity.AddTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+
+                                if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                                {
+                                    activity.AddTag(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
+                                }
+
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
                                 if (this.options.RecordException)
