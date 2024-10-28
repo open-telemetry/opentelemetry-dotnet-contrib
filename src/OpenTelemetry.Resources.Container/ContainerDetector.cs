@@ -62,7 +62,7 @@ internal sealed class ContainerDetector : IResourceDetector
         }
         else
         {
-            return new Resource(new List<KeyValuePair<string, object>>(1) { new(ContainerSemanticConventions.AttributeContainerId, containerId!) });
+            return new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId!)]);
         }
     }
 
