@@ -27,22 +27,19 @@ internal sealed class AWSEKSDetector : IResourceDetector
         var credentials = GetEKSCredentials(AWSEKSCredentialPath);
         using var httpClientHandler = ServerCertificateValidationHandler.Create(AWSEKSCertificatePath, AWSResourcesEventSource.Log);
 
-        if (credentials == null || !IsEKSProcess(credentials, httpClientHandler))
-        {
-            return Resource.Empty;
-        }
-
-        return new Resource(ExtractResourceAttributes(
-            GetEKSClusterName(credentials, httpClientHandler),
-            GetEKSContainerId(AWSEKSMetadataFilePath)));
+        return credentials == null || !IsEKSProcess(credentials, httpClientHandler)
+            ? Resource.Empty
+            : new Resource(ExtractResourceAttributes(
+                GetEKSClusterName(credentials, httpClientHandler),
+                GetEKSContainerId(AWSEKSMetadataFilePath)));
     }
 
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
+            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
         };
 
         if (!string.IsNullOrEmpty(clusterName))
@@ -86,15 +83,13 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         try
         {
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            using var streamReader = ResourceDetectorUtils.GetStreamReader(path);
+            while (!streamReader.EndOfStream)
             {
-                while (!streamReader.EndOfStream)
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
                 {
-                    var trimmedLine = streamReader.ReadLine()?.Trim();
-                    if (trimmedLine?.Length > 64)
-                    {
-                        return trimmedLine.Substring(trimmedLine.Length - 64);
-                    }
+                    return trimmedLine.Substring(trimmedLine.Length - 64);
                 }
             }
         }

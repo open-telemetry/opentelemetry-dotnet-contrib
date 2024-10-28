@@ -17,6 +17,7 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+#if NET
     private const string KernelOsRelease = "/proc/sys/kernel/osrelease";
     private static readonly string[] DefaultEtcOsReleasePaths =
     [
@@ -29,23 +30,26 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         "/System/Library/CoreServices/SystemVersion.plist",
         "/System/Library/CoreServices/ServerVersion.plist"
     ];
+#endif
 
     private readonly string? osType;
     private readonly string? registryKey;
+#if NET
     private readonly string? kernelOsRelease;
     private readonly string[]? etcOsReleasePaths;
     private readonly string[]? plistFilePaths;
+#endif
 
     internal OperatingSystemDetector()
-        : this(
-            GetOSType(),
-            RegistryKey,
-            KernelOsRelease,
-            DefaultEtcOsReleasePaths,
-            DefaultPlistFilePaths)
+#if NET
+        : this(GetOSType(), RegistryKey, KernelOsRelease, DefaultEtcOsReleasePaths, DefaultPlistFilePaths)
+#else
+        : this(GetOSType(), RegistryKey)
+#endif
     {
     }
 
+#if NET
     /// <summary>
     /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
     /// </summary>
@@ -55,12 +59,22 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
     /// <param name="plistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
     internal OperatingSystemDetector(string? osType, string? registryKey, string? kernelOsRelease, string[]? etcOsReleasePath, string[]? plistFilePaths)
+#else
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
+    /// </summary>
+    /// <param name="osType">The target platform identifier, specifying the operating system type from SemanticConventions.</param>
+    /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
+    internal OperatingSystemDetector(string? osType, string? registryKey)
+#endif
     {
         this.osType = osType;
         this.registryKey = registryKey;
+#if NET
         this.kernelOsRelease = kernelOsRelease;
         this.etcOsReleasePaths = etcOsReleasePath;
         this.plistFilePaths = plistFilePaths;
+#endif
     }
 
     /// <summary>
@@ -93,6 +107,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 this.AddMacOSAttributes(attributes);
                 break;
 #endif
+            default:
+                break;
         }
 
         return new Resource(attributes);
@@ -120,22 +136,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
 #else
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return OperatingSystemsValues.Windows;
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return OperatingSystemsValues.Linux;
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            return OperatingSystemsValues.Darwin;
-        }
-        else
-        {
-            return null;
-        }
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemsValues.Windows :
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemsValues.Linux :
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemsValues.Darwin : null;
 #endif
     }
 
@@ -175,7 +178,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            string? etcOsReleasePath = this.etcOsReleasePaths!.FirstOrDefault(File.Exists);
+            var etcOsReleasePath = this.etcOsReleasePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(etcOsReleasePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find the os-release file");
@@ -187,22 +190,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
             foreach (var line in osReleaseContent)
             {
-                ReadOnlySpan<char> lineSpan = line.AsSpan();
+                var lineSpan = line.AsSpan();
 
                 _ = TryGetFieldValue(lineSpan, "BUILD_ID=", ref buildId) ||
                     TryGetFieldValue(lineSpan, "NAME=", ref name) ||
                     TryGetFieldValue(lineSpan, "VERSION_ID=", ref version);
             }
 
-            string? buildIdContent = null;
-            if (buildId.IsEmpty)
-            {
-                buildIdContent = File.ReadAllText(this.kernelOsRelease!).Trim();
-            }
-            else
-            {
-                buildIdContent = buildId.ToString();
-            }
+            var buildIdContent = buildId.IsEmpty ? File.ReadAllText(this.kernelOsRelease!).Trim() : buildId.ToString();
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildIdContent);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name.IsEmpty ? "Linux" : name.ToString());
@@ -220,7 +215,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 return false;
             }
 
-            ReadOnlySpan<char> fieldValue = line.Slice(prefix.Length);
+            var fieldValue = line.Slice(prefix.Length);
 
             // Remove enclosing quotes if present.
             if (fieldValue.Length >= 2 &&
@@ -239,14 +234,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            string? plistFilePath = this.plistFilePaths!.FirstOrDefault(File.Exists);
+            var plistFilePath = this.plistFilePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
                 return;
             }
 
-            XDocument doc = XDocument.Load(plistFilePath);
+            var doc = XDocument.Load(plistFilePath);
             var dict = doc.Root?.Element("dict");
 
             string? buildId = null, name = null, version = null;
@@ -262,7 +257,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                     return;
                 }
 
-                for (int i = 0; i < keys.Count; i++)
+                for (var i = 0; i < keys.Count; i++)
                 {
                     switch (keys[i].Value)
                     {
@@ -274,6 +269,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                             break;
                         case "ProductVersion":
                             version = values[i].Value;
+                            break;
+                        default:
                             break;
                     }
                 }
