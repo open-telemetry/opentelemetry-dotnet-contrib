@@ -95,9 +95,9 @@ internal sealed class AWSECSDetector : IResourceDetector
 
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudResourceId, containerArn),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsContainerArn, containerArn),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
+            new(AWSSemanticConventions.AttributeCloudResourceId, containerArn),
+            new(AWSSemanticConventions.AttributeEcsContainerArn, containerArn),
+            new(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
         };
 
         if (taskResponse.RootElement.TryGetProperty("AvailabilityZone", out var availabilityZoneElement) && availabilityZoneElement.ValueKind == JsonValueKind.String)

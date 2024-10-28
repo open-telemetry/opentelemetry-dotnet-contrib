@@ -41,8 +41,8 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
+            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
+            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
         };
 
         if (!string.IsNullOrEmpty(clusterName))
