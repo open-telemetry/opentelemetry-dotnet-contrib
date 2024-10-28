@@ -49,12 +49,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 script = scriptDelegate?.Invoke(message);
             }
 
-            if (GetCommandAndKey(commandAndKeyFetcher, message, out var value))
-            {
-                return (value, script);
-            }
-
-            return (null, script);
+            return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
 #if NET
             [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
