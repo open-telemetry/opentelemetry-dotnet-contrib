@@ -6,7 +6,7 @@ using System.ServiceModel.Channels;
 
 namespace Examples.Wcf.Client;
 
-public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
+internal class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
 {
     public StatusServiceClient(string name)
         : base(name)

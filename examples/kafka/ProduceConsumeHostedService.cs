@@ -5,7 +5,7 @@ using Confluent.Kafka;
 
 namespace Examples.ConfluentKafka;
 
-public class ProduceConsumeHostedService(
+internal class ProduceConsumeHostedService(
     InstrumentedProducerBuilder<string, string> instrumentedProducerBuilder,
     InstrumentedConsumerBuilder<string, string> instrumentedConsumerBuilder)
     : BackgroundService

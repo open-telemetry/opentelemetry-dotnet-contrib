@@ -3,7 +3,7 @@
 
 namespace Examples.GrpcCore.AspNetCore;
 
-public class WeatherForecast
+internal class WeatherForecast
 {
     public WeatherForecast(DateTime date, int temperatureC, string summary)
     {

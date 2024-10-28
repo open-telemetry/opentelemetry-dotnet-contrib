@@ -8,7 +8,7 @@ using OpenTelemetry.Trace;
 
 namespace Examples.GrpcCore.AspNetCore;
 
-public class Startup
+internal class Startup
 {
     public Startup(IConfiguration configuration)
     {

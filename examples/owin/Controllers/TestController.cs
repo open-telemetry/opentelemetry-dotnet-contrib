@@ -5,7 +5,7 @@ using System.Web.Http;
 
 namespace Examples.Owin.Controllers;
 
-public class TestController : ApiController
+internal class TestController : ApiController
 {
     // GET api/test/{id}
     public string Get(string? id = null)
