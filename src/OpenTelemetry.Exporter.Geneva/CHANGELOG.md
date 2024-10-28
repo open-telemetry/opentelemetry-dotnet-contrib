@@ -14,7 +14,7 @@
     [#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113).
 
   * Unix domain socket transport:
-    [#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX).
+    [#2261](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2261).
 
   For configuration details see:
   [OtlpProtobufEncoding](./README.md#otlpprotobufencoding).
