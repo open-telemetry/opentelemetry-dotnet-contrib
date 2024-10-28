@@ -27,14 +27,11 @@ internal sealed class AWSEKSDetector : IResourceDetector
         var credentials = GetEKSCredentials(AWSEKSCredentialPath);
         using var httpClientHandler = ServerCertificateValidationHandler.Create(AWSEKSCertificatePath, AWSResourcesEventSource.Log);
 
-        if (credentials == null || !IsEKSProcess(credentials, httpClientHandler))
-        {
-            return Resource.Empty;
-        }
-
-        return new Resource(ExtractResourceAttributes(
-            GetEKSClusterName(credentials, httpClientHandler),
-            GetEKSContainerId(AWSEKSMetadataFilePath)));
+        return credentials == null || !IsEKSProcess(credentials, httpClientHandler)
+            ? Resource.Empty
+            : new Resource(ExtractResourceAttributes(
+                GetEKSClusterName(credentials, httpClientHandler),
+                GetEKSContainerId(AWSEKSMetadataFilePath)));
     }
 
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
