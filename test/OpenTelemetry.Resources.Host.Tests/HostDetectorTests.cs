@@ -40,8 +40,8 @@ public class HostDetectorTests
         }";
 
 #if NET
-    private static readonly IEnumerable<string> ETCMACHINEID = new[] { "Samples/etc_machineid" };
-    private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = new[] { "Samples/etc_var_dbus_machineid" };
+    private static readonly IEnumerable<string> ETCMACHINEID = ["Samples/etc_machineid"];
+    private static readonly IEnumerable<string> ETCVARDBUSMACHINEID = ["Samples/etc_var_dbus_machineid"];
 #endif
 
     [Fact]
@@ -63,7 +63,7 @@ public class HostDetectorTests
     {
         var combos = new[]
         {
-            (Enumerable.Empty<string>(), null),
+            ([], null),
             (ETCMACHINEID, "etc_machineid"),
             (ETCVARDBUSMACHINEID, "etc_var_dbus_machineid"),
             (Enumerable.Concat(ETCMACHINEID, ETCVARDBUSMACHINEID), "etc_machineid"),
@@ -95,7 +95,7 @@ public class HostDetectorTests
     {
         var detector = new HostDetector(
             osPlatform => osPlatform == OSPlatform.OSX,
-            () => Enumerable.Empty<string>(),
+            () => [],
             () => MacOSMachineIdOutput,
             () => throw new Exception("should not be called"));
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
@@ -116,9 +116,9 @@ public class HostDetectorTests
     public void TestHostMachineIdWindows()
     {
 #if NET
-        var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+        var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => [], () => throw new Exception("should not be called"), () => "windows-machine-id");
 #else
-        var detector = new HostDetector(() => Enumerable.Empty<string>(), () => throw new Exception("should not be called"), () => "windows-machine-id");
+        var detector = new HostDetector(() => [], () => throw new Exception("should not be called"), () => "windows-machine-id");
 #endif
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
@@ -131,14 +131,14 @@ public class HostDetectorTests
     [Fact]
     public void TestPlatformSpecificMethodInvocation()
     {
-        bool linuxMethodCalled = false;
-        bool macOsMethodCalled = false;
-        bool windowsMethodCalled = false;
+        var linuxMethodCalled = false;
+        var macOsMethodCalled = false;
+        var windowsMethodCalled = false;
         var detector = new HostDetector(
             () =>
         {
             linuxMethodCalled = true;
-            return Array.Empty<string>();
+            return [];
         },
             () =>
         {

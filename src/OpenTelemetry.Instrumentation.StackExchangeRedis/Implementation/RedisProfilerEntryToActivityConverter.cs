@@ -18,8 +18,8 @@ internal static class RedisProfilerEntryToActivityConverter
 {
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
-        Type profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        Type scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+        var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
+        var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
         var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -49,12 +49,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 script = scriptDelegate?.Invoke(message);
             }
 
-            if (GetCommandAndKey(commandAndKeyFetcher, message, out var value))
-            {
-                return (value, script);
-            }
-
-            return (null, script);
+            return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
 #if NET
             [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
@@ -199,19 +194,19 @@ internal static class RedisProfilerEntryToActivityConverter
         string fieldName,
         BindingFlags flags)
     {
-        FieldInfo? field = classType.GetField(fieldName, flags);
+        var field = classType.GetField(fieldName, flags);
         if (field != null)
         {
 #if NET
             if (RuntimeFeature.IsDynamicCodeSupported)
 #endif
             {
-                string methodName = classType.FullName + ".get_" + field.Name;
+                var methodName = classType.FullName + ".get_" + field.Name;
 #pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
                 // TODO: Remove the above disable when the AOT analyzer being used has the fix for https://github.com/dotnet/linker/issues/2715.
-                DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
+                var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
 #pragma warning restore IL3050
-                ILGenerator generator = getterMethod.GetILGenerator();
+                var generator = getterMethod.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Castclass, classType);
                 generator.Emit(OpCodes.Ldfld, field);
