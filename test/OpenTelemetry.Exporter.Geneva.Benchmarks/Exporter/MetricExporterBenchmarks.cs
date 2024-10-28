@@ -318,9 +318,9 @@ public class MetricExporterBenchmarks
             .AddReader(inMemoryReader)
             .Build();
 
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
         for (int i = 0; i < 1000; i++)
         {
@@ -408,9 +408,9 @@ public class MetricExporterBenchmarks
             .AddReader(batchGeneratorReader)
             .Build();
 
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
         for (int i = 0; i < 1000; i++)
         {
@@ -475,9 +475,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void InstrumentWithNoListener3Dimensions()
     {
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
         this.counterWithNoListener?.Add(100, tag1, tag2, tag3);
     }
 
@@ -499,9 +499,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void InstrumentWithWithListener3Dimensions()
     {
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
         this.counterWithListener?.Add(100, tag1, tag2, tag3);
     }
 
@@ -523,9 +523,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void InstrumentWithWithDummyReader3Dimensions()
     {
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
         this.counterWithDummyReader?.Add(100, tag1, tag2, tag3);
     }
 
@@ -547,9 +547,9 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void InstrumentWithWithGenevaCounterMetricExporter3Dimensions()
     {
-        var tag1 = new KeyValuePair<string, object>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag2 = new KeyValuePair<string, object>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
-        var tag3 = new KeyValuePair<string, object>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag1 = new KeyValuePair<string, object?>("DimName1", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
+        var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
         this.counterWithGenevaMetricExporter?.Add(100, tag1, tag2, tag3);
     }
 
