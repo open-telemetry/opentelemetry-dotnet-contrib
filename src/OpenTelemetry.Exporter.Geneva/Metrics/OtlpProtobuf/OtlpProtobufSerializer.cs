@@ -41,14 +41,15 @@ internal sealed class OtlpProtobufSerializer
         IMetricDataTransport metricDataTransport,
         string? metricsAccount,
         string? metricsNamespace,
-        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions,
+        bool prefixBufferWithUInt32LittleEndianLength = false)
     {
         Debug.Assert(metricDataTransport != null, "metricDataTransport was null");
 
         this.MetricDataTransport = metricDataTransport!;
         this.metricAccount = metricsAccount;
         this.metricNamespace = metricsNamespace;
-        this.prefixBufferWithUInt32LittleEndianLength = metricDataTransport is MetricUnixDomainSocketDataTransport;
+        this.prefixBufferWithUInt32LittleEndianLength = prefixBufferWithUInt32LittleEndianLength;
 
         // Taking a arbitrary number here for writing attributes.
         byte[] temp = new byte[20000];
@@ -220,9 +221,9 @@ internal sealed class OtlpProtobufSerializer
 
     internal void SerializeResourceMetrics(byte[] buffer, Resource resource)
     {
-        int cursor = 0;
+        int cursor = this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0;
 
-        this.resourceMetricTagAndLengthIndex = cursor + (this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0);
+        this.resourceMetricTagAndLengthIndex = cursor;
 
         this.resourceMetricValueIndex = cursor + TagAndLengthSize;
 

@@ -31,7 +31,8 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
             transport!,
             metricsAccount,
             metricsNamespace,
-            prepopulatedMetricDimensions);
+            prepopulatedMetricDimensions,
+            prefixBufferWithUInt32LittleEndianLength: transport is MetricUnixDomainSocketDataTransport);
     }
 
     public ExportResult Export(in Batch<Metric> batch)

@@ -72,11 +72,19 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             this.exportMetrics = response.ExportFunc;
         }
 #if !NET
-        else if (connectionStringBuilder.Endpoint.IndexOf("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase) >= 0)
+        else if (
+            connectionStringBuilder.Protocol == TransportProtocol.Unix
+            && connectionStringBuilder.Endpoint.IndexOf("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase) >= 0)
 #else
-        else if (connectionStringBuilder.Endpoint.Contains("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase))
+        else if (connectionStringBuilder.Protocol == TransportProtocol.Unix
+            && connectionStringBuilder.Endpoint.Contains("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase))
 #endif
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                throw new ArgumentException("Unix domain socket should not be used on Windows.");
+            }
+
             var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
 
             IMetricDataTransport transport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
