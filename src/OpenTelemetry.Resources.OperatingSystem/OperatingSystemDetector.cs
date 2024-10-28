@@ -122,22 +122,9 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 #if NETFRAMEWORK
         return OperatingSystemsValues.Windows;
 #else
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return OperatingSystemsValues.Windows;
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return OperatingSystemsValues.Linux;
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            return OperatingSystemsValues.Darwin;
-        }
-        else
-        {
-            return null;
-        }
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? OperatingSystemsValues.Windows :
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OperatingSystemsValues.Linux :
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? OperatingSystemsValues.Darwin : null;
 #endif
     }
 
@@ -196,15 +183,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                     TryGetFieldValue(lineSpan, "VERSION_ID=", ref version);
             }
 
-            string? buildIdContent = null;
-            if (buildId.IsEmpty)
-            {
-                buildIdContent = File.ReadAllText(this.kernelOsRelease!).Trim();
-            }
-            else
-            {
-                buildIdContent = buildId.ToString();
-            }
+            var buildIdContent = buildId.IsEmpty ? File.ReadAllText(this.kernelOsRelease!).Trim() : buildId.ToString();
 
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemBuildId, buildIdContent);
             AddAttributeIfNotNullOrEmpty(attributes, AttributeOperatingSystemName, name.IsEmpty ? "Linux" : name.ToString());
