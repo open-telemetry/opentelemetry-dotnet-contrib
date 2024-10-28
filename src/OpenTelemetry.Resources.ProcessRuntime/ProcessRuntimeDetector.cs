@@ -64,12 +64,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
             using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             using var ndpKey = baseKey.OpenSubKey(subKey);
 
-            if (ndpKey?.GetValue("Release") != null)
-            {
-                return CheckFor45PlusVersion((int)ndpKey.GetValue("Release"));
-            }
-
-            return null;
+            return ndpKey?.GetValue("Release") != null ? CheckFor45PlusVersion((int)ndpKey.GetValue("Release")) : null;
         }
         catch
         {
