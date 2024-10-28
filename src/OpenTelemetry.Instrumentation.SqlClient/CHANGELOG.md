@@ -30,11 +30,13 @@
   for the same information. Note that `server.address` is only included when
   the `EnableConnectionLevelAttributes` option is enabled.
   ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229))
-* When `EnableConnectionLevelAttributes` is enabled, the `server.port` attribute
-  will now be written as an integer to be compliant with the
-  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/attributes-registry/server.md).
+* **Breaking change**: When `EnableConnectionLevelAttributes` is enabled, the
+  `server.port` attribute will now be written as an integer to be compliant with
+  the [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/attributes-registry/server.md).
   Previously, it was written as a string.
   ([#2233](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2233))
+* The `EnableConnectionLevelAttributes` option is now enabled by default.
+  ([#2249](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2249))
 
 ## 1.9.0-beta.1
 

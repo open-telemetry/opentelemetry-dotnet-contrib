@@ -142,7 +142,7 @@ internal sealed class PropertyFetcher<T>
                     return (PropertyFetch?)typeof(PropertyFetch)
                         .GetMethod(nameof(CreateInstantiated), BindingFlags.NonPublic | BindingFlags.Static)!
                         .MakeGenericMethod(declaringType) // This is validated in the earlier call chain to be a reference type.
-                        .Invoke(null, new object[] { propertyInfo })!;
+                        .Invoke(null, [propertyInfo])!;
                 }
             }
         }
