@@ -256,6 +256,8 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                         case "ProductVersion":
                             version = values[i].Value;
                             break;
+                        default:
+                            break;
                     }
                 }
             }
