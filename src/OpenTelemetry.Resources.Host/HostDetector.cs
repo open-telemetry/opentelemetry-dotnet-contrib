@@ -113,7 +113,7 @@ internal sealed class HostDetector : IResourceDetector
             return null;
         }
 
-        var lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+        var lines = output.Split([Environment.NewLine], StringSplitOptions.None);
 
         foreach (var line in lines)
         {
