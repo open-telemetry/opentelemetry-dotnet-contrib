@@ -119,7 +119,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
                 continue;
             }
 
-            ProfilingSession session = entry.Value.Session;
+            var session = entry.Value.Session;
             RedisProfilerEntryToActivityConverter.DrainSession(parent, session.FinishProfiling(), this.options);
             this.Cache.TryRemove((entry.Key.TraceId, entry.Key.SpanId), out _);
         }
