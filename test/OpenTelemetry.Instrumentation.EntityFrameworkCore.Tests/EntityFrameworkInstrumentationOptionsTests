@@ -5,9 +5,9 @@ using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Internal;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
+namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
-public class SqlClientTraceInstrumentationOptionsTests
+public class EntityFrameworkInstrumentationOptionsTests
 {
     [Fact]
     public void ShouldEmitOldAttributesWhenStabilityOptInIsDatabaseDup()
@@ -15,7 +15,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { [DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName] = "database/dup" })
             .Build();
-        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.True(options.EmitOldAttributes);
         Assert.True(options.EmitNewAttributes);
     }
@@ -24,7 +24,7 @@ public class SqlClientTraceInstrumentationOptionsTests
     public void ShouldEmitOldAttributesWhenStabilityOptInIsNotSpecified()
     {
         var configuration = new ConfigurationBuilder().Build();
-        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.True(options.EmitOldAttributes);
         Assert.False(options.EmitNewAttributes);
     }
@@ -35,7 +35,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { [DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName] = "database" })
             .Build();
-        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
         Assert.False(options.EmitOldAttributes);
         Assert.True(options.EmitNewAttributes);
     }

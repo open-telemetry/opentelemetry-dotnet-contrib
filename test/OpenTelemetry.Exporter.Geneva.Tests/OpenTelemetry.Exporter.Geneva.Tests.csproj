@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
     <Description>Unit test project for Geneva Exporters for OpenTelemetry.</Description>
     <NoWarn>$(NoWarn);SA1311;SA1312;SA1313;SA1123;SA1202;OTEL1002</NoWarn>
@@ -15,7 +15,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.25.3" />
     <PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
     <PackageReference Include="Grpc" Version="2.46.6" />
-    <PackageReference Include="MessagePack" Version="2.5.172" />
+    <PackageReference Include="MessagePack" Version="2.5.187" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OTelSdkVersion)" />
   </ItemGroup>

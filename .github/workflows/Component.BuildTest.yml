@@ -6,6 +6,10 @@ on:
       project-name:
         required: true
         type: string
+      run-tests:
+        required: false
+        default: true
+        type: boolean
       code-cov-name:
         required: true
         type: string
@@ -21,6 +25,17 @@ on:
         default: '[ "net462", "net8.0" ]'
         required: false
         type: string
+      test-case-filter:
+        required: false
+        type: string
+      test-require-elevated:
+        default: false
+        required: false
+        type: boolean
+      pack:
+        default: true
+        required: false
+        type: boolean
 
 jobs:
   build-test:
@@ -75,10 +90,6 @@ jobs:
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: |
-          6.0.x
-          8.0.x
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
@@ -87,30 +98,45 @@ jobs:
       run: dotnet build ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore
 
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-      run: dotnet test ${{ steps.resolve-project.outputs.project }} --collect:"Code Coverage" --results-directory:TestResults --framework ${{ matrix.version }} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed" -- RunConfiguration.DisableAppDomain=true
+      if: ${{ inputs.run-tests }}
+      run: >
+        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && 'sudo -E' || '' }}
+        dotnet test ${{ steps.resolve-project.outputs.project }}
+        --collect:"Code Coverage"
+        --results-directory:TestResults
+        --framework ${{ matrix.version }}
+        --configuration Release
+        --no-restore
+        --no-build
+        --logger:"console;verbosity=detailed"
+        --filter "${{ inputs.test-case-filter }}"
+        -- RunConfiguration.DisableAppDomain=true
+        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
 
     - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
-      if: ${{ matrix.os == 'windows-latest' }}
+      if: ${{ matrix.os == 'windows-latest' && inputs.pack }}
       run: dotnet pack ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore --no-build -p:EnablePackageValidation=true
 
     - name: Install coverage tool
+      if: ${{ inputs.run-tests }}
       run: dotnet tool install -g dotnet-coverage
 
     - name: Merging test results
-      if: ${{ hashFiles('./TestResults/**/*.coverage') != '' }}
+      if: ${{ inputs.run-tests && hashFiles('./TestResults/**/*.coverage') != '' }}
       run: dotnet-coverage merge -f cobertura -o ./TestResults/Cobertura.xml ./TestResults/**/*.coverage
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ hashFiles('./TestResults/Cobertura.xml') != '' }}
+      if: ${{ inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != '' }}
       uses: codecov/codecov-action@v4
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
         TFM: ${{ matrix.version }}
+        FILTER: ${{ inputs.test-case-filter }}
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
         file: TestResults/Cobertura.xml
-        env_vars: OS,TFM
+        env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml

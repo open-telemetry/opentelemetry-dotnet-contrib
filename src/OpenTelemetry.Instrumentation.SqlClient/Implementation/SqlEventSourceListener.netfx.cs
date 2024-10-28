@@ -130,14 +130,30 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (activity.IsAllDataRequested)
         {
-            activity.SetTag(SemanticConventions.AttributeDbName, databaseName);
+            if (this.options.EmitOldAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbName, databaseName);
+            }
 
-            this.options.AddConnectionLevelDetailsToActivity((string)eventData.Payload[1], activity);
+            if (this.options.EmitNewAttributes)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, databaseName);
+            }
+
+            SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity((string)eventData.Payload[1], activity, this.options);
 
             string commandText = (string)eventData.Payload[3];
             if (!string.IsNullOrEmpty(commandText) && this.options.SetDbStatementForText)
             {
-                activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                if (this.options.EmitOldAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                }
+
+                if (this.options.EmitNewAttributes)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                }
             }
         }
     }
