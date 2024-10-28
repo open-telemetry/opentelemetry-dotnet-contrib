@@ -23,10 +23,10 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
-    internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
-    {
-        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis"),
-    };
+    internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags =
+    [
+        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis")
+    ];
 
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
         = new();

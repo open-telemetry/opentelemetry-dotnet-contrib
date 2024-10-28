@@ -20,7 +20,7 @@ public sealed class StackExchangeRedisInstrumentation : IDisposable
         this.options = options;
     }
 
-    internal List<StackExchangeRedisConnectionInstrumentation> InstrumentedConnections { get; } = new();
+    internal List<StackExchangeRedisConnectionInstrumentation> InstrumentedConnections { get; } = [];
 
     /// <summary>
     /// Adds an <see cref="IConnectionMultiplexer"/> to the instrumentation.
