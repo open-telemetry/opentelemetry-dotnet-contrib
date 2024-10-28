@@ -5,14 +5,19 @@
 * Drop support for .NET 6 as this target is no longer supported.
   ([#2117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2117))
 
-* Added support for exporting metrics via
-  [user_events](https://docs.kernel.org/trace/user_events.html) on Linux when
-  OTLP protobuf encoding is enabled via the
-  `PrivatePreviewEnableOtlpProtobufEncoding=true` connection string switch. With
-  this, `PrivatePreviewEnableOtlpProtobufEncoding=true` is now supported on both
-  Widows and Linux. Windows uses ETW as transport, while Linux uses user_events
-  as transport.
-  ([#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113))
+* Added support for exporting metrics on Linux when OTLP protobuf encoding is
+  enabled via the `PrivatePreviewEnableOtlpProtobufEncoding=true` connection
+  string switch. `PrivatePreviewEnableOtlpProtobufEncoding=true` is now
+  supported on both Widows and Linux.
+
+  * `user_events` transport:
+    [#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113).
+
+  * Unix domain socket transport:
+    [#XXXX](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/XXXX).
+
+  For configuration details see:
+  [OtlpProtobufEncoding](./README.md#otlpprotobufencoding).
 
 ## 1.9.0
 
