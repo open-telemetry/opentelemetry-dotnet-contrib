@@ -172,6 +172,6 @@ public class FileBlobTests
         var nonExistingPath = Path.Combine("FakePath:/", Path.GetRandomFileName());
         FileBlob blob = new FileBlob(nonExistingPath);
 
-        Assert.False(blob.TryWrite(Array.Empty<byte>()));
+        Assert.False(blob.TryWrite([]));
     }
 }
