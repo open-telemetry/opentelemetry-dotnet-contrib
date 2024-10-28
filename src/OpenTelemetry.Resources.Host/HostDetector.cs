@@ -215,22 +215,10 @@ internal sealed class HostDetector : IResourceDetector
 #if NETFRAMEWORK
         return this.getWindowsMachineId();
 #else
-        if (this.isOsPlatform(OSPlatform.Windows))
-        {
-            return this.getWindowsMachineId();
-        }
+        return this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
+            this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
+            this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
 
-        if (this.isOsPlatform(OSPlatform.Linux))
-        {
-            return this.GetMachineIdLinux();
-        }
-
-        if (this.isOsPlatform(OSPlatform.OSX))
-        {
-            return ParseMacOsOutput(this.getMacOsMachineId());
-        }
-
-        return null;
 #endif
     }
 
