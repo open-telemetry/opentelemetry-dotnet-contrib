@@ -131,9 +131,9 @@ public class HostDetectorTests
     [Fact]
     public void TestPlatformSpecificMethodInvocation()
     {
-        bool linuxMethodCalled = false;
-        bool macOsMethodCalled = false;
-        bool windowsMethodCalled = false;
+        var linuxMethodCalled = false;
+        var macOsMethodCalled = false;
+        var windowsMethodCalled = false;
         var detector = new HostDetector(
             () =>
         {
