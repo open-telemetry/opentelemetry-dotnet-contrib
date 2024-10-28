@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Unit test project for OpenTelemetry SqlClient instrumentations</Description>
-    <TargetFrameworks>$(SupportedNetTargetsWithoutNet6)</TargetFrameworks>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 

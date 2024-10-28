@@ -73,6 +73,26 @@ public class SqlClientTests : IDisposable
     [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, false)]
     [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true)]
     [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, false)]
+
+    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false, true, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false, false, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false, true, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false, false, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, true, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, false, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, true, false, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, false, false, true)]
+
+    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false, true, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", true, false, false, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false, true, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand, CommandType.Text, "select * from sys.databases", true, false, false, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, true, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.StoredProcedure, "SP_GetOrders", false, true, false, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, true, true, true)]
+    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand, CommandType.Text, "select * from sys.databases", false, true, false, true, true)]
     public void SqlClientCallsAreCollectedSuccessfully(
         string beforeCommand,
         string afterCommand,
@@ -80,7 +100,9 @@ public class SqlClientTests : IDisposable
         string commandText,
         bool captureStoredProcedureCommandName,
         bool captureTextCommandContent,
-        bool shouldEnrich = true)
+        bool shouldEnrich = true,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
     {
         using var sqlConnection = new SqlConnection(TestConnectionString);
         using var sqlCommand = sqlConnection.CreateCommand();
@@ -96,6 +118,9 @@ public class SqlClientTests : IDisposable
                         {
                             opt.Enrich = ActivityEnrichment;
                         }
+
+                        opt.EmitOldAttributes = emitOldAttributes;
+                        opt.EmitNewAttributes = emitNewAttributes;
                     })
                 .AddInMemoryExporter(activities)
                 .Build())
@@ -140,8 +165,62 @@ public class SqlClientTests : IDisposable
             false,
             false,
             shouldEnrich,
-            sqlConnection.DataSource,
-            activity);
+            activity,
+            emitOldAttributes,
+            emitNewAttributes);
+    }
+
+    [Theory]
+    [InlineData(true, "localhost", "localhost", null, null, null)]
+    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null)]
+    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434)]
+    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818)]
+    [InlineData(false, "localhost", null, null, null, null)]
+
+    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
+    [InlineData(true, "localhost", "localhost", null, null, null, false, true)]
+    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null, false, true)]
+    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434, false, true)]
+    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", null, 1818, false, true)]
+    [InlineData(false, "localhost", null, null, null, null, false, true)]
+
+    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
+    [InlineData(true, "localhost", "localhost", null, null, null, true, true)]
+    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null, true, true)]
+    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434, true, true)]
+    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818, true, true)]
+    [InlineData(false, "localhost", null, null, null, null, true, true)]
+    public void SqlClientAddsConnectionLevelAttributes(
+        bool enableConnectionLevelAttributes,
+        string dataSource,
+        string? expectedServerHostName,
+        string? expectedServerIpAddress,
+        string? expectedInstanceName,
+        int? expectedPort,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
+    {
+        var activity = new Activity("Test Sql Activity");
+        var options = new SqlClientTraceInstrumentationOptions()
+        {
+            EnableConnectionLevelAttributes = enableConnectionLevelAttributes,
+            EmitOldAttributes = emitOldAttributes,
+            EmitNewAttributes = emitNewAttributes,
+        };
+        SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity(dataSource, activity, options);
+
+        Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(expectedInstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+        }
+        else
+        {
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+        }
+
+        Assert.Equal(expectedPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
     }
 
     [Theory]
@@ -208,7 +287,6 @@ public class SqlClientTests : IDisposable
             true,
             recordException,
             shouldEnrich,
-            sqlConnection.DataSource,
             activity);
     }
 
@@ -302,8 +380,9 @@ public class SqlClientTests : IDisposable
         bool isFailure,
         bool recordException,
         bool shouldEnrich,
-        string dataSource,
-        Activity activity)
+        Activity activity,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
     {
         Assert.Equal("master", activity.DisplayName);
         Assert.Equal(ActivityKind.Client, activity.Kind);
@@ -342,18 +421,36 @@ public class SqlClientTests : IDisposable
         }
 
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        }
 
         switch (commandType)
         {
             case CommandType.StoredProcedure:
                 if (captureStoredProcedureCommandName)
                 {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    if (emitOldAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    }
+
+                    if (emitNewAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    }
                 }
                 else
                 {
                     Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                 }
 
                 break;
@@ -361,17 +458,24 @@ public class SqlClientTests : IDisposable
             case CommandType.Text:
                 if (captureTextCommandContent)
                 {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    if (emitOldAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    }
+
+                    if (emitNewAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    }
                 }
                 else
                 {
                     Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                 }
 
                 break;
         }
-
-        Assert.Equal(dataSource, activity.GetTagValue(SemanticConventions.AttributePeerService));
     }
 
     internal static void VerifySamplingParameters(SamplingParameters samplingParameters)
