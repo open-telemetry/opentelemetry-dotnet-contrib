@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.1.0-beta.7
+
+Released 2024-Oct-28
+
 * Add detection of Lambda cold start and set `faas.coldstart` Activity tag.
   ([#2037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2037))
 * Add HTTP server span attributes for Application Loadbalancer triggers
