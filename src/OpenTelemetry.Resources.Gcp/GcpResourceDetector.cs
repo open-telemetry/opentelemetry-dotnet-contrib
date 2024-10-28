@@ -27,6 +27,7 @@ internal sealed class GcpResourceDetector : IResourceDetector
             PlatformType.CloudRun => ExtractCloudRunResourceAttributes(platform),
             PlatformType.Gae => ExtractGaeResourceAttributes(platform),
             PlatformType.Gce => ExtractGceResourceAttributes(platform),
+            PlatformType.Unknown => ExtractGceResourceAttributes(platform),
             _ => ExtractGceResourceAttributes(platform),
         };
 
