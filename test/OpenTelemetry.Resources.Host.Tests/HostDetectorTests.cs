@@ -138,7 +138,7 @@ public class HostDetectorTests
             () =>
         {
             linuxMethodCalled = true;
-            return Array.Empty<string>();
+            return [];
         },
             () =>
         {
