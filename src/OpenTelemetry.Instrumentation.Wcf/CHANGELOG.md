@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-rc.18
+
+Released 2024-Oct-28
+
 * Add target for `net6.0` to ensure that non-vulnerable transient
   dependencies are referenced by default for .NET6+.
   ([#2243](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2243))
