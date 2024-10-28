@@ -56,14 +56,7 @@ internal sealed class ContainerDetector : IResourceDetector
     {
         var containerId = this.ExtractContainerId(path, cgroupVersion);
 
-        if (string.IsNullOrEmpty(containerId))
-        {
-            return Resource.Empty;
-        }
-        else
-        {
-            return new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId!)]);
-        }
+        return string.IsNullOrEmpty(containerId) ? Resource.Empty : new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId!)]);
     }
 
     /// <summary>
@@ -86,12 +79,7 @@ internal sealed class ContainerDetector : IResourceDetector
 
         string containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
 
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
-        {
-            return null;
-        }
-
-        return containerId;
+        return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId) ? null : containerId;
     }
 
     /// <summary>
@@ -108,12 +96,7 @@ internal sealed class ContainerDetector : IResourceDetector
             containerId = match.Groups[1].Value;
         }
 
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!))
-        {
-            return null;
-        }
-
-        return containerId;
+        return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!) ? null : containerId;
     }
 
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
