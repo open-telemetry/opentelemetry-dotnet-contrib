@@ -177,7 +177,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            string? etcOsReleasePath = this.etcOsReleasePaths!.FirstOrDefault(File.Exists);
+            var etcOsReleasePath = this.etcOsReleasePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(etcOsReleasePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("Failed to find the os-release file");
@@ -189,7 +189,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
 
             foreach (var line in osReleaseContent)
             {
-                ReadOnlySpan<char> lineSpan = line.AsSpan();
+                var lineSpan = line.AsSpan();
 
                 _ = TryGetFieldValue(lineSpan, "BUILD_ID=", ref buildId) ||
                     TryGetFieldValue(lineSpan, "NAME=", ref name) ||
@@ -222,7 +222,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                 return false;
             }
 
-            ReadOnlySpan<char> fieldValue = line.Slice(prefix.Length);
+            var fieldValue = line.Slice(prefix.Length);
 
             // Remove enclosing quotes if present.
             if (fieldValue.Length >= 2 &&
@@ -241,14 +241,14 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     {
         try
         {
-            string? plistFilePath = this.plistFilePaths!.FirstOrDefault(File.Exists);
+            var plistFilePath = this.plistFilePaths!.FirstOrDefault(File.Exists);
             if (string.IsNullOrEmpty(plistFilePath))
             {
                 OperatingSystemResourcesEventSource.Log.FailedToFindFile("No suitable plist file found");
                 return;
             }
 
-            XDocument doc = XDocument.Load(plistFilePath);
+            var doc = XDocument.Load(plistFilePath);
             var dict = doc.Root?.Element("dict");
 
             string? buildId = null, name = null, version = null;
@@ -264,7 +264,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
                     return;
                 }
 
-                for (int i = 0; i < keys.Count; i++)
+                for (var i = 0; i < keys.Count; i++)
                 {
                     switch (keys[i].Value)
                     {

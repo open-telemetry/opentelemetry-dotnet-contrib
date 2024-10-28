@@ -22,7 +22,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
         var frameworkDescription = RuntimeInformation.FrameworkDescription;
         string netRuntimeName;
 #if NETFRAMEWORK
-        string? netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
+        var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
 #endif
 
         var lastSpace = frameworkDescription.LastIndexOf(' ');
