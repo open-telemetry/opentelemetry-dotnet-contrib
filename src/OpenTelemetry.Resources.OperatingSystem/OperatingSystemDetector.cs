@@ -17,6 +17,7 @@ namespace OpenTelemetry.Resources.OperatingSystem;
 internal sealed class OperatingSystemDetector : IResourceDetector
 {
     private const string RegistryKey = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+#if NET
     private const string KernelOsRelease = "/proc/sys/kernel/osrelease";
     private static readonly string[] DefaultEtcOsReleasePaths =
     [
@@ -29,23 +30,26 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         "/System/Library/CoreServices/SystemVersion.plist",
         "/System/Library/CoreServices/ServerVersion.plist"
     ];
+#endif
 
     private readonly string? osType;
     private readonly string? registryKey;
+#if NET
     private readonly string? kernelOsRelease;
     private readonly string[]? etcOsReleasePaths;
     private readonly string[]? plistFilePaths;
+#endif
 
     internal OperatingSystemDetector()
-        : this(
-            GetOSType(),
-            RegistryKey,
-            KernelOsRelease,
-            DefaultEtcOsReleasePaths,
-            DefaultPlistFilePaths)
+#if NET
+        : this(GetOSType(), RegistryKey, KernelOsRelease, DefaultEtcOsReleasePaths, DefaultPlistFilePaths)
+#else
+        : this(GetOSType(), RegistryKey)
+#endif
     {
     }
 
+#if NET
     /// <summary>
     /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
     /// </summary>
@@ -55,12 +59,22 @@ internal sealed class OperatingSystemDetector : IResourceDetector
     /// <param name="etcOsReleasePath">The string path to the file used to obtain Linux attributes.</param>
     /// <param name="plistFilePaths">An array of file paths used to retrieve MacOS attributes from plist files.</param>
     internal OperatingSystemDetector(string? osType, string? registryKey, string? kernelOsRelease, string[]? etcOsReleasePath, string[]? plistFilePaths)
+#else
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperatingSystemDetector"/> class for testing.
+    /// </summary>
+    /// <param name="osType">The target platform identifier, specifying the operating system type from SemanticConventions.</param>
+    /// <param name="registryKey">The string path in the Windows Registry to retrieve specific Windows attributes.</param>
+    internal OperatingSystemDetector(string? osType, string? registryKey)
+#endif
     {
         this.osType = osType;
         this.registryKey = registryKey;
+#if NET
         this.kernelOsRelease = kernelOsRelease;
         this.etcOsReleasePaths = etcOsReleasePath;
         this.plistFilePaths = plistFilePaths;
+#endif
     }
 
     /// <summary>
