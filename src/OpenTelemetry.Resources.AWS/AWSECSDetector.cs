@@ -63,7 +63,7 @@ internal sealed class AWSECSDetector : IResourceDetector
         var metadataV4Url = Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key);
         if (metadataV4Url == null)
         {
-            return new List<KeyValuePair<string, object>>();
+            return [];
         }
 
         using var httpClientHandler = new HttpClientHandler();
@@ -77,14 +77,14 @@ internal sealed class AWSECSDetector : IResourceDetector
             || containerArnElement.GetString() is not string containerArn)
         {
             AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'ContainerARN' field"));
-            return new List<KeyValuePair<string, object>>();
+            return [];
         }
 
         if (!taskResponse.RootElement.TryGetProperty("Cluster", out var clusterArnElement)
             || clusterArnElement.GetString() is not string clusterArn)
         {
             AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'Cluster' field"));
-            return new List<KeyValuePair<string, object>>();
+            return [];
         }
 
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
