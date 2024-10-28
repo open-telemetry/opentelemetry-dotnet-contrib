@@ -71,11 +71,8 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
 #endif
         var subscriptionId = idx > 0 ? websiteOwnerName.Substring(0, idx) : websiteOwnerName;
 
-        if (string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId))
-        {
-            return null;
-        }
-
-        return $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
+        return string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId)
+            ? null
+            : $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";
     }
 }
