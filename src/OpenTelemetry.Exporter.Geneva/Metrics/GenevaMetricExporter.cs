@@ -53,46 +53,49 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
         if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
         {
+            IMetricDataTransport transport;
+
+            if (connectionStringBuilder.Protocol == TransportProtocol.Unix)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
+
+                transport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
+            }
+            else
+            {
 #if NET6_0_OR_GREATER
-            IMetricDataTransport transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? MetricUnixUserEventsDataTransport.Instance
-                : MetricWindowsEventTracingDataTransport.Instance;
+                transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? MetricUnixUserEventsDataTransport.Instance
+                    : MetricWindowsEventTracingDataTransport.Instance;
 #else
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
+                }
+
+                transport = MetricWindowsEventTracingDataTransport.Instance;
+#endif
             }
 
-            var transport = MetricWindowsEventTracingDataTransport.Instance;
-#endif
+            connectionStringBuilder.TryGetMetricsAccountAndNamespace(
+                out var metricsAccount,
+                out var metricsNamespace);
 
-            var response = this.InitializeOtlpProtobufExport(options, connectionStringBuilder, transport);
+            var otlpProtobufExporter = new OtlpProtobufMetricExporter(
+                () => { return this.Resource; },
+                transport,
+                metricsAccount,
+                metricsNamespace,
+                options.PrepopulatedMetricDimensions);
 
-            this.exporter = response.Exporter;
-            this.exportMetrics = response.ExportFunc;
-        }
-#if !NET
-        else if (
-            connectionStringBuilder.Protocol == TransportProtocol.Unix
-            && connectionStringBuilder.Endpoint.IndexOf("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase) >= 0)
-#else
-        else if (connectionStringBuilder.Protocol == TransportProtocol.Unix
-            && connectionStringBuilder.Endpoint.Contains("mdm_otlp.socket", StringComparison.OrdinalIgnoreCase))
-#endif
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                throw new ArgumentException("Unix domain socket should not be used on Windows.");
-            }
+            this.exportMetrics = otlpProtobufExporter.Export;
 
-            var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-
-            IMetricDataTransport transport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
-
-            var response = this.InitializeOtlpProtobufExport(options, connectionStringBuilder, transport);
-
-            this.exporter = response.Exporter;
-            this.exportMetrics = response.ExportFunc;
+            this.exporter = otlpProtobufExporter;
         }
         else
         {
@@ -153,23 +156,4 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 #else
     private static Regex GetDisableRegexPattern() => new(DisableRegexPattern, RegexOptions.Compiled);
 #endif
-
-    private (IDisposable Exporter, ExportMetricsFunc ExportFunc) InitializeOtlpProtobufExport(
-        GenevaMetricExporterOptions options,
-        ConnectionStringBuilder connectionStringBuilder,
-        IMetricDataTransport transport)
-    {
-        connectionStringBuilder.TryGetMetricsAccountAndNamespace(
-            out var metricsAccount,
-            out var metricsNamespace);
-
-        var otlpProtobufExporter = new OtlpProtobufMetricExporter(
-            () => { return this.Resource; },
-            transport,
-            metricsAccount,
-            metricsNamespace,
-            options.PrepopulatedMetricDimensions);
-
-        return (otlpProtobufExporter, otlpProtobufExporter.Export);
-    }
 }
