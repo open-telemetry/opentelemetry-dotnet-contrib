@@ -35,8 +35,8 @@ internal sealed class GcpResourceDetector : IResourceDetector
 
     internal static List<KeyValuePair<string, object>> ExtractGkeResourceAttributes(Platform platform)
     {
-        List<KeyValuePair<string, object>> attributeList = new()
-        {
+        List<KeyValuePair<string, object>> attributeList =
+        [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGkePlatformValue),
@@ -44,47 +44,47 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeHostId, platform.GkeDetails.InstanceId),
             new(ResourceSemanticConventions.AttributeK8sCluster, platform.GkeDetails.ClusterName),
             new(ResourceSemanticConventions.AttributeK8sNamespace, platform.GkeDetails.NamespaceId),
-            new(ResourceSemanticConventions.AttributeK8sPod, platform.GkeDetails.HostName),
-        };
+            new(ResourceSemanticConventions.AttributeK8sPod, platform.GkeDetails.HostName)
+        ];
 
         return attributeList;
     }
 
     internal static List<KeyValuePair<string, object>> ExtractCloudRunResourceAttributes(Platform platform)
     {
-        List<KeyValuePair<string, object>> attributeList = new()
-        {
+        List<KeyValuePair<string, object>> attributeList =
+        [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.CloudRunDetails.Zone),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpCloudRunPlatformValue),
-            new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region),
-        };
+            new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region)
+        ];
 
         return attributeList;
     }
 
     internal static List<KeyValuePair<string, object>> ExtractGaeResourceAttributes(Platform platform)
     {
-        List<KeyValuePair<string, object>> attributeList = new()
-        {
+        List<KeyValuePair<string, object>> attributeList =
+        [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
-            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGaePlatformValue),
-        };
+            new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGaePlatformValue)
+        ];
         return attributeList;
     }
 
     internal static List<KeyValuePair<string, object>> ExtractGceResourceAttributes(Platform platform)
     {
-        List<KeyValuePair<string, object>> attributeList = new()
-        {
+        List<KeyValuePair<string, object>> attributeList =
+        [
             new(ResourceSemanticConventions.AttributeCloudProvider, ResourceAttributeConstants.GcpCloudProviderValue),
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpGcePlatformValue),
             new(ResourceSemanticConventions.AttributeHostId, platform.GceDetails.InstanceId),
-            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.GceDetails.Location),
-        };
+            new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.GceDetails.Location)
+        ];
 
         return attributeList;
     }
