@@ -33,7 +33,7 @@ internal class DummyServer
             this.serverSocket.Bind(this.endpoint);
             this.serverSocket.Listen(20);
 
-            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs args) =>
+            Console.CancelKeyPress += (object? sender, ConsoleCancelEventArgs args) =>
             {
                 Console.WriteLine("Program is terminating.");
                 this.serverSocket.Close();
