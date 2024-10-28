@@ -13,10 +13,10 @@ namespace Examples.AspNet.Controllers;
 
 public class WeatherForecastController : ApiController
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching",
-    };
+    private static readonly string[] Summaries =
+    [
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    ];
 
     [HttpGet] // For testing traditional routing. Ex: https://localhost:XXXX/api/weatherforecast
     public async Task<IEnumerable<WeatherForecast>> Get()
