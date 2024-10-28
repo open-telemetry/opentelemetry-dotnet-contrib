@@ -43,8 +43,8 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 #endif
         }
 
-        return new Resource(new List<KeyValuePair<string, object>>(3)
-        {
+        return new Resource(
+        [
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName),
 #if NETFRAMEWORK
@@ -52,7 +52,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 #else
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
 #endif
-        });
+        ]);
     }
 
 #if NETFRAMEWORK
