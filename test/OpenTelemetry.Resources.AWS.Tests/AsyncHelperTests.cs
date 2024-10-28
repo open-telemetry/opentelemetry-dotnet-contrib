@@ -11,13 +11,13 @@ public class AsyncHelperTests
     public void RunSyncTaskCompletesSuccessfully()
     {
         // Arrange
-        Func<Task> task = async () =>
+        static async Task Task()
         {
-            await Task.Delay(100);
-        };
+            await System.Threading.Tasks.Task.Delay(100);
+        }
 
         // Act
-        var exception = Record.Exception(() => AsyncHelper.RunSync(task));
+        var exception = Record.Exception(() => AsyncHelper.RunSync(Task));
 
         // Assert
         Assert.Null(exception);
@@ -27,14 +27,14 @@ public class AsyncHelperTests
     public void RunSyncTaskThrowsException()
     {
         // Arrange
-        Func<Task> task = async () =>
+        static async Task Task()
         {
-            await Task.Delay(100);
+            await System.Threading.Tasks.Task.Delay(100);
             throw new InvalidOperationException("Test exception");
-        };
+        }
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => AsyncHelper.RunSync(task));
+        var exception = Assert.Throws<InvalidOperationException>(() => AsyncHelper.RunSync(Task));
         Assert.Equal("Test exception", exception.Message);
     }
 
@@ -45,13 +45,13 @@ public class AsyncHelperTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        Func<Task> task = async () =>
+        async Task Task()
         {
-            await Task.Delay(100, cts.Token);
-        };
+            await System.Threading.Tasks.Task.Delay(100, cts.Token);
+        }
 
         // Act & Assert
-        var exception = Assert.Throws<TaskCanceledException>(() => AsyncHelper.RunSync(task));
+        var exception = Assert.Throws<TaskCanceledException>(() => AsyncHelper.RunSync(Task));
         Assert.Equal(cts.Token, exception.CancellationToken);
     }
 
@@ -59,14 +59,14 @@ public class AsyncHelperTests
     public void RunSyncTaskWithResultCompletesSuccessfully()
     {
         // Arrange
-        Func<Task<string>> task = async () =>
+        static async Task<string> Task()
         {
-            await Task.Delay(100);
+            await System.Threading.Tasks.Task.Delay(100);
             return "Completed";
-        };
+        }
 
         // Act
-        var result = AsyncHelper.RunSync(task);
+        var result = AsyncHelper.RunSync(Task);
 
         // Assert
         Assert.Equal("Completed", result);
@@ -76,14 +76,14 @@ public class AsyncHelperTests
     public void RunSyncTaskWithResultThrowsException()
     {
         // Arrange
-        Func<Task<string>> task = async () =>
+        static async Task<string> Task()
         {
-            await Task.Delay(100);
+            await System.Threading.Tasks.Task.Delay(100);
             throw new InvalidOperationException("Test exception");
-        };
+        }
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => AsyncHelper.RunSync(task));
+        var exception = Assert.Throws<InvalidOperationException>(() => AsyncHelper.RunSync(Task));
         Assert.Equal("Test exception", exception.Message);
     }
 
@@ -94,14 +94,14 @@ public class AsyncHelperTests
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        Func<Task<string>> task = async () =>
+        async Task<string> Task()
         {
-            await Task.Delay(100, cts.Token);
+            await System.Threading.Tasks.Task.Delay(100, cts.Token);
             return "Completed";
-        };
+        }
 
         // Act & Assert
-        var exception = Assert.Throws<TaskCanceledException>(() => AsyncHelper.RunSync(task));
+        var exception = Assert.Throws<TaskCanceledException>(() => AsyncHelper.RunSync(Task));
         Assert.Equal(cts.Token, exception.CancellationToken);
     }
 }
