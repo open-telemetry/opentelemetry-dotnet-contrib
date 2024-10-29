@@ -20,7 +20,7 @@ namespace OpenTelemetry.Internal;
 internal static class DatabaseSemanticConventionHelper
 {
     internal const string SemanticConventionOptInKeyName = "OTEL_SEMCONV_STABILITY_OPT_IN";
-    internal static readonly char[] Separator = new[] { ',', ' ' };
+    internal static readonly char[] Separator = [',', ' '];
 
     [Flags]
     public enum DatabaseSemanticConvention
