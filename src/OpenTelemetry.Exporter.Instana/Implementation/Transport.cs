@@ -15,7 +15,7 @@ internal static class Transport
 {
     private const int MultiSpanBufferSize = 4096000;
     private const int MultiSpanBufferLimit = 4070000;
-    private static readonly MediaTypeHeaderValue MEDIAHEADER = new MediaTypeHeaderValue("application/json");
+    private static readonly MediaTypeHeaderValue MEDIAHEADER = new("application/json");
     private static readonly byte[] TracesBuffer = new byte[MultiSpanBufferSize];
     private static bool isConfigured;
     private static int backendTimeout;

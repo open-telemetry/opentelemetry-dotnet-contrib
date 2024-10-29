@@ -10,7 +10,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class DefaultActivityProcessorTests
 {
-    private DefaultActivityProcessor defaultActivityProcessor = new DefaultActivityProcessor();
+    private DefaultActivityProcessor defaultActivityProcessor = new();
 
     [Fact]
     public async Task ProcessAsync()

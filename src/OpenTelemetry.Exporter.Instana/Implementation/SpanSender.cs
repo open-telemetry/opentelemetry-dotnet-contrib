@@ -10,7 +10,7 @@ internal sealed class SpanSender : ISpanSender
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 {
     private readonly Task queueSenderTask;
-    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new ConcurrentQueue<InstanaSpan>();
+    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new();
 
     public SpanSender()
     {
