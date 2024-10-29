@@ -12,8 +12,6 @@ namespace OpenTelemetry.Exporter.Instana;
 internal sealed class InstanaExporter : BaseExporter<Activity>
 {
     private readonly IActivityProcessor activityProcessor;
-    private ISpanSender spanSender = new SpanSender();
-    private IInstanaExporterHelper instanaExporterHelper = new InstanaExporterHelper();
     private bool shutdownCalled;
 
     public InstanaExporter(IActivityProcessor? activityProcessor = null)
@@ -27,17 +25,9 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         };
     }
 
-    internal ISpanSender SpanSender
-    {
-        get { return this.spanSender; }
-        set { this.spanSender = value; }
-    }
+    internal ISpanSender SpanSender { get; set; } = new SpanSender();
 
-    internal IInstanaExporterHelper InstanaExporterHelper
-    {
-        get { return this.instanaExporterHelper; }
-        set { this.instanaExporterHelper = value; }
-    }
+    internal IInstanaExporterHelper InstanaExporterHelper { get; set; } = new InstanaExporterHelper();
 
     public override ExportResult Export(in Batch<Activity> batch)
     {
@@ -47,7 +37,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         }
 
         var from = new From();
-        if (this.instanaExporterHelper.IsWindows())
+        if (this.InstanaExporterHelper.IsWindows())
         {
             from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
         }
@@ -62,7 +52,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
             }
 
             var span = this.ParseActivityAsync(activity, serviceName, from).Result;
-            this.spanSender.Enqueue(span);
+            this.SpanSender.Enqueue(span);
         }
 
         return ExportResult.Success;
@@ -92,7 +82,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
         var serviceId = string.Empty;
         var processId = string.Empty;
         var hostId = string.Empty;
-        var resource = this.instanaExporterHelper.GetParentProviderResource(this);
+        var resource = this.InstanaExporterHelper.GetParentProviderResource(this);
         if (resource != Resource.Empty && resource.Attributes.Any())
         {
             foreach (var resourceAttribute in resource.Attributes)
