@@ -152,8 +152,7 @@ internal class DataConverter : JsonConverter
                 var newData = new Data();
                 foreach (var field in data)
                 {
-                    if (((JProperty)field).Name == "tags" ||
-                        ((JProperty)field).Name == "events")
+                    if (((JProperty)field).Name is "tags" or "events")
                     {
                         continue;
                     }
