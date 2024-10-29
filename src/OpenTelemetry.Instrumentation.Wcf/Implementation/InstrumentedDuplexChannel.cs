@@ -161,7 +161,7 @@ internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexCha
 
     private static void OnTelemetryStateTimedOut(RequestTelemetryState telemetryState)
     {
-        ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+        ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, new TimeoutException());
     }
 
     private IAsyncResult SendInternal(Message message, TimeSpan timeout, Func<AsyncCallback, object?, IAsyncResult> executeSend, AsyncCallback callback, object? state)

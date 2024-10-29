@@ -96,7 +96,6 @@ internal static class ClientChannelInstrumentation
                     if (exception != null)
                     {
                         activity.RecordException(exception);
-                        activity.SetTag("exception.stacktrace", exception.ToInvariantString());
                     }
                 }
 
