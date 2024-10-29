@@ -183,7 +183,7 @@ public class AWSXRayPropagator : TextMapPropagator
             }
         }
 
-        if (traceId == default || parentId == default || traceOptions == default)
+        if (traceId.IsEmpty || parentId.IsEmpty || traceOptions == default)
         {
             return false;
         }
