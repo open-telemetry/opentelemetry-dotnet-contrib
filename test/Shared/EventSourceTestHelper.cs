@@ -13,7 +13,7 @@ internal static class EventSourceTestHelper
 {
     public static void MethodsAreImplementedConsistentlyWithTheirAttributes(EventSource eventSource)
     {
-        foreach (MethodInfo publicMethod in GetEventMethods(eventSource))
+        foreach (var publicMethod in GetEventMethods(eventSource))
         {
             VerifyMethodImplementation(eventSource, publicMethod);
         }
@@ -25,7 +25,7 @@ internal static class EventSourceTestHelper
         listener.EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
         try
         {
-            object[] eventArguments = GenerateEventArguments(eventMethod);
+            var eventArguments = GenerateEventArguments(eventMethod);
             eventMethod.Invoke(eventSource, eventArguments);
 
             var actualEvent = listener.Messages.First(q => q.EventName == eventMethod.Name);
@@ -54,9 +54,9 @@ internal static class EventSourceTestHelper
 
     private static object[] GenerateEventArguments(MethodInfo eventMethod)
     {
-        ParameterInfo[] parameters = eventMethod.GetParameters();
+        var parameters = eventMethod.GetParameters();
         var arguments = new object[parameters.Length];
-        for (int i = 0; i < parameters.Length; i++)
+        for (var i = 0; i < parameters.Length; i++)
         {
             arguments[i] = GenerateArgument(parameters[i]);
         }
@@ -82,23 +82,23 @@ internal static class EventSourceTestHelper
 
     private static void VerifyEventId(MethodInfo eventMethod, EventWrittenEventArgs actualEvent)
     {
-        int expectedEventId = GetEventAttribute(eventMethod).EventId;
+        var expectedEventId = GetEventAttribute(eventMethod).EventId;
         AssertEqual(nameof(VerifyEventId), expectedEventId, actualEvent.EventId);
     }
 
     private static void VerifyEventLevel(MethodInfo eventMethod, EventWrittenEventArgs actualEvent)
     {
-        EventLevel expectedLevel = GetEventAttribute(eventMethod).Level;
+        var expectedLevel = GetEventAttribute(eventMethod).Level;
         AssertEqual(nameof(VerifyEventLevel), expectedLevel, actualEvent.Level);
     }
 
     private static void VerifyEventMessage(MethodInfo eventMethod, EventWrittenEventArgs actualEvent, object[] eventArguments)
     {
-        string expectedMessage = eventArguments.Length == 0
+        var expectedMessage = eventArguments.Length == 0
             ? GetEventAttribute(eventMethod).Message!
             : string.Format(CultureInfo.InvariantCulture, GetEventAttribute(eventMethod).Message!, eventArguments);
 
-        string actualMessage = string.Format(
+        var actualMessage = string.Format(
             CultureInfo.InvariantCulture,
             actualEvent.Message!,
             actualEvent.Payload?.ToArray() ?? []);
@@ -128,7 +128,7 @@ internal static class EventSourceTestHelper
 
     private static IEnumerable<MethodInfo> GetEventMethods(EventSource eventSource)
     {
-        MethodInfo[] methods = eventSource.GetType().GetMethods();
+        var methods = eventSource.GetType().GetMethods();
         return methods.Where(m => m.GetCustomAttributes(typeof(EventAttribute), false).Length != 0);
     }
 }
