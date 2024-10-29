@@ -154,12 +154,7 @@ internal class RulesCache : IDisposable
             .Select(r => r.NextSnapshotTime)
             .Min();
 
-        if (minPollingTime < this.Clock.Now())
-        {
-            return defaultPollingTime;
-        }
-
-        return minPollingTime;
+        return minPollingTime < this.Clock.Now() ? defaultPollingTime : minPollingTime;
     }
 
     public void Dispose()

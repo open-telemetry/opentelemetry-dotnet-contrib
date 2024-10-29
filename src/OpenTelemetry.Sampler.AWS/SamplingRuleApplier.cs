@@ -123,14 +123,7 @@ internal class SamplingRuleApplier
             if (schemeEndIndex > 0)
             {
                 var pathIndex = httpUrl.IndexOf('/', schemeEndIndex + "://".Length);
-                if (pathIndex < 0)
-                {
-                    httpTarget = "/";
-                }
-                else
-                {
-                    httpTarget = httpUrl.Substring(pathIndex);
-                }
+                httpTarget = pathIndex < 0 ? "/" : httpUrl.Substring(pathIndex);
             }
         }
 
@@ -205,14 +198,9 @@ internal class SamplingRuleApplier
         var newReservoirEndTime = DateTimeOffset.MaxValue;
         if (target.ReservoirQuota != null && target.ReservoirQuotaTTL != null)
         {
-            if (target.ReservoirQuota > 0)
-            {
-                newReservoirSampler = new ParentBasedSampler(new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock));
-            }
-            else
-            {
-                newReservoirSampler = new AlwaysOffSampler();
-            }
+            newReservoirSampler = target.ReservoirQuota > 0
+                ? new ParentBasedSampler(new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock))
+                : new AlwaysOffSampler();
 
             newReservoirEndTime = this.Clock.ToDateTime(target.ReservoirQuotaTTL.Value);
         }
@@ -238,12 +226,8 @@ internal class SamplingRuleApplier
         var cloudPlatform = (string)resource.Attributes.FirstOrDefault(kvp =>
             kvp.Key.Equals("cloud.platform", StringComparison.Ordinal)).Value;
 
-        if (cloudPlatform == null)
-        {
-            return string.Empty;
-        }
-
-        return Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out var value) ? value : string.Empty;
+        return cloudPlatform == null ? string.Empty :
+            Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out var value) ? value : string.Empty;
     }
 
     private static string GetArn(in SamplingParameters samplingParameters, Resource resource)

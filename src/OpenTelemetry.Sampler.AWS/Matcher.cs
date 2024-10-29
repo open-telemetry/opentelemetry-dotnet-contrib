@@ -77,12 +77,7 @@ internal static class Matcher
             }
         }
 
-        if (matchedCount == ruleAttributes.Count)
-        {
-            return true;
-        }
-
-        return false;
+        return matchedCount == ruleAttributes.Count;
     }
 
     private static string ToRegexPattern(string globPattern)

@@ -19,11 +19,6 @@ internal class FallbackSampler : Trace.Sampler
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
         var result = this.reservoirSampler.ShouldSample(in samplingParameters);
-        if (result.Decision != SamplingDecision.Drop)
-        {
-            return result;
-        }
-
-        return this.fixedRateSampler.ShouldSample(in samplingParameters);
+        return result.Decision != SamplingDecision.Drop ? result : this.fixedRateSampler.ShouldSample(in samplingParameters);
     }
 }
