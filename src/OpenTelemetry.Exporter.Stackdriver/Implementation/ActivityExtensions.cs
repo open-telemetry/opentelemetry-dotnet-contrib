@@ -11,7 +11,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
 
 internal static class ActivityExtensions
 {
-    private static readonly Dictionary<string, string> LabelsToReplace = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> LabelsToReplace = new()
     {
         { "component", "/component" },
         { "http.method", "/http/method" },
