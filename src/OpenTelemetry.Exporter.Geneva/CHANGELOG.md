@@ -8,7 +8,7 @@
 * Added support for exporting metrics on Linux when OTLP protobuf encoding is
   enabled via the `PrivatePreviewEnableOtlpProtobufEncoding=true` connection
   string switch. `PrivatePreviewEnableOtlpProtobufEncoding=true` is now
-  supported on both Widows and Linux.
+  supported on both Windows and Linux.
 
   * `user_events` transport:
     [#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113).
