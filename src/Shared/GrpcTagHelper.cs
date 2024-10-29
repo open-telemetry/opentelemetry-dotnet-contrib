@@ -29,12 +29,7 @@ internal static class GrpcTagHelper
     {
         statusCode = -1;
         var grpcStatusCodeTag = activity.GetTagValue(GrpcStatusCodeTagName);
-        if (grpcStatusCodeTag == null)
-        {
-            return false;
-        }
-
-        return int.TryParse(grpcStatusCodeTag as string, out statusCode);
+        return grpcStatusCodeTag != null && int.TryParse(grpcStatusCodeTag as string, out statusCode);
     }
 
     public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)
