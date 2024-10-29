@@ -78,7 +78,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        TraceServiceClient? traceWriter = this.traceServiceClient;
+        var traceWriter = this.traceServiceClient;
         if (traceWriter == null)
         {
             traceWriter = new TraceServiceClientBuilder
@@ -92,13 +92,13 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
             ProjectName = this.googleCloudProjectId,
         };
 
-        Resource? resource = this.ParentProvider?.GetResource();
+        var resource = this.ParentProvider?.GetResource();
         foreach (var activity in batch)
         {
             // It should never happen that the time has no correct kind, only if OpenTelemetry is used incorrectly.
             if (activity.StartTimeUtc.Kind == DateTimeKind.Utc)
             {
-                Span span = activity.ToSpan(this.googleCloudProjectId.ProjectId);
+                var span = activity.ToSpan(this.googleCloudProjectId.ProjectId);
                 if (resource != null)
                 {
                     span.AnnotateWith(resource);
