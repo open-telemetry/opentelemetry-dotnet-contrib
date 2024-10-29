@@ -29,12 +29,7 @@ internal static class GrpcTagHelper
     {
         statusCode = -1;
         var grpcStatusCodeTag = activity.GetTagValue(GrpcStatusCodeTagName);
-        if (grpcStatusCodeTag == null)
-        {
-            return false;
-        }
-
-        return int.TryParse(grpcStatusCodeTag as string, out statusCode);
+        return grpcStatusCodeTag != null && int.TryParse(grpcStatusCodeTag as string, out statusCode);
     }
 
     public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)
@@ -66,9 +61,25 @@ internal static class GrpcTagHelper
 
         if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
         {
-            status = ((GrpcStatusCanonicalCode)statusCode) switch
+            status = (GrpcStatusCanonicalCode)statusCode switch
             {
                 GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
+                GrpcStatusCanonicalCode.Cancelled => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.InvalidArgument => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.NotFound => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.AlreadyExists => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.PermissionDenied => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.ResourceExhausted => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.FailedPrecondition => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Aborted => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.OutOfRange => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unauthenticated => ActivityStatusCode.Error,
                 _ => ActivityStatusCode.Error,
             };
         }

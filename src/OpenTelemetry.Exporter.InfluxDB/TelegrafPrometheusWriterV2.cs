@@ -128,7 +128,7 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                         .Field($"{metricName}_count", metricPoint.GetHistogramCount())
                         .Field($"{metricName}_sum", metricPoint.GetHistogramSum());
 
-                    if (metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                    if (metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                     {
                         headPoint = headPoint
                             .Field($"{metricName}_min", min)
@@ -149,6 +149,10 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                     }
                 }
 
+                break;
+            case MetricType.ExponentialHistogram:
+                break;
+            default:
                 break;
         }
     }
