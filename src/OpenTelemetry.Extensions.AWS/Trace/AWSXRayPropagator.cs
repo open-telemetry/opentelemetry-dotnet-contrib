@@ -68,12 +68,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
             var parentHeader = parentTraceHeader.First();
 
-            if (!TryParseXRayTraceHeader(parentHeader, out var newActivityContext))
-            {
-                return context;
-            }
-
-            return new PropagationContext(newActivityContext, context.Baggage);
+            return !TryParseXRayTraceHeader(parentHeader, out var newActivityContext) ? context : new PropagationContext(newActivityContext, context.Baggage);
         }
         catch (Exception ex)
         {
@@ -252,12 +247,8 @@ public class AWSXRayPropagator : TextMapPropagator
 
     internal static bool IsParentIdValid(ReadOnlySpan<char> parentId)
     {
-        if (parentId.IsEmpty || parentId.IsWhiteSpace())
-        {
-            return false;
-        }
-
-        return parentId.Length == ParentIdHexDigits && long.TryParse(parentId.ToString(), NumberStyles.HexNumber, null, out _);
+        return !parentId.IsEmpty && !parentId.IsWhiteSpace() && parentId.Length == ParentIdHexDigits &&
+               long.TryParse(parentId.ToString(), NumberStyles.HexNumber, null, out _);
     }
 
     internal static bool TryParseSampleDecision(ReadOnlySpan<char> sampleDecision, out char result)
