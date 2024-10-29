@@ -50,9 +50,9 @@ public class ActivityExtensionsTest
 
         KeyValuePair<string, object?>[] dupTags =
         [
-            new KeyValuePair<string, object?>("key1", "value1"),
-            new KeyValuePair<string, object?>("key2", "value2"),
-            new KeyValuePair<string, object?>("key1", "value3")
+            new("key1", "value1"),
+            new("key2", "value2"),
+            new("key1", "value3")
         ];
         var link1 = new ActivityLink(context1, tags: new ActivityTagsCollection(dupTags));
         var link2 = new ActivityLink(context2);
