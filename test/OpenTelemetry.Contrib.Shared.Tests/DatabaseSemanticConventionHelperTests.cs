@@ -56,7 +56,11 @@ public class DatabaseSemanticConventionHelperTests
         {
             Environment.SetEnvironmentVariable(SemanticConventionOptInKeyName, input);
 
+#if NET
+            var expected = Enum.Parse<DatabaseSemanticConvention>(expectedValue);
+#else
             var expected = Enum.Parse(typeof(DatabaseSemanticConvention), expectedValue);
+#endif
             Assert.Equal(expected, GetSemanticConventionOptIn(new ConfigurationBuilder().AddEnvironmentVariables().Build()));
         }
         finally
@@ -73,7 +77,11 @@ public class DatabaseSemanticConventionHelperTests
             .AddInMemoryCollection(new Dictionary<string, string?> { [SemanticConventionOptInKeyName] = input })
             .Build();
 
+#if NET
+        var expected = Enum.Parse<DatabaseSemanticConvention>(expectedValue);
+#else
         var expected = Enum.Parse(typeof(DatabaseSemanticConvention), expectedValue);
+#endif
         Assert.Equal(expected, GetSemanticConventionOptIn(configuration));
     }
 }
