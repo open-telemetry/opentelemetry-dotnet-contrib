@@ -78,14 +78,10 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        var traceWriter = this.traceServiceClient;
-        if (traceWriter == null)
+        var traceWriter = this.traceServiceClient ?? new TraceServiceClientBuilder
         {
-            traceWriter = new TraceServiceClientBuilder
-            {
-                Settings = this.traceServiceSettings,
-            }.Build();
-        }
+            Settings = this.traceServiceSettings,
+        }.Build();
 
         var batchSpansRequest = new BatchWriteSpansRequest
         {
