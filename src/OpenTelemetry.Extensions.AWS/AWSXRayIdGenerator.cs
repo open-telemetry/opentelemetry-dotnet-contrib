@@ -67,7 +67,7 @@ public static class AWSXRayIdGenerator
 
     internal static void UpdateSamplingDecision(Activity activity, Sampler sampler)
     {
-        if (!(sampler is AlwaysOnSampler) && !(sampler is AlwaysOffSampler))
+        if (sampler is not AlwaysOnSampler and not AlwaysOffSampler)
         {
             var result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
 
@@ -75,7 +75,7 @@ public static class AWSXRayIdGenerator
 
             // Following the same behavior when .NET runtime sets the trace flag for a newly created root activity.
             // See: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Diagnostics.DiagnosticSource/src/System/Diagnostics/Activity.cs#L1022-L1027
-            activity.IsAllDataRequested = result == ActivitySamplingResult.AllData || result == ActivitySamplingResult.AllDataAndRecorded;
+            activity.IsAllDataRequested = result is ActivitySamplingResult.AllData or ActivitySamplingResult.AllDataAndRecorded;
 
             if (result == ActivitySamplingResult.AllDataAndRecorded)
             {

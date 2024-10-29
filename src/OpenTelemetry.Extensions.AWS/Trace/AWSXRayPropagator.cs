@@ -265,7 +265,7 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        if (tempChar != SampledValue && tempChar != NotSampledValue)
+        if (tempChar is not SampledValue and not NotSampledValue)
         {
             return false;
         }
