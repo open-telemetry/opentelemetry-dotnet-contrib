@@ -38,7 +38,7 @@ internal static class Matcher
         // doing always regex comparison, even where we may not need it.
         foreach (var c in globPattern)
         {
-            if (c == '*' || c == '?')
+            if (c is '*' or '?')
             {
                 return Regex.IsMatch(text, ToRegexPattern(globPattern));
             }
@@ -88,7 +88,7 @@ internal static class Matcher
         for (var i = 0; i < globPattern.Length; i++)
         {
             var c = globPattern[i];
-            if (c == '*' || c == '?')
+            if (c is '*' or '?')
             {
                 if (tokenStart != -1)
                 {
