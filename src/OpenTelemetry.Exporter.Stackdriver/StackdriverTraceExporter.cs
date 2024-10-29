@@ -8,7 +8,6 @@ using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 using OpenTelemetry.Exporter.Stackdriver.Implementation;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Stackdriver;
 
