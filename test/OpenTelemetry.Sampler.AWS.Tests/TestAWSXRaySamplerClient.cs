@@ -94,8 +94,8 @@ public class TestAWSXRaySamplerClient : IDisposable
 
         this.CreateResponse("/SamplingTargets", "Data/GetSamplingTargetsResponse.json");
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -117,7 +117,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 10,
                 2,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
         var targetsResponse = await this.client.GetSamplingTargets(request);
         Assert.NotNull(targetsResponse);
@@ -151,8 +151,8 @@ public class TestAWSXRaySamplerClient : IDisposable
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -160,7 +160,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 50,
                 10,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
         var targetsResponse = await this.client.GetSamplingTargets(request);
 

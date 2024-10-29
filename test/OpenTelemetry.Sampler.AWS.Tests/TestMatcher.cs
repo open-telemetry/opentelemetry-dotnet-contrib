@@ -74,7 +74,7 @@ public class TestMatcher
             { "cow", "mooo" },
         };
 
-        Assert.False(Matcher.AttributeMatch(new List<KeyValuePair<string, object?>>(), ruleAttributes));
+        Assert.False(Matcher.AttributeMatch([], ruleAttributes));
         Assert.False(Matcher.AttributeMatch(null, ruleAttributes));
     }
 }

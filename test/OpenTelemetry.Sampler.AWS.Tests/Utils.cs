@@ -11,7 +11,7 @@ internal static class Utils
 {
     internal static SamplingParameters CreateSamplingParameters()
     {
-        return CreateSamplingParametersWithTags(new Dictionary<string, string>());
+        return CreateSamplingParametersWithTags([]);
     }
 
     internal static SamplingParameters CreateSamplingParametersWithTags(Dictionary<string, string> tags)

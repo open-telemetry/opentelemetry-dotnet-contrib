@@ -20,7 +20,7 @@ internal class RulesCache : IDisposable
         this.ClientId = clientId;
         this.Resource = resource;
         this.FallbackSampler = fallbackSampler;
-        this.RuleAppliers = new List<SamplingRuleApplier>();
+        this.RuleAppliers = [];
         this.UpdatedAt = this.Clock.Now();
     }
 
@@ -54,7 +54,7 @@ internal class RulesCache : IDisposable
         // sort the new rules
         newRules.Sort((x, y) => x.CompareTo(y));
 
-        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        List<SamplingRuleApplier> newRuleAppliers = [];
         foreach (var rule in newRules)
         {
             // If the ruleApplier already exists in the current list of appliers, then we reuse it.
@@ -104,7 +104,7 @@ internal class RulesCache : IDisposable
 
     public List<SamplingStatisticsDocument> Snapshot(DateTimeOffset now)
     {
-        List<SamplingStatisticsDocument> snapshots = new List<SamplingStatisticsDocument>();
+        List<SamplingStatisticsDocument> snapshots = [];
         foreach (var ruleApplier in this.RuleAppliers)
         {
             snapshots.Add(ruleApplier.Snapshot(now));
@@ -115,7 +115,7 @@ internal class RulesCache : IDisposable
 
     public void UpdateTargets(Dictionary<string, SamplingTargetDocument> targets)
     {
-        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        List<SamplingRuleApplier> newRuleAppliers = [];
         foreach (var ruleApplier in this.RuleAppliers)
         {
             targets.TryGetValue(ruleApplier.RuleName, out SamplingTargetDocument? target);

@@ -149,7 +149,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         GetSamplingTargetsResponse? response = await this.Client.GetSamplingTargets(request).ConfigureAwait(false);
         if (response != null)
         {
-            Dictionary<string, SamplingTargetDocument> targets = new Dictionary<string, SamplingTargetDocument>();
+            Dictionary<string, SamplingTargetDocument> targets = [];
             foreach (SamplingTargetDocument target in response.SamplingTargetDocuments)
             {
                 if (target.RuleName != null)

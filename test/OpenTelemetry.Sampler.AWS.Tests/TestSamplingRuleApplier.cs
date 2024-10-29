@@ -23,7 +23,7 @@ public class TestSamplingRuleApplier
             serviceType: "AWS::Lambda::Function",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
@@ -52,7 +52,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
@@ -80,7 +80,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>();
 
@@ -103,7 +103,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "*",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>();
 
@@ -126,7 +126,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/hello*",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
@@ -221,7 +221,7 @@ public class TestSamplingRuleApplier
             "*",
             "*",
             1,
-            new Dictionary<string, string>());
+            []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -260,7 +260,7 @@ public class TestSamplingRuleApplier
             "*",
             "*",
             1,
-            new Dictionary<string, string>());
+            []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -292,7 +292,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -328,7 +328,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -373,7 +373,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 

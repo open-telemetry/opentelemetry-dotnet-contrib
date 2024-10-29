@@ -100,10 +100,7 @@ public class TestAWSXRayRemoteSampler
             ActivityTraceId.CreateRandom(),
             "myActivityName",
             ActivityKind.Server,
-            new List<KeyValuePair<string, object?>>
-            {
-                new("test", serviceName),
-            },
+            [new("test", serviceName)],
             null);
 
         return sampler.ShouldSample(samplingParams).Decision;

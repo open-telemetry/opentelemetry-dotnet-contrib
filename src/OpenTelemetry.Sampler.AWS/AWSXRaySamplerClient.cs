@@ -26,7 +26,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
     public async Task<List<SamplingRule>> GetSamplingRules()
     {
-        List<SamplingRule> samplingRules = new List<SamplingRule>();
+        List<SamplingRule> samplingRules = [];
 
         using (var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
         {
