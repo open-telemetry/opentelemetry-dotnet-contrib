@@ -11,7 +11,7 @@ namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
 
 internal static class ActivityExtensions
 {
-    private static readonly Dictionary<string, string> LabelsToReplace = new Dictionary<string, string>
+    private static readonly Dictionary<string, string> LabelsToReplace = new()
     {
         { "component", "/component" },
         { "http.method", "/http/method" },
@@ -110,29 +110,17 @@ internal static class ActivityExtensions
 
     public static AttributeValue ToAttributeValue(this object? av)
     {
-        switch (av)
+        return av switch
         {
-            case string s:
-                return new AttributeValue
-                {
-                    StringValue = new TruncatableString { Value = s },
-                };
-            case bool b:
-                return new AttributeValue { BoolValue = b };
-            case long l:
-                return new AttributeValue { IntValue = l };
-            case double d:
-                return new AttributeValue
-                {
-                    StringValue = new TruncatableString { Value = d.ToString(CultureInfo.InvariantCulture) },
-                };
-            case null:
-                return new AttributeValue();
-            default:
-                return new AttributeValue
-                {
-                    StringValue = new TruncatableString { Value = av.ToString() },
-                };
-        }
+            string s => new AttributeValue { StringValue = new TruncatableString { Value = s } },
+            bool b => new AttributeValue { BoolValue = b },
+            long l => new AttributeValue { IntValue = l },
+            double d => new AttributeValue
+            {
+                StringValue = new TruncatableString { Value = d.ToString(CultureInfo.InvariantCulture) },
+            },
+            null => new AttributeValue(),
+            _ => new AttributeValue { StringValue = new TruncatableString { Value = av.ToString() } },
+        };
     }
 }

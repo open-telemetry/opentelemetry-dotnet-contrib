@@ -45,17 +45,17 @@ public class ActivityExtensionsTest
         var spanId1 = ActivitySpanId.CreateRandom();
         var spanId2 = ActivitySpanId.CreateRandom();
 
-        ActivityContext context1 = new ActivityContext(traceId, spanId1, ActivityTraceFlags.Recorded, isRemote: true);
-        ActivityContext context2 = new ActivityContext(traceId, spanId2, ActivityTraceFlags.Recorded, isRemote: true);
+        var context1 = new ActivityContext(traceId, spanId1, ActivityTraceFlags.Recorded, isRemote: true);
+        var context2 = new ActivityContext(traceId, spanId2, ActivityTraceFlags.Recorded, isRemote: true);
 
-        KeyValuePair<string, object?>[] dupTags = new[]
-        {
-            new KeyValuePair<string, object?>("key1", "value1"),
-            new KeyValuePair<string, object?>("key2", "value2"),
-            new KeyValuePair<string, object?>("key1", "value3"),
-        };
-        ActivityLink link1 = new ActivityLink(context1, tags: new ActivityTagsCollection(dupTags));
-        ActivityLink link2 = new ActivityLink(context2);
+        KeyValuePair<string, object?>[] dupTags =
+        [
+            new("key1", "value1"),
+            new("key2", "value2"),
+            new("key1", "value3")
+        ];
+        var link1 = new ActivityLink(context1, tags: new ActivityTagsCollection(dupTags));
+        var link2 = new ActivityLink(context2);
 
         var links = new List<ActivityLink> { link1, link2 };
 

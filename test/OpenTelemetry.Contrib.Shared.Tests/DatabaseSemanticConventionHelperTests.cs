@@ -9,28 +9,28 @@ namespace OpenTelemetry.Internal.Tests;
 
 public class DatabaseSemanticConventionHelperTests
 {
-    public static IEnumerable<object[]> TestCases => new List<object[]>
-    {
-        new object[] { null!,  DatabaseSemanticConvention.Old },
-        new object[] { string.Empty,  DatabaseSemanticConvention.Old },
-        new object[] { " ",  DatabaseSemanticConvention.Old },
-        new object[] { "junk",  DatabaseSemanticConvention.Old },
-        new object[] { "none",  DatabaseSemanticConvention.Old },
-        new object[] { "NONE",  DatabaseSemanticConvention.Old },
-        new object[] { "database",  DatabaseSemanticConvention.New },
-        new object[] { "DATABASE",  DatabaseSemanticConvention.New },
-        new object[] { "database/dup",  DatabaseSemanticConvention.Dupe },
-        new object[] { "DATABASE/DUP",  DatabaseSemanticConvention.Dupe },
-        new object[] { "junk,,junk",  DatabaseSemanticConvention.Old },
-        new object[] { "junk,JUNK",  DatabaseSemanticConvention.Old },
-        new object[] { "junk1,junk2",  DatabaseSemanticConvention.Old },
-        new object[] { "junk,database",  DatabaseSemanticConvention.New },
-        new object[] { "junk,database , database ,junk",  DatabaseSemanticConvention.New },
-        new object[] { "junk,database/dup",  DatabaseSemanticConvention.Dupe },
-        new object[] { "junk, database/dup ",  DatabaseSemanticConvention.Dupe },
-        new object[] { "database/dup,database",  DatabaseSemanticConvention.Dupe },
-        new object[] { "database,database/dup",  DatabaseSemanticConvention.Dupe },
-    };
+    public static IEnumerable<object[]> TestCases =>
+    [
+        [null!, DatabaseSemanticConvention.Old],
+        [string.Empty, DatabaseSemanticConvention.Old],
+        [" ", DatabaseSemanticConvention.Old],
+        ["junk", DatabaseSemanticConvention.Old],
+        ["none", DatabaseSemanticConvention.Old],
+        ["NONE", DatabaseSemanticConvention.Old],
+        ["database", DatabaseSemanticConvention.New],
+        ["DATABASE", DatabaseSemanticConvention.New],
+        ["database/dup", DatabaseSemanticConvention.Dupe],
+        ["DATABASE/DUP", DatabaseSemanticConvention.Dupe],
+        ["junk,,junk", DatabaseSemanticConvention.Old],
+        ["junk,JUNK", DatabaseSemanticConvention.Old],
+        ["junk1,junk2", DatabaseSemanticConvention.Old],
+        ["junk,database", DatabaseSemanticConvention.New],
+        ["junk,database , database ,junk", DatabaseSemanticConvention.New],
+        ["junk,database/dup", DatabaseSemanticConvention.Dupe],
+        ["junk, database/dup ", DatabaseSemanticConvention.Dupe],
+        ["database/dup,database", DatabaseSemanticConvention.Dupe],
+        ["database,database/dup", DatabaseSemanticConvention.Dupe],
+    ];
 
     [Fact]
     public void VerifyFlags()
@@ -56,7 +56,11 @@ public class DatabaseSemanticConventionHelperTests
         {
             Environment.SetEnvironmentVariable(SemanticConventionOptInKeyName, input);
 
+#if NET
+            var expected = Enum.Parse<DatabaseSemanticConvention>(expectedValue);
+#else
             var expected = Enum.Parse(typeof(DatabaseSemanticConvention), expectedValue);
+#endif
             Assert.Equal(expected, GetSemanticConventionOptIn(new ConfigurationBuilder().AddEnvironmentVariables().Build()));
         }
         finally
@@ -73,7 +77,11 @@ public class DatabaseSemanticConventionHelperTests
             .AddInMemoryCollection(new Dictionary<string, string?> { [SemanticConventionOptInKeyName] = input })
             .Build();
 
+#if NET
+        var expected = Enum.Parse<DatabaseSemanticConvention>(expectedValue);
+#else
         var expected = Enum.Parse(typeof(DatabaseSemanticConvention), expectedValue);
+#endif
         Assert.Equal(expected, GetSemanticConventionOptIn(configuration));
     }
 }
