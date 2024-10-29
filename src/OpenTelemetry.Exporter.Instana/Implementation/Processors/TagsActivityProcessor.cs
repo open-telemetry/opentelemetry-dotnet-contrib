@@ -28,13 +28,13 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
         {
             if (tag.Key == "otel.status_code")
             {
-                statusCode = (tag.Value as string) ?? string.Empty;
+                statusCode = tag.Value ?? string.Empty;
                 continue;
             }
 
             if (tag.Key == "otel.status_description")
             {
-                statusDesc = (tag.Value as string) ?? string.Empty;
+                statusDesc = tag.Value ?? string.Empty;
                 continue;
             }
 

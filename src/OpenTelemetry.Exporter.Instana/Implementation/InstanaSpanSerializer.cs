@@ -68,7 +68,7 @@ internal static class InstanaSpanSerializer
         await writer.WriteAsync(COMMA).ConfigureAwait(false);
         await AppendPropertyAsync(DateToUnixMillis(instanaSpan.Ts), "ts", writer).ConfigureAwait(false);
         await writer.WriteAsync(COMMA).ConfigureAwait(false);
-        await AppendPropertyAsync((long)(instanaSpan.D / 10_000), "d", writer).ConfigureAwait(false);
+        await AppendPropertyAsync(instanaSpan.D / 10_000L, "d", writer).ConfigureAwait(false);
         await writer.WriteAsync(COMMA).ConfigureAwait(false);
         await AppendObjectAsync(SerializeDataAsync, "data", instanaSpan, writer).ConfigureAwait(false);
         await writer.WriteAsync(COMMA).ConfigureAwait(false);
