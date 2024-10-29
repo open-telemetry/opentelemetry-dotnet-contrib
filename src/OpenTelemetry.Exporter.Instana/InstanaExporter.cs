@@ -56,13 +56,13 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
             return ExportResult.Failure;
         }
 
-        From from = new From();
+        var from = new From();
         if (this.instanaExporterHelper.IsWindows())
         {
             from = new From { E = Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture) };
         }
 
-        string serviceName = this.ExtractServiceName(ref from);
+        var serviceName = this.ExtractServiceName(ref from);
 
         foreach (var activity in batch)
         {
@@ -71,7 +71,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
                 continue;
             }
 
-            InstanaSpan span = this.ParseActivityAsync(activity, serviceName, from).Result;
+            var span = this.ParseActivityAsync(activity, serviceName, from).Result;
             this.spanSender.Enqueue(span);
         }
 
@@ -98,10 +98,10 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
     private string ExtractServiceName(ref From from)
     {
-        string serviceName = string.Empty;
-        string serviceId = string.Empty;
-        string processId = string.Empty;
-        string hostId = string.Empty;
+        var serviceName = string.Empty;
+        var serviceId = string.Empty;
+        var processId = string.Empty;
+        var hostId = string.Empty;
         var resource = this.instanaExporterHelper.GetParentProviderResource(this);
         if (resource != Resource.Empty && resource.Attributes.Any())
         {
@@ -154,7 +154,7 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
     private async Task<InstanaSpan> ParseActivityAsync(Activity activity, string? serviceName = null, From? from = null)
     {
-        InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
+        var instanaSpan = InstanaSpanFactory.CreateSpan();
 
         await this.activityProcessor.ProcessAsync(activity, instanaSpan).ConfigureAwait(false);
 

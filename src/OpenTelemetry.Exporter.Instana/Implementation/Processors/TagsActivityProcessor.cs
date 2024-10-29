@@ -21,9 +21,9 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 
         this.PreProcess(activity, instanaSpan);
 
-        string statusCode = string.Empty;
-        string statusDesc = string.Empty;
-        Dictionary<string, string> tags = new Dictionary<string, string>();
+        var statusCode = string.Empty;
+        var statusDesc = string.Empty;
+        var tags = new Dictionary<string, string>();
         foreach (var tag in activity.Tags)
         {
             if (tag.Key == "otel.status_code")

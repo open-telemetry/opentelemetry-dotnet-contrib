@@ -7,7 +7,7 @@ internal class InstanaSpanFactory
 {
     internal static InstanaSpan CreateSpan()
     {
-        InstanaSpan instanaSpan = new InstanaSpan
+        var instanaSpan = new InstanaSpan
         {
             Data = new Data()
             {

@@ -13,7 +13,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
 
         instanaSpan.N = InstanaExporterConstants.OTEL_SPAN_TYPE;
 
-        string traceId = activity.TraceId.ToHexString();
+        var traceId = activity.TraceId.ToHexString();
         if (traceId.Length == 32)
         {
             instanaSpan.T = traceId.Substring(16);
@@ -24,8 +24,8 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
             instanaSpan.T = traceId;
         }
 
-        bool hasParent = false;
-        string parentSpanId = activity.ParentSpanId.ToHexString();
+        var hasParent = false;
+        var parentSpanId = activity.ParentSpanId.ToHexString();
         if (!string.IsNullOrEmpty(parentSpanId) && GetLongFromHex(parentSpanId) != 0)
         {
             hasParent = true;
@@ -73,7 +73,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
         {
             try
             {
-                string[] ids = hexValue.Split(',');
+                var ids = hexValue.Split(',');
                 return Convert.ToInt64(ids[ids.Length - 1].Trim(), 16);
             }
             catch (Exception)
@@ -86,7 +86,7 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
 
     private static void SetKind(Activity activity, InstanaSpan instanaSpan)
     {
-        bool isEntrySpan = false;
+        var isEntrySpan = false;
 
         if (instanaSpan.Data.data != null)
         {

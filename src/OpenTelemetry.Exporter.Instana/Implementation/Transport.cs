@@ -39,16 +39,16 @@ internal static class Transport
     {
         try
         {
-            using (MemoryStream sendBuffer = new MemoryStream(TracesBuffer))
+            using (var sendBuffer = new MemoryStream(TracesBuffer))
             {
-                using (StreamWriter writer = new StreamWriter(sendBuffer))
+                using (var writer = new StreamWriter(sendBuffer))
                 {
                     await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
-                    bool first = true;
+                    var first = true;
 
                     // peek instead of dequeue, because we don't yet know whether the next span
                     // fits within our MULTI_SPAN_BUFFER_LIMIT
-                    while (spanQueue.TryPeek(out InstanaSpan span) && sendBuffer.Position < MultiSpanBufferLimit)
+                    while (spanQueue.TryPeek(out var span) && sendBuffer.Position < MultiSpanBufferLimit)
                     {
                         if (!first)
                         {
@@ -68,7 +68,7 @@ internal static class Transport
                     await writer.WriteAsync("]}").ConfigureAwait(false);
                     await writer.FlushAsync().ConfigureAwait(false);
 
-                    long length = sendBuffer.Position;
+                    var length = sendBuffer.Position;
                     sendBuffer.Position = 0;
                     sendBuffer.SetLength(length);
 
@@ -148,8 +148,8 @@ internal static class Transport
 #pragma warning disable CA2000
         var configuredHandler = new HttpClientHandler();
 #pragma warning restore CA2000
-        string proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
-        if (Uri.TryCreate(proxy, UriKind.Absolute, out Uri proxyAddress))
+        var proxy = Environment.GetEnvironmentVariable(InstanaExporterConstants.ENVVAR_INSTANA_ENDPOINT_PROXY);
+        if (Uri.TryCreate(proxy, UriKind.Absolute, out var proxyAddress))
         {
             configuredHandler.Proxy = new WebProxy(proxyAddress, true);
             configuredHandler.UseProxy = true;
