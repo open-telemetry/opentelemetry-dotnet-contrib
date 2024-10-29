@@ -167,7 +167,7 @@ public class StackdriverExporterTests
         var eventTimestamp = DateTime.UtcNow;
         var traceId = ActivityTraceId.CreateFromString("e8ea7e9ac72de94e91fabc613f9686b2".AsSpan());
 
-        var parentSpanId = ActivitySpanId.CreateFromBytes(new byte[] { 12, 23, 34, 45, 56, 67, 78, 89 });
+        var parentSpanId = ActivitySpanId.CreateFromBytes([12, 23, 34, 45, 56, 67, 78, 89]);
 
         var attributes = new Dictionary<string, object?>
         {
