@@ -159,7 +159,6 @@ public class StackdriverExporterTests
         Dictionary<string, object>? additionalAttributes = null,
         bool addEvents = true,
         bool addLinks = true,
-        Resource? resource = null,
         ActivityKind kind = ActivityKind.Client)
     {
         var startTimestamp = DateTime.UtcNow;
