@@ -10,7 +10,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class TagsActivityProcessorTests
 {
-    private TagsActivityProcessor tagsActivityProcessor = new();
+    private readonly TagsActivityProcessor tagsActivityProcessor = new();
 
     [Fact]
     public async Task ProcessAsync_StatusTagsExist()

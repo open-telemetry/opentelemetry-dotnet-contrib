@@ -12,7 +12,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class EventsActivityProcessorTests
 {
-    private EventsActivityProcessor eventsActivityProcessor = new();
+    private readonly EventsActivityProcessor eventsActivityProcessor = new();
 
     [Fact]
     public async Task ProcessAsync()

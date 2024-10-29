@@ -10,7 +10,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class ErrorActivityProcessorTests
 {
-    private ErrorActivityProcessor errorActivityProcessor = new();
+    private readonly ErrorActivityProcessor errorActivityProcessor = new();
 
     [Fact]
     public async Task Process_ErrorStatusCodeIsSet()
