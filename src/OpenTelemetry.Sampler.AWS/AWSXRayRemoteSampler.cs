@@ -14,7 +14,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
     internal static readonly TimeSpan DefaultTargetInterval = TimeSpan.FromSeconds(10);
 
-    private static readonly Random Random = new Random();
+    private static readonly Random Random = new();
     private bool isFallBackEventToWriteSwitch = true;
 
     [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
