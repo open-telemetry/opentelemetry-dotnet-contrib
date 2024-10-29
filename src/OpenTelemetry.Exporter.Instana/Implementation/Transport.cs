@@ -28,10 +28,7 @@ internal static class Transport
         Configure();
     }
 
-    internal static bool IsAvailable
-    {
-        get { return isConfigured && Client != null; }
-    }
+    internal static bool IsAvailable => isConfigured && Client != null;
 
     internal static InstanaHttpClient? Client { get; set; }
 
