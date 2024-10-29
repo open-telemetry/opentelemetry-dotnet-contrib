@@ -64,6 +64,22 @@ internal static class GrpcTagHelper
             status = (GrpcStatusCanonicalCode)statusCode switch
             {
                 GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
+                GrpcStatusCanonicalCode.Cancelled => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unknown => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.InvalidArgument => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DeadlineExceeded => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.NotFound => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.AlreadyExists => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.PermissionDenied => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.ResourceExhausted => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.FailedPrecondition => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Aborted => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.OutOfRange => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unimplemented => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Internal => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unavailable => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.DataLoss => ActivityStatusCode.Error,
+                GrpcStatusCanonicalCode.Unauthenticated => ActivityStatusCode.Error,
                 _ => ActivityStatusCode.Error,
             };
         }
