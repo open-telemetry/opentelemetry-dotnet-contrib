@@ -20,9 +20,9 @@ public class InfluxDBFakeServer : IDisposable
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
-                byte[] buffer = new byte[context.Request.ContentLength64];
+                var buffer = new byte[context.Request.ContentLength64];
                 _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
-                string text = Encoding.UTF8.GetString(buffer);
+                var text = Encoding.UTF8.GetString(buffer);
                 foreach (var line in text.Split(SplitChars, StringSplitOptions.RemoveEmptyEntries))
                 {
                     this.lines.Add(line);
