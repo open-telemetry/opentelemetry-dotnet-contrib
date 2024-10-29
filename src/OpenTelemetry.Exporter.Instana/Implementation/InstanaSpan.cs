@@ -241,7 +241,7 @@ internal class SpanEvent
 #pragma warning restore SA1402 // File may only contain a single type
 {
     private string name = string.Empty;
-    private Dictionary<string, string> tags = new Dictionary<string, string>();
+    private Dictionary<string, string> tags = [];
 
     public string Name
     {

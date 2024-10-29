@@ -23,25 +23,25 @@ public static class InstanaSpanSerializerTests
         instanaOtelSpan.D = 123456;
         instanaOtelSpan.Lt = "hexNumberLT1234567890123";
         instanaOtelSpan.Tp = true;
-        instanaOtelSpan.Data.Tags = new Dictionary<string, string>();
-        instanaOtelSpan.Data.Tags["tag1Key"] = "tag1Vale";
-        instanaOtelSpan.Data.Tags["tag2Key"] = "tag2Vale";
-        instanaOtelSpan.Data.data = new Dictionary<string, object>();
-        instanaOtelSpan.Data.data["data1Key"] = "data1Vale";
-        instanaOtelSpan.Data.data["data2Key"] = "data2Vale";
-        instanaOtelSpan.Data.Events = new List<Implementation.SpanEvent>
-        {
+        instanaOtelSpan.Data.Tags = new Dictionary<string, string> { ["tag1Key"] = "tag1Vale", ["tag2Key"] = "tag2Vale" };
+        instanaOtelSpan.Data.data = new Dictionary<string, object> { ["data1Key"] = "data1Vale", ["data2Key"] = "data2Vale" };
+        instanaOtelSpan.Data.Events =
+        [
             new()
             {
-                Name = "testEvent", Ts = 111111,
+                Name = "testEvent",
+                Ts = 111111,
                 Tags = new Dictionary<string, string> { { "eventTagKey", "eventTagValue" } },
             },
+
             new()
             {
-                Name = "testEvent2", Ts = 222222,
+                Name = "testEvent2",
+                Ts = 222222,
                 Tags = new Dictionary<string, string> { { "eventTag2Key", "eventTag2Value" } },
-            },
-        };
+            }
+
+        ];
 
         InstanaSpanTest? span;
         using (var sendBuffer = new MemoryStream(new byte[4096000]))

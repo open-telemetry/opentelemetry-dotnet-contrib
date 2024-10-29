@@ -17,15 +17,13 @@ public class EventsActivityProcessorTests
     [Fact]
     public async Task ProcessAsync()
     {
-        var activityTagsCollection = new ActivityTagsCollection();
-        activityTagsCollection.Add(new KeyValuePair<string, object?>("eventTagKey", "eventTagValue"));
+        var activityTagsCollection = new ActivityTagsCollection { new KeyValuePair<string, object?>("eventTagKey", "eventTagValue") };
         var activityEvent = new ActivityEvent(
             "testActivityEvent",
             DateTimeOffset.MinValue,
             activityTagsCollection);
 
-        var activityTagsCollection2 = new ActivityTagsCollection();
-        activityTagsCollection2.Add(new KeyValuePair<string, object?>("eventTagKey2", "eventTagValue2"));
+        var activityTagsCollection2 = new ActivityTagsCollection { new KeyValuePair<string, object?>("eventTagKey2", "eventTagValue2") };
         var activityEvent2 = new ActivityEvent(
             "testActivityEvent2",
             DateTimeOffset.MaxValue,

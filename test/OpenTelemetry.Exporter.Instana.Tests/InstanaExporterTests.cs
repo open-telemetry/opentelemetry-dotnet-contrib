@@ -36,7 +36,7 @@ public class InstanaExporterTests
         activity.SetStatus(ActivityStatusCode.Error, "TestErrorDesc");
         activity.TraceStateString = "TraceStateString";
 
-        Activity[] activities =[activity];
+        Activity[] activities = [activity];
         var batch = new Batch<Activity>(activities, activities.Length);
         var result = this.instanaExporter.Export(in batch);
 

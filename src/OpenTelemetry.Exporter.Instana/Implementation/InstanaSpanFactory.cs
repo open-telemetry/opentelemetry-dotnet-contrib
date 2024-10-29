@@ -11,8 +11,8 @@ internal class InstanaSpanFactory
         {
             Data = new Data()
             {
-                data = new Dictionary<string, object>(),
-                Tags = new Dictionary<string, string>(),
+                data = [],
+                Tags = [],
                 Events = new List<SpanEvent>(8),
             },
 

@@ -22,7 +22,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
             {
                 Name = activityEvent.Name,
                 Ts = activityEvent.Timestamp.Ticks,
-                Tags = new Dictionary<string, string>(),
+                Tags = [],
             };
 
             foreach (var eventTag in activityEvent.Tags)
