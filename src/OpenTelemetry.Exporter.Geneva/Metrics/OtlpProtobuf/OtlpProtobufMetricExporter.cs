@@ -18,7 +18,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     public OtlpProtobufMetricExporter(
         Func<Resource> getResource,
-        ConnectionStringBuilder connectionStringBuilder,
+        ConnectionStringBuilder? connectionStringBuilder,
         IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         Debug.Assert(getResource != null, "getResource was null");

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>net6.0;$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry instrumentation for WCF.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;WCF</PackageTags>
     <MinVerTagPrefix>Instrumentation.Wcf-</MinVerTagPrefix>
@@ -23,9 +23,10 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardMinimumSupportedVersion)'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardMinimumSupportedVersion)' OR '$(TargetFramework)' == 'net6.0' " >
     <PackageReference Include="System.Security.Cryptography.Xml" Version="4.7.1" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.2" Condition=" '$(TargetFramework)' == 'net6.0' " />
   </ItemGroup>
 
   <ItemGroup>
