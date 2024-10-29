@@ -197,14 +197,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
             var blobFilePath = Path.Combine(this.DirectoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
             var blob = new FileBlob(blobFilePath, this.directorySizeTracker);
 
-            if (blob.TryWrite(buffer, leasePeriodMilliseconds))
-            {
-                return blob;
-            }
-            else
-            {
-                return null;
-            }
+            return blob.TryWrite(buffer, leasePeriodMilliseconds) ? blob : null;
         }
         catch (Exception ex)
         {
