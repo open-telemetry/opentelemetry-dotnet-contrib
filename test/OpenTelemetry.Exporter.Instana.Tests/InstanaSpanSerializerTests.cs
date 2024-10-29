@@ -13,7 +13,7 @@ public static class InstanaSpanSerializerTests
     [Fact]
     public static async Task SerializeToStreamWriterAsync()
     {
-        InstanaSpan instanaOtelSpan = InstanaSpanFactory.CreateSpan();
+        var instanaOtelSpan = InstanaSpanFactory.CreateSpan();
         instanaOtelSpan.F = new Implementation.From { E = "12345", H = "localhost" };
         instanaOtelSpan.N = "otel";
         instanaOtelSpan.T = "hexNumberT1234";
@@ -44,17 +44,17 @@ public static class InstanaSpanSerializerTests
         };
 
         InstanaSpanTest? span;
-        using (MemoryStream sendBuffer = new MemoryStream(new byte[4096000]))
+        using (var sendBuffer = new MemoryStream(new byte[4096000]))
         {
-            using (StreamWriter writer = new StreamWriter(sendBuffer))
+            using (var writer = new StreamWriter(sendBuffer))
             {
                 await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
                 await writer.FlushAsync();
-                long length = sendBuffer.Position;
+                var length = sendBuffer.Position;
                 sendBuffer.Position = 0;
                 sendBuffer.SetLength(length);
 
-                JsonSerializer serializer = new JsonSerializer();
+                var serializer = new JsonSerializer();
                 serializer.Converters.Add(new JavaScriptDateTimeConverter());
                 serializer.NullValueHandling = NullValueHandling.Ignore;
 

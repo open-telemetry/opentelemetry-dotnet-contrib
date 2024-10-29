@@ -145,7 +145,7 @@ internal class DataConverter : JsonConverter
         }
         else
         {
-            JObject obj = JObject.Load(reader);
+            var obj = JObject.Load(reader);
             var data = obj.Root;
             if (data != null)
             {
