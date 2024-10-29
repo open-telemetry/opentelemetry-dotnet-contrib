@@ -69,7 +69,7 @@ public static class AWSXRayIdGenerator
     {
         if (!(sampler is AlwaysOnSampler) && !(sampler is AlwaysOffSampler))
         {
-            ActivitySamplingResult result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
+            var result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
 
             activity.ActivityTraceFlags = ActivityTraceFlags.None;
 
@@ -91,8 +91,8 @@ public static class AWSXRayIdGenerator
     /// <returns>The number of seconds elapsed since 1970-01-01 00:00:00 UTC. The value is expressed in whole and fractional seconds with resolution of microsecond.</returns>
     private static decimal ToUnixTimeSeconds(this DateTime date)
     {
-        long microseconds = date.Ticks / TicksPerMicrosecond;
-        long microsecondsSinceEpoch = microseconds - UnixEpochMicroseconds;
+        var microseconds = date.Ticks / TicksPerMicrosecond;
+        var microsecondsSinceEpoch = microseconds - UnixEpochMicroseconds;
         return (decimal)microsecondsSinceEpoch / MicrosecondPerSecond;
     }
 
@@ -105,7 +105,7 @@ public static class AWSXRayIdGenerator
     {
         Guard.ThrowIfOutOfRange(digits, min: 0);
 
-        byte[] bytes = new byte[digits / 2];
+        var bytes = new byte[digits / 2];
 
         string hexNumber;
 

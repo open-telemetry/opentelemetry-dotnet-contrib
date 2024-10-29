@@ -135,10 +135,10 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        ReadOnlySpan<char> header = rawHeader.AsSpan();
+        var header = rawHeader.AsSpan();
         while (header.Length > 0)
         {
-            int delimiterIndex = header.IndexOf(TraceHeaderDelimiter);
+            var delimiterIndex = header.IndexOf(TraceHeaderDelimiter);
             ReadOnlySpan<char> part;
             if (delimiterIndex >= 0)
             {
@@ -151,14 +151,14 @@ public class AWSXRayPropagator : TextMapPropagator
                 header = header.Slice(header.Length);
             }
 
-            ReadOnlySpan<char> trimmedPart = part.Trim();
-            int equalsIndex = trimmedPart.IndexOf(KeyValueDelimiter);
+            var trimmedPart = part.Trim();
+            var equalsIndex = trimmedPart.IndexOf(KeyValueDelimiter);
             if (equalsIndex < 0)
             {
                 return false;
             }
 
-            ReadOnlySpan<char> value = trimmedPart.Slice(equalsIndex + 1);
+            var value = trimmedPart.Slice(equalsIndex + 1);
             if (trimmedPart.StartsWith(RootKey.AsSpan()))
             {
                 if (!TryParseOTFormatTraceId(value, out var otFormatTraceId))
