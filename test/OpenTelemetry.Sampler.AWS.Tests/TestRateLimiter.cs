@@ -16,7 +16,7 @@ public class TestRateLimiter
     public void TestRateLimiterWholeNumber()
     {
         var testClock = new TestClock();
-        RateLimiter limiter = new RateLimiter(2.0, 2.0, testClock);
+        var limiter = new RateLimiter(2.0, 2.0, testClock);
 
         Assert.True(limiter.TrySpend(1.0));
         Assert.True(limiter.TrySpend(1.0));
@@ -44,8 +44,8 @@ public class TestRateLimiter
     [Fact]
     public void TestRateLimiterLessThanOne()
     {
-        TestClock clock = new TestClock();
-        RateLimiter limiter = new RateLimiter(0.5, 0.5, clock);
+        var clock = new TestClock();
+        var limiter = new RateLimiter(0.5, 0.5, clock);
 
         Assert.True(limiter.TrySpend(0.25));
         Assert.True(limiter.TrySpend(0.25));
@@ -72,8 +72,8 @@ public class TestRateLimiter
     [Fact]
     public void TestRateLimiterMaxBalance()
     {
-        TestClock clock = new TestClock();
-        RateLimiter limiter = new RateLimiter(0.1, 1.0, clock);
+        var clock = new TestClock();
+        var limiter = new RateLimiter(0.1, 1.0, clock);
 
         clock.Advance(TimeSpan.FromMilliseconds(0.1));
         Assert.True(limiter.TrySpend(1.0));
@@ -90,8 +90,8 @@ public class TestRateLimiter
     [Fact]
     public void TestRateLimiterInitial()
     {
-        TestClock clock = new TestClock();
-        RateLimiter limiter = new RateLimiter(1000, 100, clock);
+        var clock = new TestClock();
+        var limiter = new RateLimiter(1000, 100, clock);
 
         Assert.True(limiter.TrySpend(100)); // consume initial (max) balance
         Assert.False(limiter.TrySpend(1));
@@ -115,18 +115,18 @@ public class TestRateLimiter
     [Fact]
     public async Task TestRateLimiterConcurrencyAsync()
     {
-        int numWorkers = 8;
-        int creditsPerWorker = 1000;
-        TestClock clock = new TestClock();
-        RateLimiter limiter = new RateLimiter(1, numWorkers * creditsPerWorker, clock);
-        int count = 0;
+        var numWorkers = 8;
+        var creditsPerWorker = 1000;
+        var clock = new TestClock();
+        var limiter = new RateLimiter(1, numWorkers * creditsPerWorker, clock);
+        var count = 0;
         List<Task> tasks = new(numWorkers);
 
-        for (int w = 0; w < numWorkers; ++w)
+        for (var w = 0; w < numWorkers; ++w)
         {
-            Task task = Task.Run(() =>
+            var task = Task.Run(() =>
             {
-                for (int i = 0; i < creditsPerWorker * 2; ++i)
+                for (var i = 0; i < creditsPerWorker * 2; ++i)
                 {
                     if (limiter.TrySpend(1))
                     {

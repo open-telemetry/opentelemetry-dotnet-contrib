@@ -118,7 +118,7 @@ internal class RulesCache : IDisposable
         List<SamplingRuleApplier> newRuleAppliers = [];
         foreach (var ruleApplier in this.RuleAppliers)
         {
-            targets.TryGetValue(ruleApplier.RuleName, out SamplingTargetDocument? target);
+            targets.TryGetValue(ruleApplier.RuleName, out var target);
             if (target != null)
             {
                 newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));

@@ -20,7 +20,7 @@ internal class FallbackSampler : Trace.Sampler
 
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
-        SamplingResult result = this.reservoirSampler.ShouldSample(in samplingParameters);
+        var result = this.reservoirSampler.ShouldSample(in samplingParameters);
         if (result.Decision != SamplingDecision.Drop)
         {
             return result;

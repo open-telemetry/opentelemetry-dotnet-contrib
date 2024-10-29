@@ -36,7 +36,7 @@ internal static class Matcher
 
         // it is faster to check if we need a regex comparison than
         // doing always regex comparison, even where we may not need it.
-        foreach (char c in globPattern)
+        foreach (var c in globPattern)
         {
             if (c == '*' || c == '?')
             {
@@ -59,7 +59,7 @@ internal static class Matcher
             return false;
         }
 
-        int matchedCount = 0;
+        var matchedCount = 0;
 
         foreach (var tag in tags)
         {
@@ -87,12 +87,12 @@ internal static class Matcher
 
     private static string ToRegexPattern(string globPattern)
     {
-        int tokenStart = -1;
-        StringBuilder patternBuilder = new StringBuilder();
+        var tokenStart = -1;
+        var patternBuilder = new StringBuilder();
 
-        for (int i = 0; i < globPattern.Length; i++)
+        for (var i = 0; i < globPattern.Length; i++)
         {
-            char c = globPattern[i];
+            var c = globPattern[i];
             if (c == '*' || c == '?')
             {
                 if (tokenStart != -1)

@@ -208,8 +208,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestFixedRateAlwaysSample()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
             "rule1",
             1,
             1.0, // fixed rate
@@ -247,8 +247,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestFixedRateNeverSample()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
             "rule1",
             1,
             0.0, // fixed rate
@@ -279,8 +279,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestBorrowFromReservoir()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -315,8 +315,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestWithTarget()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -340,7 +340,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument
+        var target = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 10,
@@ -360,8 +360,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestWithTargetWithoutQuota()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -390,7 +390,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(2, statistics.BorrowCount);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument
+        var target = new SamplingTargetDocument
         {
             FixedRate = 1.0,
             Interval = 10,
