@@ -101,7 +101,7 @@ internal static class EventSourceTestHelper
         string actualMessage = string.Format(
             CultureInfo.InvariantCulture,
             actualEvent.Message!,
-            actualEvent.Payload?.ToArray() ?? Array.Empty<object>());
+            actualEvent.Payload?.ToArray() ?? []);
 
         AssertEqual(nameof(VerifyEventMessage), expectedMessage, actualMessage);
     }
