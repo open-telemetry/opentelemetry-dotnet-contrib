@@ -150,6 +150,10 @@ internal sealed class TelegrafPrometheusWriterV2 : IMetricsWriter
                 }
 
                 break;
+            case MetricType.ExponentialHistogram:
+                break;
+            default:
+                break;
         }
     }
 }

@@ -26,6 +26,8 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
                 case WriteErrorEvent writeErrorEvent:
                     InfluxDBEventSource.Log.FailedToExport(writeErrorEvent.Exception.Message);
                     break;
+                default:
+                    break;
             }
         };
     }
