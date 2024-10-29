@@ -46,22 +46,20 @@ public static class InstanaSpanSerializerTests
         InstanaSpanTest? span;
         using (var sendBuffer = new MemoryStream(new byte[4096000]))
         {
-            using (var writer = new StreamWriter(sendBuffer))
-            {
-                await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
-                await writer.FlushAsync();
-                var length = sendBuffer.Position;
-                sendBuffer.Position = 0;
-                sendBuffer.SetLength(length);
+            using var writer = new StreamWriter(sendBuffer);
+            await InstanaSpanSerializer.SerializeToStreamWriterAsync(instanaOtelSpan, writer);
+            await writer.FlushAsync();
+            var length = sendBuffer.Position;
+            sendBuffer.Position = 0;
+            sendBuffer.SetLength(length);
 
-                var serializer = new JsonSerializer();
-                serializer.Converters.Add(new JavaScriptDateTimeConverter());
-                serializer.NullValueHandling = NullValueHandling.Ignore;
+            var serializer = new JsonSerializer();
+            serializer.Converters.Add(new JavaScriptDateTimeConverter());
+            serializer.NullValueHandling = NullValueHandling.Ignore;
 
-                TextReader textReader = new StreamReader(sendBuffer);
-                JsonReader reader = new JsonTextReader(textReader);
-                span = serializer.Deserialize<InstanaSpanTest>(reader);
-            }
+            TextReader textReader = new StreamReader(sendBuffer);
+            JsonReader reader = new JsonTextReader(textReader);
+            span = serializer.Deserialize<InstanaSpanTest>(reader);
         }
 
         Assert.NotNull(span);

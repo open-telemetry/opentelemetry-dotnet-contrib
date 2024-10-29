@@ -39,56 +39,50 @@ internal static class Transport
     {
         try
         {
-            using (var sendBuffer = new MemoryStream(TracesBuffer))
+            using var sendBuffer = new MemoryStream(TracesBuffer);
+            using var writer = new StreamWriter(sendBuffer);
+            await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
+            var first = true;
+
+            // peek instead of dequeue, because we don't yet know whether the next span
+            // fits within our MULTI_SPAN_BUFFER_LIMIT
+            while (spanQueue.TryPeek(out var span) && sendBuffer.Position < MultiSpanBufferLimit)
             {
-                using (var writer = new StreamWriter(sendBuffer))
+                if (!first)
                 {
-                    await writer.WriteAsync("{\"spans\":[").ConfigureAwait(false);
-                    var first = true;
-
-                    // peek instead of dequeue, because we don't yet know whether the next span
-                    // fits within our MULTI_SPAN_BUFFER_LIMIT
-                    while (spanQueue.TryPeek(out var span) && sendBuffer.Position < MultiSpanBufferLimit)
-                    {
-                        if (!first)
-                        {
-                            await writer.WriteAsync(",").ConfigureAwait(false);
-                        }
-
-                        await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer).ConfigureAwait(false);
-                        await writer.FlushAsync().ConfigureAwait(false);
-
-                        first = false;
-
-                        // Now we can dequeue. Note, this means we'll be giving up/losing
-                        // this span if we fail to send for any reason.
-                        spanQueue.TryDequeue(out _);
-                    }
-
-                    await writer.WriteAsync("]}").ConfigureAwait(false);
-                    await writer.FlushAsync().ConfigureAwait(false);
-
-                    var length = sendBuffer.Position;
-                    sendBuffer.Position = 0;
-                    sendBuffer.SetLength(length);
-
-                    HttpContent content = new StreamContent(sendBuffer, (int)length);
-                    content.Headers.ContentType = MEDIAHEADER;
-                    content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
-
-                    using (var httpMsg = new HttpRequestMessage()
-                    {
-                        Method = HttpMethod.Post,
-                        RequestUri = new Uri(bundleUrl),
-                    })
-                    {
-                        httpMsg.Content = content;
-                        if (Client != null)
-                        {
-                            await Client.SendAsync(httpMsg).ConfigureAwait(false);
-                        }
-                    }
+                    await writer.WriteAsync(",").ConfigureAwait(false);
                 }
+
+                await InstanaSpanSerializer.SerializeToStreamWriterAsync(span, writer).ConfigureAwait(false);
+                await writer.FlushAsync().ConfigureAwait(false);
+
+                first = false;
+
+                // Now we can dequeue. Note, this means we'll be giving up/losing
+                // this span if we fail to send for any reason.
+                spanQueue.TryDequeue(out _);
+            }
+
+            await writer.WriteAsync("]}").ConfigureAwait(false);
+            await writer.FlushAsync().ConfigureAwait(false);
+
+            var length = sendBuffer.Position;
+            sendBuffer.Position = 0;
+            sendBuffer.SetLength(length);
+
+            HttpContent content = new StreamContent(sendBuffer, (int)length);
+            content.Headers.ContentType = MEDIAHEADER;
+            content.Headers.Add("X-INSTANA-TIME", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
+
+            using var httpMsg = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(bundleUrl),
+            };
+            httpMsg.Content = content;
+            if (Client != null)
+            {
+                await Client.SendAsync(httpMsg).ConfigureAwait(false);
             }
         }
         catch (Exception e)
