@@ -18,12 +18,7 @@ public class AWSXRayPropagatorTests
 
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
-        if (headers.TryGetValue(name, out var value))
-        {
-            return [value];
-        }
-
-        return Empty;
+        return headers.TryGetValue(name, out var value) ? [value] : Empty;
     };
 
     private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
