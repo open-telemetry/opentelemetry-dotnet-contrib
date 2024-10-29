@@ -12,7 +12,7 @@ namespace OpenTelemetry.Exporter.InfluxDB.Tests;
 public class InfluxDBMetricsExporterTests
 {
     private static readonly string OpenTelemetrySdkVersion;
-    private static readonly double[] TestBoundaries = new[] { 10D, 20D, 100D, 200D };
+    private static readonly double[] TestBoundaries = [10D, 20D, 100D, 200D];
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
     static InfluxDBMetricsExporterTests()

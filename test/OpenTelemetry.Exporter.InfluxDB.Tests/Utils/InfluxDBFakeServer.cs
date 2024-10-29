@@ -16,7 +16,7 @@ public class InfluxDBFakeServer : IDisposable
 
     public InfluxDBFakeServer()
     {
-        this.lines = new BlockingCollection<string>();
+        this.lines = [];
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
