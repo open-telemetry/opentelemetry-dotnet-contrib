@@ -158,10 +158,7 @@ internal class DataConverter : JsonConverter
                         continue;
                     }
 
-                    if (newData.data == null)
-                    {
-                        newData.data = new Dictionary<string, string>();
-                    }
+                    newData.data ??= [];
 
                     newData.data[((JProperty)field).Name] = ((JProperty)field).Value.ToString();
                 }
