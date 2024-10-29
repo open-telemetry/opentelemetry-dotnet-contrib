@@ -164,6 +164,7 @@ public static class AWSXRayIdGenerator
         {
             SamplingDecision.RecordAndSample => ActivitySamplingResult.AllDataAndRecorded,
             SamplingDecision.RecordOnly => ActivitySamplingResult.AllData,
+            SamplingDecision.Drop => ActivitySamplingResult.PropagationData,
             _ => ActivitySamplingResult.PropagationData,
         };
 
