@@ -18,23 +18,13 @@ internal sealed class InstanaExporter : BaseExporter<Activity>
 
     public InstanaExporter(IActivityProcessor? activityProcessor = null)
     {
-        if (activityProcessor != null)
+        this.activityProcessor = activityProcessor ?? new DefaultActivityProcessor
         {
-            this.activityProcessor = activityProcessor;
-        }
-        else
-        {
-            this.activityProcessor = new DefaultActivityProcessor
+            NextProcessor = new TagsActivityProcessor
             {
-                NextProcessor = new TagsActivityProcessor
-                {
-                    NextProcessor = new EventsActivityProcessor
-                    {
-                        NextProcessor = new ErrorActivityProcessor(),
-                    },
-                },
-            };
-        }
+                NextProcessor = new EventsActivityProcessor { NextProcessor = new ErrorActivityProcessor() },
+            },
+        };
     }
 
     internal ISpanSender SpanSender
