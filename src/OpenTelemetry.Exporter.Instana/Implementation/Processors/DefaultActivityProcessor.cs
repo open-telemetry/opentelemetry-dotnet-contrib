@@ -52,19 +52,13 @@ internal class DefaultActivityProcessor : ActivityProcessorBase, IActivityProces
 
     private static SpanKind GetSpanKind(ActivityKind activityKind)
     {
-        switch (activityKind)
+        return activityKind switch
         {
-            case ActivityKind.Consumer:
-            case ActivityKind.Server:
-                return SpanKind.ENTRY;
-            case ActivityKind.Client:
-            case ActivityKind.Producer:
-                return SpanKind.EXIT;
-            case ActivityKind.Internal:
-                return SpanKind.INTERMEDIATE;
-            default:
-                return SpanKind.NOT_SET;
-        }
+            ActivityKind.Consumer or ActivityKind.Server => SpanKind.ENTRY,
+            ActivityKind.Client or ActivityKind.Producer => SpanKind.EXIT,
+            ActivityKind.Internal => SpanKind.INTERMEDIATE,
+            _ => SpanKind.NOT_SET,
+        };
     }
 
     private static long GetLongFromHex(string hexValue)
