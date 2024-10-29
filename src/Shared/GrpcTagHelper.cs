@@ -66,7 +66,7 @@ internal static class GrpcTagHelper
 
         if (typeof(GrpcStatusCanonicalCode).IsEnumDefined(statusCode))
         {
-            status = ((GrpcStatusCanonicalCode)statusCode) switch
+            status = (GrpcStatusCanonicalCode)statusCode switch
             {
                 GrpcStatusCanonicalCode.Ok => ActivityStatusCode.Unset,
                 _ => ActivityStatusCode.Error,
