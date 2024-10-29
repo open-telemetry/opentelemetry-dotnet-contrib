@@ -70,12 +70,9 @@ public class LineProtocolParser
         }
 #pragma warning restore CA1865 // Use char overload
 
-        if (double.TryParse(fieldValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
-        {
-            return doubleValue;
-        }
-
-        return fieldValue;
+        return double.TryParse(fieldValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue)
+            ? doubleValue
+            : fieldValue;
     }
 
     private static DateTime ParseTimestamp(string? timestampSection)

@@ -45,11 +45,9 @@ public class InfluxDBFakeServer : IDisposable
 
     public PointData ReadPoint()
     {
-        if (this.lines.TryTake(out var line, TimeSpan.FromSeconds(5)))
-        {
-            return LineProtocolParser.ParseLine(line);
-        }
-
-        throw new InvalidOperationException("Failed to read a data point from the InfluxDB server within the 5-second timeout.");
+        return this.lines.TryTake(out var line, TimeSpan.FromSeconds(5))
+            ? LineProtocolParser.ParseLine(line)
+            : throw new InvalidOperationException(
+                "Failed to read a data point from the InfluxDB server within the 5-second timeout.");
     }
 }

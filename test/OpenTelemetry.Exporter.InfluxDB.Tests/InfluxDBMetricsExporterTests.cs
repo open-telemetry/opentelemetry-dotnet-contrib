@@ -19,14 +19,7 @@ public class InfluxDBMetricsExporterTests
 #pragma warning restore CA1810 // Initialize reference type static fields inline
     {
         var sdkVersion = typeof(Sdk).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-        if (sdkVersion != null)
-        {
-            OpenTelemetrySdkVersion = Version.Parse(sdkVersion).ToString(3);
-        }
-        else
-        {
-            OpenTelemetrySdkVersion = "0.0.0";
-        }
+        OpenTelemetrySdkVersion = sdkVersion != null ? Version.Parse(sdkVersion).ToString(3) : "0.0.0";
     }
 
     [Theory]
