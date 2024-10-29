@@ -144,7 +144,7 @@ internal static class PersistentStorageHelper
     {
         var fileName = Path.GetFileNameWithoutExtension(filePath);
         var startIndex = fileName.LastIndexOf('@') + 1;
-        var time = fileName.Substring(startIndex, fileName.Length - startIndex);
+        var time = fileName.Substring(startIndex);
         DateTime.TryParseExact(time, "yyyy-MM-ddTHHmmss.fffffffZ", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
         return dateTime.ToUniversalTime();
     }
