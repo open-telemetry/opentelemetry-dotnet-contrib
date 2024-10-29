@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public static class InfluxDBMetricsExporterOptionsTestExtensions
+internal static class InfluxDBMetricsExporterOptionsTestExtensions
 {
     public static void WithDefaultTestConfiguration(this InfluxDBMetricsExporterOptions options)
     {
@@ -11,7 +11,7 @@ public static class InfluxDBMetricsExporterOptionsTestExtensions
         options.Org = "MyOrg";
         options.Token = "MyToken";
 
-        // For tests we want to flush the metrics ASAP
+        // For tests, we want to flush the metrics ASAP
         options.FlushInterval = 1;
     }
 }
