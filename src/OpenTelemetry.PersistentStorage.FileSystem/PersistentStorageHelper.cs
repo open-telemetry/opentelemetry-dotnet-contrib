@@ -12,7 +12,7 @@ internal static class PersistentStorageHelper
     {
         if (filePath.EndsWith(".blob", StringComparison.OrdinalIgnoreCase))
         {
-            DateTime fileDateTime = GetDateTimeFromBlobName(filePath);
+            var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < retentionDeadline)
             {
                 try
@@ -30,11 +30,11 @@ internal static class PersistentStorageHelper
 
     internal static bool RemoveExpiredLease(DateTime leaseDeadline, string filePath)
     {
-        bool success = false;
+        var success = false;
 
         if (filePath.EndsWith(".lock", StringComparison.OrdinalIgnoreCase))
         {
-            DateTime fileDateTime = GetDateTimeFromLeaseName(filePath);
+            var fileDateTime = GetDateTimeFromLeaseName(filePath);
             if (fileDateTime < leaseDeadline)
             {
                 var newFilePath = filePath.Substring(0, filePath.LastIndexOf('@'));
@@ -55,11 +55,11 @@ internal static class PersistentStorageHelper
 
     internal static bool RemoveTimedOutTmpFiles(DateTime timeoutDeadline, string filePath)
     {
-        bool success = false;
+        var success = false;
 
         if (filePath.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
         {
-            DateTime fileDateTime = GetDateTimeFromBlobName(filePath);
+            var fileDateTime = GetDateTimeFromBlobName(filePath);
             if (fileDateTime < timeoutDeadline)
             {
                 try
