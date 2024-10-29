@@ -6,7 +6,7 @@ using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public static class MeterProviderBuilderTestExtensions
+internal static class MeterProviderBuilderTestExtensions
 {
     public static MeterProviderBuilder ConfigureDefaultTestResource(this MeterProviderBuilder meterProviderBuilder)
     {

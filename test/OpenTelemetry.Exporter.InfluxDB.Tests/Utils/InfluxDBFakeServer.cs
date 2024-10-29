@@ -8,7 +8,7 @@ using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public class InfluxDBFakeServer : IDisposable
+internal class InfluxDBFakeServer : IDisposable
 {
     private static readonly char[] SplitChars = Environment.NewLine.ToCharArray();
     private readonly IDisposable httpServer;

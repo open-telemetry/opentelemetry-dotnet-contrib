@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public class LineProtocolParser
+internal class LineProtocolParser
 {
     private static readonly DateTime UnixEpoch = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc);
 
