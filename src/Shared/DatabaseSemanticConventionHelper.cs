@@ -23,7 +23,7 @@ internal static class DatabaseSemanticConventionHelper
     internal static readonly char[] Separator = [',', ' '];
 
     [Flags]
-    public enum DatabaseSemanticConvention
+    internal enum DatabaseSemanticConvention
     {
         /// <summary>
         /// Instructs an instrumentation library to emit the old experimental Database attributes.
