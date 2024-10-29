@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public class LineProtocolParser
+internal class LineProtocolParser
 {
     private static readonly DateTime UnixEpoch = DateTime.SpecifyKind(new DateTime(1970, 1, 1), DateTimeKind.Utc);
 
@@ -57,35 +57,32 @@ public class LineProtocolParser
 
     private static object ParseFieldValue(string fieldValue)
     {
-        if (bool.TryParse(fieldValue, out bool boolValue))
+        if (bool.TryParse(fieldValue, out var boolValue))
         {
             return boolValue;
         }
 
 #pragma warning disable CA1865 // Use char overload
         if (fieldValue.EndsWith("i", StringComparison.Ordinal)
-            && long.TryParse(fieldValue.AsSpan(0, fieldValue.Length - 1).ToString(), out long intValue))
+            && long.TryParse(fieldValue.AsSpan(0, fieldValue.Length - 1).ToString(), out var intValue))
         {
             return intValue;
         }
 #pragma warning restore CA1865 // Use char overload
 
-        if (double.TryParse(fieldValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double doubleValue))
-        {
-            return doubleValue;
-        }
-
-        return fieldValue;
+        return double.TryParse(fieldValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue)
+            ? doubleValue
+            : fieldValue;
     }
 
     private static DateTime ParseTimestamp(string? timestampSection)
     {
-        if (string.IsNullOrEmpty(timestampSection) || !long.TryParse(timestampSection, out long unixTimeNanoseconds))
+        if (string.IsNullOrEmpty(timestampSection) || !long.TryParse(timestampSection, out var unixTimeNanoseconds))
         {
             throw new ArgumentException("Invalid formatted timestamp.");
         }
 
-        long ticks = unixTimeNanoseconds / 100;
+        var ticks = unixTimeNanoseconds / 100;
         return UnixEpoch.AddTicks(ticks);
     }
 }
