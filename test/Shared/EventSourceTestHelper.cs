@@ -71,13 +71,11 @@ internal static class EventSourceTestHelper
             return "Test String";
         }
 
-        if (parameter.ParameterType.IsValueType)
-        {
-            return Activator.CreateInstance(parameter.ParameterType)
-                ?? throw new NotSupportedException($"Could not create an instance of the '{parameter.ParameterType}' type.");
-        }
-
-        throw new NotSupportedException("Complex types are not supported");
+        return parameter.ParameterType.IsValueType
+            ? Activator.CreateInstance(parameter.ParameterType)
+              ?? throw new NotSupportedException(
+                  $"Could not create an instance of the '{parameter.ParameterType}' type.")
+            : throw new NotSupportedException("Complex types are not supported");
     }
 
     private static void VerifyEventId(MethodInfo eventMethod, EventWrittenEventArgs actualEvent)
