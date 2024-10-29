@@ -82,12 +82,10 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState state, Exception? exception = null)
     {
         Guard.ThrowIfNull(state);
-
         state.SuppressionScope?.Dispose();
-
         if (state.Activity is Activity activity)
         {
             if (activity.IsAllDataRequested)
@@ -95,6 +93,11 @@ internal static class ClientChannelInstrumentation
                 if (reply == null || reply.IsFault)
                 {
                     activity.SetStatus(Status.Error);
+                    if (exception != null)
+                    {
+                        activity.RecordException(exception);
+                        activity.SetTag("exception.stacktrace", exception.ToInvariantString());
+                    }
                 }
 
                 if (reply != null)
