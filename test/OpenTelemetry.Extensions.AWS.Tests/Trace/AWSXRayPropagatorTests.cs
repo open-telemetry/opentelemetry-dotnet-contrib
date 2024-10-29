@@ -31,7 +31,7 @@ public class AWSXRayPropagatorTests
         carrier[name] = value;
     };
 
-    private readonly AWSXRayPropagator awsXRayPropagator = new AWSXRayPropagator();
+    private readonly AWSXRayPropagator awsXRayPropagator = new();
 
     [Fact]
     public void TestInjectTraceHeader()
