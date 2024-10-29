@@ -184,7 +184,11 @@ internal sealed class PropertyFetcher<T>
             public PropertyFetchInstantiated(PropertyInfo property)
             {
                 this.propertyName = property.Name;
+#if NET
+                this.propertyFetch = property.GetMethod!.CreateDelegate<Func<TDeclaredObject, T>>();
+#else
                 this.propertyFetch = (Func<TDeclaredObject, T>)property.GetMethod!.CreateDelegate(typeof(Func<TDeclaredObject, T>));
+#endif
             }
 
             public override int NumberOfInnerFetchers => this.innerFetcher == null
