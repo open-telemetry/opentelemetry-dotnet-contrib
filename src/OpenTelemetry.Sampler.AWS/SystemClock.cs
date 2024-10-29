@@ -6,7 +6,7 @@ namespace OpenTelemetry.Sampler.AWS;
 // A clock based on System time.
 internal class SystemClock : Clock
 {
-    private static readonly SystemClock Instance = new SystemClock();
+    private static readonly SystemClock Instance = new();
 
     private static readonly DateTimeOffset EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
