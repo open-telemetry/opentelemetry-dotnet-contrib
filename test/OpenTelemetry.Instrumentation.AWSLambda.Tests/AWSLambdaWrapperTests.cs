@@ -233,7 +233,7 @@ public class AWSLambdaWrapperTests
 
         Assert.NotNull(activity);
         Assert.NotNull(activity.TagObjects);
-        var expectedColdStartValue = invocationsCount == 1 ? true : false;
+        var expectedColdStartValue = invocationsCount == 1;
         Assert.Contains(activity.TagObjects, x => x.Key == AWSLambdaSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
     }
 
