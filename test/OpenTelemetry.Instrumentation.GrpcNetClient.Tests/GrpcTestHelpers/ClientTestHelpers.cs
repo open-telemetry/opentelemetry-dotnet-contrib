@@ -15,8 +15,10 @@ internal static class ClientTestHelpers
     public static HttpClient CreateTestClient(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync, Uri? baseAddress = null)
     {
         var handler = TestHttpMessageHandler.Create(sendAsync);
-        var httpClient = new HttpClient(handler);
-        httpClient.BaseAddress = baseAddress ?? new Uri("https://localhost");
+        var httpClient = new HttpClient(handler)
+        {
+            BaseAddress = baseAddress ?? new Uri("https://localhost"),
+        };
 
         return httpClient;
     }

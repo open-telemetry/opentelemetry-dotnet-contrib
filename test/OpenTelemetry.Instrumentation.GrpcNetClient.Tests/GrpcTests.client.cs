@@ -358,8 +358,7 @@ public partial class GrpcTests
             using var source = new ActivitySource("test-source");
 
             var isPropagatorCalled = false;
-            var propagator = new CustomTextMapPropagator();
-            propagator.Injected = (context) => isPropagatorCalled = true;
+            var propagator = new CustomTextMapPropagator { Injected = _ => isPropagatorCalled = true };
 
             Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
