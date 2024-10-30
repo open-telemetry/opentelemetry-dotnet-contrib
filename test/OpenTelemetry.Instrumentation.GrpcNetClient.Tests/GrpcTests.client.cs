@@ -88,7 +88,7 @@ public partial class GrpcTests
         Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
         Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
 
-        if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+        if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
         {
             Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
             Assert.Null(activity.GetTagValue(SemanticConventions.AttributeServerAddress));
