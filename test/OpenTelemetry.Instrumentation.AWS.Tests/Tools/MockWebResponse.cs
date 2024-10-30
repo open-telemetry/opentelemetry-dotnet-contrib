@@ -58,7 +58,7 @@ internal class MockWebResponse
         streamFieldInfo?.SetValue(obj, responseBodyStream);
         contentLengthFieldInfo?.SetValue(obj, responseBodyStream.Length);
 
-        return obj as HttpWebResponse;
+        return obj;
     }
 
 #else
