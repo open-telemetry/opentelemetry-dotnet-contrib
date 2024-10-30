@@ -16,7 +16,7 @@ internal sealed class TraceEnrichmentActions : TraceEnricher
 
     public override void Enrich(in TraceEnrichmentBag bag)
     {
-        for (int i = 0; i < this.actions.Length; i++)
+        for (var i = 0; i < this.actions.Length; i++)
         {
             this.actions[i].Invoke(bag);
         }
