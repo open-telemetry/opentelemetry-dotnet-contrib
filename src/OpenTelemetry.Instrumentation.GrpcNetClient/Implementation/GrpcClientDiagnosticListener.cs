@@ -164,7 +164,9 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
-            => StartRequestFetcher.TryFetch(payload, out request) && request != null;
+        {
+            return StartRequestFetcher.TryFetch(payload, out request) && request != null;
+        }
     }
 
     public void OnStopActivity(Activity activity, object? payload)
@@ -205,6 +207,8 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
-            => StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        {
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        }
     }
 }
