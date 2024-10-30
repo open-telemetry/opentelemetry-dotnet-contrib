@@ -153,7 +153,11 @@ internal class MockWebResponse
         try
         {
             var statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
+#if NET
+            return Enum.Parse<HttpStatusCode>(statusCode);
+#else
             return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
+#endif
         }
         catch (Exception exception)
         {
