@@ -353,7 +353,7 @@ public class TracingTests
         Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.message.offset"));
         Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.kafka.consumer.group"));
 
-        ValueTask NoOpAsync(
+        static ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,
             Activity? activity,
             CancellationToken cancellationToken = default)
