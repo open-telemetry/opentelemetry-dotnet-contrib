@@ -16,7 +16,7 @@ internal class TestRequest : IRequest
 
     public TestRequest(ParameterCollection? parameters = null)
     {
-        this.parameters = parameters ?? new ParameterCollection();
+        this.parameters = parameters ?? [];
     }
 
     public string RequestName => throw new NotImplementedException();

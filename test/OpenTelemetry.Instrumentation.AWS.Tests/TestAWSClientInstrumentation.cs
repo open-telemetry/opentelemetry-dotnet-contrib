@@ -48,7 +48,7 @@ public class TestAWSClientInstrumentation
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
-                AttributesToGet = new List<string> { "Id", "Name" },
+                AttributesToGet = ["Id", "Name"],
             };
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
@@ -93,7 +93,7 @@ public class TestAWSClientInstrumentation
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
-                AttributesToGet = new List<string>() { "Id", "Name" },
+                AttributesToGet = ["Id", "Name"],
             };
 #if NETFRAMEWORK
             ddb.Scan(scan_request);
@@ -141,7 +141,7 @@ public class TestAWSClientInstrumentation
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
-                AttributesToGet = new List<string>() { "Id", "Name" },
+                AttributesToGet = ["Id", "Name"],
             };
 
             try

@@ -69,7 +69,7 @@ internal class CustomWebResponse : IWebResponseData
 
     private void CopyHeaderValues(HttpResponseMessage response)
     {
-        List<string> headerNames = new List<string>();
+        List<string> headerNames = [];
         this.headers = new Dictionary<string, string?>(10, StringComparer.OrdinalIgnoreCase);
 
         foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
