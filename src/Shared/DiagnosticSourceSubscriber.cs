@@ -34,7 +34,7 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
     {
         Guard.ThrowIfNull(handlerFactory);
 
-        this.listenerSubscriptions = new List<IDisposable>();
+        this.listenerSubscriptions = [];
         this.handlerFactory = handlerFactory;
         this.diagnosticSourceFilter = diagnosticSourceFilter;
         this.isEnabledFilter = isEnabledFilter;
