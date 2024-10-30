@@ -6,7 +6,7 @@ namespace OpenTelemetry.Sampler.AWS;
 // A clock based on System time.
 internal class SystemClock : Clock
 {
-    private static readonly SystemClock Instance = new SystemClock();
+    private static readonly SystemClock Instance = new();
 
     private static readonly DateTimeOffset EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -37,7 +37,7 @@ internal class SystemClock : Clock
     public override double ToDouble(DateTimeOffset dateTime)
     {
         var current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
-        double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
+        var timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
         return timestamp;
     }
 }
