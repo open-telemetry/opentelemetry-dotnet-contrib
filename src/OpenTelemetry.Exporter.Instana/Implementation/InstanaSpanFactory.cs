@@ -7,12 +7,12 @@ internal class InstanaSpanFactory
 {
     internal static InstanaSpan CreateSpan()
     {
-        InstanaSpan instanaSpan = new InstanaSpan
+        var instanaSpan = new InstanaSpan
         {
             Data = new Data()
             {
-                data = new Dictionary<string, object>(),
-                Tags = new Dictionary<string, string>(),
+                data = [],
+                Tags = [],
                 Events = new List<SpanEvent>(8),
             },
 

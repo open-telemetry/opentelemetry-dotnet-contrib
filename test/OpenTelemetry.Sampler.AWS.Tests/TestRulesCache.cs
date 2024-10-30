@@ -44,7 +44,7 @@ public class TestRulesCache
 
         // update the default rule
         var newDefaultRule = this.CreateDefaultRule(10, 0.20);
-        cache.UpdateRules(new List<SamplingRule> { newDefaultRule });
+        cache.UpdateRules([newDefaultRule]);
 
         // asserts
         Assert.Single(cache.RuleAppliers);
@@ -74,7 +74,7 @@ public class TestRulesCache
 
         // the update contains only the default rule
         var newDefaultRule = this.CreateDefaultRule(10, 0.20);
-        rulesCache.UpdateRules(new List<SamplingRule> { newDefaultRule });
+        rulesCache.UpdateRules([newDefaultRule]);
 
         // assert that Rule1 doesn't exist in rules cache
         Assert.Single(rulesCache.RuleAppliers);
@@ -116,7 +116,7 @@ public class TestRulesCache
         var clock = new TestClock();
         var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
         {
-            RuleAppliers = new List<SamplingRuleApplier>(),
+            RuleAppliers = [],
         };
 
         // the fallback sampler will not sample
@@ -233,6 +233,6 @@ public class TestRulesCache
            serviceType: "*",
            urlPath: "*",
            version: 1,
-           attributes: new Dictionary<string, string>());
+           attributes: []);
     }
 }

@@ -11,7 +11,7 @@ public class TestRateLimitingSampler
     [Fact]
     public void TestLimitsRate()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
         Trace.Sampler sampler = new RateLimitingSampler(1, clock);
 
         Assert.Equal(SamplingDecision.RecordAndSample, sampler.ShouldSample(Utils.CreateSamplingParameters()).Decision);

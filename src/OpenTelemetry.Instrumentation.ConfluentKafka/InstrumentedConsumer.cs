@@ -50,7 +50,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public ConsumeResult<TKey, TValue>? Consume(int millisecondsTimeout)
     {
-        DateTimeOffset start = DateTimeOffset.UtcNow;
+        var start = DateTimeOffset.UtcNow;
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
@@ -67,7 +67,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            DateTimeOffset end = DateTimeOffset.UtcNow;
+            var end = DateTimeOffset.UtcNow;
             if (result is { IsPartitionEOF: false })
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
@@ -77,7 +77,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public ConsumeResult<TKey, TValue>? Consume(CancellationToken cancellationToken = default)
     {
-        DateTimeOffset start = DateTimeOffset.UtcNow;
+        var start = DateTimeOffset.UtcNow;
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
@@ -94,7 +94,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            DateTimeOffset end = DateTimeOffset.UtcNow;
+            var end = DateTimeOffset.UtcNow;
             if (result is { IsPartitionEOF: false })
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
@@ -104,7 +104,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public ConsumeResult<TKey, TValue>? Consume(TimeSpan timeout)
     {
-        DateTimeOffset start = DateTimeOffset.UtcNow;
+        var start = DateTimeOffset.UtcNow;
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
@@ -121,7 +121,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
         finally
         {
-            DateTimeOffset end = DateTimeOffset.UtcNow;
+            var end = DateTimeOffset.UtcNow;
             if (result is { IsPartitionEOF: false })
             {
                 this.InstrumentConsumption(start, end, consumeResult, errorType);
@@ -320,11 +320,11 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
     {
         if (this.options.Traces)
         {
-            PropagationContext propagationContext = consumeResult.Headers != null
+            var propagationContext = consumeResult.Headers != null
                 ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
                 : default;
 
-            using Activity? activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
+            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
             if (activity != null)
             {
                 if (errorType != null)
@@ -342,7 +342,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
         if (this.options.Metrics)
         {
-            TimeSpan duration = endTime - startTime;
+            var duration = endTime - startTime;
             RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
         }
     }
@@ -354,10 +354,10 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ReceiveOperationName);
 
         ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
-            ? new[] { new ActivityLink(propagationContext.ActivityContext) }
-            : Array.Empty<ActivityLink>();
+            ? [new ActivityLink(propagationContext.ActivityContext)]
+            : [];
 
-        Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);

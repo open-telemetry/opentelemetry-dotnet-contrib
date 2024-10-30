@@ -31,7 +31,7 @@ public class AspNetParentSpanCorrectorTests
             var context = new FakeHttpContext();
 
             var method = typeof(AspNetParentSpanCorrector).GetMethod("OnRequestStarted", BindingFlags.Static | BindingFlags.NonPublic);
-            method.Invoke(null, new object[] { aspNetActivity, context });
+            method.Invoke(null, [aspNetActivity, context]);
 
             var headerVal = context.Request.Headers["traceparent"];
             Assert.Contains(aspNetActivity.TraceId.ToString(), headerVal);
@@ -43,12 +43,12 @@ public class AspNetParentSpanCorrectorTests
 
     private class FakeHttpContext
     {
-        public FakeRequest Request { get; } = new FakeRequest();
+        public FakeRequest Request { get; } = new();
     }
 
     private class FakeRequest
     {
-        public NameValueCollection Headers { get; } = new NameValueCollection();
+        public NameValueCollection Headers { get; } = [];
     }
 }
 #endif

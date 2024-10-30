@@ -7,7 +7,9 @@ using System.ServiceModel.Dispatcher;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 
+#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public class DownstreamInstrumentationEndpointBehavior : IEndpointBehavior
+#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
     {

@@ -18,7 +18,7 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()
     {
-        List<Metric> metrics = new();
+        List<Metric> metrics = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {
@@ -50,10 +50,10 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
         {
             await host.StartAsync();
 
-            string topic = $"otel-topic-{Guid.NewGuid()}";
+            var topic = $"otel-topic-{Guid.NewGuid()}";
             using (var producer = host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>().Build())
             {
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     producer.Produce(topic, new Message<string, string>()
                     {
@@ -70,7 +70,7 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
             {
                 consumer.Subscribe(topic);
 
-                int j = 0;
+                var j = 0;
                 while (true)
                 {
                     var consumerResult = consumer.Consume();
