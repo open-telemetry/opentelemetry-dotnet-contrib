@@ -354,8 +354,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ReceiveOperationName);
 
         ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
-            ? new[] { new ActivityLink(propagationContext.ActivityContext) }
-            : Array.Empty<ActivityLink>();
+            ? [new ActivityLink(propagationContext.ActivityContext)]
+            : [];
 
         Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
         if (activity?.IsAllDataRequested == true)

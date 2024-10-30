@@ -152,8 +152,8 @@ public static class OpenTelemetryConsumeResultExtensions
             : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ProcessOperationName);
 
         ActivityLink[] activityLinks = propagationContext != default && propagationContext.ActivityContext.IsValid()
-            ? new[] { new ActivityLink(propagationContext.ActivityContext) }
-            : Array.Empty<ActivityLink>();
+            ? [new ActivityLink(propagationContext.ActivityContext)]
+            : [];
 
         Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
         if (activity?.IsAllDataRequested == true)

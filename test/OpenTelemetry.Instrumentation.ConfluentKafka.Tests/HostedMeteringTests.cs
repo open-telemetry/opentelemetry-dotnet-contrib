@@ -18,7 +18,7 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()
     {
-        List<Metric> metrics = new();
+        List<Metric> metrics = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {

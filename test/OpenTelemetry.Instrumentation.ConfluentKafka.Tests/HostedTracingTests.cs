@@ -19,7 +19,7 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()
     {
-        List<Activity> activities = new();
+        List<Activity> activities = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {

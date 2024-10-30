@@ -86,8 +86,8 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
     {
         string? producerInstrumentationName = useNamedProducerInstrumentation ? "MyProducer" : null;
         string? consumerInstrumentationName = useNamedConsumerInstrumentation ? "MyConsumer" : null;
-        List<Metric> metrics = new();
-        List<Activity> activities = new();
+        List<Metric> metrics = [];
+        List<Activity> activities = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {

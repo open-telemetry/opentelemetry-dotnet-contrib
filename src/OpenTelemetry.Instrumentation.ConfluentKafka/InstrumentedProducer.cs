@@ -364,7 +364,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     private void InjectTraceContext(Message<TKey, TValue> message, string key, string value)
     {
-        message.Headers ??= new Headers();
+        message.Headers ??= [];
         message.Headers.Add(key, Encoding.UTF8.GetBytes(value));
     }
 }

@@ -69,9 +69,9 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
         }
 
-        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
+        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => [];
+        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => [];
+        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => [];
     }
 
     [Fact]
@@ -135,9 +135,9 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
         }
 
-        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
+        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => [];
+        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => [];
+        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => [];
     }
 
     private class CustomConsumerBuilder<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> config)
