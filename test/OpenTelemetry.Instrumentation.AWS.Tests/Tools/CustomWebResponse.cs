@@ -86,7 +86,7 @@ internal class CustomWebResponse : IWebResponseData
             }
         }
 
-        this.headerNames = headerNames.ToArray();
+        this.headerNames = [.. headerNames];
         this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
     }
 
