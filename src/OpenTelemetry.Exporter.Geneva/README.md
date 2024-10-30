@@ -300,7 +300,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
             // Use Unix domain socket mode
             options.ConnectionString = "Endpoint=unix:{OTLP UDS Path};PrivatePreviewEnableOtlpProtobufEncoding=true";
 
-            // Use user_events mode (preferred but considered experimental)
+            // Use user_events mode (preferred but considered experimental as this is a new capability in Linux kernel)
             // options.ConnectionString = "PrivatePreviewEnableOtlpProtobufEncoding=true";
         }
     })
