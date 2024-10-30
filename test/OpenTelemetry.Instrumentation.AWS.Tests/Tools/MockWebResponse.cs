@@ -21,9 +21,8 @@ internal class MockWebResponse
     {
         var type = typeof(HttpWebResponse);
         var assembly = Assembly.GetAssembly(type);
-        var obj = assembly?.CreateInstance("System.Net.HttpWebResponse") as HttpWebResponse;
 
-        if (obj == null)
+        if (assembly?.CreateInstance("System.Net.HttpWebResponse") is not HttpWebResponse obj)
         {
             return null;
         }

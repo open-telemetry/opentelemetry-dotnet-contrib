@@ -59,9 +59,8 @@ internal static class TestsHelper
 
     internal static void AddAttribute(this AmazonWebServiceRequest serviceRequest, string name, string value)
     {
-        var sendRequest = serviceRequest as SQS::SendMessageRequest;
         var publishRequest = serviceRequest as SNS::PublishRequest;
-        if (sendRequest != null)
+        if (serviceRequest is SQS::SendMessageRequest sendRequest)
         {
             sendRequest.MessageAttributes.Add(name, new SQS::MessageAttributeValue { DataType = "String", StringValue = value });
         }
@@ -81,17 +80,15 @@ internal static class TestsHelper
 
     internal static void AddStringParameters(this ParameterCollection parameters, string serviceType, AmazonWebServiceRequest serviceRequest)
     {
-        var sendRequest = serviceRequest as SQS::SendMessageRequest;
-        var publishRequest = serviceRequest as SNS::PublishRequest;
         var index = 1;
-        if (sendRequest != null)
+        if (serviceRequest is SQS::SendMessageRequest sendRequest)
         {
             foreach (var a in sendRequest.MessageAttributes)
             {
                 AddStringParameter(parameters, serviceType, a.Key, a.Value.StringValue, index++);
             }
         }
-        else if (publishRequest != null)
+        else if (serviceRequest is SNS::PublishRequest publishRequest)
         {
             foreach (var a in publishRequest.MessageAttributes)
             {
