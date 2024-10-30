@@ -49,6 +49,8 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 
