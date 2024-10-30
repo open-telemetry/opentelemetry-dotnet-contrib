@@ -34,7 +34,7 @@ internal sealed class PropertyFetcher<T>
     /// <returns>Property fetched.</returns>
     public T Fetch(object obj)
     {
-        if (!this.TryFetch(obj, out T value))
+        if (!this.TryFetch(obj, out var value))
         {
             throw new ArgumentException("Supplied object was null or did not match the expected type.", nameof(obj));
         }
