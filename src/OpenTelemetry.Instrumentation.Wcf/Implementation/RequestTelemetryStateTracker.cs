@@ -7,8 +7,8 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal static class RequestTelemetryStateTracker
 {
-    private static readonly Dictionary<string, Entry> OutstandingRequestStates = new Dictionary<string, Entry>();
-    private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = new SortedSet<EntryTimeoutProperties>();
+    private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
+    private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
     private static readonly object Sync = new();
     private static readonly Timer Timer = new(OnTimer);
     private static long currentTimerDueAt = Timeout.Infinite;
@@ -61,10 +61,7 @@ internal static class RequestTelemetryStateTracker
             {
                 if (entryTimeoutProps.ExpiresAt <= now)
                 {
-                    if (timedOutEntries == null)
-                    {
-                        timedOutEntries = new List<Tuple<EntryTimeoutProperties, Entry>>();
-                    }
+                    timedOutEntries ??= [];
 
                     timedOutEntries.Add(new(entryTimeoutProps, OutstandingRequestStates[entryTimeoutProps.MessageId]));
                 }
