@@ -21,7 +21,7 @@ internal class SqsRequestContextHelper
             return;
         }
 
-        if (attributes.Keys.Any(k => originalRequest.MessageAttributes.ContainsKey(k)))
+        if (attributes.Keys.Any(originalRequest.MessageAttributes.ContainsKey))
         {
             // If at least one attribute is already present in the request then we skip the injection.
             return;
