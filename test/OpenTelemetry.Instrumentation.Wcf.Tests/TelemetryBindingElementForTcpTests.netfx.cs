@@ -93,7 +93,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider? tracerProvider = builder.Build();
+        var tracerProvider = builder.Build();
 
         var client = new ServiceClient(
             new NetTcpBinding(SecurityMode.None),
@@ -157,7 +157,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     Assert.Single(stoppedActivities);
 
-                    Activity activity = stoppedActivities[0];
+                    var activity = stoppedActivities[0];
 
                     if (emptyOrNullAction)
                     {
@@ -437,7 +437,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         binding.Security.Transport.ProtectionLevel = ProtectionLevel.EncryptAndSign;
         binding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
         var host = this.CreateServiceHost(binding, LoadCertificate());
-        ServiceClient client = new ServiceClient(binding, new EndpointAddress(new Uri(host.BaseAddresses[0], "/Service")));
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(host.BaseAddresses[0], "/Service")));
         try
         {
             client.ClientCredentials.ClientCertificate.Certificate = LoadCertificate();
@@ -489,7 +489,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     private ServiceHost CreateServiceHost(NetTcpBinding binding, X509Certificate2? cert)
     {
         ServiceHost? serviceHost = null;
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         while (retryCount > 0)
         {

@@ -25,7 +25,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     {
         this.output = outputHelper;
 
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -84,18 +84,18 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     {
         List<Activity> stoppedActivities = [];
 
-        using ActivityListener activityListener = new ActivityListener
+        using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
             ActivityStopped = activity => stoppedActivities.Add(activity),
         };
 
         ActivitySource.AddActivityListener(activityListener);
-        TracerProvider? tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new NetTcpBinding(),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
 
@@ -127,7 +127,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         Assert.NotEmpty(stoppedActivities);
         Assert.Single(stoppedActivities);
 
-        Activity activity = stoppedActivities[0];
+        var activity = stoppedActivities[0];
         Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
         Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag);

@@ -22,7 +22,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
     {
         this.output = outputHelper;
 
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -87,7 +87,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
     {
         List<Activity> stoppedActivities = [];
 
-        using ActivityListener activityListener = new ActivityListener
+        using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
             ActivityStopped = activity => stoppedActivities.Add(activity),
@@ -140,7 +140,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 .Build();
         }
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new NetTcpBinding(),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -180,7 +180,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             Assert.NotEmpty(stoppedActivities);
             Assert.Single(stoppedActivities);
 
-            Activity activity = stoppedActivities[0];
+            var activity = stoppedActivities[0];
 
             if (emptyOrNullAction)
             {

@@ -19,7 +19,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
     public TelemetryBindingElementForHttpTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         HttpListener? createdListener = null;
         while (retryCount > 0)
@@ -72,14 +72,14 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
                     var ctx = await ctxTask.ConfigureAwait(false);
 
-                    using StreamReader reader = new StreamReader(ctx.Request.InputStream);
+                    using var reader = new StreamReader(ctx.Request.InputStream);
 
-                    string request = reader.ReadToEnd();
+                    var request = reader.ReadToEnd();
 
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = "text/xml; charset=utf-8";
 
-                    using (StreamWriter writer = new StreamWriter(ctx.Response.OutputStream))
+                    using (var writer = new StreamWriter(ctx.Response.OutputStream))
                     {
                         if (request.Contains("ExecuteWithEmptyActionName"))
                         {
@@ -179,9 +179,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider? tracerProvider = builder.Build();
+        var tracerProvider = builder.Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -243,7 +243,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     Assert.Single(stoppedActivities);
 
-                    Activity activity = stoppedActivities[0];
+                    var activity = stoppedActivities[0];
 
                     if (emptyOrNullAction)
                     {
@@ -298,7 +298,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -351,10 +351,10 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
-        ServiceClient clientBadUrl = new ServiceClient(
+        var clientBadUrl = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri("http://localhost:1/Service")));
         try
