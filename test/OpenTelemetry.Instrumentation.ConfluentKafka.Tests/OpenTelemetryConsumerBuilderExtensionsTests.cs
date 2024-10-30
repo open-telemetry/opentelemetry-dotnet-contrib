@@ -19,8 +19,8 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
 
         var consumerBuilder = new ConsumerBuilder<string, string>(config);
 
-        IDeserializer<string> keyDeserializer = Deserializers.Utf8;
-        IDeserializer<string> valueDeserializer = Deserializers.Utf8;
+        var keyDeserializer = Deserializers.Utf8;
+        var valueDeserializer = Deserializers.Utf8;
 
         consumerBuilder.SetErrorHandler(ErrorHandler);
         consumerBuilder.SetLogHandler(LogHandler);
@@ -69,9 +69,20 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
         }
 
-        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
+        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions)
+        {
+            return [];
+        }
+
+        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions)
+        {
+            return [];
+        }
+
+        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions)
+        {
+            return [];
+        }
     }
 
     [Fact]
@@ -85,8 +96,8 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
 
         var consumerBuilder = new CustomConsumerBuilder<string, string>(config);
 
-        IDeserializer<string> keyDeserializer = Deserializers.Utf8;
-        IDeserializer<string> valueDeserializer = Deserializers.Utf8;
+        var keyDeserializer = Deserializers.Utf8;
+        var valueDeserializer = Deserializers.Utf8;
 
         consumerBuilder.SetErrorHandler(ErrorHandler);
         consumerBuilder.SetLogHandler(LogHandler);
@@ -135,9 +146,20 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
         {
         }
 
-        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
-        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions) => new List<TopicPartitionOffset>();
+        IEnumerable<TopicPartitionOffset> PartitionsAssignedHandler(IConsumer<string, string> consumer, List<TopicPartition> partitions)
+        {
+            return [];
+        }
+
+        IEnumerable<TopicPartitionOffset> PartitionsRevokedHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions)
+        {
+            return [];
+        }
+
+        IEnumerable<TopicPartitionOffset> PartitionsLostHandler(IConsumer<string, string> consumer, List<TopicPartitionOffset> partitions)
+        {
+            return [];
+        }
     }
 
     private class CustomConsumerBuilder<TKey, TValue>(IEnumerable<KeyValuePair<string, string>> config)

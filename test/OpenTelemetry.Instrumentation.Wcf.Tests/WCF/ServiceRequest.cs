@@ -6,7 +6,9 @@ using System.Runtime.Serialization;
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [DataContract]
+#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public class ServiceRequest
+#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     public ServiceRequest(string payload)
     {
