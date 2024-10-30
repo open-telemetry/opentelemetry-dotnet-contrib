@@ -55,7 +55,7 @@ public class TelemetryHttpModule : IHttpModule
             // OnExecuteRequestStep is available starting with 4.7.1
             try
             {
-                OnExecuteRequestStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)this.OnExecuteRequestStep });
+                OnExecuteRequestStepMethodInfo.Invoke(context, [(Action<HttpContextBase, Action>)this.OnExecuteRequestStep]);
             }
             catch (Exception e)
             {
