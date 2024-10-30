@@ -270,23 +270,72 @@ For example:
 
 ##### OtlpProtobufEncoding
 
-On Windows set `PrivatePreviewEnableOtlpProtobufEncoding=true` on the
-`ConnectionString` to opt-in to the experimental feature for changing the
-underlying serialization format to binary protobuf following the schema defined
-in [OTLP
+An experimental feature flag is available to opt-into changing the underlying
+serialization format to binary protobuf following the schema defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
+When using OTLP protobuf encoding `Account` and `Namespace` are **NOT** required
+to be set on the `ConnectionString`. The recommended approach is to use
+OpenTelemetry Resource instead:
+
+```csharp
+using var meterProvider = Sdk.CreateMeterProviderBuilder()
+    // Other configuration not shown
+    .ConfigureResource(r => r.AddAttributes(
+        new Dictionary<string, object>()
+        {
+            ["_microsoft_metrics_account"] = "MetricsAccountGoesHere",
+            ["_microsoft_metrics_namespace"] = "MetricsNamespaceGoesHere",
+        }))
+    .AddGenevaMetricExporter(options =>
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            options.ConnectionString = "PrivatePreviewEnableOtlpProtobufEncoding=true";
+        }
+        else
+        {
+            // Note: 1.10.0+ version required to use OTLP protobuf encoding on Linux
+
+            // Use Unix domain socket mode
+            options.ConnectionString = "Endpoint=unix:{OTLP UDS Path};PrivatePreviewEnableOtlpProtobufEncoding=true";
+
+            // Use user_events mode (preferred but considered experimental as this is a new capability in Linux kernel)
+            // options.ConnectionString = "PrivatePreviewEnableOtlpProtobufEncoding=true";
+        }
+    })
+    .Build();
+```
+
+###### Windows
+
+To send metric data over ETW using OTLP protobuf encoding set
+`PrivatePreviewEnableOtlpProtobufEncoding=true` on the `ConnectionString`.
+
+###### Linux
+
 As of `1.10.0` `PrivatePreviewEnableOtlpProtobufEncoding=true` is also supported
-on Linux. On Linux when using `PrivatePreviewEnableOtlpProtobufEncoding=true` an
-`Endpoint` is **NOT** required to be provided on `ConnectionString`. For
-example: `Endpoint=unix:Account={MetricAccount};Namespace={MetricNamespace}`.
+on Linux.
+
+###### When using unix domain socket
+
+To send metric data over UDS using OTLP protobuf encoding set the `Endpoint` to
+use the correct `OtlpSocketPath` path and set
+`PrivatePreviewEnableOtlpProtobufEncoding=true` on the `ConnectionString`:
+`Endpoint=unix:{OTLP UDS Path};PrivatePreviewEnableOtlpProtobufEncoding=true`.
 
 > [!IMPORTANT]
-> When `PrivatePreviewEnableOtlpProtobufEncoding` is enabled on Linux metrics
-> are written using
-> [user_events](https://docs.kernel.org/trace/user_events.html). `user_events`
-> are a newer feature of the Linux kernel and require a distro with the feature
-> enabled.
+> OTLP over UDS requires a different socket path than TLV over UDS.
+
+###### When using user_events
+
+> [!IMPORTANT]
+> [user_events](https://docs.kernel.org/trace/user_events.html) are a newer
+> feature of the Linux kernel and require a distro with the feature enabled.
+
+To send metric data over user_events using OTLP protobuf encoding do **NOT**
+specify an `Endpoint` and set `PrivatePreviewEnableOtlpProtobufEncoding=true` on
+the `ConnectionString`.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 

@@ -28,6 +28,11 @@ internal sealed class MetricUnixDomainSocketDataTransport : IMetricDataTransport
         this.udsDataTransport.Send(body, size + this.fixedPayloadLength);
     }
 
+    public void SendOtlpProtobufEvent(byte[] body, int size)
+    {
+        this.udsDataTransport.Send(body, size);
+    }
+
     public void Dispose()
     {
         if (this.isDisposed)
@@ -37,10 +42,5 @@ internal sealed class MetricUnixDomainSocketDataTransport : IMetricDataTransport
 
         this.udsDataTransport.Dispose();
         this.isDisposed = true;
-    }
-
-    public void SendOtlpProtobufEvent(byte[] body, int size)
-    {
-        throw new NotImplementedException();
     }
 }
