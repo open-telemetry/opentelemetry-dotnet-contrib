@@ -165,7 +165,7 @@ internal class MockWebResponse
         }
     }
 
-    public class HttpResponse
+    internal class HttpResponse
     {
         public HttpResponse()
         {
