@@ -37,10 +37,7 @@ internal class CustomWebResponse : IWebResponseData
 
     public long ContentLength { get; private set; }
 
-    public IHttpResponseBody ResponseBody
-    {
-        get { return this.response; }
-    }
+    public IHttpResponseBody ResponseBody => this.response;
 
     public static IWebResponseData GenerateWebResponse(HttpResponseMessage response)
     {
