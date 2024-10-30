@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
 internal sealed class AWSMeterProvider : MeterProvider
 {
-    private static readonly ConcurrentDictionary<string, AWSMeter> MetersDictionary = new ConcurrentDictionary<string, AWSMeter>();
+    private static readonly ConcurrentDictionary<string, AWSMeter> MetersDictionary = new();
 
     public override Meter GetMeter(string scope, Attributes? attributes = null)
     {

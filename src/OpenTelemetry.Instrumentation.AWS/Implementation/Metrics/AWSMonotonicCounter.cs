@@ -10,8 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
     where T : struct
 {
-    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>> MonotonicCountersDictionary
-        = new ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>>();
+    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Counter<T>> MonotonicCountersDictionary = new();
 
     private readonly System.Diagnostics.Metrics.Counter<T> monotonicCounter;
 
