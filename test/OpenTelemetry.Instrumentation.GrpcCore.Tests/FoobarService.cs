@@ -35,7 +35,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// The default request message.
     /// </summary>
-    internal static readonly FoobarRequest DefaultRequestMessage = new FoobarRequest { Message = "foo" };
+    internal static readonly FoobarRequest DefaultRequestMessage = new() { Message = "foo" };
 
     /// <summary>
     /// The default request message size.
@@ -45,7 +45,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// The default response message.
     /// </summary>
-    internal static readonly FoobarResponse DefaultResponseMessage = new FoobarResponse { Message = "bar" };
+    internal static readonly FoobarResponse DefaultResponseMessage = new() { Message = "bar" };
 
     /// <summary>
     /// The default request message size.
