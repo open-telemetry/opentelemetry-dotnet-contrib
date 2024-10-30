@@ -19,8 +19,8 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
 
         var consumerBuilder = new ConsumerBuilder<string, string>(config);
 
-        IDeserializer<string> keyDeserializer = Deserializers.Utf8;
-        IDeserializer<string> valueDeserializer = Deserializers.Utf8;
+        var keyDeserializer = Deserializers.Utf8;
+        var valueDeserializer = Deserializers.Utf8;
 
         consumerBuilder.SetErrorHandler(ErrorHandler);
         consumerBuilder.SetLogHandler(LogHandler);
@@ -85,8 +85,8 @@ public class OpenTelemetryConsumerBuilderExtensionsTests
 
         var consumerBuilder = new CustomConsumerBuilder<string, string>(config);
 
-        IDeserializer<string> keyDeserializer = Deserializers.Utf8;
-        IDeserializer<string> valueDeserializer = Deserializers.Utf8;
+        var keyDeserializer = Deserializers.Utf8;
+        var valueDeserializer = Deserializers.Utf8;
 
         consumerBuilder.SetErrorHandler(ErrorHandler);
         consumerBuilder.SetLogHandler(LogHandler);

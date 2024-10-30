@@ -41,7 +41,7 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IConsumer<TKey, TValue> Build()
     {
-        ConsumerConfig config = (ConsumerConfig)this.Config;
+        var config = (ConsumerConfig)this.Config;
 
         var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.options);
         consumer.GroupId = config.GroupId;

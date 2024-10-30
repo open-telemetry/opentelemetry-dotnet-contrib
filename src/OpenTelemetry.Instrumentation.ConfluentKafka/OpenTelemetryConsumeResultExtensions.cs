@@ -155,7 +155,7 @@ public static class OpenTelemetryConsumeResultExtensions
             ? [new ActivityLink(propagationContext.ActivityContext)]
             : [];
 
-        Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
