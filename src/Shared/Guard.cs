@@ -174,12 +174,9 @@ namespace OpenTelemetry.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ThrowIfNotOfType<T>([NotNull] object? value, [CallerArgumentExpression(nameof(value))] string? paramName = null)
         {
-            if (value is not T result)
-            {
-                throw new InvalidCastException($"Cannot cast '{paramName}' from '{value?.GetType().ToString() ?? "null"}' to '{typeof(T)}'");
-            }
-
-            return result;
+            return value is not T result
+                ? throw new InvalidCastException($"Cannot cast '{paramName}' from '{value?.GetType().ToString() ?? "null"}' to '{typeof(T)}'")
+                : result;
         }
 
         [DebuggerHidden]

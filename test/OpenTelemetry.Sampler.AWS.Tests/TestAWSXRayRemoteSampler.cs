@@ -16,10 +16,10 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerWithConfiguration()
     {
-        TimeSpan pollingInterval = TimeSpan.FromSeconds(5);
-        string endpoint = "http://localhost:3000";
+        var pollingInterval = TimeSpan.FromSeconds(5);
+        var endpoint = "http://localhost:3000";
 
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
+        var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(pollingInterval)
             .SetEndpoint(endpoint)
             .Build();
@@ -33,7 +33,7 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerWithDefaults()
     {
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
+        var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
 
         Assert.Equal(TimeSpan.FromMinutes(5), sampler.PollingInterval);
         Assert.Equal("http://localhost:2000", sampler.Endpoint);
@@ -45,11 +45,11 @@ public class TestAWSXRayRemoteSampler
     public void TestSamplerUpdateAndSample()
     {
         // setup mock server
-        TestClock clock = new TestClock();
-        WireMockServer mockServer = WireMockServer.Start();
+        var clock = new TestClock();
+        var mockServer = WireMockServer.Start();
 
         // create sampler
-        AWSXRayRemoteSampler sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
+        var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
             .SetPollingInterval(TimeSpan.FromMilliseconds(10))
             .SetEndpoint(mockServer.Url!)
             .SetClock(clock)
@@ -100,10 +100,7 @@ public class TestAWSXRayRemoteSampler
             ActivityTraceId.CreateRandom(),
             "myActivityName",
             ActivityKind.Server,
-            new List<KeyValuePair<string, object?>>
-            {
-                new("test", serviceName),
-            },
+            [new("test", serviceName)],
             null);
 
         return sampler.ShouldSample(samplingParams).Decision;

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public static class AssertUtils
+internal static class AssertUtils
 {
     public static void HasField<TKey, TValue>(TKey expectedKey, TValue expectedValue, IReadOnlyDictionary<TKey, object> collection)
         where TKey : notnull

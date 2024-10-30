@@ -26,7 +26,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
     public async Task<List<SamplingRule>> GetSamplingRules()
     {
-        List<SamplingRule> samplingRules = new List<SamplingRule>();
+        List<SamplingRule> samplingRules = [];
 
         using (var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
         {
@@ -37,7 +37,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
             try
             {
-                GetSamplingRulesResponse? getSamplingRulesResponse = JsonSerializer
+                var getSamplingRulesResponse = JsonSerializer
 #if NET
                     .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingRulesResponse);
 #else
@@ -89,7 +89,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
         try
         {
-            GetSamplingTargetsResponse? getSamplingTargetsResponse = JsonSerializer
+            var getSamplingTargetsResponse = JsonSerializer
 #if NET
                 .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingTargetsResponse);
 #else

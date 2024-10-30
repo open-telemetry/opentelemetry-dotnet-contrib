@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Exporter.InfluxDB.Tests.Utils;
 
-public class PointData
+internal class PointData
 {
     public string Measurement { get; init; } = null!;
 

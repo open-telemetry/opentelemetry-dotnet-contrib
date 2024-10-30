@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace OpenTelemetry.Exporter.Stackdriver.Tests;
 
-public class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
+internal class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
 {
     public Action<Activity>? StartAction;
     public Action<Activity>? EndAction;

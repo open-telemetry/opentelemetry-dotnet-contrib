@@ -14,7 +14,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 {
     internal static readonly TimeSpan DefaultTargetInterval = TimeSpan.FromSeconds(10);
 
-    private static readonly Random Random = new Random();
+    private static readonly Random Random = new();
     private bool isFallBackEventToWriteSwitch = true;
 
     [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
@@ -111,9 +111,9 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
         Justification = "using insecure random is fine here since clientId doesn't need to be secure.")]
     private static string GenerateClientId()
     {
-        char[] hex = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-        char[] clientIdChars = new char[24];
-        for (int i = 0; i < clientIdChars.Length; i++)
+        char[] hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        var clientIdChars = new char[24];
+        for (var i = 0; i < clientIdChars.Length; i++)
         {
             clientIdChars[i] = hex[Random.Next(hex.Length)];
         }
@@ -133,7 +133,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     private async void GetAndUpdateRules(object? state)
     {
-        List<SamplingRule> rules = await this.Client.GetSamplingRules().ConfigureAwait(false);
+        var rules = await this.Client.GetSamplingRules().ConfigureAwait(false);
 
         this.RulesCache.UpdateRules(rules);
 
@@ -143,14 +143,14 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     private async void GetAndUpdateTargets(object? state)
     {
-        List<SamplingStatisticsDocument> statistics = this.RulesCache.Snapshot(this.Clock.Now());
+        var statistics = this.RulesCache.Snapshot(this.Clock.Now());
 
-        GetSamplingTargetsRequest request = new GetSamplingTargetsRequest(statistics);
-        GetSamplingTargetsResponse? response = await this.Client.GetSamplingTargets(request).ConfigureAwait(false);
+        var request = new GetSamplingTargetsRequest(statistics);
+        var response = await this.Client.GetSamplingTargets(request).ConfigureAwait(false);
         if (response != null)
         {
-            Dictionary<string, SamplingTargetDocument> targets = new Dictionary<string, SamplingTargetDocument>();
-            foreach (SamplingTargetDocument target in response.SamplingTargetDocuments)
+            Dictionary<string, SamplingTargetDocument> targets = [];
+            foreach (var target in response.SamplingTargetDocuments)
             {
                 if (target.RuleName != null)
                 {
@@ -174,7 +174,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
         // schedule next target poll
         var nextTargetFetchTime = this.RulesCache.NextTargetFetchTime();
-        TimeSpan nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
+        var nextTargetFetchInterval = nextTargetFetchTime.Subtract(this.Clock.Now());
         if (nextTargetFetchInterval < TimeSpan.Zero)
         {
             nextTargetFetchInterval = DefaultTargetInterval;

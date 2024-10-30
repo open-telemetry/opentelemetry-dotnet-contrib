@@ -23,19 +23,19 @@ public class MeteringTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicProduceToTopicTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var metrics = new List<Metric>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
                    .AddInMemoryExporter(metrics)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            IProducer<string, string> producer = producerBuilder.Build();
+            var producer = producerBuilder.Build();
             producer.Produce(topic, new Message<string, string>
             {
                 Value = "any_value",
@@ -55,19 +55,19 @@ public class MeteringTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicProduceAsyncToTopicTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var metrics = new List<Metric>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
                    .AddInMemoryExporter(metrics)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            IProducer<string, string> producer = producerBuilder.Build();
+            var producer = producerBuilder.Build();
             await producer.ProduceAsync(topic, new Message<string, string>
             {
                 Value = "any_value",
@@ -87,9 +87,9 @@ public class MeteringTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicConsumeWithTimeoutTimespanTest()
     {
-        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
 
-        ConsumerConfig consumerConfig = new ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
             GroupId = "test-consumer-group",
@@ -104,7 +104,7 @@ public class MeteringTests
                 .AddKafkaConsumerInstrumentation(consumerBuilder)
                 .Build())
         {
-            using (IConsumer<string, string> consumer = consumerBuilder.Build())
+            using (var consumer = consumerBuilder.Build())
             {
                 consumer.Subscribe(topic);
                 while (true)

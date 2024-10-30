@@ -56,12 +56,7 @@ internal sealed class PropertyFetcher<T>
         out T? value)
     {
         var innerFetcher = this.innerFetcher;
-        if (innerFetcher is null)
-        {
-            return TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value);
-        }
-
-        return innerFetcher.TryFetch(obj, out value);
+        return innerFetcher is null ? TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value) : innerFetcher.TryFetch(obj, out value);
     }
 
 #if NET
@@ -189,7 +184,11 @@ internal sealed class PropertyFetcher<T>
             public PropertyFetchInstantiated(PropertyInfo property)
             {
                 this.propertyName = property.Name;
+#if NET
+                this.propertyFetch = property.GetMethod!.CreateDelegate<Func<TDeclaredObject, T>>();
+#else
                 this.propertyFetch = (Func<TDeclaredObject, T>)property.GetMethod!.CreateDelegate(typeof(Func<TDeclaredObject, T>));
+#endif
             }
 
             public override int NumberOfInnerFetchers => this.innerFetcher == null
@@ -210,12 +209,7 @@ internal sealed class PropertyFetcher<T>
                 }
 
                 var innerFetcher = this.innerFetcher;
-                if (innerFetcher is null)
-                {
-                    return TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value);
-                }
-
-                return innerFetcher.TryFetch(obj, out value);
+                return innerFetcher is null ? TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value) : innerFetcher.TryFetch(obj, out value);
             }
         }
     }
