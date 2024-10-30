@@ -56,7 +56,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         finally
         {
             initializationHandle.Dispose();
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             initializationHandle = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
         }
 
         async void Listener()
