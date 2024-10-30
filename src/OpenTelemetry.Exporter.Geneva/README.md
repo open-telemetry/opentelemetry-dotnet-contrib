@@ -274,9 +274,9 @@ An experimental feature flag is available to opt-into changing the underlying
 serialization format to binary protobuf following the schema defined in [OTLP
 specification](https://github.com/open-telemetry/opentelemetry-proto/blob/v1.1.0/opentelemetry/proto/metrics/v1/metrics.proto).
 
-When using OTLP format `Account` and `Namespace` are **NOT** required to be set
-on the `ConnectionString`. The recommended approach is to use OpenTelemetry
-Resource instead:
+When using OTLP protobuf encoding `Account` and `Namespace` are **NOT** required
+to be set on the `ConnectionString`. The recommended approach is to use
+OpenTelemetry Resource instead:
 
 ```csharp
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -295,7 +295,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
         }
         else
         {
-            // Note: 1.10.0+ version required to use OTLP format on Linux
+            // Note: 1.10.0+ version required to use OTLP protobuf encoding on Linux
 
             // Use Unix domain socket mode
             options.ConnectionString = "Endpoint=unix:{OTLP UDS Path};PrivatePreviewEnableOtlpProtobufEncoding=true";
@@ -309,7 +309,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 
 ###### Windows
 
-To send metric data over ETW in OTLP format set
+To send metric data over ETW using OTLP protobuf encoding set
 `PrivatePreviewEnableOtlpProtobufEncoding=true` on the `ConnectionString`.
 
 ###### Linux
@@ -319,8 +319,8 @@ on Linux.
 
 ###### When using unix domain socket
 
-To send metric data over UDS in OTLP format set the `Endpoint` to use the
-correct `OtlpSocketPath` path and set
+To send metric data over UDS using OTLP protobuf encoding set the `Endpoint` to
+use the correct `OtlpSocketPath` path and set
 `PrivatePreviewEnableOtlpProtobufEncoding=true` on the `ConnectionString`:
 `Endpoint=unix:{OTLP UDS Path};PrivatePreviewEnableOtlpProtobufEncoding=true`.
 
@@ -333,9 +333,9 @@ correct `OtlpSocketPath` path and set
 > [user_events](https://docs.kernel.org/trace/user_events.html) are a newer
 > feature of the Linux kernel and require a distro with the feature enabled.
 
-To send metric data over user_events in OTLP format do **NOT** specify an
-`Endpoint` and set `PrivatePreviewEnableOtlpProtobufEncoding=true` on the
-`ConnectionString`.
+To send metric data over user_events using OTLP protobuf encoding do **NOT**
+specify an `Endpoint` and set `PrivatePreviewEnableOtlpProtobufEncoding=true` on
+the `ConnectionString`.
 
 #### `MetricExportIntervalMilliseconds` (optional)
 
