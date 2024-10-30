@@ -43,7 +43,7 @@ public class AspNetParentSpanCorrectorTests
 
     private class FakeHttpContext
     {
-        public FakeRequest Request { get; } = new FakeRequest();
+        public FakeRequest Request { get; } = new();
     }
 
     private class FakeRequest
