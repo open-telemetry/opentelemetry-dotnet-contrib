@@ -26,12 +26,7 @@ internal static class AWSLambdaUtils
 
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
-        if (headers.TryGetValue(name, out var value))
-        {
-            return [value];
-        }
-
-        return [];
+        return headers.TryGetValue(name, out var value) ? [value] : [];
     };
 
     internal static ActivityContext GetXRayParentContext()
@@ -181,12 +176,7 @@ internal static class AWSLambdaUtils
         // Function arn format - arn:aws:lambda:<region>:<account-id>:function:<function-name>
 
         var items = functionArn.Split(':');
-        if (items.Length >= 5)
-        {
-            return items[4];
-        }
-
-        return null;
+        return items.Length >= 5 ? items[4] : null;
     }
 
     private static string GetFaasId(string functionArn)

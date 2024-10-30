@@ -49,12 +49,9 @@ internal class CustomWebResponse : IWebResponseData
 
     public string? GetHeaderValue(string headerName)
     {
-        if (this.headers != null && this.headers.TryGetValue(headerName, out var headerValue))
-        {
-            return headerValue;
-        }
-
-        return string.Empty;
+        return this.headers != null && this.headers.TryGetValue(headerName, out var headerValue)
+            ? headerValue
+            : string.Empty;
     }
 
     public bool IsHeaderPresent(string headerName)
@@ -98,11 +95,6 @@ internal class CustomWebResponse : IWebResponseData
 
     private string? GetFirstHeaderValue(HttpHeaders headers, string key)
     {
-        if (headers.TryGetValues(key, out var headerValues))
-        {
-            return headerValues.FirstOrDefault();
-        }
-
-        return string.Empty;
+        return headers.TryGetValues(key, out var headerValues) ? headerValues.FirstOrDefault() : string.Empty;
     }
 }

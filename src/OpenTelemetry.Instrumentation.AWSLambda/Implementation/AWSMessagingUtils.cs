@@ -89,13 +89,8 @@ internal class AWSMessagingUtils
 
     private static IEnumerable<string>? SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
     {
-        if (!attributes.TryGetValue(attributeName, out var attribute))
-        {
-            return null;
-        }
-
-        return attribute?.StringValue != null ?
-            new[] { attribute.StringValue } :
+        return !attributes.TryGetValue(attributeName, out var attribute) ? null :
+            attribute?.StringValue != null ? new[] { attribute.StringValue } :
             attribute?.StringListValues;
     }
 

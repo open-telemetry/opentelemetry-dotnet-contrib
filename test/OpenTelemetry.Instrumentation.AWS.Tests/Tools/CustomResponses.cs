@@ -51,12 +51,7 @@ internal static class CustomResponses
 
             var response = MockWebResponse.Create(status, headers, content);
 
-            if (isOK)
-            {
-                return response;
-            }
-
-            throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
+            return isOK ? response : throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
         };
     }
 #else
@@ -94,12 +89,9 @@ internal static class CustomResponses
 
             var response = MockWebResponse.Create(status, headers, content);
 
-            if (isOK)
-            {
-                return response;
-            }
-
-            throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
+            return isOK
+                ? response
+                : throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
         };
     }
 #endif
