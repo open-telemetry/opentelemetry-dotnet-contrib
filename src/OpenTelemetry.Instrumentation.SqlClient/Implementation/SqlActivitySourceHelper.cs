@@ -20,41 +20,72 @@ internal sealed class SqlActivitySourceHelper
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
     public static readonly string ActivitySourceName = AssemblyName.Name!;
     public static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
-    public static readonly string ActivityName = ActivitySourceName + ".Execute";
 
-    public static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
+    public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
     {
-        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName),
-    };
+        activityName = MicrosoftSqlServerDatabaseSystemName;
 
-    public static void AddConnectionLevelDetailsToActivity(string dataSource, Activity activity, SqlClientTraceInstrumentationOptions options)
-    {
-        // TODO: The attributes added here are required. We need to consider
-        // collecting these attributes by default.
-        if (options.EnableConnectionLevelAttributes)
+        var tags = new TagList
         {
-            var connectionDetails = SqlConnectionDetails.ParseFromDataSource((string)dataSource);
+            { SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName },
+        };
 
-            // TODO: In the new conventions, instance name should now be captured
-            // as a part of db.namespace, when available.
+        if (options.EnableConnectionLevelAttributes && dataSource != null)
+        {
+            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+
+            if (options.EmitOldAttributes && !string.IsNullOrEmpty(databaseName))
+            {
+                tags.Add(SemanticConventions.AttributeDbName, databaseName);
+                activityName = databaseName!;
+            }
+
+            if (options.EmitNewAttributes && !string.IsNullOrEmpty(databaseName))
+            {
+                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
+                    ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
+                    : databaseName!;
+                tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
+                activityName = dbNamespace;
+            }
+
+            var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
+            if (!string.IsNullOrEmpty(serverAddress))
+            {
+                tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
+                if (connectionDetails.Port.HasValue)
+                {
+                    tags.Add(SemanticConventions.AttributeServerPort, connectionDetails.Port);
+                }
+
+                if (activityName == MicrosoftSqlServerDatabaseSystemName)
+                {
+                    activityName = connectionDetails.Port.HasValue
+                        ? $"{serverAddress}:{connectionDetails.Port}" // TODO: Another opportunity to refactor SqlConnectionDetails
+                        : serverAddress!;
+                }
+            }
+
             if (options.EmitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
             {
-                activity.SetTag(SemanticConventions.AttributeDbMsSqlInstanceName, connectionDetails.InstanceName);
-            }
-
-            if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
-            {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, connectionDetails.ServerHostName);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, connectionDetails.ServerIpAddress);
-            }
-
-            if (connectionDetails.Port.HasValue)
-            {
-                activity.SetTag(SemanticConventions.AttributeServerPort, connectionDetails.Port);
+                tags.Add(SemanticConventions.AttributeDbMsSqlInstanceName, connectionDetails.InstanceName);
             }
         }
+        else if (!string.IsNullOrEmpty(databaseName))
+        {
+            if (options.EmitNewAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbNamespace, databaseName);
+            }
+
+            if (options.EmitOldAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbName, databaseName);
+            }
+
+            activityName = databaseName!;
+        }
+
+        return tags;
     }
 }
