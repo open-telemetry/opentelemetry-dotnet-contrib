@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 
 internal class CustomWebResponse : IWebResponseData
 {
-    private HttpResponseMessageBody response;
+    private readonly HttpResponseMessageBody response;
     private string[]? headerNames;
     private Dictionary<string, string?>? headers;
     private HashSet<string>? headerNamesSet;
