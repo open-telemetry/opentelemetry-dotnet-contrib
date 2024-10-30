@@ -305,14 +305,12 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await firstAsyncCall;
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await firstAsyncCall;
         }
         finally
         {
@@ -362,13 +360,11 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
-                await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+            await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
+            Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
         }
         finally
         {

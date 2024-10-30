@@ -220,14 +220,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await firstAsyncCall;
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await firstAsyncCall;
         }
         finally
         {
@@ -277,17 +275,15 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             clientBadUrl2.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
 
-                // weird corner case: if an async call is made as the first hit (before the client is opened) the
-                // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first
-                client2.Open();
-                await Assert.ThrowsAnyAsync<Exception>(client2.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
-            }
+            // weird corner case: if an async call is made as the first hit (before the client is opened) the
+            // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first
+            client2.Open();
+            await Assert.ThrowsAnyAsync<Exception>(client2.ErrorAsync);
+            Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
         }
         finally
         {
