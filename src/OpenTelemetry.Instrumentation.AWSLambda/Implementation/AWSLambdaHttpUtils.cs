@@ -20,11 +20,11 @@ internal class AWSLambdaHttpUtils
     {
         var tags = new List<KeyValuePair<string, object>>();
 
-        string? httpScheme = null;
-        string? httpTarget = null;
-        string? httpMethod = null;
-        string? hostName = null;
-        int? hostPort = null;
+        string? httpScheme;
+        string? httpTarget;
+        string? httpMethod;
+        string? hostName;
+        int? hostPort;
 
         switch (input)
         {

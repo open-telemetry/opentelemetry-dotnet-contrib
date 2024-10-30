@@ -34,10 +34,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
-        T? ret = null;
-
         var activity = this.ProcessBeginRequest(executionContext);
-        ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
+        var ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
 
         ProcessEndRequest(activity, executionContext);
 
