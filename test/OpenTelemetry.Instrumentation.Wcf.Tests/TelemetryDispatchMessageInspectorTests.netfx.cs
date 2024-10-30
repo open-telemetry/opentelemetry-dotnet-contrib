@@ -4,7 +4,6 @@
 #if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using OpenTelemetry.Trace;
 using Xunit;
 using Xunit.Abstractions;
@@ -103,38 +102,23 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Failure whilst enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
                                     case WcfEnrichEventNames.AfterReceiveRequest:
-                                        activity.SetTag(
-                                            "server.afterreceiverequest",
-                                            WcfEnrichEventNames.AfterReceiveRequest);
+                                        activity.SetTag("server.afterreceiverequest", WcfEnrichEventNames.AfterReceiveRequest);
                                         break;
                                     case WcfEnrichEventNames.BeforeSendReply:
-                                        activity.SetTag(
-                                            "server.beforesendreply",
-                                            WcfEnrichEventNames.BeforeSendReply);
+                                        activity.SetTag("server.beforesendreply", WcfEnrichEventNames.BeforeSendReply);
                                         break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) =>
-                            {
-                                throw new Exception("Failure whilst enriching activity");
-                            };
-                        }
                     }
 
-                    options.IncomingRequestFilter = (Message m) =>
-                    {
-                        return !filter;
-                    };
+                    options.IncomingRequestFilter = _ => !filter;
                     options.SetSoapMessageVersion = includeVersion;
                 })
                 .Build();

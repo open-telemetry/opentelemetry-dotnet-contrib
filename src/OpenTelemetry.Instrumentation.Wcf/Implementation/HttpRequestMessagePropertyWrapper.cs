@@ -60,15 +60,12 @@ internal static class HttpRequestMessagePropertyWrapper
             var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), [], null)
                 ?? throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
 
-            if (nameProp.GetValue(null) is not string name)
-            {
-                throw new NotSupportedException("HttpRequestMessageProperty.Name property was null");
-            }
-
-            return new ReflectedInfo(
-                type: type,
-                name: name,
-                headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
+            return nameProp.GetValue(null) is not string name
+                ? throw new NotSupportedException("HttpRequestMessageProperty.Name property was null")
+                : new ReflectedInfo(
+                    type: type,
+                    name: name,
+                    headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
         }
         catch (Exception ex)
         {

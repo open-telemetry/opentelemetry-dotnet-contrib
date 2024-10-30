@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Net;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -151,9 +150,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -165,14 +164,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                                         break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
-                    options.OutgoingRequestFilter = (Message m) => !filter;
+                    options.OutgoingRequestFilter = _ => !filter;
                     options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     options.SetSoapMessageVersion = includeVersion;
                 })

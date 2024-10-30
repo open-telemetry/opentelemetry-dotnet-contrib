@@ -7,7 +7,6 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
@@ -65,9 +64,9 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -79,14 +78,9 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                                         break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
-                    options.OutgoingRequestFilter = (Message m) => !filter;
+                    options.OutgoingRequestFilter = _ => !filter;
                     options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     options.SetSoapMessageVersion = includeVersion;
                 })
@@ -529,12 +523,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             }
         }
 
-        if (serviceHost == null)
-        {
-            throw new InvalidOperationException("ServiceHost could not be started.");
-        }
-
-        return serviceHost;
+        return serviceHost ?? throw new InvalidOperationException("ServiceHost could not be started.");
     }
 }
 #endif
