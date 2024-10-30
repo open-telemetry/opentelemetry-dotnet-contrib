@@ -54,10 +54,10 @@ internal static class HttpRequestMessagePropertyWrapper
             var constructor = type.GetConstructor(Type.EmptyTypes)
                 ?? throw new NotSupportedException("HttpRequestMessageProperty public parameterless constructor was not found");
 
-            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), Array.Empty<Type>(), null)
+            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), [], null)
                 ?? throw new NotSupportedException("HttpRequestMessageProperty.Headers property not found");
 
-            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), Array.Empty<Type>(), null)
+            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), [], null)
                 ?? throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
 
             if (nameProp.GetValue(null) is not string name)
