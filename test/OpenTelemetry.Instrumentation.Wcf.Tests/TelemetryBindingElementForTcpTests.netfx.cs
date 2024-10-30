@@ -76,6 +76,8 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                                     case WcfEnrichEventNames.AfterReceiveReply:
                                         activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
                     }
