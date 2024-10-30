@@ -22,24 +22,24 @@ public class SqlClientTestCase : IEnumerable<object[]>
     private static SqlClientTestCase[] TestCases =>
     [
         new SqlClientTestCase
-            {
-                ConnectionString = @"Data Source=SomeServer",
-                ExpectedActivityName = "SomeServer",
-                ExpectedServerAddress = "SomeServer",
-                ExpectedPort = null,
-                ExpectedDbNamespace = null,
-                ExpectedInstanceName = null,
-            },
-            new SqlClientTestCase
-            {
-                ConnectionString = @"Data Source=SomeServer,1434",
-                ExpectedActivityName = "SomeServer:1434",
-                ExpectedServerAddress = "SomeServer",
-                ExpectedPort = 1434,
-                ExpectedDbNamespace = null,
-                ExpectedInstanceName = null,
-            },
-        ];
+        {
+            ConnectionString = @"Data Source=SomeServer",
+            ExpectedActivityName = "SomeServer",
+            ExpectedServerAddress = "SomeServer",
+            ExpectedPort = null,
+            ExpectedDbNamespace = null,
+            ExpectedInstanceName = null,
+        },
+        new SqlClientTestCase
+        {
+            ConnectionString = @"Data Source=SomeServer,1434",
+            ExpectedActivityName = "SomeServer:1434",
+            ExpectedServerAddress = "SomeServer",
+            ExpectedPort = 1434,
+            ExpectedDbNamespace = null,
+            ExpectedInstanceName = null,
+        },
+    ];
 
     public IEnumerator<object[]> GetEnumerator()
     {
