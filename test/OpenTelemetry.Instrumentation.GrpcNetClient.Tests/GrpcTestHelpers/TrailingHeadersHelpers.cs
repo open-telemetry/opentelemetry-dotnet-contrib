@@ -41,7 +41,7 @@ internal static class TrailingHeadersHelpers
 
     private class ResponseTrailers : HttpHeaders
     {
-        public static readonly ResponseTrailers Empty = new ResponseTrailers();
+        public static readonly ResponseTrailers Empty = [];
     }
 #endif
 }

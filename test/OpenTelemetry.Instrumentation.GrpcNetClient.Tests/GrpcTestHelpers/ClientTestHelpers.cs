@@ -24,7 +24,7 @@ internal static class ClientTestHelpers
     public static Task<StreamContent> CreateResponseContent<TResponse>(TResponse response, ICompressionProvider? compressionProvider = null)
         where TResponse : IMessage<TResponse>
     {
-        return CreateResponseContentCore(new[] { response }, compressionProvider);
+        return CreateResponseContentCore([response], compressionProvider);
     }
 
     public static async Task WriteResponseAsync<TResponse>(Stream ms, TResponse response, ICompressionProvider? compressionProvider)

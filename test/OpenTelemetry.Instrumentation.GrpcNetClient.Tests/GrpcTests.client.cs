@@ -246,11 +246,10 @@ public partial class GrpcTests
             var propagator = new CustomTextMapPropagator();
             propagator.InjectValues.Add("customField", context => "customValue");
 
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator,
-            }));
+                propagator
+            ]));
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
@@ -288,11 +287,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 
@@ -342,11 +340,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 
@@ -364,11 +361,10 @@ public partial class GrpcTests
             var propagator = new CustomTextMapPropagator();
             propagator.Injected = (context) => isPropagatorCalled = true;
 
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator,
-            }));
+                propagator
+            ]));
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
@@ -395,11 +391,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 #endif
