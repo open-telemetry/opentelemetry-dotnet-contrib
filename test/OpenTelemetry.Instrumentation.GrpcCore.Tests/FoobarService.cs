@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
@@ -41,7 +40,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// The default request message size.
     /// </summary>
-    internal static readonly int DefaultRequestMessageSize = ((IMessage)DefaultRequestMessage).CalculateSize();
+    internal static readonly int DefaultRequestMessageSize = DefaultRequestMessage.CalculateSize();
 
     /// <summary>
     /// The default response message.
@@ -51,7 +50,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// The default request message size.
     /// </summary>
-    internal static readonly int DefaultResponseMessageSize = ((IMessage)DefaultResponseMessage).CalculateSize();
+    internal static readonly int DefaultResponseMessageSize = DefaultResponseMessage.CalculateSize();
 
     /// <summary>
     /// Starts the specified service.
