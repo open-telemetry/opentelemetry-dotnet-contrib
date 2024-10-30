@@ -326,8 +326,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.None);
-        binding.SendTimeout = TimeSpan.FromMilliseconds(1000);
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromMilliseconds(1000),
+        };
         var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
@@ -374,8 +376,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.None);
-        binding.SendTimeout = TimeSpan.FromMilliseconds(15000);
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromMilliseconds(15000),
+        };
         var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
@@ -428,8 +432,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential);
-        binding.TransferMode = TransferMode.Streamed;
+        var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential)
+        {
+            TransferMode = TransferMode.Streamed,
+        };
         binding.Security.Transport.ProtectionLevel = ProtectionLevel.EncryptAndSign;
         binding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
         var host = this.CreateServiceHost(binding, LoadCertificate());
