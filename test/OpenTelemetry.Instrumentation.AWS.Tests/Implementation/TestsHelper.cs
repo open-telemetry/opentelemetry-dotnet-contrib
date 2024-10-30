@@ -49,7 +49,7 @@ internal static class TestsHelper
                 throw new NotSupportedException($"Tests for service type {serviceType} not supported.");
         }
 
-        for (int i = 1; i <= attributesCount; i++)
+        for (var i = 1; i <= attributesCount; i++)
         {
             addAttribute(i);
         }
@@ -83,7 +83,7 @@ internal static class TestsHelper
     {
         var sendRequest = serviceRequest as SQS::SendMessageRequest;
         var publishRequest = serviceRequest as SNS::PublishRequest;
-        int index = 1;
+        var index = 1;
         if (sendRequest != null)
         {
             foreach (var a in sendRequest.MessageAttributes)

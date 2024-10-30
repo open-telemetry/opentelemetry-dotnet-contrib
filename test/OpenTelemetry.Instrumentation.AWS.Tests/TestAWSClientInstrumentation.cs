@@ -34,7 +34,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -59,7 +59,7 @@ public class TestAWSClientInstrumentation
 
         Assert.NotEmpty(exportedItems);
 
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -79,7 +79,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -104,7 +104,7 @@ public class TestAWSClientInstrumentation
 
         Assert.NotEmpty(exportedItems);
 
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -124,7 +124,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
@@ -134,7 +134,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            AmazonServiceException amazonServiceException = new AmazonServiceException();
+            var amazonServiceException = new AmazonServiceException();
             amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
             amazonServiceException.RequestId = requestId;
             CustomResponses.SetResponse(ddb, (request) => { throw amazonServiceException; });
@@ -160,7 +160,7 @@ public class TestAWSClientInstrumentation
 
         Assert.NotEmpty(exportedItems);
 
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "DynamoDB.Scan");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -181,7 +181,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -191,7 +191,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
             var send_msg_req = new SendMessageRequest();
             send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
@@ -205,7 +205,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SQS.SendMessage");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SQS.SendMessage");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -225,7 +225,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -235,7 +235,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{\"GuardrailId\":\"123456789\"}";
+            var dummyResponse = "{\"GuardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
             var getGuardrailRequest = new GetGuardrailRequest();
             getGuardrailRequest.GuardrailIdentifier = "123456789";
@@ -247,7 +247,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock.GetGuardrail");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock.GetGuardrail");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -267,7 +267,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -277,7 +277,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
             var invokeModelRequest = new InvokeModelRequest();
             invokeModelRequest.ModelId = "amazon.titan-text-express-v1";
@@ -289,7 +289,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -309,7 +309,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -319,7 +319,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var getAgentRequest = new GetAgentRequest();
             getAgentRequest.AgentId = "1234567890";
@@ -331,7 +331,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetAgent");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetAgent");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -351,7 +351,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -361,7 +361,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var getKnowledgeBaseRequest = new GetKnowledgeBaseRequest();
             getKnowledgeBaseRequest.KnowledgeBaseId = "1234567890";
@@ -373,7 +373,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetKnowledgeBase");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetKnowledgeBase");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -393,7 +393,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -403,7 +403,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
             var getDataSourceRequest = new GetDataSourceRequest();
             getDataSourceRequest.DataSourceId = "1234567890";
@@ -416,7 +416,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetDataSource");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent.GetDataSource");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -436,7 +436,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -446,7 +446,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
             var invokeAgentRequest = new InvokeAgentRequest();
             invokeAgentRequest.AgentId = "123456789";
@@ -461,7 +461,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.InvokeAgent");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.InvokeAgent");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
@@ -481,7 +481,7 @@ public class TestAWSClientInstrumentation
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
-        string requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -491,7 +491,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            string dummyResponse = "{}";
+            var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
             var retrieveRequest = new RetrieveRequest();
             retrieveRequest.KnowledgeBaseId = "123456789";
@@ -503,7 +503,7 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.NotEmpty(exportedItems);
-        Activity? awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.Retrieve");
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Agent Runtime.Retrieve");
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);

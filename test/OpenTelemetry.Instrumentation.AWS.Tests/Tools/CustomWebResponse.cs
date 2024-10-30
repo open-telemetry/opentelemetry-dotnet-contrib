@@ -72,7 +72,7 @@ internal class CustomWebResponse : IWebResponseData
         List<string> headerNames = [];
         this.headers = new Dictionary<string, string?>(10, StringComparer.OrdinalIgnoreCase);
 
-        foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
+        foreach (var kvp in response.Headers)
         {
             headerNames.Add(kvp.Key);
             var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);

@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using Amazon.Lambda.SQSEvents;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -37,7 +35,7 @@ public class AWSMessagingUtilsTests : IDisposable
         AWSMessagingUtils.SetParentFromMessageBatch = false;
         var sqsEvent = CreateSqsEventWithMessages([SpanId1, SpanId2]);
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.Equal(default, parentContext);
         Assert.Equal(2, links!.Count());
@@ -49,7 +47,7 @@ public class AWSMessagingUtilsTests : IDisposable
         AWSMessagingUtils.SetParentFromMessageBatch = true;
         var sqsEvent = CreateSqsEventWithMessages([SpanId1, SpanId2]);
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId2, parentContext.ActivityContext.SpanId.ToHexString());
@@ -90,7 +88,7 @@ public class AWSMessagingUtilsTests : IDisposable
             ],
         };
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId1, parentContext.ActivityContext.SpanId.ToHexString());

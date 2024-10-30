@@ -225,7 +225,7 @@ public class AWSLambdaWrapperTests
                    .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
                    .Build())
         {
-            for (int i = 1; i <= invocationsCount; i++)
+            for (var i = 1; i <= invocationsCount; i++)
             {
                 activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
             }

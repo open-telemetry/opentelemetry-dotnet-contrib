@@ -57,7 +57,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
         {
-            AmazonWebServiceResponse response = responseContext.Response;
+            var response = responseContext.Response;
 
             foreach (var parameter in parameters)
             {
@@ -129,7 +129,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
-            AmazonWebServiceRequest request = requestContext.OriginalRequest;
+            var request = requestContext.OriginalRequest;
 
             foreach (var parameter in parameters)
             {

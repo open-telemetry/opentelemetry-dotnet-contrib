@@ -38,7 +38,7 @@ internal class MockWebResponse
         }
 
         body ??= string.Empty;
-        Stream responseBodyStream = Utils.CreateStreamFromString(body);
+        var responseBodyStream = Utils.CreateStreamFromString(body);
 
         var statusFieldInfo = type.GetField(
             "m_StatusCode",
@@ -66,7 +66,7 @@ internal class MockWebResponse
     {
         var rawResponse = Utils.GetResourceText(resourceName);
 
-        HttpResponse response = ParseRawReponse(rawResponse);
+        var response = ParseRawReponse(rawResponse);
         var statusCode = ParseStatusCode(response.StatusLine);
 
         return Create(statusCode, response.Headers, response.Body);
@@ -95,7 +95,7 @@ internal class MockWebResponse
         }
 
         httpResponseMessage!.StatusCode = statusCode;
-        string dummyJson = "{\"key1\":\"value1\"}";
+        var dummyJson = "{\"key1\":\"value1\"}";
         httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
         return httpResponseMessage;
     }
@@ -103,7 +103,7 @@ internal class MockWebResponse
 #endif
     public static HttpResponse ParseRawReponse(string rawResponse)
     {
-        HttpResponse response = new HttpResponse();
+        var response = new HttpResponse();
         response.StatusLine = rawResponse;
 
         var responseLines = rawResponse.Split('\n');
@@ -152,7 +152,7 @@ internal class MockWebResponse
     {
         try
         {
-            string statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
+            var statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
             return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
         }
         catch (Exception exception)

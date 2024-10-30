@@ -21,7 +21,7 @@ internal sealed class AWSHistogram<T> : Histogram<T>
         string? units = null,
         string? description = null)
     {
-        if (HistogramsDictionary.TryGetValue(name, out System.Diagnostics.Metrics.Histogram<T>? histogram))
+        if (HistogramsDictionary.TryGetValue(name, out var histogram))
         {
             this.histogram = histogram;
         }

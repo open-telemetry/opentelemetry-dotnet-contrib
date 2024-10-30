@@ -27,7 +27,7 @@ internal class SnsRequestContextHelper
             return;
         }
 
-        int attributesCount = originalRequest.MessageAttributes.Count;
+        var attributesCount = originalRequest.MessageAttributes.Count;
         if (attributes.Count + attributesCount > MaxMessageAttributes)
         {
             // TODO: add logging (event source).

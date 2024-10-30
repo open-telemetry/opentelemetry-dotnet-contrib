@@ -20,7 +20,7 @@ internal sealed class AWSMeterProvider : MeterProvider
         // update OpenTelemetry core component version(s) to `1.9.0` and allow passing tags to
         // the meter constructor.
 
-        if (MetersDictionary.TryGetValue(scope, out AWSMeter? meter))
+        if (MetersDictionary.TryGetValue(scope, out var meter))
         {
             return meter;
         }

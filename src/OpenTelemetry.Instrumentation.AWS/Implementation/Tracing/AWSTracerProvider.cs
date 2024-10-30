@@ -13,7 +13,7 @@ internal sealed class AWSTracerProvider : TracerProvider
 
     public override Tracer GetTracer(string scope)
     {
-        if (TracersDictionary.TryGetValue(scope, out AWSTracer? awsTracer))
+        if (TracersDictionary.TryGetValue(scope, out var awsTracer))
         {
             return awsTracer;
         }

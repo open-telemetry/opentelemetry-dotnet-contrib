@@ -65,7 +65,7 @@ public class TestAWSClientMetricsInstrumentation
             .Build();
 
         var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-        AmazonServiceException amazonServiceException = new AmazonServiceException();
+        var amazonServiceException = new AmazonServiceException();
         amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
         amazonServiceException.RequestId = "requestId";
         CustomResponses.SetResponse(sns, (request) => { throw amazonServiceException; });
@@ -120,7 +120,7 @@ public class TestAWSClientMetricsInstrumentation
             .Build();
 
         var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-        string dummyResponse = "{}";
+        var dummyResponse = "{}";
         CustomResponses.SetResponse(sqs, dummyResponse, "requestId", true);
         var send_msg_req = new CreateQueueRequest()
         {

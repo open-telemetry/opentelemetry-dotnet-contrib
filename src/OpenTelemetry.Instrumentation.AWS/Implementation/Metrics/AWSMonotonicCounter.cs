@@ -21,7 +21,7 @@ internal sealed class AWSMonotonicCounter<T> : MonotonicCounter<T>
         string? units = null,
         string? description = null)
     {
-        if (MonotonicCountersDictionary.TryGetValue(name, out System.Diagnostics.Metrics.Counter<T>? monotonicCounter))
+        if (MonotonicCountersDictionary.TryGetValue(name, out var monotonicCounter))
         {
             this.monotonicCounter = monotonicCounter;
         }
