@@ -81,6 +81,8 @@ internal class AWSLambdaHttpUtils
             case ApplicationLoadBalancerResponse albResponse:
                 activity.SetTag(SemanticConventions.AttributeHttpStatusCode, albResponse.StatusCode);
                 break;
+            default:
+                break;
         }
     }
 

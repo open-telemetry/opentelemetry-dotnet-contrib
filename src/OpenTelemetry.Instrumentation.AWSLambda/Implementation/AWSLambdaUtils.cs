@@ -77,6 +77,8 @@ internal static class AWSLambdaUtils
             case SNSEvent.SNSRecord snsRecord:
                 parentContext = AWSMessagingUtils.ExtractParentContext(snsRecord);
                 break;
+            default:
+                break;
         }
 
         return (parentContext.ActivityContext, links);
