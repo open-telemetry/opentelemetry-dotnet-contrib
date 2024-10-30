@@ -99,7 +99,11 @@ internal sealed class PropertyFetcher<T>
 
             public TypedPropertyFetch(PropertyInfo property)
             {
+#if NET
+                this.propertyFetch = property.GetMethod.CreateDelegate<Func<TDeclaredObject, TDeclaredProperty>>();
+#else
                 this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
+#endif
             }
 
             public override bool TryFetch(object obj, out T value)

@@ -27,8 +27,8 @@ internal static class AspNetParentSpanCorrector
     private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
 
     private static readonly ReflectedInfo? ReflectedValues = Initialize();
-    private static readonly PropertyFetcher<object> RequestFetcher = new PropertyFetcher<object>("Request");
-    private static readonly PropertyFetcher<NameValueCollection> HeadersFetcher = new PropertyFetcher<NameValueCollection>("Headers");
+    private static readonly PropertyFetcher<object> RequestFetcher = new("Request");
+    private static readonly PropertyFetcher<NameValueCollection> HeadersFetcher = new("Headers");
     private static bool isRegistered;
 
     public static void Register()
