@@ -31,8 +31,7 @@ internal static class CustomResponses
             .GetValue(client, null)
             as RuntimePipeline;
 
-        var requestFactory = new MockHttpRequestFactory();
-        requestFactory.ResponseCreator = responseCreator;
+        var requestFactory = new MockHttpRequestFactory { ResponseCreator = responseCreator };
         var httpHandler = new HttpHandler<Stream>(requestFactory, client);
         pipeline?.ReplaceHandler<HttpHandler<Stream>>(httpHandler);
     }
@@ -75,8 +74,7 @@ internal static class CustomResponses
                 .GetValue(client, null)
             as RuntimePipeline;
 
-        var requestFactory = new MockHttpRequestFactory();
-        requestFactory.ResponseCreator = responseCreator;
+        var requestFactory = new MockHttpRequestFactory { ResponseCreator = responseCreator };
         var httpHandler = new HttpHandler<HttpContent>(requestFactory, client);
         pipeline?.ReplaceHandler<HttpHandler<HttpContent>>(httpHandler);
     }

@@ -134,9 +134,10 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var amazonServiceException = new AmazonServiceException();
-            amazonServiceException.StatusCode = System.Net.HttpStatusCode.NotFound;
-            amazonServiceException.RequestId = requestId;
+            var amazonServiceException = new AmazonServiceException
+            {
+                StatusCode = System.Net.HttpStatusCode.NotFound, RequestId = requestId
+            };
             CustomResponses.SetResponse(ddb, (request) => { throw amazonServiceException; });
             var scan_request = new ScanRequest
             {
@@ -193,9 +194,10 @@ public class TestAWSClientInstrumentation
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
-            var send_msg_req = new SendMessageRequest();
-            send_msg_req.QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue";
-            send_msg_req.MessageBody = "Hello from OT";
+            var send_msg_req = new SendMessageRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue", MessageBody = "Hello from OT"
+            };
             send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
             sqs.SendMessage(send_msg_req);
@@ -237,8 +239,7 @@ public class TestAWSClientInstrumentation
             var bedrock = new AmazonBedrockClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{\"GuardrailId\":\"123456789\"}";
             CustomResponses.SetResponse(bedrock, dummyResponse, requestId, true);
-            var getGuardrailRequest = new GetGuardrailRequest();
-            getGuardrailRequest.GuardrailIdentifier = "123456789";
+            var getGuardrailRequest = new GetGuardrailRequest {GuardrailIdentifier = "123456789"};
 #if NETFRAMEWORK
             bedrock.GetGuardrail(getGuardrailRequest);
 #else
@@ -279,8 +280,7 @@ public class TestAWSClientInstrumentation
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
-            var invokeModelRequest = new InvokeModelRequest();
-            invokeModelRequest.ModelId = "amazon.titan-text-express-v1";
+            var invokeModelRequest = new InvokeModelRequest {ModelId = "amazon.titan-text-express-v1"};
 #if NETFRAMEWORK
             var response = bedrockruntime.InvokeModel(invokeModelRequest);
 #else
@@ -321,8 +321,7 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var getAgentRequest = new GetAgentRequest();
-            getAgentRequest.AgentId = "1234567890";
+            var getAgentRequest = new GetAgentRequest {AgentId = "1234567890"};
 #if NETFRAMEWORK
             var response = bedrockagent.GetAgent(getAgentRequest);
 #else
@@ -363,8 +362,7 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var getKnowledgeBaseRequest = new GetKnowledgeBaseRequest();
-            getKnowledgeBaseRequest.KnowledgeBaseId = "1234567890";
+            var getKnowledgeBaseRequest = new GetKnowledgeBaseRequest { KnowledgeBaseId = "1234567890" };
 #if NETFRAMEWORK
             var response = bedrockagent.GetKnowledgeBase(getKnowledgeBaseRequest);
 #else
@@ -405,9 +403,7 @@ public class TestAWSClientInstrumentation
             var bedrockagent = new AmazonBedrockAgentClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagent, dummyResponse, requestId, true);
-            var getDataSourceRequest = new GetDataSourceRequest();
-            getDataSourceRequest.DataSourceId = "1234567890";
-            getDataSourceRequest.KnowledgeBaseId = "1234567890";
+            var getDataSourceRequest = new GetDataSourceRequest {DataSourceId = "1234567890", KnowledgeBaseId = "1234567890"};
 #if NETFRAMEWORK
             var response = bedrockagent.GetDataSource(getDataSourceRequest);
 #else
@@ -448,11 +444,10 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
-            var invokeAgentRequest = new InvokeAgentRequest();
-            invokeAgentRequest.AgentId = "123456789";
-            invokeAgentRequest.AgentAliasId = "testalias";
-            invokeAgentRequest.SessionId = "test-session-id";
-            invokeAgentRequest.InputText = "sample input text";
+            var invokeAgentRequest = new InvokeAgentRequest
+            {
+                AgentId = "123456789", AgentAliasId = "testalias", SessionId = "test-session-id", InputText = "sample input text"
+            };
 #if NETFRAMEWORK
             var response = bedrockagentruntime.InvokeAgent(invokeAgentRequest);
 #else
@@ -493,8 +488,7 @@ public class TestAWSClientInstrumentation
             var bedrockagentruntime = new AmazonBedrockAgentRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(bedrockagentruntime, dummyResponse, requestId, true);
-            var retrieveRequest = new RetrieveRequest();
-            retrieveRequest.KnowledgeBaseId = "123456789";
+            var retrieveRequest = new RetrieveRequest {KnowledgeBaseId = "123456789"};
 #if NETFRAMEWORK
             var response = bedrockagentruntime.Retrieve(retrieveRequest);
 #else
