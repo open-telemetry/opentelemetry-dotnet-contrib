@@ -63,11 +63,7 @@ internal static class AspNetParentSpanCorrector
     {
         try
         {
-            var isReadOnlyProp = typeof(NameValueCollection).GetProperty("IsReadOnly", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-            if (isReadOnlyProp == null)
-            {
-                throw new NotSupportedException("NameValueCollection.IsReadOnly property not found");
-            }
+            var isReadOnlyProp = typeof(NameValueCollection).GetProperty("IsReadOnly", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy) ?? throw new NotSupportedException("NameValueCollection.IsReadOnly property not found");
 
             var setHeadersReadOnly = (Action<NameValueCollection, bool>)isReadOnlyProp.SetMethod.CreateDelegate(typeof(Action<NameValueCollection, bool>));
 
@@ -102,12 +98,7 @@ internal static class AspNetParentSpanCorrector
 
         var telemetryHttpModuleType = Type.GetType(TelemetryHttpModuleTypeName, true);
         var telemetryHttpModuleOptionsType = Type.GetType(TelemetryHttpModuleOptionsTypeName, true);
-        var onRequestStartedProp = telemetryHttpModuleOptionsType.GetProperty("OnRequestStartedCallback");
-        if (onRequestStartedProp == null)
-        {
-            throw new NotSupportedException("TelemetryHttpModuleOptions.OnRequestStartedCallback property not found");
-        }
-
+        var onRequestStartedProp = telemetryHttpModuleOptionsType.GetProperty("OnRequestStartedCallback") ?? throw new NotSupportedException("TelemetryHttpModuleOptions.OnRequestStartedCallback property not found");
         Func<Delegate, Delegate> addOurCallbackToDelegate = (existingCallback) =>
         {
             var myCallback = OnRequestStarted;
