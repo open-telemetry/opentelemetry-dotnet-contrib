@@ -175,8 +175,14 @@ internal sealed class SqlEventSourceListener : EventListener
                 {
                     if ((compositeState & 0b010) == 0b010)
                     {
-                        var errorText = $"SqlExceptionNumber {eventData.Payload[2]} thrown.";
-                        activity.SetStatus(ActivityStatusCode.Error, errorText);
+                        var errorNumber = $"{eventData.Payload[2]}";
+                        activity.SetStatus(ActivityStatusCode.Error, errorNumber);
+                        activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+
+                        var exceptionType = eventData.EventSource.Name == MdsEventSourceName
+                            ? "Microsoft.Data.SqlClient.SqlException"
+                            : "System.Data.SqlClient.SqlException";
+                        activity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
                     }
                     else
                     {
