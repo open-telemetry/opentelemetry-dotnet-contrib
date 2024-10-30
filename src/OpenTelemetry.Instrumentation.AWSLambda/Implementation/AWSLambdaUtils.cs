@@ -199,7 +199,7 @@ internal static class AWSLambdaUtils
         IsHttpRequest(input) ? "http" : "other";
 
     private static bool IsHttpRequest<TInput>(TInput input) =>
-        input is APIGatewayProxyRequest || input is APIGatewayHttpApiV2ProxyRequest || input is ApplicationLoadBalancerRequest;
+        input is APIGatewayProxyRequest or APIGatewayHttpApiV2ProxyRequest or ApplicationLoadBalancerRequest;
 
     private static ActivityContext ParseXRayTraceHeader(string rawHeader)
     {
