@@ -101,16 +101,13 @@ internal class AWSMessagingUtils
             return null;
         }
 
-        switch (attribute?.Type)
+        return attribute?.Type switch
         {
-            case SnsAttributeTypeString when attribute.Value != null:
-                return [attribute.Value];
-            case SnsAttributeTypeStringArray when attribute.Value != null:
-                // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
-                return attribute.Value.Split(',');
-            default:
-                return null;
-        }
+            SnsAttributeTypeString when attribute.Value != null => (IEnumerable<string>?)[attribute.Value],
+            SnsAttributeTypeStringArray when attribute.Value != null =>
+                attribute.Value.Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
+            _ => null,
+        };
     }
 
     private static SNSEvent.SNSMessage? GetSnsMessage(SQSEvent.SQSMessage sqsMessage)
