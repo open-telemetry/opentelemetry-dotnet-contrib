@@ -18,7 +18,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
 
-    private readonly EventWaitHandle thrownExceptionsHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+    private readonly EventWaitHandle thrownExceptionsHandle = new(false, EventResetMode.ManualReset);
     private readonly List<Exception> thrownExceptions = [];
 
     public TelemetryDispatchMessageInspectorForOneWayOperationsTests(ITestOutputHelper outputHelper)
