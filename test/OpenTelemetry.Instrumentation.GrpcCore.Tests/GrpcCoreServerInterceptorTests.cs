@@ -122,10 +122,7 @@ public class GrpcCoreServerInterceptorTests
         {
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
-                additionalMetadata: new List<Metadata.Entry>
-                {
-                    new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
-                });
+                additionalMetadata: [new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling)]);
 
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
