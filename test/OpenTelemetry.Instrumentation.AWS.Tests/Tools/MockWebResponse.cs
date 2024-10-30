@@ -102,7 +102,7 @@ internal class MockWebResponse
 #endif
     public static HttpResponse ParseRawReponse(string rawResponse)
     {
-        var response = new HttpResponse {StatusLine = rawResponse};
+        var response = new HttpResponse { StatusLine = rawResponse };
 
         var responseLines = rawResponse.Split('\n');
 
