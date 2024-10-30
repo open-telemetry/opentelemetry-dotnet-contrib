@@ -105,25 +105,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return consumeResult;
         }
 
-        Activity? processActivity = null;
-        if (TryExtractPropagationContext(consumeResult, out var propagationContext))
-        {
-            processActivity = StartProcessActivity(
-                propagationContext,
-                consumeResult.TopicPartitionOffset,
-                consumeResult.Message.Key,
-                instrumentedConsumer.Name,
-                instrumentedConsumer.GroupId!);
-        }
-        else
-        {
-            processActivity = StartProcessActivity(
-                default,
-                consumeResult.TopicPartitionOffset,
-                consumeResult.Message.Key,
-                instrumentedConsumer.Name,
-                instrumentedConsumer.GroupId!);
-        }
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
 
         try
         {
