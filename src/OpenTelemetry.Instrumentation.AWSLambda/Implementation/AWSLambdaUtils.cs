@@ -28,10 +28,10 @@ internal static class AWSLambdaUtils
     {
         if (headers.TryGetValue(name, out var value))
         {
-            return new[] { value };
+            return [value];
         }
 
-        return Array.Empty<string>();
+        return [];
     };
 
     internal static ActivityContext GetXRayParentContext()

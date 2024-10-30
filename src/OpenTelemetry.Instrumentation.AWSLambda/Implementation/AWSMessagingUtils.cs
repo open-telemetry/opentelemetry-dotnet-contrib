@@ -109,7 +109,7 @@ internal class AWSMessagingUtils
         switch (attribute?.Type)
         {
             case SnsAttributeTypeString when attribute.Value != null:
-                return new[] { attribute.Value };
+                return [attribute.Value];
             case SnsAttributeTypeStringArray when attribute.Value != null:
                 // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
                 return attribute.Value.Split(',');
