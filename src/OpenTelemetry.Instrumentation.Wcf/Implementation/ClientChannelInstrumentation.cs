@@ -134,7 +134,7 @@ internal static class ClientChannelInstrumentation
             }
         }
 
-        return actionMetadata != null ? actionMetadata : new ActionMetadata(
+        return actionMetadata ?? new ActionMetadata(
             contractName: null,
             operationName: action);
     }
