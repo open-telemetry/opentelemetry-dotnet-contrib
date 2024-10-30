@@ -33,8 +33,8 @@ public partial class GrpcTests
     [InlineData("http://[::1]", false)]
     public void GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
     {
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
 
         var uri = new Uri($"{baseAddress}:1234");
         var uriHostNameType = Uri.CheckHostName(uri.Host);
@@ -303,7 +303,7 @@ public partial class GrpcTests
             var exportedItems = new List<Activity>();
             using var source = new ActivitySource("test-source");
 
-            bool isPropagatorCalled = false;
+            var isPropagatorCalled = false;
             var propagator = new CustomTextMapPropagator
             {
                 Injected = (context) => isPropagatorCalled = true,
@@ -357,7 +357,7 @@ public partial class GrpcTests
 
             using var source = new ActivitySource("test-source");
 
-            bool isPropagatorCalled = false;
+            var isPropagatorCalled = false;
             var propagator = new CustomTextMapPropagator();
             propagator.Injected = (context) => isPropagatorCalled = true;
 
@@ -402,8 +402,8 @@ public partial class GrpcTests
     [Fact]
     public void AddGrpcClientInstrumentationNamedOptionsSupported()
     {
-        int defaultExporterOptionsConfigureOptionsInvocations = 0;
-        int namedExporterOptionsConfigureOptionsInvocations = 0;
+        var defaultExporterOptionsConfigureOptionsInvocations = 0;
+        var namedExporterOptionsConfigureOptionsInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
