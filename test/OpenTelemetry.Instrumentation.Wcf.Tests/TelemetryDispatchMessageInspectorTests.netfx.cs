@@ -90,7 +90,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
-            ActivityStopped = activity => stoppedActivities.Add(activity),
+            ActivityStopped = stoppedActivities.Add,
         };
 
         ActivitySource.AddActivityListener(activityListener);

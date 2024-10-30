@@ -276,7 +276,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             clientBadUrl2.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
             using var parentActivity = testSource.StartActivity("ParentActivity");
-            Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+            Assert.ThrowsAny<Exception>(client.ErrorSynchronous);
 
             // weird corner case: if an async call is made as the first hit (before the client is opened) the
             // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first

@@ -42,7 +42,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
                 endpoint.Behaviors.Add(new TelemetryEndpointBehavior());
 
                 createdHost.Description.Behaviors.Add(
-                    new ErrorHandlerServiceBehavior(this.thrownExceptionsHandle, ex => this.thrownExceptions.Add(ex)));
+                    new ErrorHandlerServiceBehavior(this.thrownExceptionsHandle, this.thrownExceptions.Add));
 
                 createdHost.Open();
 
@@ -87,7 +87,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
-            ActivityStopped = activity => stoppedActivities.Add(activity),
+            ActivityStopped = stoppedActivities.Add,
         };
 
         ActivitySource.AddActivityListener(activityListener);

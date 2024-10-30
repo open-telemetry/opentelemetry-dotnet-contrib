@@ -361,7 +361,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
             using var parentActivity = testSource.StartActivity("ParentActivity");
-            Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+            Assert.ThrowsAny<Exception>(client.ErrorSynchronous);
             await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
             Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
             await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
