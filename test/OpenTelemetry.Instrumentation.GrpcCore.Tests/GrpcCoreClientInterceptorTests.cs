@@ -327,7 +327,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int?)t.Value == (int)expectedStatusCode);
 
         // Cancelled is not an error.
-        if (expectedStatusCode != StatusCode.OK && expectedStatusCode != StatusCode.Cancelled)
+        if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
         }
