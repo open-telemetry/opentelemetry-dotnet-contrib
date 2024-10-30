@@ -70,7 +70,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         }
 
         // Ensure context propagation irrespective of sampling decision
-        if (!TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchRequest(payload, out var request))
         {
             GrpcInstrumentationEventSource.Log.NullPayload(nameof(GrpcClientDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -169,7 +169,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+            var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
             if (validConversion)
             {
                 if (activity.Status == ActivityStatusCode.Unset)
@@ -184,7 +184,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             // Remove the grpc.status_code tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 try
                 {
