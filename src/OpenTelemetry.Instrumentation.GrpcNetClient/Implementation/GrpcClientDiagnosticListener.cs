@@ -134,7 +134,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             {
                 var uriHostNameType = Uri.CheckHostName(requestUri.Host);
 
-                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerSocketAddress, requestUri.Host);
                 }
