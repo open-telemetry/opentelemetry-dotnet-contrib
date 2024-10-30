@@ -96,18 +96,16 @@ internal class AWSMessagingUtils
 
     private static IEnumerable<string>? SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
     {
-        if (!attributes.TryGetValue(attributeName, out var attribute))
-        {
-            return null;
-        }
-
-        return attribute?.Type switch
-        {
-            SnsAttributeTypeString when attribute.Value != null => (IEnumerable<string>?)[attribute.Value],
-            SnsAttributeTypeStringArray when attribute.Value != null =>
-                attribute.Value.Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
-            _ => null,
-        };
+        return !attributes.TryGetValue(attributeName, out var attribute)
+            ? null
+            : attribute?.Type switch
+            {
+                SnsAttributeTypeString when attribute.Value != null => (IEnumerable<string>?)[attribute.Value],
+                SnsAttributeTypeStringArray when attribute.Value != null =>
+                    attribute.Value
+                        .Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
+                _ => null,
+            };
     }
 
     private static SNSEvent.SNSMessage? GetSnsMessage(SQSEvent.SQSMessage sqsMessage)
