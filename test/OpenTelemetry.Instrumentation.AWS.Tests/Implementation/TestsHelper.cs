@@ -18,7 +18,7 @@ internal static class TestsHelper
     /// <para />
     /// This is meant to mimic these logic in <see cref="AWSPropagatorPipelineHandler.AddRequestSpecificInformation"/>.
     /// </summary>
-    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
+    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType)
     {
         return serviceType switch
         {
