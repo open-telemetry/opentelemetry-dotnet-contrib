@@ -59,12 +59,7 @@ internal sealed class PropertyFetcher<T>
         if (this.innerFetcher == null)
         {
             var type = obj.GetType().GetTypeInfo();
-            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase));
-            if (property == null)
-            {
-                property = type.GetProperty(this.propertyName);
-            }
-
+            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase)) ?? type.GetProperty(this.propertyName);
             this.innerFetcher = PropertyFetch.FetcherForProperty(property);
         }
 
