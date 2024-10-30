@@ -102,8 +102,7 @@ internal class AWSMessagingUtils
             {
                 SnsAttributeTypeString when attribute.Value != null => (IEnumerable<string>?)[attribute.Value],
                 SnsAttributeTypeStringArray when attribute.Value != null =>
-                    attribute.Value
-                        .Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
+                    attribute.Value.Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
                 _ => null,
             };
     }
