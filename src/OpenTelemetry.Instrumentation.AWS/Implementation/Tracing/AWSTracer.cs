@@ -66,6 +66,7 @@ internal sealed class AWSTracer : Tracer
             SpanKind.SERVER => ActivityKind.Server,
             SpanKind.PRODUCER => ActivityKind.Producer,
             SpanKind.CONSUMER => ActivityKind.Consumer,
+            SpanKind.INTERNAL => ActivityKind.Internal,
             _ => ActivityKind.Internal,
         };
     }
