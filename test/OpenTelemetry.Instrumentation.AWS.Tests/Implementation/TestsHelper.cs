@@ -65,9 +65,9 @@ internal static class TestsHelper
         {
             sendRequest.MessageAttributes.Add(name, new SQS::MessageAttributeValue { DataType = "String", StringValue = value });
         }
-        else if (publishRequest != null)
+        else
         {
-            publishRequest.MessageAttributes.Add(name, new SNS::MessageAttributeValue { DataType = "String", StringValue = value });
+            publishRequest?.MessageAttributes.Add(name, new SNS::MessageAttributeValue { DataType = "String", StringValue = value });
         }
     }
 
