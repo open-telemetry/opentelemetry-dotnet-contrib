@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 [EventSource(Name = "OpenTelemetry-Instrumentation-Wcf")]
 internal sealed class WcfInstrumentationEventSource : EventSource
 {
-    public static readonly WcfInstrumentationEventSource Log = new WcfInstrumentationEventSource();
+    public static readonly WcfInstrumentationEventSource Log = new();
 
     [NonEvent]
     public void RequestFilterException(Exception ex)
