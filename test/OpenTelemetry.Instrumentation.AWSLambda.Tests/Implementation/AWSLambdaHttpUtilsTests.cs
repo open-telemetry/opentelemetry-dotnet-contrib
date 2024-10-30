@@ -444,7 +444,7 @@ public class AWSLambdaHttpUtilsTests
         Assert.Equal(expectedQueryString, queryString);
     }
 
-    private static void AssertTags<TActualValue>(IReadOnlyDictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>>? actualTags)
+    private static void AssertTags<TActualValue>(Dictionary<string, object> expectedTags, IEnumerable<KeyValuePair<string, TActualValue>>? actualTags)
         where TActualValue : class
     {
         Assert.NotNull(actualTags);
