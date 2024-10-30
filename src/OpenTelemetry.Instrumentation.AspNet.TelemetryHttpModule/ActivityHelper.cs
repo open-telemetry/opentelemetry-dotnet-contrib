@@ -41,7 +41,7 @@ internal static class ActivityHelper
     /// <returns><see langword="true"/> if start has been called.</returns>
     public static bool HasStarted(HttpContext context, out Activity? aspNetActivity)
     {
-        object itemValue = context.Items[ContextKey];
+        var itemValue = context.Items[ContextKey];
         if (itemValue is ContextHolder contextHolder)
         {
             aspNetActivity = contextHolder.Activity;
@@ -61,7 +61,7 @@ internal static class ActivityHelper
     /// <returns>New root activity.</returns>
     public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContext context, Action<Activity, HttpContext>? onRequestStartedCallback)
     {
-        PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
+        var propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
         KeyValuePair<string, object?>[]? tags;
         if (context.Request?.Unvalidated?.Path is string path)
@@ -75,7 +75,7 @@ internal static class ActivityHelper
             tags = null;
         }
 
-        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
+        var activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
         if (tags is not null)
         {

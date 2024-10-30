@@ -145,23 +145,19 @@ internal class DataConverter : JsonConverter
         }
         else
         {
-            JObject obj = JObject.Load(reader);
+            var obj = JObject.Load(reader);
             var data = obj.Root;
             if (data != null)
             {
                 var newData = new Data();
                 foreach (var field in data)
                 {
-                    if (((JProperty)field).Name == "tags" ||
-                        ((JProperty)field).Name == "events")
+                    if (((JProperty)field).Name is "tags" or "events")
                     {
                         continue;
                     }
 
-                    if (newData.data == null)
-                    {
-                        newData.data = new Dictionary<string, string>();
-                    }
+                    newData.data ??= [];
 
                     newData.data[((JProperty)field).Name] = ((JProperty)field).Value.ToString();
                 }

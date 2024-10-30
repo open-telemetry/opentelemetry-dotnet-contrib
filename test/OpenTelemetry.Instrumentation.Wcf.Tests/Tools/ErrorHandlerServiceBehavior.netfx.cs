@@ -27,7 +27,7 @@ internal class ErrorHandlerServiceBehavior : IServiceBehavior
 
     public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
     {
-        foreach (ChannelDispatcher dispatcher in serviceHostBase.ChannelDispatchers)
+        foreach (var dispatcher in serviceHostBase.ChannelDispatchers.Cast<ChannelDispatcher>())
         {
             dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
         }
