@@ -33,10 +33,8 @@ internal static class Utils
             return string.Empty;
         }
 
-        using (var reader = new StreamReader(stream))
-        {
-            return reader.ReadToEnd();
-        }
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     public static string FindResourceName(string partialName)
