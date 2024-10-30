@@ -19,7 +19,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     private readonly ServiceHost serviceHost;
 
     private readonly EventWaitHandle thrownExceptionsHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-    private readonly List<Exception> thrownExceptions = new List<Exception>();
+    private readonly List<Exception> thrownExceptions = [];
 
     public TelemetryDispatchMessageInspectorForOneWayOperationsTests(ITestOutputHelper outputHelper)
     {
@@ -82,7 +82,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     [Fact]
     public void IncomingRequestOneWayOperationInstrumentationTest()
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         using ActivityListener activityListener = new ActivityListener
         {

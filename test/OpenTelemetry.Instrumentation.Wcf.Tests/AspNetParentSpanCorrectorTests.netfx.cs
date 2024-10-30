@@ -48,7 +48,7 @@ public class AspNetParentSpanCorrectorTests
 
     private class FakeRequest
     {
-        public NameValueCollection Headers { get; } = new NameValueCollection();
+        public NameValueCollection Headers { get; } = [];
     }
 }
 #endif

@@ -53,7 +53,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -426,7 +426,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         // this config combination is unique because it uses an IRequestSessionChannel,
         // where other NetTcp configs use IDuplexChannel
 
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities)
             .AddWcfInstrumentation()

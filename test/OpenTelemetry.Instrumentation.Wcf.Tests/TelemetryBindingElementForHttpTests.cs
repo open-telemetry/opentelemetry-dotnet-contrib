@@ -139,7 +139,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);

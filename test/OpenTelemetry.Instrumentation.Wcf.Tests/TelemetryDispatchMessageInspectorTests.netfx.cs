@@ -85,7 +85,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         bool enrichmentExcecption = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         using ActivityListener activityListener = new ActivityListener
         {
