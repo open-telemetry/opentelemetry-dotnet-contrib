@@ -8,7 +8,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 internal class TestInstanaExporterHelper : IInstanaExporterHelper
 {
-    public Dictionary<string, object> Attributes { get; } = new();
+    public Dictionary<string, object> Attributes { get; } = [];
 
     public Resource GetParentProviderResource(BaseExporter<Activity> otelExporter)
     {
