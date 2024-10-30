@@ -19,8 +19,8 @@ public class OpenTelemetryProducerBuilderExtensionsTests
 
         var producerBuilder = new ProducerBuilder<string, string>(config);
 
-        ISerializer<string> keySerializer = Serializers.Utf8;
-        ISerializer<string> valueSerializer = Serializers.Utf8;
+        var keySerializer = Serializers.Utf8;
+        var valueSerializer = Serializers.Utf8;
 
         producerBuilder.SetErrorHandler(ErrorHandler);
         producerBuilder.SetLogHandler(LogHandler);
@@ -69,8 +69,8 @@ public class OpenTelemetryProducerBuilderExtensionsTests
 
         var producerBuilder = new CustomProducerBuilder<string, string>(config);
 
-        ISerializer<string> keySerializer = Serializers.Utf8;
-        ISerializer<string> valueSerializer = Serializers.Utf8;
+        var keySerializer = Serializers.Utf8;
+        var valueSerializer = Serializers.Utf8;
 
         producerBuilder.SetErrorHandler(ErrorHandler);
         producerBuilder.SetLogHandler(LogHandler);

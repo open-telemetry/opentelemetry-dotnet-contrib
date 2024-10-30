@@ -14,13 +14,13 @@ internal static class KafkaHelpers
 
     public static async Task<string> ProduceTestMessageAsync()
     {
-        string topic = $"otel-topic-{Guid.NewGuid()}";
-        ProducerConfig producerConfig = new ProducerConfig
+        var topic = $"otel-topic-{Guid.NewGuid()}";
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaEndPoint,
         };
         ProducerBuilder<string, string> producerBuilder = new(producerConfig);
-        IProducer<string, string> producer = producerBuilder.Build();
+        var producer = producerBuilder.Build();
         await producer.ProduceAsync(topic, new Message<string, string>
         {
             Value = "any_value",
