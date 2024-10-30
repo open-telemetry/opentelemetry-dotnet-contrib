@@ -225,7 +225,12 @@ internal class FoobarService : Foobar.FoobarBase
         var failureDescription = context.RequestHeaders.GetValue(RequestHeaderErrorDescription);
         if (failureStatusCodeString != null)
         {
-            throw new RpcException(new Status((StatusCode)Enum.Parse(typeof(StatusCode), failureStatusCodeString), failureDescription ?? string.Empty));
+#if NET
+            var statusCode = Enum.Parse<StatusCode>(failureStatusCodeString);
+#else
+            var statusCode = (StatusCode)Enum.Parse(typeof(StatusCode), failureStatusCodeString);
+#endif
+            throw new RpcException(new Status(statusCode, failureDescription ?? string.Empty));
         }
     }
 
