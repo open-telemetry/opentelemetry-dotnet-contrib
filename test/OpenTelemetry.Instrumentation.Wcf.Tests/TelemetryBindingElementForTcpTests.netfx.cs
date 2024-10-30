@@ -283,7 +283,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         }
         finally
         {
-            Action<ServiceClient> closeClient = client =>
+            static void CloseClient(ServiceClient client)
             {
                 if (client.State == CommunicationState.Faulted)
                 {
@@ -293,11 +293,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 {
                     client.Close();
                 }
-            };
-            closeClient(client);
-            closeClient(client2);
-            closeClient(clientBadUrl);
-            closeClient(clientBadUrl2);
+            }
+
+            CloseClient(client);
+            CloseClient(client2);
+            CloseClient(clientBadUrl);
+            CloseClient(clientBadUrl2);
 
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
