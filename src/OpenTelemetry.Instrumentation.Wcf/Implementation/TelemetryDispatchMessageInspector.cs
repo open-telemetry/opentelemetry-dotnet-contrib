@@ -105,7 +105,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 }
             }
 
-            if (!(textMapPropagator is TraceContextPropagator))
+            if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
@@ -139,7 +139,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
             activity.Stop();
 
-            if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
+            if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = default;
             }
