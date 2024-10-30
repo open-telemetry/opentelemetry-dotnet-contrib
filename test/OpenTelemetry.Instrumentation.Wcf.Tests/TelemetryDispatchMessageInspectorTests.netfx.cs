@@ -82,7 +82,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         bool filter = false,
         bool includeVersion = false,
         bool enrich = false,
-        bool enrichmentExcecption = false,
+        bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
         List<Activity> stoppedActivities = [];
@@ -103,7 +103,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentExcecption)
+                        if (!enrichmentException)
                         {
                             options.Enrich = (activity, eventName, message) =>
                             {
@@ -208,7 +208,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
             }
 
-            if (enrich && !enrichmentExcecption)
+            if (enrich && !enrichmentException)
             {
                 Assert.Equal(WcfEnrichEventNames.AfterReceiveRequest, activity.TagObjects.Single(t => t.Key == "server.afterreceiverequest").Value);
                 Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);
