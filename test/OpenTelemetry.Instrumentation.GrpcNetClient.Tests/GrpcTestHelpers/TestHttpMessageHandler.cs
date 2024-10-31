@@ -7,7 +7,7 @@ using System.Net.Http;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests.GrpcTestHelpers;
 
-public class TestHttpMessageHandler : HttpMessageHandler
+internal class TestHttpMessageHandler : HttpMessageHandler
 {
     private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync;
 

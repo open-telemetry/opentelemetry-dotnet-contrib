@@ -13,11 +13,11 @@ public class QuartzInstrumentationOptions
     /// <summary>
     /// Default traced operations.
     /// </summary>
-    private static readonly IEnumerable<string> DefaultTracedOperations = new[]
-    {
+    private static readonly IEnumerable<string> DefaultTracedOperations =
+    [
         OperationName.Job.Execute,
-        OperationName.Job.Veto,
-    };
+        OperationName.Job.Veto
+    ];
 
     /// <summary>
     /// Gets or sets an action to enrich an Activity.
@@ -42,6 +42,6 @@ public class QuartzInstrumentationOptions
     /// Gets or sets traced operations set.
     /// </summary>
 #pragma warning disable CA2227 // Collection properties should be read only
-    public HashSet<string> TracedOperations { get; set; } = new(DefaultTracedOperations);
+    public HashSet<string> TracedOperations { get; set; } = [.. DefaultTracedOperations];
 #pragma warning restore CA2227 // Collection properties should be read only
 }
