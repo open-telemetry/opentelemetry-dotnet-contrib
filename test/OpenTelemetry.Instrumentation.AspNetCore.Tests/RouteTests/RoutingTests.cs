@@ -69,7 +69,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         var metricPoint = Assert.Single(metricPoints);
 
         GetTagsFromActivity(activity, out var activityHttpStatusCode, out var activityHttpMethod, out var activityHttpRoute);
-        GetTagsFromMetricPoint(Environment.Version.Major < 8, metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
+        GetTagsFromMetricPoint(metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
 
         Assert.Equal(testCase.ExpectedStatusCode, activityHttpStatusCode);
         Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
@@ -112,7 +112,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         httpRoute = activity.GetTagItem(HttpRoute) as string ?? string.Empty;
     }
 
-    private static void GetTagsFromMetricPoint(bool useLegacyConventions, MetricPoint metricPoint, out int httpStatusCode, out string httpMethod, out string? httpRoute)
+    private static void GetTagsFromMetricPoint(MetricPoint metricPoint, out int httpStatusCode, out string httpMethod, out string? httpRoute)
     {
         var expectedStatusCodeKey = HttpStatusCode;
         var expectedHttpMethodKey = HttpMethod;
