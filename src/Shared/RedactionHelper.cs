@@ -13,8 +13,8 @@ internal sealed class RedactionHelper
 
     public static string? GetRedactedQueryString(string query)
     {
-        int length = query.Length;
-        int index = 0;
+        var length = query.Length;
+        var index = 0;
 
         // Preallocate some size to avoid re-sizing multiple times.
         // Since the size will increase, allocating twice as much.
