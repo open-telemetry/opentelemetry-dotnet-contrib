@@ -93,6 +93,23 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         SqlClientTests.VerifyActivityData(commandType, commandText, captureStoredProcedureCommandName, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
         SqlClientTests.VerifySamplingParameters(sampler.LatestSamplingParameters);
+
+        if (isFailure)
+        {
+#if NET
+            var status = activity.GetStatus();
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
+            Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
+            Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+#else
+            var status = activity.GetStatus();
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("8134", activity.StatusDescription);
+            Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
+            Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+#endif
+        }
     }
 
     private string GetConnectionString()

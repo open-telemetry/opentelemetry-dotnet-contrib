@@ -141,7 +141,7 @@ internal static class SemanticConventions
     public const string AttributeDbCollectionName = "db.collection.name";
     public const string AttributeDbNamespace = "db.namespace";
     public const string AttributeDbOperationName = "db.operation.name";
-    public const string AttributeResponseStatusCode = "db.response.status_code";
+    public const string AttributeDbResponseStatusCode = "db.response.status_code";
     public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
     public const string AttributeDbQuerySummary = "db.query.summary";
     public const string AttributeDbQueryText = "db.query.text";
