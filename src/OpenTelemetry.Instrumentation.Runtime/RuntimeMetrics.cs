@@ -31,7 +31,7 @@ internal sealed class RuntimeMetrics
     {
         MeterInstance.CreateObservableCounter(
             "process.runtime.dotnet.gc.collections.count",
-            () => GetGarbageCollectionCounts(),
+            GetGarbageCollectionCounts,
             description: "Number of garbage collections that have occurred since process start.");
 
         MeterInstance.CreateObservableUpDownCounter(
