@@ -12,11 +12,9 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 internal class TestRequest : IRequest
 {
-    private readonly ParameterCollection parameters;
-
     public TestRequest(ParameterCollection? parameters = null)
     {
-        this.parameters = parameters ?? new ParameterCollection();
+        this.ParameterCollection = parameters ?? [];
     }
 
     public string RequestName => throw new NotImplementedException();
@@ -27,7 +25,7 @@ internal class TestRequest : IRequest
 
     public IDictionary<string, string> Parameters => throw new NotImplementedException();
 
-    public ParameterCollection ParameterCollection => this.parameters;
+    public ParameterCollection ParameterCollection { get; }
 
     public IDictionary<string, string> SubResources => throw new NotImplementedException();
 

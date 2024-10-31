@@ -49,21 +49,15 @@ internal class TestApplicationFactory
     public static WebApplication? CreateApplication(TestApplicationScenario config)
     {
         Debug.Assert(Directory.Exists(ContentRootPath), $"Cannot find ContentRootPath: {ContentRootPath}");
-        switch (config)
+        return config switch
         {
-            case TestApplicationScenario.ConventionalRouting:
-                return CreateConventionalRoutingApplication();
-            case TestApplicationScenario.AttributeRouting:
-                return CreateAttributeRoutingApplication();
-            case TestApplicationScenario.MinimalApi:
-                return CreateMinimalApiApplication();
-            case TestApplicationScenario.RazorPages:
-                return CreateRazorPagesApplication();
-            case TestApplicationScenario.ExceptionMiddleware:
-                return CreateExceptionHandlerApplication();
-            default:
-                throw new ArgumentException($"Invalid {nameof(TestApplicationScenario)}");
-        }
+            TestApplicationScenario.ConventionalRouting => CreateConventionalRoutingApplication(),
+            TestApplicationScenario.AttributeRouting => CreateAttributeRoutingApplication(),
+            TestApplicationScenario.MinimalApi => CreateMinimalApiApplication(),
+            TestApplicationScenario.RazorPages => CreateRazorPagesApplication(),
+            TestApplicationScenario.ExceptionMiddleware => CreateExceptionHandlerApplication(),
+            _ => throw new ArgumentException($"Invalid {nameof(TestApplicationScenario)}"),
+        };
     }
 
     private static WebApplication CreateConventionalRoutingApplication()
