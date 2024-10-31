@@ -384,11 +384,6 @@ public class WebConfigWithLocationTagTransformTest
         return this.ApplyTransformation(originalConfiguration, resourceName);
     }
 
-    private XDocument ApplyUninstallTransformation(string originalConfiguration, string resourceName)
-    {
-        return this.ApplyTransformation(originalConfiguration, resourceName);
-    }
-
     private void VerifyTransformation(string expectedConfigContent, XDocument transformedWebConfig)
     {
         Assert.True(
