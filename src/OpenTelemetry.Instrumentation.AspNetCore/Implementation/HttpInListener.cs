@@ -83,6 +83,8 @@ internal class HttpInListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 

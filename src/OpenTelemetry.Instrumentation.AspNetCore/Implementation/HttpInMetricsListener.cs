@@ -125,6 +125,8 @@ internal sealed class HttpInMetricsListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 }
