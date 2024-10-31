@@ -224,7 +224,7 @@ on the service contracts you want to instrument:
     }
 ```
 
-#### RecordException
+### RecordException
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
