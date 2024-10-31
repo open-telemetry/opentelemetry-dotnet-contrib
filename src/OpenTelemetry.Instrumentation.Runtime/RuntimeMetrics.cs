@@ -82,7 +82,7 @@ internal sealed class RuntimeMetrics
                 {
                     if (!IsGcInfoAvailable)
                     {
-                        return Array.Empty<Measurement<long>>();
+                        return [];
                     }
 
                     var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
