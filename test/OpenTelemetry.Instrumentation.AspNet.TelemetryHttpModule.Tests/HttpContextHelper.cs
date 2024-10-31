@@ -58,7 +58,7 @@ internal class HttpContextHelper
                 result.AddRange(baseResult);
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         public override string GetUnknownRequestHeader(string name)
