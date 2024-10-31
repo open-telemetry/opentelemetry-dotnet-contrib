@@ -17,6 +17,7 @@ public class ValuesController : Controller
 
     // GET api/values/5
     [HttpGet("{id}")]
+#pragma warning disable IDE0060 // Remove unused parameter
     public string Get(int id)
     {
         return "value";
@@ -37,6 +38,7 @@ public class ValuesController : Controller
     // DELETE api/values/5
     [HttpDelete("{id}")]
     public void Delete(int id)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
     }
 }
