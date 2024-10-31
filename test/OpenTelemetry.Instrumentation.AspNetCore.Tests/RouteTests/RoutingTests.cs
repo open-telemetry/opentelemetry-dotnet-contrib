@@ -58,7 +58,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         meterProvider.ForceFlush();
 
-        var durationMetric = this.exportedMetrics.Single(x => x.Name == "http.server.request.duration" || x.Name == "http.server.duration");
+        var durationMetric = this.exportedMetrics.Single(x => x.Name is "http.server.request.duration" or "http.server.duration");
         var metricPoints = new List<MetricPoint>();
         foreach (var mp in durationMetric.GetMetricPoints())
         {
