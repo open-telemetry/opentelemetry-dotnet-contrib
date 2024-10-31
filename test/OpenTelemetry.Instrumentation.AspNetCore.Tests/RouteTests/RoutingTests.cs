@@ -20,8 +20,8 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
     private const string HttpRoute = "http.route";
 
     private readonly RoutingTestFixture fixture;
-    private readonly List<Activity> exportedActivities = new();
-    private readonly List<Metric> exportedMetrics = new();
+    private readonly List<Activity> exportedActivities = [];
+    private readonly List<Metric> exportedMetrics = [];
 
     public RoutingTests(RoutingTestFixture fixture)
     {
