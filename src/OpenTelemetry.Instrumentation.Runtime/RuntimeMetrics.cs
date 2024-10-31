@@ -25,7 +25,9 @@ internal sealed class RuntimeMetrics
     private const int NumberOfGenerations = 3;
 
     private static readonly string[] GenNames = ["gen0", "gen1", "gen2", "loh", "poh"];
+#if NET
     private static bool isGcInfoAvailable;
+#endif
 
     static RuntimeMetrics()
     {
@@ -205,6 +207,7 @@ internal sealed class RuntimeMetrics
     {
     }
 
+#if NET
     private static bool IsGcInfoAvailable
     {
         get
@@ -222,6 +225,7 @@ internal sealed class RuntimeMetrics
             return isGcInfoAvailable;
         }
     }
+#endif
 
     private static IEnumerable<Measurement<long>> GetGarbageCollectionCounts()
     {
