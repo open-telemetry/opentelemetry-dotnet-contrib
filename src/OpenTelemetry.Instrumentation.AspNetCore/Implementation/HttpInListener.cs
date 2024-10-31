@@ -310,7 +310,7 @@ internal class HttpInListener : ListenerHandler
         if (activity.IsAllDataRequested)
         {
             // We need to use reflection here as the payload type is not a defined public type.
-            if (!TryFetchException(payload, out Exception? exc))
+            if (!TryFetchException(payload, out var exc))
             {
                 AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnException), activity.OperationName);
                 return;
@@ -373,7 +373,7 @@ internal class HttpInListener : ListenerHandler
 
         activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
 
-        bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
         if (validConversion)
         {
             activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode(status));

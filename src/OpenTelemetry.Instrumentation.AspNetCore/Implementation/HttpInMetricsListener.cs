@@ -43,7 +43,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     public static void OnExceptionEventWritten(string name, object? payload)
     {
         // We need to use reflection here as the payload type is not a defined public type.
-        if (!TryFetchException(payload, out Exception? exc) || !TryFetchHttpContext(payload, out HttpContext? ctx))
+        if (!TryFetchException(payload, out var exc) || !TryFetchHttpContext(payload, out var ctx))
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnExceptionEventWritten), HttpServerRequestDurationMetricName);
             return;
