@@ -103,19 +103,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.SetDbStatementForStoredProcedure)
+                                    if (this.options.EmitOldAttributes)
                                     {
-                                        if (this.options.EmitOldAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
-                                        }
+                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                    }
 
-                                        if (this.options.EmitNewAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                                            activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
-                                        }
+                                    if (this.options.EmitNewAttributes)
+                                    {
+                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+                                        activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
+                                        activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                                     }
 
                                     break;

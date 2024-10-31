@@ -45,6 +45,8 @@
   `server.address`, and `server.port`. These attributes are now available for sampling
   decisions.
   ([#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277))
+* **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
 
 ## 1.9.0-beta.1
 
