@@ -200,27 +200,27 @@ public class SqlClientTests : IDisposable
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        var activity = new Activity("Test Sql Activity");
         var options = new SqlClientTraceInstrumentationOptions()
         {
             EnableConnectionLevelAttributes = enableConnectionLevelAttributes,
             EmitOldAttributes = emitOldAttributes,
             EmitNewAttributes = emitNewAttributes,
         };
-        SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity(dataSource, activity, options);
 
-        Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        var tags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName: null, options, out var _);
+
+        Assert.Equal(expectedServerHostName ?? expectedServerIpAddress, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerAddress).Value);
 
         if (emitOldAttributes)
         {
-            Assert.Equal(expectedInstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+            Assert.Equal(expectedInstanceName, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbMsSqlInstanceName).Value);
         }
         else
         {
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+            Assert.Null(tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeDbMsSqlInstanceName).Value);
         }
 
-        Assert.Equal(expectedPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal(expectedPort, tags.FirstOrDefault(x => x.Key == SemanticConventions.AttributeServerPort).Value);
     }
 
     [Theory]
@@ -291,27 +291,17 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand)]
-    public void SqlClientCreatesActivityWithDbSystem(
-        string beforeCommand)
+    [ClassData(typeof(SqlClientTestCase))]
+    public void SqlDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand);
+    }
 
-        var sampler = new TestSampler
-        {
-            SamplingAction = _ => new SamplingResult(SamplingDecision.Drop),
-        };
-        using (Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .SetSampler(sampler)
-            .Build())
-        {
-            this.fakeSqlClientDiagnosticSource.Write(beforeCommand, new { });
-        }
-
-        VerifySamplingParameters(sampler.LatestSamplingParameters);
+    [Theory]
+    [ClassData(typeof(SqlClientTestCase))]
+    public void MicrosoftDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand);
     }
 
     [Fact]
@@ -384,7 +374,15 @@ public class SqlClientTests : IDisposable
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        Assert.Equal("master", activity.DisplayName);
+        if (emitNewAttributes)
+        {
+            Assert.Equal("MSSQLLocalDB.master", activity.DisplayName);
+        }
+        else
+        {
+            Assert.Equal("master", activity.DisplayName);
+        }
+
         Assert.Equal(ActivityKind.Client, activity.Kind);
 
         if (!isFailure)
@@ -429,7 +427,7 @@ public class SqlClientTests : IDisposable
 
         if (emitNewAttributes)
         {
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
         switch (commandType)
@@ -444,6 +442,8 @@ public class SqlClientTests : IDisposable
 
                     if (emitNewAttributes)
                     {
+                        Assert.Equal("EXECUTE", activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
                         Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                     }
                 }
@@ -488,6 +488,60 @@ public class SqlClientTests : IDisposable
                    && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
     }
 
+    internal static void VerifySamplingParameters(SqlClientTestCase testCase, Activity activity, SamplingParameters samplingParameters)
+    {
+        Assert.NotNull(samplingParameters.Tags);
+
+        Assert.Equal(testCase.ExpectedActivityName, activity.DisplayName);
+        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(testCase.ExpectedDbNamespace, activity.GetTagItem(SemanticConventions.AttributeDbName));
+        Assert.Equal(testCase.ExpectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(testCase.ExpectedPort, activity.GetTagItem(SemanticConventions.AttributeServerPort));
+        Assert.Equal(testCase.ExpectedInstanceName, activity.GetTagItem(SemanticConventions.AttributeDbMsSqlInstanceName));
+
+        Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+                   && kvp.Value is string
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+
+        if (testCase.ExpectedDbNamespace != null)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.ExpectedDbNamespace);
+        }
+
+        if (testCase.ExpectedServerAddress != null)
+        {
+            Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeServerAddress
+                   && kvp.Value is string
+                   && (string)kvp.Value == testCase.ExpectedServerAddress);
+        }
+
+        if (testCase.ExpectedPort.HasValue)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeServerPort
+                       && kvp.Value is int
+                       && (int)kvp.Value == testCase.ExpectedPort);
+        }
+
+        if (testCase.ExpectedInstanceName != null)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbMsSqlInstanceName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.ExpectedInstanceName);
+        }
+    }
+
     internal static void ActivityEnrichment(Activity activity, string method, object obj)
     {
         activity.SetTag("enriched", "yes");
@@ -504,6 +558,32 @@ public class SqlClientTests : IDisposable
     }
 
 #if !NETFRAMEWORK
+    private void RunSqlClientTestCase(SqlClientTestCase testCase, string beforeCommand, string afterCommand)
+    {
+        using var sqlConnection = new SqlConnection(testCase.ConnectionString);
+        using var sqlCommand = sqlConnection.CreateCommand();
+
+        var exportedItems = new List<Activity>();
+
+        var sampler = new TestSampler
+        {
+            SamplingAction = _ => new SamplingResult(SamplingDecision.RecordAndSample),
+        };
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .SetSampler(sampler)
+            .AddInMemoryExporter(exportedItems)
+            .Build())
+        {
+            this.fakeSqlClientDiagnosticSource.Write(beforeCommand, new { Command = sqlCommand });
+            this.fakeSqlClientDiagnosticSource.Write(afterCommand, new { Command = sqlCommand });
+        }
+
+        Assert.Single(exportedItems);
+        VerifySamplingParameters(testCase, exportedItems.First(), sampler.LatestSamplingParameters);
+    }
+
     private Activity[] RunCommandWithFilter(
         Action<SqlCommand> sqlCommandSetup,
         Func<object, bool> filter)

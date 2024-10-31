@@ -6,7 +6,9 @@ using System.ServiceModel;
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
 [ServiceContract(Namespace = "http://opentelemetry.io/", Name = "Service", SessionMode = SessionMode.Allowed)]
+#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public interface IServiceContract
+#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     [OperationContract]
     Task<ServiceResponse> ExecuteAsync(ServiceRequest request);

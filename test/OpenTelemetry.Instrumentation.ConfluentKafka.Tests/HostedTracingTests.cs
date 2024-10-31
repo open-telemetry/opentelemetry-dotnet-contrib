@@ -19,7 +19,7 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest()
     {
-        List<Activity> activities = new();
+        List<Activity> activities = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {
@@ -51,10 +51,10 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
         {
             await host.StartAsync();
 
-            string topic = $"otel-topic-{Guid.NewGuid()}";
+            var topic = $"otel-topic-{Guid.NewGuid()}";
             using (var producer = host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>().Build())
             {
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     producer.Produce(topic, new Message<string, string>() { Key = $"any_key_{i}", Value = $"any_value_{i}", });
                     outputHelper.WriteLine("produced message {0}", i);
@@ -67,7 +67,7 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
             {
                 consumer.Subscribe(topic);
 
-                int j = 0;
+                var j = 0;
                 while (true)
                 {
                     var consumerResult = consumer.Consume();

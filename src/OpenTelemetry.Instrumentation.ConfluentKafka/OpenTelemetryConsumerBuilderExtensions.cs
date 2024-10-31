@@ -22,7 +22,7 @@ public static class OpenTelemetryConsumerBuilderExtensions
 #endif
     public static InstrumentedConsumerBuilder<TKey, TValue> AsInstrumentedConsumerBuilder<TKey, TValue>(this ConsumerBuilder<TKey, TValue> consumerBuilder)
     {
-        InstrumentedConsumerBuilder<TKey, TValue> result = new InstrumentedConsumerBuilder<TKey, TValue>(consumerBuilder.GetInternalConfig() ?? Enumerable.Empty<KeyValuePair<string, string>>());
+        var result = new InstrumentedConsumerBuilder<TKey, TValue>(consumerBuilder.GetInternalConfig() ?? []);
         result.SetInternalErrorHandler(consumerBuilder.GetInternalErrorHandler());
         result.SetInternalLogHandler(consumerBuilder.GetInternalLogHandler());
         result.SetInternalStatisticsHandler(consumerBuilder.GetInternalStatisticsHandler());

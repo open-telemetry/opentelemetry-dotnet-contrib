@@ -84,10 +84,10 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
     [InlineData(false, false, false, false, false, false)]
     public async Task ResolveInstrumentedBuildersFromHostServiceProviderTest(bool enableProducerMetrics, bool enableProducerTraces, bool useNamedProducerInstrumentation, bool enableConsumerMetrics, bool enableConsumerTraces, bool useNamedConsumerInstrumentation)
     {
-        string? producerInstrumentationName = useNamedProducerInstrumentation ? "MyProducer" : null;
-        string? consumerInstrumentationName = useNamedConsumerInstrumentation ? "MyConsumer" : null;
-        List<Metric> metrics = new();
-        List<Activity> activities = new();
+        var producerInstrumentationName = useNamedProducerInstrumentation ? "MyProducer" : null;
+        var consumerInstrumentationName = useNamedConsumerInstrumentation ? "MyConsumer" : null;
+        List<Metric> metrics = [];
+        List<Activity> activities = [];
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {
@@ -176,12 +176,12 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
             Assert.Equal(enableConsumerMetrics, consumerBuilder.EnableMetrics);
             Assert.Equal(enableConsumerTraces, consumerBuilder.EnableTraces);
 
-            string topic = $"otel-topic-{Guid.NewGuid()}";
+            var topic = $"otel-topic-{Guid.NewGuid()}";
             using (var producer = (useNamedProducerInstrumentation
                        ? host.Services.GetRequiredKeyedService<InstrumentedProducerBuilder<string, string>>(producerInstrumentationName)
                        : host.Services.GetRequiredService<InstrumentedProducerBuilder<string, string>>()).Build())
             {
-                for (int i = 0; i < 100; i++)
+                for (var i = 0; i < 100; i++)
                 {
                     producer.Produce(topic, new Message<string, string>()
                     {
@@ -207,7 +207,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
             {
                 consumer.Subscribe(topic);
 
-                int j = 0;
+                var j = 0;
                 while (true)
                 {
                     var consumerResult = consumer.Consume();
@@ -238,7 +238,7 @@ public class HostedTracingAndMeteringTests(ITestOutputHelper outputHelper)
             host.Services.GetRequiredService<MeterProvider>().EnsureMetricsAreFlushed();
         }
 
-        IGrouping<string, Metric>[] groups = metrics.GroupBy(x => x.Name).ToArray();
+        var groups = metrics.GroupBy(x => x.Name).ToArray();
 
         if (enableProducerMetrics)
         {
