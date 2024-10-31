@@ -229,7 +229,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         AssertMetricPoints(
             metricPoints: metricPoints,
-            expectedRoutes: new List<string> { expectedRoute },
+            expectedRoutes: [expectedRoute],
             expectedErrorType,
             expectedStatusCode,
             expectedTagsCount: expectedErrorType == null ? 5 : 6);
