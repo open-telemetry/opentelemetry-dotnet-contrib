@@ -10,8 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
     where T : struct
 {
-    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.UpDownCounter<T>> UpDownCountersDictionary
-        = new ConcurrentDictionary<string, System.Diagnostics.Metrics.UpDownCounter<T>>();
+    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.UpDownCounter<T>> UpDownCountersDictionary = new();
 
     private readonly System.Diagnostics.Metrics.UpDownCounter<T> upDownCounter;
 
@@ -21,7 +20,7 @@ internal sealed class AWSUpDownCounter<T> : UpDownCounter<T>
         string? units = null,
         string? description = null)
     {
-        if (UpDownCountersDictionary.TryGetValue(name, out System.Diagnostics.Metrics.UpDownCounter<T>? upDownCounter))
+        if (UpDownCountersDictionary.TryGetValue(name, out var upDownCounter))
         {
             this.upDownCounter = upDownCounter;
         }

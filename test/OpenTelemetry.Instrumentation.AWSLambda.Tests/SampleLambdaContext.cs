@@ -5,7 +5,7 @@ using Amazon.Lambda.Core;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
-public class SampleLambdaContext : ILambdaContext
+internal class SampleLambdaContext : ILambdaContext
 {
     public string AwsRequestId { get; } = "testrequestid";
 
