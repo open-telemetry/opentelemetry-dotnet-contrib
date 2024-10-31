@@ -142,10 +142,14 @@ public class RuntimeMetricsTests
         {
             // Create 10 timers to bump timer.count metrics.
             var timerCount = 10;
-            TimerCallback timerCallback = _ => { };
+#pragma warning disable SA1313
+            static void TimerCallback(object? _)
+            {
+            }
+#pragma warning restore SA1313
             for (var i = 0; i < timerCount; i++)
             {
-                var timer = new Timer(timerCallback, null, 1000, 250);
+                var timer = new Timer(TimerCallback, null, 1000, 250);
                 timers.Add(timer);
             }
 

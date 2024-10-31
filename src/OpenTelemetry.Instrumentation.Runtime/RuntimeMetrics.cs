@@ -193,12 +193,13 @@ internal sealed class RuntimeMetrics
             exceptionCounter.Add(1);
         };
     }
-
+#pragma warning disable SA1313
     /// <summary>
     /// Initializes a new instance of the <see cref="RuntimeMetrics"/> class.
     /// </summary>
-    /// <param name="options">The options to define the metrics.</param>
-    public RuntimeMetrics(RuntimeInstrumentationOptions options)
+    /// <param name="_1">The options to define the metrics.</param>
+    public RuntimeMetrics(RuntimeInstrumentationOptions _1)
+#pragma warning restore SA1313
     {
     }
 
