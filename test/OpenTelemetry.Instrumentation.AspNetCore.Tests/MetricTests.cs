@@ -370,7 +370,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.True(sum > 0);
 
         var attributes = new KeyValuePair<string, object?>[metricPoint.Tags.Count];
-        int i = 0;
+        var i = 0;
         foreach (var tag in metricPoint.Tags)
         {
             attributes[i++] = tag;

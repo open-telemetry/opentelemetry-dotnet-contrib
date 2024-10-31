@@ -407,7 +407,7 @@ public sealed class BasicTests
             Sdk.SetDefaultTextMapPropagator(new ExtractOnlyPropagator(activityContext, expectedBaggage));
 
             // Arrange
-            bool isFilterCalled = false;
+            var isFilterCalled = false;
             using var testFactory = this.factory
                 .WithWebHostBuilder(builder =>
                 {
@@ -467,7 +467,7 @@ public sealed class BasicTests
     {
         int? baggageCountAfterStart = null;
         int? baggageCountAfterStop = null;
-        using EventWaitHandle stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
+        using var stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
 
         void ConfigureTestServices(IServiceCollection services)
         {
@@ -530,9 +530,9 @@ public sealed class BasicTests
     [InlineData(SamplingDecision.RecordAndSample, true, true)]
     public async Task FilterAndEnrichAreOnlyCalledWhenSampled(SamplingDecision samplingDecision, bool shouldFilterBeCalled, bool shouldEnrichBeCalled)
     {
-        bool filterCalled = false;
-        bool enrichWithHttpRequestCalled = false;
-        bool enrichWithHttpResponseCalled = false;
+        var filterCalled = false;
+        var enrichWithHttpRequestCalled = false;
+        var enrichWithHttpResponseCalled = false;
         void ConfigureTestServices(IServiceCollection services)
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -799,8 +799,8 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceCallbacksAreReceivedOnlyForSubscribedEvents()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberofSubscribedEvents = 0;
+        var numberOfUnSubscribedEvents = 0;
+        var numberofSubscribedEvents = 0;
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation(
@@ -854,9 +854,9 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceExceptionCallbackIsReceivedForUnHandledException()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberofSubscribedEvents = 0;
-        int numberOfExceptionCallbacks = 0;
+        var numberOfUnSubscribedEvents = 0;
+        var numberofSubscribedEvents = 0;
+        var numberOfExceptionCallbacks = 0;
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation(
@@ -929,10 +929,10 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceExceptionCallBackIsNotReceivedForExceptionsHandledInMiddleware()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberOfSubscribedEvents = 0;
-        int numberOfExceptionCallbacks = 0;
-        bool exceptionHandled = false;
+        var numberOfUnSubscribedEvents = 0;
+        var numberOfSubscribedEvents = 0;
+        var numberOfExceptionCallbacks = 0;
+        var exceptionHandled = false;
 
         // configure SDK
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
