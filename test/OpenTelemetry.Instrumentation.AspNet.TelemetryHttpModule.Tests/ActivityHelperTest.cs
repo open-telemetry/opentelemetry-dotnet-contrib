@@ -30,7 +30,7 @@ public class ActivityHelperTest : IDisposable
     {
         var context = HttpContextHelper.GetFakeHttpContext();
 
-        bool result = ActivityHelper.HasStarted(context, out Activity? aspNetActivity);
+        var result = ActivityHelper.HasStarted(context, out var aspNetActivity);
 
         Assert.False(result);
         Assert.Null(aspNetActivity);
@@ -42,7 +42,7 @@ public class ActivityHelperTest : IDisposable
         Assert.True(result);
         Assert.Null(aspNetActivity);
 
-        Activity activity = new Activity(TestActivityName);
+        var activity = new Activity(TestActivityName);
         context.Items[ActivityHelper.ContextKey] = new ActivityHelper.ContextHolder(activity);
 
         result = ActivityHelper.HasStarted(context, out aspNetActivity);
@@ -237,7 +237,7 @@ public class ActivityHelperTest : IDisposable
         using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
         new Activity("child").Start();
 
-        for (int i = 0; i < 2; i++)
+        for (var i = 0; i < 2; i++)
         {
             await Task.Run(() =>
             {
@@ -266,7 +266,7 @@ public class ActivityHelperTest : IDisposable
         var context = HttpContextHelper.GetFakeHttpContext();
         using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
 
-        for (int i = 0; i < 129; i++)
+        for (var i = 0; i < 129; i++)
         {
             new Activity("child" + i).Start();
         }
@@ -416,11 +416,11 @@ public class ActivityHelperTest : IDisposable
     public void Fire_Exception_Events()
 #pragma warning restore CA1030 // Use events where appropriate
     {
-        int callbacksFired = 0;
+        var callbacksFired = 0;
 
         var context = HttpContextHelper.GetFakeHttpContext();
 
-        Activity activity = new Activity(TestActivityName);
+        var activity = new Activity(TestActivityName);
 
         ActivityHelper.WriteActivityException(activity, context, new InvalidOperationException(), (a, c, e) => { callbacksFired++; });
 
@@ -480,12 +480,7 @@ public class ActivityHelperTest : IDisposable
             ActivityStopped = (a) => onStopped?.Invoke(a),
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
             {
-                if (onSample != null)
-                {
-                    return onSample(options.Parent);
-                }
-
-                return ActivitySamplingResult.AllDataAndRecorded;
+                return onSample?.Invoke(options.Parent) ?? ActivitySamplingResult.AllDataAndRecorded;
             },
         };
 
