@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace TestApp.AspNetCore.Controllers;
 
 [Route("api/[controller]")]
+#pragma warning disable CA1515
 public class ErrorController : Controller
+#pragma warning restore CA1515
 {
     // GET api/error
     [HttpGet]

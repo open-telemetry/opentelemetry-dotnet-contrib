@@ -19,7 +19,7 @@ public class ActionDescriptorInfo
     {
         this.AttributeRouteInfo = actionDescriptor.AttributeRouteInfo?.Template;
 
-        this.ActionParameters = new List<string>();
+        this.ActionParameters = [];
         foreach (var item in actionDescriptor.Parameters)
         {
             this.ActionParameters.Add(item.Name);

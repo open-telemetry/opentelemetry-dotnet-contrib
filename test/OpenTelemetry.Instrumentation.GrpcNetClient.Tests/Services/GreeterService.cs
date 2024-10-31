@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Services.Tests;
 
-public class GreeterService : Greeter.GreeterBase
+internal class GreeterService : Greeter.GreeterBase
 {
     private readonly ILogger logger;
 
