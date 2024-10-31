@@ -6,7 +6,7 @@
   Added a `RecordException` property to specify if exceptions
   should be recorded (defaults to `false`).
   ([#2271](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2271))
-  
+
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2263](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2263))
 
