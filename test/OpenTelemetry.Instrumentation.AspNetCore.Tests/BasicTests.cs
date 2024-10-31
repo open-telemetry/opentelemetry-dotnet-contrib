@@ -654,7 +654,7 @@ public sealed class BasicTests
 
         var message = new HttpRequestMessage
         {
-            Method = new HttpMethod(originalMethod)
+            Method = new HttpMethod(originalMethod),
         };
 
         try

@@ -132,7 +132,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         app.UseRateLimiter();
 
-        static string GetTicks() => (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        static string GetTicks()
+        {
+            return (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        }
 
         app.MapGet("/", () => Results.Ok($"Hello {GetTicks()}"))
                                    .RequireRateLimiting("fixed");
