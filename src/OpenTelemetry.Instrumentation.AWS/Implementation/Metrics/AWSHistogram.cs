@@ -10,8 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 internal sealed class AWSHistogram<T> : Histogram<T>
     where T : struct
 {
-    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Histogram<T>> HistogramsDictionary
-        = new ConcurrentDictionary<string, System.Diagnostics.Metrics.Histogram<T>>();
+    private static readonly ConcurrentDictionary<string, System.Diagnostics.Metrics.Histogram<T>> HistogramsDictionary = new();
 
     private readonly System.Diagnostics.Metrics.Histogram<T> histogram;
 
@@ -21,7 +20,7 @@ internal sealed class AWSHistogram<T> : Histogram<T>
         string? units = null,
         string? description = null)
     {
-        if (HistogramsDictionary.TryGetValue(name, out System.Diagnostics.Metrics.Histogram<T>? histogram))
+        if (HistogramsDictionary.TryGetValue(name, out var histogram))
         {
             this.histogram = histogram;
         }

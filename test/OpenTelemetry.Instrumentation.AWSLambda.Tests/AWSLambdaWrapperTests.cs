@@ -225,7 +225,7 @@ public class AWSLambdaWrapperTests
                    .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
                    .Build())
         {
-            for (int i = 1; i <= invocationsCount; i++)
+            for (var i = 1; i <= invocationsCount; i++)
             {
                 activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
             }
@@ -233,7 +233,7 @@ public class AWSLambdaWrapperTests
 
         Assert.NotNull(activity);
         Assert.NotNull(activity.TagObjects);
-        var expectedColdStartValue = invocationsCount == 1 ? true : false;
+        var expectedColdStartValue = invocationsCount == 1;
         Assert.Contains(activity.TagObjects, x => x.Key == AWSLambdaSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
     }
 
