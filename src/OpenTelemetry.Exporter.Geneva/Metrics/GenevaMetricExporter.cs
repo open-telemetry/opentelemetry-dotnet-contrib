@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Internal;
@@ -52,14 +53,49 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
         if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
         {
+            IMetricDataTransport transport;
+
+            if (connectionStringBuilder.Protocol == TransportProtocol.Unix)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
+
+                transport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
+            }
+            else
+            {
+#if NET6_0_OR_GREATER
+                transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? MetricUnixUserEventsDataTransport.Instance
+                    : MetricWindowsEventTracingDataTransport.Instance;
+#else
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
+                }
+
+                transport = MetricWindowsEventTracingDataTransport.Instance;
+#endif
+            }
+
+            connectionStringBuilder.TryGetMetricsAccountAndNamespace(
+                out var metricsAccount,
+                out var metricsNamespace);
+
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
-                connectionStringBuilder,
+                transport,
+                metricsAccount,
+                metricsNamespace,
                 options.PrepopulatedMetricDimensions);
 
-            this.exporter = otlpProtobufExporter;
-
             this.exportMetrics = otlpProtobufExporter.Export;
+
+            this.exporter = otlpProtobufExporter;
         }
         else
         {

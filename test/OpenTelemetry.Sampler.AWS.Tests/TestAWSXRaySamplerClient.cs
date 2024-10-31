@@ -82,7 +82,7 @@ public class TestAWSXRaySamplerClient : IDisposable
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        List<SamplingRule> rules = await this.client.GetSamplingRules();
+        var rules = await this.client.GetSamplingRules();
 
         Assert.Empty(rules);
     }
@@ -90,12 +90,12 @@ public class TestAWSXRaySamplerClient : IDisposable
     [Fact]
     public async Task TestGetSamplingTargets()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
 
         this.CreateResponse("/SamplingTargets", "Data/GetSamplingTargetsResponse.json");
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -117,7 +117,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 10,
                 2,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
         var targetsResponse = await this.client.GetSamplingTargets(request);
         Assert.NotNull(targetsResponse);
@@ -145,14 +145,14 @@ public class TestAWSXRaySamplerClient : IDisposable
     [Fact]
     public async Task TestGetSamplingTargetsWithMalformed()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
         this.mockServer
             .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -160,7 +160,7 @@ public class TestAWSXRaySamplerClient : IDisposable
                 50,
                 10,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
         var targetsResponse = await this.client.GetSamplingTargets(request);
 
@@ -169,7 +169,7 @@ public class TestAWSXRaySamplerClient : IDisposable
 
     private void CreateResponse(string endpoint, string filePath)
     {
-        string mockResponse = File.ReadAllText(filePath);
+        var mockResponse = File.ReadAllText(filePath);
         this.mockServer
             .Given(Request.Create().WithPath(endpoint).UsingPost())
             .RespondWith(

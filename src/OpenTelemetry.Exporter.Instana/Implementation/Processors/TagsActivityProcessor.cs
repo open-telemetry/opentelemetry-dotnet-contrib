@@ -21,20 +21,20 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 
         this.PreProcess(activity, instanaSpan);
 
-        string statusCode = string.Empty;
-        string statusDesc = string.Empty;
-        Dictionary<string, string> tags = new Dictionary<string, string>();
+        var statusCode = string.Empty;
+        var statusDesc = string.Empty;
+        var tags = new Dictionary<string, string>();
         foreach (var tag in activity.Tags)
         {
             if (tag.Key == "otel.status_code")
             {
-                statusCode = (tag.Value as string) ?? string.Empty;
+                statusCode = tag.Value ?? string.Empty;
                 continue;
             }
 
             if (tag.Key == "otel.status_description")
             {
-                statusDesc = (tag.Value as string) ?? string.Empty;
+                statusDesc = tag.Value ?? string.Empty;
                 continue;
             }
 

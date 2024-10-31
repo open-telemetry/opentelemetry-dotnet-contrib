@@ -125,7 +125,7 @@ internal sealed class TelegrafPrometheusWriterV1 : IMetricsWriter
                         .Tags(resource?.Attributes)
                         .Timestamp(dataPoint.EndTime.UtcDateTime, WritePrecision.Ns);
 
-                    if (dataPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                    if (dataPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                     {
                         pointData = pointData.Field("min", min)
                             .Field("max", max);
@@ -142,6 +142,10 @@ internal sealed class TelegrafPrometheusWriterV1 : IMetricsWriter
                     writeApi.WritePoint(pointData);
                 }
 
+                break;
+            case MetricType.ExponentialHistogram:
+                break;
+            default:
                 break;
         }
     }

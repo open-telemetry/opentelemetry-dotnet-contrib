@@ -10,14 +10,14 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class ErrorActivityProcessorTests
 {
-    private ErrorActivityProcessor errorActivityProcessor = new ErrorActivityProcessor();
+    private readonly ErrorActivityProcessor errorActivityProcessor = new();
 
     [Fact]
     public async Task Process_ErrorStatusCodeIsSet()
     {
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.SetStatus(ActivityStatusCode.Error, "TestErrorDesc");
-        InstanaSpan instanaSpan = new InstanaSpan();
+        var instanaSpan = new InstanaSpan();
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
         Assert.True(instanaSpan.Ec == 1);
@@ -30,8 +30,8 @@ public class ErrorActivityProcessorTests
     [Fact]
     public async Task Process_ExistsExceptionEvent()
     {
-        Activity activity = new Activity("testOperationName");
-        InstanaSpan instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() { HasExceptionEvent = true } };
+        var activity = new Activity("testOperationName");
+        var instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() { HasExceptionEvent = true } };
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
         Assert.True(instanaSpan.Ec == 1);
@@ -40,8 +40,8 @@ public class ErrorActivityProcessorTests
     [Fact]
     public async Task Process_NoError()
     {
-        Activity activity = new Activity("testOperationName");
-        InstanaSpan instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() };
+        var activity = new Activity("testOperationName");
+        var instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() };
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
         Assert.True(instanaSpan.Ec == 0);

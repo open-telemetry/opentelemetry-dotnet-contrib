@@ -68,12 +68,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
             var parentHeader = parentTraceHeader.First();
 
-            if (!TryParseXRayTraceHeader(parentHeader, out var newActivityContext))
-            {
-                return context;
-            }
-
-            return new PropagationContext(newActivityContext, context.Baggage);
+            return !TryParseXRayTraceHeader(parentHeader, out var newActivityContext) ? context : new PropagationContext(newActivityContext, context.Baggage);
         }
         catch (Exception ex)
         {
@@ -135,10 +130,10 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        ReadOnlySpan<char> header = rawHeader.AsSpan();
+        var header = rawHeader.AsSpan();
         while (header.Length > 0)
         {
-            int delimiterIndex = header.IndexOf(TraceHeaderDelimiter);
+            var delimiterIndex = header.IndexOf(TraceHeaderDelimiter);
             ReadOnlySpan<char> part;
             if (delimiterIndex >= 0)
             {
@@ -151,14 +146,14 @@ public class AWSXRayPropagator : TextMapPropagator
                 header = header.Slice(header.Length);
             }
 
-            ReadOnlySpan<char> trimmedPart = part.Trim();
-            int equalsIndex = trimmedPart.IndexOf(KeyValueDelimiter);
+            var trimmedPart = part.Trim();
+            var equalsIndex = trimmedPart.IndexOf(KeyValueDelimiter);
             if (equalsIndex < 0)
             {
                 return false;
             }
 
-            ReadOnlySpan<char> value = trimmedPart.Slice(equalsIndex + 1);
+            var value = trimmedPart.Slice(equalsIndex + 1);
             if (trimmedPart.StartsWith(RootKey.AsSpan()))
             {
                 if (!TryParseOTFormatTraceId(value, out var otFormatTraceId))
@@ -188,7 +183,7 @@ public class AWSXRayPropagator : TextMapPropagator
             }
         }
 
-        if (traceId == default || parentId == default || traceOptions == default)
+        if (traceId.IsEmpty || parentId.IsEmpty || traceOptions == default)
         {
             return false;
         }
@@ -252,12 +247,8 @@ public class AWSXRayPropagator : TextMapPropagator
 
     internal static bool IsParentIdValid(ReadOnlySpan<char> parentId)
     {
-        if (parentId.IsEmpty || parentId.IsWhiteSpace())
-        {
-            return false;
-        }
-
-        return parentId.Length == ParentIdHexDigits && long.TryParse(parentId.ToString(), NumberStyles.HexNumber, null, out _);
+        return !parentId.IsEmpty && !parentId.IsWhiteSpace() && parentId.Length == ParentIdHexDigits &&
+               long.TryParse(parentId.ToString(), NumberStyles.HexNumber, null, out _);
     }
 
     internal static bool TryParseSampleDecision(ReadOnlySpan<char> sampleDecision, out char result)
@@ -274,7 +265,7 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        if (tempChar != SampledValue && tempChar != NotSampledValue)
+        if (tempChar is not SampledValue and not NotSampledValue)
         {
             return false;
         }
