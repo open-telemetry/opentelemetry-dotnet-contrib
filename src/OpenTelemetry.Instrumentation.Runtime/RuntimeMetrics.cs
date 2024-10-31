@@ -90,14 +90,9 @@ internal sealed class RuntimeMetrics
                     var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
                     for (var i = 0; i < maxSupportedLength; ++i)
                     {
-                        if (isCodeRunningOnBuggyRuntimeVersion)
-                        {
-                            measurements[i] = new((long)getGenerationSize!(i), new KeyValuePair<string, object?>("generation", GenNames[i]));
-                        }
-                        else
-                        {
-                            measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
-                        }
+                        measurements[i] = isCodeRunningOnBuggyRuntimeVersion
+                            ? new((long)getGenerationSize!(i), new KeyValuePair<string, object?>("generation", GenNames[i]))
+                            : new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
                     }
 
                     return measurements;
