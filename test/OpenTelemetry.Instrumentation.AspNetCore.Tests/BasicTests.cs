@@ -492,6 +492,8 @@ public sealed class BasicTests
                                     }
 
                                     break;
+                                default:
+                                    break;
                             }
                         },
                     })
