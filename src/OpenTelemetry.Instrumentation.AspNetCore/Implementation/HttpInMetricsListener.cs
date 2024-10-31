@@ -58,12 +58,16 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
-            => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        {
+            return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        }
 #if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? ctx)
-            => HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        {
+            return HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        }
     }
 
     public static void OnStopEventWritten(string name, object? payload)

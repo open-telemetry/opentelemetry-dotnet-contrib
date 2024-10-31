@@ -341,7 +341,9 @@ internal class HttpInListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
-            => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        {
+            return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
