@@ -24,6 +24,9 @@
   [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
   ([#2130](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2130))
 
+* EF Core instrumentation support together with SqlClient instrumentation.
+  ([#2280]https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2280)
+
 ## 1.0.0-beta.12
 
 Released 2024-Jun-18
