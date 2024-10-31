@@ -9,11 +9,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
 internal sealed class AWSTracerProvider : TracerProvider
 {
-    private static readonly ConcurrentDictionary<string, AWSTracer> TracersDictionary = new ConcurrentDictionary<string, AWSTracer>();
+    private static readonly ConcurrentDictionary<string, AWSTracer> TracersDictionary = new();
 
     public override Tracer GetTracer(string scope)
     {
-        if (TracersDictionary.TryGetValue(scope, out AWSTracer? awsTracer))
+        if (TracersDictionary.TryGetValue(scope, out var awsTracer))
         {
             return awsTracer;
         }

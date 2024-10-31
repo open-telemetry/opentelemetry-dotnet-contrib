@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Reflection;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 
@@ -10,8 +9,8 @@ internal static class Utils
 {
     public static Stream CreateStreamFromString(string s)
     {
-        MemoryStream stream = new MemoryStream();
-        StreamWriter writer = new StreamWriter(stream);
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
         writer.Write(s);
         writer.Flush();
         stream.Position = 0;
@@ -20,9 +19,9 @@ internal static class Utils
 
     public static Stream? GetResourceStream(string resourceName)
     {
-        Assembly assembly = typeof(Utils).Assembly;
+        var assembly = typeof(Utils).Assembly;
         var resource = FindResourceName(resourceName);
-        Stream? stream = assembly.GetManifestResourceStream(resource);
+        var stream = assembly.GetManifestResourceStream(resource);
         return stream;
     }
 
@@ -34,10 +33,8 @@ internal static class Utils
             return string.Empty;
         }
 
-        using (StreamReader reader = new StreamReader(stream))
-        {
-            return reader.ReadToEnd();
-        }
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     public static string FindResourceName(string partialName)
@@ -49,7 +46,7 @@ internal static class Utils
 
     public static IEnumerable<string> FindResourceName(Predicate<string> match)
     {
-        Assembly assembly = typeof(Utils).Assembly;
+        var assembly = typeof(Utils).Assembly;
         var allResources = assembly.GetManifestResourceNames();
         foreach (var resource in allResources)
         {

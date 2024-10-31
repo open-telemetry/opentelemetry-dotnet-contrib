@@ -43,7 +43,7 @@ internal class HttpInListener : ListenerHandler
             return value;
         }
 
-        return Enumerable.Empty<string>();
+        return [];
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
@@ -83,6 +83,8 @@ internal class HttpInListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 
@@ -98,8 +100,7 @@ internal class HttpInListener : ListenerHandler
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
 
-        var context = payload as HttpContext;
-        if (context == null)
+        if (payload is not HttpContext context)
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
             return;
@@ -309,7 +310,7 @@ internal class HttpInListener : ListenerHandler
         if (activity.IsAllDataRequested)
         {
             // We need to use reflection here as the payload type is not a defined public type.
-            if (!TryFetchException(payload, out Exception? exc))
+            if (!TryFetchException(payload, out var exc))
             {
                 AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnException), activity.OperationName);
                 return;
@@ -341,7 +342,9 @@ internal class HttpInListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
-            => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        {
+            return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -370,7 +373,7 @@ internal class HttpInListener : ListenerHandler
 
         activity.SetTag(SemanticConventions.AttributeClientPort, context.Connection.RemotePort);
 
-        bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
         if (validConversion)
         {
             activity.SetStatus(GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode(status));
