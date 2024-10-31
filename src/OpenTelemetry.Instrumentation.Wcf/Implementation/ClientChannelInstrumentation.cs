@@ -93,9 +93,13 @@ internal static class ClientChannelInstrumentation
                 if (reply == null || reply.IsFault)
                 {
                     activity.SetStatus(Status.Error);
-                    if (exception != null)
+
+                    if (WcfInstrumentationActivitySource.Options!.RecordException)
                     {
-                        activity.RecordException(exception);
+                        if (exception != null)
+                        {
+                            activity.RecordException(exception);
+                        }
                     }
                 }
 
