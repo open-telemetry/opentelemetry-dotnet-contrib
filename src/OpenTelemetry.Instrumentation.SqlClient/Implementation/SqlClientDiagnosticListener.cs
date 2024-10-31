@@ -112,6 +112,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                         if (this.options.EmitNewAttributes)
                                         {
+                                            activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+                                            activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
                                             activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                                         }
                                     }
