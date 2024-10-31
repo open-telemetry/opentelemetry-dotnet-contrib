@@ -260,8 +260,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
             })
             .CreateClient();
 
-        var message = new HttpRequestMessage();
-        message.Method = new HttpMethod(originalMethod);
+        var message = new HttpRequestMessage
+        {
+            Method = new HttpMethod(originalMethod),
+        };
 
         try
         {
