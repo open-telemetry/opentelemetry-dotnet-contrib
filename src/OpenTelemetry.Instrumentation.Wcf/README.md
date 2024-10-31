@@ -224,6 +224,12 @@ on the service contracts you want to instrument:
     }
 ```
 
+#### RecordException
+
+This instrumentation automatically sets Activity Status to Error if an unhandled
+exception is thrown. Additionally, `RecordException` feature may be turned on,
+to store the exception to the Activity itself as ActivityEvent.
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
