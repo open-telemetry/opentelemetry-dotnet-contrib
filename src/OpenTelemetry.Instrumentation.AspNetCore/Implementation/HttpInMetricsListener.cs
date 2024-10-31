@@ -72,8 +72,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
 
     public static void OnStopEventWritten(string name, object? payload)
     {
-        var context = payload as HttpContext;
-        if (context == null)
+        if (payload is not HttpContext context)
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnStopEventWritten), HttpServerRequestDurationMetricName);
             return;
