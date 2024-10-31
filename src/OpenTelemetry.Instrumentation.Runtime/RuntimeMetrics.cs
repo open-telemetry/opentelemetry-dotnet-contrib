@@ -63,7 +63,7 @@ internal sealed class RuntimeMetrics
 
         // GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
         Func<int, ulong>? getGenerationSize = null;
-        bool isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
+        var isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
         if (isCodeRunningOnBuggyRuntimeVersion)
         {
             var mi = typeof(GC).GetMethod("GetGenerationSize", BindingFlags.NonPublic | BindingFlags.Static);
@@ -86,9 +86,9 @@ internal sealed class RuntimeMetrics
                     }
 
                     var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                    Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-                    int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                    for (int i = 0; i < maxSupportedLength; ++i)
+                    var measurements = new Measurement<long>[generationInfo.Length];
+                    var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                    for (var i = 0; i < maxSupportedLength; ++i)
                     {
                         if (isCodeRunningOnBuggyRuntimeVersion)
                         {
@@ -119,9 +119,9 @@ internal sealed class RuntimeMetrics
                     }
 
                     var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                    Measurement<long>[] measurements = new Measurement<long>[generationInfo.Length];
-                    int maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                    for (int i = 0; i < maxSupportedLength; ++i)
+                    var measurements = new Measurement<long>[generationInfo.Length];
+                    var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                    for (var i = 0; i < maxSupportedLength; ++i)
                     {
                         measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
                     }
@@ -232,7 +232,7 @@ internal sealed class RuntimeMetrics
     {
         long collectionsFromHigherGeneration = 0;
 
-        for (int gen = NumberOfGenerations - 1; gen >= 0; --gen)
+        for (var gen = NumberOfGenerations - 1; gen >= 0; --gen)
         {
             long collectionsFromThisGeneration = GC.CollectionCount(gen);
 
