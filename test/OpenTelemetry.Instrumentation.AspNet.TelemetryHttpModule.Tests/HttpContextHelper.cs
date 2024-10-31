@@ -45,11 +45,11 @@ internal class HttpContextHelper
 
         public override string[][] GetUnknownRequestHeaders()
         {
-            List<string[]> result = new List<string[]>();
+            List<string[]> result = [];
 
             foreach (var header in this.headers)
             {
-                result.Add(new string[] { header.Key, header.Value });
+                result.Add([header.Key, header.Value]);
             }
 
             var baseResult = base.GetUnknownRequestHeaders();

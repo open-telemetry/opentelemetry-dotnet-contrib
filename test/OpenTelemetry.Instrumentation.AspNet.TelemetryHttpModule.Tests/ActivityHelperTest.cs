@@ -90,7 +90,7 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator(new TextMapPropagator[] { new TraceContextPropagator(), new BaggagePropagator() }), context, null)!;
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, null)!;
 
         rootActivity.AddTag("k1", "v1");
         rootActivity.AddTag("k2", "v2");
@@ -368,7 +368,7 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator(new TextMapPropagator[] { new TraceContextPropagator(), new BaggagePropagator() }), context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, null);
 
         Assert.NotNull(rootActivity);
         Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
@@ -494,7 +494,7 @@ public class ActivityHelperTest : IDisposable
 
     private class TestHttpRequest : HttpRequestBase
     {
-        private readonly NameValueCollection headers = new();
+        private readonly NameValueCollection headers = [];
 
         public override NameValueCollection Headers => this.headers;
 
@@ -537,7 +537,7 @@ public class ActivityHelperTest : IDisposable
         public TestHttpContext(Exception? error = null)
         {
             this.Server = new TestHttpServerUtility(this);
-            this.items = new Hashtable();
+            this.items = [];
             this.Error = error;
         }
 
