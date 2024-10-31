@@ -29,7 +29,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -60,7 +60,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         {
             case EntityFrameworkCoreCommandCreated:
                 {
-                    activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
+                    activity = EntityFrameworkActivitySource.StartActivity(ActivityName, ActivityKind.Client);
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
@@ -169,7 +169,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
@@ -266,12 +266,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source == EntityFrameworkActivitySource)
                     {
-                        return;
+                        activity.Stop();
                     }
 
-                    activity.Stop();
+                    // from some reason this EF event comes before SQLClient SqlMicrosoftAfterExecuteCommand event
+                    // EF span should not be parrent of any other span except SQLClient, because of that it can be closed safetly
+                    // can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSources it is true 
+                    if (activity.Parent?.Source == EntityFrameworkActivitySource)
+                    {
+                        activity.Parent.Stop();
+                    }
                 }
 
                 break;
@@ -284,7 +290,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
