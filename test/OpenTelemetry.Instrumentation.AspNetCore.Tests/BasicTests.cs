@@ -295,14 +295,9 @@ public sealed class BasicTests
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddAspNetCoreInstrumentation((opt) => opt.Filter = (ctx) =>
                 {
-                    if (ctx.Request.Path == "/api/values/2")
-                    {
-                        throw new Exception("from InstrumentationFilter");
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    return ctx.Request.Path == "/api/values/2"
+                        ? throw new Exception("from InstrumentationFilter")
+                        : true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
