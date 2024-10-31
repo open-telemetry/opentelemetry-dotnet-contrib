@@ -43,7 +43,7 @@ internal class HttpInListener : ListenerHandler
             return value;
         }
 
-        return Enumerable.Empty<string>();
+        return [];
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
