@@ -18,14 +18,15 @@ internal sealed class ProcessMetrics
 
     private static readonly Meter MeterInstance = new(MeterName, Assembly.GetPackageVersion());
 
+    private static readonly Diagnostics.Process Process = Diagnostics.Process.GetCurrentProcess();
+
     static ProcessMetrics()
     {
         MeterInstance.CreateObservableUpDownCounter(
             "process.memory.usage",
             () =>
             {
-                using var process = Diagnostics.Process.GetCurrentProcess();
-                return process.WorkingSet64;
+                return Process.WorkingSet64;
             },
             unit: "By",
             description: "The amount of physical memory in use.");
@@ -34,8 +35,7 @@ internal sealed class ProcessMetrics
             "process.memory.virtual",
             () =>
             {
-                using var process = Diagnostics.Process.GetCurrentProcess();
-                return process.VirtualMemorySize64;
+                return Process.VirtualMemorySize64;
             },
             unit: "By",
             description: "The amount of committed virtual memory.");
@@ -44,11 +44,10 @@ internal sealed class ProcessMetrics
             "process.cpu.time",
             () =>
             {
-                using var process = Diagnostics.Process.GetCurrentProcess();
                 return new[]
                 {
-                    new Measurement<double>(process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "user")),
-                    new Measurement<double>(process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "system")),
+                    new Measurement<double>(Process.UserProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "user")),
+                    new Measurement<double>(Process.PrivilegedProcessorTime.TotalSeconds, new KeyValuePair<string, object?>("process.cpu.state", "system")),
                 };
             },
             unit: "s",
@@ -67,8 +66,7 @@ internal sealed class ProcessMetrics
             "process.thread.count",
             () =>
             {
-                using var process = Diagnostics.Process.GetCurrentProcess();
-                return process.Threads.Count;
+                return Process.Threads.Count;
             },
             unit: "{thread}",
             description: "Process threads count.");
