@@ -45,6 +45,7 @@ body:
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
         - OpenTelemetry.Instrumentation.Runtime
+        - OpenTelemetry.Instrumentation.ServiceFabricRemoting 
         - OpenTelemetry.Instrumentation.SqlClient
         - OpenTelemetry.Instrumentation.StackExchangeRedis
         - OpenTelemetry.Instrumentation.Wcf
