@@ -1,5 +1,5 @@
 // Copyright The OpenTelemetry Authors
-// SPDX-License-Identifier: Apache-2.0using System.Fabric;
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
 using System.Fabric;
@@ -9,6 +9,7 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -58,9 +59,26 @@ public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMe
 
             using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
             {
-                IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+                try
+                {
+                    IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
-                return responseMessage;
+                    return responseMessage;
+                }
+                catch (Exception ex)
+                {
+                    if (activity != null)
+                    {
+                        activity.SetStatus(Status.Error);
+
+                        if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtServer == true)
+                        {
+                            activity.RecordException(ex);
+                        }
+                    }
+
+                    throw;
+                }
             }
         }
     }

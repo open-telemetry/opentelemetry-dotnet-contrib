@@ -34,10 +34,18 @@ public class ServiceFabricRemotingInstrumentationOptions
     public Action<Activity, IServiceRemotingResponseMessage?, Exception?>? EnrichAtClientFromResponse { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether the exception will be recorded as <see cref="ActivityEvent"/> or not.
+    /// Gets or sets a value indicating whether the exception will be recorded at the client as <see cref="ActivityEvent"/> or not.
     /// </summary>
     /// <remarks>
     /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
     /// </remarks>
-    public bool RecordException { get; set; }
+    public bool RecordExceptionAtClient { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the exception will be recorded at the server as <see cref="ActivityEvent"/> or not.
+    /// </summary>
+    /// <remarks>
+    /// https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md.
+    /// </remarks>
+    public bool RecordExceptionAtServer { get; set; }
 }

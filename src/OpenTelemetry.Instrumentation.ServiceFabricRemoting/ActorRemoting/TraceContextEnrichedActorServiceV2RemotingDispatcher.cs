@@ -9,6 +9,7 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -58,9 +59,26 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
 
             using (Activity? activity = ServiceFabricRemotingActivitySource.ActivitySource.StartActivity(activityName, ActivityKind.Server, parentContext.ActivityContext))
             {
-                IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+                try
+                {
+                    IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
-                return responseMessage;
+                    return responseMessage;
+                }
+                catch (Exception ex)
+                {
+                    if (activity != null)
+                    {
+                        activity.SetStatus(Status.Error);
+
+                        if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtServer == true)
+                        {
+                            activity.RecordException(ex);
+                        }
+                    }
+
+                    throw;
+                }
             }
         }
     }
