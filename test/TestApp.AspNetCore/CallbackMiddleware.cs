@@ -3,7 +3,7 @@
 
 namespace TestApp.AspNetCore;
 
-public class CallbackMiddleware
+internal class CallbackMiddleware
 {
     private readonly TestCallbackMiddleware testCallbackMiddleware;
     private readonly RequestDelegate next;

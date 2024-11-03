@@ -24,21 +24,21 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicProduceAsyncToTopicTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
         var activities = new List<Activity>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            using IProducer<string, string> producer = producerBuilder.Build();
+            using var producer = producerBuilder.Build();
             await producer.ProduceAsync(topic, new Message<string, string>
             {
                 Value = "any_value",
@@ -56,21 +56,21 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicProduceAsyncToTopicPartitionTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
         var activities = new List<Activity>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            using IProducer<string, string> producer = producerBuilder.Build();
+            using var producer = producerBuilder.Build();
             await producer.ProduceAsync(new TopicPartition(topic, new Partition(0)), new Message<string, string>
             {
                 Value = "any_value",
@@ -89,21 +89,21 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public void BasicProduceSyncToTopicTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
         var activities = new List<Activity>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            using IProducer<string, string> producer = producerBuilder.Build();
+            using var producer = producerBuilder.Build();
             producer.Produce(topic, new Message<string, string>
             {
                 Value = "any_value",
@@ -121,21 +121,21 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public void BasicProduceSyncToTopicPartitionTest()
     {
-        ProducerConfig producerConfig = new ProducerConfig
+        var producerConfig = new ProducerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
         };
         InstrumentedProducerBuilder<string, string> producerBuilder = new(producerConfig);
         var sampler = new TestSampler();
         var activities = new List<Activity>();
-        string topic = $"otel-topic-{Guid.NewGuid()}";
+        var topic = $"otel-topic-{Guid.NewGuid()}";
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
                    .AddKafkaProducerInstrumentation(producerBuilder)
                    .Build())
         {
-            using IProducer<string, string> producer = producerBuilder.Build();
+            using var producer = producerBuilder.Build();
             producer.Produce(new TopicPartition(topic, new Partition(0)), new Message<string, string>
             {
                 Value = "any_value",
@@ -154,9 +154,9 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicConsumeWithCancellationTokenTest()
     {
-        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
 
-        ConsumerConfig consumerConfig = new ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
             GroupId = "test-consumer-group",
@@ -172,7 +172,7 @@ public class TracingTests
                 .AddKafkaConsumerInstrumentation(consumerBuilder)
                 .Build())
         {
-            using IConsumer<string, string> consumer = consumerBuilder.Build();
+            using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
             while (true)
             {
@@ -205,9 +205,9 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicConsumeWithTimeoutMsTest()
     {
-        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
 
-        ConsumerConfig consumerConfig = new ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
             GroupId = "test-consumer-group",
@@ -223,7 +223,7 @@ public class TracingTests
                 .AddKafkaConsumerInstrumentation(consumerBuilder)
                 .Build())
         {
-            using IConsumer<string, string> consumer = consumerBuilder.Build();
+            using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
             while (true)
             {
@@ -256,9 +256,9 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task BasicConsumeWithTimeoutTimespanTest()
     {
-        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
 
-        ConsumerConfig consumerConfig = new ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
             GroupId = "test-consumer-group",
@@ -274,7 +274,7 @@ public class TracingTests
                 .AddKafkaConsumerInstrumentation(consumerBuilder)
                 .Build())
         {
-            using IConsumer<string, string> consumer = consumerBuilder.Build();
+            using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
             while (true)
             {
@@ -307,9 +307,9 @@ public class TracingTests
     [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
     public async Task ConsumeAndProcessMessageTest()
     {
-        string topic = await KafkaHelpers.ProduceTestMessageAsync();
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
 
-        ConsumerConfig consumerConfig = new ConsumerConfig
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = KafkaHelpers.KafkaEndPoint,
             GroupId = "test-consumer-group",
@@ -325,7 +325,7 @@ public class TracingTests
                 .AddKafkaConsumerInstrumentation(consumerBuilder)
                 .Build())
         {
-            using IConsumer<string, string> consumer = consumerBuilder.Build();
+            using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
             while (true)
             {
@@ -353,7 +353,7 @@ public class TracingTests
         Assert.Equal(0L, processActivity.GetTagValue("messaging.kafka.message.offset"));
         Assert.Equal("test-consumer-group", processActivity.GetTagValue("messaging.kafka.consumer.group"));
 
-        ValueTask NoOpAsync(
+        static ValueTask NoOpAsync(
             ConsumeResult<string, string> consumeResult,
             Activity? activity,
             CancellationToken cancellationToken = default)

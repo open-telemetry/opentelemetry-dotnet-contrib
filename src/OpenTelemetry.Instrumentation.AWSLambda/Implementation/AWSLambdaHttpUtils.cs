@@ -20,11 +20,11 @@ internal class AWSLambdaHttpUtils
     {
         var tags = new List<KeyValuePair<string, object>>();
 
-        string? httpScheme = null;
-        string? httpTarget = null;
-        string? httpMethod = null;
-        string? hostName = null;
-        int? hostPort = null;
+        string? httpScheme;
+        string? httpTarget;
+        string? httpMethod;
+        string? hostName;
+        int? hostPort;
 
         switch (input)
         {
@@ -80,6 +80,8 @@ internal class AWSLambdaHttpUtils
                 break;
             case ApplicationLoadBalancerResponse albResponse:
                 activity.SetTag(SemanticConventions.AttributeHttpStatusCode, albResponse.StatusCode);
+                break;
+            default:
                 break;
         }
     }
@@ -165,7 +167,7 @@ internal class AWSLambdaHttpUtils
         }
 
 #pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        var hostAndPort = hostHeader.Split(new char[] { ':' }, 2);
+        var hostAndPort = hostHeader.Split([':'], 2);
 #pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
         if (hostAndPort.Length > 1)
         {

@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using Amazon.Lambda.SQSEvents;
-using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -35,9 +33,9 @@ public class AWSMessagingUtilsTests : IDisposable
     public void ExtractParentContext_SetParentFromMessageBatchIsDisabled_ParentIsNotSet()
     {
         AWSMessagingUtils.SetParentFromMessageBatch = false;
-        var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
+        var sqsEvent = CreateSqsEventWithMessages([SpanId1, SpanId2]);
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.Equal(default, parentContext);
         Assert.Equal(2, links!.Count());
@@ -47,9 +45,9 @@ public class AWSMessagingUtilsTests : IDisposable
     public void ExtractParentContext_SetParentFromMessageBatchIsEnabled_ParentIsSetFromLastMessage()
     {
         AWSMessagingUtils.SetParentFromMessageBatch = true;
-        var sqsEvent = CreateSqsEventWithMessages(new[] { SpanId1, SpanId2 });
+        var sqsEvent = CreateSqsEventWithMessages([SpanId1, SpanId2]);
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId2, parentContext.ActivityContext.SpanId.ToHexString());
@@ -62,11 +60,11 @@ public class AWSMessagingUtilsTests : IDisposable
         AWSMessagingUtils.SetParentFromMessageBatch = true;
         var sqsEvent = new SQSEvent
         {
-            Records = new List<SQSMessage>
-            {
+            Records =
+            [
                 new SQSMessage
                 {
-                    MessageAttributes = new(),
+                    MessageAttributes = [],
 
 #pragma warning disable format // dotnet-format butchers the raw string & all following code (use dotnet format instead?)
                     Body = /*lang=json,strict*/ """
@@ -87,10 +85,10 @@ public class AWSMessagingUtilsTests : IDisposable
                     }
                     """,
                 },
-            },
+            ],
         };
 
-        (PropagationContext parentContext, IEnumerable<ActivityLink>? links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
+        (var parentContext, var links) = AWSMessagingUtils.ExtractParentContext(sqsEvent);
 
         Assert.NotEqual(default, parentContext);
         Assert.Equal(SpanId1, parentContext.ActivityContext.SpanId.ToHexString());
@@ -99,10 +97,10 @@ public class AWSMessagingUtilsTests : IDisposable
 
     private static SQSEvent CreateSqsEventWithMessages(string[] spans)
     {
-        var @event = new SQSEvent { Records = new List<SQSMessage>() };
+        var @event = new SQSEvent { Records = [] };
         for (var i = 0; i < spans.Length; i++)
         {
-            var message = new SQSMessage { MessageAttributes = new Dictionary<string, MessageAttribute>() };
+            var message = new SQSMessage { MessageAttributes = [] };
             message.MessageAttributes.Add("traceparent", new MessageAttribute { StringValue = $"00-{TraceId}-{spans[i]}-01" });
             message.MessageAttributes.Add("tracestate", new MessageAttribute { StringValue = $"k1=v1,k2=v2" });
             @event.Records.Add(message);

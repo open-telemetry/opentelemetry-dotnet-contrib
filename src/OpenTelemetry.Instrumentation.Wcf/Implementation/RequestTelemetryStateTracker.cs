@@ -7,10 +7,10 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal static class RequestTelemetryStateTracker
 {
-    private static readonly Dictionary<string, Entry> OutstandingRequestStates = new Dictionary<string, Entry>();
-    private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = new SortedSet<EntryTimeoutProperties>();
-    private static readonly object Sync = new object();
-    private static readonly Timer Timer = new Timer(OnTimer);
+    private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
+    private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
+    private static readonly object Sync = new();
+    private static readonly Timer Timer = new(OnTimer);
     private static long currentTimerDueAt = Timeout.Infinite;
 
     public static void PushTelemetryState(Message request, RequestTelemetryState telemetryState, TimeSpan timeout, Action<RequestTelemetryState> timeoutCallback)
@@ -50,7 +50,7 @@ internal static class RequestTelemetryStateTracker
         }
     }
 
-    private static void OnTimer(object state)
+    private static void OnTimer(object? state)
     {
         List<Tuple<EntryTimeoutProperties, Entry>>? timedOutEntries = null;
         lock (Sync)
@@ -61,10 +61,7 @@ internal static class RequestTelemetryStateTracker
             {
                 if (entryTimeoutProps.ExpiresAt <= now)
                 {
-                    if (timedOutEntries == null)
-                    {
-                        timedOutEntries = new List<Tuple<EntryTimeoutProperties, Entry>>();
-                    }
+                    timedOutEntries ??= [];
 
                     timedOutEntries.Add(new(entryTimeoutProps, OutstandingRequestStates[entryTimeoutProps.MessageId]));
                 }
@@ -139,9 +136,13 @@ internal static class RequestTelemetryStateTracker
             this.TimeoutCallback = timeoutCallback;
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
-            var other = (EntryTimeoutProperties)obj;
+            if (obj is not EntryTimeoutProperties other)
+            {
+                return 1;
+            }
+
             var result = this.ExpiresAt.CompareTo(other.ExpiresAt);
             if (result == 0)
             {

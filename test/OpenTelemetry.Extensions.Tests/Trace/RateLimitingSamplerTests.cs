@@ -40,6 +40,9 @@ public class RateLimitingSamplerTests
                 case SamplingDecision.Drop:
                     sampleOut++;
                     break;
+                default:
+                    Assert.Fail("Unexpected value");
+                    break;
             }
 
             Thread.Sleep(333);
@@ -81,6 +84,9 @@ public class RateLimitingSamplerTests
                     break;
                 case SamplingDecision.Drop:
                     sampleOut++;
+                    break;
+                default:
+                    Assert.Fail("Unexpected value");
                     break;
             }
 

@@ -61,6 +61,11 @@ public class UnixUserEventsDataTransportTests
             MetricUnixUserEventsDataTransport.MetricsTracepointName,
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
 
+        if (listener.IsEnabled())
+        {
+            throw new NotSupportedException($"{MetricUnixUserEventsDataTransport.MetricsTracepointName} is already enabled");
+        }
+
         try
         {
             listener.Enable();
@@ -120,6 +125,11 @@ public class UnixUserEventsDataTransportTests
             MetricUnixUserEventsDataTransport.MetricsTracepointName,
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
 
+        if (listener.IsEnabled())
+        {
+            throw new NotSupportedException($"{MetricUnixUserEventsDataTransport.MetricsTracepointName} is already enabled");
+        }
+
         try
         {
             MetricUnixUserEventsDataTransport.Instance.SendOtlpProtobufEvent(
@@ -138,8 +148,9 @@ public class UnixUserEventsDataTransportTests
 
     private static void EnsureUserEventsEnabled()
     {
-        using var userEventsEnableTest = ConsoleCommand.Run("cat", "/sys/kernel/tracing/user_events_status");
-        if (userEventsEnableTest.Errors.Any())
+        var errors = ConsoleCommand.Run("cat", "/sys/kernel/tracing/user_events_status");
+
+        if (errors.Any())
         {
             throw new NotSupportedException("Kernel does not support user_events. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
         }
@@ -205,7 +216,29 @@ public class UnixUserEventsDataTransportTests
 
         public IEnumerable<string> Errors => this.errors;
 
-        public static ConsoleCommand Run(
+        public static IEnumerable<string> Run(
+            string command,
+            string arguments)
+        {
+            Run(command, arguments, out _, out var errors);
+
+            return errors;
+        }
+
+        public static void Run(
+            string command,
+            string arguments,
+            out IEnumerable<string> output,
+            out IEnumerable<string> errors)
+        {
+            var consoleCommand = new ConsoleCommand(command, arguments, onOutputReceived: null, onErrorReceived: null);
+            consoleCommand.Dispose();
+
+            output = consoleCommand.Output;
+            errors = consoleCommand.Errors;
+        }
+
+        public static ConsoleCommand Start(
             string command,
             string arguments,
             Action<string>? onOutputReceived = null,
@@ -250,7 +283,7 @@ public class UnixUserEventsDataTransportTests
                 throw new NotSupportedException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'");
             }
 
-            this.catCommand = ConsoleCommand.Run("cat", "/sys/kernel/debug/tracing/trace_pipe", onOutputReceived: this.OnCatOutputReceived);
+            this.catCommand = ConsoleCommand.Start("cat", "/sys/kernel/debug/tracing/trace_pipe", onOutputReceived: this.OnCatOutputReceived);
             if (this.catCommand.Errors.Any())
             {
                 throw new InvalidOperationException($"Could not read '{name}' tracepoints");
@@ -261,17 +294,22 @@ public class UnixUserEventsDataTransportTests
 
         public bool IsEnabled()
         {
-            using var command = ConsoleCommand.Run("cat", $"/sys/kernel/tracing/events/user_events/{this.name}/enable");
+            ConsoleCommand.Run(
+                "cat",
+                $"/sys/kernel/tracing/events/user_events/{this.name}/enable",
+                out var output,
+                out var errors);
 
-            return command.Errors.Any() || command.Output.Count() != 1
+            return errors.Any() || output.Count() != 1
                 ? throw new InvalidOperationException($"Could not determine if '{this.name}' tracepoint is enabled")
-                : command.Output.First() != "0";
+                : output.First() != "0";
         }
 
         public void Enable()
         {
-            using var command = ConsoleCommand.Run("sh", @$"-c ""echo '1' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
-            if (command.Errors.Any())
+            var errors = ConsoleCommand.Run("sh", @$"-c ""echo '1' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
+
+            if (errors.Any())
             {
                 throw new InvalidOperationException($"Could not enable '{this.name}' tracepoint");
             }
@@ -279,8 +317,9 @@ public class UnixUserEventsDataTransportTests
 
         public void Disable()
         {
-            using var command = ConsoleCommand.Run("sh", @$"-c ""echo '0' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
-            if (command.Errors.Any())
+            var errors = ConsoleCommand.Run("sh", @$"-c ""echo '0' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
+
+            if (errors.Any())
             {
                 throw new InvalidOperationException($"Could not disable '{this.name}' tracepoint");
             }
@@ -292,6 +331,11 @@ public class UnixUserEventsDataTransportTests
             {
                 if (this.catCommand != null)
                 {
+                    if (this.catCommand.Errors.Any())
+                    {
+                        throw new InvalidOperationException($"Could not read '{this.name}' tracepoints");
+                    }
+
                     this.catCommand.Kill();
                     this.catCommand.Dispose();
                 }

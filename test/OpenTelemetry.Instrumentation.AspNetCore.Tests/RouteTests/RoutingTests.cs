@@ -20,8 +20,8 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
     private const string HttpRoute = "http.route";
 
     private readonly RoutingTestFixture fixture;
-    private readonly List<Activity> exportedActivities = new();
-    private readonly List<Metric> exportedMetrics = new();
+    private readonly List<Activity> exportedActivities = [];
+    private readonly List<Metric> exportedMetrics = [];
 
     public RoutingTests(RoutingTestFixture fixture)
     {
@@ -58,7 +58,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         meterProvider.ForceFlush();
 
-        var durationMetric = this.exportedMetrics.Single(x => x.Name == "http.server.request.duration" || x.Name == "http.server.duration");
+        var durationMetric = this.exportedMetrics.Single(x => x.Name is "http.server.request.duration" or "http.server.duration");
         var metricPoints = new List<MetricPoint>();
         foreach (var mp in durationMetric.GetMetricPoints())
         {
@@ -69,7 +69,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         var metricPoint = Assert.Single(metricPoints);
 
         GetTagsFromActivity(activity, out var activityHttpStatusCode, out var activityHttpMethod, out var activityHttpRoute);
-        GetTagsFromMetricPoint(Environment.Version.Major < 8, metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
+        GetTagsFromMetricPoint(metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
 
         Assert.Equal(testCase.ExpectedStatusCode, activityHttpStatusCode);
         Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
@@ -78,7 +78,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         // TODO: The CurrentHttpRoute property will go away. It They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
-        var expectedHttpRoute = testCase.CurrentHttpRoute != null ? testCase.CurrentHttpRoute : testCase.ExpectedHttpRoute;
+        var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
         Assert.Equal(expectedHttpRoute, activityHttpRoute);
         Assert.Equal(expectedHttpRoute, metricHttpRoute);
 
@@ -112,7 +112,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         httpRoute = activity.GetTagItem(HttpRoute) as string ?? string.Empty;
     }
 
-    private static void GetTagsFromMetricPoint(bool useLegacyConventions, MetricPoint metricPoint, out int httpStatusCode, out string httpMethod, out string? httpRoute)
+    private static void GetTagsFromMetricPoint(MetricPoint metricPoint, out int httpStatusCode, out string httpMethod, out string? httpRoute)
     {
         var expectedStatusCodeKey = HttpStatusCode;
         var expectedHttpMethodKey = HttpMethod;

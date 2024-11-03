@@ -16,9 +16,9 @@ internal static class TestsHelper
     /// Returns either <see cref="SqsRequestContextHelper.AddAttributes"/> or <see cref="SnsRequestContextHelper.AddAttributes"/>
     /// depending on <paramref name="serviceType"/>.
     /// <para />
-    /// This is meant to mimic thee logic in <see cref="AWSPropagatorPipelineHandler.AddRequestSpecificInformation"/>.
+    /// This is meant to mimic these logic in <see cref="AWSPropagatorPipelineHandler.AddRequestSpecificInformation"/>.
     /// </summary>
-    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
+    internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType)
     {
         return serviceType switch
         {
@@ -49,7 +49,7 @@ internal static class TestsHelper
                 throw new NotSupportedException($"Tests for service type {serviceType} not supported.");
         }
 
-        for (int i = 1; i <= attributesCount; i++)
+        for (var i = 1; i <= attributesCount; i++)
         {
             addAttribute(i);
         }
@@ -59,15 +59,14 @@ internal static class TestsHelper
 
     internal static void AddAttribute(this AmazonWebServiceRequest serviceRequest, string name, string value)
     {
-        var sendRequest = serviceRequest as SQS::SendMessageRequest;
         var publishRequest = serviceRequest as SNS::PublishRequest;
-        if (sendRequest != null)
+        if (serviceRequest is SQS::SendMessageRequest sendRequest)
         {
             sendRequest.MessageAttributes.Add(name, new SQS::MessageAttributeValue { DataType = "String", StringValue = value });
         }
-        else if (publishRequest != null)
+        else
         {
-            publishRequest.MessageAttributes.Add(name, new SNS::MessageAttributeValue { DataType = "String", StringValue = value });
+            publishRequest?.MessageAttributes.Add(name, new SNS::MessageAttributeValue { DataType = "String", StringValue = value });
         }
     }
 
@@ -81,17 +80,15 @@ internal static class TestsHelper
 
     internal static void AddStringParameters(this ParameterCollection parameters, string serviceType, AmazonWebServiceRequest serviceRequest)
     {
-        var sendRequest = serviceRequest as SQS::SendMessageRequest;
-        var publishRequest = serviceRequest as SNS::PublishRequest;
-        int index = 1;
-        if (sendRequest != null)
+        var index = 1;
+        if (serviceRequest is SQS::SendMessageRequest sendRequest)
         {
             foreach (var a in sendRequest.MessageAttributes)
             {
                 AddStringParameter(parameters, serviceType, a.Key, a.Value.StringValue, index++);
             }
         }
-        else if (publishRequest != null)
+        else if (serviceRequest is SNS::PublishRequest publishRequest)
         {
             foreach (var a in publishRequest.MessageAttributes)
             {

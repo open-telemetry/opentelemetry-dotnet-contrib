@@ -52,9 +52,6 @@ public class RouteInfo
 
     public void SetValues(ActionDescriptor actionDescriptor)
     {
-        if (this.ActionDescriptor == null)
-        {
-            this.ActionDescriptor = new ActionDescriptorInfo(actionDescriptor);
-        }
+        this.ActionDescriptor ??= new ActionDescriptorInfo(actionDescriptor);
     }
 }

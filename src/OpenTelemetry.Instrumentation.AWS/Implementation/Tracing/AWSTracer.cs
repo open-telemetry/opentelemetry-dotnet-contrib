@@ -29,7 +29,7 @@ internal sealed class AWSTracer : Tracer
         var tags = initialAttributes != null ? new ActivityTagsCollection(initialAttributes.AllAttributes) : null;
         var activityKind = ConvertToActivityKind(spanKind);
 
-        ActivityContext parentActivityContext = ConvertToActivityContext(parentContext);
+        var parentActivityContext = ConvertToActivityContext(parentContext);
         var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags);
 
         return new AWSTraceSpan(activity);
@@ -66,6 +66,7 @@ internal sealed class AWSTracer : Tracer
             SpanKind.SERVER => ActivityKind.Server,
             SpanKind.PRODUCER => ActivityKind.Producer,
             SpanKind.CONSUMER => ActivityKind.Consumer,
+            SpanKind.INTERNAL => ActivityKind.Internal,
             _ => ActivityKind.Internal,
         };
     }

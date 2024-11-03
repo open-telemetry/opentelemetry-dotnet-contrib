@@ -34,12 +34,9 @@ internal sealed class PropertyFetcher<T>
     /// <returns>Property fetched.</returns>
     public T Fetch(object obj)
     {
-        if (!this.TryFetch(obj, out T value))
-        {
-            throw new ArgumentException("Supplied object was null or did not match the expected type.", nameof(obj));
-        }
-
-        return value;
+        return !this.TryFetch(obj, out var value)
+            ? throw new ArgumentException("Supplied object was null or did not match the expected type.", nameof(obj))
+            : value;
     }
 
     /// <summary>
@@ -59,12 +56,7 @@ internal sealed class PropertyFetcher<T>
         if (this.innerFetcher == null)
         {
             var type = obj.GetType().GetTypeInfo();
-            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase));
-            if (property == null)
-            {
-                property = type.GetProperty(this.propertyName);
-            }
-
+            var property = type.DeclaredProperties.FirstOrDefault(p => string.Equals(p.Name, this.propertyName, StringComparison.OrdinalIgnoreCase)) ?? type.GetProperty(this.propertyName);
             this.innerFetcher = PropertyFetch.FetcherForProperty(property);
         }
 
@@ -107,7 +99,11 @@ internal sealed class PropertyFetcher<T>
 
             public TypedPropertyFetch(PropertyInfo property)
             {
+#if NET
+                this.propertyFetch = property.GetMethod.CreateDelegate<Func<TDeclaredObject, TDeclaredProperty>>();
+#else
                 this.propertyFetch = (Func<TDeclaredObject, TDeclaredProperty>)property.GetMethod.CreateDelegate(typeof(Func<TDeclaredObject, TDeclaredProperty>));
+#endif
             }
 
             public override bool TryFetch(object obj, out T value)
