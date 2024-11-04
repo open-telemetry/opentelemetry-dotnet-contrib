@@ -39,14 +39,14 @@ internal class Program
     private class LinuxOptions
     {
         [Option('p', "path", Default = "/var/run/default_fluent.socket", HelpText = "Specify a path for Unix domain socket.")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
     }
 
     [Verb("server", HelpText = "Start a dummy server on Linux.")]
     private class ServerOptions
     {
         [Option('p', "path", HelpText = "Specify a path for Unix domain socket.", Required = true)]
-        public string Path { get; set; }
+        public string? Path { get; set; }
     }
 
     [Verb("ExporterCreation", HelpText = "Validate exporter dispose behavior")]
@@ -78,12 +78,12 @@ internal class Program
 
     private static int RunLinux(LinuxOptions options)
     {
-        return EntryPoint(() => InitTracesOnLinux(options.Path), RunTraces);
+        return EntryPoint(() => InitTracesOnLinux(options.Path!), RunTraces);
     }
 
     private static int RunServer(ServerOptions options)
     {
-        var server = new DummyServer(options.Path);
+        var server = new DummyServer(options.Path!);
         server.Start();
         return 0;
     }

@@ -8,7 +8,7 @@ namespace OpenTelemetry.Resources;
 /// </summary>
 internal static class AsyncHelper
 {
-    private static readonly TaskFactory TaskFactory = new TaskFactory(
+    private static readonly TaskFactory TaskFactory = new(
         CancellationToken.None,
         TaskCreationOptions.None,
         TaskContinuationOptions.None,

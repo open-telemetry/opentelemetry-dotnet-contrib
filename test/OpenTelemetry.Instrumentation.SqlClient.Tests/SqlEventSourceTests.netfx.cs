@@ -243,7 +243,15 @@ public class SqlEventSourceTests
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        Assert.Equal("master", activity.DisplayName);
+        if (emitNewAttributes && enableConnectionLevelAttributes)
+        {
+            Assert.Equal("instanceName.master", activity.DisplayName);
+        }
+        else
+        {
+            Assert.Equal("master", activity.DisplayName);
+        }
+
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
@@ -282,7 +290,7 @@ public class SqlEventSourceTests
 
         if (emitNewAttributes)
         {
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            Assert.Equal(!enableConnectionLevelAttributes ? "master" : "instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
         if (captureText)

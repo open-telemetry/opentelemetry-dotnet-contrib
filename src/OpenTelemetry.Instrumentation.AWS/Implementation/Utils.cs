@@ -9,7 +9,7 @@ internal class Utils
 {
     internal static object? GetTagValue(Activity activity, string tagName)
     {
-        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
+        foreach (var tag in activity.TagObjects)
         {
             if (tag.Key.Equals(tagName, StringComparison.Ordinal))
             {
@@ -22,17 +22,12 @@ internal class Utils
 
     internal static string RemoveSuffix(string originalString, string suffix)
     {
-        if (string.IsNullOrEmpty(originalString))
-        {
-            return string.Empty;
-        }
-
-        if (originalString.EndsWith(suffix, StringComparison.Ordinal))
-        {
-            return originalString.Substring(0, originalString.Length - suffix.Length);
-        }
-
-        return originalString;
+        return string.IsNullOrEmpty(originalString)
+            ? string.Empty
+            : originalString.EndsWith(suffix, StringComparison.Ordinal)
+                ?
+                originalString.Substring(0, originalString.Length - suffix.Length)
+                : originalString;
     }
 
     /// <summary>
@@ -50,16 +45,8 @@ internal class Utils
 
     private static string RemovePrefix(string originalString, string prefix)
     {
-        if (string.IsNullOrEmpty(originalString))
-        {
-            return string.Empty;
-        }
-
-        if (originalString.StartsWith(prefix, StringComparison.Ordinal))
-        {
-            return originalString.Substring(prefix.Length);
-        }
-
-        return originalString;
+        return string.IsNullOrEmpty(originalString) ? string.Empty :
+            originalString.StartsWith(prefix, StringComparison.Ordinal) ? originalString.Substring(prefix.Length) :
+            originalString;
     }
 }

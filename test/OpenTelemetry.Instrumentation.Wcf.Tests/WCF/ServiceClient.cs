@@ -6,7 +6,9 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
+#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public class ServiceClient : ClientBase<IServiceContract>, IServiceContract
+#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     public ServiceClient(Binding binding, EndpointAddress remoteAddress)
         : base(binding, remoteAddress)

@@ -121,7 +121,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
         foreach (var file in Directory.EnumerateFiles(this.DirectoryPath, "*.blob", SearchOption.TopDirectoryOnly).OrderByDescending(f => f))
         {
-            DateTime fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
+            var fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
             if (fileDateTime > retentionDeadline)
             {
                 yield return new FileBlob(file, this.directorySizeTracker);
@@ -173,7 +173,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
     private bool CheckStorageSize()
     {
-        if (!this.directorySizeTracker.IsSpaceAvailable(out long size))
+        if (!this.directorySizeTracker.IsSpaceAvailable(out var size))
         {
             // TODO: check accuracy of size reporting.
             PersistentStorageEventSource.Log.PersistentStorageWarning(
@@ -197,14 +197,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
             var blobFilePath = Path.Combine(this.DirectoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
             var blob = new FileBlob(blobFilePath, this.directorySizeTracker);
 
-            if (blob.TryWrite(buffer, leasePeriodMilliseconds))
-            {
-                return blob;
-            }
-            else
-            {
-                return null;
-            }
+            return blob.TryWrite(buffer, leasePeriodMilliseconds) ? blob : null;
         }
         catch (Exception ex)
         {

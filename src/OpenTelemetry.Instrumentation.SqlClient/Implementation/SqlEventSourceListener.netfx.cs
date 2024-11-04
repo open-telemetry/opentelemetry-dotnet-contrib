@@ -112,11 +112,14 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
+        string dataSource = (string)eventData.Payload[1];
+        string databaseName = (string)eventData.Payload[2];
+        var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, this.options, out var activityName);
         var activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
-            SqlActivitySourceHelper.ActivityName,
+            activityName,
             ActivityKind.Client,
             default(ActivityContext),
-            SqlActivitySourceHelper.CreationTags);
+            startTags);
 
         if (activity == null)
         {
@@ -124,24 +127,8 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        string? databaseName = (string)eventData.Payload[2];
-
-        activity.DisplayName = databaseName;
-
         if (activity.IsAllDataRequested)
         {
-            if (this.options.EmitOldAttributes)
-            {
-                activity.SetTag(SemanticConventions.AttributeDbName, databaseName);
-            }
-
-            if (this.options.EmitNewAttributes)
-            {
-                activity.SetTag(SemanticConventions.AttributeDbNamespace, databaseName);
-            }
-
-            SqlActivitySourceHelper.AddConnectionLevelDetailsToActivity((string)eventData.Payload[1], activity, this.options);
-
             string commandText = (string)eventData.Payload[3];
             if (!string.IsNullOrEmpty(commandText) && this.options.SetDbStatementForText)
             {
@@ -188,8 +175,14 @@ internal sealed class SqlEventSourceListener : EventListener
                 {
                     if ((compositeState & 0b010) == 0b010)
                     {
-                        var errorText = $"SqlExceptionNumber {eventData.Payload[2]} thrown.";
-                        activity.SetStatus(ActivityStatusCode.Error, errorText);
+                        var errorNumber = $"{eventData.Payload[2]}";
+                        activity.SetStatus(ActivityStatusCode.Error, errorNumber);
+                        activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+
+                        var exceptionType = eventData.EventSource.Name == MdsEventSourceName
+                            ? "Microsoft.Data.SqlClient.SqlException"
+                            : "System.Data.SqlClient.SqlException";
+                        activity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
                     }
                     else
                     {

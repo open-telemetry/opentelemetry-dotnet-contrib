@@ -22,7 +22,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
         var frameworkDescription = RuntimeInformation.FrameworkDescription;
         string netRuntimeName;
 #if NETFRAMEWORK
-        string? netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
+        var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
 #endif
 
         var lastSpace = frameworkDescription.LastIndexOf(' ');
@@ -43,8 +43,8 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 #endif
         }
 
-        return new Resource(new List<KeyValuePair<string, object>>(3)
-        {
+        return new Resource(
+        [
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName),
 #if NETFRAMEWORK
@@ -52,7 +52,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 #else
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
 #endif
-        });
+        ]);
     }
 
 #if NETFRAMEWORK
@@ -64,12 +64,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
             using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             using var ndpKey = baseKey.OpenSubKey(subKey);
 
-            if (ndpKey?.GetValue("Release") != null)
-            {
-                return CheckFor45PlusVersion((int)ndpKey.GetValue("Release"));
-            }
-
-            return null;
+            return ndpKey?.GetValue("Release") != null ? CheckFor45PlusVersion((int)ndpKey.GetValue("Release")) : null;
         }
         catch
         {

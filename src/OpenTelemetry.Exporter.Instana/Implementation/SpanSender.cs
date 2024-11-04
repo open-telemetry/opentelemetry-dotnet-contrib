@@ -10,7 +10,7 @@ internal sealed class SpanSender : ISpanSender
 #pragma warning restore CA1001 // Types that own disposable fields should be disposable
 {
     private readonly Task queueSenderTask;
-    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new ConcurrentQueue<InstanaSpan>();
+    private readonly ConcurrentQueue<InstanaSpan> spansQueue = new();
 
     public SpanSender()
     {
@@ -33,7 +33,7 @@ internal sealed class SpanSender : ISpanSender
         while (true)
         {
             // check if we can send spans
-            if (this.spansQueue.TryPeek(out InstanaSpan _))
+            if (this.spansQueue.TryPeek(out var _))
             {
                 // actually send spans
                 await Transport.SendSpansAsync(this.spansQueue).ConfigureAwait(false);

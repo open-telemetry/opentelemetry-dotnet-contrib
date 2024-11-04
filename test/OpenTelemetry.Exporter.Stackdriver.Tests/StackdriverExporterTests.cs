@@ -29,11 +29,11 @@ public class StackdriverExporterTests
     public void StackdriverExporter_CustomActivityProcessor()
     {
         const string ActivitySourceName = "stackdriver.test";
-        Guid requestId = Guid.NewGuid();
-        TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+        var requestId = Guid.NewGuid();
+        var testActivityProcessor = new TestActivityProcessor();
 
-        bool startCalled = false;
-        bool endCalled = false;
+        var startCalled = false;
+        var endCalled = false;
 
         testActivityProcessor.StartAction =
             (a) =>
@@ -86,7 +86,7 @@ public class StackdriverExporterTests
     public void StackdriverExporter_TraceClientThrows_ExportResultFailure()
     {
         Exception? exception;
-        ExportResult result = ExportResult.Success;
+        var result = ExportResult.Success;
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
@@ -95,9 +95,9 @@ public class StackdriverExporterTests
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
-            using Activity activity = CreateTestActivity();
+            using var activity = CreateTestActivity();
             processor.OnEnd(activity);
         }
 
@@ -122,7 +122,7 @@ public class StackdriverExporterTests
     public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess()
     {
         Exception? exception;
-        ExportResult result = ExportResult.Failure;
+        var result = ExportResult.Failure;
         var exportedItems = new List<Activity>();
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
@@ -131,9 +131,9 @@ public class StackdriverExporterTests
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
-            using Activity activity = CreateTestActivity();
+            using var activity = CreateTestActivity();
             processor.OnEnd(activity);
         }
 
@@ -159,7 +159,6 @@ public class StackdriverExporterTests
         Dictionary<string, object>? additionalAttributes = null,
         bool addEvents = true,
         bool addLinks = true,
-        Resource? resource = null,
         ActivityKind kind = ActivityKind.Client)
     {
         var startTimestamp = DateTime.UtcNow;
@@ -167,7 +166,7 @@ public class StackdriverExporterTests
         var eventTimestamp = DateTime.UtcNow;
         var traceId = ActivityTraceId.CreateFromString("e8ea7e9ac72de94e91fabc613f9686b2".AsSpan());
 
-        var parentSpanId = ActivitySpanId.CreateFromBytes(new byte[] { 12, 23, 34, 45, 56, 67, 78, 89 });
+        var parentSpanId = ActivitySpanId.CreateFromBytes([12, 23, 34, 45, 56, 67, 78, 89]);
 
         var attributes = new Dictionary<string, object?>
         {

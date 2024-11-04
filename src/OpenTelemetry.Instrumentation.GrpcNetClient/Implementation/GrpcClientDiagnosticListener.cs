@@ -49,6 +49,8 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 
@@ -70,7 +72,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         }
 
         // Ensure context propagation irrespective of sampling decision
-        if (!TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchRequest(payload, out var request))
         {
             GrpcInstrumentationEventSource.Log.NullPayload(nameof(GrpcClientDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -134,7 +136,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             {
                 var uriHostNameType = Uri.CheckHostName(requestUri.Host);
 
-                if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+                if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerSocketAddress, requestUri.Host);
                 }
@@ -162,14 +164,16 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
-            => StartRequestFetcher.TryFetch(payload, out request) && request != null;
+        {
+            return StartRequestFetcher.TryFetch(payload, out request) && request != null;
+        }
     }
 
     public void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
-            bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+            var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
             if (validConversion)
             {
                 if (activity.Status == ActivityStatusCode.Unset)
@@ -184,7 +188,7 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             // Remove the grpc.status_code tag added by the gRPC .NET library
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 try
                 {
@@ -203,6 +207,8 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
-            => StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        {
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        }
     }
 }

@@ -173,11 +173,10 @@ public partial class GrpcTests : IDisposable
         finally
         {
             // Set the SDK to use the default propagator for other unit tests
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-            new TraceContextPropagator(),
-            new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            ]));
         }
     }
 

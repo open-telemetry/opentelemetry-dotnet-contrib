@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
-public class GrpcServer<TService> : IDisposable
+internal class GrpcServer<TService> : IDisposable
     where TService : class
 {
     private static readonly Random GlobalRandom = new();
