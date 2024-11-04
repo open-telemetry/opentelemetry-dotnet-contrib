@@ -195,7 +195,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
             {
                 activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
             }
