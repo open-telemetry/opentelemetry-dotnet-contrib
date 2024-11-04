@@ -147,6 +147,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
                                     case OwinEnrichEventType.EndRequest:
                                         activity.SetTag("client.endrequest", nameof(OwinEnrichEventType.EndRequest));
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
                         }
@@ -256,6 +258,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
                         break;
                     case SemanticConventions.AttributeHttpResponseStatusCode:
                         Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
+                        break;
+                    default:
                         break;
                 }
             }
