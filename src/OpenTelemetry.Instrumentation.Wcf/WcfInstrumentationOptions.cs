@@ -55,7 +55,6 @@ public class WcfInstrumentationOptions
     /// langword="false"/>.
     /// </summary>
     /// <remarks>
-    /// <para><b>RecordException is supported on all runtimes.</b></para>
     /// <para>For specification details see: <see
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"
     /// />.</para>

@@ -224,6 +224,12 @@ on the service contracts you want to instrument:
     }
 ```
 
+
+## Advanced configuration
+
+This instrumentation can be configured to change the default behavior by using
+`WcfInstrumentationOptions`.
+
 ### RecordException
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
