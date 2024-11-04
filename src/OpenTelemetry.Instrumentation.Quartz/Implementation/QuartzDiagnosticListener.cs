@@ -28,7 +28,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
         switch (name)
         {
