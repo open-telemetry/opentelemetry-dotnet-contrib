@@ -209,21 +209,4 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
         }
     }
-
-    /// <summary>
-    /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.
-    /// </summary>
-    /// <param name="uri"><see cref="Uri"/>.</param>
-    /// <returns>Span uri value.</returns>
-    private static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
-    {
-        if (string.IsNullOrEmpty(uri.UserInfo) && disableQueryRedaction)
-        {
-            return uri.OriginalString;
-        }
-
-        var query = disableQueryRedaction ? uri.Query : RedactionHelper.GetRedactedQueryString(uri.Query);
-
-        return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);
-    }
 }
