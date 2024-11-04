@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestPrereleaseVersion)</OTelSdkVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">
