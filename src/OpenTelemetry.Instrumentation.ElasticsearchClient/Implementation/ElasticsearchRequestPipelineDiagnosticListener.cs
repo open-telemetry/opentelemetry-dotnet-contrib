@@ -119,7 +119,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var request = ParseRequest.Match(debugInformation);
         if (request.Success)
         {
-            string? body = request.Groups[1]?.Value?.Trim();
+            var body = request.Groups[1]?.Value?.Trim();
             if (body == null)
             {
                 return debugInformation;
