@@ -21,7 +21,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Create_Activity()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -38,7 +38,7 @@ public class QuartzDiagnosticListenerTests
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
         await scheduler.Start();
 
-        JobDataMap jobDataMap = new JobDataMap { { "A", "B" } };
+        var jobDataMap = new JobDataMap { { "A", "B" } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()
@@ -74,7 +74,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Create_Activity_And_Enrich_When_Enrich()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -105,7 +105,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()
@@ -141,7 +141,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Record_Exception_When_Record_Exception_Enabled()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -162,7 +162,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -195,7 +195,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Enrich_Exception_When_Record_Exception_Enabled_And_Enrich()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -229,7 +229,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -262,7 +262,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Creates_Activity_Event_On_Job_Execution_Exception()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -291,7 +291,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -323,7 +323,7 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Not_Record_Activity_When_Trace_Operation_Is_Not_Present()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
+        var barrier = new Barrier(2);
         List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
@@ -346,7 +346,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()
