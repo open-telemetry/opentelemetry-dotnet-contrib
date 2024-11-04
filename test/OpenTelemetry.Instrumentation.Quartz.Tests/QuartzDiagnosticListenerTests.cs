@@ -22,7 +22,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
         using var tel = Sdk.CreateTracerProviderBuilder()
@@ -75,7 +75,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -142,7 +142,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -196,7 +196,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -263,7 +263,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
         using var tel = Sdk.CreateTracerProviderBuilder()
@@ -324,7 +324,7 @@ public class QuartzDiagnosticListenerTests
     {
         // Arrange
         Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -332,7 +332,7 @@ public class QuartzDiagnosticListenerTests
             .SetSampler(new AlwaysOnSampler())
             .AddQuartzInstrumentation(q =>
             {
-                q.TracedOperations = new HashSet<string>();
+                q.TracedOperations = [];
             })
             .AddInMemoryExporter(exportedItems)
             .Build();
