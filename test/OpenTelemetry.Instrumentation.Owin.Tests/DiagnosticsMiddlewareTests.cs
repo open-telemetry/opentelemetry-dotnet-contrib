@@ -137,7 +137,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                     {
                         if (!enrichmentException)
                         {
-                            options.Enrich = (activity, eventName, context, exception) =>
+                            options.Enrich = (activity, eventName, _, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -154,7 +154,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                         }
                         else
                         {
-                            options.Enrich = (activity, eventName, context, exception) => throw new Exception("Error while enriching activity");
+                            options.Enrich = (_, _, _, _) => throw new Exception("Error while enriching activity");
                         }
                     }
 
