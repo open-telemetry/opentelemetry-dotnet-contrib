@@ -44,6 +44,8 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
             case "Quartz.Job.Veto.Exception":
                 this.OnException(activity, payload);
                 break;
+            default:
+                break;
         }
     }
 
