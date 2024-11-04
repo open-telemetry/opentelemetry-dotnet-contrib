@@ -181,7 +181,7 @@ public class ElasticsearchClientTests
     [Fact]
     public async Task CanRecordAndSampleSearchCall()
     {
-        bool samplerCalled = false;
+        var samplerCalled = false;
 
         var sampler = new TestSampler
         {
@@ -193,10 +193,10 @@ public class ElasticsearchClientTests
                 },
         };
 
-        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+        using var testActivityProcessor = new TestActivityProcessor();
 
-        int startCalled = 0;
-        int endCalled = 0;
+        var startCalled = 0;
+        var endCalled = 0;
 
         testActivityProcessor.StartAction =
             (a) =>
@@ -239,9 +239,9 @@ public class ElasticsearchClientTests
     }
 
     [Fact]
-    public async Task CanSupressDownstreamActivities()
+    public async Task CanSuppressDownstreamActivities()
     {
-        bool samplerCalled = false;
+        var samplerCalled = false;
 
         var sampler = new TestSampler
         {
@@ -253,10 +253,10 @@ public class ElasticsearchClientTests
                 },
         };
 
-        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+        using var testActivityProcessor = new TestActivityProcessor();
 
-        int startCalled = 0;
-        int endCalled = 0;
+        var startCalled = 0;
+        var endCalled = 0;
 
         testActivityProcessor.StartAction =
             (a) =>
@@ -301,7 +301,7 @@ public class ElasticsearchClientTests
     [Fact]
     public async Task CanDropSearchCall()
     {
-        bool samplerCalled = false;
+        var samplerCalled = false;
 
         var sampler = new TestSampler
         {
@@ -313,10 +313,10 @@ public class ElasticsearchClientTests
                 },
         };
 
-        using TestActivityProcessor testActivityProcessor = new TestActivityProcessor();
+        using var testActivityProcessor = new TestActivityProcessor();
 
-        int startCalled = 0;
-        int endCalled = 0;
+        var startCalled = 0;
+        var endCalled = 0;
 
         testActivityProcessor.StartAction =
             (a) =>
@@ -725,8 +725,8 @@ public class ElasticsearchClientTests
     public async Task CapturesBasedOnSamplingDecision(SamplingDecision samplingDecision, bool isActivityExpected)
     {
         var expectedResource = ResourceBuilder.CreateDefault().AddService("test-service");
-        bool startActivityCalled = false;
-        bool endActivityCalled = false;
+        var startActivityCalled = false;
+        var endActivityCalled = false;
         var processor = new TestActivityProcessor(
             activity => startActivityCalled = true,
             activity => endActivityCalled = true);
@@ -851,7 +851,7 @@ public class ElasticsearchClientTests
         Assert.Single(exportedItems);
         var searchActivity = exportedItems[0];
 
-        string? dbUrl = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
+        var dbUrl = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeUrlFull);
 
         Assert.DoesNotContain("sensitive", dbUrl);
         Assert.Contains("REDACTED:REDACTED", dbUrl);
