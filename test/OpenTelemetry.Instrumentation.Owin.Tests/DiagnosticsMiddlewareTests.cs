@@ -24,7 +24,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     public DiagnosticsMiddlewareTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         do
         {
@@ -60,7 +60,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                             return next();
                         });
 
-                        HttpConfiguration config = new HttpConfiguration();
+                        var config = new HttpConfiguration();
                         config.Routes.MapHttpRoute(
                             name: "DefaultApi",
                             routeTemplate: "api/{controller}/{id}",
@@ -163,12 +163,12 @@ public class DiagnosticsMiddlewareTests : IDisposable
             meterBuilder.AddOwinInstrumentation();
         }
 
-        using TracerProvider tracerProvider = builder.Build();
-        using MeterProvider meterProvider = meterBuilder.Build();
+        using var tracerProvider = builder.Build();
+        using var meterProvider = meterBuilder.Build();
 
-        using HttpClient client = new HttpClient();
+        using var client = new HttpClient();
 
-        Uri requestUri = generateRemoteException
+        var requestUri = generateRemoteException
             ? new Uri($"{this.serviceBaseUri}exception")
             : new Uri($"{this.serviceBaseUri}api/test");
 
@@ -189,7 +189,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.NotEmpty(stoppedActivities);
                 Assert.Single(stoppedActivities);
 
-                Activity activity = stoppedActivities[0];
+                var activity = stoppedActivities[0];
                 Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
                 Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
@@ -315,10 +315,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 .AddOwinInstrumentation()
                 .Build();
 
-            using HttpClient client = new HttpClient();
+            using var client = new HttpClient();
 
-            Uri requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
-            Uri expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
+            var requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
+            var expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
 
             this.requestCompleteHandle.Reset();
 
@@ -339,7 +339,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.NotEmpty(stoppedActivities);
             Assert.Single(stoppedActivities);
 
-            Activity activity = stoppedActivities[0];
+            var activity = stoppedActivities[0];
             Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
