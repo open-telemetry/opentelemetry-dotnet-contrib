@@ -71,12 +71,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch" when method != null:
                 {
                     var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
-                    if (elasticType == null)
-                    {
-                        return methodName;
-                    }
-
-                    return $"{methodName} {elasticType}";
+                    return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
 
             default:
