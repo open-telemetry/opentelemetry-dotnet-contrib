@@ -120,8 +120,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
         bool generateRemoteException = false,
         bool recordException = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
-        List<Metric> exportedMetrics = new List<Metric>();
+        List<Activity> stoppedActivities = [];
+        List<Metric> exportedMetrics = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -295,7 +295,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
             }
 
-            List<Activity> stoppedActivities = new List<Activity>();
+            List<Activity> stoppedActivities = [];
 
             var builder = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services =>
@@ -356,7 +356,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     private List<MetricPoint> GetMetricPoints(Metric metric)
     {
-        List<MetricPoint> metricPoints = new();
+        List<MetricPoint> metricPoints = [];
 
         foreach (var metricPoint in metric.GetMetricPoints())
         {
