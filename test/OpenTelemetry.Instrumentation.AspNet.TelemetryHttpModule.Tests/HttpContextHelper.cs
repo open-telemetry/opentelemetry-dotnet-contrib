@@ -33,23 +33,16 @@ internal class HttpContextHelper
         public SimpleWorkerRequestWithHeaders(string page, string query, TextWriter output, IDictionary<string, string>? headers)
             : base(page, query, output)
         {
-            if (headers != null)
-            {
-                this.headers = headers;
-            }
-            else
-            {
-                this.headers = new Dictionary<string, string>();
-            }
+            this.headers = headers ?? new Dictionary<string, string>();
         }
 
         public override string[][] GetUnknownRequestHeaders()
         {
-            List<string[]> result = new List<string[]>();
+            List<string[]> result = [];
 
             foreach (var header in this.headers)
             {
-                result.Add(new string[] { header.Key, header.Value });
+                result.Add([header.Key, header.Value]);
             }
 
             var baseResult = base.GetUnknownRequestHeaders();
@@ -58,29 +51,19 @@ internal class HttpContextHelper
                 result.AddRange(baseResult);
             }
 
-            return result.ToArray();
+            return [.. result];
         }
 
         public override string GetUnknownRequestHeader(string name)
         {
-            if (this.headers.TryGetValue(name, out var value))
-            {
-                return value;
-            }
-
-            return base.GetUnknownRequestHeader(name);
+            return this.headers.TryGetValue(name, out var value) ? value : base.GetUnknownRequestHeader(name);
         }
 
         public override string GetKnownRequestHeader(int index)
         {
             var name = GetKnownRequestHeaderName(index);
 
-            if (this.headers.TryGetValue(name, out var value))
-            {
-                return value;
-            }
-
-            return base.GetKnownRequestHeader(index);
+            return this.headers.TryGetValue(name, out var value) ? value : base.GetKnownRequestHeader(index);
         }
     }
 }

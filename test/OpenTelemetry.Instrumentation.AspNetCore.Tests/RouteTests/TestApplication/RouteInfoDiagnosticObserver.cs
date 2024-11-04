@@ -20,7 +20,7 @@ internal sealed class RouteInfoDiagnosticObserver : IDisposable, IObserver<Diagn
     internal const string OnStopEvent = "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop";
     internal const string OnMvcBeforeActionEvent = "Microsoft.AspNetCore.Mvc.BeforeAction";
 
-    private readonly List<IDisposable> listenerSubscriptions = new();
+    private readonly List<IDisposable> listenerSubscriptions = [];
     private IDisposable? allSourcesSubscription;
     private long disposed;
 

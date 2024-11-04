@@ -12,12 +12,7 @@ internal static class TelemetryHelper
 
     public static object GetBoxedStatusCode(int statusCode)
     {
-        if (statusCode >= 100 && statusCode < 600)
-        {
-            return BoxedStatusCodes[statusCode - 100];
-        }
-
-        return statusCode;
+        return statusCode is >= 100 and < 600 ? BoxedStatusCodes[statusCode - 100] : statusCode;
     }
 
     private static object[] InitializeBoxedStatusCodes()

@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Metrics;
 
 internal sealed class AWSMeterProvider : MeterProvider
 {
-    private static readonly ConcurrentDictionary<string, AWSMeter> MetersDictionary = new ConcurrentDictionary<string, AWSMeter>();
+    private static readonly ConcurrentDictionary<string, AWSMeter> MetersDictionary = new();
 
     public override Meter GetMeter(string scope, Attributes? attributes = null)
     {
@@ -20,7 +20,7 @@ internal sealed class AWSMeterProvider : MeterProvider
         // update OpenTelemetry core component version(s) to `1.9.0` and allow passing tags to
         // the meter constructor.
 
-        if (MetersDictionary.TryGetValue(scope, out AWSMeter? meter))
+        if (MetersDictionary.TryGetValue(scope, out var meter))
         {
             return meter;
         }

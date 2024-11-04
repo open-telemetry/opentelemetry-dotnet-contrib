@@ -37,7 +37,7 @@ public class RequestContextHelperTests
 
         var context = new TestRequestContext(originalRequest, request);
 
-        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType, context);
+        var addAttributes = TestsHelper.CreateAddAttributesAction(serviceType);
         addAttributes?.Invoke(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         Assert.Equal(30, parameters.Count);

@@ -25,7 +25,9 @@
   semantic conventions for
   [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
   ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229),
-   [#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277))
+   [#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277),
+   [#2262](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2262),
+   [#2279](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2279))
 * **Breaking change**: The `peer.service` and `server.socket.address` attributes
   are no longer emitted. Users should rely on the `server.address` attribute
   for the same information. Note that `server.address` is only included when
@@ -43,6 +45,8 @@
   `server.address`, and `server.port`. These attributes are now available for sampling
   decisions.
   ([#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277))
+* **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
 
 ## 1.9.0-beta.1
 

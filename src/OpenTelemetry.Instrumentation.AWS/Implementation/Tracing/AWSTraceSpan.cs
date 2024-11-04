@@ -85,6 +85,7 @@ internal sealed class AWSTraceSpan : TraceSpan
         {
             SpanStatus.OK => ActivityStatusCode.Ok,
             SpanStatus.ERROR => ActivityStatusCode.Error,
+            SpanStatus.UNSET => ActivityStatusCode.Unset,
             _ => ActivityStatusCode.Unset,
         };
     }

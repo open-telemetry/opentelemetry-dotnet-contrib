@@ -65,7 +65,9 @@ With Traces and Metrics = Baseline + With Traces + (With Metrics - (Activity cre
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Benchmark.Instrumentation;
 
+#pragma warning disable CA1515
 public class AspNetCoreInstrumentationBenchmarks
+#pragma warning restore CA1515
 {
     private HttpClient? httpClient;
     private WebApplication? app;
@@ -73,7 +75,9 @@ public class AspNetCoreInstrumentationBenchmarks
     private MeterProvider? meterProvider;
 
     [Flags]
+#pragma warning disable CA1515
     public enum EnableInstrumentationOption
+#pragma warning restore CA1515
     {
         /// <summary>
         /// Instrumentation is not enabled for any signal.
