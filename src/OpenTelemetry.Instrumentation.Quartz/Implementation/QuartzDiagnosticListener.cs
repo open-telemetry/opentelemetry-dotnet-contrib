@@ -129,8 +129,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            var exc = payload as Exception;
-            if (exc == null)
+            if (payload is not Exception exc)
             {
                 QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
                 return;
