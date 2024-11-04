@@ -239,7 +239,7 @@ public class ElasticsearchClientTests
     }
 
     [Fact]
-    public async Task CanSupressDownstreamActivities()
+    public async Task CanSuppressDownstreamActivities()
     {
         bool samplerCalled = false;
 
