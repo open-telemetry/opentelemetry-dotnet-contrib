@@ -5,7 +5,7 @@ using Quartz;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Tests;
 
-public class TestJobExecutionExceptionJob : IJob
+internal class TestJobExecutionExceptionJob : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {
