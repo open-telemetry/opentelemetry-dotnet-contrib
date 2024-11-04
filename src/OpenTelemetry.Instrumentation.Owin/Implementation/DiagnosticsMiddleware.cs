@@ -77,7 +77,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, owinContext.Request, OwinRequestHeaderValuesGetter);
 
-        Activity? activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activity = OwinInstrumentationActivitySource.ActivitySource.StartActivity(
             OwinInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
@@ -103,7 +103,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 activity.SetTag(SemanticConventions.AttributeUrlQuery, request.Query);
                 activity.SetTag(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme);
 
-                if (request.Headers.TryGetValue("User-Agent", out string[] userAgent) && userAgent.Length > 0)
+                if (request.Headers.TryGetValue("User-Agent", out var userAgent) && userAgent.Length > 0)
                 {
                     activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent[0]);
                 }
@@ -124,7 +124,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 }
             }
 
-            if (!(textMapPropagator is TraceContextPropagator))
+            if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
@@ -136,7 +136,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RequestEnd(IOwinContext owinContext, Exception? exception, long startTimestamp)
     {
-        if (owinContext.Environment.TryGetValue(ContextKey, out object context)
+        if (owinContext.Environment.TryGetValue(ContextKey, out var context)
             && context is Activity activity)
         {
             if (Activity.Current != activity)
@@ -191,7 +191,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                     new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
             }
 
-            if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
+            if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = default;
             }
@@ -208,22 +208,5 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 new(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme),
                 new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
         }
-    }
-
-    /// <summary>
-    /// Gets the OpenTelemetry standard uri tag value for a span based on its request <see cref="Uri"/>.
-    /// </summary>
-    /// <param name="uri"><see cref="Uri"/>.</param>
-    /// <returns>Span uri value.</returns>
-    private static string GetUriTagValueFromRequestUri(Uri uri, bool disableQueryRedaction)
-    {
-        if (string.IsNullOrEmpty(uri.UserInfo) && disableQueryRedaction)
-        {
-            return uri.OriginalString;
-        }
-
-        var query = disableQueryRedaction ? uri.Query : RedactionHelper.GetRedactedQueryString(uri.Query);
-
-        return string.Concat(uri.Scheme, Uri.SchemeDelimiter, uri.Authority, uri.AbsolutePath, query, uri.Fragment);
     }
 }
