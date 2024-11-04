@@ -124,7 +124,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                 }
             }
 
-            if (!(textMapPropagator is TraceContextPropagator))
+            if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
@@ -191,7 +191,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
                     new(SemanticConventions.AttributeHttpResponseStatusCode, owinContext.Response.StatusCode));
             }
 
-            if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
+            if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = default;
             }
