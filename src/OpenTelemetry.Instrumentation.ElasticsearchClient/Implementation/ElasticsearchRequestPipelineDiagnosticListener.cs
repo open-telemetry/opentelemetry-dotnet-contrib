@@ -57,6 +57,8 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch.Stop":
                 this.OnStopActivity(activity, payload);
                 break;
+            default:
+                break;
         }
     }
 
@@ -269,14 +271,10 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
 
                 if (originalException is HttpRequestException)
                 {
-                    if (originalException.InnerException is SocketException exception)
+                    if (originalException.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound })
                     {
-                        switch (exception.SocketErrorCode)
-                        {
-                            case SocketError.HostNotFound:
-                                activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-                                return;
-                        }
+                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                        return;
                     }
 
                     if (originalException.InnerException != null)
