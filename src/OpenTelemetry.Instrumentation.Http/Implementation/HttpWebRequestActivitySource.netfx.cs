@@ -89,10 +89,7 @@ internal static class HttpWebRequestActivitySource
     internal static HttpClientTraceInstrumentationOptions TracingOptions
     {
         get => tracingOptions;
-        set
-        {
-            tracingOptions = value;
-        }
+        set => tracingOptions = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
