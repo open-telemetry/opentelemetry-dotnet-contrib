@@ -66,6 +66,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 
