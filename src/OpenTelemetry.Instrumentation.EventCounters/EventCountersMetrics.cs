@@ -18,8 +18,8 @@ internal sealed class EventCountersMetrics : EventListener
     private const int MaxInstrumentNameLength = 63;
 
     private readonly EventCountersInstrumentationOptions options;
-    private readonly List<EventSource> preInitEventSources = new();
-    private readonly List<EventSource> enabledEventSources = new();
+    private readonly List<EventSource> preInitEventSources = [];
+    private readonly List<EventSource> enabledEventSources = [];
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
     private bool isDisposed;
