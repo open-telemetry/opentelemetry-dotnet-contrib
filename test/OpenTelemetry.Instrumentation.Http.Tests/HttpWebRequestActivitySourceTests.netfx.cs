@@ -690,7 +690,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var parentActivity = new Activity("parent").Start();
         using var eventRecords = new ActivitySourceRecorder();
 
-        Dictionary<Uri, Tuple<WebRequest, WebResponse>> requestData = new Dictionary<Uri, Tuple<WebRequest, WebResponse>>();
+        Dictionary<Uri, Tuple<WebRequest, WebResponse>> requestData = [];
         for (int i = 0; i < 10; i++)
         {
             Uri uriWithRedirect = new Uri(this.BuildRequestUrl(queryString: $"q={i}&redirects=3"));
@@ -700,7 +700,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         // Issue all requests simultaneously
         using var httpClient = new HttpClient();
-        Dictionary<Uri, Task<HttpResponseMessage>> tasks = new Dictionary<Uri, Task<HttpResponseMessage>>();
+        Dictionary<Uri, Task<HttpResponseMessage>> tasks = [];
 
         CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         foreach (var url in requestData.Keys)
