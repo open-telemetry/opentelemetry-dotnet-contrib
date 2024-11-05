@@ -174,7 +174,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
-        string[] states = new[] { "Enqueued", "Processing" };
+        string[] states = ["Enqueued", "Processing"];
         JobDetailsDto jobDetails;
         while (((jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
                && DateTime.Now < timeout)
