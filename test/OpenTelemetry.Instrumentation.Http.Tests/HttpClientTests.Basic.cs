@@ -38,11 +38,7 @@ public partial class HttpClientTests : IDisposable
                 var custom_traceparent = ctx.Request.Headers["custom_traceparent"];
                 var contextRequired = ctx.Request.Headers["contextRequired"];
                 var responseCode = ctx.Request.Headers["responseCode"];
-                if ((contextRequired == null
-                     || bool.Parse(contextRequired))
-                    &&
-                    (string.IsNullOrWhiteSpace(traceparent)
-                        && string.IsNullOrWhiteSpace(custom_traceparent)))
+                if ((contextRequired == null || bool.Parse(contextRequired)) && string.IsNullOrWhiteSpace(traceparent) && string.IsNullOrWhiteSpace(custom_traceparent))
                 {
                     ctx.Response.StatusCode = 500;
                     ctx.Response.StatusDescription = "Missing trace context";

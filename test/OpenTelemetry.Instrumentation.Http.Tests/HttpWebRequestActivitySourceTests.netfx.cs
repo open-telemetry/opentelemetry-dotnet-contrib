@@ -84,14 +84,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             }
 
             string responseCode = context.Request.QueryString["responseCode"];
-            if (!string.IsNullOrWhiteSpace(responseCode))
-            {
-                context.Response.StatusCode = int.Parse(responseCode);
-            }
-            else
-            {
-                context.Response.StatusCode = 200;
-            }
+            context.Response.StatusCode = !string.IsNullOrWhiteSpace(responseCode) ? int.Parse(responseCode) : 200;
 
             if (context.Response.StatusCode != 204)
             {
@@ -565,7 +558,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                     ? client.GetAsync(new Uri(url), cts.Token)
                     : client.PostAsync(new Uri(url), new StringContent("hello world"), cts.Token);
             });
-            Assert.True(ex is TaskCanceledException || ex is WebException);
+            Assert.True(ex is TaskCanceledException or WebException);
         }
 
         // We should have one Start event and one Stop event with an exception.
@@ -739,8 +732,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             Activity activity = pair.Value;
 
             Assert.True(
-                pair.Key == "Start" ||
-                pair.Key == "Stop",
+                pair.Key is "Start" or "Stop",
                 "An unexpected event of name " + pair.Key + "was received");
         }
     }

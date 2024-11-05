@@ -1180,7 +1180,7 @@ internal static class HttpWebRequestActivitySource
         public void AsyncCallback(IAsyncResult asyncResult)
         {
             object result = resultAccessor(asyncResult);
-            if (result is Exception || result is HttpWebResponse)
+            if (result is Exception or HttpWebResponse)
             {
                 ProcessResult(
                     asyncResult,

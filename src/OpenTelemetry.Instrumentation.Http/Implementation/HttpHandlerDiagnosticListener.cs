@@ -163,12 +163,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
-            if (!StartRequestFetcher.TryFetch(payload, out request) || request == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StartRequestFetcher.TryFetch(payload, out request) && request != null;
         }
     }
 
@@ -248,12 +243,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
         {
-            if (StopResponseFetcher.TryFetch(payload, out response) && response != null)
-            {
-                return true;
-            }
-
-            return false;
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
         }
     }
 
@@ -301,12 +291,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
         {
-            if (!StopExceptionFetcher.TryFetch(payload, out exc) || exc == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StopExceptionFetcher.TryFetch(payload, out exc) && exc != null;
         }
     }
 

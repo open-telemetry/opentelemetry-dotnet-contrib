@@ -151,13 +151,7 @@ public partial class HttpClientTests
         }
 
         var requestMetrics = metrics
-            .Where(metric =>
-            metric.Name == "http.client.request.duration" ||
-            metric.Name == "http.client.active_requests" ||
-            metric.Name == "http.client.request.time_in_queue" ||
-            metric.Name == "http.client.connection.duration" ||
-            metric.Name == "http.client.open_connections" ||
-            metric.Name == "dns.lookup.duration")
+            .Where(metric => metric.Name is "http.client.request.duration" or "http.client.active_requests" or "http.client.request.time_in_queue" or "http.client.connection.duration" or "http.client.open_connections" or "dns.lookup.duration")
             .ToArray();
 
         if (tc.ResponseExpected)

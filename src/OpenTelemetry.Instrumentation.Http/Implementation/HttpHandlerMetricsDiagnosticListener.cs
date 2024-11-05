@@ -135,12 +135,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
         {
-            if (!StopExceptionFetcher.TryFetch(payload, out exc) || exc == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StopExceptionFetcher.TryFetch(payload, out exc) && exc != null;
         }
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
@@ -150,12 +145,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
-            if (!RequestFetcher.TryFetch(payload, out request) || request == null)
-            {
-                return false;
-            }
-
-            return true;
+            return RequestFetcher.TryFetch(payload, out request) && request != null;
         }
     }
 
