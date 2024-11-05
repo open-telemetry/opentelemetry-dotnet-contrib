@@ -40,8 +40,6 @@ internal static class HttpWebRequestActivitySource
     private static readonly Meter WebRequestMeter = new(MeterName, Version);
     private static readonly Histogram<double> HttpClientRequestDuration = WebRequestMeter.CreateHistogram<double>("http.client.request.duration", "s", "Duration of HTTP client requests.");
 
-    private static HttpClientTraceInstrumentationOptions tracingOptions;
-
     // Fields for reflection
     private static FieldInfo connectionGroupListField;
     private static Type connectionGroupType;
@@ -86,11 +84,7 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
-    internal static HttpClientTraceInstrumentationOptions TracingOptions
-    {
-        get => tracingOptions;
-        set => tracingOptions = value;
-    }
+    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
@@ -105,7 +99,7 @@ internal static class HttpWebRequestActivitySource
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
 
-            activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, tracingOptions.DisableUrlQueryRedaction));
+            activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, TracingOptions.DisableUrlQueryRedaction));
 
             try
             {
