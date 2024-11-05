@@ -38,11 +38,7 @@ public partial class HttpClientTests : IDisposable
                 var custom_traceparent = ctx.Request.Headers["custom_traceparent"];
                 var contextRequired = ctx.Request.Headers["contextRequired"];
                 var responseCode = ctx.Request.Headers["responseCode"];
-                if ((contextRequired == null
-                     || bool.Parse(contextRequired))
-                    &&
-                    (string.IsNullOrWhiteSpace(traceparent)
-                        && string.IsNullOrWhiteSpace(custom_traceparent)))
+                if ((contextRequired == null || bool.Parse(contextRequired)) && string.IsNullOrWhiteSpace(traceparent) && string.IsNullOrWhiteSpace(custom_traceparent))
                 {
                     ctx.Response.StatusCode = 500;
                     ctx.Response.StatusDescription = "Missing trace context";
@@ -189,8 +185,8 @@ public partial class HttpClientTests : IDisposable
 #if NETFRAMEWORK
         if (shouldEnrich)
         {
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpWebRequest").FirstOrDefault().Value);
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpWebResponse").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpWebRequest").Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpWebResponse").Value);
         }
         else
         {
@@ -206,8 +202,8 @@ public partial class HttpClientTests : IDisposable
 
         if (shouldEnrich)
         {
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpRequestMessage").FirstOrDefault().Value);
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpResponseMessage").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpRequestMessage").Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpResponseMessage").Value);
         }
         else
         {

@@ -10,18 +10,18 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 internal sealed class HttpClientInstrumentation : IDisposable
 {
-    private static readonly HashSet<string> ExcludedDiagnosticSourceEventsNet7OrGreater = new()
-    {
+    private static readonly HashSet<string> ExcludedDiagnosticSourceEventsNet7OrGreater =
+    [
         "System.Net.Http.Request",
         "System.Net.Http.Response",
-        "System.Net.Http.HttpRequestOut",
-    };
+        "System.Net.Http.HttpRequestOut"
+    ];
 
-    private static readonly HashSet<string> ExcludedDiagnosticSourceEvents = new()
-    {
+    private static readonly HashSet<string> ExcludedDiagnosticSourceEvents =
+    [
         "System.Net.Http.Request",
-        "System.Net.Http.Response",
-    };
+        "System.Net.Http.Response"
+    ];
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
@@ -43,14 +43,9 @@ internal sealed class HttpClientInstrumentation : IDisposable
         // the framework will fall back to creating activity anyways due to active diagnostic source listener
         // To prevent this, isEnabled is implemented which will return false always
         // so that the sampler's decision is respected.
-        if (HttpHandlerDiagnosticListener.IsNet7OrGreater)
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabledNet7OrGreater, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
-        }
-        else
-        {
-            this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabled, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
-        }
+        this.diagnosticSourceSubscriber = HttpHandlerDiagnosticListener.IsNet7OrGreater
+                ? new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabledNet7OrGreater, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent)
+                : new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabled, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
 
         this.diagnosticSourceSubscriber.Subscribe();
     }
