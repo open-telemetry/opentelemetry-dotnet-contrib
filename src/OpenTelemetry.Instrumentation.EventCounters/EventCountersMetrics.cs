@@ -18,8 +18,8 @@ internal sealed class EventCountersMetrics : EventListener
     private const int MaxInstrumentNameLength = 63;
 
     private readonly EventCountersInstrumentationOptions options;
-    private readonly List<EventSource> preInitEventSources = new();
-    private readonly List<EventSource> enabledEventSources = new();
+    private readonly List<EventSource> preInitEventSources = [];
+    private readonly List<EventSource> enabledEventSources = [];
     private readonly ConcurrentDictionary<(string, string), Instrument> instruments = new();
     private readonly ConcurrentDictionary<(string, string), double> values = new();
     private bool isDisposed;
@@ -45,7 +45,7 @@ internal sealed class EventCountersMetrics : EventListener
         {
             this.options = options;
 
-            foreach (EventSource eventSource in this.preInitEventSources)
+            foreach (var eventSource in this.preInitEventSources)
             {
                 if (this.options.ShouldListenToSource(eventSource.Name))
                 {
@@ -167,7 +167,7 @@ internal sealed class EventCountersMetrics : EventListener
     /// </summary>
     private static string GetInstrumentName(string sourceName, string eventName)
     {
-        int totalLength = Prefix.Length + 1 + sourceName.Length + 1 + eventName.Length;
+        var totalLength = Prefix.Length + 1 + sourceName.Length + 1 + eventName.Length;
         if (totalLength <= MaxInstrumentNameLength)
         {
             return string.Concat(Prefix, ".", sourceName, ".", eventName);
