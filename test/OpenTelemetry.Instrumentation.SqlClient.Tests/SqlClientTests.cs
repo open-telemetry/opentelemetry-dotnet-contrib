@@ -310,12 +310,7 @@ public class SqlClientTests : IDisposable
             },
             cmd =>
             {
-                if (cmd is SqlCommand command)
-                {
-                    return command.CommandText == "select 2";
-                }
-
-                return true;
+                return cmd is not SqlCommand command || command.CommandText == "select 2";
             });
 
         Assert.Single(activities);
@@ -333,12 +328,7 @@ public class SqlClientTests : IDisposable
             },
             cmd =>
             {
-                if (cmd is SqlCommand command)
-                {
-                    return command.CommandText == "select 2";
-                }
-
-                return true;
+                return cmd is not SqlCommand command || command.CommandText == "select 2";
             });
 
         Assert.Empty(activities);
