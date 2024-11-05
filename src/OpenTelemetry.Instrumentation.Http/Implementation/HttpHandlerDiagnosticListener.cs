@@ -111,7 +111,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         {
             try
             {
-                if (this.options.EventFilterHttpRequestMessage(activity.OperationName, request) == false)
+                if (!this.options.EventFilterHttpRequestMessage(activity.OperationName, request))
                 {
                     HttpInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
