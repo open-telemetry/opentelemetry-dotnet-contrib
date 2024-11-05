@@ -359,12 +359,11 @@ internal static class HttpWebRequestActivitySource
                     // Disposed HttpWebResponse throws when accessing properties, so let's make a copy of the data to ensure that doesn't happen.
 
                     HttpWebResponse responseCopy = httpWebResponseCtor(
-                        new object[]
-                        {
-                            uriAccessor(response), verbAccessor(response), coreResponseDataAccessor(response), mediaTypeAccessor(response),
+                    [
+                        uriAccessor(response), verbAccessor(response), coreResponseDataAccessor(response), mediaTypeAccessor(response),
                             usesProxySemanticsAccessor(response), DecompressionMethods.None,
-                            isWebSocketResponseAccessor(response), connectionGroupNameAccessor(response),
-                        });
+                            isWebSocketResponseAccessor(response), connectionGroupNameAccessor(response)
+                    ]);
 
                     if (activity != null)
                     {
@@ -567,7 +566,7 @@ internal static class HttpWebRequestActivitySource
             ?? throw new InvalidOperationException("Unable to access the ServicePointTable field");
 
         Hashtable originalTable = servicePointTableField.GetValue(null) as Hashtable;
-        ServicePointHashtable newTable = new ServicePointHashtable(originalTable ?? new Hashtable());
+        ServicePointHashtable newTable = new ServicePointHashtable(originalTable ?? []);
 
         foreach (DictionaryEntry existingServicePoint in originalTable)
         {
@@ -587,7 +586,7 @@ internal static class HttpWebRequestActivitySource
             // which allows us to intercept each new ConnectionGroup object added under
             // this ServicePoint.
             Hashtable originalTable = connectionGroupListField.GetValue(servicePoint) as Hashtable;
-            ConnectionGroupHashtable newTable = new ConnectionGroupHashtable(originalTable ?? new Hashtable());
+            ConnectionGroupHashtable newTable = new ConnectionGroupHashtable(originalTable ?? []);
 
             foreach (DictionaryEntry existingConnectionGroup in originalTable)
             {
@@ -606,7 +605,7 @@ internal static class HttpWebRequestActivitySource
             // which allows us to intercept each new Connection object added under
             // this ConnectionGroup.
             ArrayList originalArrayList = connectionListField.GetValue(value) as ArrayList;
-            ConnectionArrayList newArrayList = new ConnectionArrayList(originalArrayList ?? new ArrayList());
+            ConnectionArrayList newArrayList = new ConnectionArrayList(originalArrayList ?? []);
 
             foreach (object connection in originalArrayList)
             {
@@ -625,7 +624,7 @@ internal static class HttpWebRequestActivitySource
             // which allows us to intercept each new HttpWebRequest object added under
             // this Connection.
             ArrayList originalArrayList = writeListField.GetValue(value) as ArrayList;
-            HttpWebRequestArrayList newArrayList = new HttpWebRequestArrayList(originalArrayList ?? new ArrayList());
+            HttpWebRequestArrayList newArrayList = new HttpWebRequestArrayList(originalArrayList ?? []);
 
             writeListField.SetValue(value, newArrayList);
         }
@@ -638,7 +637,7 @@ internal static class HttpWebRequestActivitySource
         if (field != null)
         {
             string methodName = field.ReflectedType.FullName + ".get_" + field.Name;
-            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(TClass) }, true);
+            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(TClass)], true);
             ILGenerator generator = getterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldfld, field);
@@ -659,7 +658,7 @@ internal static class HttpWebRequestActivitySource
         if (field != null)
         {
             string methodName = classType.FullName + ".get_" + field.Name;
-            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
+            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
             ILGenerator generator = getterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Castclass, classType);
@@ -682,7 +681,7 @@ internal static class HttpWebRequestActivitySource
         if (field != null)
         {
             string methodName = classType.FullName + ".set_" + field.Name;
-            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(object), typeof(TField) }, true);
+            DynamicMethod setterMethod = new DynamicMethod(methodName, null, [typeof(object), typeof(TField)], true);
             ILGenerator generator = setterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Castclass, classType);
@@ -702,7 +701,7 @@ internal static class HttpWebRequestActivitySource
     private static Func<object, bool> CreateTypeChecker(Type classType)
     {
         string methodName = classType.FullName + ".typeCheck";
-        DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(bool), new[] { typeof(object) }, true);
+        DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(bool), [typeof(object)], true);
         ILGenerator generator = setterMethod.GetILGenerator();
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Isinst, classType);
@@ -720,7 +719,7 @@ internal static class HttpWebRequestActivitySource
     {
         Type classType = typeof(T);
         string methodName = classType.FullName + ".ctor";
-        DynamicMethod setterMethod = new DynamicMethod(methodName, classType, new Type[] { typeof(object[]) }, true);
+        DynamicMethod setterMethod = new DynamicMethod(methodName, classType, [typeof(object[])], true);
         ILGenerator generator = setterMethod.GetILGenerator();
 
         ParameterInfo[] ctorParams = constructorInfo.GetParameters();

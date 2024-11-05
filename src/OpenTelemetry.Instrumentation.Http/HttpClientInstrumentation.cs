@@ -10,18 +10,18 @@ namespace OpenTelemetry.Instrumentation.Http;
 /// </summary>
 internal sealed class HttpClientInstrumentation : IDisposable
 {
-    private static readonly HashSet<string> ExcludedDiagnosticSourceEventsNet7OrGreater = new()
-    {
+    private static readonly HashSet<string> ExcludedDiagnosticSourceEventsNet7OrGreater =
+    [
         "System.Net.Http.Request",
         "System.Net.Http.Response",
-        "System.Net.Http.HttpRequestOut",
-    };
+        "System.Net.Http.HttpRequestOut"
+    ];
 
-    private static readonly HashSet<string> ExcludedDiagnosticSourceEvents = new()
-    {
+    private static readonly HashSet<string> ExcludedDiagnosticSourceEvents =
+    [
         "System.Net.Http.Request",
-        "System.Net.Http.Response",
-    };
+        "System.Net.Http.Response"
+    ];
 
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
