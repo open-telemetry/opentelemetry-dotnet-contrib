@@ -7,7 +7,7 @@ using System.Net.Http;
 
 namespace OpenTelemetry.Tests;
 
-public class RepeatHandler : DelegatingHandler
+internal class RepeatHandler : DelegatingHandler
 {
     private readonly int maxRetries;
 

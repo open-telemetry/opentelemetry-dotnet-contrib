@@ -92,12 +92,7 @@ public partial class HttpWebRequestTests
             x => x.Key,
             x =>
             {
-                if (x.Key == "network.protocol.version")
-                {
-                    return "1.1";
-                }
-
-                return HttpTestData.NormalizeValues(x.Value, host, port);
+                return x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, host, port);
             });
 
         foreach (var tag in activity.TagObjects)
