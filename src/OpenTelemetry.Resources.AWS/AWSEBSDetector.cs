@@ -4,6 +4,7 @@
 #if NET
 using System.Runtime.InteropServices;
 #endif
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -54,30 +55,14 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsElasticBeanstalk),
-            new(AWSSemanticConventions.AttributeServiceName, AWSSemanticConventions.ServiceNameValuesAwsElasticBeanstalk),
-        };
-
-        if (metadata != null)
-        {
-            if (metadata.EnvironmentName != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName));
-            }
-
-            if (metadata.DeploymentId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId));
-            }
-
-            if (metadata.VersionLabel != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel));
-            }
-        }
+        var resourceAttributes =
+            new List<KeyValuePair<string, object>>()
+                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
+                .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsElasticBeanstalk)
+                .AddAttributeServiceName(AWSSemanticConventions.ServiceNameValuesAwsElasticBeanstalk)
+                .AddAttributeServiceNamespace(metadata?.EnvironmentName)
+                .AddAttributeServiceInstanceID(metadata?.DeploymentId)
+                .AddAttributeServiceVersion(metadata?.VersionLabel);
 
         return resourceAttributes;
     }

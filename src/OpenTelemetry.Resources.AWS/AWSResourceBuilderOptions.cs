@@ -3,18 +3,13 @@
 
 using OpenTelemetry.AWS;
 
-namespace OpenTelemetry.Instrumentation.AWS;
+namespace OpenTelemetry.Resources.AWS;
 
 /// <summary>
-/// Options for AWS client instrumentation.
+/// AWS Resource builder options.
 /// </summary>
-public class AWSClientInstrumentationOptions
+public class AWSResourceBuilderOptions
 {
-    /// <summary>
-    /// Gets or sets a value indicating whether downstream instrumentation is suppressed.
-    /// </summary>
-    public bool SuppressDownstreamInstrumentation { get; set; }
-
     /// <inheritdoc cref="OpenTelemetry.AWS.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }
