@@ -189,8 +189,8 @@ public partial class HttpClientTests : IDisposable
 #if NETFRAMEWORK
         if (shouldEnrich)
         {
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpWebRequest").FirstOrDefault().Value);
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpWebResponse").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpWebRequest").Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpWebResponse").Value);
         }
         else
         {
@@ -206,8 +206,8 @@ public partial class HttpClientTests : IDisposable
 
         if (shouldEnrich)
         {
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpRequestMessage").FirstOrDefault().Value);
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enrichedWithHttpResponseMessage").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpRequestMessage").Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enrichedWithHttpResponseMessage").Value);
         }
         else
         {

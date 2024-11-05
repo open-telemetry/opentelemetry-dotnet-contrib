@@ -54,7 +54,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Activity.ForceDefaultIdFormat = false;
 
         this.testServer = TestHttpServer.RunServer(
-            ctx => ProcessServerRequest(ctx),
+            ProcessServerRequest,
             out this.testServerHost,
             out this.testServerPort);
 
