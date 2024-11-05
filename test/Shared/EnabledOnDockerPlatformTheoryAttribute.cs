@@ -41,8 +41,10 @@ internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
             UseShellExecute = false,
         };
 
-        var process = new Process();
-        process.StartInfo = processStartInfo;
+        var process = new Process
+        {
+            StartInfo = processStartInfo,
+        };
         process.OutputDataReceived += AppendStdout;
         process.ErrorDataReceived += AppendStderr;
 
