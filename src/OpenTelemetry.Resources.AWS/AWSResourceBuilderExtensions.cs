@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources.AWS;
 
@@ -16,9 +17,15 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+
         return builder.AddDetector(new AWSEBSDetector());
     }
 
@@ -27,9 +34,15 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+
         return builder.AddDetector(new AWSEC2Detector());
     }
 
@@ -39,9 +52,15 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+
         return builder.AddDetector(new AWSECSDetector());
     }
 
@@ -50,9 +69,15 @@ public static class AWSResourceBuilderExtensions
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+
         return builder.AddDetector(new AWSEKSDetector());
     }
 #endif
