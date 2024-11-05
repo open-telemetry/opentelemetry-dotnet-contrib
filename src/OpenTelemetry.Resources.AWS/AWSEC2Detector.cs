@@ -4,6 +4,7 @@
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -43,40 +44,16 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsEc2),
-            new(AWSSemanticConventions.AttributeHostName, hostName),
-        };
-
-        if (identity != null)
-        {
-            if (identity.AccountId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId));
-            }
-
-            if (identity.AvailabilityZone != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailabilityZone, identity.AvailabilityZone));
-            }
-
-            if (identity.InstanceId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId));
-            }
-
-            if (identity.InstanceType != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType));
-            }
-
-            if (identity.Region != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region));
-            }
-        }
+        var resourceAttributes =
+            new List<KeyValuePair<string, object>>()
+                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
+                .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEc2)
+                .AddAttributeHostName(hostName)
+                .AddAttributeCloudAccountID(identity?.AccountId)
+                .AddAttributeCloudAvailabilityZone(identity?.AvailabilityZone)
+                .AddAttributeHostID(identity?.InstanceId)
+                .AddAttributeHostType(identity?.InstanceType)
+                .AddAttributeCloudRegion(identity?.Region);
 
         return resourceAttributes;
     }

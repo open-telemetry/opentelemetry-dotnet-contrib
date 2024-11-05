@@ -3,6 +3,7 @@
 
 #if NET
 using System.Text;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -37,20 +38,10 @@ internal sealed class AWSEKSDetector : IResourceDetector
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsEks),
-        };
-
-        if (!string.IsNullOrEmpty(clusterName))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName!));
-        }
-
-        if (!string.IsNullOrEmpty(containerId))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId!));
-        }
+            .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
+            .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEks)
+            .AddAttributeK8SClusterName(clusterName)
+            .AddAttributeContainerID(containerId);
 
         return resourceAttributes;
     }

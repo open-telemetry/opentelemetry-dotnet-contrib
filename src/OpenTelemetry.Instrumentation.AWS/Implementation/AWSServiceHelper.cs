@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Runtime;
+using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
@@ -22,16 +23,15 @@ internal class AWSServiceHelper
         { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
     };
 
-    internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
-    {
-        { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
-        { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
-        { "ModelId", AWSSemanticConventions.AttributeGenAiModelId },
-        { "AgentId", AWSSemanticConventions.AttributeAWSBedrockAgentId },
-        { "DataSourceId", AWSSemanticConventions.AttributeAWSBedrockDataSourceId },
-        { "GuardrailId", AWSSemanticConventions.AttributeAWSBedrockGuardrailId },
-        { "KnowledgeBaseId", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId },
-    };
+    internal static IDictionary<string, string> ParameterAttributeMap =
+        new Dictionary<string, string>()
+            .AddAttributeAWSDynamoTableName("TableName")
+            .AddAttributeAWSSQSQueueUrl("QueueUrl")
+            .AddAttributeGenAiModelId("ModelId")
+            .AddAttributeAWSBedrockAgentId("AgentId")
+            .AddAttributeAWSBedrockDataSourceId("DataSourceId")
+            .AddAttributeAWSBedrockGuardrailId("GuardrailId")
+            .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId");
 
     // for Bedrock Agent operations, we map each supported operation to one resource: Agent, DataSource, or KnowledgeBase
     internal static List<string> BedrockAgentAgentOps =

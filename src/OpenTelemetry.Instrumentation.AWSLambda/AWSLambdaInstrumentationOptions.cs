@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
+
 namespace OpenTelemetry.Instrumentation.AWSLambda;
 
 /// <summary>
@@ -21,4 +23,7 @@ public class AWSLambdaInstrumentationOptions
     /// Currently, the only event type to which this applies is SQS.
     /// </remarks>
     public bool SetParentFromBatch { get; set; }
+
+    /// <inheritdoc cref="OpenTelemetry.AWS.SemanticConventionVersion"/>
+    public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }
