@@ -32,12 +32,14 @@ internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
             stderr.Append(e.Data);
         }
 
-        var processStartInfo = new ProcessStartInfo();
-        processStartInfo.FileName = executable;
-        processStartInfo.Arguments = string.Join(" ", "version", "--format '{{.Server.Os}}'");
-        processStartInfo.RedirectStandardOutput = true;
-        processStartInfo.RedirectStandardError = true;
-        processStartInfo.UseShellExecute = false;
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = executable,
+            Arguments = string.Join(" ", "version", "--format '{{.Server.Os}}'"),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
 
         var process = new Process();
         process.StartInfo = processStartInfo;

@@ -107,14 +107,11 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
     private string GetConnectionString()
     {
-        switch (this.fixture.DatabaseContainer)
+        return this.fixture.DatabaseContainer switch
         {
-            case SqlEdgeContainer container:
-                return container.GetConnectionString();
-            case MsSqlContainer container:
-                return container.GetConnectionString();
-            default:
-                throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported.");
-        }
+            SqlEdgeContainer container => container.GetConnectionString(),
+            MsSqlContainer container => container.GetConnectionString(),
+            _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
+        };
     }
 }
