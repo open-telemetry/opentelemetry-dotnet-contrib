@@ -39,7 +39,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
     public static void OnStopEventWritten(Activity activity, object? payload)
     {
-        if (TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (TryFetchRequest(payload, out var request))
         {
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md
             TagList tags = default;
@@ -58,7 +58,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
                 }
             }
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version)));
                 tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode)));
@@ -116,7 +116,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
     public static void OnExceptionEventWritten(Activity activity, object? payload)
     {
-        if (!TryFetchException(payload, out Exception? exc) || !TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchException(payload, out var exc) || !TryFetchRequest(payload, out var request))
         {
             HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerMetricsDiagnosticListener), nameof(OnExceptionEventWritten));
             return;

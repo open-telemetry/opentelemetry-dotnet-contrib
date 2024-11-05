@@ -22,7 +22,7 @@ public class RepeatHandler : DelegatingHandler
         CancellationToken cancellationToken)
     {
         HttpResponseMessage? response = null;
-        for (int i = 0; i < this.maxRetries; i++)
+        for (var i = 0; i < this.maxRetries; i++)
         {
             response?.Dispose();
 

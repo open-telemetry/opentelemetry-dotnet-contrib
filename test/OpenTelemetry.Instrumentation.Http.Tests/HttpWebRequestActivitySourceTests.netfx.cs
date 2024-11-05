@@ -63,8 +63,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         void ProcessServerRequest(HttpListenerContext context)
         {
-            string redirects = context.Request.QueryString["redirects"];
-            if (!string.IsNullOrWhiteSpace(redirects) && int.TryParse(redirects, out int parsedRedirects) && parsedRedirects > 0)
+            var redirects = context.Request.QueryString["redirects"];
+            if (!string.IsNullOrWhiteSpace(redirects) && int.TryParse(redirects, out var parsedRedirects) && parsedRedirects > 0)
             {
                 context.Response.Redirect(this.BuildRequestUrl(queryString: $"redirects={--parsedRedirects}"));
                 context.Response.OutputStream.Close();
@@ -74,7 +74,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             string responseContent;
             if (context.Request.QueryString["skipRequestContent"] == null)
             {
-                using StreamReader readStream = new StreamReader(context.Request.InputStream);
+                using var readStream = new StreamReader(context.Request.InputStream);
 
                 responseContent = readStream.ReadToEnd();
             }
@@ -83,12 +83,12 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                 responseContent = $"{{\"Id\":\"{Guid.NewGuid()}\"}}";
             }
 
-            string responseCode = context.Request.QueryString["responseCode"];
+            var responseCode = context.Request.QueryString["responseCode"];
             context.Response.StatusCode = !string.IsNullOrWhiteSpace(responseCode) ? int.Parse(responseCode) : 200;
 
             if (context.Response.StatusCode != 204)
             {
-                using StreamWriter writeStream = new StreamWriter(context.Response.OutputStream);
+                using var writeStream = new StreamWriter(context.Response.OutputStream);
 
                 writeStream.Write(responseContent);
             }
@@ -110,8 +110,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [Fact]
     public void TestHttpDiagnosticListenerIsRegistered()
     {
-        bool listenerFound = false;
-        using ActivityListener activityListener = new ActivityListener
+        var listenerFound = false;
+        using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource =>
             {
@@ -175,7 +175,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         // Check to make sure: The first record must be a request, the next record must be a response.
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
 
         VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
 
@@ -215,7 +215,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST", 3)]
     public async Task TestBasicReceiveAndResponseWebRequestEvents(string method, int mode)
     {
-        string url = this.BuildRequestUrl();
+        var url = this.BuildRequestUrl();
 
         using var eventRecords = new ActivitySourceRecorder();
 
@@ -237,9 +237,9 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                     break;
                 case 2:
                     {
-                        object state = new object();
-                        using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
-                        IAsyncResult asyncResult = webRequest.BeginGetRequestStream(
+                        var state = new object();
+                        using var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
+                        var asyncResult = webRequest.BeginGetRequestStream(
                             ar =>
                             {
                                 Assert.Equal(state, ar.AsyncState);
@@ -258,8 +258,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                     break;
                 case 3:
                     {
-                        using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
-                        object state = new object();
+                        using var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
+                        var state = new object();
                         webRequest.BeginGetRequestStream(
                             ar =>
                             {
@@ -283,7 +283,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
             Assert.NotNull(stream);
 
-            using StreamWriter writer = new StreamWriter(stream);
+            using var writer = new StreamWriter(stream);
 
             writer.WriteLine("hello world");
         }
@@ -299,9 +299,9 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                 break;
             case 2:
                 {
-                    object state = new object();
-                    using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
-                    IAsyncResult asyncResult = webRequest.BeginGetResponse(
+                    var state = new object();
+                    using var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
+                    var asyncResult = webRequest.BeginGetResponse(
                         ar =>
                         {
                             Assert.Equal(state, ar.AsyncState);
@@ -320,8 +320,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
                 break;
             case 3:
                 {
-                    using EventWaitHandle handle = new EventWaitHandle(false, EventResetMode.ManualReset);
-                    object state = new object();
+                    using var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
+                    var state = new object();
                     webRequest.BeginGetResponse(
                         ar =>
                         {
@@ -345,7 +345,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         Assert.NotNull(webResponse);
 
-        using StreamReader reader = new StreamReader(webResponse.GetResponseStream());
+        using var reader = new StreamReader(webResponse.GetResponseStream());
 
         reader.ReadToEnd(); // Make sure response is not disposed.
 
@@ -355,7 +355,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         // Check to make sure: The first record must be a request, the next record must be a response.
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
 
         VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
 
@@ -443,14 +443,14 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST")]
     public async Task TestResponseWithoutContentEvents(string method)
     {
-        string url = this.BuildRequestUrl(queryString: "responseCode=204");
+        var url = this.BuildRequestUrl(queryString: "responseCode=204");
 
         using var eventRecords = new ActivitySourceRecorder();
 
         // Send a random Http request to generate some events
         using (var client = new HttpClient())
         {
-            using HttpResponseMessage response = method == "GET"
+            using var response = method == "GET"
                 ? await client.GetAsync(new Uri(url))
                 : await client.PostAsync(new Uri(url), new StringContent("hello world"));
         }
@@ -461,7 +461,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         // Check to make sure: The first record must be a request, the next record must be a response.
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
 
         VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
 
@@ -483,7 +483,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
         using (var client = new HttpClient())
         {
-            using HttpResponseMessage response = method == "GET"
+            using var response = method == "GET"
                 ? await client.GetAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=10")))
                 : await client.PostAsync(new Uri(this.BuildRequestUrl(queryString: "redirects=10")), new StringContent("hello world"));
         }
@@ -502,8 +502,8 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST")]
     public async Task TestRequestWithException(string method)
     {
-        string host = Guid.NewGuid().ToString() + ".com";
-        string url = method == "GET"
+        var host = Guid.NewGuid().ToString() + ".com";
+        var url = method == "GET"
             ? $"http://{host}"
             : $"http://{host}";
 
@@ -527,10 +527,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         // Check to make sure: The first record must be a request, the next record must be an exception.
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
         VerifyActivityStartTags(host, null, method, url, activity);
 
-        Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
+        Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
         Assert.NotEqual(ActivityStatusCode.Unset, activity.Status);
@@ -545,9 +545,9 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST")]
     public async Task TestCanceledRequest(string method)
     {
-        string url = this.BuildRequestUrl();
+        var url = this.BuildRequestUrl();
 
-        CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var eventRecords = new ActivitySourceRecorder(_ => { cts.Cancel(); });
 
         using (var client = new HttpClient())
@@ -566,10 +566,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
         VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
 
-        Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
+        Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
         Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
@@ -584,7 +584,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST")]
     public async Task TestSecureTransportFailureRequest(string method)
     {
-        string url = "https://expired.badssl.com/";
+        var url = "https://expired.badssl.com/";
 
         using var eventRecords = new ActivitySourceRecorder();
 
@@ -605,10 +605,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
         VerifyActivityStartTags("expired.badssl.com", null, method, url, activity);
 
-        Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
+        Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
         Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
@@ -627,7 +627,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // It should retry. What we want to test for is 1 start, 1 exception event even
         // though multiple are actually sent.
 
-        string url = this.BuildRequestUrl(useHttps: true);
+        var url = this.BuildRequestUrl(useHttps: true);
 
         using var eventRecords = new ActivitySourceRecorder();
 
@@ -647,10 +647,10 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
-        Activity activity = AssertFirstEventWasStart(eventRecords);
+        var activity = AssertFirstEventWasStart(eventRecords);
         VerifyActivityStartTags(this.netPeerName, this.netPeerPort, method, url, activity);
 
-        Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> exceptionEvent));
+        Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
 
         Assert.NotEqual(ActivityStatusCode.Unset, exceptionEvent.Value.Status);
@@ -691,9 +691,9 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var eventRecords = new ActivitySourceRecorder();
 
         Dictionary<Uri, Tuple<WebRequest, WebResponse>> requestData = [];
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
-            Uri uriWithRedirect = new Uri(this.BuildRequestUrl(queryString: $"q={i}&redirects=3"));
+            var uriWithRedirect = new Uri(this.BuildRequestUrl(queryString: $"q={i}&redirects=3"));
 
             requestData[uriWithRedirect] = null;
         }
@@ -702,7 +702,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         using var httpClient = new HttpClient();
         Dictionary<Uri, Task<HttpResponseMessage>> tasks = [];
 
-        CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         foreach (var url in requestData.Keys)
         {
             tasks.Add(url, httpClient.GetAsync(url, cts.Token));
@@ -729,7 +729,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         // Check to make sure: We have a WebRequest and a WebResponse for each successful request
         foreach (var pair in eventRecords.Records)
         {
-            Activity activity = pair.Value;
+            var activity = pair.Value;
 
             Assert.True(
                 pair.Key is "Start" or "Stop",
@@ -739,7 +739,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
     private static Activity AssertFirstEventWasStart(ActivitySourceRecorder eventRecords)
     {
-        Assert.True(eventRecords.Records.TryDequeue(out KeyValuePair<string, Activity> startEvent));
+        Assert.True(eventRecords.Records.TryDequeue(out var startEvent));
         Assert.Equal("Start", startEvent.Key);
         return startEvent.Value;
     }
@@ -778,7 +778,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
 
     private static void ValidateBaggage(HttpWebRequest request)
     {
-        string[] baggage = request.Headers["baggage"].Split(',');
+        var baggage = request.Headers["baggage"].Split(',');
 
         Assert.Equal(3, baggage.Length);
         Assert.Contains("key=value", baggage);

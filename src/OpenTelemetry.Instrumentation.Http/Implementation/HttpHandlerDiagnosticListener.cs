@@ -83,7 +83,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
 
-        if (!TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchRequest(payload, out var request))
         {
             HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -173,7 +173,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         {
             var requestTaskStatus = GetRequestStatus(payload);
 
-            ActivityStatusCode currentStatusCode = activity.Status;
+            var currentStatusCode = activity.Status;
             if (requestTaskStatus != TaskStatus.RanToCompletion)
             {
                 if (requestTaskStatus == TaskStatus.Canceled)
@@ -197,7 +197,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
             }
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 if (currentStatusCode == ActivityStatusCode.Unset)
                 {
@@ -251,7 +251,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            if (!TryFetchException(payload, out Exception? exc))
+            if (!TryFetchException(payload, out var exc))
             {
                 HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnException));
                 return;
