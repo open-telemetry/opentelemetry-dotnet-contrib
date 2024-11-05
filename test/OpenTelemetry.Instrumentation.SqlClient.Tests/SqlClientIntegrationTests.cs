@@ -59,15 +59,15 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             })
             .Build();
 
-        using SqlConnection sqlConnection = new SqlConnection(this.GetConnectionString());
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
 
         sqlConnection.Open();
 
-        string dataSource = sqlConnection.DataSource;
+        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 #pragma warning disable CA2100
-        using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,
@@ -107,14 +107,11 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
     private string GetConnectionString()
     {
-        switch (this.fixture.DatabaseContainer)
+        return this.fixture.DatabaseContainer switch
         {
-            case SqlEdgeContainer container:
-                return container.GetConnectionString();
-            case MsSqlContainer container:
-                return container.GetConnectionString();
-            default:
-                throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported.");
-        }
+            SqlEdgeContainer container => container.GetConnectionString(),
+            MsSqlContainer container => container.GetConnectionString(),
+            _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
+        };
     }
 }

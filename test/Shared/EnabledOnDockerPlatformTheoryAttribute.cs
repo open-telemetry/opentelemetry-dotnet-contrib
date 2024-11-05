@@ -22,18 +22,29 @@ internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();
 
-        void AppendStdout(object sender, DataReceivedEventArgs e) => stdout.Append(e.Data);
-        void AppendStderr(object sender, DataReceivedEventArgs e) => stderr.Append(e.Data);
+        void AppendStdout(object sender, DataReceivedEventArgs e)
+        {
+            stdout.Append(e.Data);
+        }
 
-        var processStartInfo = new ProcessStartInfo();
-        processStartInfo.FileName = executable;
-        processStartInfo.Arguments = string.Join(" ", "version", "--format '{{.Server.Os}}'");
-        processStartInfo.RedirectStandardOutput = true;
-        processStartInfo.RedirectStandardError = true;
-        processStartInfo.UseShellExecute = false;
+        void AppendStderr(object sender, DataReceivedEventArgs e)
+        {
+            stderr.Append(e.Data);
+        }
 
-        var process = new Process();
-        process.StartInfo = processStartInfo;
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = executable,
+            Arguments = string.Join(" ", "version", "--format '{{.Server.Os}}'"),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        var process = new Process
+        {
+            StartInfo = processStartInfo,
+        };
         process.OutputDataReceived += AppendStdout;
         process.ErrorDataReceived += AppendStderr;
 
@@ -58,7 +69,7 @@ internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
         this.Skip = $"The Docker {dockerPlatform} engine is not available.";
     }
 
-    public enum DockerPlatform
+    internal enum DockerPlatform
     {
         /// <summary>
         /// Docker Linux engine.

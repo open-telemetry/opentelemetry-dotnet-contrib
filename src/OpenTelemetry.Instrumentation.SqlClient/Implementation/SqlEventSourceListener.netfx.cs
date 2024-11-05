@@ -112,8 +112,8 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        string dataSource = (string)eventData.Payload[1];
-        string databaseName = (string)eventData.Payload[2];
+        var dataSource = (string)eventData.Payload[1];
+        var databaseName = (string)eventData.Payload[2];
         var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, this.options, out var activityName);
         var activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
             activityName,
@@ -129,7 +129,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (activity.IsAllDataRequested)
         {
-            string commandText = (string)eventData.Payload[3];
+            var commandText = (string)eventData.Payload[3];
             if (!string.IsNullOrEmpty(commandText) && this.options.SetDbStatementForText)
             {
                 if (this.options.EmitOldAttributes)
@@ -170,7 +170,7 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             if (activity.IsAllDataRequested)
             {
-                int compositeState = (int)eventData.Payload[1];
+                var compositeState = (int)eventData.Payload[1];
                 if ((compositeState & 0b001) != 0b001)
                 {
                     if ((compositeState & 0b010) == 0b010)
