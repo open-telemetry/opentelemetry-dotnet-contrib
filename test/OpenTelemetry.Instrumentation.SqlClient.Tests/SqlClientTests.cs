@@ -396,7 +396,7 @@ public class SqlClientTests : IDisposable
         if (shouldEnrich)
         {
             Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enriched"));
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enriched").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
         }
         else
         {
