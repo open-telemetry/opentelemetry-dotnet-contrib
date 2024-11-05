@@ -9,7 +9,9 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+#pragma warning disable CA1515
 public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
+#pragma warning restore CA1515
 {
     // The Microsoft SQL Server Docker image is not compatible with ARM devices, such as Macs with Apple Silicon.
     private readonly IContainer databaseContainer = Architecture.Arm64.Equals(RuntimeInformation.ProcessArchitecture) ? CreateSqlEdge() : CreateMsSql();

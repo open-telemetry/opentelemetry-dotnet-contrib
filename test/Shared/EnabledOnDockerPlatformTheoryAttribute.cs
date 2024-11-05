@@ -69,7 +69,7 @@ internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
         this.Skip = $"The Docker {dockerPlatform} engine is not available.";
     }
 
-    public enum DockerPlatform
+    internal enum DockerPlatform
     {
         /// <summary>
         /// Docker Linux engine.
