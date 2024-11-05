@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -34,6 +35,8 @@ public static class TracerProviderBuilderExtensions
 
         var options = new AWSLambdaInstrumentationOptions();
         configure?.Invoke(options);
+
+        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
 
         AWSLambdaWrapper.DisableAwsXRayContextExtraction = options.DisableAwsXRayContextExtraction;
         AWSMessagingUtils.SetParentFromMessageBatch = options.SetParentFromBatch;
