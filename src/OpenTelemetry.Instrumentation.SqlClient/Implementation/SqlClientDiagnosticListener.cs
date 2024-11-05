@@ -98,7 +98,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         _ = this.commandTextFetcher.TryFetch(command, out var commandText);
 
-                        if (this.commandTypeFetcher.TryFetch(command, out CommandType commandType))
+                        if (this.commandTypeFetcher.TryFetch(command, out var commandType))
                         {
                             switch (commandType)
                             {
@@ -188,7 +188,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
-                            if (this.exceptionFetcher.TryFetch(payload, out Exception? exception) && exception != null)
+                            if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
                             {
                                 activity.AddTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
 

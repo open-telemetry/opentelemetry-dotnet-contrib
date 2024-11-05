@@ -59,15 +59,15 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             })
             .Build();
 
-        using SqlConnection sqlConnection = new SqlConnection(this.GetConnectionString());
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
 
         sqlConnection.Open();
 
-        string dataSource = sqlConnection.DataSource;
+        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 #pragma warning disable CA2100
-        using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,

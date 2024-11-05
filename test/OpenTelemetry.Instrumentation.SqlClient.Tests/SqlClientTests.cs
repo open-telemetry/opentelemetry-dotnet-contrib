@@ -44,8 +44,8 @@ public class SqlClientTests : IDisposable
     [Fact]
     public void SqlClient_NamedOptions()
     {
-        int defaultExporterOptionsConfigureOptionsInvocations = 0;
-        int namedExporterOptionsConfigureOptionsInvocations = 0;
+        var defaultExporterOptionsConfigureOptionsInvocations = 0;
+        var namedExporterOptionsConfigureOptionsInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
