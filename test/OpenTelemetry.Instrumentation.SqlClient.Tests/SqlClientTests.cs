@@ -462,6 +462,12 @@ public class SqlClientTests : IDisposable
                 }
 
                 break;
+            case CommandType.TableDirect:
+                Assert.Fail("Not supported command type: CommandType.TableDirect");
+                break;
+            default:
+                Assert.Fail($"Not supported command type: {commandType}");
+                break;
         }
     }
 

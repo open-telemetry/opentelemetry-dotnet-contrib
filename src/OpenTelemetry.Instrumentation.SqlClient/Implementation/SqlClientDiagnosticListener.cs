@@ -135,6 +135,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                 case CommandType.TableDirect:
                                     break;
+                                default:
+                                    break;
                             }
                         }
 
@@ -214,6 +216,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
                 }
 
+                break;
+            default:
                 break;
         }
     }
