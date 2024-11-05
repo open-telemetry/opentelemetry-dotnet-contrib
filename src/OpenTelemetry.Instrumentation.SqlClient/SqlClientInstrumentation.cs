@@ -20,15 +20,15 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
 #else
-    private static readonly HashSet<string> DiagnosticSourceEvents = new()
-    {
+    private static readonly HashSet<string> DiagnosticSourceEvents =
+    [
         "System.Data.SqlClient.WriteCommandBefore",
         "Microsoft.Data.SqlClient.WriteCommandBefore",
         "System.Data.SqlClient.WriteCommandAfter",
         "Microsoft.Data.SqlClient.WriteCommandAfter",
         "System.Data.SqlClient.WriteCommandError",
-        "Microsoft.Data.SqlClient.WriteCommandError",
-    };
+        "Microsoft.Data.SqlClient.WriteCommandError"
+    ];
 
     private readonly Func<string, object?, object?, bool> isEnabled = (eventName, _, _)
         => DiagnosticSourceEvents.Contains(eventName);
