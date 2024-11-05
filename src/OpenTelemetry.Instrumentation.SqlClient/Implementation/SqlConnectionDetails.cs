@@ -68,7 +68,7 @@ internal sealed class SqlConnectionDetails
         int? port = null;
 
         var uriHostNameType = Uri.CheckHostName(serverHostName);
-        if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+        if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
         {
             serverIpAddress = serverHostName;
             serverHostName = null;
