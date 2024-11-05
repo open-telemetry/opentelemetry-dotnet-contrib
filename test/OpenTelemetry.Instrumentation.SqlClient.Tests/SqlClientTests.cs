@@ -610,7 +610,7 @@ public class SqlClientTests : IDisposable
                 afterExecuteEventData);
         }
 
-        return activities.ToArray();
+        return [.. activities];
     }
 #endif
 
