@@ -67,7 +67,7 @@ public class EventCountersMetricsTests
     public void PollingCounter()
     {
         // Arrange
-        int i = 0;
+        var i = 0;
         List<Metric> metricItems = [];
         using EventSource source = new("c");
         using PollingCounter pollCounter = new("poll-c", source, () => ++i * 10);
@@ -93,7 +93,7 @@ public class EventCountersMetricsTests
     public void IncrementingPollingCounter()
     {
         // Arrange
-        int i = 1;
+        var i = 1;
         List<Metric> metricItems = [];
         using EventSource source = new("d");
         using IncrementingPollingCounter incPollCounter = new("inc-poll-c", source, () => i++);
@@ -171,7 +171,7 @@ public class EventCountersMetricsTests
         using EventSource source = new("source");
 
         // ec.s. + event name is 63;
-        string veryLongEventName = new string('e', 100);
+        var veryLongEventName = new string('e', 100);
         using IncrementingEventCounter connections = new(veryLongEventName, source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
