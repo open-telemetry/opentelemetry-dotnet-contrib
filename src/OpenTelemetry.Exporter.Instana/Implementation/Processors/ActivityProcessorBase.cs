@@ -19,19 +19,13 @@ internal abstract class ActivityProcessorBase : IActivityProcessor
 
     protected virtual void PreProcess(Activity activity, InstanaSpan instanaSpan)
     {
-        if (instanaSpan.TransformInfo == null)
-        {
-            instanaSpan.TransformInfo = new InstanaSpanTransformInfo();
-        }
+        instanaSpan.TransformInfo ??= new InstanaSpanTransformInfo();
 
-        if (instanaSpan.Data == null)
+        instanaSpan.Data ??= new Data()
         {
-            instanaSpan.Data = new Data()
-            {
-                data = new Dictionary<string, object>(),
-                Events = new List<SpanEvent>(8),
-                Tags = new Dictionary<string, string>(),
-            };
-        }
+            data = [],
+            Events = new List<SpanEvent>(8),
+            Tags = [],
+        };
     }
 }

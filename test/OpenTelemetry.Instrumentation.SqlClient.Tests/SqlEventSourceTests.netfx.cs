@@ -45,16 +45,16 @@ public class SqlEventSourceTests
             .Build();
 
         Assert.NotNull(SqlConnectionString);
-        using SqlConnection sqlConnection = new SqlConnection(SqlConnectionString);
+        using var sqlConnection = new SqlConnection(SqlConnectionString);
 
         await sqlConnection.OpenAsync();
 
-        string dataSource = sqlConnection.DataSource;
+        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 
 #pragma warning disable CA2100
-        using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,
@@ -114,7 +114,7 @@ public class SqlEventSourceTests
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -128,21 +128,21 @@ public class SqlEventSourceTests
             })
             .Build();
 
-        int objectId = Guid.NewGuid().GetHashCode();
+        var objectId = Guid.NewGuid().GetHashCode();
 
         var dataSource = "127.0.0.1\\instanceName,port";
         fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
         // success is stored in the first bit in compositeState 0b001
-        int successFlag = !isFailure ? 1 : 0;
+        var successFlag = !isFailure ? 1 : 0;
 
         // isSqlException is stored in the second bit in compositeState 0b010
-        int isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
+        var isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
 
         // synchronous state is stored in the third bit in compositeState 0b100
-        int synchronousFlag = false ? 4 : 0;
+        var synchronousFlag = false ? 4 : 0;
 
-        int compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
+        var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
 
         fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, sqlExceptionNumber);
         shutdownSignal.Dispose();
@@ -158,7 +158,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeMisbehavingMdsSqlEventSource))]
     public void EventSourceFakeUnknownEventWithNullPayloadTest(Type eventSourceType)
     {
-        using IFakeMisbehavingSqlEventSource fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -178,7 +178,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeMisbehavingMdsSqlEventSource))]
     public void EventSourceFakeInvalidPayloadTest(Type eventSourceType)
     {
-        using IFakeMisbehavingSqlEventSource fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -199,7 +199,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
     public void DefaultCaptureTextFalse(Type eventSourceType)
     {
-        using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -207,21 +207,21 @@ public class SqlEventSourceTests
             .AddSqlClientInstrumentation()
             .Build();
 
-        int objectId = Guid.NewGuid().GetHashCode();
+        var objectId = Guid.NewGuid().GetHashCode();
 
         const string commandText = "TestCommandTest";
         fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", commandText);
 
         // success is stored in the first bit in compositeState 0b001
-        int successFlag = 1;
+        var successFlag = 1;
 
         // isSqlException is stored in the second bit in compositeState 0b010
-        int isSqlExceptionFlag = 2;
+        var isSqlExceptionFlag = 2;
 
         // synchronous state is stored in the third bit in compositeState 0b100
-        int synchronousFlag = 4;
+        var synchronousFlag = 4;
 
-        int compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
+        var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
 
         fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, 0);
         shutdownSignal.Dispose();
@@ -243,7 +243,15 @@ public class SqlEventSourceTests
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        Assert.Equal("master", activity.DisplayName);
+        if (emitNewAttributes && enableConnectionLevelAttributes)
+        {
+            Assert.Equal("instanceName.master", activity.DisplayName);
+        }
+        else
+        {
+            Assert.Equal("master", activity.DisplayName);
+        }
+
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
@@ -282,7 +290,7 @@ public class SqlEventSourceTests
 
         if (emitNewAttributes)
         {
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            Assert.Equal(!enableConnectionLevelAttributes ? "master" : "instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
         if (captureText)

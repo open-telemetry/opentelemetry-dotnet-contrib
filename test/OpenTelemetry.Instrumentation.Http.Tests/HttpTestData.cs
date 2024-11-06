@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-public static class HttpTestData
+internal static class HttpTestData
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 

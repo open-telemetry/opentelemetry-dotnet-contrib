@@ -62,7 +62,7 @@ public class BaggageActivityProcessorTests
 
         var regex = new Regex("^mykey", RegexOptions.Compiled);
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .AddBaggageActivityProcessor((baggageKey) => regex.IsMatch(baggageKey))
+            .AddBaggageActivityProcessor(regex.IsMatch)
             .AddSource(sourceName)
             .Build();
 
@@ -107,12 +107,7 @@ public class BaggageActivityProcessorTests
         using var provider = Sdk.CreateTracerProviderBuilder()
             .AddBaggageActivityProcessor(key =>
             {
-                if (key == "key")
-                {
-                    throw new Exception("Predicate throws an exception.");
-                }
-
-                return true;
+                return key == "key" ? throw new Exception("Predicate throws an exception.") : true;
             })
             .AddSource(sourceName)
             .Build();

@@ -24,7 +24,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     public DiagnosticsMiddlewareTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         do
         {
@@ -60,7 +60,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                             return next();
                         });
 
-                        HttpConfiguration config = new HttpConfiguration();
+                        var config = new HttpConfiguration();
                         config.Routes.MapHttpRoute(
                             name: "DefaultApi",
                             routeTemplate: "api/{controller}/{id}",
@@ -120,8 +120,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
         bool generateRemoteException = false,
         bool recordException = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
-        List<Metric> exportedMetrics = new List<Metric>();
+        List<Activity> stoppedActivities = [];
+        List<Metric> exportedMetrics = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -135,9 +135,9 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, context, exception) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -147,13 +147,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
                                     case OwinEnrichEventType.EndRequest:
                                         activity.SetTag("client.endrequest", nameof(OwinEnrichEventType.EndRequest));
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, context, exception) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
                     options.Filter = _ => !filter;
@@ -166,12 +163,12 @@ public class DiagnosticsMiddlewareTests : IDisposable
             meterBuilder.AddOwinInstrumentation();
         }
 
-        using TracerProvider tracerProvider = builder.Build();
-        using MeterProvider meterProvider = meterBuilder.Build();
+        using var tracerProvider = builder.Build();
+        using var meterProvider = meterBuilder.Build();
 
-        using HttpClient client = new HttpClient();
+        using var client = new HttpClient();
 
-        Uri requestUri = generateRemoteException
+        var requestUri = generateRemoteException
             ? new Uri($"{this.serviceBaseUri}exception")
             : new Uri($"{this.serviceBaseUri}api/test");
 
@@ -192,7 +189,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.NotEmpty(stoppedActivities);
                 Assert.Single(stoppedActivities);
 
-                Activity activity = stoppedActivities[0];
+                var activity = stoppedActivities[0];
                 Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
                 Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
@@ -257,6 +254,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
                     case SemanticConventions.AttributeHttpResponseStatusCode:
                         Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
                         break;
+                    default:
+                        break;
                 }
             }
         }
@@ -295,7 +294,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
             }
 
-            List<Activity> stoppedActivities = new List<Activity>();
+            List<Activity> stoppedActivities = [];
 
             var builder = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services =>
@@ -316,10 +315,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 .AddOwinInstrumentation()
                 .Build();
 
-            using HttpClient client = new HttpClient();
+            using var client = new HttpClient();
 
-            Uri requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
-            Uri expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
+            var requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
+            var expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
 
             this.requestCompleteHandle.Reset();
 
@@ -340,7 +339,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.NotEmpty(stoppedActivities);
             Assert.Single(stoppedActivities);
 
-            Activity activity = stoppedActivities[0];
+            var activity = stoppedActivities[0];
             Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
@@ -356,7 +355,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     private List<MetricPoint> GetMetricPoints(Metric metric)
     {
-        List<MetricPoint> metricPoints = new();
+        List<MetricPoint> metricPoints = [];
 
         foreach (var metricPoint in metric.GetMetricPoints())
         {

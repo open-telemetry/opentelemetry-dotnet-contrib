@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 
@@ -20,10 +18,10 @@ namespace OpenTelemetry.Internal;
 internal static class DatabaseSemanticConventionHelper
 {
     internal const string SemanticConventionOptInKeyName = "OTEL_SEMCONV_STABILITY_OPT_IN";
-    internal static readonly char[] Separator = new[] { ',', ' ' };
+    internal static readonly char[] Separator = [',', ' '];
 
     [Flags]
-    public enum DatabaseSemanticConvention
+    internal enum DatabaseSemanticConvention
     {
         /// <summary>
         /// Instructs an instrumentation library to emit the old experimental Database attributes.

@@ -34,19 +34,6 @@ public class SqlClientTraceInstrumentationOptions
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see
-    /// cref="SqlClientInstrumentation"/> should add the names of <see
-    /// cref="CommandType.StoredProcedure"/> commands as the <see
-    /// cref="SemanticConventions.AttributeDbStatement"/> tag. Default
-    /// value: <see langword="true"/>.
-    /// </summary>
-    /// <remarks>
-    /// <para><b>SetDbStatementForStoredProcedure is only supported on .NET
-    /// and .NET Core runtimes.</b></para>
-    /// </remarks>
-    public bool SetDbStatementForStoredProcedure { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not the <see
     /// cref="SqlClientInstrumentation"/> should add the text of commands as
     /// the <see cref="SemanticConventions.AttributeDbStatement"/> tag.
     /// Default value: <see langword="false"/>.

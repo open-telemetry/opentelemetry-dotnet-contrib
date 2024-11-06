@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Reflection;
@@ -173,12 +175,12 @@ public class GenevaTraceExporterTests
 
         using (var activity = source.StartActivity("Bar"))
         {
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         using (var activity = source.StartActivity("Baz"))
         {
-            activity.SetStatus(Status.Ok);
+            activity.SetStatus(ActivityStatusCode.Ok);
         }
     }
 
@@ -296,21 +298,25 @@ public class GenevaTraceExporterTests
                     activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                     activity?.SetTag("foo", 1);
                     activity?.SetTag("bar", 2);
+#pragma warning disable CS0618 // Type or member is obsolete
                     activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
             }
 
             using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
             {
-                activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+                activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
             }
 
             // If the activity Status is set using both the OTel API and the .NET API, the `Status` and `StatusDescription` set by
             // the .NET API is chosen
             using (var activity = source.StartActivity("PreferStatusFromDotnetAPI"))
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
-                activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+#pragma warning restore CS0618 // Type or member is obsolete
+                activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
                 customChecksForActivity = mapping =>
                 {
                     Assert.Equal("Error description from .NET API", mapping["statusMessage"]);
@@ -678,17 +684,19 @@ public class GenevaTraceExporterTests
         Assert.Equal((byte)activity.Kind, mapping["kind"]);
         Assert.Equal(activity.StartTimeUtc, mapping["startTime"]);
 
-        var activityStatusCode = activity.GetStatus().StatusCode;
+#pragma warning disable CS0618 // Type or member is obsolete
+        var otelApiStatusCode = activity.GetStatus();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         if (activity.Status == ActivityStatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
             Assert.Equal(activity.StatusDescription, mapping["statusMessage"]);
         }
-        else if (activityStatusCode == StatusCode.Error)
+        else if (otelApiStatusCode.StatusCode == StatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
-            var activityStatusDesc = activity.GetStatus().Description;
+            var activityStatusDesc = otelApiStatusCode.Description;
             Assert.Equal(activityStatusDesc, mapping["statusMessage"]);
         }
         else

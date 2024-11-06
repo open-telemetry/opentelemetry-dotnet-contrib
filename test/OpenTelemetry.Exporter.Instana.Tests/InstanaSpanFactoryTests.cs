@@ -12,7 +12,7 @@ public static class InstanaSpanFactoryTests
     public static void CreateSpan()
     {
         _ = new InstanaSpanFactory();
-        InstanaSpan instanaSpan = InstanaSpanFactory.CreateSpan();
+        var instanaSpan = InstanaSpanFactory.CreateSpan();
 
         Assert.NotNull(instanaSpan);
         Assert.NotNull(instanaSpan.TransformInfo);

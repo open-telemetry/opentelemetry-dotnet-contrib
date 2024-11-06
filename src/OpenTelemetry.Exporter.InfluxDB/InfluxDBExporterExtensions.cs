@@ -61,6 +61,8 @@ public static class InfluxDBExporterExtensions
         return metricsSchema switch
         {
             MetricsSchema.TelegrafPrometheusV2 => new TelegrafPrometheusWriterV2(),
+            MetricsSchema.TelegrafPrometheusV1 => new TelegrafPrometheusWriterV1(),
+            MetricsSchema.None => new TelegrafPrometheusWriterV1(),
             _ => new TelegrafPrometheusWriterV1(),
         };
     }

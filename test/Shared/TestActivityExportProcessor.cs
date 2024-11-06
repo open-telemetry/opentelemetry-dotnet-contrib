@@ -1,15 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics;
 
 namespace OpenTelemetry.Tests;
 
 internal class TestActivityExportProcessor : SimpleActivityExportProcessor
 {
-    public List<Activity> ExportedItems = new List<Activity>();
+    public List<Activity> ExportedItems = [];
 
     public TestActivityExportProcessor(BaseExporter<Activity> exporter)
         : base(exporter)

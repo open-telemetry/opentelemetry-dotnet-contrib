@@ -20,10 +20,10 @@ public static class AWSXRayIdGenerator
     private const long TicksPerMicrosecond = TimeSpan.TicksPerMillisecond / 1000;
     private const long MicrosecondPerSecond = TimeSpan.TicksPerSecond / TicksPerMicrosecond;
 
-    private static readonly DateTime EpochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime EpochStart = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private static readonly long UnixEpochMicroseconds = EpochStart.Ticks / TicksPerMicrosecond;
-    private static readonly Random Global = new Random();
-    private static object randLock = new object();
+    private static readonly Random Global = new();
+    private static readonly object RandLock = new();
 
     internal static void ReplaceTraceId(Sampler? sampler = null)
     {
@@ -67,15 +67,15 @@ public static class AWSXRayIdGenerator
 
     internal static void UpdateSamplingDecision(Activity activity, Sampler sampler)
     {
-        if (!(sampler is AlwaysOnSampler) && !(sampler is AlwaysOffSampler))
+        if (sampler is not AlwaysOnSampler and not AlwaysOffSampler)
         {
-            ActivitySamplingResult result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
+            var result = !Sdk.SuppressInstrumentation ? ComputeRootActivitySamplingResult(activity, sampler) : ActivitySamplingResult.None;
 
             activity.ActivityTraceFlags = ActivityTraceFlags.None;
 
             // Following the same behavior when .NET runtime sets the trace flag for a newly created root activity.
             // See: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Diagnostics.DiagnosticSource/src/System/Diagnostics/Activity.cs#L1022-L1027
-            activity.IsAllDataRequested = result == ActivitySamplingResult.AllData || result == ActivitySamplingResult.AllDataAndRecorded;
+            activity.IsAllDataRequested = result is ActivitySamplingResult.AllData or ActivitySamplingResult.AllDataAndRecorded;
 
             if (result == ActivitySamplingResult.AllDataAndRecorded)
             {
@@ -91,8 +91,8 @@ public static class AWSXRayIdGenerator
     /// <returns>The number of seconds elapsed since 1970-01-01 00:00:00 UTC. The value is expressed in whole and fractional seconds with resolution of microsecond.</returns>
     private static decimal ToUnixTimeSeconds(this DateTime date)
     {
-        long microseconds = date.Ticks / TicksPerMicrosecond;
-        long microsecondsSinceEpoch = microseconds - UnixEpochMicroseconds;
+        var microseconds = date.Ticks / TicksPerMicrosecond;
+        var microsecondsSinceEpoch = microseconds - UnixEpochMicroseconds;
         return (decimal)microsecondsSinceEpoch / MicrosecondPerSecond;
     }
 
@@ -105,11 +105,11 @@ public static class AWSXRayIdGenerator
     {
         Guard.ThrowIfOutOfRange(digits, min: 0);
 
-        byte[] bytes = new byte[digits / 2];
+        var bytes = new byte[digits / 2];
 
         string hexNumber;
 
-        lock (randLock)
+        lock (RandLock)
         {
             NextBytes(bytes);
             hexNumber = string.Concat(bytes.Select(x => x.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
@@ -164,6 +164,7 @@ public static class AWSXRayIdGenerator
         {
             SamplingDecision.RecordAndSample => ActivitySamplingResult.AllDataAndRecorded,
             SamplingDecision.RecordOnly => ActivitySamplingResult.AllData,
+            SamplingDecision.Drop => ActivitySamplingResult.PropagationData,
             _ => ActivitySamplingResult.PropagationData,
         };
 
