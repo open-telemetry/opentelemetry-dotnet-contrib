@@ -70,8 +70,8 @@ public static class TracerProviderBuilderExtensions
         builder.AddInstrumentation(sp =>
         {
             var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);
-
-            return new SqlClientInstrumentation(sqlOptions);
+            SqlClientInstrumentation.TracingOptions = sqlOptions;
+            return new SqlClientInstrumentation.TracingHandle();
         });
 
         builder.AddSource(SqlActivitySourceHelper.ActivitySourceName);

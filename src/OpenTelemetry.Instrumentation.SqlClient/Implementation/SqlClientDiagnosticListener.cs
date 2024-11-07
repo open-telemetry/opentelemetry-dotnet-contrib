@@ -34,18 +34,22 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
-    private readonly SqlClientTraceInstrumentationOptions options;
 
-    public SqlClientDiagnosticListener(string sourceName, SqlClientTraceInstrumentationOptions? options)
+    public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
     {
-        this.options = options ?? new SqlClientTraceInstrumentationOptions();
     }
 
     public override bool SupportsNullActivity => true;
 
     public override void OnEventWritten(string name, object? payload)
     {
+        if (SqlClientInstrumentation.TracingHandles == 0)
+        {
+            return;
+        }
+
+        var options = SqlClientInstrumentation.TracingOptions;
         var activity = Activity.Current;
         switch (name)
         {
@@ -63,7 +67,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
-                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, this.options, out var activityName);
+                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, options, out var activityName);
                     activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
@@ -80,7 +84,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         try
                         {
-                            if (this.options.Filter?.Invoke(command) == false)
+                            if (options.Filter?.Invoke(command) == false)
                             {
                                 SqlClientInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
                                 activity.IsAllDataRequested = false;
@@ -103,12 +107,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.EmitOldAttributes)
+                                    if (options.EmitOldAttributes)
                                     {
                                         activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
                                     }
 
-                                    if (this.options.EmitNewAttributes)
+                                    if (options.EmitNewAttributes)
                                     {
                                         activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
                                         activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
@@ -118,14 +122,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    if (this.options.SetDbStatementForText)
+                                    if (options.SetDbStatementForText)
                                     {
-                                        if (this.options.EmitOldAttributes)
+                                        if (options.EmitOldAttributes)
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
                                         }
 
-                                        if (this.options.EmitNewAttributes)
+                                        if (options.EmitNewAttributes)
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                                         }
@@ -142,7 +146,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         try
                         {
-                            this.options.Enrich?.Invoke(activity, "OnCustom", command);
+                            options.Enrich?.Invoke(activity, "OnCustom", command);
                         }
                         catch (Exception ex)
                         {
@@ -199,7 +203,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
-                                if (this.options.RecordException)
+                                if (options.RecordException)
                                 {
                                     activity.RecordException(exception);
                                 }

@@ -13,10 +13,13 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// </summary>
 internal sealed class SqlClientInstrumentation : IDisposable
 {
+    public static readonly SqlClientInstrumentation Instance = new SqlClientInstrumentation();
+
     internal const string SqlClientDiagnosticListenerName = "SqlClientDiagnosticListener";
 #if NET
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
 #endif
+    internal static int TracingHandles;
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
 #else
@@ -39,24 +42,24 @@ internal sealed class SqlClientInstrumentation : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientInstrumentation"/> class.
     /// </summary>
-    /// <param name="options">Configuration options for sql instrumentation.</param>
 #if NET
     [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
 #endif
-    public SqlClientInstrumentation(
-        SqlClientTraceInstrumentationOptions? options = null)
+    private SqlClientInstrumentation()
     {
 #if NETFRAMEWORK
-        this.sqlEventSourceListener = new SqlEventSourceListener(options);
+        this.sqlEventSourceListener = new SqlEventSourceListener();
 #else
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-           name => new SqlClientDiagnosticListener(name, options),
+           name => new SqlClientDiagnosticListener(name),
            listener => listener.Name == SqlClientDiagnosticListenerName,
            this.isEnabled,
            SqlClientInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
         this.diagnosticSourceSubscriber.Subscribe();
 #endif
     }
+
+    public static SqlClientTraceInstrumentationOptions TracingOptions { get; set; } = new SqlClientTraceInstrumentationOptions();
 
     /// <inheritdoc/>
     public void Dispose()
@@ -66,5 +69,24 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #else
         this.diagnosticSourceSubscriber?.Dispose();
 #endif
+    }
+
+    internal class TracingHandle : IDisposable
+    {
+        private bool disposed;
+
+        public TracingHandle()
+        {
+            Interlocked.Increment(ref TracingHandles);
+        }
+
+        public void Dispose()
+        {
+            if (!this.disposed)
+            {
+                Interlocked.Decrement(ref TracingHandles);
+                this.disposed = true;
+            }
+        }
     }
 }
