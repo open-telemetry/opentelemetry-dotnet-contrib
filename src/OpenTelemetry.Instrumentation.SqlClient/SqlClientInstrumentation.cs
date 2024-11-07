@@ -11,6 +11,9 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// <summary>
 /// SqlClient instrumentation.
 /// </summary>
+#if NET
+[RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
+#endif
 internal sealed class SqlClientInstrumentation : IDisposable
 {
     public static readonly SqlClientInstrumentation Instance = new SqlClientInstrumentation();
@@ -42,9 +45,6 @@ internal sealed class SqlClientInstrumentation : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientInstrumentation"/> class.
     /// </summary>
-#if NET
-    [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
-#endif
     private SqlClientInstrumentation()
     {
 #if NETFRAMEWORK
@@ -61,6 +61,8 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
     public static SqlClientTraceInstrumentationOptions TracingOptions { get; set; } = new SqlClientTraceInstrumentationOptions();
 
+    public static IDisposable AddTracingHandle() => new TracingHandle();
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -71,7 +73,10 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #endif
     }
 
-    internal class TracingHandle : IDisposable
+#if NET
+    [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
+#endif
+    private sealed class TracingHandle : IDisposable
     {
         private bool disposed;
 
