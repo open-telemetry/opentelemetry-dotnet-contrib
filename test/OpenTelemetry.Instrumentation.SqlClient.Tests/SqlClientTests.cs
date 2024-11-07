@@ -44,8 +44,8 @@ public class SqlClientTests : IDisposable
     [Fact]
     public void SqlClient_NamedOptions()
     {
-        int defaultExporterOptionsConfigureOptionsInvocations = 0;
-        int namedExporterOptionsConfigureOptionsInvocations = 0;
+        var defaultExporterOptionsConfigureOptionsInvocations = 0;
+        var namedExporterOptionsConfigureOptionsInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
@@ -310,12 +310,7 @@ public class SqlClientTests : IDisposable
             },
             cmd =>
             {
-                if (cmd is SqlCommand command)
-                {
-                    return command.CommandText == "select 2";
-                }
-
-                return true;
+                return cmd is not SqlCommand command || command.CommandText == "select 2";
             });
 
         Assert.Single(activities);
@@ -333,12 +328,7 @@ public class SqlClientTests : IDisposable
             },
             cmd =>
             {
-                if (cmd is SqlCommand command)
-                {
-                    return command.CommandText == "select 2";
-                }
-
-                return true;
+                return cmd is not SqlCommand command || command.CommandText == "select 2";
             });
 
         Assert.Empty(activities);
@@ -406,7 +396,7 @@ public class SqlClientTests : IDisposable
         if (shouldEnrich)
         {
             Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enriched"));
-            Assert.Equal("yes", activity.Tags.Where(tag => tag.Key == "enriched").FirstOrDefault().Value);
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
         }
         else
         {
@@ -461,6 +451,12 @@ public class SqlClientTests : IDisposable
                     Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                 }
 
+                break;
+            case CommandType.TableDirect:
+                Assert.Fail("Not supported command type: CommandType.TableDirect");
+                break;
+            default:
+                Assert.Fail($"Not supported command type: {commandType}");
                 break;
         }
     }
@@ -614,7 +610,7 @@ public class SqlClientTests : IDisposable
                 afterExecuteEventData);
         }
 
-        return activities.ToArray();
+        return [.. activities];
     }
 #endif
 

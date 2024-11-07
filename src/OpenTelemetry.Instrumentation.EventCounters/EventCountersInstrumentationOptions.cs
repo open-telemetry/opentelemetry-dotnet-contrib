@@ -8,7 +8,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters;
 /// </summary>
 public class EventCountersInstrumentationOptions
 {
-    internal readonly HashSet<string> EventSourceNames = new();
+    internal readonly HashSet<string> EventSourceNames = [];
 
     /// <summary>
     /// Gets or sets the subscription interval in seconds for reading values

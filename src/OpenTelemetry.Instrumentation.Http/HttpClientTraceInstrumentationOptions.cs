@@ -165,7 +165,7 @@ public class HttpClientTraceInstrumentationOptions
         {
             return
                 this.FilterHttpRequestMessage == null ||
-                !TryParseHttpRequestMessage(activityName, arg1, out HttpRequestMessage? requestMessage) ||
+                !TryParseHttpRequestMessage(activityName, arg1, out var requestMessage) ||
                 this.FilterHttpRequestMessage(requestMessage);
         }
         catch (Exception ex)
