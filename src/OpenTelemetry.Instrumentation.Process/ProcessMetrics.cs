@@ -24,8 +24,7 @@ internal sealed class ProcessMetrics
             "process.memory.usage",
             () =>
             {
-                using var process = Diagnostics.Process.GetCurrentProcess();
-                return process.WorkingSet64;
+                return Environment.WorkingSet;
             },
             unit: "By",
             description: "The amount of physical memory in use.");
