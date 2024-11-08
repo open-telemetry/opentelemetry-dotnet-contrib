@@ -290,11 +290,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationromTimestamp();
+        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
     }
 
-    private double CalculateDurationromTimestamp()
+    private double CalculateDurationFromTimestamp()
     {
         var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
         var begin = this.beginTimestamp.Value;
