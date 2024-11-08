@@ -55,7 +55,6 @@ internal class SqlTestData
                let errorCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
                    ? SqlClientDiagnosticListener.SqlDataWriteCommandError
                    : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError
-               let captureStoredProcedureCommandName = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
                select new object[]
                {
                     beforeCommand,

@@ -282,20 +282,25 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataWriteCommandError, false, true)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError, false)]
-    [InlineData(SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError, false, true)]
-    public void SqlClientErrorsAreCollectedSuccessfully(string beforeCommand, string errorCommand, bool shouldEnrich = true, bool recordException = false)
+    [MemberData(nameof(SqlTestData.SqlClientErrorsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
+    public void SqlClientErrorsAreCollectedSuccessfully(
+        string beforeCommand,
+        string errorCommand,
+        bool shouldEnrich = true,
+        bool recordException = false,
+        bool tracingEnabled = true,
+        bool metricsEnabled = true)
     {
         using var sqlConnection = new SqlConnection(TestConnectionString);
         using var sqlCommand = sqlConnection.CreateCommand();
 
         var activities = new List<Activity>();
-        using (Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
+        var metrics = new List<Metric>();
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+        if (tracingEnabled)
+        {
+            traceProviderBuilder.AddSqlClientInstrumentation(options =>
             {
                 options.RecordException = recordException;
                 if (shouldEnrich)
@@ -303,8 +308,23 @@ public class SqlClientTests : IDisposable
                     options.Enrich = ActivityEnrichment;
                 }
             })
-            .AddInMemoryExporter(activities)
-            .Build())
+            .AddInMemoryExporter(activities);
+        }
+
+        var traceProvider = traceProviderBuilder.Build();
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (metricsEnabled)
+        {
+            meterProviderBuilder
+                .AddSqlClientInstrumentation()
+                .AddInMemoryExporter(metrics);
+        }
+
+        var meterProvider = meterProviderBuilder.Build();
+
+        try
         {
             var operationId = Guid.NewGuid();
             sqlCommand.CommandText = "SP_GetOrders";
@@ -333,18 +353,57 @@ public class SqlClientTests : IDisposable
                 errorCommand,
                 commandErrorEventData);
         }
+        finally
+        {
+            traceProvider.Dispose();
+            meterProvider.Dispose();
+        }
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        Activity? activity = null;
 
-        VerifyActivityData(
-            sqlCommand.CommandType,
-            sqlCommand.CommandText,
-            false,
-            true,
-            recordException,
-            shouldEnrich,
-            activity);
+        if (tracingEnabled)
+        {
+            activity = Assert.Single(activities);
+            VerifyActivityData(
+                sqlCommand.CommandType,
+                sqlCommand.CommandText,
+                false,
+                true,
+                recordException,
+                shouldEnrich,
+                activity);
+        }
+        else
+        {
+            Assert.Empty(activities);
+        }
+
+        if (metricsEnabled)
+        {
+            var dbClientOperationDurationMetrics = metrics
+                .Where(metric => metric.Name == "db.client.operation.duration")
+                .ToArray();
+
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            Assert.NotNull(metric);
+            Assert.Equal("s", metric.Unit);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+            var metricPoints = new List<MetricPoint>();
+            foreach (var p in metric.GetMetricPoints())
+            {
+                metricPoints.Add(p);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+
+            if (tracingEnabled && activity != null)
+            {
+                var count = metricPoint.GetHistogramCount();
+                var sum = metricPoint.GetHistogramSum();
+                Assert.Equal(activity.Duration.TotalSeconds, sum);
+            }
+        }
     }
 
     [Theory]
