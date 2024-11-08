@@ -176,51 +176,7 @@ public class SqlClientTests : IDisposable
         if (metricsEnabled)
         {
             var metric = Assert.Single(dbClientOperationDurationMetrics);
-            Assert.NotNull(metric);
-            Assert.Equal("s", metric.Unit);
-            Assert.Equal(MetricType.Histogram, metric.MetricType);
-
-            var metricPoints = new List<MetricPoint>();
-            foreach (var p in metric.GetMetricPoints())
-            {
-                metricPoints.Add(p);
-            }
-
-            var metricPoint = Assert.Single(metricPoints);
-            Dictionary<string, object?> tags = new(metricPoint.Tags.Count);
-            foreach (var tag in metricPoint.Tags)
-            {
-                tags.Add(tag.Key, tag.Value);
-            }
-
-            tags.TryGetValue(SemanticConventions.AttributeDbSystem, out var dbSystem);
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, dbSystem);
-
-            if (tracingEnabled && activity != null)
-            {
-                var count = metricPoint.GetHistogramCount();
-                var sum = metricPoint.GetHistogramSum();
-                Assert.Equal(activity.Duration.TotalSeconds, sum);
-
-                var matchTags = new[]
-                {
-                    SemanticConventions.AttributeDbCollectionName,
-                    SemanticConventions.AttributeDbNamespace,
-                    SemanticConventions.AttributeDbOperationName,
-                    SemanticConventions.AttributeServerPort,
-                    SemanticConventions.AttributeServerAddress,
-                };
-
-                foreach (var matchTag in matchTags)
-                {
-                    var activityTag = activity.GetTagValue(matchTag);
-
-                    if (activityTag != null)
-                    {
-                        Assert.Equal(activityTag, tags[matchTag]);
-                    }
-                }
-            }
+            VerifyDurationMetricData(metric, activity);
         }
         else
         {
@@ -378,31 +334,18 @@ public class SqlClientTests : IDisposable
             Assert.Empty(activities);
         }
 
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == "db.client.operation.duration")
+            .ToArray();
+
         if (metricsEnabled)
         {
-            var dbClientOperationDurationMetrics = metrics
-                .Where(metric => metric.Name == "db.client.operation.duration")
-                .ToArray();
-
-            var metric = Assert.Single(dbClientOperationDurationMetrics);
-            Assert.NotNull(metric);
-            Assert.Equal("s", metric.Unit);
-            Assert.Equal(MetricType.Histogram, metric.MetricType);
-
-            var metricPoints = new List<MetricPoint>();
-            foreach (var p in metric.GetMetricPoints())
-            {
-                metricPoints.Add(p);
-            }
-
-            var metricPoint = Assert.Single(metricPoints);
-
-            if (tracingEnabled && activity != null)
-            {
-                var count = metricPoint.GetHistogramCount();
-                var sum = metricPoint.GetHistogramSum();
-                Assert.Equal(activity.Duration.TotalSeconds, sum);
-            }
+                var metric = Assert.Single(dbClientOperationDurationMetrics);
+                VerifyDurationMetricData(metric, activity);
+        }
+        else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
         }
     }
 
@@ -578,6 +521,28 @@ public class SqlClientTests : IDisposable
             default:
                 Assert.Fail($"Not supported command type: {commandType}");
                 break;
+        }
+    }
+
+    internal static void VerifyDurationMetricData(Metric metric, Activity? activity)
+    {
+        Assert.NotNull(metric);
+        Assert.Equal("s", metric.Unit);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in metric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        if (activity != null)
+        {
+            var count = metricPoint.GetHistogramCount();
+            var sum = metricPoint.GetHistogramSum();
+            Assert.Equal(activity.Duration.TotalSeconds, sum);
         }
     }
 
