@@ -340,8 +340,8 @@ public class SqlClientTests : IDisposable
 
         if (metricsEnabled)
         {
-                var metric = Assert.Single(dbClientOperationDurationMetrics);
-                VerifyDurationMetricData(metric, activity);
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            VerifyDurationMetricData(metric, activity);
         }
         else
         {
