@@ -69,7 +69,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataBeforeExecuteCommand:
             case SqlMicrosoftBeforeExecuteCommand:
                 {
-                    this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                     _ = this.commandFetcher.TryFetch(payload, out var command);
                     if (command == null)
                     {
@@ -91,6 +90,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                         return;
                     }
 
