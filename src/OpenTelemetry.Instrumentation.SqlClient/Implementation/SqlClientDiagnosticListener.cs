@@ -248,6 +248,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
+        if (SqlClientInstrumentation.MetricHandles == 0)
+        {
+            return;
+        }
+
         TagList tags = default(TagList);
 
         if (activity != null && activity.IsAllDataRequested)
