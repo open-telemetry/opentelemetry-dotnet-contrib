@@ -4,8 +4,6 @@
 #if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.SqlClient;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Internal;
