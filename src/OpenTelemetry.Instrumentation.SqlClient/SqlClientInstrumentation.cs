@@ -60,8 +60,6 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #endif
     }
 
-    public static SqlClientMetricsInstrumentationOptions MetricOptions { get; set; } = new SqlClientMetricsInstrumentationOptions();
-
     public static SqlClientTraceInstrumentationOptions TracingOptions { get; set; } = new SqlClientTraceInstrumentationOptions();
 
     public static IDisposable AddMetricHandle() => new MetricHandle();
