@@ -202,11 +202,23 @@ public class SqlClientTests : IDisposable
                 var sum = metricPoint.GetHistogramSum();
                 Assert.Equal(activity.Duration.TotalSeconds, sum);
 
-                var activityPort = activity.GetTagValue(SemanticConventions.AttributeServerPort);
-
-                if (activityPort != null)
+                var matchTags = new[]
                 {
-                    Assert.Equal(activityPort, tags[SemanticConventions.AttributeServerPort]);
+                    SemanticConventions.AttributeDbCollectionName,
+                    SemanticConventions.AttributeDbNamespace,
+                    SemanticConventions.AttributeDbOperationName,
+                    SemanticConventions.AttributeServerPort,
+                    SemanticConventions.AttributeServerAddress,
+                };
+
+                foreach (var matchTag in matchTags)
+                {
+                    var activityTag = activity.GetTagValue(matchTag);
+
+                    if (activityTag != null)
+                    {
+                        Assert.Equal(activityTag, tags[matchTag]);
+                    }
                 }
             }
         }

@@ -236,10 +236,60 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
-        var tags = new TagList
+        TagList tags = default(TagList);
+
+        if (activity != null && activity.IsAllDataRequested)
         {
-            { SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName },
-        };
+            var names = new[]
+            {
+                SemanticConventions.AttributeDbSystem,
+                SemanticConventions.AttributeDbCollectionName,
+                SemanticConventions.AttributeDbNamespace,
+                SemanticConventions.AttributeDbOperationName,
+                SemanticConventions.AttributeServerPort,
+                SemanticConventions.AttributeServerAddress,
+            };
+
+            foreach (var name in names)
+            {
+                var value = activity.GetTagItem(name);
+                if (value != null)
+                {
+                    tags.Add(name, value);
+                }
+            }
+        }
+        else if (payload != null)
+        {
+            if (this.commandFetcher.TryFetch(payload, out var command) && command != null &&
+                this.connectionFetcher.TryFetch(command, out var connection))
+            {
+                this.databaseFetcher.TryFetch(connection, out var databaseName);
+                this.dataSourceFetcher.TryFetch(connection, out var dataSource);
+
+                var connectionTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(
+                    dataSource,
+                    databaseName,
+                    SqlClientInstrumentation.TracingOptions,
+                    out _);
+
+                foreach (var tag in connectionTags)
+                {
+                    tags.Add(tag.Key, tag.Value);
+                }
+
+                if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
+                    commandType == CommandType.StoredProcedure)
+                {
+                    if (this.commandTextFetcher.TryFetch(command, out var commandText))
+                    {
+                        tags.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+                        tags.Add(SemanticConventions.AttributeDbCollectionName, commandText);
+                    }
+                }
+            }
+        }
+
         var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationromTimestamp();
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
     }
