@@ -4,8 +4,6 @@
 // Note: When implicit usings are enabled in a project this file will generate
 // warnings/errors without this suppression.
 
-#nullable enable
-
 using System.Net;
 #if !NETFRAMEWORK
 using System.Security.Cryptography;

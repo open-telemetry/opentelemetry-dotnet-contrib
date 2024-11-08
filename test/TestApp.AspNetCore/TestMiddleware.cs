@@ -3,7 +3,9 @@
 
 namespace TestApp.AspNetCore;
 
+#pragma warning disable CA1515
 public static class TestMiddleware
+#pragma warning restore CA1515
 {
     private static readonly AsyncLocal<Action<IApplicationBuilder>?> Current = new();
 

@@ -113,9 +113,9 @@ public class RuntimeMetricsTests
             .Build();
 
         // Bump the count for `thread_pool.completed_items.count` metric
-        int taskCount = 50;
-        List<Task> tasks = new List<Task>();
-        for (int i = 0; i < taskCount; i++)
+        var taskCount = 50;
+        var tasks = new List<Task>();
+        for (var i = 0; i < taskCount; i++)
         {
             tasks.Add(Task.Run(() => { }));
         }
@@ -137,15 +137,19 @@ public class RuntimeMetricsTests
         var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
         Assert.NotNull(queueLengthMetric);
 
-        List<Timer> timers = new List<Timer>();
+        var timers = new List<Timer>();
         try
         {
             // Create 10 timers to bump timer.count metrics.
-            int timerCount = 10;
-            TimerCallback timerCallback = _ => { };
-            for (int i = 0; i < timerCount; i++)
+            var timerCount = 10;
+#pragma warning disable SA1313
+            static void TimerCallback(object? _)
             {
-                Timer timer = new Timer(timerCallback, null, 1000, 250);
+            }
+#pragma warning restore SA1313
+            for (var i = 0; i < timerCount; i++)
+            {
+                var timer = new Timer(TimerCallback, null, 1000, 250);
                 timers.Add(timer);
             }
 
@@ -157,7 +161,7 @@ public class RuntimeMetricsTests
         }
         finally
         {
-            for (int i = 0; i < timers.Count; i++)
+            for (var i = 0; i < timers.Count; i++)
             {
                 timers[i].Dispose();
             }

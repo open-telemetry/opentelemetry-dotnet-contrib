@@ -25,7 +25,7 @@ public class GrpcCoreClientInterceptorTests
     /// <summary>
     /// The default metadata func.
     /// </summary>
-    private static readonly Func<Metadata> DefaultMetadataFunc = () => new Metadata { new Metadata.Entry("foo", "bar") };
+    private static readonly Func<Metadata> DefaultMetadataFunc = () => [new Metadata.Entry("foo", "bar")];
 
     /// <summary>
     /// Validates a successful AsyncUnary call.
@@ -327,7 +327,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcGrpcStatusCode && (int?)t.Value == (int)expectedStatusCode);
 
         // Cancelled is not an error.
-        if (expectedStatusCode != StatusCode.OK && expectedStatusCode != StatusCode.Cancelled)
+        if (expectedStatusCode is not StatusCode.OK and not StatusCode.Cancelled)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
         }
@@ -495,11 +495,10 @@ public class GrpcCoreClientInterceptorTests
         var client = FoobarService.ConstructRpcClient(
             serverUriString ?? server.UriString,
             new ClientTracingInterceptor(interceptorOptions),
-            new List<Metadata.Entry>
-            {
+            [
                 new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
-                new(FoobarService.RequestHeaderErrorDescription, "fubar"),
-            });
+                new(FoobarService.RequestHeaderErrorDescription, "fubar")
+            ]);
 
         using var activityListener = new InterceptorActivityListener(testTags);
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));

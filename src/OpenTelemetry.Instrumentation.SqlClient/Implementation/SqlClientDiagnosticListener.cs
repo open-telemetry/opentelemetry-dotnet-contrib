@@ -4,10 +4,11 @@
 #if !NETFRAMEWORK
 using System.Data;
 using System.Diagnostics;
-using OpenTelemetry.Trace;
 #if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Globalization;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
@@ -32,18 +33,23 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
-    private readonly SqlClientTraceInstrumentationOptions options;
+    private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
 
-    public SqlClientDiagnosticListener(string sourceName, SqlClientTraceInstrumentationOptions? options)
+    public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
     {
-        this.options = options ?? new SqlClientTraceInstrumentationOptions();
     }
 
     public override bool SupportsNullActivity => true;
 
     public override void OnEventWritten(string name, object? payload)
     {
+        if (SqlClientInstrumentation.TracingHandles == 0)
+        {
+            return;
+        }
+
+        var options = SqlClientInstrumentation.TracingOptions;
         var activity = Activity.Current;
         switch (name)
         {
@@ -61,7 +67,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
 
-                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, this.options, out var activityName);
+                    var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, options, out var activityName);
                     activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Client,
@@ -78,7 +84,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         try
                         {
-                            if (this.options.Filter?.Invoke(command) == false)
+                            if (options.Filter?.Invoke(command) == false)
                             {
                                 SqlClientInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
                                 activity.IsAllDataRequested = false;
@@ -96,35 +102,34 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         _ = this.commandTextFetcher.TryFetch(command, out var commandText);
 
-                        if (this.commandTypeFetcher.TryFetch(command, out CommandType commandType))
+                        if (this.commandTypeFetcher.TryFetch(command, out var commandType))
                         {
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.SetDbStatementForStoredProcedure)
+                                    if (options.EmitOldAttributes)
                                     {
-                                        if (this.options.EmitOldAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
-                                        }
+                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                    }
 
-                                        if (this.options.EmitNewAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
-                                        }
+                                    if (options.EmitNewAttributes)
+                                    {
+                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+                                        activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
+                                        activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                                     }
 
                                     break;
 
                                 case CommandType.Text:
-                                    if (this.options.SetDbStatementForText)
+                                    if (options.SetDbStatementForText)
                                     {
-                                        if (this.options.EmitOldAttributes)
+                                        if (options.EmitOldAttributes)
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
                                         }
 
-                                        if (this.options.EmitNewAttributes)
+                                        if (options.EmitNewAttributes)
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                                         }
@@ -134,12 +139,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                 case CommandType.TableDirect:
                                     break;
+                                default:
+                                    break;
                             }
                         }
 
                         try
                         {
-                            this.options.Enrich?.Invoke(activity, "OnCustom", command);
+                            options.Enrich?.Invoke(activity, "OnCustom", command);
                         }
                         catch (Exception ex)
                         {
@@ -185,11 +192,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         if (activity.IsAllDataRequested)
                         {
-                            if (this.exceptionFetcher.TryFetch(payload, out Exception? exception) && exception != null)
+                            if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
                             {
+                                activity.AddTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+
+                                if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                                {
+                                    activity.AddTag(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
+                                }
+
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
-                                if (this.options.RecordException)
+                                if (options.RecordException)
                                 {
                                     activity.RecordException(exception);
                                 }
@@ -206,6 +220,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
                 }
 
+                break;
+            default:
                 break;
         }
     }

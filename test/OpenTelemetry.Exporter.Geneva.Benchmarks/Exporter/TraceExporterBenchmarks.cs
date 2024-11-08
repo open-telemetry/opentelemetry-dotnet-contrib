@@ -54,7 +54,7 @@ public class TraceExporterBenchmarks
             this.activity = testActivity!;
             this.activity.SetTag("tagString", "value");
             this.activity.SetTag("tagInt", 100);
-            this.activity.SetStatus(Status.Error);
+            this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
         activityListener.Dispose();
@@ -129,7 +129,7 @@ public class TraceExporterBenchmarks
         {
             activity.SetTag("tagString", "value");
             activity.SetTag("tagInt", 100);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         return batchGeneratorExporter.Batch;

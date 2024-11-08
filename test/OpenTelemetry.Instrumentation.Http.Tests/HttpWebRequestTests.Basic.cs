@@ -87,8 +87,8 @@ public partial class HttpWebRequestTests : IDisposable
     [Fact]
     public async Task RequestNotCollectedWhenInstrumentationFilterApplied()
     {
-        bool httpWebRequestFilterApplied = false;
-        bool httpRequestMessageFilterApplied = false;
+        var httpWebRequestFilterApplied = false;
+        var httpRequestMessageFilterApplied = false;
 
         var exportedItems = new List<Activity>();
 
@@ -186,8 +186,8 @@ public partial class HttpWebRequestTests : IDisposable
         Assert.NotEqual(default, activity.Context.SpanId);
 
 #if NETFRAMEWORK
-        string traceparent = request.Headers.Get("traceparent");
-        string tracestate = request.Headers.Get("tracestate");
+        var traceparent = request.Headers.Get("traceparent");
+        var tracestate = request.Headers.Get("tracestate");
 
         Assert.Equal($"00-{activity.Context.TraceId}-{activity.Context.SpanId}-01", traceparent);
         Assert.Equal("k1=v1,k2=v2", tracestate);
@@ -285,7 +285,7 @@ public partial class HttpWebRequestTests : IDisposable
     {
         name ??= Options.DefaultName;
 
-        int configurationDelegateInvocations = 0;
+        var configurationDelegateInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
@@ -305,7 +305,7 @@ public partial class HttpWebRequestTests : IDisposable
     public async Task ReportsExceptionEventForNetworkFailures()
     {
         var exportedItems = new List<Activity>();
-        bool exceptionThrown = false;
+        var exceptionThrown = false;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(o => o.RecordException = true)
@@ -334,7 +334,7 @@ public partial class HttpWebRequestTests : IDisposable
     public async Task ReportsExceptionEventOnErrorResponse()
     {
         var exportedItems = new List<Activity>();
-        bool exceptionThrown = false;
+        var exceptionThrown = false;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddHttpClientInstrumentation(o => o.RecordException = true)

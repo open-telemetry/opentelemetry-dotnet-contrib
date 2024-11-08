@@ -33,8 +33,8 @@ public partial class GrpcTests
     [InlineData("http://[::1]", false)]
     public void GrpcClientCallsAreCollectedSuccessfully(string baseAddress, bool shouldEnrich = true)
     {
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
 
         var uri = new Uri($"{baseAddress}:1234");
         var uriHostNameType = Uri.CheckHostName(uri.Host);
@@ -88,7 +88,7 @@ public partial class GrpcTests
         Assert.Equal("greet.Greeter", activity.GetTagValue(SemanticConventions.AttributeRpcService));
         Assert.Equal("SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
 
-        if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+        if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
         {
             Assert.Equal(uri.Host, activity.GetTagValue(SemanticConventions.AttributeServerSocketAddress));
             Assert.Null(activity.GetTagValue(SemanticConventions.AttributeServerAddress));
@@ -246,11 +246,10 @@ public partial class GrpcTests
             var propagator = new CustomTextMapPropagator();
             propagator.InjectValues.Add("customField", context => "customValue");
 
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator,
-            }));
+                propagator
+            ]));
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
@@ -288,11 +287,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 
@@ -305,7 +303,7 @@ public partial class GrpcTests
             var exportedItems = new List<Activity>();
             using var source = new ActivitySource("test-source");
 
-            bool isPropagatorCalled = false;
+            var isPropagatorCalled = false;
             var propagator = new CustomTextMapPropagator
             {
                 Injected = (context) => isPropagatorCalled = true,
@@ -342,11 +340,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 
@@ -360,15 +357,13 @@ public partial class GrpcTests
 
             using var source = new ActivitySource("test-source");
 
-            bool isPropagatorCalled = false;
-            var propagator = new CustomTextMapPropagator();
-            propagator.Injected = (context) => isPropagatorCalled = true;
+            var isPropagatorCalled = false;
+            var propagator = new CustomTextMapPropagator { Injected = _ => isPropagatorCalled = true };
 
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                propagator,
-            }));
+                propagator
+            ]));
 
             using (Sdk.CreateTracerProviderBuilder()
                 .AddSource("test-source")
@@ -395,11 +390,10 @@ public partial class GrpcTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
                 new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+                new BaggagePropagator()
+            ]));
         }
     }
 #endif
@@ -407,8 +401,8 @@ public partial class GrpcTests
     [Fact]
     public void AddGrpcClientInstrumentationNamedOptionsSupported()
     {
-        int defaultExporterOptionsConfigureOptionsInvocations = 0;
-        int namedExporterOptionsConfigureOptionsInvocations = 0;
+        var defaultExporterOptionsConfigureOptionsInvocations = 0;
+        var namedExporterOptionsConfigureOptionsInvocations = 0;
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>

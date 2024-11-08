@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
-public class TestJob
+internal class TestJob
 {
     public void Execute()
     {

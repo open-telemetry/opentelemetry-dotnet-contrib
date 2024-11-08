@@ -5,7 +5,9 @@ using System.Collections;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+#pragma warning disable CA1515
 public class SqlClientTestCase : IEnumerable<object[]>
+#pragma warning restore CA1515
 {
     public string ConnectionString { get; set; } = string.Empty;
 

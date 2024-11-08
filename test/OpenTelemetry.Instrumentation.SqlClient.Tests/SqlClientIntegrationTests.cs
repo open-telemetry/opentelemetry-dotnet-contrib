@@ -23,17 +23,15 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     }
 
     [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
-    [InlineData(CommandType.Text, "select 1/1", false)]
-    [InlineData(CommandType.Text, "select 1/1", false, true)]
-    [InlineData(CommandType.Text, "select 1/0", false, false, true)]
-    [InlineData(CommandType.Text, "select 1/0", false, false, true, false, false)]
-    [InlineData(CommandType.Text, "select 1/0", false, false, true, true, false)]
-    [InlineData(CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(CommandType.StoredProcedure, "sp_who", true)]
+    [InlineData(CommandType.Text, "select 1/1")]
+    [InlineData(CommandType.Text, "select 1/1", true)]
+    [InlineData(CommandType.Text, "select 1/0", false, true)]
+    [InlineData(CommandType.Text, "select 1/0", false, true, false, false)]
+    [InlineData(CommandType.Text, "select 1/0", false, true, true, false)]
+    [InlineData(CommandType.StoredProcedure, "sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
-        bool captureStoredProcedureCommandName,
         bool captureTextCommandContent = false,
         bool isFailure = false,
         bool recordException = false,
@@ -52,12 +50,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation(options =>
             {
-#if !NETFRAMEWORK
-                options.SetDbStatementForStoredProcedure = captureStoredProcedureCommandName;
                 options.SetDbStatementForText = captureTextCommandContent;
-#else
-                options.SetDbStatementForText = captureStoredProcedureCommandName || captureTextCommandContent;
-#endif
                 options.RecordException = recordException;
                 if (shouldEnrich)
                 {
@@ -66,15 +59,15 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             })
             .Build();
 
-        using SqlConnection sqlConnection = new SqlConnection(this.GetConnectionString());
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
 
         sqlConnection.Open();
 
-        string dataSource = sqlConnection.DataSource;
+        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 #pragma warning disable CA2100
-        using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,
@@ -91,20 +84,34 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-        SqlClientTests.VerifyActivityData(commandType, commandText, captureStoredProcedureCommandName, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
+        SqlClientTests.VerifyActivityData(commandType, commandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
         SqlClientTests.VerifySamplingParameters(sampler.LatestSamplingParameters);
+
+        if (isFailure)
+        {
+#if NET
+            var status = activity.GetStatus();
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
+            Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
+            Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+#else
+            var status = activity.GetStatus();
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("8134", activity.StatusDescription);
+            Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
+            Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+#endif
+        }
     }
 
     private string GetConnectionString()
     {
-        switch (this.fixture.DatabaseContainer)
+        return this.fixture.DatabaseContainer switch
         {
-            case SqlEdgeContainer container:
-                return container.GetConnectionString();
-            case MsSqlContainer container:
-                return container.GetConnectionString();
-            default:
-                throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported.");
-        }
+            SqlEdgeContainer container => container.GetConnectionString(),
+            MsSqlContainer container => container.GetConnectionString(),
+            _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
+        };
     }
 }

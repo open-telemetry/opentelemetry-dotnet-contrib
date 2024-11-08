@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
@@ -36,22 +35,22 @@ internal class FoobarService : Foobar.FoobarBase
     /// <summary>
     /// The default request message.
     /// </summary>
-    internal static readonly FoobarRequest DefaultRequestMessage = new FoobarRequest { Message = "foo" };
+    internal static readonly FoobarRequest DefaultRequestMessage = new() { Message = "foo" };
 
     /// <summary>
     /// The default request message size.
     /// </summary>
-    internal static readonly int DefaultRequestMessageSize = ((IMessage)DefaultRequestMessage).CalculateSize();
+    internal static readonly int DefaultRequestMessageSize = DefaultRequestMessage.CalculateSize();
 
     /// <summary>
     /// The default response message.
     /// </summary>
-    internal static readonly FoobarResponse DefaultResponseMessage = new FoobarResponse { Message = "bar" };
+    internal static readonly FoobarResponse DefaultResponseMessage = new() { Message = "bar" };
 
     /// <summary>
     /// The default request message size.
     /// </summary>
-    internal static readonly int DefaultResponseMessageSize = ((IMessage)DefaultResponseMessage).CalculateSize();
+    internal static readonly int DefaultResponseMessageSize = DefaultResponseMessage.CalculateSize();
 
     /// <summary>
     /// Starts the specified service.
@@ -226,7 +225,12 @@ internal class FoobarService : Foobar.FoobarBase
         var failureDescription = context.RequestHeaders.GetValue(RequestHeaderErrorDescription);
         if (failureStatusCodeString != null)
         {
-            throw new RpcException(new Status((StatusCode)Enum.Parse(typeof(StatusCode), failureStatusCodeString), failureDescription ?? string.Empty));
+#if NET
+            var statusCode = Enum.Parse<StatusCode>(failureStatusCodeString);
+#else
+            var statusCode = (StatusCode)Enum.Parse(typeof(StatusCode), failureStatusCodeString);
+#endif
+            throw new RpcException(new Status(statusCode, failureDescription ?? string.Empty));
         }
     }
 
@@ -234,7 +238,7 @@ internal class FoobarService : Foobar.FoobarBase
     /// Wraps server shutdown with an IDisposable pattern.
     /// </summary>
     /// <seealso cref="IDisposable" />
-    public sealed class DisposableServer : IDisposable
+    internal sealed class DisposableServer : IDisposable
     {
         /// <summary>
         /// The server.

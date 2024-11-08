@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,7 +9,7 @@ namespace RouteTests;
 
 public static class RoutingTestCases
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters = { new JsonStringEnumConverter() },
@@ -37,7 +35,7 @@ public static class RoutingTestCases
                 continue;
             }
 
-            result.Add(new object[] { testCase });
+            result.Add([testCase]);
         }
 
         return result;
