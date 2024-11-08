@@ -34,6 +34,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -44,7 +45,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        if (SqlClientInstrumentation.TracingHandles == 0)
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
         {
             return;
         }
@@ -56,6 +57,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataBeforeExecuteCommand:
             case SqlMicrosoftBeforeExecuteCommand:
                 {
+                    this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                     _ = this.commandFetcher.TryFetch(payload, out var command);
                     if (command == null)
                     {
@@ -162,15 +164,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     activity.Stop();
+                    this.RecordDuration(activity, payload);
                 }
 
                 break;
@@ -180,11 +185,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
@@ -217,6 +224,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
+                        this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
 
@@ -224,6 +232,27 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             default:
                 break;
         }
+    }
+
+    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
+    {
+        var tags = new TagList
+        {
+            { SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName },
+        };
+        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationromTimestamp();
+        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private double CalculateDurationromTimestamp()
+    {
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var begin = this.beginTimestamp.Value;
+        var end = Stopwatch.GetTimestamp();
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
     }
 }
 #endif
