@@ -31,7 +31,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         SemanticConventions.AttributeDbSystem,
         SemanticConventions.AttributeDbCollectionName,
         SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbResponseStatusCode,
         SemanticConventions.AttributeDbOperationName,
+        SemanticConventions.AttributeErrorType,
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
     ];
@@ -285,6 +287,19 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     {
                         tags.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
                         tags.Add(SemanticConventions.AttributeDbCollectionName, commandText);
+                    }
+                }
+            }
+
+            if (hasError)
+            {
+                if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
+                {
+                    tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+
+                    if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                    {
+                        tags.Add(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
                     }
                 }
             }
