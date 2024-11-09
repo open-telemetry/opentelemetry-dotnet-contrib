@@ -244,6 +244,10 @@ internal sealed class SqlEventSourceListener : EventListener
                 }
             }
         }
+        else
+        {
+            tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+        }
 
         var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
