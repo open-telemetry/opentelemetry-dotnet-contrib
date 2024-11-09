@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -75,34 +76,7 @@ public class SqlEventSourceTests
     }
 
     [Theory]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true)]
-
-    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
-
-    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
+    [MemberData(nameof(EventSourceFakeTestCases))]
     public void EventSourceFakeTests(
         Type eventSourceType,
         CommandType commandType,
@@ -112,45 +86,104 @@ public class SqlEventSourceTests
         int sqlExceptionNumber = 0,
         bool enableConnectionLevelAttributes = false,
         bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        bool emitNewAttributes = false,
+        bool tracingEnabled = true,
+        bool metricsEnabled = true)
     {
         using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
-        var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureText;
-                options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
-                options.EmitOldAttributes = emitOldAttributes;
-                options.EmitNewAttributes = emitNewAttributes;
-            })
-            .Build();
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+
+        if (tracingEnabled)
+        {
+            traceProviderBuilder.AddInMemoryExporter(activities)
+                .AddSqlClientInstrumentation(options =>
+                {
+                    options.SetDbStatementForText = captureText;
+                    options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
+                    options.EmitOldAttributes = emitOldAttributes;
+                    options.EmitNewAttributes = emitNewAttributes;
+                });
+        }
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (metricsEnabled)
+        {
+            meterProviderBuilder.AddInMemoryExporter(metrics)
+                .AddSqlClientInstrumentation();
+        }
+
+        using var traceProvider = traceProviderBuilder.Build();
+        using var meterProvider = meterProviderBuilder.Build();
 
         var objectId = Guid.NewGuid().GetHashCode();
-
         var dataSource = "127.0.0.1\\instanceName,port";
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
-        // success is stored in the first bit in compositeState 0b001
-        var successFlag = !isFailure ? 1 : 0;
+        try
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
-        // isSqlException is stored in the second bit in compositeState 0b010
-        var isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
+            // success is stored in the first bit in compositeState 0b001
+            var successFlag = !isFailure ? 1 : 0;
 
-        // synchronous state is stored in the third bit in compositeState 0b100
-        var synchronousFlag = false ? 4 : 0;
+            // isSqlException is stored in the second bit in compositeState 0b010
+            var isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
 
-        var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
+            // synchronous state is stored in the third bit in compositeState 0b100
+            var synchronousFlag = false ? 4 : 0;
 
-        fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, sqlExceptionNumber);
-        shutdownSignal.Dispose();
-        Assert.Single(exportedItems);
+            var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
 
-        var activity = exportedItems[0];
+            fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, sqlExceptionNumber);
+        }
+        finally
+        {
+            traceProvider.Dispose();
+            Assert.True(meterProvider.ForceFlush());
+        }
 
-        VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+        Activity? activity = null;
+
+        if (tracingEnabled)
+        {
+            activity = Assert.Single(activities);
+            VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+        }
+
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == "db.client.operation.duration")
+            .ToArray();
+
+        if (metricsEnabled)
+        {
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            Assert.NotNull(metric);
+            Assert.Equal("s", metric.Unit);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+            var metricPoints = new List<MetricPoint>();
+            foreach (var p in metric.GetMetricPoints())
+            {
+                metricPoints.Add(p);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+
+            if (activity != null)
+            {
+                var count = metricPoint.GetHistogramCount();
+                var sum = metricPoint.GetHistogramSum();
+                Assert.Equal(activity.Duration.TotalSeconds, sum);
+            }
+        }
+        else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
+        }
     }
 
     [Theory]
@@ -323,6 +356,41 @@ public class SqlEventSourceTests
     }
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
+    public static IEnumerable<object[]> EventSourceFakeTestCases()
+    {
+        /* netfx driver can't capture queries, only stored procedure names */
+        /* always emit some attribute */
+        var bools = new[] { true, false };
+        return from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
+               from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
+               from isFailure in bools
+               from captureText in bools
+               from enableConnectionLevelAttributes in bools
+               from emitOldAttributes in bools
+               from emitNewAttributes in bools
+               from tracingEnabled in bools
+               from metricsEnabled in bools
+               where !(commandType == CommandType.Text && captureText == true)
+               where emitOldAttributes != false && emitNewAttributes != false
+               let commandText = commandType == CommandType.Text
+                   ? (isFailure == false ? "select 1/1" : "select 1/0")
+                   : "sp_who"
+               let sqlExceptionNumber = 0
+               select new object[]
+               {
+                   eventSourceType,
+                   commandType,
+                   commandText,
+                   captureText,
+                   isFailure,
+                   sqlExceptionNumber,
+                   enableConnectionLevelAttributes,
+                   emitOldAttributes,
+                   emitNewAttributes,
+                   tracingEnabled,
+                   metricsEnabled,
+               };
+    }
 
     // Helper interface to be able to have single test method for multiple EventSources, want to keep it close to the event sources themselves.
     private interface IFakeBehavingSqlEventSource : IDisposable

@@ -29,6 +29,7 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
+    private readonly AsyncLocal<long> beginTimestamp = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
 
@@ -100,7 +101,7 @@ internal sealed class SqlEventSourceListener : EventListener
                 (https://github.com/dotnet/SqlClient/blob/f4568ce68da21db3fe88c0e72e1287368aaa1dc8/src/Microsoft.Data.SqlClient/netcore/src/Microsoft/Data/SqlClient/SqlCommand.cs#L6641)
          */
 
-        if (SqlClientInstrumentation.TracingHandles == 0)
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
         {
             return;
         }
@@ -125,6 +126,7 @@ internal sealed class SqlEventSourceListener : EventListener
         if (activity == null)
         {
             // There is no listener or it decided not to sample the current request.
+            this.beginTimestamp.Value = Stopwatch.GetTimestamp();
             return;
         }
 
@@ -155,7 +157,7 @@ internal sealed class SqlEventSourceListener : EventListener
             [2] -> SqlExceptionNumber
          */
 
-        if (SqlClientInstrumentation.TracingHandles == 0)
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
         {
             return;
         }
@@ -163,6 +165,12 @@ internal sealed class SqlEventSourceListener : EventListener
         if (eventData.Payload.Count < 3)
         {
             SqlClientInstrumentationEventSource.Log.InvalidPayload(nameof(SqlEventSourceListener), nameof(this.OnEndExecute));
+            return;
+        }
+
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles != 0)
+        {
+            this.RecordDuration(null, eventData.Payload);
             return;
         }
 
@@ -200,7 +208,31 @@ internal sealed class SqlEventSourceListener : EventListener
         finally
         {
             activity.Stop();
+            this.RecordDuration(activity, eventData.Payload);
         }
+    }
+
+    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
+    {
+        if (SqlClientInstrumentation.MetricHandles == 0)
+        {
+            return;
+        }
+
+        TagList tags = default;
+        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
+        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration);
+    }
+
+    private double CalculateDurationFromTimestamp()
+    {
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var begin = this.beginTimestamp.Value;
+        var end = Stopwatch.GetTimestamp();
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
     }
 }
 #endif
