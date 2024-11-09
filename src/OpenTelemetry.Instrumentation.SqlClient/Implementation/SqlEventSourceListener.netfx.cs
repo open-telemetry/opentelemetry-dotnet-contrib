@@ -29,6 +29,18 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
+    private static readonly string[] SharedTagNames =
+    [
+        SemanticConventions.AttributeDbSystem,
+        SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbResponseStatusCode,
+        SemanticConventions.AttributeDbOperationName,
+        SemanticConventions.AttributeErrorType,
+        SemanticConventions.AttributeServerPort,
+        SemanticConventions.AttributeServerAddress,
+    ];
+
     private readonly AsyncLocal<long> beginTimestamp = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
@@ -219,9 +231,22 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        TagList tags = default;
+        var tags = default(TagList);
+
+        if (activity != null && activity.IsAllDataRequested)
+        {
+            foreach (var name in SharedTagNames)
+            {
+                var value = activity.GetTagItem(name);
+                if (value != null)
+                {
+                    tags.Add(name, value);
+                }
+            }
+        }
+
         var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
-        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration);
+        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
     }
 
     private double CalculateDurationFromTimestamp()
