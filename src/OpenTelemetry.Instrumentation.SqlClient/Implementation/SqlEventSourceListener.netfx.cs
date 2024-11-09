@@ -29,14 +29,8 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
-    private readonly SqlClientTraceInstrumentationOptions options;
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
-
-    public SqlEventSourceListener(SqlClientTraceInstrumentationOptions? options = null)
-    {
-        this.options = options ?? new SqlClientTraceInstrumentationOptions();
-    }
 
     public override void Dispose()
     {
@@ -106,15 +100,22 @@ internal sealed class SqlEventSourceListener : EventListener
                 (https://github.com/dotnet/SqlClient/blob/f4568ce68da21db3fe88c0e72e1287368aaa1dc8/src/Microsoft.Data.SqlClient/netcore/src/Microsoft/Data/SqlClient/SqlCommand.cs#L6641)
          */
 
+        if (SqlClientInstrumentation.TracingHandles == 0)
+        {
+            return;
+        }
+
+        var options = SqlClientInstrumentation.TracingOptions;
+
         if (eventData.Payload.Count < 4)
         {
             SqlClientInstrumentationEventSource.Log.InvalidPayload(nameof(SqlEventSourceListener), nameof(this.OnBeginExecute));
             return;
         }
 
-        string dataSource = (string)eventData.Payload[1];
-        string databaseName = (string)eventData.Payload[2];
-        var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, this.options, out var activityName);
+        var dataSource = (string)eventData.Payload[1];
+        var databaseName = (string)eventData.Payload[2];
+        var startTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(dataSource, databaseName, options, out var activityName);
         var activity = SqlActivitySourceHelper.ActivitySource.StartActivity(
             activityName,
             ActivityKind.Client,
@@ -129,15 +130,15 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (activity.IsAllDataRequested)
         {
-            string commandText = (string)eventData.Payload[3];
-            if (!string.IsNullOrEmpty(commandText) && this.options.SetDbStatementForText)
+            var commandText = (string)eventData.Payload[3];
+            if (!string.IsNullOrEmpty(commandText) && options.SetDbStatementForText)
             {
-                if (this.options.EmitOldAttributes)
+                if (options.EmitOldAttributes)
                 {
                     activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
                 }
 
-                if (this.options.EmitNewAttributes)
+                if (options.EmitNewAttributes)
                 {
                     activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
                 }
@@ -153,6 +154,11 @@ internal sealed class SqlEventSourceListener : EventListener
             [1] -> CompositeState bitmask (0b001 -> successFlag, 0b010 -> isSqlExceptionFlag , 0b100 -> synchronousFlag)
             [2] -> SqlExceptionNumber
          */
+
+        if (SqlClientInstrumentation.TracingHandles == 0)
+        {
+            return;
+        }
 
         if (eventData.Payload.Count < 3)
         {
@@ -170,7 +176,7 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             if (activity.IsAllDataRequested)
             {
-                int compositeState = (int)eventData.Payload[1];
+                var compositeState = (int)eventData.Payload[1];
                 if ((compositeState & 0b001) != 0b001)
                 {
                     if ((compositeState & 0b010) == 0b010)

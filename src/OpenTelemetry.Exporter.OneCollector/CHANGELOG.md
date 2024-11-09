@@ -15,6 +15,10 @@
   also be applied to subsequent `LogRecord`s in the same batch.
   ([#2205](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2205))
 
+* Update OpenTelemetry SDK version to `1.10.0-rc.1` and removed the direct
+  reference to `Microsoft.Extensions.Configuration.Binder`.
+  ([#2295](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2295))
+
 ## 1.9.3
 
 Released 2024-Oct-11

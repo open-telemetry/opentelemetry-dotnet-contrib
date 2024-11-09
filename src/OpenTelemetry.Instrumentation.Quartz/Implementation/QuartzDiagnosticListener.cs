@@ -28,7 +28,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
         switch (name)
         {
@@ -43,6 +43,8 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
             case "Quartz.Job.Execute.Exception":
             case "Quartz.Job.Veto.Exception":
                 this.OnException(activity, payload);
+                break;
+            default:
                 break;
         }
     }
@@ -127,8 +129,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            var exc = payload as Exception;
-            if (exc == null)
+            if (payload is not Exception exc)
             {
                 QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
                 return;

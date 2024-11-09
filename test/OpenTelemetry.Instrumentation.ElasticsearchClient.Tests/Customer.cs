@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
-public class Customer
+internal class Customer
 {
     public string? Id { get; set; }
 

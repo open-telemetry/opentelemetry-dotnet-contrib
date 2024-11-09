@@ -7,7 +7,9 @@ using Hangfire.Storage;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
+#pragma warning disable CA1515
 public class HangfireFixture : IDisposable
+#pragma warning restore CA1515
 {
     public HangfireFixture()
     {
