@@ -95,6 +95,29 @@ internal sealed class SqlEventSourceListener : EventListener
         }
     }
 
+    private static (bool HasError, string? ErrorNumber, string? ExceptionType) ExtractErrorFromEvent(EventWrittenEventArgs eventData)
+    {
+        var compositeState = (int)eventData.Payload[1];
+
+        if ((compositeState & 0b001) != 0b001)
+        {
+            if ((compositeState & 0b010) == 0b010)
+            {
+                var errorNumber = $"{eventData.Payload[2]}";
+                var exceptionType = eventData.EventSource.Name == MdsEventSourceName
+                    ? "Microsoft.Data.SqlClient.SqlException"
+                    : "System.Data.SqlClient.SqlException";
+                return (true, errorNumber, exceptionType);
+            }
+            else
+            {
+                return (true, null, null);
+            }
+        }
+
+        return (false, null, null);
+    }
+
     private void OnBeginExecute(EventWrittenEventArgs eventData)
     {
         /*
@@ -182,7 +205,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles != 0)
         {
-            this.RecordDuration(null, eventData.Payload);
+            this.RecordDuration(null, eventData);
             return;
         }
 
@@ -196,18 +219,14 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             if (activity.IsAllDataRequested)
             {
-                var compositeState = (int)eventData.Payload[1];
-                if ((compositeState & 0b001) != 0b001)
+                var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
+
+                if (hasError)
                 {
-                    if ((compositeState & 0b010) == 0b010)
+                    if (errorNumber != null && exceptionType != null)
                     {
-                        var errorNumber = $"{eventData.Payload[2]}";
                         activity.SetStatus(ActivityStatusCode.Error, errorNumber);
                         activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
-
-                        var exceptionType = eventData.EventSource.Name == MdsEventSourceName
-                            ? "Microsoft.Data.SqlClient.SqlException"
-                            : "System.Data.SqlClient.SqlException";
                         activity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
                     }
                     else
@@ -220,11 +239,11 @@ internal sealed class SqlEventSourceListener : EventListener
         finally
         {
             activity.Stop();
-            this.RecordDuration(activity, eventData.Payload);
+            this.RecordDuration(activity, eventData);
         }
     }
 
-    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
+    private void RecordDuration(Activity? activity, EventWrittenEventArgs eventData)
     {
         if (SqlClientInstrumentation.MetricHandles == 0)
         {
@@ -247,6 +266,17 @@ internal sealed class SqlEventSourceListener : EventListener
         else
         {
             tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+
+            var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
+
+            if (hasError)
+            {
+                if (errorNumber != null && exceptionType != null)
+                {
+                    tags.Add(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+                    tags.Add(SemanticConventions.AttributeErrorType, exceptionType);
+                }
+            }
         }
 
         var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
