@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net8.0" ]'
+        default: '[ "net462", "net8.0", "net9.0" ]'
         required: false
         type: string
       test-case-filter:
@@ -90,6 +90,10 @@ jobs:
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+          9.0.x
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
