@@ -624,6 +624,7 @@ jobs:
       build-test-instrumentation-owin,
       build-test-instrumentation-process,
       build-test-instrumentation-quartz,
+      build-test-instrumentation-runtime,
       build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,
       build-test-instrumentation-stackexchangeredis,
