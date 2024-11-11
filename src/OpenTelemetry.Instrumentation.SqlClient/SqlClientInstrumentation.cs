@@ -22,6 +22,7 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #if NET
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
 #endif
+    internal static int MetricHandles;
     internal static int TracingHandles;
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
@@ -61,6 +62,8 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
     public static SqlClientTraceInstrumentationOptions TracingOptions { get; set; } = new SqlClientTraceInstrumentationOptions();
 
+    public static IDisposable AddMetricHandle() => new MetricHandle();
+
     public static IDisposable AddTracingHandle() => new TracingHandle();
 
     /// <inheritdoc/>
@@ -71,6 +74,28 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #else
         this.diagnosticSourceSubscriber?.Dispose();
 #endif
+    }
+
+#if NET
+    [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
+#endif
+    private sealed class MetricHandle : IDisposable
+    {
+        private bool disposed;
+
+        public MetricHandle()
+        {
+            Interlocked.Increment(ref MetricHandles);
+        }
+
+        public void Dispose()
+        {
+            if (!this.disposed)
+            {
+                Interlocked.Decrement(ref MetricHandles);
+                this.disposed = true;
+            }
+        }
     }
 
 #if NET

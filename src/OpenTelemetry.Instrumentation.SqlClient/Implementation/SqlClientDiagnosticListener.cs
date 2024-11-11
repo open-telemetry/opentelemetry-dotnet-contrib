@@ -26,6 +26,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
 
+    private static readonly string[] SharedTagNames =
+    [
+        SemanticConventions.AttributeDbSystem,
+        SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbResponseStatusCode,
+        SemanticConventions.AttributeDbOperationName,
+        SemanticConventions.AttributeErrorType,
+        SemanticConventions.AttributeServerPort,
+        SemanticConventions.AttributeServerAddress,
+    ];
+
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
     private readonly PropertyFetcher<string> dataSourceFetcher = new("DataSource");
@@ -34,6 +46,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
@@ -44,7 +57,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        if (SqlClientInstrumentation.TracingHandles == 0)
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
         {
             return;
         }
@@ -77,6 +90,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                         return;
                     }
 
@@ -162,15 +176,18 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     activity.Stop();
+                    this.RecordDuration(activity, payload);
                 }
 
                 break;
@@ -180,11 +197,13 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != SqlActivitySourceHelper.ActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
@@ -217,6 +236,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
+                        this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
 
@@ -224,6 +244,85 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             default:
                 break;
         }
+    }
+
+    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
+    {
+        if (SqlClientInstrumentation.MetricHandles == 0)
+        {
+            return;
+        }
+
+        TagList tags = default(TagList);
+
+        if (activity != null && activity.IsAllDataRequested)
+        {
+            foreach (var name in SharedTagNames)
+            {
+                var value = activity.GetTagItem(name);
+                if (value != null)
+                {
+                    tags.Add(name, value);
+                }
+            }
+        }
+        else if (payload != null)
+        {
+            if (this.commandFetcher.TryFetch(payload, out var command) && command != null &&
+                this.connectionFetcher.TryFetch(command, out var connection))
+            {
+                this.databaseFetcher.TryFetch(connection, out var databaseName);
+                this.dataSourceFetcher.TryFetch(connection, out var dataSource);
+
+                var connectionTags = SqlActivitySourceHelper.GetTagListFromConnectionInfo(
+                    dataSource,
+                    databaseName,
+                    SqlClientInstrumentation.TracingOptions,
+                    out _);
+
+                foreach (var tag in connectionTags)
+                {
+                    tags.Add(tag.Key, tag.Value);
+                }
+
+                if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
+                    commandType == CommandType.StoredProcedure)
+                {
+                    if (this.commandTextFetcher.TryFetch(command, out var commandText))
+                    {
+                        tags.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+                        tags.Add(SemanticConventions.AttributeDbCollectionName, commandText);
+                    }
+                }
+            }
+
+            if (hasError)
+            {
+                if (this.exceptionFetcher.TryFetch(payload, out var exception) && exception != null)
+                {
+                    tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+
+                    if (this.exceptionNumberFetcher.TryFetch(exception, out var exceptionNumber))
+                    {
+                        tags.Add(SemanticConventions.AttributeDbResponseStatusCode, exceptionNumber.ToString(CultureInfo.InvariantCulture));
+                    }
+                }
+            }
+        }
+
+        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
+        SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private double CalculateDurationFromTimestamp()
+    {
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var begin = this.beginTimestamp.Value;
+        var end = Stopwatch.GetTimestamp();
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
     }
 }
 #endif
