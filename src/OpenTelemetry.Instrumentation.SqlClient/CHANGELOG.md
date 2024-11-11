@@ -48,7 +48,7 @@
 * **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
   ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
 * Add support for metric `db.client.operation.duration`
-  from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration).
+  from [new database semantic conventions] on .NET 8+.(https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration).
   ([#2309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2309))
 
 ## 1.9.0-beta.1
