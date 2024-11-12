@@ -7,6 +7,9 @@
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Http-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.9.0</PackageValidationBaselineVersion>
+
+    <!--TODO: REMOVE THIS AT A LATER DATE WHEN THE FULL REPO SUPPORTS latest.-->
+    <AnalysisLevel>8.0</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
