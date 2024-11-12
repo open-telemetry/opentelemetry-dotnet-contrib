@@ -7,7 +7,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-internal class EventSourceTest
+public class EventSourceTest
 {
     [Fact]
     public void EventSourceTest_HttpInstrumentationEventSource()
