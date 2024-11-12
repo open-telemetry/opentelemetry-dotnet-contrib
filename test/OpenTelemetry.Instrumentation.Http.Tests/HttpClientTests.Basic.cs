@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-public partial class HttpClientTests : IDisposable
+internal partial class HttpClientTests : IDisposable
 {
     private readonly ITestOutputHelper output;
     private readonly IDisposable serverLifeTime;
