@@ -13,7 +13,6 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
     private readonly Func<DiagnosticListener, bool> diagnosticSourceFilter;
     private readonly Func<string, object?, object?, bool>? isEnabledFilter;
     private readonly Action<string, string, Exception> logUnknownException;
-    private long disposed;
     private IDisposable? allSourcesSubscription;
 
     public DiagnosticSourceSubscriber(
