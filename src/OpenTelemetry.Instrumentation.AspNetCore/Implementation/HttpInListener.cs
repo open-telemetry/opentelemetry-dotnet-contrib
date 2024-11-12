@@ -320,7 +320,7 @@ internal class HttpInListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
             activity.SetStatus(ActivityStatusCode.Error);

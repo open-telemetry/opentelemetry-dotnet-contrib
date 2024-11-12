@@ -295,7 +295,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         {
                             if (this.exceptionFetcher.Fetch(payload) is Exception exception)
                             {
+#pragma warning disable CS0618 // Type or member is obsolete
                                 activity.SetStatus(Status.Error.WithDescription(exception.Message));
+#pragma warning restore CS0618 // Type or member is obsolete
                             }
                             else
                             {

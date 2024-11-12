@@ -9,7 +9,6 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
@@ -68,7 +67,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -121,7 +120,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (404) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -173,7 +172,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -405,7 +404,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -472,7 +471,7 @@ public class ElasticsearchClientTests
 }".Replace("\r\n", "\n"),
             debugInfo.Replace("\r\n", "\n"));
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -524,7 +523,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.DoesNotContain("123", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -576,7 +575,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -629,8 +628,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Unsuccessful (500) low level call", debugInfo);
 
-        var status = searchActivity.GetStatus();
-        Assert.Equal(Status.Error.StatusCode, status.StatusCode);
+        Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
@@ -682,7 +680,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
 
-        Assert.Equal(Status.Unset, searchActivity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }
