@@ -427,7 +427,7 @@ public partial class HttpClientTests : IDisposable
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
 
 #if NET9_0_OR_GREATER
-        if (expectedOriginalMethod != null && expectedOriginalMethod != "CUSTOM")
+        if (expectedOriginalMethod is not null and not "CUSTOM")
         {
             // TODO: NEED TO REVIEW THE SPEC.
             // "http.request.method_original" is only set when the HTTP Method is not a standard HTTP method.
