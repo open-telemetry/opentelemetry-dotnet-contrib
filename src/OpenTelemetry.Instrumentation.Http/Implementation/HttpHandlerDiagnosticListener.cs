@@ -26,7 +26,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
     internal static readonly Version Version = AssemblyName.Version!;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
-
+    
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
     private const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
@@ -35,6 +35,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<TaskStatus> StopRequestStatusFetcher = new("RequestTaskStatus");
+    private static readonly bool Net9orGreater = Environment.Version.Major >= 9;
+
     private readonly HttpClientTraceInstrumentationOptions options;
 
     public HttpHandlerDiagnosticListener(HttpClientTraceInstrumentationOptions options)
@@ -135,10 +137,13 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
             }
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-            HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
+            if (!Net9orGreater)
+            {
+                // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
+                HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
+            }
 
-            if (request.RequestUri != null)
+            if (!Net9orGreater && request.RequestUri != null)
             {
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
@@ -199,16 +204,19 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (TryFetchResponse(payload, out var response))
             {
-                if (currentStatusCode == ActivityStatusCode.Unset)
+                if (!Net9orGreater)
                 {
-                    activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
-                }
+                    if (currentStatusCode == ActivityStatusCode.Unset)
+                    {
+                        activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
+                    }
 
-                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
-                activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
-                if (activity.Status == ActivityStatusCode.Error)
-                {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
+                    activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                    if (activity.Status == ActivityStatusCode.Error)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    }
                 }
 
                 try

@@ -28,6 +28,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<HttpRequestMessage> RequestFetcher = new("Request");
+    private static readonly bool Net9orGreater = Environment.Version.Major >= 9;
 #if NET
     private static readonly HttpRequestOptionsKey<string?> HttpRequestOptionsErrorKey = new(SemanticConventions.AttributeErrorType);
 #endif
@@ -39,7 +40,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
     public static void OnStopEventWritten(Activity activity, object? payload)
     {
-        if (TryFetchRequest(payload, out var request))
+        if (!Net9orGreater && TryFetchRequest(payload, out var request))
         {
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md
             TagList tags = default;

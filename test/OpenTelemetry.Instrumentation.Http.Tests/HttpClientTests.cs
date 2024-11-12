@@ -340,7 +340,21 @@ public partial class HttpClientTests
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeHttpRequestMethod && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeHttpRequestMethod]);
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerAddress && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerAddress]);
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
+
+#if NET9_0_OR_GREATER
+            // NET9 does not record the URL Fragment Identifier.
+            var expected = normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull];
+            if (expected.EndsWith("#fragment", StringComparison.Ordinal))
+            {
+                // remove fragment from expected value
+                expected = expected.Substring(0, expected.Length - "#fragment".Length);
+            }
+
+            Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeUrlFull && kvp.Value?.ToString() == expected);
+#else
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeUrlFull && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull]);
+#endif
+
             if (tc.ResponseExpected)
             {
                 Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeNetworkProtocolVersion && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeNetworkProtocolVersion]);

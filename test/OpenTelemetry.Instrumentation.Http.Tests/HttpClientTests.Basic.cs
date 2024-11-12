@@ -385,7 +385,7 @@ public partial class HttpClientTests : IDisposable
     [InlineData("Options", "OPTIONS", "Options")]
     [InlineData("Patch", "PATCH", "Patch")]
     [InlineData("Trace", "TRACE", "Trace")]
-    [InlineData("CUSTOM", "_OTHER", "CUSTOM")]
+    [InlineData("CUSTOM", "_OTHER", "CUSTOM")] // NET9 only sets "http.request.method_original" if the method is not a standard HTTP method.
     public async Task HttpRequestMethodIsSetOnActivityAsPerSpec(string originalMethod, string expectedMethod, string? expectedOriginalMethod)
     {
         var exportedItems = new List<Activity>();
@@ -425,6 +425,18 @@ public partial class HttpClientTests : IDisposable
         }
 
         Assert.Equal(expectedMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethod));
+
+#if NET9_0_OR_GREATER
+        if (expectedOriginalMethod != null && expectedOriginalMethod != "CUSTOM")
+        {
+            // TODO: NEED TO REVIEW THE SPEC.
+            // "http.request.method_original" is only set when the HTTP Method is not a standard HTTP method.
+
+            // Our implementation expects HTTP Methods to be in uppercase. "GET" is known but "Get" is unknown.
+            // In contrast, NET9 is case-insensitive. "GET" and "Get" are both known.
+            expectedOriginalMethod = null;
+        }
+#endif
         Assert.Equal(expectedOriginalMethod, activity.GetTagValue(SemanticConventions.AttributeHttpRequestMethodOriginal));
     }
 
@@ -727,7 +739,17 @@ public partial class HttpClientTests : IDisposable
         var activity = exportedItems[0];
 
         var expectedUrl = $"{this.url}path{expectedUrlQuery}";
+
+#if NET9_0_OR_GREATER
+
+        // TODO: NEED TO UPDATE THIS TEST TO USE .NET'S SETTING TO DISABLE REDACTION.
+        // CURRENTLY THIS DOESN'T WORK WITH OUR TESTS WHICH RUN IN PARALLEL.
+        // https://github.com/dotnet/docs/issues/42792
+        expectedUrl = $"{this.url}path?*";
         Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
+#else
+        Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
+#endif
     }
 
     [Theory]
