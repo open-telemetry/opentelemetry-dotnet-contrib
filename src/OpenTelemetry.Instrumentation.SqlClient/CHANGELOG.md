@@ -53,7 +53,7 @@
   ([#2309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2309))
 * Add support for metric `db.client.operation.duration`
   from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration)
-  on .NET Framework. 
+  on .NET Framework.
   ([#2311](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2311))
   * Only the following attributes are available when a trace is not captured:
   `db.system`, `db.response.status_code`, and `error.type`
