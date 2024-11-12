@@ -26,7 +26,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
     internal static readonly Version Version = AssemblyName.Version!;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
-    
+
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
     private const string OnStopEvent = "System.Net.Http.HttpRequestOut.Stop";
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";

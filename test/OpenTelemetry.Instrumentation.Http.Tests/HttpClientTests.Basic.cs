@@ -385,7 +385,7 @@ public partial class HttpClientTests : IDisposable
     [InlineData("Options", "OPTIONS", "Options")]
     [InlineData("Patch", "PATCH", "Patch")]
     [InlineData("Trace", "TRACE", "Trace")]
-    [InlineData("CUSTOM", "_OTHER", "CUSTOM")] // NET9 only sets "http.request.method_original" if the method is not a standard HTTP method.
+    [InlineData("CUSTOM", "_OTHER", "CUSTOM")]
     public async Task HttpRequestMethodIsSetOnActivityAsPerSpec(string originalMethod, string expectedMethod, string? expectedOriginalMethod)
     {
         var exportedItems = new List<Activity>();
