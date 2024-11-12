@@ -2,8 +2,8 @@
 # This should be run from the root of the repo:
 # docker build --file test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/Dockerfile .
 
-ARG BUILD_SDK_VERSION=8.0
-ARG TEST_SDK_VERSION=8.0
+ARG BUILD_SDK_VERSION=9.0
+ARG TEST_SDK_VERSION=9.0
 
 FROM mcr.microsoft.com/dotnet/sdk:${BUILD_SDK_VERSION} AS build
 ARG PUBLISH_CONFIGURATION=Release
