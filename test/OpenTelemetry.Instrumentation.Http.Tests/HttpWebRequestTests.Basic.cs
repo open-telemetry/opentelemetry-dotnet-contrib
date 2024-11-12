@@ -17,7 +17,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-internal partial class HttpWebRequestTests : IDisposable
+public partial class HttpWebRequestTests : IDisposable
 {
     private readonly IDisposable serverLifeTime;
     private readonly string url;
