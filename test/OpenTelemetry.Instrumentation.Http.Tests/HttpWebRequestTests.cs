@@ -122,6 +122,15 @@ public partial class HttpWebRequestTests
                 Assert.Fail($"Tag {tag.Key} was not found in test data.");
             }
 
+#if NET9_0_OR_GREATER
+            // NET9 does not record the URL Fragment Identifier.
+            if (value.EndsWith("#fragment", StringComparison.Ordinal))
+            {
+                // remove fragment from expected value
+                value = value.Substring(0, value.Length - "#fragment".Length);
+            }
+#endif
+
             Assert.Equal(value, tagValue);
         }
 
