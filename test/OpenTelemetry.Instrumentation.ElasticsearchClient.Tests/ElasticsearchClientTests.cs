@@ -120,7 +120,7 @@ public class ElasticsearchClientTests
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (404) low level call", debugInfo);
 
-        Assert.Equal(ActivityStatusCode.Unset, searchActivity.Status);
+        Assert.Equal(ActivityStatusCode.Error, searchActivity.Status);
 
         // Assert.Equal(expectedResource, searchActivity.GetResource());
     }

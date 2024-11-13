@@ -254,35 +254,27 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}");
                 }
 
                 var responseBody = this.responseBodyFetcher.Fetch(payload);
                 if (responseBody != null && responseBody.Length > 0)
                 {
                     var response = Encoding.UTF8.GetString(responseBody);
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}\r\n{response}");
                 }
 
                 if (originalException is HttpRequestException)
                 {
                     if (originalException.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound })
                     {
-#pragma warning disable CS0618 // Type or member is obsolete
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-#pragma warning restore CS0618 // Type or member is obsolete
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                         return;
                     }
 
                     if (originalException.InnerException != null)
                     {
-#pragma warning disable CS0618 // Type or member is obsolete
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-#pragma warning restore CS0618 // Type or member is obsolete
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
             }
