@@ -131,7 +131,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
         if (this.options.RecordException)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
     }
 }

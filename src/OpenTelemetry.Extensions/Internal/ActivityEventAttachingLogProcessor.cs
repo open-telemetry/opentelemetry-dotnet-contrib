@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Logs;
 
@@ -88,7 +87,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
 
             if (data.Exception != null)
             {
-                activity.RecordException(data.Exception);
+                activity.AddException(data.Exception);
             }
         }
     }

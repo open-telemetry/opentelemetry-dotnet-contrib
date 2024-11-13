@@ -137,10 +137,12 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
+#pragma warning disable CS0618 // Type or member is obsolete
             activity.SetStatus(Status.Error.WithDescription(exc.Message));
+#pragma warning restore CS0618 // Type or member is obsolete
 
             try
             {

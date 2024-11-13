@@ -5,6 +5,9 @@
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2160))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
 ## 1.9.0-beta.1
 
 Released 2024-Jul-23
@@ -12,6 +15,7 @@ Released 2024-Jul-23
 * Add support for instrumenting `IConnectionMultiplexer`
   which is added with service key.
   ([#1885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1885))
+
 * Update `StackExchange.Redis` version to `2.6.122`, resolving warnings about
   [CVE-2021-24112](https://github.com/advisories/GHSA-rxg9-xrhp-64gj).
   ([#1961](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1961))

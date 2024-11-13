@@ -38,7 +38,7 @@ public class AWSXRayPropagator : TextMapPropagator
     public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
 
     /// <inheritdoc/>
-    public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+    public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
     {
         if (context.ActivityContext.IsValid())
         {
