@@ -28,6 +28,42 @@ public class SqlEventSourceTests
     private const string SqlConnectionStringEnvVarName = "OTEL_SQLCONNECTIONSTRING";
     private static readonly string? SqlConnectionString = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(SqlConnectionStringEnvVarName);
 
+    public static IEnumerable<object[]> EventSourceFakeTestCases()
+    {
+        /* netfx driver can't capture queries, only stored procedure names */
+        /* always emit some attribute */
+        var bools = new[] { true, false };
+        return from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
+               from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
+               from isFailure in bools
+               from captureText in bools
+               from enableConnectionLevelAttributes in bools
+               from emitOldAttributes in bools
+               from emitNewAttributes in bools
+               from tracingEnabled in bools
+               from metricsEnabled in bools
+               where !(commandType == CommandType.Text && captureText == true)
+               where emitOldAttributes != false && emitNewAttributes != false
+               let commandText = commandType == CommandType.Text
+                   ? (isFailure == false ? "select 1/1" : "select 1/0")
+                   : "sp_who"
+               let sqlExceptionNumber = 0
+               select new object[]
+               {
+                   eventSourceType,
+                   commandType,
+                   commandText,
+                   captureText,
+                   isFailure,
+                   sqlExceptionNumber,
+                   enableConnectionLevelAttributes,
+                   emitOldAttributes,
+                   emitNewAttributes,
+                   tracingEnabled,
+                   metricsEnabled,
+               };
+    }
+
     [Trait("CategoryName", "SqlIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(SqlConnectionStringEnvVarName)]
     [InlineData(CommandType.Text, "select 1/1", false)]
@@ -356,42 +392,6 @@ public class SqlEventSourceTests
     }
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
-    public static IEnumerable<object[]> EventSourceFakeTestCases()
-    {
-        /* netfx driver can't capture queries, only stored procedure names */
-        /* always emit some attribute */
-        var bools = new[] { true, false };
-        return from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
-               from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
-               from isFailure in bools
-               from captureText in bools
-               from enableConnectionLevelAttributes in bools
-               from emitOldAttributes in bools
-               from emitNewAttributes in bools
-               from tracingEnabled in bools
-               from metricsEnabled in bools
-               where !(commandType == CommandType.Text && captureText == true)
-               where emitOldAttributes != false && emitNewAttributes != false
-               let commandText = commandType == CommandType.Text
-                   ? (isFailure == false ? "select 1/1" : "select 1/0")
-                   : "sp_who"
-               let sqlExceptionNumber = 0
-               select new object[]
-               {
-                   eventSourceType,
-                   commandType,
-                   commandText,
-                   captureText,
-                   isFailure,
-                   sqlExceptionNumber,
-                   enableConnectionLevelAttributes,
-                   emitOldAttributes,
-                   emitNewAttributes,
-                   tracingEnabled,
-                   metricsEnabled,
-               };
-    }
-
     // Helper interface to be able to have single test method for multiple EventSources, want to keep it close to the event sources themselves.
     private interface IFakeBehavingSqlEventSource : IDisposable
 #pragma warning restore SA1201 // Elements should appear in the correct order
