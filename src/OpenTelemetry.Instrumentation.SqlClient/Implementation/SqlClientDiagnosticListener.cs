@@ -26,18 +26,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
 
-    private static readonly string[] SharedTagNames =
-    [
-        SemanticConventions.AttributeDbSystem,
-        SemanticConventions.AttributeDbCollectionName,
-        SemanticConventions.AttributeDbNamespace,
-        SemanticConventions.AttributeDbResponseStatusCode,
-        SemanticConventions.AttributeDbOperationName,
-        SemanticConventions.AttributeErrorType,
-        SemanticConventions.AttributeServerPort,
-        SemanticConventions.AttributeServerAddress,
-    ];
-
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
     private readonly PropertyFetcher<string> dataSourceFetcher = new("DataSource");
@@ -257,7 +245,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SharedTagNames)
+            foreach (var name in SqlActivitySourceHelper.SharedTagNames)
             {
                 var value = activity.GetTagItem(name);
                 if (value != null)

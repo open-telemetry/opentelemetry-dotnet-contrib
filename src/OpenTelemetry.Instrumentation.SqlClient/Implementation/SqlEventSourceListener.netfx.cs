@@ -29,18 +29,6 @@ internal sealed class SqlEventSourceListener : EventListener
     internal const int BeginExecuteEventId = 1;
     internal const int EndExecuteEventId = 2;
 
-    private static readonly string[] SharedTagNames =
-    [
-        SemanticConventions.AttributeDbSystem,
-        SemanticConventions.AttributeDbCollectionName,
-        SemanticConventions.AttributeDbNamespace,
-        SemanticConventions.AttributeDbResponseStatusCode,
-        SemanticConventions.AttributeDbOperationName,
-        SemanticConventions.AttributeErrorType,
-        SemanticConventions.AttributeServerPort,
-        SemanticConventions.AttributeServerAddress,
-    ];
-
     private readonly AsyncLocal<long> beginTimestamp = new();
     private EventSource? adoNetEventSource;
     private EventSource? mdsEventSource;
@@ -254,7 +242,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SharedTagNames)
+            foreach (var name in SqlActivitySourceHelper.SharedTagNames)
             {
                 var value = activity.GetTagItem(name);
                 if (value != null)

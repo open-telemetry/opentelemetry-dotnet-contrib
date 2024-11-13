@@ -30,6 +30,18 @@ internal sealed class SqlActivitySourceHelper
         "s",
         "Duration of database client operations.");
 
+    internal static readonly string[] SharedTagNames =
+    [
+        SemanticConventions.AttributeDbSystem,
+        SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbResponseStatusCode,
+        SemanticConventions.AttributeDbOperationName,
+        SemanticConventions.AttributeErrorType,
+        SemanticConventions.AttributeServerPort,
+        SemanticConventions.AttributeServerAddress,
+    ];
+
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
     {
         activityName = MicrosoftSqlServerDatabaseSystemName;
