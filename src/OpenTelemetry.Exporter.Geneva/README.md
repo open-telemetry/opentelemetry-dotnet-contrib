@@ -340,7 +340,7 @@ the `ConnectionString`.
 #### `MetricExportIntervalMilliseconds` (optional)
 
 Set the exporter's periodic time interval to export Metrics. The default value
-is 20000 milliseconds.
+is 60000 milliseconds.
 
 #### `PrepopulatedMetricDimensions` (optional)
 
