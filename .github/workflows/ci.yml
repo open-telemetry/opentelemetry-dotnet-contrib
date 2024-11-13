@@ -197,7 +197,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net8.0" ]'
+      tfm-list: '[ "net8.0", "net9.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
