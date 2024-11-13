@@ -266,7 +266,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
             if (exc is HttpRequestException)
