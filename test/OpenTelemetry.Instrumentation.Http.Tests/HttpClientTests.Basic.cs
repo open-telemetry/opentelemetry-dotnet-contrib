@@ -741,7 +741,6 @@ public partial class HttpClientTests : IDisposable
         var expectedUrl = $"{this.url}path{expectedUrlQuery}";
 
 #if NET9_0_OR_GREATER
-
         // TODO: NEED TO UPDATE THIS TEST TO USE .NET'S SETTING TO DISABLE REDACTION.
         // CURRENTLY THIS DOESN'T WORK WITH OUR TESTS WHICH RUN IN PARALLEL.
         // https://github.com/dotnet/docs/issues/42792
