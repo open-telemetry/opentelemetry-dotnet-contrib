@@ -267,19 +267,9 @@ internal sealed class SqlEventSourceListener : EventListener
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
+        var duration = activity?.Duration.TotalSeconds
+            ?? SqlActivitySourceHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
-    }
-
-    private double CalculateDurationFromTimestamp()
-    {
-        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-        var begin = this.beginTimestamp.Value;
-        var end = Stopwatch.GetTimestamp();
-        var delta = end - begin;
-        var ticks = (long)(timestampToTicks * delta);
-        var duration = new TimeSpan(ticks);
-        return duration.TotalSeconds;
     }
 }
 #endif

@@ -109,4 +109,14 @@ internal sealed class SqlActivitySourceHelper
 
         return tags;
     }
+
+    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    {
+        end = end ?? Stopwatch.GetTimestamp();
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
+    }
 }
