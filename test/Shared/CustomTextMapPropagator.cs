@@ -22,7 +22,7 @@ internal sealed class CustomTextMapPropagator : TextMapPropagator
 #pragma warning restore SA1010 // Opening square brackets should be spaced correctly
 #pragma warning restore SA1201 // Elements should appear in the correct order
 
-    public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+    public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
     {
         if (this.TraceId != default && this.SpanId != default)
         {
