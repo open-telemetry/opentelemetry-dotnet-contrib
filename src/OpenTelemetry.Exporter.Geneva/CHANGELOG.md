@@ -19,8 +19,8 @@
   For configuration details see:
   [OtlpProtobufEncoding](./README.md#otlpprotobufencoding).
 
-* Update OpenTelemetry SDK version to `1.10.0-rc.1`.
-  ([#2294](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2294))
+* Update OpenTelemetry SDK version to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
 ## 1.9.0
 

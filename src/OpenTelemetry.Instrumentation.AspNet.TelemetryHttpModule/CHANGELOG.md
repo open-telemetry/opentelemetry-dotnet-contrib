@@ -10,6 +10,9 @@
   implementations](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk#sampler).
   ([#1871](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1871))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
 ## 1.9.0-beta.1
 
 Released 2024-Jun-18
