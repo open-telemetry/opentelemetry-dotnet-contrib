@@ -8,9 +8,6 @@
 * Update BaggageActivityProcessor to require baggage key predicate.
   ([#1816](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1816))
 
-* Updated OpenTelemetry core component version(s) to `1.9.0`.
-  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
-
 * Added rate limiting sampler which limits the number of traces to the specified
 rate per second. For details see
   [RateLimitingSampler](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Extensions#ratelimitingsampler).
@@ -18,6 +15,9 @@ rate per second. For details see
 
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2124](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2124))
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
 ## 1.0.0-beta.5
 

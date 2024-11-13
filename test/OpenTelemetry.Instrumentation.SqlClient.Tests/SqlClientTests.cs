@@ -439,7 +439,6 @@ public class SqlClientTests : IDisposable
         }
         else
         {
-            var status = activity.GetStatus();
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.NotNull(activity.StatusDescription);
 
