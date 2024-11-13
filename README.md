@@ -100,7 +100,7 @@ repository](h[ttps://github.com/open-telemetry/community/blob/main/community-mem
 
 [Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
 
-* [Cijo Thomas](https://github.com/cijothomas), Microsoft
+* [Cijo Thomas](https://github.com/cijothomas)
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)
