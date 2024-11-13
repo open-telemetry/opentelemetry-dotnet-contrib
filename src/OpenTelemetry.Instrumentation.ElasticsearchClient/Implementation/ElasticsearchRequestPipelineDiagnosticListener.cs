@@ -254,27 +254,27 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
                 {
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}");
                 }
 
                 var responseBody = this.responseBodyFetcher.Fetch(payload);
                 if (responseBody != null && responseBody.Length > 0)
                 {
                     var response = Encoding.UTF8.GetString(responseBody);
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}\r\n{response}");
                 }
 
                 if (originalException is HttpRequestException)
                 {
                     if (originalException.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound })
                     {
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                         return;
                     }
 
                     if (originalException.InnerException != null)
                     {
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
             }
