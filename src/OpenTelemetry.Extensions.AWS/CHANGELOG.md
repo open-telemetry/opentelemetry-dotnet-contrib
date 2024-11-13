@@ -8,6 +8,9 @@
 * Removed the unused `System.Text.Json` reference.
   ([#2209](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2209))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
 ## 1.3.0-beta.2
 
 Released 2024-Sep-24

@@ -200,7 +200,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
                 if (generateRemoteException)
                 {
-                    Assert.Equal(Status.Error, activity.GetStatus());
+                    Assert.Equal(ActivityStatusCode.Error, activity.Status);
 
                     if (recordException)
                     {
@@ -209,7 +209,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 }
                 else
                 {
-                    Assert.Equal(Status.Unset, activity.GetStatus());
+                    Assert.Equal(ActivityStatusCode.Unset, activity.Status);
                 }
 
                 if (enrich && !enrichmentException)

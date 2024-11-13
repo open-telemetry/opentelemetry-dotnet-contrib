@@ -178,7 +178,7 @@ internal static class HttpWebRequestActivitySource
 
         if (TracingOptions.RecordException)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
 
         try
