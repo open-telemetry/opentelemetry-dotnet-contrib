@@ -342,6 +342,7 @@ public partial class HttpClientTests
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
 
 #if NET9_0_OR_GREATER
+            // TODO: NEED TO REVIEW THE SPEC
             // NET9 does not record the URL Fragment Identifier.
             var expected = normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull];
             if (expected.EndsWith("#fragment", StringComparison.Ordinal))

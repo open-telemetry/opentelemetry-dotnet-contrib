@@ -123,6 +123,7 @@ public partial class HttpWebRequestTests
             }
 
 #if NET9_0_OR_GREATER
+            // TODO: NEED TO REVIEW THE SPEC
             // NET9 does not record the URL Fragment Identifier.
             if (value.EndsWith("#fragment", StringComparison.Ordinal))
             {
