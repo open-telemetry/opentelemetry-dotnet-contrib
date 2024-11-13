@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup dotnet  # The runner does not have .NET 9 SDK installed by default yet.
+    - name: Setup dotnet
       uses: actions/setup-dotnet@v4
 
     - name: publish AOT testApp, assert static analysis warning count, and run the app
