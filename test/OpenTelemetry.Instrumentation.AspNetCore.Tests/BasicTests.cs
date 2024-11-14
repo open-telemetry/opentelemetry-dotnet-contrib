@@ -1188,7 +1188,7 @@ public sealed class BasicTests
 
         public override ISet<string> Fields => throw new NotImplementedException();
 
-        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
         {
             return new PropagationContext(this.activityContext, this.baggage);
         }

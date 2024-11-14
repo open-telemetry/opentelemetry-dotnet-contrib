@@ -218,7 +218,7 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
 
         if (this.activity!.IsAllDataRequested && this.recordException)
         {
-            this.activity.RecordException(exception);
+            this.activity.AddException(exception);
         }
 
         this.StopActivity((int)grpcStatusCode, markAsCompleted: false);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -20,6 +21,14 @@ internal sealed class SqlActivitySourceHelper
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
     public static readonly string ActivitySourceName = AssemblyName.Name!;
     public static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+
+    public static readonly string MeterName = AssemblyName.Name!;
+    public static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
+
+    public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram<double>(
+        "db.client.operation.duration",
+        "s",
+        "Duration of database client operations.");
 
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
     {

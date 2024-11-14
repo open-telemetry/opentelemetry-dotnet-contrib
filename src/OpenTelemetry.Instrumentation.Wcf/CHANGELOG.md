@@ -5,6 +5,9 @@
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2263](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2263))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
 * Add possibility to record exceptions from the client side.
   Added a `RecordException` property to specify if exceptions
   should be recorded (defaults to `false`).
