@@ -8,6 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
+* Remove legacy checks that only applied for .NET 6
+  ([#2325](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2325))
+
 ## 1.9.0
 
 Released 2024-Jun-18
