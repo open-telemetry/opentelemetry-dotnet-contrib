@@ -342,8 +342,11 @@ public partial class HttpClientTests
             Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeServerPort && kvp.Value?.ToString() == normalizedAttributesTestCase[SemanticConventions.AttributeServerPort]);
 
 #if NET9_0_OR_GREATER
-            // TODO: NEED TO REVIEW THE SPEC
-            // NET9 does not record the URL Fragment Identifier.
+            // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET9.
+            // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
+            // Currently the URL Fragment Identifier (#fragment) isn't being recorded.
+            // Tracking issue: https://github.com/dotnet/runtime/issues/109847
             var expected = normalizedAttributesTestCase[SemanticConventions.AttributeUrlFull];
             if (expected.EndsWith("#fragment", StringComparison.Ordinal))
             {

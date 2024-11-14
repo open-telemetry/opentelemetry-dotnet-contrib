@@ -429,11 +429,11 @@ public partial class HttpClientTests : IDisposable
 #if NET9_0_OR_GREATER
         if (expectedOriginalMethod is not null and not "CUSTOM")
         {
-            // TODO: NEED TO REVIEW THE SPEC.
-            // "http.request.method_original" is only set when the HTTP Method is not a standard HTTP method.
-
-            // Our implementation expects HTTP Methods to be in uppercase. "GET" is known but "Get" is unknown.
-            // In contrast, NET9 is case-insensitive. "GET" and "Get" are both known.
+            // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
+            // TODO: THIS CAN BE REMOVED AFTER RUNTIME PATCHES NET9.
+            // Currently Runtime is not following the OTel Spec for Http Spans: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#http-client
+            // Currently "http.request.method_original" is not being set as expected.
+            // Tracking issue: https://github.com/dotnet/runtime/issues/109847
             expectedOriginalMethod = null;
         }
 #endif
@@ -741,14 +741,13 @@ public partial class HttpClientTests : IDisposable
         var expectedUrl = $"{this.url}path{expectedUrlQuery}";
 
 #if NET9_0_OR_GREATER
+        // HACK: THIS IS A HACK TO MAKE THE TEST PASS.
         // TODO: NEED TO UPDATE THIS TEST TO USE .NET'S SETTING TO DISABLE REDACTION.
-        // CURRENTLY THIS DOESN'T WORK WITH OUR TESTS WHICH RUN IN PARALLEL.
-        // https://github.com/dotnet/docs/issues/42792
+        // Currently this doesn't work with our tests which run in parallel.
+        // For more information see: https://github.com/dotnet/docs/issues/42792
         expectedUrl = $"{this.url}path?*";
-        Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
-#else
-        Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
 #endif
+        Assert.Equal(expectedUrl, activity.GetTagValue(SemanticConventions.AttributeUrlFull));
     }
 
     [Theory]
