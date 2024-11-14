@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
