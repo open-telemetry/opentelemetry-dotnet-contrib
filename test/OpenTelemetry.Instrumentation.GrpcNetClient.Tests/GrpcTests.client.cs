@@ -18,7 +18,6 @@ using OpenTelemetry.Instrumentation.GrpcNetClient;
 using OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
@@ -100,7 +99,7 @@ public partial class GrpcTests
         }
 
         Assert.Equal(uri.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
-        Assert.Equal(Status.Unset, activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         // Tags added by the library then removed from the instrumentation
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));

@@ -2,7 +2,7 @@ param([string]$targetNetFramework)
 
 $rootDirectory = Get-Location
 
-$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj -nodeReuse:false /p:UseSharedCompilation=false
+$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --framework $targetNetFramework -nodeReuse:false /p:UseSharedCompilation=false
 
 $actualWarningCount = 0
 

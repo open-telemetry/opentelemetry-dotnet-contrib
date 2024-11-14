@@ -4,6 +4,7 @@
 
 * Drop support for .NET 6 as this target is no longer supported.
   ([#2159](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2159))
+
 * The new database semantic conventions can be opted in to by setting
   the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable. This allows for a
   transition period for users to experiment with the new semantic conventions
@@ -28,23 +29,28 @@
    [#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277),
    [#2262](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2262),
    [#2279](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2279))
+
 * **Breaking change**: The `peer.service` and `server.socket.address` attributes
   are no longer emitted. Users should rely on the `server.address` attribute
   for the same information. Note that `server.address` is only included when
   the `EnableConnectionLevelAttributes` option is enabled.
   ([#2229](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2229))
+
 * **Breaking change**: When `EnableConnectionLevelAttributes` is enabled, the
   `server.port` attribute will now be written as an integer to be compliant with
   the [semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/attributes-registry/server.md).
   Previously, it was written as a string.
   ([#2233](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2233))
+
 * The `EnableConnectionLevelAttributes` option is now enabled by default.
   ([#2249](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2249))
+
 * The following attributes are now provided when starting an activity for a database
   call: `db.system`, `db.name` (old conventions), `db.namespace` (new conventions),
   `server.address`, and `server.port`. These attributes are now available for sampling
   decisions.
   ([#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277))
+
 * **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
   ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
 * Add support for metric `db.client.operation.duration`
@@ -57,6 +63,9 @@
   ([#2311](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2311))
   * Only the following attributes are available when a trace is not captured:
   `db.system`, `db.response.status_code`, and `error.type`
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
 ## 1.9.0-beta.1
 

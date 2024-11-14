@@ -90,13 +90,11 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         if (isFailure)
         {
 #if NET
-            var status = activity.GetStatus();
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
             Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
             Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
 #else
-            var status = activity.GetStatus();
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("8134", activity.StatusDescription);
             Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
