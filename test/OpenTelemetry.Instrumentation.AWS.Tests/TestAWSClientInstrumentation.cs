@@ -65,7 +65,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateDynamoActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -110,7 +110,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateDynamoActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -169,7 +169,8 @@ public class TestAWSClientInstrumentation
         this.ValidateDynamoActivityTags(awssdk_activity);
 
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
-        Assert.Equal(Status.Error.WithDescription("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown."), awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Error, awssdk_activity.Status);
+        Assert.Equal("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown.", awssdk_activity.StatusDescription);
         Assert.Equal("exception", awssdk_activity.Events.First().Name);
     }
 
@@ -215,7 +216,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateSqsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -256,7 +257,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -297,7 +298,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockRuntimeActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -338,7 +339,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockAgentAgentOpsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -379,7 +380,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockAgentKnowledgeBaseOpsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -420,7 +421,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockAgentDataSourceOpsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -467,7 +468,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockAgentRuntimeAgentOpsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 
@@ -508,7 +509,7 @@ public class TestAWSClientInstrumentation
         this.ValidateAWSActivity(awssdk_activity, parent);
         this.ValidateBedrockAgentRuntimeKnowledgeBaseOpsActivityTags(awssdk_activity);
 
-        Assert.Equal(Status.Unset, awssdk_activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
 

@@ -354,7 +354,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -363,7 +363,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var sum = metricPoint.GetSumLong();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, in metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -394,7 +394,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -403,7 +403,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var sum = metricPoint.GetSumDouble();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, in metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -427,7 +427,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -436,7 +436,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var lastValue = metricPoint.GetGaugeLastValueLong();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, in metricPoint, lastValue);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -460,7 +460,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -469,7 +469,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var lastValue = metricPoint.GetGaugeLastValueDouble();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, in metricPoint, lastValue);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -496,7 +496,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -579,7 +579,7 @@ internal sealed class OtlpProtobufSerializer
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
 
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -664,7 +664,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    private void WriteNumberDataPoint<T>(byte[] buffer, ref int cursor, int fieldNumber, MetricPoint metricPoint, T value)
+    private void WriteNumberDataPoint<T>(byte[] buffer, ref int cursor, int fieldNumber, in MetricPoint metricPoint, T value)
     {
         if (typeof(T) == typeof(long))
         {

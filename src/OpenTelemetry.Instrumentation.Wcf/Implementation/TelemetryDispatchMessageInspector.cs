@@ -123,7 +123,9 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 if (reply.IsFault)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);

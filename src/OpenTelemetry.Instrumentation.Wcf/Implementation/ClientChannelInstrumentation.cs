@@ -94,7 +94,9 @@ internal static class ClientChannelInstrumentation
             {
                 if (reply == null || reply.IsFault)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 if (reply != null)

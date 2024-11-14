@@ -146,7 +146,7 @@ internal sealed class HttpInListener : IDisposable
         {
             if (this.options.RecordException)
             {
-                activity.RecordException(exception);
+                activity.AddException(exception);
             }
 
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
