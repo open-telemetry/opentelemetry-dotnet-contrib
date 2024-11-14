@@ -9,7 +9,7 @@
     <Reference Include="System.ServiceModel.Web" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(DefaultTargetFrameworkForExampleApps)' != '' And $(DefaultTargetFrameworkForExampleApps.Contains('$(TargetFramework)')) ">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultTargetFrameworkForExampleApps)'">
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
   </ItemGroup>
 
