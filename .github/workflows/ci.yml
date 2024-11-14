@@ -324,7 +324,6 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
-      tfm-list: '[ "net462", "net8.0", "net9.0" ]'
 
   build-test-instrumentation-owin:
     needs: detect-changes
