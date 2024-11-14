@@ -58,82 +58,59 @@ internal sealed class RuntimeMetrics
             unit: "bytes",
             description: "The amount of committed virtual memory for the managed GC heap, as observed during the latest garbage collection. Committed virtual memory may be larger than the heap size because it includes both memory for storing existing objects (the heap size) and some extra memory that is ready to handle newly allocated objects in the future. The value will be unavailable until at least one garbage collection has occurred.");
 
-        // GC.GetGCMemoryInfo().GenerationInfo[i].SizeAfterBytes is better but it has a bug in .NET 6. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
-        Func<int, ulong>? getGenerationSize = null;
-        var isCodeRunningOnBuggyRuntimeVersion = Environment.Version.Major == 6;
-        if (isCodeRunningOnBuggyRuntimeVersion)
-        {
-            var mi = typeof(GC).GetMethod("GetGenerationSize", BindingFlags.NonPublic | BindingFlags.Static);
-            if (mi != null)
+        MeterInstance.CreateObservableUpDownCounter(
+            "process.runtime.dotnet.gc.heap.size",
+            () =>
             {
-                getGenerationSize = mi.CreateDelegate<Func<int, ulong>>();
-            }
-        }
-
-        // Either Environment.Version is not 6 or (it's 6 but internal API GC.GetGenerationSize is valid)
-        if (!isCodeRunningOnBuggyRuntimeVersion || getGenerationSize != null)
-        {
-            MeterInstance.CreateObservableUpDownCounter(
-                "process.runtime.dotnet.gc.heap.size",
-                () =>
+                if (!IsGcInfoAvailable)
                 {
-                    if (!IsGcInfoAvailable)
-                    {
-                        return [];
-                    }
+                    return [];
+                }
 
-                    var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                    var measurements = new Measurement<long>[generationInfo.Length];
-                    var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                    for (var i = 0; i < maxSupportedLength; ++i)
-                    {
-                        measurements[i] = isCodeRunningOnBuggyRuntimeVersion
-                            ? new((long)getGenerationSize!(i), new KeyValuePair<string, object?>("generation", GenNames[i]))
-                            : new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
-                    }
-
-                    return measurements;
-                },
-                unit: "bytes",
-                description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
-        }
-
-        if (Environment.Version.Major >= 7)
-        {
-            // Not valid until .NET 7 where the bug in the API is fixed. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/496
-            MeterInstance.CreateObservableUpDownCounter(
-                "process.runtime.dotnet.gc.heap.fragmentation.size",
-                () =>
+                var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+                var measurements = new Measurement<long>[generationInfo.Length];
+                var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                for (var i = 0; i < maxSupportedLength; ++i)
                 {
-                    if (!IsGcInfoAvailable)
-                    {
-                        return [];
-                    }
+                    measurements[i] = new(generationInfo[i].SizeAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
+                }
 
-                    var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
-                    var measurements = new Measurement<long>[generationInfo.Length];
-                    var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
-                    for (var i = 0; i < maxSupportedLength; ++i)
-                    {
-                        measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
-                    }
+                return measurements;
+            },
+            unit: "bytes",
+            description: "The heap size (including fragmentation), as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
 
-                    return measurements;
-                },
-                unit: "bytes",
-                description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
-
-            // GC.GetTotalPauseDuration() is not available until .NET 7. See context in https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1163
-            var mi = typeof(GC).GetMethod("GetTotalPauseDuration", BindingFlags.Public | BindingFlags.Static);
-            var getTotalPauseDuration = mi?.CreateDelegate<Func<TimeSpan>>();
-            if (getTotalPauseDuration != null)
+        MeterInstance.CreateObservableUpDownCounter(
+            "process.runtime.dotnet.gc.heap.fragmentation.size",
+            () =>
             {
-                MeterInstance.CreateObservableCounter(
-                    "process.runtime.dotnet.gc.duration",
-                    () => getTotalPauseDuration().Ticks * NanosecondsPerTick,
-                    unit: "ns",
-                    description: "The total amount of time paused in GC since the process start.");
-            }
+                if (!IsGcInfoAvailable)
+                {
+                    return [];
+                }
+
+                var generationInfo = GC.GetGCMemoryInfo().GenerationInfo;
+                var measurements = new Measurement<long>[generationInfo.Length];
+                var maxSupportedLength = Math.Min(generationInfo.Length, GenNames.Length);
+                for (var i = 0; i < maxSupportedLength; ++i)
+                {
+                    measurements[i] = new(generationInfo[i].FragmentationAfterBytes, new KeyValuePair<string, object?>("generation", GenNames[i]));
+                }
+
+                return measurements;
+            },
+            unit: "bytes",
+            description: "The heap fragmentation, as observed during the latest garbage collection. The value will be unavailable until at least one garbage collection has occurred.");
+
+        var mi = typeof(GC).GetMethod("GetTotalPauseDuration", BindingFlags.Public | BindingFlags.Static);
+        var getTotalPauseDuration = mi?.CreateDelegate<Func<TimeSpan>>();
+        if (getTotalPauseDuration != null)
+        {
+            MeterInstance.CreateObservableCounter(
+                "process.runtime.dotnet.gc.duration",
+                () => getTotalPauseDuration().Ticks * NanosecondsPerTick,
+                unit: "ns",
+                description: "The total amount of time paused in GC since the process start.");
         }
 
         MeterInstance.CreateObservableCounter(
