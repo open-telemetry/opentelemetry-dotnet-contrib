@@ -94,12 +94,12 @@ internal static class ClientChannelInstrumentation
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                     if (WcfInstrumentationActivitySource.Options!.RecordException && exception != null)
                     {
-                        activity.RecordException(exception);
+                        activity.AddException(exception);
                     }
-#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 if (reply != null)
