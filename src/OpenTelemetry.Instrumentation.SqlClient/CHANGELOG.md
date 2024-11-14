@@ -53,6 +53,16 @@
 
 * **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
   ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+* Add support for metric `db.client.operation.duration`
+  from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration)
+  on .NET 8+.
+  ([#2309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2309))
+* Add support for metric `db.client.operation.duration`
+  from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration)
+  on .NET Framework.
+  ([#2311](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2311))
+  * Only the following attributes are available when a trace is not captured:
+  `db.system`, `db.response.status_code`, and `error.type`
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
