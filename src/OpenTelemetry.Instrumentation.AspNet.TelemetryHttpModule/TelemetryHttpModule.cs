@@ -55,7 +55,7 @@ public class TelemetryHttpModule : IHttpModule
             // OnExecuteRequestStep is available starting with 4.7.1
             try
             {
-                OnExecuteRequestStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)this.OnExecuteRequestStep });
+                OnExecuteRequestStepMethodInfo.Invoke(context, [(Action<HttpContextBase, Action>)this.OnExecuteRequestStep]);
             }
             catch (Exception e)
             {
@@ -80,11 +80,11 @@ public class TelemetryHttpModule : IHttpModule
     private void Application_EndRequest(object sender, EventArgs e)
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_EndRequest");
-        bool trackActivity = true;
+        var trackActivity = true;
 
         var context = ((HttpApplication)sender).Context;
 
-        if (!ActivityHelper.HasStarted(context, out Activity? aspNetActivity))
+        if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
         {
             // Rewrite: In case of rewrite, a new request context is created, called the child request, and it goes through the entire IIS/ASP.NET integrated pipeline.
             // The child request can be mapped to any of the handlers configured in IIS, and it's execution is no different than it would be if it was received via the HTTP stack.
@@ -119,7 +119,7 @@ public class TelemetryHttpModule : IHttpModule
         var exception = context.Error;
         if (exception != null)
         {
-            if (!ActivityHelper.HasStarted(context, out Activity? aspNetActivity))
+            if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
             {
                 aspNetActivity = ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, context, Options.OnRequestStartedCallback);
             }

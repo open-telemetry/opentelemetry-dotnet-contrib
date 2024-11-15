@@ -151,13 +151,7 @@ public partial class HttpClientTests
         }
 
         var requestMetrics = metrics
-            .Where(metric =>
-            metric.Name == "http.client.request.duration" ||
-            metric.Name == "http.client.active_requests" ||
-            metric.Name == "http.client.request.time_in_queue" ||
-            metric.Name == "http.client.connection.duration" ||
-            metric.Name == "http.client.open_connections" ||
-            metric.Name == "dns.lookup.duration")
+            .Where(metric => metric.Name is "http.client.request.duration" or "http.client.active_requests" or "http.client.request.time_in_queue" or "http.client.connection.duration" or "http.client.open_connections" or "dns.lookup.duration")
             .ToArray();
 
         if (tc.ResponseExpected)
@@ -221,11 +215,11 @@ public partial class HttpClientTests
         bool enableTracing,
         bool enableMetrics)
     {
-        bool enrichWithHttpWebRequestCalled = false;
-        bool enrichWithHttpWebResponseCalled = false;
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
-        bool enrichWithExceptionCalled = false;
+        var enrichWithHttpWebRequestCalled = false;
+        var enrichWithHttpWebResponseCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
+        var enrichWithExceptionCalled = false;
 
         var testUrl = HttpTestData.NormalizeValues(tc.Url, host, port);
 
@@ -337,7 +331,7 @@ public partial class HttpClientTests
 
             var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
 
-            int numberOfTags = activity.Status == ActivityStatusCode.Error ? 5 : 4;
+            var numberOfTags = activity.Status == ActivityStatusCode.Error ? 5 : 4;
 
             var expectedAttributeCount = numberOfTags + (tc.ResponseExpected ? 2 : 0);
 
@@ -495,11 +489,11 @@ public partial class HttpClientTests
 
     private static async Task CheckEnrichment(Sampler sampler, bool enrichExpected, string url)
     {
-        bool enrichWithHttpWebRequestCalled = false;
-        bool enrichWithHttpWebResponseCalled = false;
+        var enrichWithHttpWebRequestCalled = false;
+        var enrichWithHttpWebResponseCalled = false;
 
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
 
         using (Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)

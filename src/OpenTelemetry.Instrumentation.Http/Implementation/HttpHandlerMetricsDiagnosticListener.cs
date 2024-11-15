@@ -39,7 +39,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
     public static void OnStopEventWritten(Activity activity, object? payload)
     {
-        if (TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (TryFetchRequest(payload, out var request))
         {
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md
             TagList tags = default;
@@ -58,7 +58,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
                 }
             }
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version)));
                 tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode)));
@@ -98,21 +98,25 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 #if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
-        static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request) =>
-            StopRequestFetcher.TryFetch(payload, out request) && request != null;
+        static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
+        {
+            return StopRequestFetcher.TryFetch(payload, out request) && request != null;
+        }
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
 #if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The System.Net.Http library guarantees that top-level properties are preserved")]
 #endif
-        static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response) =>
-            StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
+        {
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
+        }
     }
 
     public static void OnExceptionEventWritten(Activity activity, object? payload)
     {
-        if (!TryFetchException(payload, out Exception? exc) || !TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchException(payload, out var exc) || !TryFetchRequest(payload, out var request))
         {
             HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerMetricsDiagnosticListener), nameof(OnExceptionEventWritten));
             return;
@@ -131,12 +135,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
         {
-            if (!StopExceptionFetcher.TryFetch(payload, out exc) || exc == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StopExceptionFetcher.TryFetch(payload, out exc) && exc != null;
         }
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
@@ -146,12 +145,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
-            if (!RequestFetcher.TryFetch(payload, out request) || request == null)
-            {
-                return false;
-            }
-
-            return true;
+            return RequestFetcher.TryFetch(payload, out request) && request != null;
         }
     }
 

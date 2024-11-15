@@ -90,7 +90,6 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
 * [Alan West](https://github.com/alanwest), New Relic
-* [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 
@@ -101,6 +100,7 @@ repository](h[ttps://github.com/open-telemetry/community/blob/main/community-mem
 
 [Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
 
+* [Cijo Thomas](https://github.com/cijothomas)
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)

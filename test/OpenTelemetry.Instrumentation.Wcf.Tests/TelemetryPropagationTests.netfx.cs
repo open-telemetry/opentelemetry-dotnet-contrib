@@ -20,7 +20,7 @@ public class TelemetryPropagationTests : IDisposable
 
     public TelemetryPropagationTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -101,7 +101,7 @@ public class TelemetryPropagationTests : IDisposable
             "rest" => new WebHttpBinding(),
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpoint)),
         };
-        ServiceClient client = new ServiceClient(binding, new EndpointAddress(new Uri(serviceBase, $"/{endpoint}")));
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(serviceBase, $"/{endpoint}")));
         try
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());

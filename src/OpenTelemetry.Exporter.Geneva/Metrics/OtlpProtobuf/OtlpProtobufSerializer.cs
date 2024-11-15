@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
 using OpenTelemetry.Metrics;
@@ -17,6 +18,7 @@ internal sealed class OtlpProtobufSerializer
     private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
     private readonly string? metricNamespace;
     private readonly string? metricAccount;
+    private readonly bool prefixBufferWithUInt32LittleEndianLength;
     private readonly byte[]? prepopulatedNumberDataPointAttributes;
     private readonly int prepopulatedNumberDataPointAttributesLength;
     private readonly byte[]? prepopulatedHistogramDataPointAttributes;
@@ -37,12 +39,17 @@ internal sealed class OtlpProtobufSerializer
 
     public OtlpProtobufSerializer(
         IMetricDataTransport metricDataTransport,
-        ConnectionStringBuilder? connectionStringBuilder,
-        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
+        string? metricsAccount,
+        string? metricsNamespace,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions,
+        bool prefixBufferWithUInt32LittleEndianLength = false)
     {
         Debug.Assert(metricDataTransport != null, "metricDataTransport was null");
 
         this.MetricDataTransport = metricDataTransport!;
+        this.metricAccount = metricsAccount;
+        this.metricNamespace = metricsNamespace;
+        this.prefixBufferWithUInt32LittleEndianLength = prefixBufferWithUInt32LittleEndianLength;
 
         // Taking a arbitrary number here for writing attributes.
         byte[] temp = new byte[20000];
@@ -67,14 +74,6 @@ internal sealed class OtlpProtobufSerializer
             this.prepopulatedExponentialHistogramDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedExponentialHistogramDataPointAttributes, cursor);
             this.prepopulatedExponentialHistogramDataPointAttributesLength = cursor;
-        }
-
-        if (connectionStringBuilder?.TryGetMetricsAccountAndNamespace(
-            out var metricsAccount,
-            out var metricsNamespace) == true)
-        {
-            this.metricAccount = metricsAccount;
-            this.metricNamespace = metricsNamespace;
         }
     }
 
@@ -222,7 +221,7 @@ internal sealed class OtlpProtobufSerializer
 
     internal void SerializeResourceMetrics(byte[] buffer, Resource resource)
     {
-        int cursor = 0;
+        int cursor = this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0;
 
         this.resourceMetricTagAndLengthIndex = cursor;
 
@@ -355,7 +354,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -364,7 +363,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var sum = metricPoint.GetSumLong();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, in metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -395,7 +394,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -404,7 +403,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var sum = metricPoint.GetSumDouble();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, metricPoint, sum);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Sum_data_points, in metricPoint, sum);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -428,7 +427,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -437,7 +436,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var lastValue = metricPoint.GetGaugeLastValueLong();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, in metricPoint, lastValue);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -461,7 +460,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -470,7 +469,7 @@ internal sealed class OtlpProtobufSerializer
 
                             var lastValue = metricPoint.GetGaugeLastValueDouble();
 
-                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, metricPoint, lastValue);
+                            this.WriteNumberDataPoint(buffer, ref cursor, FieldNumberConstants.Gauge_data_points, in metricPoint, lastValue);
 
                             // Finish writing current batch
                             this.WriteIndividualMessageTagsAndLength(buffer, ref cursor, metric.MetricType);
@@ -497,7 +496,7 @@ internal sealed class OtlpProtobufSerializer
 
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -580,7 +579,7 @@ internal sealed class OtlpProtobufSerializer
                     this.metricPointTagAndLengthIndex = cursor;
                     this.metricPointValueIndex = cursor + TagAndLengthSize;
 
-                    foreach (var metricPoint in metric.GetMetricPoints())
+                    foreach (ref readonly var metricPoint in metric.GetMetricPoints())
                     {
                         try
                         {
@@ -665,7 +664,7 @@ internal sealed class OtlpProtobufSerializer
         }
     }
 
-    private void WriteNumberDataPoint<T>(byte[] buffer, ref int cursor, int fieldNumber, MetricPoint metricPoint, T value)
+    private void WriteNumberDataPoint<T>(byte[] buffer, ref int cursor, int fieldNumber, in MetricPoint metricPoint, T value)
     {
         if (typeof(T) == typeof(long))
         {
@@ -734,11 +733,15 @@ internal sealed class OtlpProtobufSerializer
 
         // Write resource metric tag and length
         ProtobufSerializerHelper.WriteTagAndLengthPrefix(buffer, ref resourceMetricIndex, cursor - this.resourceMetricValueIndex, FieldNumberConstants.ResourceMetrics_resource, WireType.LEN);
+
+        if (this.prefixBufferWithUInt32LittleEndianLength)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer, (uint)cursor - 4);
+        }
     }
 
     private void SendMetricPoint(byte[] buffer, ref int cursor)
     {
-        // TODO: Extend this for user_events.
         this.MetricDataTransport.SendOtlpProtobufEvent(buffer, cursor);
     }
 

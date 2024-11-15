@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
-public class ProcessorMock<T> : BaseProcessor<T>
+internal class ProcessorMock<T> : BaseProcessor<T>
 {
     private readonly Action<T>? onStart;
     private readonly Action<T>? onEnd;

@@ -21,9 +21,8 @@ internal class MockWebResponse
     {
         var type = typeof(HttpWebResponse);
         var assembly = Assembly.GetAssembly(type);
-        var obj = assembly?.CreateInstance("System.Net.HttpWebResponse") as HttpWebResponse;
 
-        if (obj == null)
+        if (assembly?.CreateInstance("System.Net.HttpWebResponse") is not HttpWebResponse obj)
         {
             return null;
         }
@@ -38,7 +37,7 @@ internal class MockWebResponse
         }
 
         body ??= string.Empty;
-        Stream responseBodyStream = Utils.CreateStreamFromString(body);
+        var responseBodyStream = Utils.CreateStreamFromString(body);
 
         var statusFieldInfo = type.GetField(
             "m_StatusCode",
@@ -58,7 +57,7 @@ internal class MockWebResponse
         streamFieldInfo?.SetValue(obj, responseBodyStream);
         contentLengthFieldInfo?.SetValue(obj, responseBodyStream.Length);
 
-        return obj as HttpWebResponse;
+        return obj;
     }
 
 #else
@@ -66,7 +65,7 @@ internal class MockWebResponse
     {
         var rawResponse = Utils.GetResourceText(resourceName);
 
-        HttpResponse response = ParseRawReponse(rawResponse);
+        var response = ParseRawReponse(rawResponse);
         var statusCode = ParseStatusCode(response.StatusLine);
 
         return Create(statusCode, response.Headers, response.Body);
@@ -95,7 +94,7 @@ internal class MockWebResponse
         }
 
         httpResponseMessage!.StatusCode = statusCode;
-        string dummyJson = "{\"key1\":\"value1\"}";
+        var dummyJson = "{\"key1\":\"value1\"}";
         httpResponseMessage.Content = new StringContent(body ?? dummyJson); // Content should be in Json format else we get exception from downstream unmarshalling
         return httpResponseMessage;
     }
@@ -103,8 +102,7 @@ internal class MockWebResponse
 #endif
     public static HttpResponse ParseRawReponse(string rawResponse)
     {
-        HttpResponse response = new HttpResponse();
-        response.StatusLine = rawResponse;
+        var response = new HttpResponse { StatusLine = rawResponse };
 
         var responseLines = rawResponse.Split('\n');
 
@@ -152,8 +150,12 @@ internal class MockWebResponse
     {
         try
         {
-            string statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
+            var statusCode = statusLine?.Split(' ')[1] ?? string.Empty;
+#if NET
+            return Enum.Parse<HttpStatusCode>(statusCode);
+#else
             return (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
+#endif
         }
         catch (Exception exception)
         {
@@ -161,7 +163,7 @@ internal class MockWebResponse
         }
     }
 
-    public class HttpResponse
+    internal class HttpResponse
     {
         public HttpResponse()
         {

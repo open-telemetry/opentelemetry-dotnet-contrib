@@ -13,7 +13,6 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Grpc.Services.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
@@ -83,7 +82,7 @@ public partial class GrpcTests : IDisposable
             Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
         }
 
-        Assert.Equal(Status.Unset, activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         // The following are http.* attributes that are also included on the span for the gRPC invocation.
         Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
@@ -160,7 +159,7 @@ public partial class GrpcTests : IDisposable
                 Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
             }
 
-            Assert.Equal(Status.Unset, activity.GetStatus());
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
             // The following are http.* attributes that are also included on the span for the gRPC invocation.
             Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeNetHostName));
@@ -173,11 +172,10 @@ public partial class GrpcTests : IDisposable
         finally
         {
             // Set the SDK to use the default propagator for other unit tests
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-            new TraceContextPropagator(),
-            new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            ]));
         }
     }
 

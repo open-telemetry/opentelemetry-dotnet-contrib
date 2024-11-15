@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 #if NET
 using System.Collections.Frozen;
 #endif
@@ -19,7 +17,7 @@ internal sealed class RequestDataHelper
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md#common-attributes
     private const string OtherHttpMethod = "_OTHER";
 
-    private static readonly char[] SplitChars = new[] { ',' };
+    private static readonly char[] SplitChars = [','];
 
 #if NET
     private readonly FrozenDictionary<string, string> knownHttpMethods;

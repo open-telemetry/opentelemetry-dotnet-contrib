@@ -23,11 +23,11 @@ internal enum SpanKind
 
 internal class InstanaSpan
 {
-    private InstanaSpanTransformInfo transformInfo = new InstanaSpanTransformInfo();
+    private InstanaSpanTransformInfo transformInfo = new();
     private string n = string.Empty;
     private string t = string.Empty;
     private string lt = string.Empty;
-    private From f = new From();
+    private From f = new();
     private string p = string.Empty;
     private string s = string.Empty;
     private SpanKind k = SpanKind.NOT_SET;
@@ -35,7 +35,7 @@ internal class InstanaSpan
     private long d;
     private bool tp;
     private int ec;
-    private Data data = new Data()
+    private Data data = new()
     {
         data = new Dictionary<string, object>(8),
         Events = new List<SpanEvent>(8),
@@ -197,9 +197,9 @@ internal class From
 internal class Data
 #pragma warning restore SA1402 // File may only contain a single type
 {
-    private List<SpanEvent> events = new List<SpanEvent>(8);
-    private Dictionary<string, object> dataField = new Dictionary<string, object>(8);
-    private Dictionary<string, string> tags = new Dictionary<string, string>(2);
+    private List<SpanEvent> events = new(8);
+    private Dictionary<string, object> dataField = new(8);
+    private Dictionary<string, string> tags = new(2);
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 
@@ -241,7 +241,7 @@ internal class SpanEvent
 #pragma warning restore SA1402 // File may only contain a single type
 {
     private string name = string.Empty;
-    private Dictionary<string, string> tags = new Dictionary<string, string>();
+    private Dictionary<string, string> tags = [];
 
     public string Name
     {

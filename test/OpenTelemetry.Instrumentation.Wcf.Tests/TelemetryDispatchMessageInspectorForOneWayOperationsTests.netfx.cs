@@ -18,14 +18,14 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     private readonly Uri serviceBaseUri;
     private readonly ServiceHost serviceHost;
 
-    private readonly EventWaitHandle thrownExceptionsHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
-    private readonly List<Exception> thrownExceptions = new List<Exception>();
+    private readonly EventWaitHandle thrownExceptionsHandle = new(false, EventResetMode.ManualReset);
+    private readonly List<Exception> thrownExceptions = [];
 
     public TelemetryDispatchMessageInspectorForOneWayOperationsTests(ITestOutputHelper outputHelper)
     {
         this.output = outputHelper;
 
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -42,7 +42,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
                 endpoint.Behaviors.Add(new TelemetryEndpointBehavior());
 
                 createdHost.Description.Behaviors.Add(
-                    new ErrorHandlerServiceBehavior(this.thrownExceptionsHandle, ex => this.thrownExceptions.Add(ex)));
+                    new ErrorHandlerServiceBehavior(this.thrownExceptionsHandle, this.thrownExceptions.Add));
 
                 createdHost.Open();
 
@@ -82,20 +82,20 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
     [Fact]
     public void IncomingRequestOneWayOperationInstrumentationTest()
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
-        using ActivityListener activityListener = new ActivityListener
+        using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
-            ActivityStopped = activity => stoppedActivities.Add(activity),
+            ActivityStopped = stoppedActivities.Add,
         };
 
         ActivitySource.AddActivityListener(activityListener);
-        TracerProvider? tracerProvider = Sdk.CreateTracerProviderBuilder()
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new NetTcpBinding(),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
 
@@ -127,7 +127,7 @@ public class TelemetryDispatchMessageInspectorForOneWayOperationsTests : IDispos
         Assert.NotEmpty(stoppedActivities);
         Assert.Single(stoppedActivities);
 
-        Activity activity = stoppedActivities[0];
+        var activity = stoppedActivities[0];
         Assert.Equal("http://opentelemetry.io/Service/ExecuteWithOneWay", activity.DisplayName);
         Assert.Equal("ExecuteWithOneWay", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.RpcMethodTag).Value);
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == WcfInstrumentationConstants.SoapReplyActionTag);

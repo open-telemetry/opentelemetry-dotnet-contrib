@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Net;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -19,7 +18,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
     public TelemetryBindingElementForHttpTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         HttpListener? createdListener = null;
         while (retryCount > 0)
@@ -57,7 +56,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         finally
         {
             initializationHandle.Dispose();
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
             initializationHandle = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
         }
 
         async void Listener()
@@ -72,14 +73,14 @@ public class TelemetryBindingElementForHttpTests : IDisposable
 
                     var ctx = await ctxTask.ConfigureAwait(false);
 
-                    using StreamReader reader = new StreamReader(ctx.Request.InputStream);
+                    using var reader = new StreamReader(ctx.Request.InputStream);
 
-                    string request = reader.ReadToEnd();
+                    var request = reader.ReadToEnd();
 
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = "text/xml; charset=utf-8";
 
-                    using (StreamWriter writer = new StreamWriter(ctx.Response.OutputStream))
+                    using (var writer = new StreamWriter(ctx.Response.OutputStream))
                     {
                         if (request.Contains("ExecuteWithEmptyActionName"))
                         {
@@ -139,7 +140,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
         bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -151,9 +152,9 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -163,25 +164,22 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                                     case WcfEnrichEventNames.AfterReceiveReply:
                                         activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
-                    options.OutgoingRequestFilter = (Message m) => !filter;
+                    options.OutgoingRequestFilter = _ => !filter;
                     options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     options.SetSoapMessageVersion = includeVersion;
                 })
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider? tracerProvider = builder.Build();
+        var tracerProvider = builder.Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -243,7 +241,7 @@ public class TelemetryBindingElementForHttpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     Assert.Single(stoppedActivities);
 
-                    Activity activity = stoppedActivities[0];
+                    var activity = stoppedActivities[0];
 
                     if (emptyOrNullAction)
                     {
@@ -298,21 +296,19 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await firstAsyncCall;
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await firstAsyncCall;
         }
         finally
         {
@@ -351,10 +347,10 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
-        ServiceClient clientBadUrl = new ServiceClient(
+        var clientBadUrl = new ServiceClient(
             new BasicHttpBinding(BasicHttpSecurityMode.None),
             new EndpointAddress(new Uri("http://localhost:1/Service")));
         try
@@ -362,13 +358,11 @@ public class TelemetryBindingElementForHttpTests : IDisposable
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
-                await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            Assert.ThrowsAny<Exception>(client.ErrorSynchronous);
+            await Assert.ThrowsAnyAsync<Exception>(client.ErrorAsync);
+            Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
         }
         finally
         {

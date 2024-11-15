@@ -40,8 +40,6 @@ internal static class HttpWebRequestActivitySource
     private static readonly Meter WebRequestMeter = new(MeterName, Version);
     private static readonly Histogram<double> HttpClientRequestDuration = WebRequestMeter.CreateHistogram<double>("http.client.request.duration", "s", "Duration of HTTP client requests.");
 
-    private static HttpClientTraceInstrumentationOptions tracingOptions;
-
     // Fields for reflection
     private static FieldInfo connectionGroupListField;
     private static Type connectionGroupType;
@@ -86,14 +84,7 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
-    internal static HttpClientTraceInstrumentationOptions TracingOptions
-    {
-        get => tracingOptions;
-        set
-        {
-            tracingOptions = value;
-        }
-    }
+    internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
@@ -108,7 +99,7 @@ internal static class HttpWebRequestActivitySource
             activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
             activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
 
-            activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, tracingOptions.DisableUrlQueryRedaction));
+            activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, TracingOptions.DisableUrlQueryRedaction));
 
             try
             {
@@ -187,7 +178,7 @@ internal static class HttpWebRequestActivitySource
 
         if (TracingOptions.RecordException)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
 
         try
@@ -232,7 +223,7 @@ internal static class HttpWebRequestActivitySource
             return;
         }
 
-        Activity activity = enableTracing
+        var activity = enableTracing
             ? WebRequestActivitySource.StartActivity(ActivityName, ActivityKind.Client)
             : null;
 
@@ -243,12 +234,12 @@ internal static class HttpWebRequestActivitySource
         // Eg: Parent could be the Asp.Net activity.
         InstrumentRequest(request, activityContext);
 
-        IAsyncResult asyncContext = writeAResultAccessor(request);
+        var asyncContext = writeAResultAccessor(request);
         if (asyncContext != null)
         {
             // Flow here is for [Begin]GetRequestStream[Async].
 
-            AsyncCallbackWrapper callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
+            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
             asyncCallbackModifier(asyncContext, callback.AsyncCallback);
         }
         else
@@ -256,7 +247,7 @@ internal static class HttpWebRequestActivitySource
             // Flow here is for [Begin]GetResponse[Async] without a prior call to [Begin]GetRequestStream[Async].
 
             asyncContext = readAResultAccessor(request);
-            AsyncCallbackWrapper callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
+            var callback = new AsyncCallbackWrapper(request, activity, asyncCallbackAccessor(asyncContext), Stopwatch.GetTimestamp());
             asyncCallbackModifier(asyncContext, callback.AsyncCallback);
         }
 
@@ -268,7 +259,7 @@ internal static class HttpWebRequestActivitySource
 
     private static void HookOrProcessResult(HttpWebRequest request)
     {
-        IAsyncResult writeAsyncContext = writeAResultAccessor(request);
+        var writeAsyncContext = writeAResultAccessor(request);
         if (writeAsyncContext == null || asyncCallbackAccessor(writeAsyncContext)?.Target is not AsyncCallbackWrapper writeAsyncContextCallback)
         {
             // If we already hooked into the read result during ProcessRequest or we hooked up after the fact already we don't need to do anything here.
@@ -277,7 +268,7 @@ internal static class HttpWebRequestActivitySource
 
         // If we got here it means the user called [Begin]GetRequestStream[Async] and we have to hook the read result after the fact.
 
-        IAsyncResult readAsyncContext = readAResultAccessor(request);
+        var readAsyncContext = readAResultAccessor(request);
         if (readAsyncContext == null)
         {
             // We're still trying to establish the connection (no read has started).
@@ -295,7 +286,7 @@ internal static class HttpWebRequestActivitySource
         }
 
         // Hook into the result callback if it hasn't already fired.
-        AsyncCallbackWrapper callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, asyncCallbackAccessor(readAsyncContext), Stopwatch.GetTimestamp());
+        var callback = new AsyncCallbackWrapper(writeAsyncContextCallback.Request, writeAsyncContextCallback.Activity, asyncCallbackAccessor(readAsyncContext), Stopwatch.GetTimestamp());
         asyncCallbackModifier(readAsyncContext, callback.AsyncCallback);
     }
 
@@ -304,7 +295,7 @@ internal static class HttpWebRequestActivitySource
         HttpStatusCode? httpStatusCode = null;
         string errorType = null;
         Version protocolVersion = null;
-        ActivityStatusCode activityStatus = ActivityStatusCode.Unset;
+        var activityStatus = ActivityStatusCode.Unset;
 
         // Activity may be null if we are not tracing in these cases:
         // 1. No listeners
@@ -349,7 +340,7 @@ internal static class HttpWebRequestActivitySource
             }
             else
             {
-                HttpWebResponse response = (HttpWebResponse)result;
+                var response = (HttpWebResponse)result;
 
                 if (forceResponseCopy || (asyncCallback == null && isContextAwareResultChecker(asyncResult)))
                 {
@@ -358,13 +349,12 @@ internal static class HttpWebRequestActivitySource
                     // in which case they could dispose the HttpWebResponse before our listeners have a chance to work with it.
                     // Disposed HttpWebResponse throws when accessing properties, so let's make a copy of the data to ensure that doesn't happen.
 
-                    HttpWebResponse responseCopy = httpWebResponseCtor(
-                        new object[]
-                        {
-                            uriAccessor(response), verbAccessor(response), coreResponseDataAccessor(response), mediaTypeAccessor(response),
+                    var responseCopy = httpWebResponseCtor(
+                    [
+                        uriAccessor(response), verbAccessor(response), coreResponseDataAccessor(response), mediaTypeAccessor(response),
                             usesProxySemanticsAccessor(response), DecompressionMethods.None,
-                            isWebSocketResponseAccessor(response), connectionGroupNameAccessor(response),
-                        });
+                            isWebSocketResponseAccessor(response), connectionGroupNameAccessor(response)
+                    ]);
 
                     if (activity != null)
                     {
@@ -458,8 +448,8 @@ internal static class HttpWebRequestActivitySource
     {
         // At any point, if the operation failed, it should just throw. The caller should catch all exceptions and swallow.
 
-        Type servicePointType = typeof(ServicePoint);
-        Assembly systemNetHttpAssembly = servicePointType.Assembly;
+        var servicePointType = typeof(ServicePoint);
+        var systemNetHttpAssembly = servicePointType.Assembly;
         connectionGroupListField = servicePointType.GetField("m_ConnectionGroupList", BindingFlags.Instance | BindingFlags.NonPublic);
         connectionGroupType = systemNetHttpAssembly?.GetType("System.Net.ConnectionGroup");
         connectionListField = connectionGroupType?.GetField("m_ConnectionList", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -489,7 +479,7 @@ internal static class HttpWebRequestActivitySource
 
     private static bool PrepareAsyncResultReflectionObjects(Assembly systemNetHttpAssembly)
     {
-        Type lazyAsyncResultType = systemNetHttpAssembly?.GetType("System.Net.LazyAsyncResult");
+        var lazyAsyncResultType = systemNetHttpAssembly?.GetType("System.Net.LazyAsyncResult");
         if (lazyAsyncResultType != null)
         {
             asyncCallbackAccessor = CreateFieldGetter<AsyncCallback>(lazyAsyncResultType, "m_AsyncCallback", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -500,7 +490,7 @@ internal static class HttpWebRequestActivitySource
             resultAccessor = CreateFieldGetter<object>(lazyAsyncResultType, "m_Result", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
-        Type contextAwareResultType = systemNetHttpAssembly?.GetType("System.Net.ContextAwareResult");
+        var contextAwareResultType = systemNetHttpAssembly?.GetType("System.Net.ContextAwareResult");
         if (contextAwareResultType != null)
         {
             isContextAwareResultChecker = CreateTypeChecker(contextAwareResultType);
@@ -517,8 +507,8 @@ internal static class HttpWebRequestActivitySource
 
     private static bool PrepareHttpWebResponseReflectionObjects(Assembly systemNetHttpAssembly)
     {
-        Type knownHttpVerbType = systemNetHttpAssembly?.GetType("System.Net.KnownHttpVerb");
-        Type coreResponseData = systemNetHttpAssembly?.GetType("System.Net.CoreResponseData");
+        var knownHttpVerbType = systemNetHttpAssembly?.GetType("System.Net.KnownHttpVerb");
+        var coreResponseData = systemNetHttpAssembly?.GetType("System.Net.CoreResponseData");
 
         if (knownHttpVerbType != null && coreResponseData != null)
         {
@@ -529,7 +519,7 @@ internal static class HttpWebRequestActivitySource
                 typeof(bool), typeof(string),
             };
 
-            ConstructorInfo ctor = typeof(HttpWebResponse).GetConstructor(
+            var ctor = typeof(HttpWebResponse).GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
                 constructorParameterTypes,
@@ -563,11 +553,11 @@ internal static class HttpWebRequestActivitySource
 
     private static void PerformInjection()
     {
-        FieldInfo servicePointTableField = typeof(ServicePointManager).GetField("s_ServicePointTable", BindingFlags.Static | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("Unable to access the ServicePointTable field");
+        var servicePointTableField = typeof(ServicePointManager).GetField("s_ServicePointTable", BindingFlags.Static | BindingFlags.NonPublic)
+                                     ?? throw new InvalidOperationException("Unable to access the ServicePointTable field");
 
-        Hashtable originalTable = servicePointTableField.GetValue(null) as Hashtable;
-        ServicePointHashtable newTable = new ServicePointHashtable(originalTable ?? new Hashtable());
+        var originalTable = servicePointTableField.GetValue(null) as Hashtable;
+        var newTable = new ServicePointHashtable(originalTable ?? []);
 
         foreach (DictionaryEntry existingServicePoint in originalTable)
         {
@@ -586,8 +576,8 @@ internal static class HttpWebRequestActivitySource
             // Replace the ConnectionGroup hashtable inside this ServicePoint object,
             // which allows us to intercept each new ConnectionGroup object added under
             // this ServicePoint.
-            Hashtable originalTable = connectionGroupListField.GetValue(servicePoint) as Hashtable;
-            ConnectionGroupHashtable newTable = new ConnectionGroupHashtable(originalTable ?? new Hashtable());
+            var originalTable = connectionGroupListField.GetValue(servicePoint) as Hashtable;
+            var newTable = new ConnectionGroupHashtable(originalTable ?? []);
 
             foreach (DictionaryEntry existingConnectionGroup in originalTable)
             {
@@ -605,10 +595,10 @@ internal static class HttpWebRequestActivitySource
             // Replace the Connection arraylist inside this ConnectionGroup object,
             // which allows us to intercept each new Connection object added under
             // this ConnectionGroup.
-            ArrayList originalArrayList = connectionListField.GetValue(value) as ArrayList;
-            ConnectionArrayList newArrayList = new ConnectionArrayList(originalArrayList ?? new ArrayList());
+            var originalArrayList = connectionListField.GetValue(value) as ArrayList;
+            var newArrayList = new ConnectionArrayList(originalArrayList ?? []);
 
-            foreach (object connection in originalArrayList)
+            foreach (var connection in originalArrayList)
             {
                 HookConnection(connection);
             }
@@ -624,8 +614,8 @@ internal static class HttpWebRequestActivitySource
             // Replace the HttpWebRequest arraylist inside this Connection object,
             // which allows us to intercept each new HttpWebRequest object added under
             // this Connection.
-            ArrayList originalArrayList = writeListField.GetValue(value) as ArrayList;
-            HttpWebRequestArrayList newArrayList = new HttpWebRequestArrayList(originalArrayList ?? new ArrayList());
+            var originalArrayList = writeListField.GetValue(value) as ArrayList;
+            var newArrayList = new HttpWebRequestArrayList(originalArrayList ?? []);
 
             writeListField.SetValue(value, newArrayList);
         }
@@ -634,12 +624,12 @@ internal static class HttpWebRequestActivitySource
     private static Func<TClass, TField> CreateFieldGetter<TClass, TField>(string fieldName, BindingFlags flags)
         where TClass : class
     {
-        FieldInfo field = typeof(TClass).GetField(fieldName, flags);
+        var field = typeof(TClass).GetField(fieldName, flags);
         if (field != null)
         {
-            string methodName = field.ReflectedType.FullName + ".get_" + field.Name;
-            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(TClass) }, true);
-            ILGenerator generator = getterMethod.GetILGenerator();
+            var methodName = field.ReflectedType.FullName + ".get_" + field.Name;
+            var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(TClass)], true);
+            var generator = getterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Ldfld, field);
             generator.Emit(OpCodes.Ret);
@@ -655,12 +645,12 @@ internal static class HttpWebRequestActivitySource
     /// </summary>
     private static Func<object, TField> CreateFieldGetter<TField>(Type classType, string fieldName, BindingFlags flags)
     {
-        FieldInfo field = classType.GetField(fieldName, flags);
+        var field = classType.GetField(fieldName, flags);
         if (field != null)
         {
-            string methodName = classType.FullName + ".get_" + field.Name;
-            DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
-            ILGenerator generator = getterMethod.GetILGenerator();
+            var methodName = classType.FullName + ".get_" + field.Name;
+            var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
+            var generator = getterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Castclass, classType);
             generator.Emit(OpCodes.Ldfld, field);
@@ -678,12 +668,12 @@ internal static class HttpWebRequestActivitySource
     /// </summary>
     private static Action<object, TField> CreateFieldSetter<TField>(Type classType, string fieldName, BindingFlags flags)
     {
-        FieldInfo field = classType.GetField(fieldName, flags);
+        var field = classType.GetField(fieldName, flags);
         if (field != null)
         {
-            string methodName = classType.FullName + ".set_" + field.Name;
-            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(object), typeof(TField) }, true);
-            ILGenerator generator = setterMethod.GetILGenerator();
+            var methodName = classType.FullName + ".set_" + field.Name;
+            var setterMethod = new DynamicMethod(methodName, null, [typeof(object), typeof(TField)], true);
+            var generator = setterMethod.GetILGenerator();
             generator.Emit(OpCodes.Ldarg_0);
             generator.Emit(OpCodes.Castclass, classType);
             generator.Emit(OpCodes.Ldarg_1);
@@ -701,9 +691,9 @@ internal static class HttpWebRequestActivitySource
     /// </summary>
     private static Func<object, bool> CreateTypeChecker(Type classType)
     {
-        string methodName = classType.FullName + ".typeCheck";
-        DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(bool), new[] { typeof(object) }, true);
-        ILGenerator generator = setterMethod.GetILGenerator();
+        var methodName = classType.FullName + ".typeCheck";
+        var setterMethod = new DynamicMethod(methodName, typeof(bool), [typeof(object)], true);
+        var generator = setterMethod.GetILGenerator();
         generator.Emit(OpCodes.Ldarg_0);
         generator.Emit(OpCodes.Isinst, classType);
         generator.Emit(OpCodes.Ldnull);
@@ -718,13 +708,13 @@ internal static class HttpWebRequestActivitySource
     /// </summary>
     private static Func<object[], T> CreateTypeInstance<T>(ConstructorInfo constructorInfo)
     {
-        Type classType = typeof(T);
-        string methodName = classType.FullName + ".ctor";
-        DynamicMethod setterMethod = new DynamicMethod(methodName, classType, new Type[] { typeof(object[]) }, true);
-        ILGenerator generator = setterMethod.GetILGenerator();
+        var classType = typeof(T);
+        var methodName = classType.FullName + ".ctor";
+        var setterMethod = new DynamicMethod(methodName, classType, [typeof(object[])], true);
+        var generator = setterMethod.GetILGenerator();
 
-        ParameterInfo[] ctorParams = constructorInfo.GetParameters();
-        for (int i = 0; i < ctorParams.Length; i++)
+        var ctorParams = constructorInfo.GetParameters();
+        for (var i = 0; i < ctorParams.Length; i++)
         {
             generator.Emit(OpCodes.Ldarg_0);
             switch (i)
@@ -742,7 +732,7 @@ internal static class HttpWebRequestActivitySource
             }
 
             generator.Emit(OpCodes.Ldelem_Ref);
-            Type paramType = ctorParams[i].ParameterType;
+            var paramType = ctorParams[i].ParameterType;
             generator.Emit(paramType.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, paramType);
         }
 
@@ -1083,7 +1073,7 @@ internal static class HttpWebRequestActivitySource
 
         public ArrayList Swap()
         {
-            ArrayList old = this.list;
+            var old = this.list;
             this.list = new ArrayList(old.Capacity);
             return old;
         }
@@ -1125,7 +1115,7 @@ internal static class HttpWebRequestActivitySource
         public override int Add(object value)
         {
             // Add before firing events so if some user code cancels/aborts the request it will be found in the outstanding list.
-            int index = base.Add(value);
+            var index = base.Add(value);
 
             if (value is HttpWebRequest request)
             {
@@ -1137,7 +1127,7 @@ internal static class HttpWebRequestActivitySource
 
         public override void RemoveAt(int index)
         {
-            object request = this[index];
+            var request = this[index];
 
             base.RemoveAt(index);
 
@@ -1149,8 +1139,8 @@ internal static class HttpWebRequestActivitySource
 
         public override void Clear()
         {
-            ArrayList oldList = this.Swap();
-            for (int i = 0; i < oldList.Count; i++)
+            var oldList = this.Swap();
+            for (var i = 0; i < oldList.Count; i++)
             {
                 if (oldList[i] is HttpWebRequest request)
                 {
@@ -1183,8 +1173,8 @@ internal static class HttpWebRequestActivitySource
 
         public void AsyncCallback(IAsyncResult asyncResult)
         {
-            object result = resultAccessor(asyncResult);
-            if (result is Exception || result is HttpWebResponse)
+            var result = resultAccessor(asyncResult);
+            if (result is Exception or HttpWebResponse)
             {
                 ProcessResult(
                     asyncResult,

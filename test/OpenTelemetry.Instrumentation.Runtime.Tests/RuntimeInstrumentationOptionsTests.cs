@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation.Runtime.Tests;
 
-public class RuntimeInstrumentationOptionsTests
+internal class RuntimeInstrumentationOptionsTests
 {
     /*
             [Fact]

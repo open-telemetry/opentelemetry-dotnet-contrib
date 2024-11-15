@@ -43,7 +43,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     public static void OnExceptionEventWritten(string name, object? payload)
     {
         // We need to use reflection here as the payload type is not a defined public type.
-        if (!TryFetchException(payload, out Exception? exc) || !TryFetchHttpContext(payload, out HttpContext? ctx))
+        if (!TryFetchException(payload, out var exc) || !TryFetchHttpContext(payload, out var ctx))
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnExceptionEventWritten), HttpServerRequestDurationMetricName);
             return;
@@ -58,18 +58,21 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
-            => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        {
+            return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        }
 #if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? ctx)
-            => HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        {
+            return HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        }
     }
 
     public static void OnStopEventWritten(string name, object? payload)
     {
-        var context = payload as HttpContext;
-        if (context == null)
+        if (payload is not HttpContext context)
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnStopEventWritten), HttpServerRequestDurationMetricName);
             return;
@@ -121,6 +124,8 @@ internal sealed class HttpInMetricsListener : ListenerHandler
                     OnStopEventWritten(name, payload);
                 }
 
+                break;
+            default:
                 break;
         }
     }

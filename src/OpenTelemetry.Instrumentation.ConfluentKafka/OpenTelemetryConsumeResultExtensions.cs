@@ -105,25 +105,7 @@ public static class OpenTelemetryConsumeResultExtensions
             return consumeResult;
         }
 
-        Activity? processActivity = null;
-        if (TryExtractPropagationContext(consumeResult, out var propagationContext))
-        {
-            processActivity = StartProcessActivity(
-                propagationContext,
-                consumeResult.TopicPartitionOffset,
-                consumeResult.Message.Key,
-                instrumentedConsumer.Name,
-                instrumentedConsumer.GroupId!);
-        }
-        else
-        {
-            processActivity = StartProcessActivity(
-                default,
-                consumeResult.TopicPartitionOffset,
-                consumeResult.Message.Key,
-                instrumentedConsumer.Name,
-                instrumentedConsumer.GroupId!);
-        }
+        var processActivity = StartProcessActivity(TryExtractPropagationContext(consumeResult, out var propagationContext) ? propagationContext : default, consumeResult.TopicPartitionOffset, consumeResult.Message.Key, instrumentedConsumer.Name, instrumentedConsumer.GroupId!);
 
         try
         {
@@ -131,7 +113,9 @@ public static class OpenTelemetryConsumeResultExtensions
         }
         catch (Exception ex)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             processActivity?.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
             processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().FullName);
         }
         finally
@@ -152,10 +136,10 @@ public static class OpenTelemetryConsumeResultExtensions
             : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ProcessOperationName);
 
         ActivityLink[] activityLinks = propagationContext != default && propagationContext.ActivityContext.IsValid()
-            ? new[] { new ActivityLink(propagationContext.ActivityContext) }
-            : Array.Empty<ActivityLink>();
+            ? [new ActivityLink(propagationContext.ActivityContext)]
+            : [];
 
-        Activity? activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
+        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
