@@ -30,9 +30,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.Request(message);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
 
@@ -50,9 +50,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.Request(message, timeout);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
 
@@ -86,9 +86,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.EndRequest(asyncResult.Inner);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
 
