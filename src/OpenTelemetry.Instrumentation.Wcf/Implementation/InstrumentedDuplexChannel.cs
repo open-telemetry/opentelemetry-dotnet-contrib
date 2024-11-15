@@ -64,9 +64,9 @@ internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexCha
         {
             this.Inner.EndSend(asyncResult.Inner);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
     }
@@ -196,9 +196,9 @@ internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexCha
         {
             ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
     }

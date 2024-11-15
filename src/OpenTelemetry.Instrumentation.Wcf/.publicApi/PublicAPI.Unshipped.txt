@@ -20,6 +20,8 @@ OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.IncomingRequestFilte
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.IncomingRequestFilter.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.OutgoingRequestFilter.get -> System.Func<System.ServiceModel.Channels.Message!, bool>?
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.OutgoingRequestFilter.set -> void
+OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.RecordException.get -> bool
+OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SetSoapMessageVersion.get -> bool
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SetSoapMessageVersion.set -> void
 OpenTelemetry.Instrumentation.Wcf.WcfInstrumentationOptions.SuppressDownstreamInstrumentation.get -> bool

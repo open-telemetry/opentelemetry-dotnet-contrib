@@ -82,12 +82,10 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state, Exception? exception = null)
     {
         Guard.ThrowIfNull(state);
-
         state.SuppressionScope?.Dispose();
-
         if (state.Activity is Activity activity)
         {
             if (activity.IsAllDataRequested)
@@ -97,6 +95,11 @@ internal static class ClientChannelInstrumentation
 #pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
 #pragma warning restore CS0618 // Type or member is obsolete
+
+                    if (WcfInstrumentationActivitySource.Options!.RecordException && exception != null)
+                    {
+                        activity.AddException(exception);
+                    }
                 }
 
                 if (reply != null)
