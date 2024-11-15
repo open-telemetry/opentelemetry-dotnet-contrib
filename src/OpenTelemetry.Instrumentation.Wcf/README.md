@@ -233,7 +233,7 @@ This instrumentation can be configured to change the default behavior by using
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
-to store the exception to the Activity itself as ActivityEvent. RecordException
+to store the exception to the Activity itself as ActivityEvent. `RecordException`
 is available only on the client side.
 
 ## References
