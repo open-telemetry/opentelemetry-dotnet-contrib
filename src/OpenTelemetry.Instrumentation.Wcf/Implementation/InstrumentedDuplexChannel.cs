@@ -64,9 +64,9 @@ internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexCha
         {
             this.Inner.EndSend(asyncResult.Inner);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
     }
@@ -178,20 +178,27 @@ internal sealed class InstrumentedDuplexChannel : InstrumentedChannel<IDuplexCha
     private void SendInternal(Message message, TimeSpan timeout, Action<RequestTelemetryState> executeSend)
     {
         RequestTelemetryState? telemetryState = null;
-        ContextCallback executeInChildContext = _ =>
+
+        void ExecuteInChildContext(object? unused)
         {
             telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, this.RemoteAddress?.Uri);
             RequestTelemetryStateTracker.PushTelemetryState(message, telemetryState, timeout, OnTelemetryStateTimedOut);
             executeSend(telemetryState);
-        };
+        }
+
+        var executionContext = ExecutionContext.Capture();
+        if (executionContext == null)
+        {
+            throw new InvalidOperationException("Cannot fetch execution context");
+        }
 
         try
         {
-            ExecutionContext.Run(ExecutionContext.Capture(), executeInChildContext, null);
+            ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState!);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
     }

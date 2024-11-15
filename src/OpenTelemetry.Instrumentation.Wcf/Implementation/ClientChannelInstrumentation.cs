@@ -18,10 +18,10 @@ internal static class ClientChannelInstrumentation
             return new RequestTelemetryState { SuppressionScope = SuppressDownstreamInstrumentation() };
         }
 
-        Activity? activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.OutgoingRequestActivityName,
             ActivityKind.Client);
-        IDisposable? suppressionScope = SuppressDownstreamInstrumentation();
+        var suppressionScope = SuppressDownstreamInstrumentation();
 
         if (activity != null)
         {
@@ -82,19 +82,24 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state, Exception? exception = null)
     {
         Guard.ThrowIfNull(state);
-
         state.SuppressionScope?.Dispose();
-
         if (state.Activity is Activity activity)
         {
             if (activity.IsAllDataRequested)
             {
                 if (reply == null || reply.IsFault)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                    if (WcfInstrumentationActivitySource.Options!.RecordException && exception != null)
+                    {
+                        activity.AddException(exception);
+                    }
                 }
 
                 if (reply != null)
@@ -125,16 +130,16 @@ internal static class ClientChannelInstrumentation
     private static ActionMetadata GetActionMetadata(Message request, string action)
     {
         ActionMetadata? actionMetadata = null;
-        if (request.Properties.TryGetValue(TelemetryContextMessageProperty.Name, out object telemetryContextProperty))
+        if (request.Properties.TryGetValue(TelemetryContextMessageProperty.Name, out var telemetryContextProperty))
         {
             var actionMappings = (telemetryContextProperty as TelemetryContextMessageProperty)?.ActionMappings;
-            if (actionMappings != null && actionMappings.TryGetValue(action, out ActionMetadata metadata))
+            if (actionMappings != null && actionMappings.TryGetValue(action, out var metadata))
             {
                 actionMetadata = metadata;
             }
         }
 
-        return actionMetadata != null ? actionMetadata : new ActionMetadata(
+        return actionMetadata ?? new ActionMetadata(
             contractName: null,
             operationName: action);
     }

@@ -26,7 +26,9 @@ Intel Core i7-8850H CPU 2.60GHz (Coffee Lake), 1 CPU, 12 logical and 6 physical 
 
 namespace OpenTelemetry.Instrumentation.Http.Benchmarks.Instrumentation;
 
+#pragma warning disable CA1515
 public class HttpClientInstrumentationBenchmarks
+#pragma warning restore CA1515
 {
     private static readonly Uri Url = new("http://localhost:5000");
 
@@ -36,7 +38,9 @@ public class HttpClientInstrumentationBenchmarks
     private MeterProvider? meterProvider;
 
     [Flags]
+#pragma warning disable CA1515
     public enum EnableInstrumentationOption
+#pragma warning restore CA1515
     {
         /// <summary>
         /// Instrumentation is not enabled for any signal.

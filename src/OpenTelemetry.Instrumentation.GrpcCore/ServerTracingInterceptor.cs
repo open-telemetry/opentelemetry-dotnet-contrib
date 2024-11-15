@@ -163,11 +163,11 @@ public class ServerTracingInterceptor : Interceptor
                 var entry = metadata[i];
                 if (string.Equals(entry.Key, key, StringComparison.OrdinalIgnoreCase))
                 {
-                    return new string[1] { entry.Value };
+                    return [entry.Value];
                 }
             }
 
-            return Enumerable.Empty<string>();
+            return [];
         };
 
         /// <summary>

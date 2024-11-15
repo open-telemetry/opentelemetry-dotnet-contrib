@@ -11,7 +11,7 @@ internal class TestTraceServiceClient(bool throwException) : TraceServiceClient
 {
     private readonly bool throwException = throwException;
 
-    public List<Span> Spans { get; } = new List<Span>();
+    public List<Span> Spans { get; } = [];
 
     public override void BatchWriteSpans(BatchWriteSpansRequest request, CallSettings callSettings)
     {

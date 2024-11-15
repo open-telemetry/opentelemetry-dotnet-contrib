@@ -32,7 +32,7 @@ internal static class HttpRequestMessagePropertyWrapper
     public static object CreateNew()
     {
         AssertHttpEnabled();
-        return Activator.CreateInstance(ReflectedValues!.Type);
+        return Activator.CreateInstance(ReflectedValues!.Type)!;
     }
 
     public static WebHeaderCollection GetHeaders(object httpRequestMessageProperty)
@@ -49,24 +49,23 @@ internal static class HttpRequestMessagePropertyWrapper
         {
             type = Type.GetType(
                 "System.ServiceModel.Channels.HttpRequestMessageProperty, System.ServiceModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                true);
+                true)!;
 
-            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), Array.Empty<Type>(), null);
-            if (headersProp == null)
-            {
-                throw new NotSupportedException("HttpRequestMessageProperty.Headers property not found");
-            }
+            var constructor = type.GetConstructor(Type.EmptyTypes)
+                ?? throw new NotSupportedException("HttpRequestMessageProperty public parameterless constructor was not found");
 
-            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), Array.Empty<Type>(), null);
-            if (nameProp == null)
-            {
-                throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
-            }
+            var headersProp = type.GetProperty("Headers", BindingFlags.Public | BindingFlags.Instance, null, typeof(WebHeaderCollection), [], null)
+                ?? throw new NotSupportedException("HttpRequestMessageProperty.Headers property not found");
 
-            return new ReflectedInfo(
-                type: type,
-                name: (string)nameProp.GetValue(null),
-                headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
+            var nameProp = type.GetProperty("Name", BindingFlags.Public | BindingFlags.Static, null, typeof(string), [], null)
+                ?? throw new NotSupportedException("HttpRequestMessageProperty.Name property not found");
+
+            return nameProp.GetValue(null) is not string name
+                ? throw new NotSupportedException("HttpRequestMessageProperty.Name property was null")
+                : new ReflectedInfo(
+                    type: type,
+                    name: name,
+                    headersFetcher: new PropertyFetcher<WebHeaderCollection>("Headers"));
         }
         catch (Exception ex)
         {

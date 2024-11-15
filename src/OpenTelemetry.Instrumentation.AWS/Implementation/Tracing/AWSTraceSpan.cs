@@ -59,8 +59,10 @@ internal sealed class AWSTraceSpan : TraceSpan
 
         var tags = attributes != null ? new TagList(attributes.AllAttributes.ToArray()) : default;
 
-        this.activity.RecordException(exception, tags);
+        this.activity.AddException(exception, tags);
+#pragma warning disable CS0618 // Type or member is obsolete
         this.activity.SetStatus(Status.Error.WithDescription(exception.Message));
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public override void End()
@@ -85,6 +87,7 @@ internal sealed class AWSTraceSpan : TraceSpan
         {
             SpanStatus.OK => ActivityStatusCode.Ok,
             SpanStatus.ERROR => ActivityStatusCode.Error,
+            SpanStatus.UNSET => ActivityStatusCode.Unset,
             _ => ActivityStatusCode.Unset,
         };
     }

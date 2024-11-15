@@ -7,10 +7,12 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 
+#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public class DownstreamInstrumentationChannel : DispatchProxy
+#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     public const string DownstreamInstrumentationSourceName = "DownstreamInstrumentationSource";
-    private static readonly ActivitySource DownstreamInstrumentationSource = new ActivitySource(DownstreamInstrumentationSourceName);
+    private static readonly ActivitySource DownstreamInstrumentationSource = new(DownstreamInstrumentationSourceName);
     private static bool failNextReceive;
 
     private object? Target { get; set; }

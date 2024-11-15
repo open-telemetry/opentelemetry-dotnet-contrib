@@ -83,42 +83,32 @@ For an ASP.NET application, adding instrumentation is typically done in the
 This instrumentation can be configured to change the default behavior by using
 `SqlClientTraceInstrumentationOptions`.
 
-### Capturing database statements
+### SetDbStatementForText
 
-The `SqlClientTraceInstrumentationOptions` class exposes two properties that can
-be used to configure how the
+Capturing the text of a database query may run the risk of capturing sensitive data.
+`SetDbStatementForText` controls whether the
 [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute is captured upon execution of a query but the behavior depends on the
-runtime used.
+attribute is captured in scenarios where there could be a risk of exposing
+sensitive data. The behavior of `SetDbStatementForText` depends on the runtime
+used.
 
-#### .NET and .NET Core
+#### .NET
 
-On .NET and .NET Core, two properties are available:
-`SetDbStatementForStoredProcedure` and `SetDbStatementForText`. These properties
-control capturing of `CommandType.StoredProcedure` and `CommandType.Text`
-respectively.
-
-`SetDbStatementForStoredProcedure` is _true_ by default and will set
+On .NET, `SetDbStatementForText` controls whether or not
+this instrumentation will set the
 [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the stored procedure command name.
+attribute to the `CommandText` of the `SqlCommand` being executed when the `CommandType`
+is `CommandType.Text`. The
+[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
+attribute is always captured for `CommandType.StoredProcedure` because the `SqlCommand.CommandText`
+only contains the stored procedure name.
 
-`SetDbStatementForText` is _false_ by default (to prevent accidental capture of
-sensitive data that might be part of the SQL statement text). When set to
-`true`, the instrumentation will set
+`SetDbStatementForText` is _false_ by default. When set to `true`, the
+instrumentation will set
 [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
 attribute to the text of the SQL command being executed.
 
-To disable capturing stored procedure commands use configuration like below.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.SetDbStatementForStoredProcedure = false)
-    .AddConsoleExporter()
-    .Build();
-```
-
-To enable capturing of `sqlCommand.CommandText` for `CommandType.Text` use the
+To enable capturing of `SqlCommand.CommandText` for `CommandType.Text` use the
 following configuration.
 
 ```csharp
@@ -131,20 +121,22 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 
 #### .NET Framework
 
-On .NET Framework, the `SetDbStatementForText` property controls whether or not
-this instrumentation will set the
+On .NET Framework, there is no way to determine the type of command being
+executed, so the `SetDbStatementForText` property always controls whether
+or not this instrumentation will set the
 [`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the text of the `SqlCommand` being executed. This could either be
-the name of a stored procedure (when `CommandType.StoredProcedure` is used) or
-the full text of a `CommandType.Text` query. `SetDbStatementForStoredProcedure`
-is ignored because on .NET Framework there is no way to determine the type of
-command being executed.
+attribute to the `CommandText` of the `SqlCommand` being executed. The
+`CommandText` could be the name of a stored procedure (when
+`CommandType.StoredProcedure` is used) or the full text of a `CommandType.Text`
+query.
 
-Since `CommandType.Text` might contain sensitive data, all SQL capturing is
-_disabled_ by default to protect against accidentally sending full query text to
-a telemetry backend. If you are only using stored procedures or have no
-sensitive data in your `sqlCommand.CommandText`, you can enable SQL capturing
-using the options like below:
+`SetDbStatementForText` is _false_ by default. When set to `true`, the
+instrumentation will set
+[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
+attribute to the text of the SQL command being executed.
+
+To enable capturing of `SqlCommand.CommandText` for `CommandType.Text` use the
+following configuration.
 
 ```csharp
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -165,13 +157,13 @@ command text will be captured.
 > [!NOTE]
 > EnableConnectionLevelAttributes is supported on all runtimes.
 
-By default, `EnabledConnectionLevelAttributes` is disabled.
-If `EnabledConnectionLevelAttributes` is enabled,
+By default, `EnabledConnectionLevelAttributes` is enabled.
+When `EnabledConnectionLevelAttributes` is enabled,
 the [`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
 will be parsed and the server name or IP address will be sent as
 the `server.address` attribute, the instance name will be sent as
 the `db.mssql.instance_name` attribute, and the port will be sent as the
-`net.peer.port` attribute if it is not 1433 (the default port).
+`server.port` attribute if it is not 1433 (the default port).
 
 The following example shows how to use `EnableConnectionLevelAttributes`.
 

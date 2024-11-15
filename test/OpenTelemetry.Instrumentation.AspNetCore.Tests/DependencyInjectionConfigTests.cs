@@ -28,7 +28,7 @@ public class DependencyInjectionConfigTests
     {
         name ??= Options.DefaultName;
 
-        bool optionsPickedFromDI = false;
+        var optionsPickedFromDI = false;
         void ConfigureTestServices(IServiceCollection services)
         {
             services.AddOpenTelemetry()

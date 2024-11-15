@@ -9,17 +9,17 @@ internal class AWSServiceHelper
 {
     internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap = new Dictionary<string, List<string>>()
     {
-        { AWSServiceType.DynamoDbService, new List<string> { "TableName" } },
-        { AWSServiceType.SQSService, new List<string> { "QueueUrl" } },
-        { AWSServiceType.BedrockAgentService, new List<string> { "AgentId", "KnowledgeBaseId", "DataSourceId" } },
-        { AWSServiceType.BedrockAgentRuntimeService, new List<string> { "AgentId", "KnowledgeBaseId" } },
-        { AWSServiceType.BedrockRuntimeService, new List<string> { "ModelId" } },
+        { AWSServiceType.DynamoDbService, ["TableName"] },
+        { AWSServiceType.SQSService, ["QueueUrl"] },
+        { AWSServiceType.BedrockAgentService, ["AgentId", "KnowledgeBaseId", "DataSourceId"] },
+        { AWSServiceType.BedrockAgentRuntimeService, ["AgentId", "KnowledgeBaseId"] },
+        { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
     };
 
     internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap = new Dictionary<string, List<string>>()
     {
-        { AWSServiceType.BedrockService, new List<string> { "GuardrailId" } },
-        { AWSServiceType.BedrockAgentService, new List<string> { "AgentId", "DataSourceId" } },
+        { AWSServiceType.BedrockService, ["GuardrailId"] },
+        { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
     };
 
     internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
@@ -34,8 +34,8 @@ internal class AWSServiceHelper
     };
 
     // for Bedrock Agent operations, we map each supported operation to one resource: Agent, DataSource, or KnowledgeBase
-    internal static List<string> BedrockAgentAgentOps = new List<string>
-    {
+    internal static List<string> BedrockAgentAgentOps =
+    [
         "CreateAgentActionGroup",
         "CreateAgentAlias",
         "DeleteAgentActionGroup",
@@ -53,11 +53,11 @@ internal class AWSServiceHelper
         "PrepareAgent",
         "UpdateAgentActionGroup",
         "UpdateAgentAlias",
-        "UpdateAgent",
-    };
+        "UpdateAgent"
+    ];
 
-    internal static List<string> BedrockAgentKnowledgeBaseOps = new List<string>
-    {
+    internal static List<string> BedrockAgentKnowledgeBaseOps =
+    [
         "AssociateAgentKnowledgeBase",
         "CreateDataSource",
         "DeleteKnowledgeBase",
@@ -65,15 +65,15 @@ internal class AWSServiceHelper
         "GetAgentKnowledgeBase",
         "GetKnowledgeBase",
         "ListDataSources",
-        "UpdateAgentKnowledgeBase",
-    };
+        "UpdateAgentKnowledgeBase"
+    ];
 
-    internal static List<string> BedrockAgentDataSourceOps = new List<string>
-    {
+    internal static List<string> BedrockAgentDataSourceOps =
+    [
         "DeleteDataSource",
         "GetDataSource",
-        "UpdateDataSource",
-    };
+        "UpdateDataSource"
+    ];
 
     internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
     {
@@ -102,8 +102,8 @@ internal class AWSServiceHelper
 
     internal static string GetAWSOperationName(IRequestContext requestContext)
     {
-        string completeRequestName = requestContext.OriginalRequest.GetType().Name;
-        string suffix = "Request";
+        var completeRequestName = requestContext.OriginalRequest.GetType().Name;
+        var suffix = "Request";
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
     }

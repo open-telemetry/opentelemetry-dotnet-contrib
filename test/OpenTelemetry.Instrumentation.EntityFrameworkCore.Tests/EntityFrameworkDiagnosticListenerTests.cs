@@ -283,13 +283,12 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         if (!isError)
         {
-            Assert.Equal(Status.Unset, activity.GetStatus());
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         }
         else
         {
-            Status status = activity.GetStatus();
-            Assert.Equal(StatusCode.Error, status.StatusCode);
-            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", status.Description);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
             Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
         }
     }

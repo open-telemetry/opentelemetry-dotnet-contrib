@@ -113,7 +113,7 @@ internal sealed class HostDetector : IResourceDetector
             return null;
         }
 
-        var lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+        var lines = output.Split([Environment.NewLine], StringSplitOptions.None);
 
         foreach (var line in lines)
         {
@@ -162,8 +162,8 @@ internal sealed class HostDetector : IResourceDetector
                 var isExited = process.WaitForExit(5000);
                 if (isExited)
                 {
-                    string output = process.StandardOutput.ReadToEnd();
-                    string error = process.StandardError.ReadToEnd();
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
 
                     if (!string.IsNullOrEmpty(error))
                     {
@@ -215,22 +215,10 @@ internal sealed class HostDetector : IResourceDetector
 #if NETFRAMEWORK
         return this.getWindowsMachineId();
 #else
-        if (this.isOsPlatform(OSPlatform.Windows))
-        {
-            return this.getWindowsMachineId();
-        }
+        return this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
+            this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
+            this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
 
-        if (this.isOsPlatform(OSPlatform.Linux))
-        {
-            return this.GetMachineIdLinux();
-        }
-
-        if (this.isOsPlatform(OSPlatform.OSX))
-        {
-            return ParseMacOsOutput(this.getMacOsMachineId());
-        }
-
-        return null;
 #endif
     }
 

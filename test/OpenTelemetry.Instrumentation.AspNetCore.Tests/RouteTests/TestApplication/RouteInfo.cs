@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 #if NET
@@ -52,9 +50,6 @@ public class RouteInfo
 
     public void SetValues(ActionDescriptor actionDescriptor)
     {
-        if (this.ActionDescriptor == null)
-        {
-            this.ActionDescriptor = new ActionDescriptorInfo(actionDescriptor);
-        }
+        this.ActionDescriptor ??= new ActionDescriptorInfo(actionDescriptor);
     }
 }

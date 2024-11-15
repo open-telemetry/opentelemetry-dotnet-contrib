@@ -116,25 +116,18 @@ internal class SamplingRuleApplier
         // URL path may be in either http.target or http.url
         if (httpTarget == null && httpUrl != null)
         {
-            int schemeEndIndex = httpUrl.IndexOf("://", StringComparison.Ordinal);
+            var schemeEndIndex = httpUrl.IndexOf("://", StringComparison.Ordinal);
 
             // Per spec, http.url is always populated with scheme://host/target. If scheme doesn't
             // match, assume it's bad instrumentation and ignore.
             if (schemeEndIndex > 0)
             {
-                int pathIndex = httpUrl.IndexOf('/', schemeEndIndex + "://".Length);
-                if (pathIndex < 0)
-                {
-                    httpTarget = "/";
-                }
-                else
-                {
-                    httpTarget = httpUrl.Substring(pathIndex);
-                }
+                var pathIndex = httpUrl.IndexOf('/', schemeEndIndex + "://".Length);
+                httpTarget = pathIndex < 0 ? "/" : httpUrl.Substring(pathIndex);
             }
         }
 
-        string serviceName = (string)resource.Attributes.FirstOrDefault(kvp =>
+        var serviceName = (string)resource.Attributes.FirstOrDefault(kvp =>
                 kvp.Key.Equals("service.name", StringComparison.Ordinal)).Value;
 
         return Matcher.AttributeMatch(samplingParameters.Tags, this.Rule.Attributes) &&
@@ -149,8 +142,8 @@ internal class SamplingRuleApplier
     public SamplingResult ShouldSample(in SamplingParameters samplingParameters)
     {
         Interlocked.Increment(ref this.Statistics.RequestCount);
-        bool reservoirExpired = this.Clock.Now() >= this.ReservoirEndTime;
-        SamplingResult result = !reservoirExpired
+        var reservoirExpired = this.Clock.Now() >= this.ReservoirEndTime;
+        var result = !reservoirExpired
             ? this.ReservoirSampler.ShouldSample(in samplingParameters)
             : new SamplingResult(SamplingDecision.Drop);
 
@@ -178,13 +171,13 @@ internal class SamplingRuleApplier
     // take the snapshot and reset the statistics.
     public SamplingStatisticsDocument Snapshot(DateTimeOffset now)
     {
-        double timestamp = this.Clock.ToDouble(now);
+        var timestamp = this.Clock.ToDouble(now);
 
-        long matchedRequests = Interlocked.Exchange(ref this.Statistics.RequestCount, 0L);
-        long sampledRequests = Interlocked.Exchange(ref this.Statistics.SampleCount, 0L);
-        long borrowedRequests = Interlocked.Exchange(ref this.Statistics.BorrowCount, 0L);
+        var matchedRequests = Interlocked.Exchange(ref this.Statistics.RequestCount, 0L);
+        var sampledRequests = Interlocked.Exchange(ref this.Statistics.SampleCount, 0L);
+        var borrowedRequests = Interlocked.Exchange(ref this.Statistics.BorrowCount, 0L);
 
-        SamplingStatisticsDocument statiscticsDocument = new SamplingStatisticsDocument(
+        var statiscticsDocument = new SamplingStatisticsDocument(
             this.ClientId,
             this.RuleName,
             matchedRequests,
@@ -197,27 +190,22 @@ internal class SamplingRuleApplier
 
     public SamplingRuleApplier WithTarget(SamplingTargetDocument target, DateTimeOffset now)
     {
-        Trace.Sampler newFixedRateSampler = target.FixedRate != null
+        var newFixedRateSampler = target.FixedRate != null
             ? new ParentBasedSampler(new TraceIdRatioBasedSampler(target.FixedRate.Value))
             : this.FixedRateSampler;
 
         Trace.Sampler newReservoirSampler = new AlwaysOffSampler();
-        DateTimeOffset newReservoirEndTime = DateTimeOffset.MaxValue;
+        var newReservoirEndTime = DateTimeOffset.MaxValue;
         if (target.ReservoirQuota != null && target.ReservoirQuotaTTL != null)
         {
-            if (target.ReservoirQuota > 0)
-            {
-                newReservoirSampler = new ParentBasedSampler(new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock));
-            }
-            else
-            {
-                newReservoirSampler = new AlwaysOffSampler();
-            }
+            newReservoirSampler = target.ReservoirQuota > 0
+                ? new ParentBasedSampler(new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock))
+                : new AlwaysOffSampler();
 
             newReservoirEndTime = this.Clock.ToDateTime(target.ReservoirQuotaTTL.Value);
         }
 
-        DateTimeOffset newNextSnapshotTime = target.Interval != null
+        var newNextSnapshotTime = target.Interval != null
             ? now.AddSeconds(target.Interval.Value)
             : now.Add(AWSXRayRemoteSampler.DefaultTargetInterval);
 
@@ -235,21 +223,17 @@ internal class SamplingRuleApplier
 
     private static string GetServiceType(Resource resource)
     {
-        string cloudPlatform = (string)resource.Attributes.FirstOrDefault(kvp =>
+        var cloudPlatform = (string)resource.Attributes.FirstOrDefault(kvp =>
             kvp.Key.Equals("cloud.platform", StringComparison.Ordinal)).Value;
 
-        if (cloudPlatform == null)
-        {
-            return string.Empty;
-        }
-
-        return Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out string? value) ? value : string.Empty;
+        return cloudPlatform == null ? string.Empty :
+            Matcher.XRayCloudPlatform.TryGetValue(cloudPlatform, out var value) ? value : string.Empty;
     }
 
     private static string GetArn(in SamplingParameters samplingParameters, Resource resource)
     {
         // currently the aws resource detectors only capture ARNs for ECS and Lambda environments.
-        string? arn = (string?)resource.Attributes.FirstOrDefault(kvp =>
+        var arn = (string?)resource.Attributes.FirstOrDefault(kvp =>
             kvp.Key.Equals("aws.ecs.container.arn", StringComparison.Ordinal)).Value;
 
         if (arn != null)

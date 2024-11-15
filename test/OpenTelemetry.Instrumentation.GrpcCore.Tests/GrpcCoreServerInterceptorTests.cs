@@ -122,10 +122,7 @@ public class GrpcCoreServerInterceptorTests
         {
             var client = FoobarService.ConstructRpcClient(
                 server.UriString,
-                additionalMetadata: new List<Metadata.Entry>
-                {
-                    new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
-                });
+                additionalMetadata: [new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling)]);
 
             await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false);
 
@@ -152,12 +149,12 @@ public class GrpcCoreServerInterceptorTests
         using var activityListener = new InterceptorActivityListener(testTags);
         var client = FoobarService.ConstructRpcClient(
             server.UriString,
-            additionalMetadata: new List<Metadata.Entry>
-            {
+            additionalMetadata:
+            [
                 new Metadata.Entry("traceparent", FoobarService.DefaultTraceparentWithSampling),
                 new Metadata.Entry(FoobarService.RequestHeaderFailWithStatusCode, StatusCode.ResourceExhausted.ToString()),
                 new Metadata.Entry(FoobarService.RequestHeaderErrorDescription, "fubar"),
-            });
+            ]);
 
         await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, additionalMetadata).ConfigureAwait(false));
 
