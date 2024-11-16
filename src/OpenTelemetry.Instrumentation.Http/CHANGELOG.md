@@ -8,9 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
-* Starting with .NET 9, the native HttpClient sets tracing attributes.
-  The OpenTelemetry Http Instrumentation SDK will backoff to avoid overwriting these
-  attributes.
+* Starting with .NET 9, HttpClient includes native trace instrumentation.
+   This instrumentation library is still necessary for performing context
+   propagation and the additional features it provides.
   ([#2314](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2314))
 
 ## 1.9.0
