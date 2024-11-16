@@ -104,6 +104,22 @@ public class EventNameManagerTests
     }
 
     [Fact]
+    public void EventFullNameCacheTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        Assert.Empty(eventNameManager.EventFullNameCache);
+
+        eventNameManager.ResolveEventFullName("Company_Product_EventName");
+
+        Assert.Single(eventNameManager.EventFullNameCache);
+
+        eventNameManager.ResolveEventFullName("company_product_eventName");
+
+        Assert.Single(eventNameManager.EventFullNameCache);
+    }
+
+    [Fact]
     public void EventFullNameMappedWhenEventNamespaceMatchesTest()
     {
         var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(

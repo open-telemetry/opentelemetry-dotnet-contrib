@@ -92,9 +92,6 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
     /// </item>
     /// </list>
     /// </remarks>
-
-    public EventNameDelimiter DefaultEventNameDelimiter { get; set; } = EventNameDelimiter.Period;
-
     public IReadOnlyDictionary<string, string>? EventFullNameMappings
     {
         get => this.eventFullNameMappings;
