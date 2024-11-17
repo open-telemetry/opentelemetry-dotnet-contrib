@@ -13,11 +13,11 @@ using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
-public class MyStatefulService : StatefulService, IMyStatefulService
+public class MyTestStatefulService : StatefulService, ITestMyStatefulService
 {
     private TraceContextEnrichedServiceV2RemotingDispatcher dispatcher;
 
-    public MyStatefulService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica)
+    public MyTestStatefulService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica)
         : base(serviceContext, reliableStateManagerReplica)
     {
     }

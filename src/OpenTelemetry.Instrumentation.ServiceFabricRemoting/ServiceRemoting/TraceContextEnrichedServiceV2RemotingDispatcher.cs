@@ -9,7 +9,6 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -69,11 +68,11 @@ public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMe
                 {
                     if (activity != null)
                     {
-                        activity.SetStatus(Status.Error);
+                        activity.SetStatus(ActivityStatusCode.Error);
 
                         if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtServer == true)
                         {
-                            activity.RecordException(ex);
+                            activity.AddException(ex);
                         }
                     }
 
@@ -89,7 +88,7 @@ public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMe
         {
             string headerValue = Encoding.UTF8.GetString(headerValueAsBytes);
 
-            return new[] { headerValue };
+            return [headerValue];
         }
 
         return Enumerable.Empty<string>();

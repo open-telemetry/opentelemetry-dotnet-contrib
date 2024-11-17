@@ -8,7 +8,6 @@ using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -113,11 +112,11 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                 {
                     if (activity != null)
                     {
-                        activity.SetStatus(Status.Error);
+                        activity.SetStatus(ActivityStatusCode.Error);
 
                         if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtClient == true)
                         {
-                            activity.RecordException(ex);
+                            activity.AddException(ex);
                         }
 
                         try
