@@ -550,7 +550,7 @@ public class ActivityHelperTest : IDisposable
     {
         public override ISet<string>? Fields => null;
 
-        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
         {
             return default;
         }

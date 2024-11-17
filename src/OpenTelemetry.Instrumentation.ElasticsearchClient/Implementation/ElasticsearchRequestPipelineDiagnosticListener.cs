@@ -57,6 +57,8 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch.Stop":
                 this.OnStopActivity(activity, payload);
                 break;
+            default:
+                break;
         }
     }
 
@@ -69,12 +71,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch" when method != null:
                 {
                     var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
-                    if (elasticType == null)
-                    {
-                        return methodName;
-                    }
-
-                    return $"{methodName} {elasticType}";
+                    return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
 
             default:
@@ -122,7 +119,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var request = ParseRequest.Match(debugInformation);
         if (request.Success)
         {
-            string? body = request.Groups[1]?.Value?.Trim();
+            var body = request.Groups[1]?.Value?.Trim();
             if (body == null)
             {
                 return debugInformation;
@@ -193,7 +190,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
             {
                 activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
             }
@@ -257,31 +254,27 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
                 {
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}");
                 }
 
                 var responseBody = this.responseBodyFetcher.Fetch(payload);
                 if (responseBody != null && responseBody.Length > 0)
                 {
                     var response = Encoding.UTF8.GetString(responseBody);
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}\r\n{response}");
                 }
 
                 if (originalException is HttpRequestException)
                 {
-                    if (originalException.InnerException is SocketException exception)
+                    if (originalException.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound })
                     {
-                        switch (exception.SocketErrorCode)
-                        {
-                            case SocketError.HostNotFound:
-                                activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-                                return;
-                        }
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
+                        return;
                     }
 
                     if (originalException.InnerException != null)
                     {
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
             }

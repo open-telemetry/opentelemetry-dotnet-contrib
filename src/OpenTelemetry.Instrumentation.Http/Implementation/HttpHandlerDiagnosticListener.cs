@@ -66,6 +66,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
 
                 break;
+            default:
+                break;
         }
     }
 
@@ -81,7 +83,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
 
-        if (!TryFetchRequest(payload, out HttpRequestMessage? request))
+        if (!TryFetchRequest(payload, out var request))
         {
             HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -109,7 +111,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         {
             try
             {
-                if (this.options.EventFilterHttpRequestMessage(activity.OperationName, request) == false)
+                if (!this.options.EventFilterHttpRequestMessage(activity.OperationName, request))
                 {
                     HttpInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
@@ -161,12 +163,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
-            if (!StartRequestFetcher.TryFetch(payload, out request) || request == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StartRequestFetcher.TryFetch(payload, out request) && request != null;
         }
     }
 
@@ -176,7 +173,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         {
             var requestTaskStatus = GetRequestStatus(payload);
 
-            ActivityStatusCode currentStatusCode = activity.Status;
+            var currentStatusCode = activity.Status;
             if (requestTaskStatus != TaskStatus.RanToCompletion)
             {
                 if (requestTaskStatus == TaskStatus.Canceled)
@@ -200,7 +197,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
             }
 
-            if (TryFetchResponse(payload, out HttpResponseMessage? response))
+            if (TryFetchResponse(payload, out var response))
             {
                 if (currentStatusCode == ActivityStatusCode.Unset)
                 {
@@ -246,12 +243,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
         {
-            if (StopResponseFetcher.TryFetch(payload, out response) && response != null)
-            {
-                return true;
-            }
-
-            return false;
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
         }
     }
 
@@ -259,7 +251,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            if (!TryFetchException(payload, out Exception? exc))
+            if (!TryFetchException(payload, out var exc))
             {
                 HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnException));
                 return;
@@ -274,7 +266,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
             if (exc is HttpRequestException)
@@ -299,12 +291,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
         {
-            if (!StopExceptionFetcher.TryFetch(payload, out exc) || exc == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StopExceptionFetcher.TryFetch(payload, out exc) && exc != null;
         }
     }
 
