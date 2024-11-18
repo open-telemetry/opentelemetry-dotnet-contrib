@@ -43,69 +43,26 @@ internal static class RouteTestHelper
                 break;
             case 5: // Multi-method attribute routing WebAPI.
                 routeData = new RouteData();
-                var multiMethodSubroutes = new[]
+                var httpMethods = new[] { HttpMethod.Get, HttpMethod.Put, HttpMethod.Delete };
+
+                var multiMethodSubroutes = httpMethods.Select(method => new
                 {
-                    new
+                    Route = new
                     {
-                        Route = new
+                        RouteTemplate = routeTemplate,
+                        DataTokens = new Dictionary<string, object>
                         {
-                            RouteTemplate = routeTemplate,
-                            DataTokens = new Dictionary<string, object>
+                            ["actions"] = new[]
                             {
-                                ["actions"] = new[]
+                                new
                                 {
-                                    new
-                                    {
-                                        SupportedHttpMethods = new[]
-                                        {
-                                            HttpMethod.Get,
-                                        },
-                                    },
+                                    SupportedHttpMethods = new[] { method },
                                 },
                             },
                         },
                     },
-                    new
-                    {
-                        Route = new
-                        {
-                            RouteTemplate = routeTemplate,
-                            DataTokens = new Dictionary<string, object>
-                            {
-                                ["actions"] = new[]
-                                {
-                                    new
-                                    {
-                                        SupportedHttpMethods = new[]
-                                        {
-                                            HttpMethod.Put,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    new
-                    {
-                        Route = new
-                        {
-                            RouteTemplate = routeTemplate,
-                            DataTokens = new Dictionary<string, object>
-                            {
-                                ["actions"] = new[]
-                                {
-                                    new
-                                    {
-                                        SupportedHttpMethods = new[]
-                                        {
-                                            HttpMethod.Delete,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                };
+                }).ToArray();
+
                 routeData.Values.Add(
                     "MS_SubRoutes",
                     multiMethodSubroutes);
