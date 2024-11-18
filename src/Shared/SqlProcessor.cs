@@ -14,7 +14,7 @@ public static class SqlProcessor
             return string.Empty;
         }
 
-        var sb = new StringBuilder();
+        var sb = new StringBuilder(capacity: sql.Length);
         for (var i = 0; i < sql.Length; ++i)
         {
             if (SkipComment(sql, ref i))
