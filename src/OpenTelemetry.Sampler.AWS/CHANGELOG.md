@@ -18,7 +18,8 @@
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
 * `AWSXRayRemoteSamplerBuilder.Build()` now returns `ParentBasedSampler` which
-  which is of type `Trace.Sampler` instead of `AWSXRayRemoteSampler`
+  which is of type `Sampler` instead of `AWSXRayRemoteSampler`.
+  ([#2188](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2188))
 
 ## 0.1.0-alpha.2
 
