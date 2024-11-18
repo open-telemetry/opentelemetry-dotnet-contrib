@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -66,10 +67,11 @@ public class AWSXRayRemoteSamplerBuilder
     /// <summary>
     /// Returns a <see cref="AWSXRayRemoteSampler"/> with configuration of this builder.
     /// </summary>
-    /// <returns>an instance of <see cref="AWSXRayRemoteSampler"/>.</returns>
-    public AWSXRayRemoteSampler Build()
+    /// <returns>an instance of <see cref="Trace.Sampler"/>.</returns>
+    public Trace.Sampler Build()
     {
-        return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+        var rootSampler = new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+        return new ParentBasedSampler(rootSampler);
     }
 
     // This is intended for testing with a mock clock.
