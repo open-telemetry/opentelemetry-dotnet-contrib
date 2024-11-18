@@ -70,16 +70,8 @@ public class AWSXRayRemoteSamplerBuilder
     /// <returns>an instance of <see cref="Trace.Sampler"/>.</returns>
     public Trace.Sampler Build()
     {
-        using var rootSampler = this.BuildXraySampler();
+        var rootSampler = new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
         return new ParentBasedSampler(rootSampler);
-    }
-
-    // This is intended for testing to check that the XRayRemoteSampler is built with the correct attributes
-    // Should not be exposed to public as the public build method should return the sampler wrapped inside
-    // ParentBasedSampler.
-    internal AWSXRayRemoteSampler BuildXraySampler()
-    {
-        return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
     }
 
     // This is intended for testing with a mock clock.

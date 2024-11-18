@@ -17,7 +17,8 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
-* `AWSXRayRemoteSamplerBuilder.Build()` now returns `ParentBasedSampler` which is of type `Trace.Sampler` instead of `AWSXRayRemoteSampler`
+* `AWSXRayRemoteSamplerBuilder.Build()` now returns `ParentBasedSampler` which is of 
+type `Trace.Sampler` instead of `AWSXRayRemoteSampler`
 
 ## 0.1.0-alpha.2
 
