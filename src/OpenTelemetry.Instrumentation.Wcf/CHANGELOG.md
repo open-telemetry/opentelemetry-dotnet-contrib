@@ -8,6 +8,10 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
+* Added a `RecordException` property to specify if exceptions should be
+  recorded (defaults to `false`). This is only supported by client instrumentation.
+  ([#2271](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2271))
+
 ## 1.0.0-rc.18
 
 Released 2024-Oct-28
