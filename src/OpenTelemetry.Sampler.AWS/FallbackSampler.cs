@@ -12,8 +12,8 @@ internal class FallbackSampler : Trace.Sampler
 
     public FallbackSampler(Clock clock)
     {
-        this.reservoirSampler = new ParentBasedSampler(new RateLimitingSampler(1, clock));
-        this.fixedRateSampler = new ParentBasedSampler(new TraceIdRatioBasedSampler(0.05));
+        this.reservoirSampler = new RateLimitingSampler(1, clock);
+        this.fixedRateSampler = new TraceIdRatioBasedSampler(0.05);
     }
 
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
