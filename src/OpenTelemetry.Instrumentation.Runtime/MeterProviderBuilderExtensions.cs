@@ -1,10 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET9_0_OR_GREATER
 using OpenTelemetry.Instrumentation.Runtime;
 using OpenTelemetry.Internal;
-#endif
 
 namespace OpenTelemetry.Metrics;
 
@@ -13,9 +11,8 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class MeterProviderBuilderExtensions
 {
-#if NET9_0_OR_GREATER
     private const string DotNetRuntimeMeterName = "System.Runtime";
-#endif
+    private static readonly bool Net9OrGreater = Environment.Version.Major >= 9;
 
     /// <summary>
     /// Enables runtime instrumentation.
@@ -24,13 +21,10 @@ public static class MeterProviderBuilderExtensions
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddRuntimeInstrumentation(
         this MeterProviderBuilder builder) =>
-#if NET9_0_OR_GREATER
-        builder.AddMeter(DotNetRuntimeMeterName);
-#else
-        AddRuntimeInstrumentation(builder, configure: null);
-#endif
+            Net9OrGreater
+                ? builder.AddMeter(DotNetRuntimeMeterName)
+                : AddRuntimeInstrumentation(builder, configure: null);
 
-#if !NET9_0_OR_GREATER
     /// <summary>
     /// Enables runtime instrumentation.
     /// </summary>
@@ -50,5 +44,4 @@ public static class MeterProviderBuilderExtensions
         builder.AddMeter(RuntimeMetrics.MeterInstance.Name);
         return builder.AddInstrumentation(() => instrumentation);
     }
-#endif
 }
