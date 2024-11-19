@@ -9,7 +9,7 @@
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
 * Prefer built-in .NET runtime metrics for .NET 9 and greater.
-  ([TODO](TODO))
+  ([#2339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2339))
 
 ## 1.9.0
 
