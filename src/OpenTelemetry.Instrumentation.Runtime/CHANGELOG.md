@@ -8,6 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
+* Prefer built-in .NET runtime metrics for .NET 9 and greater.
+  ([TODO](TODO))
+
 ## 1.9.0
 
 Released 2024-Jun-18
