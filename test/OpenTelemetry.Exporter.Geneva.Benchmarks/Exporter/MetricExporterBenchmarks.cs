@@ -73,10 +73,10 @@ public class MetricExporterBenchmarks
     private uint histogramCountWith4Dimensions;
     private Batch<Metric> histogramMetricBatchWith3Dimensions;
     private Batch<Metric> histogramMetricBatchWith4Dimensions;
-    private Meter meterWithNoListener = new Meter("MeterWithNoListener", "0.0.1");
-    private Meter meterWithListener = new Meter("MeterWithListener", "0.0.1");
-    private Meter meterWithDummyReader = new Meter("MeterWithDummyReader", "0.0.1");
-    private Meter meterWithGenevaMetricExporter = new Meter("MeterWithGenevaMetricExporter", "0.0.1");
+    private Meter meterWithNoListener = new("MeterWithNoListener", "0.0.1");
+    private Meter meterWithListener = new("MeterWithListener", "0.0.1");
+    private Meter meterWithDummyReader = new("MeterWithDummyReader", "0.0.1");
+    private Meter meterWithGenevaMetricExporter = new("MeterWithGenevaMetricExporter", "0.0.1");
     private Counter<long>? counterWithNoListener;
     private Counter<long>? counterWithListener;
     private Counter<long>? counterWithDummyReader;
@@ -95,7 +95,7 @@ public class MetricExporterBenchmarks
     private byte[]? buffer;
     private ThreadLocal<Random> random = new(() => new Random());
 
-    private static readonly Random randomForHistogram = new Random(); // Use the same seed for all the benchmarks to have the same data exported
+    private static readonly Random randomForHistogram = new(); // Use the same seed for all the benchmarks to have the same data exported
     private static readonly string[] dimensionValues = ["DimVal1", "DimVal2", "DimVal3", "DimVal4", "DimVal5", "DimVal6", "DimVal7", "DimVal8", "DimVal9", "DimVal10"
     ];
 
