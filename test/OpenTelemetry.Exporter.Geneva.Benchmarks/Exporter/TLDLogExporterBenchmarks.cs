@@ -35,9 +35,6 @@ public class TLDLogExporterBenchmarks
     private readonly Batch<LogRecord> batch;
     private readonly MsgPackLogExporter msgPackExporter;
     private readonly TldLogExporter tldExporter;
-    private readonly ILogger loggerForTLD;
-    private readonly ILogger loggerForMsgPack;
-    private readonly ILoggerFactory loggerFactoryForTLD;
     private readonly ILoggerFactory loggerFactoryForMsgPack;
 
     public TLDLogExporterBenchmarks()
@@ -67,23 +64,6 @@ public class TLDLogExporterBenchmarks
         this.logRecord = GenerateTestLogRecord();
         this.batch = GenerateTestLogRecordBatch();
 
-        this.loggerFactoryForTLD = LoggerFactory.Create(builder =>
-            builder.AddOpenTelemetry(loggerOptions =>
-            {
-                loggerOptions.AddGenevaLogExporter(exporterOptions =>
-                {
-                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
-                    exporterOptions.PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    };
-                });
-            }));
-
-        this.loggerForTLD = this.loggerFactoryForTLD.CreateLogger<TLDLogExporterBenchmarks>();
-
         this.loggerFactoryForMsgPack = LoggerFactory.Create(builder =>
             builder.AddOpenTelemetry(loggerOptions =>
             {
@@ -98,8 +78,6 @@ public class TLDLogExporterBenchmarks
                     };
                 });
             }));
-
-        this.loggerForMsgPack = this.loggerFactoryForMsgPack.CreateLogger<TLDLogExporterBenchmarks>();
     }
 
     [Benchmark]
@@ -130,7 +108,6 @@ public class TLDLogExporterBenchmarks
     public void Cleanup()
     {
         this.batch.Dispose();
-        this.loggerFactoryForTLD.Dispose();
         this.loggerFactoryForMsgPack.Dispose();
         this.tldExporter.Dispose();
         this.msgPackExporter.Dispose();
