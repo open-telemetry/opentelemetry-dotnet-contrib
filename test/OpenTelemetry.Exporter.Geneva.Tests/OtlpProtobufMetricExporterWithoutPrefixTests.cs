@@ -6,7 +6,7 @@ using Xunit;
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
 [Collection("OtlpProtobufMetricExporterTests")]
-public class OtlpProtobufMetricExporterWithoutPrefixTests : OtlpProtobufMetricExporterTests
+internal class OtlpProtobufMetricExporterWithoutPrefixTests : OtlpProtobufMetricExporterTests
 {
     protected override bool PrefixBufferWithUInt32LittleEndianLength => false;
 }
