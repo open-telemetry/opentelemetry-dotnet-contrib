@@ -59,7 +59,9 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
                 useMsgPackExporter = false;
                 break;
-
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }

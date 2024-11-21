@@ -95,6 +95,10 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.EtwTld:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }

@@ -78,6 +78,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.EtwTld:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
@@ -462,6 +466,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             // we reach default only for LogLevel.None
             // but that is filtered out anyway.
             // should we throw here then?
+            case LogLevel.None:
             default:
                 return 1;
         }

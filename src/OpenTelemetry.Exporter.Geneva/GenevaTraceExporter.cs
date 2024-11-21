@@ -59,7 +59,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
                 useMsgPackExporter = false;
                 break;
-
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }

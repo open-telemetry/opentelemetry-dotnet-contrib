@@ -661,6 +661,9 @@ internal sealed class OtlpProtobufSerializer
 
                     break;
                 }
+
+            default:
+                break;
         }
     }
 

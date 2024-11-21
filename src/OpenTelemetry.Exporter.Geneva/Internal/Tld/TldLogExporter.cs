@@ -424,6 +424,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             // we reach default only for LogLevel.None
             // but that is filtered out anyway.
             // should we throw here then?
+            case LogLevel.None:
             default:
                 return 1;
         }

@@ -58,6 +58,10 @@ internal sealed class TlvMetricExporter : IDisposable
                     throw new ArgumentException("Endpoint not specified");
                 }
 
+            case TransportProtocol.Etw:
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.EtwTld:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
@@ -232,6 +236,11 @@ internal sealed class TlvMetricExporter : IDisposable
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
+
+                        case MetricType.ExponentialHistogram:
+                            break;
+                        default:
+                            break;
                     }
                 }
                 catch (Exception ex)
