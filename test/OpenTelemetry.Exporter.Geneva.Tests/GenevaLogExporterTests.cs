@@ -976,8 +976,10 @@ public class GenevaLogExporterTests
         var logRecordList = new List<LogRecord>();
         try
         {
-            var exporterOptions = new GenevaExporterOptions();
-            exporterOptions.EventNameExportMode = eventNameExportMode;
+            var exporterOptions = new GenevaExporterOptions
+            {
+                EventNameExportMode = eventNameExportMode,
+            };
 
             if (hasTableNameMapping)
             {
