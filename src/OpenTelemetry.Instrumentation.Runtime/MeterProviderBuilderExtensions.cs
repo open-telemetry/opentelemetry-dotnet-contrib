@@ -21,9 +21,7 @@ public static class MeterProviderBuilderExtensions
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddRuntimeInstrumentation(
         this MeterProviderBuilder builder) =>
-            Net9OrGreater
-                ? builder.AddMeter(DotNetRuntimeMeterName)
-                : AddRuntimeInstrumentation(builder, configure: null);
+        AddRuntimeInstrumentation(builder, configure: null);
 
     /// <summary>
     /// Enables runtime instrumentation.
@@ -36,6 +34,11 @@ public static class MeterProviderBuilderExtensions
         Action<RuntimeInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
+
+        if (Net9OrGreater)
+        {
+            return builder.AddMeter(DotNetRuntimeMeterName);
+        }
 
         var options = new RuntimeInstrumentationOptions();
         configure?.Invoke(options);
