@@ -3,8 +3,6 @@
 
 #if !NET
 
-#nullable disable
-
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,9 +13,9 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public class UnixDomainSocketEndPointTests
 {
     [Fact]
-    public void UnixDomainSocketEndPoint_constructor_InvalidArgument()
+    public void UnixDomainSocketEndPoint_Constructor_InvalidArgument()
     {
-        Assert.Throws<ArgumentNullException>(() => _ = new UnixDomainSocketEndPoint(null));
+        Assert.Throws<ArgumentNullException>(() => _ = new UnixDomainSocketEndPoint(null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = new UnixDomainSocketEndPoint(string.Empty));
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = new UnixDomainSocketEndPoint(new string('a', 100)));
     }
@@ -33,7 +31,7 @@ public class UnixDomainSocketEndPointTests
     public void UnixDomainSocketEndPoint_Create_InvalidArgument()
     {
         var endpoint = new UnixDomainSocketEndPoint("abc");
-        Assert.Throws<ArgumentNullException>(() => _ = endpoint.Create(null));
+        Assert.Throws<ArgumentNullException>(() => _ = endpoint.Create(null!));
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = endpoint.Create(this.CreateSocketAddress(new string('a', 100))));
     }
 
@@ -59,15 +57,15 @@ public class UnixDomainSocketEndPointTests
 
     private SocketAddress CreateSocketAddress(string path)
     {
-        int NativePathOffset = 2;
+        const int nativePathOffset = 2;
         var nativePath = Encoding.UTF8.GetBytes(path);
-        var sa = new SocketAddress(AddressFamily.Unix, NativePathOffset + nativePath.Length + 1);
+        var sa = new SocketAddress(AddressFamily.Unix, nativePathOffset + nativePath.Length + 1);
         for (int i = 0; i < nativePath.Length; ++i)
         {
-            sa[NativePathOffset + i] = nativePath[i];
+            sa[nativePathOffset + i] = nativePath[i];
         }
 
-        sa[NativePathOffset + nativePath.Length] = 0;
+        sa[nativePathOffset + nativePath.Length] = 0;
         return sa;
     }
 }
