@@ -19,7 +19,7 @@ internal sealed class TableNameSerializer
     /* Note: We don't use Array.Empty<byte> here because that is used to
     indicate an invalid name. We need a different instance to trigger the
     pass-through case. */
-    private static readonly byte[] PassthroughTableName = new byte[0];
+    private static readonly byte[] PassthroughTableName = [];
 #pragma warning restore CA1825 // Avoid zero-length array allocations
     private static readonly StringComparer DictionaryKeyComparer = StringComparer.Ordinal;
 
@@ -206,7 +206,7 @@ internal sealed class TableNameSerializer
 
         Span<byte> sanitizedTableNameStorage = mappedTableName == PassthroughTableName
             ? stackalloc byte[MaxSanitizedCategoryNameBytes]
-            : Array.Empty<byte>();
+            : [];
 
         if (sanitizedTableNameStorage.Length > 0)
         {
@@ -221,7 +221,7 @@ internal sealed class TableNameSerializer
             {
                 // Note: When the table name could not be sanitized we cache
                 // the empty array NOT s_passthroughTableName.
-                mappedTableName = Array.Empty<byte>();
+                mappedTableName = [];
             }
         }
 

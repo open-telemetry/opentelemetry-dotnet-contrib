@@ -206,7 +206,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         var linkEnumerator = activity.EnumerateLinks();
         if (linkEnumerator.MoveNext())
         {
-            var keyValuePairsForLinks = KeyValuePairs.Value ??= new();
+            var keyValuePairsForLinks = KeyValuePairs.Value ??= [];
 
             keyValuePairsForLinks.Clear();
 
@@ -282,7 +282,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             {
                 hasEnvProperties = 1;
 
-                envPropertiesList = KeyValuePairs.Value ??= new();
+                envPropertiesList = KeyValuePairs.Value ??= [];
 
                 envPropertiesList.Clear();
             }

@@ -23,10 +23,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
-    private static readonly string[] LogLevels = new string[7]
-    {
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
-    };
+    private static readonly string[] LogLevels =
+    [
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+    ];
 
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
@@ -84,7 +84,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         if (options.PrepopulatedFields != null)
         {
-            this.prepopulatedFieldKeys = new List<string>();
+            this.prepopulatedFieldKeys = [];
             var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {

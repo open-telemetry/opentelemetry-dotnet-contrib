@@ -21,10 +21,10 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
     private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
-    private static readonly string[] LogLevels = new string[7]
-    {
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
-    };
+    private static readonly string[] LogLevels =
+    [
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+    ];
 
     private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes
     private readonly byte partAFieldsCount = 1; // At least one field: time
@@ -337,7 +337,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 if (hasEnvProperties == 0)
                 {
                     hasEnvProperties = 1;
-                    envPropertiesList = EnvProperties.Value ??= new();
+                    envPropertiesList = EnvProperties.Value ??= [];
 
                     envPropertiesList.Clear();
                 }
@@ -510,7 +510,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 {
                     stateData.HasEnvProperties = 1;
 
-                    envPropertiesList = EnvProperties.Value ??= new();
+                    envPropertiesList = EnvProperties.Value ??= [];
 
                     envPropertiesList.Clear();
                 }

@@ -56,7 +56,7 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         else
         {
             this.path = string.Empty;
-            this.nativePath = Array.Empty<byte>();
+            this.nativePath = [];
         }
     }
 
