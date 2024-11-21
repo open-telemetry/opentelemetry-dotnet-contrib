@@ -7,7 +7,6 @@ components:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - utpilla
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
   src/OpenTelemetry.Exporter.Instana/:
@@ -95,17 +94,14 @@ components:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - utpilla
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - utpilla
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - utpilla
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
