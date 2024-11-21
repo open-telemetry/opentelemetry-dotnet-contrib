@@ -80,8 +80,8 @@ internal sealed class EventFullName
 
             length += this.EventName.Length;
 
-            if (length < EventNameManager.MinimumEventFullNameLength
-                || length > EventNameManager.MaximumEventFullNameLength)
+            if (length is < EventNameManager.MinimumEventFullNameLength
+                or > EventNameManager.MaximumEventFullNameLength)
             {
                 throw new OneCollectorExporterValidationException($"The event full name mapping value provided for key '{key}' is shorter or longer than what is allowed.");
             }

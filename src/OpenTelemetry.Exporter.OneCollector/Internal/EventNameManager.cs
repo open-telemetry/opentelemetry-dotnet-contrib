@@ -137,7 +137,7 @@ internal sealed class EventNameManager
     private static void WriteEventFullNameComponent(string component, Span<byte> destination, ref int cursor)
     {
         char firstChar = component[0];
-        if (firstChar >= 'a' && firstChar <= 'z')
+        if (firstChar is >= 'a' and <= 'z')
         {
             firstChar -= (char)32;
         }
@@ -252,7 +252,7 @@ internal sealed class EventNameManager
         byte[] eventFullName;
 
         var finalEventFullNameLength = namespaceLength + eventName.Length;
-        if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)
+        if (finalEventFullNameLength is < MinimumEventFullNameLength or > MaximumEventFullNameLength)
         {
             OneCollectorExporterEventSource.Log.EventFullNameDiscarded(eventNamespace, eventName);
             eventFullName = this.defaultEventFullName.EventFullName;

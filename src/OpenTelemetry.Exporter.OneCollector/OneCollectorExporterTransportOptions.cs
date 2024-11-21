@@ -88,12 +88,12 @@ public sealed class OneCollectorExporterTransportOptions
             throw new OneCollectorExporterValidationException($"{nameof(this.Endpoint)} was not specified on {this.GetType().Name} options.");
         }
 
-        if (this.MaxPayloadSizeInBytes <= 0 && this.MaxPayloadSizeInBytes != -1)
+        if (this.MaxPayloadSizeInBytes is <= 0 and not -1)
         {
             throw new OneCollectorExporterValidationException($"{nameof(this.MaxPayloadSizeInBytes)} was invalid on {this.GetType().Name} options.");
         }
 
-        if (this.MaxNumberOfItemsPerPayload <= 0 && this.MaxNumberOfItemsPerPayload != -1)
+        if (this.MaxNumberOfItemsPerPayload is <= 0 and not -1)
         {
             throw new OneCollectorExporterValidationException($"{nameof(this.MaxNumberOfItemsPerPayload)} was invalid on {this.GetType().Name} options.");
         }
