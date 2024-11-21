@@ -149,13 +149,15 @@ public class MetricExporterBenchmarks
         this.histogramMetricWith4Dimensions = enumeratorForHistogramBatchWith4Dimensions.Current;
 
         #region Setup MeterListener
-        this.listener = new MeterListener();
-        this.listener.InstrumentPublished = (instrument, listener) =>
+        this.listener = new MeterListener
         {
-            if (instrument.Meter.Name == this.meterWithListener.Name)
+            InstrumentPublished = (instrument, listener) =>
             {
-                listener.EnableMeasurementEvents(instrument);
-            }
+                if (instrument.Meter.Name == this.meterWithListener.Name)
+                {
+                    listener.EnableMeasurementEvents(instrument);
+                }
+            },
         };
 
         this.listener.Start();
