@@ -96,7 +96,8 @@ public class MetricExporterBenchmarks
     private ThreadLocal<Random> random = new(() => new Random());
 
     private static readonly Random randomForHistogram = new Random(); // Use the same seed for all the benchmarks to have the same data exported
-    private static readonly string[] dimensionValues = new string[] { "DimVal1", "DimVal2", "DimVal3", "DimVal4", "DimVal5", "DimVal6", "DimVal7", "DimVal8", "DimVal9", "DimVal10" };
+    private static readonly string[] dimensionValues = ["DimVal1", "DimVal2", "DimVal3", "DimVal4", "DimVal5", "DimVal6", "DimVal7", "DimVal8", "DimVal9", "DimVal10"
+    ];
 
     [GlobalSetup]
     public void Setup()
@@ -114,7 +115,7 @@ public class MetricExporterBenchmarks
         this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport(), metricsAccount: null, metricsNamespace: null, prepopulatedMetricDimensions: null);
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-           .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+           .AddAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")]);
         this.resource = resourceBuilder.Build();
         this.otlpProtobufMetricExporter = new OtlpProtobufMetricExporter(() => { return this.resource; }, new TestTransport(), metricsAccount: null, metricsNamespace: null, prepopulatedMetricDimensions: null);
         this.buffer = new byte[GenevaMetricExporter.BufferSize];
