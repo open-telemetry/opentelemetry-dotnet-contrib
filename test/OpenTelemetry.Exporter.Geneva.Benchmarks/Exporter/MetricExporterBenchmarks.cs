@@ -323,7 +323,7 @@ public class MetricExporterBenchmarks
         var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
         var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
-        for (int i = 0; i < 1000; i++)
+        for (var i = 0; i < 1000; i++)
         {
             histogram.Record(randomForHistogram.Next(1, 1000), tag1, tag2, tag3);
         }
@@ -370,7 +370,7 @@ public class MetricExporterBenchmarks
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
-        for (int i = 0; i < 1000; i++)
+        for (var i = 0; i < 1000; i++)
         {
             histogram.Record(randomForHistogram.Next(1, 1000), tags);
         }
@@ -413,7 +413,7 @@ public class MetricExporterBenchmarks
         var tag2 = new KeyValuePair<string, object?>("DimName2", dimensionValues[this.random.Value.Next(0, 10)]);
         var tag3 = new KeyValuePair<string, object?>("DimName3", dimensionValues[this.random.Value.Next(0, 10)]);
 
-        for (int i = 0; i < 1000; i++)
+        for (var i = 0; i < 1000; i++)
         {
             histogram.Record(randomForHistogram.Next(1, 1000), tag1, tag2, tag3);
         }
@@ -446,7 +446,7 @@ public class MetricExporterBenchmarks
             { "DimName4", dimensionValues[this.random.Value.Next(0, 10)] },
         };
 
-        for (int i = 0; i < 1000; i++)
+        for (var i = 0; i < 1000; i++)
         {
             histogram.Record(randomForHistogram.Next(1, 1000), tags);
         }
