@@ -291,17 +291,15 @@ public class GenevaTraceExporterTests
                         ActivityTraceFlags.Recorded)),
                 };
 
-                using (var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links))
-                {
-                    activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
-                    activity?.SetTag("azureResourceProvider", "Microsoft.AAD");
-                    activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
-                    activity?.SetTag("foo", 1);
-                    activity?.SetTag("bar", 2);
+                using var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links);
+                activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
+                activity?.SetTag("azureResourceProvider", "Microsoft.AAD");
+                activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
+                activity?.SetTag("foo", 1);
+                activity?.SetTag("bar", 2);
 #pragma warning disable CS0618 // Type or member is obsolete
-                    activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
+                activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
-                }
             }
 
             using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
@@ -445,10 +443,8 @@ public class GenevaTraceExporterTests
             // Create activity on a different thread to test for multithreading scenarios
             var thread = new Thread(() =>
             {
-                using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
-                {
-                    messagePackDataSize = exporter.SerializeActivity(activity).Count;
-                }
+                using var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal);
+                messagePackDataSize = exporter.SerializeActivity(activity).Count;
             });
             thread.Start();
             thread.Join();
@@ -496,15 +492,13 @@ public class GenevaTraceExporterTests
             .Build();
 
         var source = new ActivitySource(sourceName);
-        using (var activity = source.StartActivity("SayHello"))
-        {
-            activity?.SetTag("foo", 1);
-            activity?.SetTag("bar", "Hello, World!");
+        using var activity = source.StartActivity("SayHello");
+        activity?.SetTag("foo", 1);
+        activity?.SetTag("bar", "Hello, World!");
 #pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-            activity?.SetTag("baz", new int[] { 1, 2, 3 });
+        activity?.SetTag("baz", new int[] { 1, 2, 3 });
 #pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
+        activity?.SetStatus(ActivityStatusCode.Ok);
     }
 
     [Fact]
