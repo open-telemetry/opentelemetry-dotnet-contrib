@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
@@ -19,13 +18,6 @@ public class LogSerializationTests
     Run from the current directory:
     dotnet test -f net8.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
-    private readonly ITestOutputHelper output;
-
-    public LogSerializationTests(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
-
     [Fact]
     public void SerializationTestForException()
     {
@@ -168,7 +160,7 @@ public class LogSerializationTests
 
     private class MyException : Exception
     {
-        private string stackTrace;
+        private readonly string stackTrace;
 
         public MyException(string message, string stackTrace)
         : base(message)

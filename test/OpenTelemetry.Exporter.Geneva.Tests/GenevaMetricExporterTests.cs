@@ -608,17 +608,14 @@ public class GenevaMetricExporterTests
                 })
             .AddView("observableLongCounter", MetricStreamConfiguration.Drop)
             .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = [] })
-            .AddView(instrument =>
-            {
-                return instrument.Name == "observableLongGauge"
-                    ? new MetricStreamConfiguration
-                    {
-                        Name = "renamedobservableLongGauge",
-                        Description = "modifiedDescription",
-                        TagKeys = ["tag1"],
-                    }
-                    : null;
-            })
+            .AddView(instrument => instrument.Name == "observableLongGauge"
+                ? new MetricStreamConfiguration
+                {
+                    Name = "renamedobservableLongGauge",
+                    Description = "modifiedDescription",
+                    TagKeys = ["tag1"],
+                }
+                : null)
             .AddView(instrument =>
             {
                 return instrument.Name == "observableDoubleGauge" ? MetricStreamConfiguration.Drop : null;
