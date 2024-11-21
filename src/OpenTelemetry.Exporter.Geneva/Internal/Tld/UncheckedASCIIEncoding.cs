@@ -51,7 +51,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return byteCount;
     }
 
-    public unsafe override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
+    public override unsafe int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         ValidateArgs(chars, charIndex, charCount, bytes, byteIndex, "char", "byte");
         fixed (char* charPtr = chars)
@@ -63,7 +63,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
     }
 
-    public unsafe override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
+    public override unsafe int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
         ValidateArgs(bytes, byteIndex, byteCount, chars, charIndex, "byte", "char");
         fixed (byte* bytePtr = bytes)
@@ -137,7 +137,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         return byteCount;
     }
 
-    public unsafe override int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
+    public override unsafe int GetBytes(string chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         if (chars == null || bytes == null)
         {
