@@ -135,7 +135,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("{OriginalFormat}", "hello world") };
+            logRecord.Attributes = [new KeyValuePair<string, object?>("{OriginalFormat}", "hello world")];
             logRecord.FormattedMessage = "goodbye world";
         });
 
@@ -193,8 +193,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
     public void LogRecordScopesJsonTest()
     {
         var scopeProvider = new ScopeProvider(
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"), new KeyValuePair<string, object?>("scope1Key2", "scope1Value2") },
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope2Key1", "scope2Value1") });
+            [
+                new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"),
+                new KeyValuePair<string, object?>("scope1Key2", "scope1Value2")
+            ],
+            [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
         string json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider);
 
@@ -208,7 +211,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
     {
         string json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("stateKey1", "stateValue1"), new KeyValuePair<string, object?>("stateKey2", "stateValue2") };
+            logRecord.Attributes =
+            [
+                new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
+                new KeyValuePair<string, object?>("stateKey2", "stateValue2")
+            ];
         });
 
         Assert.Equal(
@@ -264,7 +271,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     public void LogRecordExtensionsJsonTest()
     {
         var scopeProvider = new ScopeProvider(
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1") });
+            [new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1")]);
 
         var resource = ResourceBuilder.CreateEmpty()
             .AddAttributes(new Dictionary<string, object>
@@ -277,7 +284,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             2,
             (index, logRecord) =>
             {
-                logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+                logRecord.Attributes = [new KeyValuePair<string, object?>("ext.state.field", "stateValue1")];
             },
             resource,
             scopeProvider);
