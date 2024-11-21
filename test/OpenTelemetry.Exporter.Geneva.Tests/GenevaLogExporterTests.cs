@@ -138,7 +138,7 @@ public class GenevaLogExporterTests
             if (category?.Length > 0)
             {
                 mappingsDict = [];
-                for (int i = 0; i < category.Length; i = i + 2)
+                for (int i = 0; i < category.Length; i += 2)
                 {
                     mappingsDict.Add(category[i], category[i + 1]);
                 }
