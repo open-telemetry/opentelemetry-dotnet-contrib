@@ -406,28 +406,21 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#mapping-of-severitynumber
         // TODO: for improving perf simply do ((int)loglevel * 4) + 1
         // or ((int)logLevel << 2) + 1
-        switch (logLevel)
+        return logLevel switch
         {
-            case LogLevel.Trace:
-                return 1;
-            case LogLevel.Debug:
-                return 5;
-            case LogLevel.Information:
-                return 9;
-            case LogLevel.Warning:
-                return 13;
-            case LogLevel.Error:
-                return 17;
-            case LogLevel.Critical:
-                return 21;
+            LogLevel.Trace => 1,
+            LogLevel.Debug => 5,
+            LogLevel.Information => 9,
+            LogLevel.Warning => 13,
+            LogLevel.Error => 17,
+            LogLevel.Critical => 21,
 
             // we reach default only for LogLevel.None
             // but that is filtered out anyway.
             // should we throw here then?
-            case LogLevel.None:
-            default:
-                return 1;
-        }
+            LogLevel.None => 1,
+            _ => 1,
+        };
     }
 
     // This method would map the logger category to a table name which only contains alphanumeric values with the following additions:
