@@ -36,7 +36,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
     {
         this.logRecords = new LogRecord[this.NumberOfLogRecordsPerBatch];
 
-        for (int i = 0; i < this.NumberOfLogRecordsPerBatch; i++)
+        for (var i = 0; i < this.NumberOfLogRecordsPerBatch; i++)
         {
             this.logRecords[i] = CreateLogRecord(i);
         }
@@ -82,7 +82,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
     [Benchmark]
     public void Export()
     {
-        for (int i = 0; i < this.NumberOfBatches; i++)
+        for (var i = 0; i < this.NumberOfBatches; i++)
         {
             this.exporter!.Export(new Batch<LogRecord>(this.logRecords!, this.logRecords!.Length));
         }
