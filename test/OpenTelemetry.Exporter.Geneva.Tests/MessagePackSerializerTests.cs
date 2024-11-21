@@ -21,9 +21,7 @@ public class MessagePackSerializerTests
             var expectedByte = expected[i];
             var actualByte = actual[i];
 
-            Assert.True(
-                expectedByte == actualByte,
-                string.Format($"Expected: '{(byte)expectedByte}', Actual: '{(byte)actualByte}' at offset {i}."));
+            Assert.Equal(expectedByte, actualByte);
         }
     }
 
@@ -168,20 +166,20 @@ public class MessagePackSerializerTests
         // 32 bits
         this.MessagePackSerializer_TestSerialization(int.MinValue);
         this.MessagePackSerializer_TestSerialization(int.MinValue + 1);
-        this.MessagePackSerializer_TestSerialization((int)short.MinValue - 1);
+        this.MessagePackSerializer_TestSerialization(short.MinValue - 1);
         this.MessagePackSerializer_TestSerialization((int)short.MinValue);
-        this.MessagePackSerializer_TestSerialization((int)short.MinValue + 1);
-        this.MessagePackSerializer_TestSerialization((int)sbyte.MinValue - 1);
+        this.MessagePackSerializer_TestSerialization(short.MinValue + 1);
+        this.MessagePackSerializer_TestSerialization(sbyte.MinValue - 1);
         for (var value = sbyte.MinValue; value < sbyte.MaxValue; value++)
         {
             this.MessagePackSerializer_TestSerialization((int)value);
         }
 
         this.MessagePackSerializer_TestSerialization((int)sbyte.MaxValue);
-        this.MessagePackSerializer_TestSerialization((int)sbyte.MaxValue + 1);
-        this.MessagePackSerializer_TestSerialization((int)short.MaxValue - 1);
+        this.MessagePackSerializer_TestSerialization(sbyte.MaxValue + 1);
+        this.MessagePackSerializer_TestSerialization(short.MaxValue - 1);
         this.MessagePackSerializer_TestSerialization((int)short.MaxValue);
-        this.MessagePackSerializer_TestSerialization((int)short.MaxValue + 1);
+        this.MessagePackSerializer_TestSerialization(short.MaxValue + 1);
         this.MessagePackSerializer_TestSerialization(int.MaxValue - 1);
         this.MessagePackSerializer_TestSerialization(int.MaxValue);
 

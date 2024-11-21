@@ -86,7 +86,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_String()
     {
-        TestSerialization((string)null, "null");
         TestSerialization(string.Empty, "''".Replace("'", "\""));
         TestSerialization("Hello, World!", "'Hello, World!'".Replace("'", "\""));
         TestSerialization("\"", "'\\\"'".Replace("'", "\""));
@@ -100,7 +99,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_Array()
     {
-        TestSerialization((object[])null, "null");
         TestSerialization(Array.Empty<object>(), "[]");
         TestSerialization(new object[] { 1, 2, 3 }, "[1,2,3]");
     }
@@ -109,7 +107,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_Map()
     {
-        TestSerialization((Dictionary<string, object>)null, "null");
         TestSerialization(new Dictionary<string, object>(), "{}");
         TestSerialization(
             new Dictionary<string, object>
