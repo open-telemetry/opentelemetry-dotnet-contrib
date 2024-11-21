@@ -743,7 +743,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(7, exportedItems.Count);
 
             // observableLongCounter and observableDoubleGauge are dropped
-            Assert.DoesNotContain(exportedItems, item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge");
+            Assert.DoesNotContain(exportedItems, item => item.Name is "observableLongCounter" or "observableDoubleGauge");
 
             // check serialization for longCounter
             CheckSerializationWithTLVForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
@@ -1028,7 +1028,7 @@ public class GenevaMetricExporterTests
             Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
         }
-        else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
+        else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
@@ -1057,7 +1057,7 @@ public class GenevaMetricExporterTests
             Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
         }
-        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
             var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
                 Convert.ToDouble(metricPoint.GetSumLong()) :
@@ -1351,7 +1351,7 @@ public class GenevaMetricExporterTests
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
         }
-        else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
+        else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
@@ -1373,7 +1373,7 @@ public class GenevaMetricExporterTests
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
         }
-        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
             var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
                 Convert.ToDouble(metricPoint.GetSumLong()) :
