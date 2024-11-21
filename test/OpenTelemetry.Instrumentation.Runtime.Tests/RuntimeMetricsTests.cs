@@ -70,14 +70,11 @@ public class RuntimeMetricsTests
         var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
         Assert.NotNull(gcHeapSizeMetric);
 
-        if (Environment.Version.Major >= 7)
-        {
-            var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
-            Assert.NotNull(gcHeapFragmentationSizeMetric);
+        var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
+        Assert.NotNull(gcHeapFragmentationSizeMetric);
 
-            var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
-            Assert.NotNull(gcDurationMetric);
-        }
+        var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
+        Assert.NotNull(gcDurationMetric);
 #endif
     }
 
