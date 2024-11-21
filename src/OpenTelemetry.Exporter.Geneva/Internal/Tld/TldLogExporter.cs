@@ -468,7 +468,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             }
 
             var cur = categoryName[i];
-            if (cur is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9')
+            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
             {
                 result[validNameLength] = cur;
                 ++validNameLength;

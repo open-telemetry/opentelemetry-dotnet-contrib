@@ -148,7 +148,7 @@ internal sealed class TableNameSerializer
             }
 
             var cur = categoryName[i];
-            if (cur is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9')
+            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
             {
                 buffer[cursor++] = (byte)cur;
                 ++validNameLength;
