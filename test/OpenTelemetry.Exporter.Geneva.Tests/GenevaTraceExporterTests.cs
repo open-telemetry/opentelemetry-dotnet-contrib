@@ -716,7 +716,7 @@ public class GenevaTraceExporterTests
         #region Assert Activity Links
         if (activity.Links.Any())
         {
-            Assert.Contains(mapping, m => m.Key as string == "links");
+            Assert.Contains(mapping, m => (m.Key as string) == "links");
             var mappingLinks = mapping["links"] as IEnumerable<object>;
             using IEnumerator<ActivityLink> activityLinksEnumerator = activity.Links.GetEnumerator();
             using IEnumerator<object> mappingLinksEnumerator = mappingLinks.GetEnumerator();

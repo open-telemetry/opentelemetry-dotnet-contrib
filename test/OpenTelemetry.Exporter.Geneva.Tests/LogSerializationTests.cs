@@ -83,14 +83,6 @@ public class LogSerializationTests
         // PrintFields(this.output, exportedFields);
     }
 
-    private static void PrintFields(ITestOutputHelper output, Dictionary<object, object> fields)
-    {
-        foreach (var field in fields)
-        {
-            output.WriteLine($"{field.Key}:{field.Value}");
-        }
-    }
-
     private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
         Socket server = null;
