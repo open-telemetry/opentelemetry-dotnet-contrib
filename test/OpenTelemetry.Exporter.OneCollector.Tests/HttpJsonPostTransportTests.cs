@@ -81,9 +81,9 @@ public class HttpJsonPostTransportTests
 
         using var httpClient = new HttpClient();
 
-        int lastCompletedIteration = -1;
+        var lastCompletedIteration = -1;
         IDisposable? callbackRegistration = null;
-        bool callbackFired = false;
+        var callbackFired = false;
 
         /*
          * This test runs a few different iterations...
@@ -213,7 +213,7 @@ public class HttpJsonPostTransportTests
 
         transport.RegisterPayloadTransmittedCallback(OnPayloadTransmitted, includeFailures: true);
 
-        bool callbackFired = false;
+        var callbackFired = false;
 
         var result = transport.Send(
             new TransportSendRequest
@@ -342,8 +342,8 @@ public class HttpJsonPostTransportTests
             : null;
 
         shouldTestFailFunc ??= static iteration => false;
-        bool failTest = false;
-        bool requestReceivedAndAsserted = false;
+        var failTest = false;
+        var requestReceivedAndAsserted = false;
         Exception? testException = null;
 
         using var testServer = TestHttpServer.RunServer(
@@ -351,7 +351,7 @@ public class HttpJsonPostTransportTests
             {
                 context.Response.StatusCode = failTest ? 400 : 200;
 
-                using MemoryStream requestBody = new MemoryStream();
+                using var requestBody = new MemoryStream();
 
                 context.Request.InputStream.CopyTo(requestBody);
 
@@ -382,7 +382,7 @@ public class HttpJsonPostTransportTests
         {
             var requestBodyBytes = Encoding.ASCII.GetBytes(requestBody);
 
-            for (int i = 0; i < testIterations; i++)
+            for (var i = 0; i < testIterations; i++)
             {
                 failTest = shouldTestFailFunc(i);
 

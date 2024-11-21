@@ -12,7 +12,7 @@ public class CommonSchemaJsonSerializationHelperTests
     [Fact]
     public void SerializeKeyValueToJsonTest()
     {
-        string actualJson = GetJson(key: "key1", value: "value1");
+        var actualJson = GetJson(key: "key1", value: "value1");
 
         Assert.Equal("\"key1\":\"value1\"", actualJson);
     }
@@ -41,7 +41,7 @@ public class CommonSchemaJsonSerializationHelperTests
 #endif
     public void SerializeValueToJsonTest(object? value, string expectedJson)
     {
-        string actualJson = GetJson(value);
+        var actualJson = GetJson(value);
 
         Assert.Equal(expectedJson, actualJson);
     }
