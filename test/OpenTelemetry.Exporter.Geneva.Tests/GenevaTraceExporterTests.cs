@@ -169,7 +169,7 @@ public class GenevaTraceExporterTests
         }
 
         var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
-        using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, new ActivityLink[] { link }))
+        using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, [link]))
         {
         }
 
@@ -232,7 +232,7 @@ public class GenevaTraceExporterTests
             {
                 // The tag "clientRequestId" should be present in the mapping as a separate key. Other tags which are not present
                 // in the m_dedicatedFields should be added in the mapping under "env_properties"
-                exporterOptions.CustomFields = new string[] { "clientRequestId" };
+                exporterOptions.CustomFields = ["clientRequestId"];
             }
 
             if (includeTraceState)

@@ -156,8 +156,8 @@ public class UnixUserEventsDataTransportTests
     private sealed class ConsoleCommand : IDisposable
     {
         private readonly Process process;
-        private readonly List<string> output = new();
-        private readonly List<string> errors = new();
+        private readonly List<string> output = [];
+        private readonly List<string> errors = [];
 
         private ConsoleCommand(
             string command,
@@ -287,7 +287,7 @@ public class UnixUserEventsDataTransportTests
             }
         }
 
-        public List<Dictionary<string, string>> Events { get; } = new();
+        public List<Dictionary<string, string>> Events { get; } = [];
 
         public bool IsEnabled()
         {

@@ -29,8 +29,8 @@ public abstract class OtlpProtobufMetricExporterTests
         { "Dim3", 3 },
     };
 
-    private static readonly string[] TagKeys = new[]
-    {
+    private static readonly string[] TagKeys =
+    [
         "boolKey",
         "doubleKey",
         "intKey",
@@ -47,8 +47,8 @@ public abstract class OtlpProtobufMetricExporterTests
         "stringValueUnicodeKey",
         "uintKey",
         "ulongKey",
-        "ushortKey",
-    };
+        "ushortKey"
+    ];
 
     private TagList exemplarTagList;
 
@@ -975,7 +975,7 @@ public abstract class OtlpProtobufMetricExporterTests
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")]);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.HistogramSerializationSingleMetricPoint))
@@ -1267,7 +1267,7 @@ public abstract class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () =>
                 {
-                    List<Measurement<long>> list = new List<Measurement<long>>();
+                    List<Measurement<long>> list = [];
                     for (int i = 0; i < longValues.Length; i++)
                     {
                         list.Add(new(longValues[i], tags[i]));
@@ -1282,7 +1282,7 @@ public abstract class OtlpProtobufMetricExporterTests
                instrumentName,
                () =>
                {
-                   List<Measurement<double>> list = new List<Measurement<double>>();
+                   List<Measurement<double>> list = [];
                    for (int i = 0; i < doubleValues.Length; i++)
                    {
                        list.Add(new(doubleValues[i], tags[i]));
@@ -1564,7 +1564,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
             var exemplarsEnumerator = exemplars.GetEnumerator();
 
-            double[] exemplarValues = doubleValue.Value > 0 ? new double[] { doubleValue.Value, 0 } : new double[] { 0 };
+            double[] exemplarValues = doubleValue.Value > 0 ? [doubleValue.Value, 0] : [0];
 
             int exemplarValuesIndex = 0;
 
@@ -1685,7 +1685,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
     private class TestTransport : IMetricDataTransport
     {
-        public List<byte[]> ExportedItems = new();
+        public List<byte[]> ExportedItems = [];
 
         public void SendOtlpProtobufEvent(byte[] body, int size)
         {

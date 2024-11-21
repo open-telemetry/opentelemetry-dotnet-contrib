@@ -371,7 +371,7 @@ public class GenevaLogExporterTests
 
             if (hasCustomFields)
             {
-                exporterOptions.CustomFields = new string[] { "Food", "Name", "Key1" };
+                exporterOptions.CustomFields = ["Food", "Name", "Key1"];
             }
 
             var exportedItems = new List<LogRecord>();
@@ -685,7 +685,7 @@ public class GenevaLogExporterTests
             {
                 // The field "customField" of LogRecord.State should be present in the mapping as a separate key. Other fields of LogRecord.State which are not present
                 // in CustomFields should be added in the mapping under "env_properties"
-                exporterOptions.CustomFields = new string[] { "customField" };
+                exporterOptions.CustomFields = ["customField"];
             }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
@@ -1132,11 +1132,11 @@ public class GenevaLogExporterTests
             {
                 if (hasNameInCustomFields)
                 {
-                    exporterOptions.CustomFields = new string[] { "name", "Key1" };
+                    exporterOptions.CustomFields = ["name", "Key1"];
                 }
                 else
                 {
-                    exporterOptions.CustomFields = new string[] { "Key1" };
+                    exporterOptions.CustomFields = ["Key1"];
                 }
             }
 

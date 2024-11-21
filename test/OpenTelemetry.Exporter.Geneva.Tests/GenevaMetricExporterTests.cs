@@ -378,7 +378,7 @@ public class GenevaMetricExporterTests
 
         if (hasFilteredTagsForExemplars)
         {
-            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = new string[] { "tag1", "tag2" } });
+            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1", "tag2"]});
         }
 
         using var meterProvider = meterProviderBuilder.Build();
@@ -587,20 +587,20 @@ public class GenevaMetricExporterTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter("SuccessfulSerializationWithViews")
             .AddView("longCounter", "renamedLongCounter")
-            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = new string[] { "tag1" } })
+            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = ["tag1"]})
             .AddView(
                 "histogramWithCustomBounds",
                 new ExplicitBucketHistogramConfiguration
                 {
                     Name = "renamedhistogramWithCustomBounds",
                     Description = "modifiedDescription",
-                    Boundaries = new double[] { 500, 1000, 10000 },
+                    Boundaries = [500, 1000, 10000],
                 })
             .AddView(instrument =>
             {
                 if (instrument.Name == "histogramWithNoBounds")
                 {
-                    return new ExplicitBucketHistogramConfiguration { Boundaries = Array.Empty<double>() };
+                    return new ExplicitBucketHistogramConfiguration { Boundaries = [] };
                 }
 
                 return null;
@@ -612,7 +612,7 @@ public class GenevaMetricExporterTests
                     RecordMinMax = false,
                 })
             .AddView("observableLongCounter", MetricStreamConfiguration.Drop)
-            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = Array.Empty<string>() })
+            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = [] })
             .AddView(instrument =>
             {
                 if (instrument.Name == "observableLongGauge")
@@ -621,7 +621,7 @@ public class GenevaMetricExporterTests
                     {
                         Name = "renamedobservableLongGauge",
                         Description = "modifiedDescription",
-                        TagKeys = new string[] { "tag1" },
+                        TagKeys = ["tag1"],
                     };
                 }
 
@@ -1145,7 +1145,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(bodyLength, data.LenBody);
         }
 
-        List<Exemplar> validExemplars = new List<Exemplar>();
+        List<Exemplar> validExemplars = [];
 
         foreach (var exemplar in exemplars)
         {
