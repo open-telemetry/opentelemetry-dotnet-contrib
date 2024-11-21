@@ -25,7 +25,7 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
 
         this.path = path;
         this.nativePath = Encoding.UTF8.GetBytes(path);
-        if (this.nativePath.Length == 0 || this.nativePath.Length > MaximumNativePathLength)
+        if (this.nativePath.Length is 0 or > MaximumNativePathLength)
         {
             throw new ArgumentOutOfRangeException(nameof(path), "Path is of an invalid length for use with domain sockets.");
         }
