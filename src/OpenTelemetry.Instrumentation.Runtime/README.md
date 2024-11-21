@@ -54,7 +54,7 @@ to the application.
   `System.Runtime` metrics. See the [.NET Runtime metrics documentation](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime)
   for details of the metric and attribute names for the built-in metrics.
 
-### GC related metrics for .NET Framework
+### GC related metrics
 
 #### process.runtime.dotnet.**gc.collections.count**
 
