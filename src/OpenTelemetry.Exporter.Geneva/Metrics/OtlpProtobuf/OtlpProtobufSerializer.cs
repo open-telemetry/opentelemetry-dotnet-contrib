@@ -15,7 +15,7 @@ internal sealed class OtlpProtobufSerializer
 
     private const int TagAndLengthSize = 4;
 
-    private readonly Dictionary<string, List<Metric>> scopeMetrics = new();
+    private readonly Dictionary<string, List<Metric>> scopeMetrics = [];
     private readonly string? metricNamespace;
     private readonly string? metricAccount;
     private readonly bool prefixBufferWithUInt32LittleEndianLength;

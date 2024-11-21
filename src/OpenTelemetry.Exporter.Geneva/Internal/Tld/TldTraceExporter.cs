@@ -61,10 +61,11 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
-            var customFields = new HashSet<string>(StringComparer.Ordinal);
-
-            // Seed customFields with Span PartB
-            customFields.Add("azureResourceProvider");
+            var customFields = new HashSet<string>(StringComparer.Ordinal)
+            {
+                // Seed customFields with Span PartB
+                "azureResourceProvider",
+            };
 
             foreach (var mapping in CS40_PART_B_MAPPING)
             {
