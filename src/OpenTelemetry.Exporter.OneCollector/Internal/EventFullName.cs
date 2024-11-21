@@ -40,16 +40,11 @@ internal sealed class EventFullName
         }
 
         var parts = eventFullNameMapping!.Split('.');
-        if (parts.Length > 1)
-        {
-            eventFullName = new(
+        eventFullName = parts.Length > 1
+            ? new(
                 string.Join(".", parts, 0, parts.Length - 1),
-                parts[parts.Length - 1]);
-        }
-        else
-        {
-            eventFullName = new(string.Empty, parts[0]);
-        }
+                parts[parts.Length - 1])
+            : new(string.Empty, parts[0]);
 
         return true;
     }
