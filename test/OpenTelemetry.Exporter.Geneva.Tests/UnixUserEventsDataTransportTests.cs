@@ -87,7 +87,7 @@ public class UnixUserEventsDataTransportTests
 
             var eventBufferStringData = @event["buffer"].AsSpan();
 
-            byte[] eventBuffer = new byte[(eventBufferStringData.Length + 1) / 3];
+            var eventBuffer = new byte[(eventBufferStringData.Length + 1) / 3];
 
             var index = 0;
             var position = 0;
@@ -347,7 +347,7 @@ public class UnixUserEventsDataTransportTests
         {
             var name = $": {this.name}:";
 
-            int startingPosition = output.IndexOf(name, StringComparison.Ordinal);
+            var startingPosition = output.IndexOf(name, StringComparison.Ordinal);
             if (startingPosition < 0)
             {
                 return;

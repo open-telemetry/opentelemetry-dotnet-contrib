@@ -78,7 +78,7 @@ public class LogSerializationTests
     private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
         Socket server = null;
-        string path = string.Empty;
+        var path = string.Empty;
         try
         {
             var logRecordList = new List<LogRecord>();
@@ -112,7 +112,7 @@ public class LogSerializationTests
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }
@@ -133,7 +133,7 @@ public class LogSerializationTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;

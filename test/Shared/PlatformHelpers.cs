@@ -27,7 +27,7 @@ internal sealed class TestPlatformHelpers
             throw new NotImplementedException();
         }
 
-        uint userId = SystemNativeUnix.GetEUid();
+        var userId = SystemNativeUnix.GetEUid();
         return userId == 0;
     }
 

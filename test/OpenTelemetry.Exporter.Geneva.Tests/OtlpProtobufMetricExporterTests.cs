@@ -56,23 +56,23 @@ public abstract class OtlpProtobufMetricExporterTests
     {
         this.TagList = default;
 
-        bool boolValue = true;
-        double doubleValue = 23.45;
-        int intValue = 29;
+        var boolValue = true;
+        var doubleValue = 23.45;
+        var intValue = 29;
         long longValue = 345;
-        double negativeDoubleValue = -23.45;
-        int negativeIntValue = -29;
+        var negativeDoubleValue = -23.45;
+        var negativeIntValue = -29;
         long negativeLongValue = -97;
-        sbyte negativeSbyteValue = sbyte.MinValue;
+        var negativeSbyteValue = sbyte.MinValue;
         short negativeShortValue = -12;
-        sbyte sByteValue = sbyte.MaxValue;
-        short shortValue = short.MaxValue;
-        string stringValueAscii = "TestString";
-        string stringValueMixAsciiAndUnicode = "\u0418TestString";
-        string stringValueUnicode = "\u0418";
-        uint uintValue = uint.MaxValue;
+        var sByteValue = sbyte.MaxValue;
+        var shortValue = short.MaxValue;
+        var stringValueAscii = "TestString";
+        var stringValueMixAsciiAndUnicode = "\u0418TestString";
+        var stringValueUnicode = "\u0418";
+        var uintValue = uint.MaxValue;
         ulong ulongValue = 1234;
-        ushort ushortValue = ushort.MaxValue;
+        var ushortValue = ushort.MaxValue;
 
         // Keep the keys in sorted order, Sdk outputs them in sorted order.
         this.TagList.Add(new("boolKey", boolValue));
@@ -182,16 +182,16 @@ public abstract class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -381,12 +381,12 @@ public abstract class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -396,7 +396,7 @@ public abstract class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateCounter<long>(instrumentName);
 
-            for (int i = 0; i < longValues.Length; i++)
+            for (var i = 0; i < longValues.Length; i++)
             {
                 counter.Add(longValues[i], tags[i]);
             }
@@ -405,7 +405,7 @@ public abstract class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateCounter<double>(instrumentName);
 
-            for (int i = 0; i < doubleValues.Length; i++)
+            for (var i = 0; i < doubleValues.Length; i++)
             {
                 counter.Add(doubleValues[i], tags[i]);
             }
@@ -431,7 +431,7 @@ public abstract class OtlpProtobufMetricExporterTests
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
@@ -507,16 +507,16 @@ public abstract class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -636,12 +636,12 @@ public abstract class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -651,7 +651,7 @@ public abstract class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateUpDownCounter<long>(instrumentName);
 
-            for (int i = 0; i < longValues.Length; i++)
+            for (var i = 0; i < longValues.Length; i++)
             {
                 counter.Add(longValues[i], tags[i]);
             }
@@ -660,7 +660,7 @@ public abstract class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateUpDownCounter<double>(instrumentName);
 
-            for (int i = 0; i < doubleValues.Length; i++)
+            for (var i = 0; i < doubleValues.Length; i++)
             {
                 counter.Add(doubleValues[i], tags[i]);
             }
@@ -686,7 +686,7 @@ public abstract class OtlpProtobufMetricExporterTests
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
@@ -786,16 +786,16 @@ public abstract class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -883,8 +883,8 @@ public abstract class OtlpProtobufMetricExporterTests
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
-        int bucketCountIndex = 0;
-        int explicitBoundCountIndex = 0;
+        var bucketCountIndex = 0;
+        var explicitBoundCountIndex = 0;
 
         foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
         {
@@ -984,19 +984,19 @@ public abstract class OtlpProtobufMetricExporterTests
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
 
-        int expectedMetricPointCount = doubleValues.Length;
+        var expectedMetricPointCount = doubleValues.Length;
 
-        TagList[] tags = new TagList[expectedMetricPointCount];
+        var tags = new TagList[expectedMetricPointCount];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
         }
 
-        for (int i = 0; i < expectedMetricPointCount; i++)
+        for (var i = 0; i < expectedMetricPointCount; i++)
         {
             histogram.Record(doubleValues[i], tags[i]);
         }
@@ -1020,7 +1020,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPointCount; i++)
+        for (var i = 0; i < expectedMetricPointCount; i++)
         {
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
@@ -1058,8 +1058,8 @@ public abstract class OtlpProtobufMetricExporterTests
             metricPointsEnumerator.MoveNext();
             var metricPoint = metricPointsEnumerator.Current;
 
-            int bucketCountIndex = 0;
-            int explicitBoundCountIndex = 0;
+            var bucketCountIndex = 0;
+            var explicitBoundCountIndex = 0;
 
             foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
             {
@@ -1115,16 +1115,16 @@ public abstract class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -1248,12 +1248,12 @@ public abstract class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -1268,7 +1268,7 @@ public abstract class OtlpProtobufMetricExporterTests
                 () =>
                 {
                     List<Measurement<long>> list = [];
-                    for (int i = 0; i < longValues.Length; i++)
+                    for (var i = 0; i < longValues.Length; i++)
                     {
                         list.Add(new(longValues[i], tags[i]));
                     }
@@ -1283,7 +1283,7 @@ public abstract class OtlpProtobufMetricExporterTests
                () =>
                {
                    List<Measurement<double>> list = [];
-                   for (int i = 0; i < doubleValues.Length; i++)
+                   for (var i = 0; i < doubleValues.Length; i++)
                    {
                        list.Add(new(doubleValues[i], tags[i]));
                    }
@@ -1312,7 +1312,7 @@ public abstract class OtlpProtobufMetricExporterTests
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
@@ -1408,16 +1408,16 @@ public abstract class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -1566,7 +1566,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
             double[] exemplarValues = doubleValue.Value > 0 ? [doubleValue.Value, 0] : [0];
 
-            int exemplarValuesIndex = 0;
+            var exemplarValuesIndex = 0;
 
             foreach (var exemplar in dataPoint.Exemplars)
             {
@@ -1612,8 +1612,8 @@ public abstract class OtlpProtobufMetricExporterTests
         RepeatedField<OtlpCommon.KeyValue> actual)
     {
         var expectedAttributes = expected.ToList();
-        int expectedAttributesCount = expectedAttributes.Count;
-        for (int i = 0; i < expectedAttributesCount; i++)
+        var expectedAttributesCount = expectedAttributes.Count;
+        for (var i = 0; i < expectedAttributesCount; i++)
         {
             var current = expectedAttributes[i].Value;
 

@@ -46,7 +46,7 @@ public class GenevaMetricExporterTests
     [Fact]
     public void ParseConnectionStringCorrectly()
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -114,7 +114,7 @@ public class GenevaMetricExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public async Task SuccessfulExportOnLinux()
     {
-        string path = GenerateTempFilePath();
+        var path = GenerateTempFilePath();
         var exportedItems = new List<Metric>();
 
         using var meter = new Meter("SuccessfulExportOnLinux", "0.0.1");
@@ -198,7 +198,7 @@ public class GenevaMetricExporterTests
 
             // Read the data sent via socket.
             var receivedData = new byte[1024];
-            int receivedDataSize = serverSocket.Receive(receivedData);
+            var receivedDataSize = serverSocket.Receive(receivedData);
 
             var fixedPayloadLength = (int)typeof(TlvMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
 
@@ -221,7 +221,7 @@ public class GenevaMetricExporterTests
             var dimensions = fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
             Assert.Equal(2, dimensions.NumDimensions);
 
-            int i = 0;
+            var i = 0;
             foreach (var tag in metricPoint.Tags)
             {
                 Assert.Equal(tag.Key, dimensions.DimensionsNames[i].Value);
@@ -384,7 +384,7 @@ public class GenevaMetricExporterTests
         using var meterProvider = meterProviderBuilder.Build();
 
         long longValue = 123;
-        double doubleValue = 123.45;
+        var doubleValue = 123.45;
 
         if (testMaxLimits)
         {
@@ -488,7 +488,7 @@ public class GenevaMetricExporterTests
             histogram.Record(2500, new("tag1", "value1"), new("tag2", "value2"), new("filteredTag1", "filteredValue1"));
         }
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -694,7 +694,7 @@ public class GenevaMetricExporterTests
         histogramWithNoMinMax.Record(750, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoMinMax.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -779,7 +779,7 @@ public class GenevaMetricExporterTests
             .Build();
 
         long longValue = 123;
-        double doubleValue = 123.45;
+        var doubleValue = 123.45;
 
         longCounter.Add(
             longValue, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForLongCounter"));
@@ -812,7 +812,7 @@ public class GenevaMetricExporterTests
         histogram.Record(750, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
         histogram.Record(2500, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -924,7 +924,7 @@ public class GenevaMetricExporterTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -1074,7 +1074,7 @@ public class GenevaMetricExporterTests
         {
             var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
             {
                 min = 0;
                 max = 0;
@@ -1103,8 +1103,8 @@ public class GenevaMetricExporterTests
             var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value).Value as ExtAggregatedUint64ValueV2;
             var valueCountPairs = fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramUint64ValueCountPairs).Value as HistogramValueCountPairs;
 
-            int listIterator = 0;
-            int bucketsWithPositiveCount = 0;
+            var listIterator = 0;
+            var bucketsWithPositiveCount = 0;
             double lastExplicitBound = default;
             foreach (var bucket in metricPoint.GetHistogramBuckets())
             {
@@ -1147,7 +1147,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(validExemplars.Count, exemplarsPayload.NumberOfExemplars.Value);
             Assert.Equal(validExemplars.Count, singleExemplarList.Count);
 
-            for (int i = 0; i < validExemplars.Count; i++)
+            for (var i = 0; i < validExemplars.Count; i++)
             {
                 var expectedExemplar = validExemplars[i];
                 var serializedExemplar = singleExemplarList[i];
@@ -1159,8 +1159,8 @@ public class GenevaMetricExporterTests
         // Check metric name, account, and namespace
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
 
-        string monitoringAccount = connectionStringBuilder.Account;
-        string metricNamespace = connectionStringBuilder.Namespace;
+        var monitoringAccount = connectionStringBuilder.Account;
+        var metricNamespace = connectionStringBuilder.Namespace;
 
         foreach (var tag in metricPoint.Tags)
         {
@@ -1199,7 +1199,7 @@ public class GenevaMetricExporterTests
         }
 
         // Check metric dimensions
-        int index = 0;
+        var index = 0;
         foreach (var item in exporterOptions.PrepopulatedMetricDimensions)
         {
             Assert.Equal(item.Key, dimensions.DimensionsNames[index].Value);
@@ -1207,7 +1207,7 @@ public class GenevaMetricExporterTests
             index++;
         }
 
-        int reservedTags = 0;
+        var reservedTags = 0;
         foreach (var tag in metricPoint.Tags)
         {
             if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
@@ -1266,8 +1266,8 @@ public class GenevaMetricExporterTests
         }
 
         int filteredTagsActualCount = serializedExemplarBody.NumberOfLabels;
-        int filteredTagsExpectedCount = 0;
-        int filteredTagsActualIndex = 0;
+        var filteredTagsExpectedCount = 0;
+        var filteredTagsActualIndex = 0;
 
         foreach (var tag in expectedExemplar.FilteredTags)
         {
@@ -1383,7 +1383,7 @@ public class GenevaMetricExporterTests
         {
             var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
             {
                 min = 0;
                 max = 0;

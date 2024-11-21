@@ -60,7 +60,7 @@ public class UnixDomainSocketEndPointTests
         const int nativePathOffset = 2;
         var nativePath = Encoding.UTF8.GetBytes(path);
         var sa = new SocketAddress(AddressFamily.Unix, nativePathOffset + nativePath.Length + 1);
-        for (int i = 0; i < nativePath.Length; ++i)
+        for (var i = 0; i < nativePath.Length; ++i)
         {
             sa[nativePathOffset + i] = nativePath[i];
         }

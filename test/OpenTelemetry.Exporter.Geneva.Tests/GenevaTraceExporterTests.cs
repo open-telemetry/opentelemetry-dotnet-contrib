@@ -195,11 +195,11 @@ public class GenevaTraceExporterTests
     [InlineData(true, true, true)]
     public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState)
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
-            int invocationCount = 0;
+            var invocationCount = 0;
             var exporterOptions = new GenevaExporterOptions
             {
                 PrepopulatedFields = new Dictionary<string, object>
@@ -259,7 +259,7 @@ public class GenevaTraceExporterTests
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                 invocationCount++;
             };
@@ -339,7 +339,7 @@ public class GenevaTraceExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
 
         // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
         try
@@ -384,7 +384,7 @@ public class GenevaTraceExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Success_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
         try
         {
             var endpoint = new UnixDomainSocketEndPoint(path);
@@ -409,7 +409,7 @@ public class GenevaTraceExporterTests
                     };
                 })
                 .Build();
-            using Socket serverSocket = server.Accept();
+            using var serverSocket = server.Accept();
             serverSocket.ReceiveTimeout = 10000;
 
             // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
@@ -426,7 +426,7 @@ public class GenevaTraceExporterTests
 
             // Emit trace and grab a copy of internal buffer for validation.
             var source = new ActivitySource(sourceName);
-            int messagePackDataSize = 0;
+            var messagePackDataSize = 0;
 
             using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
             {
@@ -435,7 +435,7 @@ public class GenevaTraceExporterTests
 
             // Read the data sent via socket.
             var receivedData = new byte[1024];
-            int receivedDataSize = serverSocket.Receive(receivedData);
+            var receivedDataSize = serverSocket.Receive(receivedData);
 
             // Validation
             Assert.Equal(messagePackDataSize, receivedDataSize);
@@ -600,7 +600,7 @@ public class GenevaTraceExporterTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -718,8 +718,8 @@ public class GenevaTraceExporterTests
         {
             Assert.Contains(mapping, m => (m.Key as string) == "links");
             var mappingLinks = mapping["links"] as IEnumerable<object>;
-            using IEnumerator<ActivityLink> activityLinksEnumerator = activity.Links.GetEnumerator();
-            using IEnumerator<object> mappingLinksEnumerator = mappingLinks.GetEnumerator();
+            using var activityLinksEnumerator = activity.Links.GetEnumerator();
+            using var mappingLinksEnumerator = mappingLinks.GetEnumerator();
             while (activityLinksEnumerator.MoveNext() && mappingLinksEnumerator.MoveNext())
             {
                 var activityLink = activityLinksEnumerator.Current;
@@ -740,11 +740,11 @@ public class GenevaTraceExporterTests
         #endregion
 
         #region Assert Activity Tags
-        _ = mapping.TryGetValue("env_properties", out object envProperties);
+        _ = mapping.TryGetValue("env_properties", out var envProperties);
         var envPropertiesMapping = envProperties as IDictionary<object, object>;
         foreach (var tag in activity.TagObjects)
         {
-            if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out var replacementKey))
             {
                 Assert.Equal(tag.Value.ToString(), mapping[replacementKey].ToString());
             }
