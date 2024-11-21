@@ -14,7 +14,9 @@ using OpenTelemetry.Logs;
 namespace OpenTelemetry.Exporter.OneCollector.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class LogRecordCommonSchemaJsonHttpPostBenchmarks
+#pragma warning restore CA1515
 {
     private static readonly MethodInfo LogRecordSetScopeProviderMethodInfo = typeof(LogRecord).GetProperty("ScopeProvider", BindingFlags.Instance | BindingFlags.NonPublic)?.SetMethod
         ?? throw new InvalidOperationException("LogRecord.ScopeProvider.Set could not be found reflectively.");
