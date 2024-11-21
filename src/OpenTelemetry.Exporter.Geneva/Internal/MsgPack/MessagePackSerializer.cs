@@ -564,7 +564,9 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteTimestamp96(byte[] buffer, int cursor, long ticks)
     {
+#pragma warning disable IDE0047 // Remove unnecessary parentheses, it is in conflict with SA1407
         cursor = WriteUInt32(buffer, cursor, unchecked((uint)((ticks % TimeSpan.TicksPerSecond) * 100)));
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
         cursor = WriteInt64(buffer, cursor, (ticks / TimeSpan.TicksPerSecond) - 62135596800L);
         return cursor;
     }
