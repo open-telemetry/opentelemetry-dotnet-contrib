@@ -90,7 +90,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
 #endif
 
-        for (int i = 0; i < charCount; i += 1)
+        for (var i = 0; i < charCount; i += 1)
         {
             bytePtr[i] = unchecked((byte)(charPtr[i] & 0x7F));
         }
@@ -109,7 +109,7 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         }
 #endif
 
-        for (int i = 0; i < byteCount; i += 1)
+        for (var i = 0; i < byteCount; i += 1)
         {
             charPtr[i] = (char)bytePtr[i];
         }

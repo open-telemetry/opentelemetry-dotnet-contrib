@@ -212,7 +212,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         var categoryName = logRecord.CategoryName ?? "Log";
 
-        cursor = this.tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out ReadOnlySpan<byte> eventName);
+        cursor = this.tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out var eventName);
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
@@ -223,7 +223,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         if (this.prepopulatedFieldKeys != null)
         {
-            for (int i = 0; i < this.prepopulatedFieldKeys.Count; i++)
+            for (var i = 0; i < this.prepopulatedFieldKeys.Count; i++)
             {
                 var key = this.prepopulatedFieldKeys[i];
                 var value = this.prepopulatedFields![key];
@@ -235,7 +235,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // Part A - core envelope
 
         var eventId = logRecord.EventId;
-        bool hasEventId = eventId != default;
+        var hasEventId = eventId != default;
 
         if (hasEventId && this.shouldExportEventName && !string.IsNullOrWhiteSpace(eventId.Name))
         {
@@ -286,10 +286,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUInt8(buffer, cursor, GetSeverityNumber(logLevel));
         cntFields += 1;
 
-        bool hasEnvProperties = false;
-        bool bodyPopulated = false;
-        bool namePopulated = false;
-        for (int i = 0; i < listKvp?.Count; i++)
+        var hasEnvProperties = false;
+        var bodyPopulated = false;
+        var namePopulated = false;
+        for (var i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
 
@@ -367,8 +367,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int idxMapSizeEnvPropertiesPatch = cursor - 2;
-            for (int i = 0; i < listKvp!.Count; i++)
+            var idxMapSizeEnvPropertiesPatch = cursor - 2;
+            for (var i = 0; i < listKvp!.Count; i++)
             {
                 var entry = listKvp[i];
                 if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
@@ -474,7 +474,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var stateData = state.serializationData.Value!;
         var customFields = state.customFields;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
@@ -505,7 +505,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var stateData = state.serializationData.Value!;
         var customFields = state.customFields;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {

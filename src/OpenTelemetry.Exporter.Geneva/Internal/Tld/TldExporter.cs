@@ -116,7 +116,7 @@ internal abstract class TldExporter
                 eb.AddCountedStringArray(key, vsarray);
                 break;
             case DateTime[] vdtarray:
-                for (int i = 0; i < vdtarray.Length; i++)
+                for (var i = 0; i < vdtarray.Length; i++)
                 {
                     vdtarray[i] = vdtarray[i].ToUniversalTime();
                 }

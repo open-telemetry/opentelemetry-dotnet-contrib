@@ -134,14 +134,14 @@ internal sealed class ConnectionStringBuilder
     {
         get
         {
-            if (!this.parts.TryGetValue(nameof(this.TimeoutMilliseconds), out string? value))
+            if (!this.parts.TryGetValue(nameof(this.TimeoutMilliseconds), out var value))
             {
                 return UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds;
             }
 
             try
             {
-                int timeout = int.Parse(value, CultureInfo.InvariantCulture);
+                var timeout = int.Parse(value, CultureInfo.InvariantCulture);
                 if (timeout <= 0)
                 {
                     throw new ArgumentException(

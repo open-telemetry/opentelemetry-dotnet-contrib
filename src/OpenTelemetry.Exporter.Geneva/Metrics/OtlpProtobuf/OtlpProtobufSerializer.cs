@@ -52,11 +52,11 @@ internal sealed class OtlpProtobufSerializer
         this.prefixBufferWithUInt32LittleEndianLength = prefixBufferWithUInt32LittleEndianLength;
 
         // Taking a arbitrary number here for writing attributes.
-        byte[] temp = new byte[20000];
+        var temp = new byte[20000];
         if (prepopulatedMetricDimensions != null)
         {
             // Initialize numberDataPoint attributes.
-            int cursor = 0;
+            var cursor = 0;
             SerializeTags(temp, ref cursor, prepopulatedMetricDimensions!, FieldNumberConstants.NumberDataPoint_attributes);
             this.prepopulatedNumberDataPointAttributes = new byte[cursor];
             Array.Copy(temp, this.prepopulatedNumberDataPointAttributes, cursor);
@@ -97,9 +97,9 @@ internal sealed class OtlpProtobufSerializer
 
     internal static void SerializeInstrumentationScope(byte[] buffer, ref int cursor, string name, IEnumerable<KeyValuePair<string, object?>>? meterTags)
     {
-        int tagAndLengthIndex = cursor;
+        var tagAndLengthIndex = cursor;
         cursor += TagAndLengthSize;
-        int valueIndex = cursor;
+        var valueIndex = cursor;
 
         // Write name
         ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.InstrumentationScope_name, name);
@@ -127,15 +127,15 @@ internal sealed class OtlpProtobufSerializer
         {
             // TODO : Check if calculating the length in advance could be more efficient in this case.
             // That way we wouldn't have to leave the fixed length space.
-            int keyValueTagAndLengthIndex = cursor;
+            var keyValueTagAndLengthIndex = cursor;
             cursor += TagAndLengthSize;
-            int keyValueIndex = cursor;
+            var keyValueIndex = cursor;
 
             ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.KeyValue_key, key);
 
-            int anyValueTagAndLengthIndex = cursor;
+            var anyValueTagAndLengthIndex = cursor;
             cursor += TagAndLengthSize;
-            int anyValueIndex = cursor;
+            var anyValueIndex = cursor;
 
             switch (value)
             {
@@ -221,7 +221,7 @@ internal sealed class OtlpProtobufSerializer
 
     internal void SerializeResourceMetrics(byte[] buffer, Resource resource)
     {
-        int cursor = this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0;
+        var cursor = this.prefixBufferWithUInt32LittleEndianLength ? 4 : 0;
 
         this.resourceMetricTagAndLengthIndex = cursor;
 
@@ -238,7 +238,7 @@ internal sealed class OtlpProtobufSerializer
         // Serialize ScopeMetrics field
         this.scopeMetricsTagAndLengthIndex = cursor;
         this.scopeMetricsValueIndex = cursor + TagAndLengthSize;
-        foreach (KeyValuePair<string, List<Metric>> entry in this.scopeMetrics)
+        foreach (var entry in this.scopeMetrics)
         {
             if (entry.Value.Count > 0)
             {
@@ -259,7 +259,7 @@ internal sealed class OtlpProtobufSerializer
 
         this.metricTagAndLengthIndex = cursor;
         this.metricValueIndex = cursor + TagAndLengthSize;
-        foreach (Metric metric in metrics)
+        foreach (var metric in metrics)
         {
             // Reset cursor to write new metric
             cursor = this.metricValueIndex;
@@ -273,9 +273,9 @@ internal sealed class OtlpProtobufSerializer
 
     private static void SerializeExemplar<T>(byte[] buffer, ref int cursor, in Exemplar exemplar, T value, int fieldNumber)
     {
-        int exemplarTagAndLengthIndex = cursor;
+        var exemplarTagAndLengthIndex = cursor;
         cursor += TagAndLengthSize;
-        int valueIndex = cursor;
+        var valueIndex = cursor;
 
         SerializeExemplarTags(buffer, ref cursor, exemplar.FilteredTags);
 
@@ -523,7 +523,7 @@ internal sealed class OtlpProtobufSerializer
                             var sum = metricPoint.GetHistogramSum();
                             ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_sum, sum);
 
-                            if (metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                            if (metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                             {
                                 ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_min, min);
                                 ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.HistogramDataPoint_max, max);
@@ -607,7 +607,7 @@ internal sealed class OtlpProtobufSerializer
                             var count = (ulong)metricPoint.GetHistogramCount();
                             ProtobufSerializerHelper.WriteFixed64WithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_count, count);
 
-                            if (metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                            if (metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                             {
                                 ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_min, min);
                                 ProtobufSerializerHelper.WriteDoubleWithTag(buffer, ref cursor, FieldNumberConstants.ExponentialHistogramDataPoint_max, max);
@@ -749,9 +749,9 @@ internal sealed class OtlpProtobufSerializer
     {
         if (resource != Resource.Empty)
         {
-            int tagAndLengthIndex = cursor;
+            var tagAndLengthIndex = cursor;
             cursor += TagAndLengthSize;
-            int valueIndex = cursor;
+            var valueIndex = cursor;
 
             SerializeTags(buffer, ref cursor, resource.Attributes!, FieldNumberConstants.Resource_attributes);
 

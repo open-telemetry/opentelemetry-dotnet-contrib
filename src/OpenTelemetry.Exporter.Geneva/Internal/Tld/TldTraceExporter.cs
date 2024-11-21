@@ -98,7 +98,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string? replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -228,9 +228,9 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
         byte hasEnvProperties = 0;
         byte isStatusSuccess = 1;
-        string statusDescription = string.Empty;
+        var statusDescription = string.Empty;
 
-        int partCFieldsCountFromTags = 0;
+        var partCFieldsCountFromTags = 0;
         var kvpArrayForPartCFields = PartCFields.Value ??= new KeyValuePair<string, object>[120];
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
@@ -243,7 +243,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             }
 
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string? replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 Serialize(eb, replacementKey, entry.Value);
                 partBFieldsCount++;
@@ -321,7 +321,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
         {
             eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-            for (int i = 0; i < partCFieldsCountFromTags; i++)
+            for (var i = 0; i < partCFieldsCountFromTags; i++)
             {
                 Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }

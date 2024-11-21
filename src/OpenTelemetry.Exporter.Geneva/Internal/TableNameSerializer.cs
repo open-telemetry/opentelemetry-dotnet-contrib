@@ -77,13 +77,13 @@ internal sealed class TableNameSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out ReadOnlySpan<byte> tableName)
     {
-        byte[] mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
+        var mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
 
         if (mappedTableName == PassthroughTableName)
         {
             // Pass-through mode with a full cache.
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
+            var bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
 
             tableName = new ReadOnlySpan<byte>(destination, offset, bytesWritten);
 
@@ -99,7 +99,7 @@ internal sealed class TableNameSerializer
     {
         var length = value.Length;
 
-        byte[] buffer = new byte[length + 2];
+        var buffer = new byte[length + 2];
 
         Encoding.ASCII.GetBytes(value, 0, length, buffer, 2);
 
@@ -117,8 +117,8 @@ internal sealed class TableNameSerializer
     {
         // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
         // these 2 bytes will be back filled after iterating through categoryName.
-        int cursor = 2;
-        int validNameLength = 0;
+        var cursor = 2;
+        var validNameLength = 0;
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
@@ -140,7 +140,7 @@ internal sealed class TableNameSerializer
             return 0;
         }
 
-        for (int i = 1; i < categoryName.Length; ++i)
+        for (var i = 1; i < categoryName.Length; ++i)
         {
             if (validNameLength == MaxSanitizedCategoryNameLength)
             {
@@ -165,7 +165,7 @@ internal sealed class TableNameSerializer
     {
         var tableNameCache = this.tableNameCache;
 
-        if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
+        if (tableNameCache.TryGetValue(categoryName, out var tableName))
         {
             return tableName;
         }
@@ -204,7 +204,7 @@ internal sealed class TableNameSerializer
             ? this.defaultTableName
             : PassthroughTableName;
 
-        Span<byte> sanitizedTableNameStorage = mappedTableName == PassthroughTableName
+        var sanitizedTableNameStorage = mappedTableName == PassthroughTableName
             ? stackalloc byte[MaxSanitizedCategoryNameBytes]
             : [];
 
@@ -212,7 +212,7 @@ internal sealed class TableNameSerializer
         {
             // We resolved to a wildcard which is pass-through mode.
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(sanitizedTableNameStorage, categoryName);
+            var bytesWritten = WriteSanitizedCategoryNameToSpan(sanitizedTableNameStorage, categoryName);
             if (bytesWritten > 0)
             {
                 sanitizedTableNameStorage = sanitizedTableNameStorage.Slice(0, bytesWritten);
@@ -231,7 +231,7 @@ internal sealed class TableNameSerializer
 
             // Check if another thread added the mapping while we waited on the
             // lock.
-            if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
+            if (tableNameCache.TryGetValue(categoryName, out var tableName))
             {
                 return tableName;
             }

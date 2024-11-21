@@ -46,7 +46,7 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
         if (socketAddress.Size > NativePathOffset)
         {
             this.nativePath = new byte[socketAddress.Size - NativePathOffset];
-            for (int i = 0; i < this.nativePath.Length; ++i)
+            for (var i = 0; i < this.nativePath.Length; ++i)
             {
                 this.nativePath[i] = socketAddress[NativePathOffset + i];
             }
@@ -67,7 +67,7 @@ internal sealed class UnixDomainSocketEndPoint : EndPoint
     public override SocketAddress Serialize()
     {
         var socketAddress = new SocketAddress(AddressFamily.Unix, NativePathOffset + this.nativePath.Length + 1);
-        for (int i = 0; i < this.nativePath.Length; ++i)
+        for (var i = 0; i < this.nativePath.Length; ++i)
         {
             socketAddress[NativePathOffset + i] = this.nativePath[i];
         }

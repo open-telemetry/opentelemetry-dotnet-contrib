@@ -359,14 +359,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         // Iteration #1 - Get those fields which become dedicated column
         // i.e all PartB fields and opt-in part c fields.
-        bool hasEnvProperties = false;
-        bool isStatusSuccess = true;
+        var hasEnvProperties = false;
+        var isStatusSuccess = true;
         string? statusDescription = null;
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             // TODO: check name collision
-            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out string? replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
             }
@@ -396,7 +396,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int idxMapSizeEnvPropertiesPatch = cursor - 2;
+            var idxMapSizeEnvPropertiesPatch = cursor - 2;
 
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {

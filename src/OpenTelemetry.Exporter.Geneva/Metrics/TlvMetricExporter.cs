@@ -94,8 +94,8 @@ internal sealed class TlvMetricExporter : IDisposable
 
     internal ExportResult Export(in Batch<Metric> batch)
     {
-        string monitoringAccount = this.defaultMonitoringAccount;
-        string metricNamespace = this.defaultMetricNamespace;
+        var monitoringAccount = this.defaultMonitoringAccount;
+        var metricNamespace = this.defaultMetricNamespace;
 
         var result = ExportResult.Success;
         foreach (var metric in batch)
@@ -210,7 +210,7 @@ internal sealed class TlvMetricExporter : IDisposable
                             {
                                 var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-                                if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                                if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                                 {
                                     min = 0;
                                     max = 0;
@@ -495,7 +495,7 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)payloadType);
 
         // Get a placeholder to add the payloadType length
-        int payloadTypeStartIndex = bufferIndex;
+        var payloadTypeStartIndex = bufferIndex;
         bufferIndex += 2;
 
         MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
@@ -519,7 +519,7 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
 
         // Get a placeholder to add the payloadType length
-        int payloadTypeStartIndex = bufferIndex;
+        var payloadTypeStartIndex = bufferIndex;
         bufferIndex += 2;
 
         // Serialize sum, count, min, and max
@@ -627,7 +627,7 @@ internal sealed class TlvMetricExporter : IDisposable
             dimensionsWritten += this.prepopulatedDimensionsCount;
         }
 
-        int reservedTags = 0;
+        var reservedTags = 0;
 
         // Serialize MetricPoint Dimension keys
         foreach (var tag in tags)

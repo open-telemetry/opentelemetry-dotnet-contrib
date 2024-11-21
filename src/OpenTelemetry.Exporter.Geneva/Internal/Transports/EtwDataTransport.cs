@@ -67,7 +67,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
 #endif
         public unsafe void SendEvent(int eventId, byte[] data, int size)
         {
-            EventData* dataDesc = stackalloc EventData[1];
+            var dataDesc = stackalloc EventData[1];
             fixed (byte* ptr = data)
             {
                 dataDesc[0].DataPointer = (IntPtr)ptr;

@@ -104,7 +104,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string? replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -219,7 +219,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             eb.AppendRawFields(this.repeatedPartAFields);
         }
 
-        byte partAFieldsCount = this.partAFieldsCount;
+        var partAFieldsCount = this.partAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
@@ -286,15 +286,15 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
 
         byte hasEnvProperties = 0;
-        bool bodyPopulated = false;
-        bool namePopulated = false;
+        var bodyPopulated = false;
+        var namePopulated = false;
 
         byte partCFieldsCountFromState = 0;
         var kvpArrayForPartCFields = PartCFields.Value ??= new KeyValuePair<string, object>[120];
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
-        for (int i = 0; i < listKvp?.Count; i++)
+        for (var i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
 
@@ -374,13 +374,13 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         hasEnvProperties = dataForScopes.HasEnvProperties;
         partCFieldsCountFromState = dataForScopes.PartCFieldsCountFromState;
 
-        int partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
+        var partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
 
         if (partCFieldsCount > 0)
         {
             var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-            for (int i = 0; i < partCFieldsCountFromState; i++)
+            for (var i = 0; i < partCFieldsCountFromState; i++)
             {
                 Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
@@ -437,7 +437,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetSanitizedCategoryName(string categoryName)
     {
-        int validNameLength = 0;
+        var validNameLength = 0;
         Span<char> result = stackalloc char[MaxSanitizedEventNameLength];
 
         // Special treatment for the first character.
@@ -460,7 +460,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             return string.Empty;
         }
 
-        for (int i = 1; i < categoryName.Length; i++)
+        for (var i = 1; i < categoryName.Length; i++)
         {
             if (validNameLength == MaxSanitizedEventNameLength)
             {
@@ -489,7 +489,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
