@@ -1132,14 +1132,7 @@ public class GenevaLogExporterTests
 
             if (hasCustomFields)
             {
-                if (hasNameInCustomFields)
-                {
-                    exporterOptions.CustomFields = ["name", "Key1"];
-                }
-                else
-                {
-                    exporterOptions.CustomFields = ["Key1"];
-                }
+                exporterOptions.CustomFields = hasNameInCustomFields ? ["name", "Key1"] : ["Key1"];
             }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
@@ -1460,14 +1453,7 @@ public class GenevaLogExporterTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
 
-        if (mapping.TryGetValue(key, out var value))
-        {
-            return value;
-        }
-        else
-        {
-            return null;
-        }
+        return mapping.TryGetValue(key, out var value) ? value : null;
     }
 
     private void AssertFluentdForwardModeForLogRecord(GenevaExporterOptions exporterOptions, object fluentdData, LogRecord logRecord)
@@ -1561,14 +1547,9 @@ public class GenevaLogExporterTests
 
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        if (logRecord.State == null)
-        {
-            stateKeyValuePairList = logRecord.StateValues;
-        }
-        else
-        {
-            stateKeyValuePairList = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
-        }
+        stateKeyValuePairList = logRecord.State == null
+            ? logRecord.StateValues
+            : logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
 #pragma warning restore 0618
 
         if (stateKeyValuePairList != null)

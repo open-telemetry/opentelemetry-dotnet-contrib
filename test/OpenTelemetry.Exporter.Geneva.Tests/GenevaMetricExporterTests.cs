@@ -598,12 +598,7 @@ public class GenevaMetricExporterTests
                 })
             .AddView(instrument =>
             {
-                if (instrument.Name == "histogramWithNoBounds")
-                {
-                    return new ExplicitBucketHistogramConfiguration { Boundaries = [] };
-                }
-
-                return null;
+                return instrument.Name == "histogramWithNoBounds" ? new ExplicitBucketHistogramConfiguration { Boundaries = [] } : null;
             })
             .AddView(
                 "histogramWithNoMinMax",
@@ -615,26 +610,18 @@ public class GenevaMetricExporterTests
             .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = [] })
             .AddView(instrument =>
             {
-                if (instrument.Name == "observableLongGauge")
-                {
-                    return new MetricStreamConfiguration
+                return instrument.Name == "observableLongGauge"
+                    ? new MetricStreamConfiguration
                     {
                         Name = "renamedobservableLongGauge",
                         Description = "modifiedDescription",
                         TagKeys = ["tag1"],
-                    };
-                }
-
-                return null;
+                    }
+                    : null;
             })
             .AddView(instrument =>
             {
-                if (instrument.Name == "observableDoubleGauge")
-                {
-                    return MetricStreamConfiguration.Drop;
-                }
-
-                return null;
+                return instrument.Name == "observableDoubleGauge" ? MetricStreamConfiguration.Drop : null;
             })
             .AddReader(inMemoryReader)
             .Build();
