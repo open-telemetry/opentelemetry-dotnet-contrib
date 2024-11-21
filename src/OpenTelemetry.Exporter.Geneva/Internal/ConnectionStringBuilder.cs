@@ -69,23 +69,11 @@ internal sealed class ConnectionStringBuilder
         set => this.parts[nameof(this.EtwSession)] = value;
     }
 
-    public bool PrivatePreviewEnableTraceLoggingDynamic
-    {
-        get
-        {
-            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var value)
+    public bool PrivatePreviewEnableTraceLoggingDynamic => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableTraceLoggingDynamic), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
-        }
-    }
 
-    public bool PrivatePreviewEnableOtlpProtobufEncoding
-    {
-        get
-        {
-            return this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
+    public bool PrivatePreviewEnableOtlpProtobufEncoding => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
-        }
-    }
 
     public string Endpoint
     {
