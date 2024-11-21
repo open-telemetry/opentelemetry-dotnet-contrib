@@ -138,6 +138,8 @@ public class HttpJsonPostTransportTests
                         Assert.Null(callbackRegistration);
                         callbackRegistration = transport.RegisterPayloadTransmittedCallback(OnPayloadTransmitted, includeFailures: true);
                         break;
+                    default:
+                        break;
                 }
             },
             testFinishedAction: (iteration, transport) =>
@@ -168,6 +170,8 @@ public class HttpJsonPostTransportTests
                     case 2:
                         Assert.Null(callbackRegistration);
                         Assert.False(callbackFired);
+                        break;
+                    default:
                         break;
                 }
 
