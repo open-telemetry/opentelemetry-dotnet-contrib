@@ -12,7 +12,6 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 {
     private readonly string typeName;
     private readonly ISerializer<T> serializer;
-    private readonly MemoryStream buffer;
 
     public WriteDirectlyToTransportSink(
         ISerializer<T> serializer,
@@ -26,14 +25,14 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
         this.typeName = typeof(T).Name;
         this.serializer = serializer;
         this.Transport = transport;
-        this.buffer = new(initialBufferCapacity);
+        this.Buffer = new(initialBufferCapacity);
     }
 
     public string Description => "WriteDirectlyToTransportSink";
 
     public ITransport Transport { get; }
 
-    internal MemoryStream Buffer => this.buffer;
+    internal MemoryStream Buffer { get; }
 
     public void Dispose()
     {
@@ -46,7 +45,7 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
         var totalNumberOfItemsSerialized = 0;
         var totalNumberOfItemsDroppedDuringSerialization = 0;
         var totalNumberOfItemsDroppedDueToTransmissionFailure = 0;
-        var buffer = this.buffer;
+        var buffer = this.Buffer;
         ArraySegment<byte> remainingDataFromPreviousTransmission = default;
         var state = new BatchSerializationState<T>(in batch);
 

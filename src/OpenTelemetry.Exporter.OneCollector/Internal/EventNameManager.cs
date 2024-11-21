@@ -19,7 +19,6 @@ internal sealed class EventNameManager
     private readonly string defaultEventName;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly ResolvedEventFullName defaultEventFullName;
-    private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
     public EventNameManager(
         string defaultEventNamespace,
@@ -44,7 +43,7 @@ internal sealed class EventNameManager
     }
 
     // Note: This is exposed for unit tests.
-    internal Hashtable EventNamespaceCache => this.eventNamespaceCache;
+    internal Hashtable EventNamespaceCache { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public static bool IsEventNamespaceValid(string eventNamespace)
         => EventNamespaceValidationRegex.IsMatch(eventNamespace);
@@ -152,7 +151,7 @@ internal sealed class EventNameManager
 
     private Hashtable GetEventNameCacheForEventNamespace(string eventNamespace)
     {
-        var eventNamespaceCache = this.eventNamespaceCache;
+        var eventNamespaceCache = this.EventNamespaceCache;
 
         if (eventNamespaceCache[eventNamespace] is not Hashtable eventNameCacheForNamespace)
         {
