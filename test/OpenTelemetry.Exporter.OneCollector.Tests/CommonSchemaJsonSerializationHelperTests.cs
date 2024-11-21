@@ -79,7 +79,7 @@ public class CommonSchemaJsonSerializationHelperTests
         this.SerializeValueToJsonTest(typeWithToString, "\"Hello world\"");
 
         var typeWithThrowingToString = new TypeWithThrowingToString();
-        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializationHelperTests).FullName}\\u002B{typeof(TypeWithThrowingToString).Name} is not supported\"");
+        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializationHelperTests).FullName}\\u002B{nameof(TypeWithThrowingToString)} is not supported\"");
 
         var ts = new TimeSpan(0, 10, 18, 59, 1);
         this.SerializeValueToJsonTest(ts, "\"10:18:59.0010000\"");
