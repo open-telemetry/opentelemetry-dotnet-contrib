@@ -311,7 +311,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     // null is not supported.
                     if (string.Equals(entry.Key, "name", StringComparison.Ordinal))
                     {
-                        if (!(entry.Value is string))
+                        if (entry.Value is not string)
                         {
                             // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
                             continue;

@@ -388,7 +388,7 @@ internal static class JsonSerializer
                     break;
                 default:
                     // ASCII printable characters
-                    if (ordinal >= 32 && ordinal < 127)
+                    if (ordinal is >= 32 and < 127)
                     {
                         buffer[cursor++] = unchecked((byte)ordinal);
                     }
@@ -456,7 +456,7 @@ internal static class JsonSerializer
                     break;
                 default:
                     // ASCII printable characters
-                    if (ordinal >= 32 && ordinal < 127)
+                    if (ordinal is >= 32 and < 127)
                     {
                         buffer[cursor++] = unchecked((byte)ordinal);
                     }

@@ -122,12 +122,12 @@ internal sealed class TableNameSerializer
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
-        if (firstChar >= 'A' && firstChar <= 'Z')
+        if (firstChar is >= 'A' and <= 'Z')
         {
             buffer[cursor++] = (byte)firstChar;
             ++validNameLength;
         }
-        else if (firstChar >= 'a' && firstChar <= 'z')
+        else if (firstChar is >= 'a' and <= 'z')
         {
             // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
@@ -148,7 +148,7 @@ internal sealed class TableNameSerializer
             }
 
             var cur = categoryName[i];
-            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
+            if (cur is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9')
             {
                 buffer[cursor++] = (byte)cur;
                 ++validNameLength;
