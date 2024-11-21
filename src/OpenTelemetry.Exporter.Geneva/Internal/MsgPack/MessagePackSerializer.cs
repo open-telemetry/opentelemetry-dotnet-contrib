@@ -403,12 +403,7 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
     {
-        if (value == null)
-        {
-            return SerializeNull(buffer, cursor);
-        }
-
-        return SerializeUnicodeString(buffer, cursor, value.AsSpan());
+        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

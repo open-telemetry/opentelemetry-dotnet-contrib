@@ -90,12 +90,7 @@ internal sealed class ConnectionStringBuilder
                 // Checking Etw first, since it's preferred for Windows and enables fail fast on Linux
                 if (this.parts.ContainsKey(nameof(this.EtwSession)))
                 {
-                    if (this.PrivatePreviewEnableTraceLoggingDynamic)
-                    {
-                        return TransportProtocol.EtwTld;
-                    }
-
-                    return TransportProtocol.Etw;
+                    return this.PrivatePreviewEnableTraceLoggingDynamic ? TransportProtocol.EtwTld : TransportProtocol.Etw;
                 }
 
                 if (!this.parts.ContainsKey(nameof(this.Endpoint)))
@@ -104,12 +99,9 @@ internal sealed class ConnectionStringBuilder
                 }
 
                 var endpoint = new Uri(this.Endpoint);
-                if (Enum.TryParse(endpoint.Scheme, true, out TransportProtocol protocol))
-                {
-                    return protocol;
-                }
-
-                throw new ArgumentException("Endpoint scheme is invalid.");
+                return Enum.TryParse(endpoint.Scheme, true, out TransportProtocol protocol)
+                    ? protocol
+                    : throw new ArgumentException("Endpoint scheme is invalid.");
             }
             catch (UriFormatException ex)
             {
@@ -130,14 +122,11 @@ internal sealed class ConnectionStringBuilder
             try
             {
                 var timeout = int.Parse(value, CultureInfo.InvariantCulture);
-                if (timeout <= 0)
-                {
-                    throw new ArgumentException(
+                return timeout <= 0
+                    ? throw new ArgumentException(
                         $"{nameof(this.TimeoutMilliseconds)} should be greater than zero.",
-                        nameof(this.TimeoutMilliseconds));
-                }
-
-                return timeout;
+                        nameof(this.TimeoutMilliseconds))
+                    : timeout;
             }
             catch (ArgumentException)
             {
@@ -177,12 +166,9 @@ internal sealed class ConnectionStringBuilder
             try
             {
                 var endpoint = new Uri(this.Endpoint);
-                if (endpoint.IsDefaultPort)
-                {
-                    throw new ArgumentException($"Port should be explicitly set in {nameof(this.Endpoint)} value.");
-                }
-
-                return endpoint.Port;
+                return endpoint.IsDefaultPort
+                    ? throw new ArgumentException($"Port should be explicitly set in {nameof(this.Endpoint)} value.")
+                    : endpoint.Port;
             }
             catch (UriFormatException ex)
             {
@@ -205,15 +191,7 @@ internal sealed class ConnectionStringBuilder
 
     public bool DisableMetricNameValidation
     {
-        get
-        {
-            if (!this.parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value))
-            {
-                return false;
-            }
-
-            return string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
-        }
+        get => this.parts.TryGetValue(nameof(this.DisableMetricNameValidation), out var value) && string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase);
         set => this.parts[nameof(this.DisableMetricNameValidation)] = value ? bool.TrueString : bool.FalseString;
     }
 
@@ -249,21 +227,13 @@ internal sealed class ConnectionStringBuilder
     /// <returns>Updated string.</returns>
     internal static string ReplaceFirstChar(string str, char oldChar, char newChar)
     {
-        if (str.Length > 0 && str[0] == oldChar)
-        {
-            return $"{newChar}{str.Substring(1)}";
-        }
-
-        return str;
+        return str.Length > 0 && str[0] == oldChar ? $"{newChar}{str.Substring(1)}" : str;
     }
 
     private T ThrowIfNotExists<T>(string name)
     {
-        if (!this.parts.TryGetValue(name, out var value))
-        {
-            throw new ArgumentException($"'{name}' value is missing in connection string.");
-        }
-
-        return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+        return !this.parts.TryGetValue(name, out var value)
+            ? throw new ArgumentException($"'{name}' value is missing in connection string.")
+            : (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
     }
 }

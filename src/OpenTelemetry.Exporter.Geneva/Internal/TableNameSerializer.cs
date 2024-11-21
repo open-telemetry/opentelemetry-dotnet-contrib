@@ -52,13 +52,10 @@ internal sealed class TableNameSerializer
                         this.defaultTableName = BuildStr8BufferForAsciiString(kv.Value);
                     }
                 }
-                else if (kv.Value == "*")
-                {
-                    tempTableMappings[kv.Key] = PassthroughTableName;
-                }
                 else
                 {
-                    tempTableMappings[kv.Key] = BuildStr8BufferForAsciiString(kv.Value);
+                    tempTableMappings[kv.Key] =
+                        kv.Value == "*" ? PassthroughTableName : BuildStr8BufferForAsciiString(kv.Value);
                 }
             }
 
@@ -165,12 +162,7 @@ internal sealed class TableNameSerializer
     {
         var tableNameCache = this.tableNameCache;
 
-        if (tableNameCache.TryGetValue(categoryName, out var tableName))
-        {
-            return tableName;
-        }
-
-        return this.ResolveTableMappingForCategoryNameRare(categoryName);
+        return tableNameCache.TryGetValue(categoryName, out var tableName) ? tableName : this.ResolveTableMappingForCategoryNameRare(categoryName);
     }
 
     private byte[] ResolveTableMappingForCategoryNameRare(string categoryName)
