@@ -71,7 +71,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
             fixed (byte* ptr = data)
             {
                 dataDesc[0].DataPointer = (IntPtr)ptr;
-                dataDesc[0].Size = (int)size;
+                dataDesc[0].Size = size;
                 this.WriteEventCore(eventId, 1, dataDesc);
             }
         }
