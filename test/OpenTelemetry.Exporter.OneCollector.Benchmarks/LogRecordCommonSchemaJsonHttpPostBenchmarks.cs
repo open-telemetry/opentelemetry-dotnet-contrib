@@ -101,14 +101,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
         if (index % 2 == 0)
         {
-            if (index % 4 == 0)
-            {
-                logRecord.EventId = new EventId(2, "MyEvent");
-            }
-            else
-            {
-                logRecord.EventId = new EventId(1);
-            }
+            logRecord.EventId = index % 4 == 0 ? new EventId(2, "MyEvent") : new EventId(1);
 
             logRecord.Attributes =
             [
@@ -139,14 +132,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             logRecord.TraceId = ActivityTraceId.CreateRandom();
             logRecord.SpanId = ActivitySpanId.CreateRandom();
 
-            if (index % 6 == 0)
-            {
-                logRecord.TraceFlags = ActivityTraceFlags.None;
-            }
-            else
-            {
-                logRecord.TraceFlags = ActivityTraceFlags.Recorded;
-            }
+            logRecord.TraceFlags = index % 6 == 0 ? ActivityTraceFlags.None : ActivityTraceFlags.Recorded;
         }
 
         if (index % 9 == 0)
