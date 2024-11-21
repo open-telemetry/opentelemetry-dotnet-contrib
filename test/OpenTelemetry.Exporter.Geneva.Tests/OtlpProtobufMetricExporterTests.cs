@@ -22,7 +22,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
     public TagList TagListWithPrepopulatedDimensions;
 
-    private static readonly Dictionary<string, object> prepopulatedMetricDimensions = new Dictionary<string, object>
+    private static readonly Dictionary<string, object> prepopulatedMetricDimensions = new()
     {
         { "Dim1", 1 },
         { "Dim2", 2 },

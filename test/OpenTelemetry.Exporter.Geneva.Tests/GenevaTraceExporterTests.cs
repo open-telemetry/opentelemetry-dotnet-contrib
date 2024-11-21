@@ -741,7 +741,7 @@ public class GenevaTraceExporterTests
         }
         else
         {
-            Assert.DoesNotContain(mapping, m => m.Key as string == "links");
+            Assert.DoesNotContain(mapping, m => (m.Key as string) == "links");
         }
         #endregion
 

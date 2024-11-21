@@ -238,25 +238,25 @@ public class GenevaLogExporterTests
             var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
+                new("Company.Customer", "CompanyCustomer"),
 
-                new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
+                new("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
 
                 // If the first character in the resulting string is lower-case ALPHA,
                 // it will be converted to the corresponding upper-case.
-                new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
+                new("company.Calendar", "CompanyCalendar"),
 
                 // After removing not allowed characters,
                 // if the resulting string is still an illegal event name, the data will get dropped on the floor.
-                new KeyValuePair<string, string>("$&-.$~!!", null),
+                new("$&-.$~!!", null),
 
-                new KeyValuePair<string, string>("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
+                new("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
 
                 // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
+                new("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
 
                 // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
-                new KeyValuePair<string, string>("1.2", null),
+                new("1.2", null),
             };
 
             var logRecordList = new List<LogRecord>();
@@ -533,8 +533,8 @@ public class GenevaLogExporterTests
                 default,
                 new List<KeyValuePair<string, object>>()
                 {
-                    new KeyValuePair<string, object>("Key1", "Value1"),
-                    new KeyValuePair<string, object>("Key2", "Value2"),
+                    new("Key1", "Value1"),
+                    new("Key2", "Value2"),
                 },
                 null,
                 (state, ex) => "Formatted Message");
@@ -603,7 +603,7 @@ public class GenevaLogExporterTests
                 eventId: default,
                 new List<KeyValuePair<string, object>>()
                 {
-                    new KeyValuePair<string, object>("Key1", "Value1"),
+                    new("Key1", "Value1"),
                 },
                 exception: null,
                 formatter: (state, ex) => "Example formatted message.");
@@ -1164,8 +1164,8 @@ public class GenevaLogExporterTests
 
             var state = new List<KeyValuePair<string, object>>()
             {
-                new KeyValuePair<string, object>("Key1", "Value1"),
-                new KeyValuePair<string, object>("Key2", "Value2"),
+                new("Key1", "Value1"),
+                new("Key2", "Value2"),
             };
 
             if (customNameValue != null)
