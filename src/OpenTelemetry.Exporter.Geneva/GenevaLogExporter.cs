@@ -68,14 +68,14 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
         {
             var msgPackLogExporter = new MsgPackLogExporter(options);
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
-            this.exportLogRecord = (in Batch<LogRecord> batch) => msgPackLogExporter.Export(in batch);
+            this.exportLogRecord = msgPackLogExporter.Export;
             this.exporter = msgPackLogExporter;
         }
         else
         {
             var tldLogExporter = new TldLogExporter(options);
             this.IsUsingUnixDomainSocket = false;
-            this.exportLogRecord = (in Batch<LogRecord> batch) => tldLogExporter.Export(in batch);
+            this.exportLogRecord = tldLogExporter.Export;
             this.exporter = tldLogExporter;
         }
     }
