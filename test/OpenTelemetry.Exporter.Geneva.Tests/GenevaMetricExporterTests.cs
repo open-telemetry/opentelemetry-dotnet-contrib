@@ -378,7 +378,7 @@ public class GenevaMetricExporterTests
 
         if (hasFilteredTagsForExemplars)
         {
-            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1", "tag2"]});
+            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1", "tag2"] });
         }
 
         using var meterProvider = meterProviderBuilder.Build();
@@ -587,7 +587,7 @@ public class GenevaMetricExporterTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter("SuccessfulSerializationWithViews")
             .AddView("longCounter", "renamedLongCounter")
-            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = ["tag1"]})
+            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = ["tag1"] })
             .AddView(
                 "histogramWithCustomBounds",
                 new ExplicitBucketHistogramConfiguration

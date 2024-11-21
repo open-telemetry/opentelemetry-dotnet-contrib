@@ -249,7 +249,7 @@ public abstract class OtlpProtobufMetricExporterTests
             addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -424,7 +424,7 @@ public abstract class OtlpProtobufMetricExporterTests
             prepopulatedMetricDimensions: null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
@@ -554,7 +554,7 @@ public abstract class OtlpProtobufMetricExporterTests
             addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -679,7 +679,7 @@ public abstract class OtlpProtobufMetricExporterTests
             prepopulatedMetricDimensions: null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
@@ -839,7 +839,7 @@ public abstract class OtlpProtobufMetricExporterTests
             addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -1014,7 +1014,7 @@ public abstract class OtlpProtobufMetricExporterTests
             prepopulatedMetricDimensions: null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPointCount, testTransport.ExportedItems.Count);
 
@@ -1170,7 +1170,7 @@ public abstract class OtlpProtobufMetricExporterTests
             addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
@@ -1305,7 +1305,7 @@ public abstract class OtlpProtobufMetricExporterTests
             prepopulatedMetricDimensions: null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
@@ -1469,7 +1469,7 @@ public abstract class OtlpProtobufMetricExporterTests
             addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
             prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
