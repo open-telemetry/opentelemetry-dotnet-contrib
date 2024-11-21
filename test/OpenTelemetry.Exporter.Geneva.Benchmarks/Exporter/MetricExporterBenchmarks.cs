@@ -49,7 +49,9 @@ BenchmarkDotNet v0.13.12, Windows 11 (10.0.22631.3296/23H2/2023Update/SunValley3
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class MetricExporterBenchmarks
+#pragma warning restore CA1515
 {
     private readonly Meter meterWithNoListener = new("MeterWithNoListener", "0.0.1");
     private readonly Meter meterWithListener = new("MeterWithListener", "0.0.1");

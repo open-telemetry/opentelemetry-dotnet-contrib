@@ -27,7 +27,9 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class TLDLogExporterBenchmarks
+#pragma warning restore CA1515
 {
     private readonly LogRecord logRecord;
     private readonly Batch<LogRecord> batch;
