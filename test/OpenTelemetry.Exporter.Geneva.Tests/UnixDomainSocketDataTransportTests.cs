@@ -160,7 +160,9 @@ public class UnixDomainSocketDataTransportTests
             server2.Listen(1);
             Console.WriteLine("Started a new server and listening.");
 
+#pragma warning disable IDE0230 // Use UTF-8 string literal
             var data2 = new byte[] { 34, 56, 78 };
+#pragma warning restore IDE0230 // Use UTF-8 string literal
             dataTransport.Send(data2, data2.Length);
             Console.WriteLine("The same client sent a new message. Internally it should reconnect if server ever stopped and the socket is not connected anymore.");
 
