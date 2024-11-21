@@ -86,13 +86,13 @@ internal sealed class EventNameManager
             ref eventNamespace!,
             ref eventName!);
 
-        byte[]? originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
-            && originalEventNamespace != eventNamespace
+        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
+                                         && originalEventNamespace != eventNamespace
             ? BuildEventFullName(string.Empty, originalEventNamespace!)
             : null;
 
-        byte[]? originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
-            && originalEventName != eventName
+        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
+                                    && originalEventName != eventName
             ? BuildEventFullName(string.Empty, originalEventName!)
             : null;
 
@@ -136,7 +136,7 @@ internal sealed class EventNameManager
 
     private static void WriteEventFullNameComponent(string component, Span<byte> destination, ref int cursor)
     {
-        char firstChar = component[0];
+        var firstChar = component[0];
         if (firstChar is >= 'a' and <= 'z')
         {
             firstChar -= (char)32;
@@ -144,7 +144,7 @@ internal sealed class EventNameManager
 
         destination[cursor++] = (byte)firstChar;
 
-        for (int i = 1; i < component.Length; i++)
+        for (var i = 1; i < component.Length; i++)
         {
             destination[cursor++] = (byte)component[i];
         }

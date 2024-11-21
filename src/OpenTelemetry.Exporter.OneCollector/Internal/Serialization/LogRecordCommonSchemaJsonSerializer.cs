@@ -45,7 +45,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     {
         var writer = serializationState.Writer;
 
-        foreach (KeyValuePair<string, object?> scopeAttribute in scope)
+        foreach (var scopeAttribute in scope)
         {
             if (scopeAttribute.Key == "{OriginalFormat}")
             {
@@ -150,7 +150,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         if (item.Attributes != null)
         {
-            for (int i = 0; i < item.Attributes.Count; i++)
+            for (var i = 0; i < item.Attributes.Count; i++)
             {
                 var attribute = item.Attributes[i];
 

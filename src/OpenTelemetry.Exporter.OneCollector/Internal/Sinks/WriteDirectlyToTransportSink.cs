@@ -80,7 +80,7 @@ internal sealed class WriteDirectlyToTransportSink<T> : ISink<T>, IDisposable
 
             totalNumberOfItemsDroppedDuringSerialization += result.NumberOfItemsDropped;
 
-            int numberOfItemsSerialized = result.NumberOfItemsSerialized;
+            var numberOfItemsSerialized = result.NumberOfItemsSerialized;
 
             if (numberOfItemsSerialized > 0)
             {
