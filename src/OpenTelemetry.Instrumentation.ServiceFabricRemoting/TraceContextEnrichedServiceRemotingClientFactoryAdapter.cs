@@ -1,11 +1,9 @@
-// Copyright The OpenTelemetry Authors
+﻿// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0using System.Fabric;
 
 using System.Fabric;
-using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Client;
 using Microsoft.ServiceFabric.Services.Client;
 using Microsoft.ServiceFabric.Services.Communication.Client;
-using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 
@@ -13,27 +11,22 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
 /// <summary>
 /// An IServiceRemotingClientFactory that uses Fabric TCP transport to create IServiceRemotingClient
-/// that communicate with actors over interfaces that are remoted via Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime.FabricTransportServiceRemotingListener.
+/// that communicate with stateless and stateful services over interfaces that are
+/// remoted via Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime.FabricTransportServiceRemotingListener.
 ///
-/// Both the client and the listener are instrumented to propagate both the traceContext and Baggage objects from OpenTelemetry
+/// Both the client and the listener are instrumented to propagate both the traceContext and Baggage objects from OpenTelemetry.
 /// </summary>
-public class TraceContextEnrichedActorRemotingClientFactory : IServiceRemotingClientFactory
+public class TraceContextEnrichedServiceRemotingClientFactoryAdapter : IServiceRemotingClientFactory
 {
-    private readonly FabricTransportActorRemotingClientFactory innerFactory;
+    private readonly IServiceRemotingClientFactory innerFactory;
 
     /// <summary>
-    ///  Initializes a new instance of the <see cref="TraceContextEnrichedActorRemotingClientFactory"/> class.
+    /// Initializes a new instance of the <see cref="TraceContextEnrichedServiceRemotingClientFactoryAdapter"/> class.
     /// </summary>
-    /// <param name="fabricTransportRemotingSettings">The settings for the fabric transport. If the settings are not provided or null, default settings with no security.</param>
-    /// <param name="callbackMessageHandler">The callback client that receives the callbacks from the service.</param>
-    public TraceContextEnrichedActorRemotingClientFactory(FabricTransportRemotingSettings fabricTransportRemotingSettings, IServiceRemotingCallbackMessageHandler? callbackMessageHandler)
+    /// <param name="serviceRemotingClientFactory">The communication client factory to wrap.</param>
+    public TraceContextEnrichedServiceRemotingClientFactoryAdapter(IServiceRemotingClientFactory serviceRemotingClientFactory)
     {
-        this.innerFactory = new FabricTransportActorRemotingClientFactory(
-           fabricTransportRemotingSettings,
-           callbackMessageHandler,
-           servicePartitionResolver: null,
-           exceptionHandlers: null,
-           traceId: null);
+        this.innerFactory = serviceRemotingClientFactory;
     }
 
     /// <summary>
@@ -55,9 +48,9 @@ public class TraceContextEnrichedActorRemotingClientFactory : IServiceRemotingCl
     }
 
     /// <summary>
-    ///  Gets a factory for creating the remoting message bodies.
+    /// Gets a factory for creating the remoting message bodies.
     /// </summary>
-    /// <returns> A factory for creating the remoting message bodies</returns>
+    /// <returns>A factory for creating the remoting message bodies.</returns>
     public IServiceRemotingMessageBodyFactory GetRemotingMessageBodyFactory()
     {
         return this.innerFactory.GetRemotingMessageBodyFactory();

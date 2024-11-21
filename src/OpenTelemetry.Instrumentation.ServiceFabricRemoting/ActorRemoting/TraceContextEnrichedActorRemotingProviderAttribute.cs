@@ -3,6 +3,7 @@
 
 using Microsoft.ServiceFabric.Actors.Generator;
 using Microsoft.ServiceFabric.Actors.Remoting.FabricTransport;
+using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Client;
 using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
@@ -64,7 +65,14 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
         settings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(settings.KeepAliveTimeout);
         settings.ConnectTimeout = this.GetConnectTimeout(settings.ConnectTimeout);
 
-        return new TraceContextEnrichedActorRemotingClientFactory(settings, callbackMessageHandler);
+        FabricTransportActorRemotingClientFactory fabricTransportActorRemotingClientFactory = new FabricTransportActorRemotingClientFactory(
+            settings,
+            callbackMessageHandler,
+            servicePartitionResolver: null,
+            exceptionHandlers: null,
+            traceId: null);
+
+        return new TraceContextEnrichedServiceRemotingClientFactoryAdapter(fabricTransportActorRemotingClientFactory);
     }
 
     private static FabricTransportRemotingListenerSettings GetActorListenerSettings(ActorService actorService)

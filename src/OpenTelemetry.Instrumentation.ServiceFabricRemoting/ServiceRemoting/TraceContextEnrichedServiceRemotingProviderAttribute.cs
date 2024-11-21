@@ -7,6 +7,7 @@ using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
+using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
@@ -68,7 +69,14 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
         fabricTransportRemotingSettings.KeepAliveTimeout = this.GetAndValidateKeepAliveTimeout(fabricTransportRemotingSettings.KeepAliveTimeout);
         fabricTransportRemotingSettings.ConnectTimeout = this.GetConnectTimeout(fabricTransportRemotingSettings.ConnectTimeout);
 
-        return new TraceContextEnrichedServiceRemotingClientFactory(fabricTransportRemotingSettings, callbackMessageHandler);
+        FabricTransportServiceRemotingClientFactory fabricTransportServiceRemotingClientFactory = new FabricTransportServiceRemotingClientFactory(
+            fabricTransportRemotingSettings,
+            callbackMessageHandler,
+            servicePartitionResolver: null,
+            exceptionHandlers: null,
+            traceId: null);
+
+        return new TraceContextEnrichedServiceRemotingClientFactoryAdapter(fabricTransportServiceRemotingClientFactory);
     }
 
     private FabricTransportRemotingListenerSettings GetListenerSettings(ServiceContext serviceContext)
