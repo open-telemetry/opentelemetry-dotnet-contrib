@@ -114,7 +114,7 @@ public class HttpJsonPostTransportTests
                 Assert.True(string.IsNullOrWhiteSpace(req.Headers["Content-Encoding"]));
                 Assert.Equal(request, Encoding.ASCII.GetString(body.ToArray()));
             },
-            shouldTestFailFunc: (iteration) => iteration == 4 || iteration == 5,
+            shouldTestFailFunc: (iteration) => iteration is 4 or 5,
             testStartingAction: (iteration, transport) =>
             {
                 switch (iteration)
