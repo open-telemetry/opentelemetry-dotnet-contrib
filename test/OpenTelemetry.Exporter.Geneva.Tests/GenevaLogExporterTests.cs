@@ -137,7 +137,7 @@ public class GenevaLogExporterTests
             var exporterOptions = new GenevaExporterOptions();
             if (category?.Length > 0)
             {
-                mappingsDict = new Dictionary<string, string>();
+                mappingsDict = [];
                 for (int i = 0; i < category.Length; i = i + 2)
                 {
                     mappingsDict.Add(category[i], category[i + 1]);
