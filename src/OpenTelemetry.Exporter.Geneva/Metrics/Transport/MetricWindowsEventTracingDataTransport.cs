@@ -48,7 +48,7 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
     {
         if (this.IsEnabled())
         {
-            EventData* descr = stackalloc EventData[1];
+            var descr = stackalloc EventData[1];
             if (data != null && data.Length != 0)
             {
                 fixed (byte* blob = data)

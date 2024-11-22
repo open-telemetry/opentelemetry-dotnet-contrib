@@ -12,10 +12,9 @@ namespace OpenTelemetry.Exporter.Geneva.Stress;
 
 internal class Program
 {
+    private static readonly ActivitySource Source = new("OpenTelemetry.Exporter.Geneva.Stress");
     private static volatile bool s_bContinue = true;
     private static long s_nEvents;
-
-    private static ActivitySource source = new ActivitySource("OpenTelemetry.Exporter.Geneva.Stress");
 
     private static int Main(string[] args)
     {
@@ -56,18 +55,6 @@ internal class Program
 
     private static int RunExporterCreation()
     {
-        var options = new GenevaExporterOptions()
-        {
-            ConnectionString = "EtwSession=OpenTelemetry",
-            PrepopulatedFields = new Dictionary<string, object>
-            {
-                ["ver"] = "4.0",
-                ["cloud.role"] = "BusyWorker",
-                ["cloud.roleInstance"] = "CY1SCH030021417",
-                ["cloud.roleVer"] = "9.0.15289.2",
-            },
-        };
-
         for (var i = 0; i < 300000; ++i)
         {
             using var dataTransport = new EtwDataTransport("OpenTelemetry");
@@ -103,12 +90,14 @@ internal class Program
                     if (Console.KeyAvailable)
                     {
                         var key = Console.ReadKey(true).Key;
+#pragma warning disable IDE0010 // Add missing cases
                         switch (key)
                         {
                             case ConsoleKey.Escape:
                                 s_bContinue = false;
                                 return;
                         }
+#pragma warning restore IDE0010 // Add missing cases
 
                         continue;
                     }
@@ -158,12 +147,10 @@ internal class Program
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void RunTraces()
     {
-        using (var activity = source.StartActivity("Stress"))
-        {
-            activity?.SetTag("http.method", "GET");
-            activity?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
-            activity?.SetTag("http.status_code", 200);
-        }
+        using var activity = Source.StartActivity("Stress");
+        activity?.SetTag("http.method", "GET");
+        activity?.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit");
+        activity?.SetTag("http.status_code", 200);
     }
 
     private static void InitTracesOnLinux(string path)

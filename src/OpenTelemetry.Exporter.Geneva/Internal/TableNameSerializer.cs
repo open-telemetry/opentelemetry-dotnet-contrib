@@ -19,7 +19,7 @@ internal sealed class TableNameSerializer
     /* Note: We don't use Array.Empty<byte> here because that is used to
     indicate an invalid name. We need a different instance to trigger the
     pass-through case. */
-    private static readonly byte[] PassthroughTableName = new byte[0];
+    private static readonly byte[] PassthroughTableName = [];
 #pragma warning restore CA1825 // Avoid zero-length array allocations
     private static readonly StringComparer DictionaryKeyComparer = StringComparer.Ordinal;
 
@@ -52,13 +52,10 @@ internal sealed class TableNameSerializer
                         this.defaultTableName = BuildStr8BufferForAsciiString(kv.Value);
                     }
                 }
-                else if (kv.Value == "*")
-                {
-                    tempTableMappings[kv.Key] = PassthroughTableName;
-                }
                 else
                 {
-                    tempTableMappings[kv.Key] = BuildStr8BufferForAsciiString(kv.Value);
+                    tempTableMappings[kv.Key] =
+                        kv.Value == "*" ? PassthroughTableName : BuildStr8BufferForAsciiString(kv.Value);
                 }
             }
 
@@ -77,13 +74,13 @@ internal sealed class TableNameSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ResolveAndSerializeTableNameForCategoryName(byte[] destination, int offset, string categoryName, out ReadOnlySpan<byte> tableName)
     {
-        byte[] mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
+        var mappedTableName = this.ResolveTableMappingForCategoryName(categoryName);
 
         if (mappedTableName == PassthroughTableName)
         {
             // Pass-through mode with a full cache.
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
+            var bytesWritten = WriteSanitizedCategoryNameToSpan(new Span<byte>(destination, offset, MaxSanitizedCategoryNameBytes), categoryName);
 
             tableName = new ReadOnlySpan<byte>(destination, offset, bytesWritten);
 
@@ -99,7 +96,7 @@ internal sealed class TableNameSerializer
     {
         var length = value.Length;
 
-        byte[] buffer = new byte[length + 2];
+        var buffer = new byte[length + 2];
 
         Encoding.ASCII.GetBytes(value, 0, length, buffer, 2);
 
@@ -117,17 +114,17 @@ internal sealed class TableNameSerializer
     {
         // Reserve 2 bytes for storing LIMIT_MAX_STR8_LENGTH_IN_BYTES and (byte)validNameLength -
         // these 2 bytes will be back filled after iterating through categoryName.
-        int cursor = 2;
-        int validNameLength = 0;
+        var cursor = 2;
+        var validNameLength = 0;
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
-        if (firstChar >= 'A' && firstChar <= 'Z')
+        if (firstChar is >= 'A' and <= 'Z')
         {
             buffer[cursor++] = (byte)firstChar;
             ++validNameLength;
         }
-        else if (firstChar >= 'a' && firstChar <= 'z')
+        else if (firstChar is >= 'a' and <= 'z')
         {
             // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
@@ -140,7 +137,7 @@ internal sealed class TableNameSerializer
             return 0;
         }
 
-        for (int i = 1; i < categoryName.Length; ++i)
+        for (var i = 1; i < categoryName.Length; ++i)
         {
             if (validNameLength == MaxSanitizedCategoryNameLength)
             {
@@ -148,7 +145,7 @@ internal sealed class TableNameSerializer
             }
 
             var cur = categoryName[i];
-            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
+            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
             {
                 buffer[cursor++] = (byte)cur;
                 ++validNameLength;
@@ -165,12 +162,7 @@ internal sealed class TableNameSerializer
     {
         var tableNameCache = this.tableNameCache;
 
-        if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
-        {
-            return tableName;
-        }
-
-        return this.ResolveTableMappingForCategoryNameRare(categoryName);
+        return tableNameCache.TryGetValue(categoryName, out var tableName) ? tableName : this.ResolveTableMappingForCategoryNameRare(categoryName);
     }
 
     private byte[] ResolveTableMappingForCategoryNameRare(string categoryName)
@@ -204,15 +196,15 @@ internal sealed class TableNameSerializer
             ? this.defaultTableName
             : PassthroughTableName;
 
-        Span<byte> sanitizedTableNameStorage = mappedTableName == PassthroughTableName
+        var sanitizedTableNameStorage = mappedTableName == PassthroughTableName
             ? stackalloc byte[MaxSanitizedCategoryNameBytes]
-            : Array.Empty<byte>();
+            : [];
 
         if (sanitizedTableNameStorage.Length > 0)
         {
             // We resolved to a wildcard which is pass-through mode.
 
-            int bytesWritten = WriteSanitizedCategoryNameToSpan(sanitizedTableNameStorage, categoryName);
+            var bytesWritten = WriteSanitizedCategoryNameToSpan(sanitizedTableNameStorage, categoryName);
             if (bytesWritten > 0)
             {
                 sanitizedTableNameStorage = sanitizedTableNameStorage.Slice(0, bytesWritten);
@@ -221,7 +213,7 @@ internal sealed class TableNameSerializer
             {
                 // Note: When the table name could not be sanitized we cache
                 // the empty array NOT s_passthroughTableName.
-                mappedTableName = Array.Empty<byte>();
+                mappedTableName = [];
             }
         }
 
@@ -231,7 +223,7 @@ internal sealed class TableNameSerializer
 
             // Check if another thread added the mapping while we waited on the
             // lock.
-            if (tableNameCache.TryGetValue(categoryName, out byte[]? tableName))
+            if (tableNameCache.TryGetValue(categoryName, out var tableName))
             {
                 return tableName;
             }

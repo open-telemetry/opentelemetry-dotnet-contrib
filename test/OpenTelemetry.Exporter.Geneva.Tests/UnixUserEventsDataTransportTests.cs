@@ -87,7 +87,7 @@ public class UnixUserEventsDataTransportTests
 
             var eventBufferStringData = @event["buffer"].AsSpan();
 
-            byte[] eventBuffer = new byte[(eventBufferStringData.Length + 1) / 3];
+            var eventBuffer = new byte[(eventBufferStringData.Length + 1) / 3];
 
             var index = 0;
             var position = 0;
@@ -156,8 +156,8 @@ public class UnixUserEventsDataTransportTests
     private sealed class ConsoleCommand : IDisposable
     {
         private readonly Process process;
-        private readonly List<string> output = new();
-        private readonly List<string> errors = new();
+        private readonly List<string> output = [];
+        private readonly List<string> errors = [];
 
         private ConsoleCommand(
             string command,
@@ -287,7 +287,7 @@ public class UnixUserEventsDataTransportTests
             }
         }
 
-        public List<Dictionary<string, string>> Events { get; } = new();
+        public List<Dictionary<string, string>> Events { get; } = [];
 
         public bool IsEnabled()
         {
@@ -347,7 +347,7 @@ public class UnixUserEventsDataTransportTests
         {
             var name = $": {this.name}:";
 
-            int startingPosition = output.IndexOf(name, StringComparison.Ordinal);
+            var startingPosition = output.IndexOf(name, StringComparison.Ordinal);
             if (startingPosition < 0)
             {
                 return;

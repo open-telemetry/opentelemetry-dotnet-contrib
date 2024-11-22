@@ -116,7 +116,7 @@ internal static class JsonSerializer
         if (length >= 1)
         {
             cursor = Serialize(buffer, cursor, array[0]);
-            for (int i = 1; i < length; i++)
+            for (var i = 1; i < length; i++)
             {
                 buffer[cursor++] = unchecked((byte)',');
                 cursor = Serialize(buffer, cursor, array[i]);
@@ -164,7 +164,7 @@ internal static class JsonSerializer
         }
 
         buffer[cursor++] = unchecked((byte)'{');
-        int count = 0;
+        var count = 0;
         foreach (var entry in map)
         {
             if (count > 0)
@@ -191,8 +191,8 @@ internal static class JsonSerializer
         }
 
         buffer[cursor++] = unchecked((byte)'{');
-        int count = 0;
-        for (int i = 0; i < listKvp.Count; i++)
+        var count = 0;
+        for (var i = 0; i < listKvp.Count; i++)
         {
             if (count > 0)
             {
@@ -247,12 +247,12 @@ internal static class JsonSerializer
             case float:
             case double:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                ((ISpanFormattable)obj).TryFormat(tmp, out int charsWritten, default, CultureInfo.InvariantCulture);
+                ((ISpanFormattable)obj).TryFormat(tmp, out var charsWritten, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
             case DateTime dt:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
                 dt = dt.ToUniversalTime();
-                dt.TryFormat(tmp, out int count, default, CultureInfo.InvariantCulture);
+                dt.TryFormat(tmp, out var count, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, count));
 #else
             case byte:
@@ -330,14 +330,10 @@ internal static class JsonSerializer
 
     private static byte[] InitializeHexCodeLookup()
     {
-        var mapping = new byte[]
-        {
-            0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
-            0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
-        };
+        var mapping = "0123456789abcdef"u8.ToArray();
 
         var hexCodeLookup = new byte[512];
-        for (int i = 0; i < 256; i++)
+        for (var i = 0; i < 256; i++)
         {
             hexCodeLookup[i] = mapping[i >> 4];
             hexCodeLookup[i + 256] = mapping[i & 0x0F];
@@ -349,7 +345,7 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteString(byte[] buffer, int cursor, string value)
     {
-        for (int i = 0; i < value.Length; i++)
+        for (var i = 0; i < value.Length; i++)
         {
             var ordinal = (ushort)value[i];
             switch (ordinal)
@@ -388,7 +384,7 @@ internal static class JsonSerializer
                     break;
                 default:
                     // ASCII printable characters
-                    if (ordinal >= 32 && ordinal < 127)
+                    if (ordinal is >= 32 and < 127)
                     {
                         buffer[cursor++] = unchecked((byte)ordinal);
                     }
@@ -417,7 +413,7 @@ internal static class JsonSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int WriteString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {
-        for (int i = 0; i < value.Length; i++)
+        for (var i = 0; i < value.Length; i++)
         {
             var ordinal = (ushort)value[i];
             switch (ordinal)
@@ -456,7 +452,7 @@ internal static class JsonSerializer
                     break;
                 default:
                     // ASCII printable characters
-                    if (ordinal >= 32 && ordinal < 127)
+                    if (ordinal is >= 32 and < 127)
                     {
                         buffer[cursor++] = unchecked((byte)ordinal);
                     }

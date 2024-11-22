@@ -338,7 +338,7 @@ internal static class MessagePackSerializer
             return SerializeNull(buffer, cursor);
         }
 
-        int start = cursor;
+        var start = cursor;
         var cch = value.Length;
         int cb;
         if (cch <= LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES)
@@ -403,18 +403,13 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
     {
-        if (value == null)
-        {
-            return SerializeNull(buffer, cursor);
-        }
-
-        return SerializeUnicodeString(buffer, cursor, value.AsSpan());
+        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan());
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
     {
-        int start = cursor;
+        var start = cursor;
         var cch = value.Length;
         int cb;
         cursor += 3;
@@ -451,7 +446,7 @@ internal static class MessagePackSerializer
             return SerializeNull(buffer, cursor);
         }
 
-        int start = cursor;
+        var start = cursor;
         var cch = value.Length;
         int cb;
         cursor += 3;
@@ -510,7 +505,7 @@ internal static class MessagePackSerializer
         }
 
         cursor = WriteArrayHeader(buffer, cursor, array.Length);
-        for (int i = 0; i < array.Length; i++)
+        for (var i = 0; i < array.Length; i++)
         {
             cursor = Serialize(buffer, cursor, array[i]);
         }
@@ -569,7 +564,9 @@ internal static class MessagePackSerializer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int WriteTimestamp96(byte[] buffer, int cursor, long ticks)
     {
+#pragma warning disable IDE0047 // Remove unnecessary parentheses, it is in conflict with SA1407
         cursor = WriteUInt32(buffer, cursor, unchecked((uint)((ticks % TimeSpan.TicksPerSecond) * 100)));
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
         cursor = WriteInt64(buffer, cursor, (ticks / TimeSpan.TicksPerSecond) - 62135596800L);
         return cursor;
     }
@@ -633,7 +630,7 @@ internal static class MessagePackSerializer
 #if NET
             case ISpanFormattable v:
                 Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                if (v.TryFormat(tmp, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))
+                if (v.TryFormat(tmp, out var charsWritten, string.Empty, CultureInfo.InvariantCulture))
                 {
                     return SerializeUnicodeString(buffer, cursor, tmp.Slice(0, charsWritten));
                 }

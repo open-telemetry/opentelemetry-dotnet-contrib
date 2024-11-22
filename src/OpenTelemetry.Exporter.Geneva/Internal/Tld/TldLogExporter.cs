@@ -21,10 +21,10 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
     private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
-    private static readonly string[] LogLevels = new string[7]
-    {
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
-    };
+    private static readonly string[] LogLevels =
+    [
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+    ];
 
     private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes
     private readonly byte partAFieldsCount = 1; // At least one field: time
@@ -104,7 +104,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out string? replacementKey);
+                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
 
@@ -219,7 +219,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             eb.AppendRawFields(this.repeatedPartAFields);
         }
 
-        byte partAFieldsCount = this.partAFieldsCount;
+        var partAFieldsCount = this.partAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
@@ -286,15 +286,15 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
 
         byte hasEnvProperties = 0;
-        bool bodyPopulated = false;
-        bool namePopulated = false;
+        var bodyPopulated = false;
+        var namePopulated = false;
 
         byte partCFieldsCountFromState = 0;
         var kvpArrayForPartCFields = PartCFields.Value ??= new KeyValuePair<string, object>[120];
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
-        for (int i = 0; i < listKvp?.Count; i++)
+        for (var i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
 
@@ -337,7 +337,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 if (hasEnvProperties == 0)
                 {
                     hasEnvProperties = 1;
-                    envPropertiesList = EnvProperties.Value ??= new();
+                    envPropertiesList = EnvProperties.Value ??= [];
 
                     envPropertiesList.Clear();
                 }
@@ -374,13 +374,13 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         hasEnvProperties = dataForScopes.HasEnvProperties;
         partCFieldsCountFromState = dataForScopes.PartCFieldsCountFromState;
 
-        int partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
+        var partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
 
         if (partCFieldsCount > 0)
         {
             var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
 
-            for (int i = 0; i < partCFieldsCountFromState; i++)
+            for (var i = 0; i < partCFieldsCountFromState; i++)
             {
                 Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
@@ -406,27 +406,21 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#mapping-of-severitynumber
         // TODO: for improving perf simply do ((int)loglevel * 4) + 1
         // or ((int)logLevel << 2) + 1
-        switch (logLevel)
+        return logLevel switch
         {
-            case LogLevel.Trace:
-                return 1;
-            case LogLevel.Debug:
-                return 5;
-            case LogLevel.Information:
-                return 9;
-            case LogLevel.Warning:
-                return 13;
-            case LogLevel.Error:
-                return 17;
-            case LogLevel.Critical:
-                return 21;
+            LogLevel.Trace => 1,
+            LogLevel.Debug => 5,
+            LogLevel.Information => 9,
+            LogLevel.Warning => 13,
+            LogLevel.Error => 17,
+            LogLevel.Critical => 21,
 
             // we reach default only for LogLevel.None
             // but that is filtered out anyway.
             // should we throw here then?
-            default:
-                return 1;
-        }
+            LogLevel.None => 1,
+            _ => 1,
+        };
     }
 
     // This method would map the logger category to a table name which only contains alphanumeric values with the following additions:
@@ -437,17 +431,17 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetSanitizedCategoryName(string categoryName)
     {
-        int validNameLength = 0;
+        var validNameLength = 0;
         Span<char> result = stackalloc char[MaxSanitizedEventNameLength];
 
         // Special treatment for the first character.
         var firstChar = categoryName[0];
-        if (firstChar >= 'A' && firstChar <= 'Z')
+        if (firstChar is >= 'A' and <= 'Z')
         {
             result[0] = firstChar;
             ++validNameLength;
         }
-        else if (firstChar >= 'a' && firstChar <= 'z')
+        else if (firstChar is >= 'a' and <= 'z')
         {
             // If the first character in the resulting string is a lower-case alphabet,
             // it will be converted to the corresponding upper-case.
@@ -460,7 +454,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             return string.Empty;
         }
 
-        for (int i = 1; i < categoryName.Length; i++)
+        for (var i = 1; i < categoryName.Length; i++)
         {
             if (validNameLength == MaxSanitizedEventNameLength)
             {
@@ -468,7 +462,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             }
 
             var cur = categoryName[i];
-            if ((cur >= 'a' && cur <= 'z') || (cur >= 'A' && cur <= 'Z') || (cur >= '0' && cur <= '9'))
+            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
             {
                 result[validNameLength] = cur;
                 ++validNameLength;
@@ -489,7 +483,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         List<KeyValuePair<string, object?>>? envPropertiesList = null;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
@@ -510,7 +504,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 {
                     stateData.HasEnvProperties = 1;
 
-                    envPropertiesList = EnvProperties.Value ??= new();
+                    envPropertiesList = EnvProperties.Value ??= [];
 
                     envPropertiesList.Clear();
                 }

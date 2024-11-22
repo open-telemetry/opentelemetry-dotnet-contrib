@@ -39,14 +39,7 @@ internal abstract class MsgPackExporter
 
     protected static int AddPartAField(byte[] buffer, int cursor, string name, object? value)
     {
-        if (V40_PART_A_MAPPING.TryGetValue(name, out string? replacementKey))
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-        }
-        else
-        {
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
-        }
+        cursor = V40_PART_A_MAPPING.TryGetValue(name, out var replacementKey) ? MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey) : MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
 
         cursor = MessagePackSerializer.Serialize(buffer, cursor, value);
         return cursor;
@@ -54,14 +47,7 @@ internal abstract class MsgPackExporter
 
     protected static int AddPartAField(byte[] buffer, int cursor, string name, ReadOnlySpan<byte> value)
     {
-        if (V40_PART_A_MAPPING.TryGetValue(name, out string? replacementKey))
-        {
-            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-        }
-        else
-        {
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
-        }
+        cursor = V40_PART_A_MAPPING.TryGetValue(name, out var replacementKey) ? MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey) : MessagePackSerializer.SerializeUnicodeString(buffer, cursor, name);
 
         cursor = MessagePackSerializer.SerializeSpan(buffer, cursor, value);
         return cursor;
