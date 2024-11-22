@@ -120,7 +120,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
 
         if (resource!.Attributes is IReadOnlyList<KeyValuePair<string, object?>> resourceAttributeList)
         {
-            for (int i = 0; i < resourceAttributeList.Count; i++)
+            for (var i = 0; i < resourceAttributeList.Count; i++)
             {
                 var resourceAttribute = resourceAttributeList[i];
 
@@ -135,7 +135,7 @@ internal abstract class CommonSchemaJsonSerializer<T> : ISerializer<T>
         }
         else
         {
-            foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
+            foreach (var resourceAttribute in resource.Attributes)
             {
                 if (AttributeKeyStartWithExtensionPrefix(resourceAttribute.Key))
                 {
