@@ -151,11 +151,10 @@ public class EventNameManagerTests
     {
         var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
             defaultNamespace,
-            new KeyValuePair<string, string>[]
-            {
+            [
                 new("MyNamespace1", "NewEventName1"),
-                new("MyNamespace2", "NewEventName2"),
-            });
+                new("MyNamespace2", "NewEventName2")
+            ]);
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 
@@ -166,10 +165,9 @@ public class EventNameManagerTests
     public void EventFullNameMappedUsingPassthroughTest()
     {
         var eventNameManager = BuildEventNameManagerWithEventFullNameMappings(
-            new KeyValuePair<string, string>[]
-            {
-                new("*", "*"),
-            });
+        [
+            new("*", "*")
+        ]);
 
         var resolveEventFullName = eventNameManager.ResolveEventFullName("MyNamespace", "MyEventName");
 

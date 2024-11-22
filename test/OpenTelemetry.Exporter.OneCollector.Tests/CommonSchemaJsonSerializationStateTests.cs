@@ -106,7 +106,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
-        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
+        for (var i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
         {
             state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something{i}.field1", 1));
         }
@@ -123,7 +123,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
-        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
+        for (var i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
         {
             state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something.field{i}", i));
         }

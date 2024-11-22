@@ -140,8 +140,8 @@ public sealed class OneCollectorLogExporterOptions : OneCollectorExporterOptions
             + this.DefaultEventNamespace.Length
             + (this.DefaultEventNamespace.Length > 0 ? 1 : 0);
 
-        if (defaultEventFullNameLength < EventNameManager.MinimumEventFullNameLength
-            || defaultEventFullNameLength > EventNameManager.MaximumEventFullNameLength)
+        if (defaultEventFullNameLength is < EventNameManager.MinimumEventFullNameLength
+            or > EventNameManager.MaximumEventFullNameLength)
         {
             throw new OneCollectorExporterValidationException($"{nameof(this.DefaultEventNamespace)} & {nameof(this.DefaultEventName)} specified on {nameof(OneCollectorLogExporterOptions)} options cannot be less than 4 characters or greater than 100 characters in length when combined.");
         }

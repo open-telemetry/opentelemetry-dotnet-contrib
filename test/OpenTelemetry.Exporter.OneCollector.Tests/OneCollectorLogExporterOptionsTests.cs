@@ -20,7 +20,7 @@ public sealed class OneCollectorLogExporterOptionsTests
         };
 
         Assert.Throws<OneCollectorExporterValidationException>(
-            () => options.Validate());
+            options.Validate);
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public sealed class OneCollectorLogExporterOptionsTests
         };
 
         Assert.Throws<OneCollectorExporterValidationException>(
-            () => options.Validate());
+            options.Validate);
     }
 
     [Theory]
@@ -83,7 +83,7 @@ public sealed class OneCollectorLogExporterOptionsTests
         };
 
         Assert.Throws<OneCollectorExporterValidationException>(
-            () => options.Validate());
+            options.Validate);
     }
 
     [Theory]
@@ -129,7 +129,7 @@ public sealed class OneCollectorLogExporterOptionsTests
         };
 
         Assert.Throws<OneCollectorExporterValidationException>(
-            () => options.Validate());
+            options.Validate);
     }
 
     [Theory]

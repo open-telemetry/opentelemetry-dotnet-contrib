@@ -68,7 +68,7 @@ public class ExtensionFieldInformationManagerTests
     {
         var extensionFieldInformationManager = new ExtensionFieldInformationManager();
 
-        for (int i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations + 128; i++)
+        for (var i = 0; i < ExtensionFieldInformationManager.MaxNumberOfCachedFieldInformations + 128; i++)
         {
             var fieldName = $"fieldName{i}";
 

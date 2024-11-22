@@ -12,7 +12,7 @@ public class CommonSchemaJsonSerializationHelperTests
     [Fact]
     public void SerializeKeyValueToJsonTest()
     {
-        string actualJson = GetJson(key: "key1", value: "value1");
+        var actualJson = GetJson(key: "key1", value: "value1");
 
         Assert.Equal("\"key1\":\"value1\"", actualJson);
     }
@@ -41,7 +41,7 @@ public class CommonSchemaJsonSerializationHelperTests
 #endif
     public void SerializeValueToJsonTest(object? value, string expectedJson)
     {
-        string actualJson = GetJson(value);
+        var actualJson = GetJson(value);
 
         Assert.Equal(expectedJson, actualJson);
     }
@@ -69,7 +69,7 @@ public class CommonSchemaJsonSerializationHelperTests
         var array = new[] { 0, 1, 18 };
         this.SerializeValueToJsonTest(array, "[0,1,18]");
 
-        var listMap = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("key1", "value1") };
+        var listMap = new List<KeyValuePair<string, object?>> { new("key1", "value1") };
         this.SerializeValueToJsonTest(listMap, "{\"key1\":\"value1\"}");
 
         var dictMap = new Dictionary<string, object?> { ["key1"] = "value1" };
@@ -79,7 +79,7 @@ public class CommonSchemaJsonSerializationHelperTests
         this.SerializeValueToJsonTest(typeWithToString, "\"Hello world\"");
 
         var typeWithThrowingToString = new TypeWithThrowingToString();
-        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializationHelperTests).FullName}\\u002B{typeof(TypeWithThrowingToString).Name} is not supported\"");
+        this.SerializeValueToJsonTest(typeWithThrowingToString, $"\"ERROR: type {typeof(CommonSchemaJsonSerializationHelperTests).FullName}\\u002B{nameof(TypeWithThrowingToString)} is not supported\"");
 
         var ts = new TimeSpan(0, 10, 18, 59, 1);
         this.SerializeValueToJsonTest(ts, "\"10:18:59.0010000\"");

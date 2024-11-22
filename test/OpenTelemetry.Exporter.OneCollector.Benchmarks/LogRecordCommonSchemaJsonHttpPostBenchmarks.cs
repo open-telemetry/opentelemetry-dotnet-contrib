@@ -14,7 +14,9 @@ using OpenTelemetry.Logs;
 namespace OpenTelemetry.Exporter.OneCollector.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class LogRecordCommonSchemaJsonHttpPostBenchmarks
+#pragma warning restore CA1515
 {
     private static readonly MethodInfo LogRecordSetScopeProviderMethodInfo = typeof(LogRecord).GetProperty("ScopeProvider", BindingFlags.Instance | BindingFlags.NonPublic)?.SetMethod
         ?? throw new InvalidOperationException("LogRecord.ScopeProvider.Set could not be found reflectively.");
@@ -36,7 +38,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
     {
         this.logRecords = new LogRecord[this.NumberOfLogRecordsPerBatch];
 
-        for (int i = 0; i < this.NumberOfLogRecordsPerBatch; i++)
+        for (var i = 0; i < this.NumberOfLogRecordsPerBatch; i++)
         {
             this.logRecords[i] = CreateLogRecord(i);
         }
@@ -82,7 +84,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
     [Benchmark]
     public void Export()
     {
-        for (int i = 0; i < this.NumberOfBatches; i++)
+        for (var i = 0; i < this.NumberOfBatches; i++)
         {
             this.exporter!.Export(new Batch<LogRecord>(this.logRecords!, this.logRecords!.Length));
         }
@@ -101,29 +103,25 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
 
         if (index % 2 == 0)
         {
-            if (index % 4 == 0)
-            {
-                logRecord.EventId = new EventId(2, "MyEvent");
-            }
-            else
-            {
-                logRecord.EventId = new EventId(1);
-            }
+            logRecord.EventId = index % 4 == 0 ? new EventId(2, "MyEvent") : new EventId(1);
 
-            logRecord.Attributes = new List<KeyValuePair<string, object?>>
-            {
+            logRecord.Attributes =
+            [
                 new KeyValuePair<string, object?>("userId", 18),
                 new KeyValuePair<string, object?>("greeting", "hello world"),
-                new KeyValuePair<string, object?>("{OriginalFormat}", "Structured logging {userId} {greeting}"),
-            };
+                new KeyValuePair<string, object?>("{OriginalFormat}", "Structured logging {userId} {greeting}")
+            ];
 
             if (index % 3 == 0)
             {
                 var scopeProvider = new ScopeProvider(
-                    new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"), new KeyValuePair<string, object?>("scope1Key2", "scope1Value2") },
-                    new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope2Key1", "scope2Value1") });
+                    [
+                        new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"),
+                        new KeyValuePair<string, object?>("scope1Key2", "scope1Value2")
+                    ],
+                    [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
-                LogRecordSetScopeProviderMethodInfo.Invoke(logRecord, new object[] { scopeProvider });
+                LogRecordSetScopeProviderMethodInfo.Invoke(logRecord, [scopeProvider]);
             }
         }
         else
@@ -136,14 +134,7 @@ public class LogRecordCommonSchemaJsonHttpPostBenchmarks
             logRecord.TraceId = ActivityTraceId.CreateRandom();
             logRecord.SpanId = ActivitySpanId.CreateRandom();
 
-            if (index % 6 == 0)
-            {
-                logRecord.TraceFlags = ActivityTraceFlags.None;
-            }
-            else
-            {
-                logRecord.TraceFlags = ActivityTraceFlags.Recorded;
-            }
+            logRecord.TraceFlags = index % 6 == 0 ? ActivityTraceFlags.None : ActivityTraceFlags.Recorded;
         }
 
         if (index % 9 == 0)
