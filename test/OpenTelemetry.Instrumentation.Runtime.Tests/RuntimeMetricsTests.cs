@@ -32,12 +32,21 @@ public class RuntimeMetricsTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         Assert.True(exportedItems.Count > 1);
 
+#if NET9_0_OR_GREATER
+        var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.assembly.count");
+        Assert.NotNull(assembliesCountMetric);
+
+        var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.exceptions");
+        Assert.NotNull(exceptionsCountMetric);
+        Assert.True(GetValue(exceptionsCountMetric) >= 1);
+#else
         var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
         Assert.NotNull(exceptionsCountMetric);
         Assert.True(GetValue(exceptionsCountMetric) >= 1);
+#endif
     }
 
     [Fact]
@@ -53,13 +62,23 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        // We don't need to test all metrics here as those are tested in the runtime.
+        // This is sufficient to validate that the runtime metrics are enabled.
+        var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.gc.collections");
+        Assert.NotNull(gcCountMetric);
+
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "dotnet.gc.heap.total_allocated");
+        Assert.NotNull(totalObjectsSize);
+#else
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
         var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
         Assert.NotNull(totalObjectsSize);
+#endif
 
-#if NET
+#if NET8_0
 
         var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
         Assert.NotNull(gcAllocationSizeMetric);
@@ -90,6 +109,16 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compiled_il.size");
+        Assert.NotNull(jitCompiledSizeMetric);
+
+        var jitMethodsCompiledCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compiled_methods");
+        Assert.NotNull(jitMethodsCompiledCountMetric);
+
+        var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compilation.time");
+        Assert.NotNull(jitCompilationTimeMetric);
+#else
         var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
         Assert.NotNull(jitCompiledSizeMetric);
 
@@ -98,6 +127,7 @@ public class RuntimeMetricsTests
 
         var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
         Assert.NotNull(jitCompilationTimeMetric);
+#endif
     }
 
     [Fact]
@@ -121,6 +151,15 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        // We don't need to test all metrics here as those are tested in the runtime.
+        // This is sufficient to validate that the runtime metrics are enabled.
+        var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.monitor.lock_contentions");
+        Assert.NotNull(lockContentionCountMetric);
+
+        var threadCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.thread_pool.thread.count");
+        Assert.NotNull(threadCountMetric);
+#else
         var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
         Assert.NotNull(lockContentionCountMetric);
 
@@ -163,6 +202,7 @@ public class RuntimeMetricsTests
                 timers[i].Dispose();
             }
         }
+#endif
     }
 #endif
 
