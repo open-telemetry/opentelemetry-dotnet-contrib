@@ -102,7 +102,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         // However the framework will fallback to creating activity if the sampler's decision is to drop and there is a active diagnostic listener.
         // To prevent processing such activities we first check the source name to confirm if it was created using
         // activity source or not.
-        if (IsNet7OrGreater && string.IsNullOrEmpty(activity.Source.Name))
+        if (IsNet7orGreater && string.IsNullOrEmpty(activity.Source.Name))
         {
             activity.IsAllDataRequested = false;
         }
@@ -131,7 +131,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             HttpTagHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method.Method);
 
-            if (!IsNet7OrGreater)
+            if (!IsNet7orGreater)
             {
                 ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);

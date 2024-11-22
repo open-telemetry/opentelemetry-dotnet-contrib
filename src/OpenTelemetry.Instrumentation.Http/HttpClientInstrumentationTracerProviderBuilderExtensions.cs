@@ -92,7 +92,7 @@ public static class HttpClientInstrumentationTracerProviderBuilderExtensions
     internal static void AddHttpClientInstrumentationSource(
         this TracerProviderBuilder builder)
     {
-        if (HttpHandlerDiagnosticListener.IsNet7OrGreater)
+        if (HttpHandlerDiagnosticListener.IsNet7orGreater)
         {
             builder.AddSource(HttpHandlerDiagnosticListener.HttpClientActivitySourceName);
         }

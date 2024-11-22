@@ -43,7 +43,7 @@ internal sealed class HttpClientInstrumentation : IDisposable
         // the framework will fall back to creating activity anyways due to active diagnostic source listener
         // To prevent this, isEnabled is implemented which will return false always
         // so that the sampler's decision is respected.
-        this.diagnosticSourceSubscriber = HttpHandlerDiagnosticListener.IsNet7OrGreater
+        this.diagnosticSourceSubscriber = HttpHandlerDiagnosticListener.IsNet7orGreater
                 ? new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabledNet7OrGreater, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent)
                 : new DiagnosticSourceSubscriber(new HttpHandlerDiagnosticListener(options), this.isEnabled, HttpInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
 
