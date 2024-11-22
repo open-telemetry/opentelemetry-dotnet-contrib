@@ -98,7 +98,7 @@ internal sealed class HttpJsonPostTransport : ITransport, IDisposable
             request.Headers.TryAddWithoutValidation("sdk-version", SdkVersion);
             request.Headers.TryAddWithoutValidation("x-apikey", this.instrumentationKey);
 
-            bool infoLoggingEnabled = OneCollectorExporterEventSource.Log.IsInformationalLoggingEnabled();
+            var infoLoggingEnabled = OneCollectorExporterEventSource.Log.IsInformationalLoggingEnabled();
 
             if (!infoLoggingEnabled)
             {

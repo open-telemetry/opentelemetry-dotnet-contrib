@@ -113,11 +113,11 @@ public class WriteDirectlyToTransportSinkTests
 
         transport.ExportedData.Clear();
 
-        items = new string[]
-        {
+        items =
+        [
             "item4",
-            "item5",
-        };
+            "item5"
+        ];
 
         numberOfRecordsWritten = sink.Write(Resource.Empty, new(items, items.Length));
 
@@ -209,7 +209,7 @@ public class WriteDirectlyToTransportSinkTests
     {
         public string Description => nameof(TestTransport);
 
-        public List<byte[]> ExportedData { get; } = new();
+        public List<byte[]> ExportedData { get; } = [];
 
         public IDisposable RegisterPayloadTransmittedCallback(OneCollectorExporterPayloadTransmittedCallbackAction callback, bool includeFailures)
         {
