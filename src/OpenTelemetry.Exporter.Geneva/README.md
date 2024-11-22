@@ -3,7 +3,7 @@
 | Status        |           |
 | ------------- |-----------|
 | Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@cijothomas](https://github.com/cijothomas), [@codeblanch](https://github.com/codeblanch), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/), [@utpilla](https://github.com/utpilla)|
+| Code Owners   |  [@cijothomas](https://github.com/cijothomas), [@codeblanch](https://github.com/codeblanch), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Geneva)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Geneva)
