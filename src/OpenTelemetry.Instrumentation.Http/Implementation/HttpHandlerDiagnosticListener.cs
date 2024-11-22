@@ -20,8 +20,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
-    internal static readonly bool IsNet7orGreater = Environment.Version.Major >= 7;
-    internal static readonly bool IsNet9orGreater = Environment.Version.Major >= 9;
+    internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
+    internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
@@ -102,7 +102,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         // However the framework will fallback to creating activity if the sampler's decision is to drop and there is a active diagnostic listener.
         // To prevent processing such activities we first check the source name to confirm if it was created using
         // activity source or not.
-        if (IsNet7orGreater && string.IsNullOrEmpty(activity.Source.Name))
+        if (IsNet7OrGreater && string.IsNullOrEmpty(activity.Source.Name))
         {
             activity.IsAllDataRequested = false;
         }
@@ -131,19 +131,19 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             HttpTagHelper.RequestDataHelper.SetActivityDisplayName(activity, request.Method.Method);
 
-            if (!IsNet7orGreater)
+            if (!IsNet7OrGreater)
             {
                 ActivityInstrumentationHelper.SetActivitySourceProperty(activity, ActivitySource);
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
             }
 
-            if (!IsNet9orGreater)
+            if (!IsNet9OrGreater)
             {
                 // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
                 HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
             }
 
-            if (!IsNet9orGreater && request.RequestUri != null)
+            if (!IsNet9OrGreater && request.RequestUri != null)
             {
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
@@ -204,7 +204,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (TryFetchResponse(payload, out var response))
             {
-                if (!IsNet9orGreater)
+                if (!IsNet9OrGreater)
                 {
                     if (currentStatusCode == ActivityStatusCode.Unset)
                     {
