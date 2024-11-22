@@ -12,34 +12,33 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 public static class JsonSerializerTests
 {
     public static IEnumerable<object[]> Data =>
-        new List<object[]>
-        {
-            new object[] { null, "null" },
-            new object[] { true, "true" },
-            new object[] { false, "false" },
-            new object[] { 0, "0" },
-            new object[] { 123, "123" },
-            new object[] { -123, "-123" },
-            new object[] { 0.0f, "0" },
-            new object[] { 1.0f, "1" },
-            new object[] { 3.14f, "3.14" },
-            new object[] { -3.14f, "-3.14" },
-            new object[] { 0.0d, "0" },
-            new object[] { 3.14d, "3.14" },
-            new object[] { 3.1415926d, "3.1415926" },
-            new object[] { -3.1415926d, "-3.1415926" },
-            new object[] { string.Empty, "''".Replace("'", "\"") },
-            new object[] { "Hello, World!", "'Hello, World!'".Replace("'", "\"") },
-            new object[] { "\"", "'\\\"'".Replace("'", "\"") },
-            new object[] { "\n", "'\\n'".Replace("'", "\"") },
-            new object[] { "\t", "'\\t'".Replace("'", "\"") },
-            new object[] { "\0", "'\\u0000'".Replace("'", "\"") },
-            new object[] { "\u6768", "'\\u6768'".Replace("'", "\"") },
-            new object[] { Array.Empty<object>(), "[]" },
-            new object[] { new object[] { 1, 2, 3 }, "[1,2,3]" },
-            new object[] { new Dictionary<string, object>(), "{}" },
-            new object[] { new Dictionary<string, object> { ["foo"] = 1, ["bar"] = "baz", ["golden ratio"] = 0.6180340f, ["pi"] = 3.14159265358979d }, "{'foo':1,'bar':'baz','golden ratio':0.618034,'pi':3.14159265358979}".Replace("'", "\"") },
-        };
+        [
+            [null, "null"],
+            [true, "true"],
+            [false, "false"],
+            [0, "0"],
+            [123, "123"],
+            [-123, "-123"],
+            [0.0f, "0"],
+            [1.0f, "1"],
+            [3.14f, "3.14"],
+            [-3.14f, "-3.14"],
+            [0.0d, "0"],
+            [3.14d, "3.14"],
+            [3.1415926d, "3.1415926"],
+            [-3.1415926d, "-3.1415926"],
+            [string.Empty, "''".Replace("'", "\"")],
+            ["Hello, World!", "'Hello, World!'".Replace("'", "\"")],
+            ["\"", "'\\\"'".Replace("'", "\"")],
+            ["\n", "'\\n'".Replace("'", "\"")],
+            ["\t", "'\\t'".Replace("'", "\"")],
+            ["\0", "'\\u0000'".Replace("'", "\"")],
+            ["\u6768", "'\\u6768'".Replace("'", "\"")],
+            [Array.Empty<object>(), "[]"],
+            [new object[] { 1, 2, 3 }, "[1,2,3]"],
+            [new Dictionary<string, object>(), "{}"],
+            [new Dictionary<string, object> { ["foo"] = 1, ["bar"] = "baz", ["golden ratio"] = 0.6180340f, ["pi"] = 3.14159265358979d }, "{'foo':1,'bar':'baz','golden ratio':0.618034,'pi':3.14159265358979}".Replace("'", "\"")],
+        ];
 
     [Theory]
     [MemberData(nameof(Data))]
@@ -87,7 +86,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_String()
     {
-        TestSerialization((string)null, "null");
         TestSerialization(string.Empty, "''".Replace("'", "\""));
         TestSerialization("Hello, World!", "'Hello, World!'".Replace("'", "\""));
         TestSerialization("\"", "'\\\"'".Replace("'", "\""));
@@ -101,7 +99,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_Array()
     {
-        TestSerialization((object[])null, "null");
         TestSerialization(Array.Empty<object>(), "[]");
         TestSerialization(new object[] { 1, 2, 3 }, "[1,2,3]");
     }
@@ -110,7 +107,6 @@ public static class JsonSerializerTests
     [Trait("Platform", "Any")]
     public static void JsonSerializer_Map()
     {
-        TestSerialization((Dictionary<string, object>)null, "null");
         TestSerialization(new Dictionary<string, object>(), "{}");
         TestSerialization(
             new Dictionary<string, object>

@@ -59,7 +59,9 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
                 useMsgPackExporter = false;
                 break;
-
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
@@ -68,14 +70,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         {
             var msgPackTraceExporter = new MsgPackTraceExporter(options);
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
-            this.exportActivity = (in Batch<Activity> batch) => msgPackTraceExporter.Export(in batch);
+            this.exportActivity = msgPackTraceExporter.Export;
             this.exporter = msgPackTraceExporter;
         }
         else
         {
             var tldTraceExporter = new TldTraceExporter(options);
             this.IsUsingUnixDomainSocket = false;
-            this.exportActivity = (in Batch<Activity> batch) => tldTraceExporter.Export(in batch);
+            this.exportActivity = tldTraceExporter.Export;
             this.exporter = tldTraceExporter;
         }
     }

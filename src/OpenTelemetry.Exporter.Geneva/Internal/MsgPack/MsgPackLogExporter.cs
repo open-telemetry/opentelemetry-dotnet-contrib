@@ -23,10 +23,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
-    private static readonly string[] LogLevels = new string[7]
-    {
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None",
-    };
+    private static readonly string[] LogLevels =
+    [
+        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
+    ];
 
     private readonly bool shouldExportEventName;
     private readonly TableNameSerializer tableNameSerializer;
@@ -78,13 +78,17 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
                 this.dataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.EtwTld:
+            case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (options.PrepopulatedFields != null)
         {
-            this.prepopulatedFieldKeys = new List<string>();
+            this.prepopulatedFieldKeys = [];
             var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {
@@ -212,7 +216,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         var categoryName = logRecord.CategoryName ?? "Log";
 
-        cursor = this.tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out ReadOnlySpan<byte> eventName);
+        cursor = this.tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, cursor, categoryName, out var eventName);
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
@@ -223,7 +227,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         if (this.prepopulatedFieldKeys != null)
         {
-            for (int i = 0; i < this.prepopulatedFieldKeys.Count; i++)
+            for (var i = 0; i < this.prepopulatedFieldKeys.Count; i++)
             {
                 var key = this.prepopulatedFieldKeys[i];
                 var value = this.prepopulatedFields![key];
@@ -235,7 +239,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // Part A - core envelope
 
         var eventId = logRecord.EventId;
-        bool hasEventId = eventId != default;
+        var hasEventId = eventId != default;
 
         if (hasEventId && this.shouldExportEventName && !string.IsNullOrWhiteSpace(eventId.Name))
         {
@@ -286,10 +290,10 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.SerializeUInt8(buffer, cursor, GetSeverityNumber(logLevel));
         cntFields += 1;
 
-        bool hasEnvProperties = false;
-        bool bodyPopulated = false;
-        bool namePopulated = false;
-        for (int i = 0; i < listKvp?.Count; i++)
+        var hasEnvProperties = false;
+        var bodyPopulated = false;
+        var namePopulated = false;
+        for (var i = 0; i < listKvp?.Count; i++)
         {
             var entry = listKvp[i];
 
@@ -311,7 +315,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     // null is not supported.
                     if (string.Equals(entry.Key, "name", StringComparison.Ordinal))
                     {
-                        if (!(entry.Value is string))
+                        if (entry.Value is not string)
                         {
                             // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
                             continue;
@@ -367,8 +371,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
-            int idxMapSizeEnvPropertiesPatch = cursor - 2;
-            for (int i = 0; i < listKvp!.Count; i++)
+            var idxMapSizeEnvPropertiesPatch = cursor - 2;
+            for (var i = 0; i < listKvp!.Count; i++)
             {
                 var entry = listKvp[i];
                 if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
@@ -444,27 +448,21 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#mapping-of-severitynumber
         // TODO: for improving perf simply do ((int)loglevel * 4) + 1
         // or ((int)logLevel << 2) + 1
-        switch (logLevel)
+        return logLevel switch
         {
-            case LogLevel.Trace:
-                return 1;
-            case LogLevel.Debug:
-                return 5;
-            case LogLevel.Information:
-                return 9;
-            case LogLevel.Warning:
-                return 13;
-            case LogLevel.Error:
-                return 17;
-            case LogLevel.Critical:
-                return 21;
+            LogLevel.Trace => 1,
+            LogLevel.Debug => 5,
+            LogLevel.Information => 9,
+            LogLevel.Warning => 13,
+            LogLevel.Error => 17,
+            LogLevel.Critical => 21,
 
             // we reach default only for LogLevel.None
             // but that is filtered out anyway.
             // should we throw here then?
-            default:
-                return 1;
-        }
+            LogLevel.None => 1,
+            _ => 1,
+        };
     }
 
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, MsgPackLogExporter state)
@@ -474,7 +472,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var stateData = state.serializationData.Value!;
         var customFields = state.customFields;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {
@@ -505,7 +503,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var stateData = state.serializationData.Value!;
         var customFields = state.customFields;
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
             if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
             {

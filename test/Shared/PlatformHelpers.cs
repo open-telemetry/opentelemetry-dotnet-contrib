@@ -27,7 +27,7 @@ internal sealed class TestPlatformHelpers
             throw new NotImplementedException();
         }
 
-        uint userId = SystemNativeUnix.GetEUid();
+        var userId = SystemNativeUnix.GetEUid();
         return userId == 0;
     }
 
@@ -50,6 +50,7 @@ internal sealed class SkipUnlessPlatformMatchesFactAttribute : FactAttribute
             TestPlatform.Windows => OSPlatform.Windows,
             TestPlatform.Linux => OSPlatform.Linux,
             TestPlatform.OSX => OSPlatform.OSX,
+            TestPlatform.Unknown => throw new NotSupportedException("TestPlatform 'Unknown' is not supported"),
             _ => throw new NotSupportedException($"TestPlatform '{platform}' is not supported"),
         };
 
@@ -77,6 +78,7 @@ internal sealed class SkipUnlessPlatformMatchesTheoryAttribute : TheoryAttribute
             TestPlatform.Windows => OSPlatform.Windows,
             TestPlatform.Linux => OSPlatform.Linux,
             TestPlatform.OSX => OSPlatform.OSX,
+            TestPlatform.Unknown => throw new NotSupportedException("TestPlatform 'Unknown' is not supported"),
             _ => throw new NotSupportedException($"TestPlatform '{platform}' is not supported"),
         };
 
