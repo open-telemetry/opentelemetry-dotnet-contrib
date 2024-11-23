@@ -4,7 +4,7 @@
 
 ## 1.10.0-beta.1
 
-Released 2024-Nov-22
+Released 2024-Nov-23
 
 * Move adding request and response info to AWSTracingPipelineHandler
   ([#2137](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2137))

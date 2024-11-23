@@ -4,7 +4,7 @@
 
 ## 1.10.0-beta.1
 
-Released 2024-Nov-22
+Released 2024-Nov-23
 
 * Add detection of Lambda cold start and set `faas.coldstart` Activity tag.
   ([#2037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2037))
