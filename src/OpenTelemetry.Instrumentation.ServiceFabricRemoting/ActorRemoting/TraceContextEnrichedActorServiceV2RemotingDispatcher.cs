@@ -70,7 +70,7 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
 
-                        if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtServer == true)
+                        if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtServer == true)
                         {
                             activity.AddException(ex);
                         }

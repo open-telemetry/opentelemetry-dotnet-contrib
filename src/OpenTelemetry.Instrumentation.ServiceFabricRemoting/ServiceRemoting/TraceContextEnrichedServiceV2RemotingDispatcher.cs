@@ -70,7 +70,7 @@ public class TraceContextEnrichedServiceV2RemotingDispatcher : ServiceRemotingMe
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
 
-                        if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtServer == true)
+                        if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtServer == true)
                         {
                             activity.AddException(ex);
                         }

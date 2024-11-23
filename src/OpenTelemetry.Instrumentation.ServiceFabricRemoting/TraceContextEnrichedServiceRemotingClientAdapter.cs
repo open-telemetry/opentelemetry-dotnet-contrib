@@ -114,7 +114,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     {
                         activity.SetStatus(ActivityStatusCode.Error);
 
-                        if (ServiceFabricRemotingActivitySource.Options?.RecordExceptionAtClient == true)
+                        if (ServiceFabricRemotingActivitySource.Options?.AddExceptionAtClient == true)
                         {
                             activity.AddException(ex);
                         }

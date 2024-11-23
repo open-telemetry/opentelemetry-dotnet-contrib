@@ -2,8 +2,8 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  |
-| Code Owners   |  |
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@sablancoleis](https://github.com/sablancoleis)
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
@@ -15,8 +15,6 @@ and collects telemetry about incoming requests.
 
 ## Steps to enable OpenTelemetry.Instrumentation.ServiceFabricRemoting
 
-An example project is available in the
-[examples//serviceFabricRemoting](../../examples/serviceFabricRemoting/) folder.
 
 ### Step 1: Install Package
 
@@ -74,12 +72,10 @@ Call the `AddServiceFabricRemotingInstrumentation` extension method on the
 `TracerProviderBuilder` to register the OpenTelemetry instrumentation.
 
 ```csharp
-
-
-    TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+    using TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
         .AddServiceFabricRemotingInstrumentation()
-        .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
 ```
 
@@ -118,7 +114,7 @@ By default, all remoting calls are instrumented.
                 return true;
             };
         })
-        .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
 ```
 
@@ -140,7 +136,7 @@ and method name.
                 return activity;
             };
         })
-        .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
 ```
 
@@ -162,9 +158,34 @@ name and method name.
                 return activity;
             };
         })
-        .AddConsoleExporter()
+        .AddOtlpExporter()
         .Build();
 ```
+
+- **AddExceptionAtClient** - Gets or sets a value indicating whether the exception will be recorded at the client as an `ActivityEvent` or not.
+```csharp
+    TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
+        .AddServiceFabricRemotingInstrumentation(options =>
+        {
+            options.AddExceptionAtClient = true;
+        })
+        .AddOtlpExporter()
+        .Build();
+```
+
+- **AddExceptionAtServer** - Gets or sets a value indicating whether the exception will be recorded at the server as an `ActivityEvent` or not
+```csharp
+    TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
+        .AddServiceFabricRemotingInstrumentation(options =>
+        {
+            options.AddExceptionAtServer = true;
+        })
+        .AddOtlpExporter()
+        .Build();
+```
+
 
 ## References
 
