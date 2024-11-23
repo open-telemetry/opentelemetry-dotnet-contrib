@@ -47,7 +47,7 @@ jobs:
           instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
           instrumentation-runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
-          instrumentation-servicefabricremoting: ['*/OpenTelemetry.Instrumentation.ServiceFabricRemoting*/**', 'examples/servicefabricremoting-instrumentation/**', '!**/*.md']
+          instrumentation-servicefabricremoting: ['*/OpenTelemetry.Instrumentation.ServiceFabricRemoting*/**', '!**/*.md']
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
