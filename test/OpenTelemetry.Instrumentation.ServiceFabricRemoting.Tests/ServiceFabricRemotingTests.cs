@@ -9,7 +9,6 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.Mocks;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using ServiceFabric.Mocks;
@@ -23,6 +22,7 @@ public class ServiceFabricRemotingTests
     private const string ValueToSend = "SomeValue";
     private const string BaggageKey = "SomeBaggageKey";
     private const string BaggageValue = "SomeBaggageValue";
+    private static readonly ActivitySource ActivitySource = new ActivitySource("ServiceFabricRemotingTests");
 
     [Fact]
     public async Task TestStatefulServiceContextPropagation_ShouldExtractActivityContextAndBaggage()
@@ -48,7 +48,7 @@ public class ServiceFabricRemotingTests
 
         IServiceRemotingRequestMessageHeader remotingRequestMessageHeader = this.CreateServiceRemotingRequestMessageHeader(typeof(ITestMyStatefulService), nameof(ITestMyStatefulService.TestContextPropagation));
 
-        propagator.Inject(new PropagationContext(activityContext, baggage), remotingRequestMessageHeader, this.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
+        propagator.Inject(new PropagationContext(activityContext, baggage), remotingRequestMessageHeader, ServiceFabricRemotingUtils.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
 
         MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
         messageBody.SetParameter(0, "valueToReturn", ValueToSend);
@@ -88,7 +88,7 @@ public class ServiceFabricRemotingTests
 
         IServiceRemotingRequestMessageHeader actorRemotingMessageHeaders = this.CreateServiceRemotingRequestMessageHeader(typeof(IMyTestActorService), nameof(IMyTestActorService.TestContextPropagation));
 
-        propagator.Inject(new PropagationContext(activityContext, baggage), actorRemotingMessageHeaders, this.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
+        propagator.Inject(new PropagationContext(activityContext, baggage), actorRemotingMessageHeaders, ServiceFabricRemotingUtils.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
 
         MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
         messageBody.SetParameter(0, "valueToReturn", ValueToSend);
@@ -107,6 +107,41 @@ public class ServiceFabricRemotingTests
         Assert.Equal(BaggageValue, serviceResponse.Baggage.GetBaggage(BaggageKey));
     }
 
+    [Fact]
+    public async Task TestServiceRemotingClientContextPropagation_ShouldInjectActivityContextAndBaggage()
+    {
+        // Arrange
+        using TracerProvider provider = Sdk.CreateTracerProviderBuilder()
+            .AddServiceFabricRemotingInstrumentation()
+            .AddSource(ActivitySource.Name)
+            .Build();
+
+        // The Baggage set here will be used automatically by TraceContextEnrichedServiceRemotingClientAdapter to inject the baggage into the request message.
+        Baggage.SetBaggage(BaggageKey, BaggageValue);
+
+        // The activity is created here will be used automatically by TraceContextEnrichedServiceRemotingClientAdapter to inject the context into the request message.
+        using (Activity activity = ActivitySource.StartActivity("TestActivity")!)
+        {
+            ServiceRemotingRequestMessageHeaderMock header = new ServiceRemotingRequestMessageHeaderMock();
+            MockServiceRemotingRequestMessageBody messageBody = new MockServiceRemotingRequestMessageBody();
+            ServiceRemotingRequestMessageMock requestMessage = new(header, messageBody);
+
+            // The ServiceRemotingClientMock reads the headers from the request and injects them into the response, using OpneTelemetry's TextMapPropagator.
+            ServiceRemotingClientMock innerClient = new ServiceRemotingClientMock();
+            TraceContextEnrichedServiceRemotingClientAdapter serviceRemotingClientAdapter = new TraceContextEnrichedServiceRemotingClientAdapter(innerClient);
+
+            // Act
+            IServiceRemotingResponseMessage response = await serviceRemotingClientAdapter.RequestResponseAsync(requestMessage);
+
+            // Assert
+            IServiceRemotingResponseMessageHeader responseMessageHeaders = response.GetHeader();
+            PropagationContext propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, responseMessageHeaders, this.ExtractTraceContextFromRequestMessageHeader);
+
+            Assert.Equal(activity.TraceId, propagationContext.ActivityContext.TraceId);
+            Assert.Equal(BaggageValue, propagationContext.Baggage.GetBaggage(BaggageKey));
+        }
+    }
+
     private ServiceRemotingRequestMessageHeaderMock CreateServiceRemotingRequestMessageHeader(Type interfaceType, string methodName)
     {
         int interfaceId = ServiceFabricUtils.GetInterfaceId(interfaceType);
@@ -123,13 +158,15 @@ public class ServiceFabricRemotingTests
         return serviceRemotingRequestMessageHeader;
     }
 
-    private void InjectTraceContextIntoServiceRemotingRequestMessageHeader(IServiceRemotingRequestMessageHeader requestMessageHeader, string key, string value)
+    private IEnumerable<string> ExtractTraceContextFromRequestMessageHeader(IServiceRemotingResponseMessageHeader responseMessageHeaders, string headerKey)
     {
-        if (!requestMessageHeader.TryGetHeaderValue(key, out byte[] _))
+        if (responseMessageHeaders.TryGetHeaderValue(headerKey, out byte[] headerValueAsBytes))
         {
-            byte[] valueAsBytes = Encoding.UTF8.GetBytes(value);
+            string headerValue = Encoding.UTF8.GetString(headerValueAsBytes);
 
-            requestMessageHeader.AddHeader(key, valueAsBytes);
+            return [headerValue];
         }
+
+        return Enumerable.Empty<string>();
     }
 }

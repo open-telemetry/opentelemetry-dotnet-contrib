@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 
-namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.Mocks;
+namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequestMessageHeader
 {

@@ -1,4 +1,4 @@
-﻿// Copyright The OpenTelemetry Authors
+// Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
@@ -15,7 +15,7 @@ namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 public class MyTestStatefulService : StatefulService, ITestMyStatefulService
 {
-    private TraceContextEnrichedServiceV2RemotingDispatcher dispatcher;
+    private TraceContextEnrichedServiceV2RemotingDispatcher? dispatcher;
 
     public MyTestStatefulService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica)
         : base(serviceContext, reliableStateManagerReplica)

@@ -55,25 +55,4 @@ public class MyTestActorService : ActorService, IMyTestActorService
 
         return [serviceReplicaListener];
     }
-
-    //protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
-    //{
-    //    //Func<IServiceRemotingListener> getListenerFunc = () =>
-    //    //{
-    //    //    FabricTransportRemotingListenerSettings listenerSettings = new FabricTransportRemotingListenerSettings();
-
-    //    //    return new FabricTransportActorServiceRemotingListener(this, this.dispatcher, listenerSettings);
-    //    //};
-    //    Func<ServiceContext, IService, IServiceRemotingListener> getListenerFunc = (ServiceContext serviceContext, IService serviceImplementation) =>
-    //    {
-    //        FabricTransportRemotingListenerSettings listenerSettings = new FabricTransportRemotingListenerSettings();
-
-    //        return new FabricTransportServiceRemotingListener(serviceContext, this.dispatcher, listenerSettings);
-    //    };
-
-    //    ServiceReplicaListener serviceReplicaListener = new ServiceReplicaListener((StatefulServiceContext t) => getListenerFunc(this.ServiceContext, this), "V2Listener");
-
-    //    //ServiceReplicaListener serviceReplicaListener = new ServiceReplicaListener((StatefulServiceContext t) => getListenerFunc(), "V2Listener");
-    //    return [serviceReplicaListener];
-    //}
 }

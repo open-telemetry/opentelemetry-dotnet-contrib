@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Text;
 using Microsoft.ServiceFabric.Actors.Remoting.V2.Runtime;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
@@ -51,7 +50,7 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
             Guard.ThrowIfNull(requestMessageHeader, "requestMessage.GetHeader()");
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader,  this.ExtractTraceContextFromRequestMessageHeader);
+            PropagationContext parentContext = Propagator.Extract(default, requestMessageHeader, ServiceFabricRemotingUtils.ExtractTraceContextFromRequestMessageHeader);
             Baggage.Current = parentContext.Baggage;
 
             string activityName = requestMessageHeader?.MethodName ?? ServiceFabricRemotingActivitySource.IncomingRequestActivityName;
@@ -80,17 +79,5 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
                 }
             }
         }
-    }
-
-    private IEnumerable<string> ExtractTraceContextFromRequestMessageHeader(IServiceRemotingRequestMessageHeader requestMessageHeader, string headerKey)
-    {
-        if (requestMessageHeader.TryGetHeaderValue(headerKey, out byte[] headerValueAsBytes))
-        {
-            string headerValue = Encoding.UTF8.GetString(headerValueAsBytes);
-
-            return [headerValue];
-        }
-
-        return Enumerable.Empty<string>();
     }
 }

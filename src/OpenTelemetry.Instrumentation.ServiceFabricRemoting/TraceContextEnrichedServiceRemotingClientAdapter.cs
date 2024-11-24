@@ -82,7 +82,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     try
                     {
                         // Inject the ActivityContext into the message headers to propagate trace context and Baggage to the receiving service.
-                        Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestMessageHeader, this.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
+                        Propagator.Inject(new PropagationContext(activity.Context, Baggage.Current), requestMessageHeader, ServiceFabricRemotingUtils.InjectTraceContextIntoServiceRemotingRequestMessageHeader);
                     }
                     catch (Exception ex)
                     {
@@ -137,15 +137,5 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
     public void SendOneWay(IServiceRemotingRequestMessage requestMessage)
     {
         this.InnerClient.SendOneWay(requestMessage);
-    }
-
-    private void InjectTraceContextIntoServiceRemotingRequestMessageHeader(IServiceRemotingRequestMessageHeader requestMessageHeader, string key, string value)
-    {
-        if (!requestMessageHeader.TryGetHeaderValue(key, out byte[] _))
-        {
-            byte[] valueAsBytes = Encoding.UTF8.GetBytes(value);
-
-            requestMessageHeader.AddHeader(key, valueAsBytes);
-        }
     }
 }

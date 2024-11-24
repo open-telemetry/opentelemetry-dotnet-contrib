@@ -3,7 +3,7 @@
 
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 
-namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.Mocks;
+namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 internal class FabricTransportServiceRemotingRequestContextMock : IServiceRemotingRequestContext
 {
