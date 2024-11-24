@@ -3,10 +3,15 @@
 ## Unreleased
 
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
-  ([#2155](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2155))
+  ([#2155](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2155)),
+  ([#2325](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2325))
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Built-in .NET `System.Runtime` metrics are reported for .NET 9 and greater.
+  For details about each individual metric check [.NET Runtime metrics docs page](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime).
+  ([#2339](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2339))
 
 ## 1.9.0
 

@@ -53,7 +53,7 @@ internal sealed class ConnectionStringParser
     {
         get
         {
-            this.ParsedKeyValues.TryGetValue(nameof(this.InstrumentationKey), out string? instrumentationKey);
+            this.ParsedKeyValues.TryGetValue(nameof(this.InstrumentationKey), out var instrumentationKey);
 
             return instrumentationKey;
         }

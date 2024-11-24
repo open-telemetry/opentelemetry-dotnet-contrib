@@ -157,6 +157,9 @@ internal static class FieldNumberConstants
                 {
                     return 10;
                 }
+
+            default:
+                break;
         }
 
         return 0;

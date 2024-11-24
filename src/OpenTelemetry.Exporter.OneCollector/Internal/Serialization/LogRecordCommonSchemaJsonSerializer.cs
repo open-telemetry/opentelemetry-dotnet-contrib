@@ -25,27 +25,27 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText ExceptionExtensionMessageProperty = JsonEncodedText.Encode("msg");
     private static readonly JsonEncodedText ExceptionExtensionStackTraceProperty = JsonEncodedText.Encode("stack");
 
-    private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings = new JsonEncodedText[]
-    {
+    private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings =
+    [
         JsonEncodedText.Encode("Trace"),
         JsonEncodedText.Encode("Debug"),
         JsonEncodedText.Encode("Information"),
         JsonEncodedText.Encode("Warning"),
         JsonEncodedText.Encode("Error"),
         JsonEncodedText.Encode("Critical"),
-        JsonEncodedText.Encode("Trace"), // Note: This is the "None" bucket.
-    };
+        JsonEncodedText.Encode("Trace") // Note: This is the "None" bucket.
+    ];
 
-    private static readonly int[] LogLevelToSeverityNumberMappings = new int[]
-    {
-        1, 5, 9, 13, 17, 21, 1,
-    };
+    private static readonly int[] LogLevelToSeverityNumberMappings =
+    [
+        1, 5, 9, 13, 17, 21, 1
+    ];
 
     private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>
     {
         var writer = serializationState.Writer;
 
-        foreach (KeyValuePair<string, object?> scopeAttribute in scope)
+        foreach (var scopeAttribute in scope)
         {
             if (scopeAttribute.Key == "{OriginalFormat}")
             {
@@ -150,7 +150,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         if (item.Attributes != null)
         {
-            for (int i = 0; i < item.Attributes.Count; i++)
+            for (var i = 0; i < item.Attributes.Count; i++)
             {
                 var attribute = item.Attributes[i];
 

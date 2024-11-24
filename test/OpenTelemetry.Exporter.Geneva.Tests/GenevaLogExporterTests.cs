@@ -33,14 +33,14 @@ public class GenevaLogExporterTests
     [Fact]
     public void ExportExceptionStackDefaultIsDrop()
     {
-        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        var exporterOptions = new GenevaExporterOptions();
         Assert.Equal(ExceptionStackExportMode.Drop, exporterOptions.ExceptionStackExportMode);
     }
 
     [Fact]
     public void ExportEventNameDefaultIsNone()
     {
-        GenevaExporterOptions exporterOptions = new GenevaExporterOptions();
+        var exporterOptions = new GenevaExporterOptions();
         Assert.Equal(EventNameExportMode.None, exporterOptions.EventNameExportMode);
     }
 
@@ -128,7 +128,7 @@ public class GenevaLogExporterTests
     public void TableNameMappingTest(params string[] category)
     {
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         Dictionary<string, string> mappingsDict = null;
@@ -137,8 +137,8 @@ public class GenevaLogExporterTests
             var exporterOptions = new GenevaExporterOptions();
             if (category?.Length > 0)
             {
-                mappingsDict = new Dictionary<string, string>();
-                for (int i = 0; i < category.Length; i = i + 2)
+                mappingsDict = [];
+                for (var i = 0; i < category.Length; i += 2)
                 {
                     mappingsDict.Add(category[i], category[i + 1]);
                 }
@@ -173,7 +173,7 @@ public class GenevaLogExporterTests
             ILogger logger;
             object fluentdData;
             string actualTableName;
-            string defaultLogTable = "Log";
+            var defaultLogTable = "Log";
             if (mappingsDict != null)
             {
                 foreach (var mapping in mappingsDict)
@@ -224,7 +224,7 @@ public class GenevaLogExporterTests
     [Fact]
     public void PassThruTableMappingsWhenTheRuleIsEnabled()
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -238,25 +238,25 @@ public class GenevaLogExporterTests
             var expectedCategoryToTableNameList = new List<KeyValuePair<string, string>>
             {
                 // The category name must match "^[A-Z][a-zA-Z0-9]*$"; any character that is not allowed will be removed.
-                new KeyValuePair<string, string>("Company.Customer", "CompanyCustomer"),
+                new("Company.Customer", "CompanyCustomer"),
 
-                new KeyValuePair<string, string>("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
+                new("Company-%-Customer*Region$##", "CompanyCustomerRegion"),
 
                 // If the first character in the resulting string is lower-case ALPHA,
                 // it will be converted to the corresponding upper-case.
-                new KeyValuePair<string, string>("company.Calendar", "CompanyCalendar"),
+                new("company.Calendar", "CompanyCalendar"),
 
                 // After removing not allowed characters,
                 // if the resulting string is still an illegal event name, the data will get dropped on the floor.
-                new KeyValuePair<string, string>("$&-.$~!!", null),
+                new("$&-.$~!!", null),
 
-                new KeyValuePair<string, string>("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
+                new("dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4", "Dlmwl3bvd84bxsx8wf700nx9rydrrhfewbxf82ceoo0h8rpla4"),
 
                 // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-                new KeyValuePair<string, string>("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
+                new("Company.Customer.rsLiheLClHJasBOvM.XI4uW7iop6ghvwBzahfs", "CompanyCustomerrsLiheLClHJasBOvMXI4uW7iop6ghvwBzah"),
 
                 // The data will be dropped on the floor as the exporter cannot deduce a valid table name.
-                new KeyValuePair<string, string>("1.2", null),
+                new("1.2", null),
             };
 
             var logRecordList = new List<LogRecord>();
@@ -290,7 +290,7 @@ public class GenevaLogExporterTests
             using var exporter = new MsgPackLogExporter(exporterOptions);
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
-            ThreadLocal<byte[]> m_buffer = MsgPackLogExporter.Buffer;
+            var m_buffer = MsgPackLogExporter.Buffer;
             object fluentdData;
             string actualTableName;
 
@@ -323,7 +323,7 @@ public class GenevaLogExporterTests
                 _ = exporter.SerializeLogRecord(logRecordList[0]);
                 fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 actualTableName = (fluentdData as object[])[0] as string;
-                string expectedTableName = string.Empty;
+                var expectedTableName = string.Empty;
                 expectedTableName = mapping.Value;
                 Assert.Equal(expectedTableName, actualTableName);
 
@@ -348,7 +348,7 @@ public class GenevaLogExporterTests
     [InlineData(true)]
     public void SerializeILoggerScopes(bool hasCustomFields)
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket senderSocket = null;
         Socket receiverSocket = null;
         try
@@ -371,7 +371,7 @@ public class GenevaLogExporterTests
 
             if (hasCustomFields)
             {
-                exporterOptions.CustomFields = new string[] { "Food", "Name", "Key1" };
+                exporterOptions.CustomFields = ["Food", "Name", "Key1"];
             }
 
             var exportedItems = new List<LogRecord>();
@@ -420,7 +420,7 @@ public class GenevaLogExporterTests
                 _ = receiverSocket.Receive(serializedData);
             }
 
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -487,7 +487,7 @@ public class GenevaLogExporterTests
         // https://docs.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger.log
 
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
@@ -533,8 +533,8 @@ public class GenevaLogExporterTests
                 default,
                 new List<KeyValuePair<string, object>>()
                 {
-                    new KeyValuePair<string, object>("Key1", "Value1"),
-                    new KeyValuePair<string, object>("Key2", "Value2"),
+                    new("Key1", "Value1"),
+                    new("Key2", "Value2"),
                 },
                 null,
                 (state, ex) => "Formatted Message");
@@ -542,7 +542,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var body = GetField(fluentdData, "body");
 
             // Body gets populated as "Formatted Message" regardless of the value of `IncludeFormattedMessage`
@@ -603,7 +603,7 @@ public class GenevaLogExporterTests
                 eventId: default,
                 new List<KeyValuePair<string, object>>()
                 {
-                    new KeyValuePair<string, object>("Key1", "Value1"),
+                    new("Key1", "Value1"),
                 },
                 exception: null,
                 formatter: (state, ex) => "Example formatted message.");
@@ -643,7 +643,7 @@ public class GenevaLogExporterTests
     [InlineData(true, true, true)]
     public void SerializationTestWithILoggerLogWithTemplates(bool hasTableNameMapping, bool hasCustomFields, bool parseStateValues)
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
@@ -685,7 +685,7 @@ public class GenevaLogExporterTests
             {
                 // The field "customField" of LogRecord.State should be present in the mapping as a separate key. Other fields of LogRecord.State which are not present
                 // in CustomFields should be added in the mapping under "env_properties"
-                exporterOptions.CustomFields = new string[] { "customField" };
+                exporterOptions.CustomFields = ["customField"];
             }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
@@ -752,7 +752,7 @@ public class GenevaLogExporterTests
             foreach (var logRecord in logRecordList)
             {
                 _ = exporter.SerializeLogRecord(logRecord);
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
             }
         }
@@ -805,7 +805,7 @@ public class GenevaLogExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void SuccessfulExport_Linux()
     {
-        string path = GenerateTempFilePath();
+        var path = GenerateTempFilePath();
         var logRecordList = new List<LogRecord>();
         try
         {
@@ -852,11 +852,11 @@ public class GenevaLogExporterTests
             // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
             Assert.Single(logRecordList);
 
-            int messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
+            var messagePackDataSize = exporter.SerializeLogRecord(logRecordList[0]).Count;
 
             // Read the data sent via socket.
             var receivedData = new byte[1024];
-            int receivedDataSize = serverSocket.Receive(receivedData);
+            var receivedDataSize = serverSocket.Receive(receivedData);
 
             // Validation
             Assert.Equal(messagePackDataSize, receivedDataSize);
@@ -894,7 +894,7 @@ public class GenevaLogExporterTests
     public void SerializationTestForException()
     {
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
@@ -944,7 +944,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var exceptionType = GetField(fluentdData, "env_ex_type");
             var exceptionMessage = GetField(fluentdData, "env_ex_msg");
             Assert.Equal("System.Exception", exceptionType);
@@ -971,13 +971,15 @@ public class GenevaLogExporterTests
     public void SerializationTestForEventName(EventNameExportMode eventNameExportMode, bool hasTableNameMapping)
     {
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
         {
-            var exporterOptions = new GenevaExporterOptions();
-            exporterOptions.EventNameExportMode = eventNameExportMode;
+            var exporterOptions = new GenevaExporterOptions
+            {
+                EventNameExportMode = eventNameExportMode,
+            };
 
             if (hasTableNameMapping)
             {
@@ -1037,7 +1039,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var eventName = GetField(fluentdData, "env_name");
 
             if (eventNameExportMode.HasFlag(EventNameExportMode.ExportAsPartAName))
@@ -1107,7 +1109,7 @@ public class GenevaLogExporterTests
     public void SerializationTestForPartBName(bool hasCustomFields, bool hasNameInCustomFields, object customNameValue)
     {
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
@@ -1130,14 +1132,7 @@ public class GenevaLogExporterTests
 
             if (hasCustomFields)
             {
-                if (hasNameInCustomFields)
-                {
-                    exporterOptions.CustomFields = new string[] { "name", "Key1" };
-                }
-                else
-                {
-                    exporterOptions.CustomFields = new string[] { "Key1" };
-                }
+                exporterOptions.CustomFields = hasNameInCustomFields ? ["name", "Key1"] : ["Key1"];
             }
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
@@ -1162,8 +1157,8 @@ public class GenevaLogExporterTests
 
             var state = new List<KeyValuePair<string, object>>()
             {
-                new KeyValuePair<string, object>("Key1", "Value1"),
-                new KeyValuePair<string, object>("Key2", "Value2"),
+                new("Key1", "Value1"),
+                new("Key2", "Value2"),
             };
 
             if (customNameValue != null)
@@ -1181,7 +1176,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
             var signal = (fluentdData as object[])[0] as string;
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -1234,7 +1229,7 @@ public class GenevaLogExporterTests
     public void SerializationTestForEventId()
     {
         // ARRANGE
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         var logRecordList = new List<LogRecord>();
         try
@@ -1284,7 +1279,7 @@ public class GenevaLogExporterTests
             // VALIDATE
             Assert.Single(logRecordList);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
@@ -1334,8 +1329,8 @@ public class GenevaLogExporterTests
             ? "EtwSession=OpenTelemetry"
             : "Endpoint=unix:" + @"C:\Users\user\AppData\Local\Temp\14tj4ac4.v2q";
 
-        int defaultConfigureExporterOptionsInvocations = 0;
-        int namedConfigureExporterOptionsInvocations = 0;
+        var defaultConfigureExporterOptionsInvocations = 0;
+        var namedConfigureExporterOptionsInvocations = 0;
 
         var sp = new ServiceCollection();
         sp.AddOpenTelemetry().WithLogging(builder => builder
@@ -1430,7 +1425,7 @@ public class GenevaLogExporterTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -1458,14 +1453,7 @@ public class GenevaLogExporterTests
         var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
         var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
 
-        if (mapping.TryGetValue(key, out var value))
-        {
-            return value;
-        }
-        else
-        {
-            return null;
-        }
+        return mapping.TryGetValue(key, out var value) ? value : null;
     }
 
     private void AssertFluentdForwardModeForLogRecord(GenevaExporterOptions exporterOptions, object fluentdData, LogRecord logRecord)
@@ -1554,19 +1542,14 @@ public class GenevaLogExporterTests
 
         Assert.Equal(logRecord.CategoryName, mapping["name"]);
 
-        bool isUnstructuredLog = true;
+        var isUnstructuredLog = true;
         IReadOnlyList<KeyValuePair<string, object>> stateKeyValuePairList;
 
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        if (logRecord.State == null)
-        {
-            stateKeyValuePairList = logRecord.StateValues;
-        }
-        else
-        {
-            stateKeyValuePairList = logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
-        }
+        stateKeyValuePairList = logRecord.State == null
+            ? logRecord.StateValues
+            : logRecord.State as IReadOnlyList<KeyValuePair<string, object>>;
 #pragma warning restore 0618
 
         if (stateKeyValuePairList != null)
@@ -1590,7 +1573,7 @@ public class GenevaLogExporterTests
         }
         else
         {
-            _ = mapping.TryGetValue("env_properties", out object envProperties);
+            _ = mapping.TryGetValue("env_properties", out var envProperties);
             var envPropertiesMapping = envProperties as IDictionary<object, object>;
 
             foreach (var item in stateKeyValuePairList)
