@@ -21,7 +21,6 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
     internal static readonly string MeterName = AssemblyName.Name!;
     internal static readonly string MeterVersion = AssemblyName.Version!.ToString();
     internal static readonly Meter Meter = new(MeterName, MeterVersion);
-    internal static readonly bool IsNet9orGreater = Environment.Version.Major >= 9;
 
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
     private static readonly Histogram<double> HttpClientRequestDuration = Meter.CreateHistogram<double>("http.client.request.duration", "s", "Duration of HTTP client requests.");
@@ -41,7 +40,7 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
 
     public static void OnStopEventWritten(Activity activity, object? payload)
     {
-        if (!IsNet9orGreater && TryFetchRequest(payload, out var request))
+        if (TryFetchRequest(payload, out var request))
         {
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md
             TagList tags = default;
