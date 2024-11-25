@@ -3,7 +3,7 @@
 
 namespace Examples.GrpcCore.AspNetCore;
 
-public class Program
+internal class Program
 {
     internal const int Port = 5000;
     internal const int GrpcServicePort = 5001;
