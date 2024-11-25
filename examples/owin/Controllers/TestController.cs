@@ -5,7 +5,9 @@ using System.Web.Http;
 
 namespace Examples.Owin.Controllers;
 
-internal class TestController : ApiController
+#pragma warning disable CA1515
+public class TestController : ApiController
+#pragma warning restore CA1515
 {
     // GET api/test/{id}
     public string Get(string? id = null)

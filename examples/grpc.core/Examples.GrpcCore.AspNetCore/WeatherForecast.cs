@@ -3,7 +3,9 @@
 
 namespace Examples.GrpcCore.AspNetCore;
 
-internal class WeatherForecast
+#pragma warning disable CA1515
+public class WeatherForecast
+#pragma warning restore CA1515
 {
     public WeatherForecast(DateTime date, int temperatureC, string summary)
     {
