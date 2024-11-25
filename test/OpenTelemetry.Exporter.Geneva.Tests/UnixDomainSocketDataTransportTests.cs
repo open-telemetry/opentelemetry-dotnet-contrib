@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable disable
+
 using System.Net.Sockets;
 using System.Reflection;
 using OpenTelemetry.Exporter.Geneva.Transports;
@@ -14,7 +16,7 @@ public class UnixDomainSocketDataTransportTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void UnixDomainSocketDataTransport_Success_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
         var endpoint = new UnixDomainSocketEndPoint(path);
         try
         {
@@ -24,7 +26,7 @@ public class UnixDomainSocketDataTransportTests
 
             // Client
             using var dataTransport = new UnixDomainSocketDataTransport(path);
-            using Socket serverSocket = server.Accept();
+            using var serverSocket = server.Accept();
             var data = new byte[] { 12, 34, 56 };
             dataTransport.Send(data, data.Length);
             var receivedData = new byte[5];
@@ -52,7 +54,7 @@ public class UnixDomainSocketDataTransportTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void UnixDomainSocketDataTransport_SendTimesOutIfSocketBufferFull_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
         var endpoint = new UnixDomainSocketEndPoint(path);
         using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
         server.Bind(endpoint);
@@ -64,7 +66,7 @@ public class UnixDomainSocketDataTransportTests
         try
         {
             // Client
-            using Socket serverSocket = server.Accept();
+            using var serverSocket = server.Accept();
             while (true)
             {
                 Console.WriteLine($"Sending request #{i++}.");
@@ -100,7 +102,7 @@ public class UnixDomainSocketDataTransportTests
     public void UnixDomainSocketDataTransport_ServerRestart_Linux()
     {
         Console.WriteLine("Test starts.");
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
         var endpoint = new UnixDomainSocketEndPoint(path);
         try
         {
@@ -113,7 +115,7 @@ public class UnixDomainSocketDataTransportTests
 
             // Client
             using var dataTransport = new UnixDomainSocketDataTransport(path);
-            Socket serverSocket = server.Accept();
+            var serverSocket = server.Accept();
             var data = new byte[] { 12, 34, 56 };
             dataTransport.Send(data, data.Length);
             var receivedData = new byte[5];
@@ -158,11 +160,13 @@ public class UnixDomainSocketDataTransportTests
             server2.Listen(1);
             Console.WriteLine("Started a new server and listening.");
 
+#pragma warning disable IDE0230 // Use UTF-8 string literal
             var data2 = new byte[] { 34, 56, 78 };
+#pragma warning restore IDE0230 // Use UTF-8 string literal
             dataTransport.Send(data2, data2.Length);
             Console.WriteLine("The same client sent a new message. Internally it should reconnect if server ever stopped and the socket is not connected anymore.");
 
-            using Socket serverSocket2 = server2.Accept();
+            using var serverSocket2 = server2.Accept();
             Console.WriteLine("The new server is ready and accepting connections.");
             var receivedData2 = new byte[5];
             serverSocket2.Receive(receivedData2);
@@ -191,7 +195,7 @@ public class UnixDomainSocketDataTransportTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;

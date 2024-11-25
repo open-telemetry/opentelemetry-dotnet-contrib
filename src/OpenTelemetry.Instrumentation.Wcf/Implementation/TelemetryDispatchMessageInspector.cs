@@ -49,7 +49,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
 
-        Activity? activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
@@ -71,7 +71,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
 
-                if (!this.actionMappings.TryGetValue(action, out ActionMetadata actionMetadata))
+                if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
                 {
                     actionMetadata = new ActionMetadata(
                         contractName: null,
@@ -105,7 +105,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 }
             }
 
-            if (!(textMapPropagator is TraceContextPropagator))
+            if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
@@ -123,7 +123,9 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 if (reply.IsFault)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     activity.SetStatus(Status.Error);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
 
                 activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
@@ -139,7 +141,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
             activity.Stop();
 
-            if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
+            if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = default;
             }

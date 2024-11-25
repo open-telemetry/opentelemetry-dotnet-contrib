@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Net.Sockets;
 using System.Reflection;
@@ -167,18 +169,18 @@ public class GenevaTraceExporterTests
         }
 
         var link = new ActivityLink(new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded));
-        using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, new ActivityLink[] { link }))
+        using (var activity = source.StartActivity("Foo", ActivityKind.Internal, null, null, [link]))
         {
         }
 
         using (var activity = source.StartActivity("Bar"))
         {
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         using (var activity = source.StartActivity("Baz"))
         {
-            activity.SetStatus(Status.Ok);
+            activity.SetStatus(ActivityStatusCode.Ok);
         }
     }
 
@@ -193,11 +195,11 @@ public class GenevaTraceExporterTests
     [InlineData(true, true, true)]
     public void GenevaTraceExporter_Serialization_Success(bool hasTableNameMapping, bool hasCustomFields, bool includeTraceState)
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
-            int invocationCount = 0;
+            var invocationCount = 0;
             var exporterOptions = new GenevaExporterOptions
             {
                 PrepopulatedFields = new Dictionary<string, object>
@@ -230,7 +232,7 @@ public class GenevaTraceExporterTests
             {
                 // The tag "clientRequestId" should be present in the mapping as a separate key. Other tags which are not present
                 // in the m_dedicatedFields should be added in the mapping under "env_properties"
-                exporterOptions.CustomFields = new string[] { "clientRequestId" };
+                exporterOptions.CustomFields = ["clientRequestId"];
             }
 
             if (includeTraceState)
@@ -257,7 +259,7 @@ public class GenevaTraceExporterTests
             listener.ActivityStopped = (activity) =>
             {
                 _ = exporter.SerializeActivity(activity);
-                object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                 invocationCount++;
             };
@@ -289,28 +291,30 @@ public class GenevaTraceExporterTests
                         ActivityTraceFlags.Recorded)),
                 };
 
-                using (var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links))
-                {
-                    activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
-                    activity?.SetTag("azureResourceProvider", "Microsoft.AAD");
-                    activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
-                    activity?.SetTag("foo", 1);
-                    activity?.SetTag("bar", 2);
-                    activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
-                }
+                using var activity = source.StartActivity("SayHello", ActivityKind.Internal, parentActivity.Context, null, links);
+                activity?.SetTag("http.status_code", 500); // This should be added as httpStatusCode in the mapping
+                activity?.SetTag("azureResourceProvider", "Microsoft.AAD");
+                activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
+                activity?.SetTag("foo", 1);
+                activity?.SetTag("bar", 2);
+#pragma warning disable CS0618 // Type or member is obsolete
+                activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
             {
-                activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+                activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
             }
 
             // If the activity Status is set using both the OTel API and the .NET API, the `Status` and `StatusDescription` set by
             // the .NET API is chosen
             using (var activity = source.StartActivity("PreferStatusFromDotnetAPI"))
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
-                activity?.SetStatus(ActivityStatusCode.Error, "Error description from .NET API");
+#pragma warning restore CS0618 // Type or member is obsolete
+                activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
                 customChecksForActivity = mapping =>
                 {
                     Assert.Equal("Error description from .NET API", mapping["statusMessage"]);
@@ -335,7 +339,7 @@ public class GenevaTraceExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
 
         // System.Net.Internals.SocketExceptionFactory+ExtendedSocketException : Cannot assign requested address
         try
@@ -380,7 +384,7 @@ public class GenevaTraceExporterTests
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Success_Linux()
     {
-        string path = GetRandomFilePath();
+        var path = GetRandomFilePath();
         try
         {
             var endpoint = new UnixDomainSocketEndPoint(path);
@@ -405,7 +409,7 @@ public class GenevaTraceExporterTests
                     };
                 })
                 .Build();
-            using Socket serverSocket = server.Accept();
+            using var serverSocket = server.Accept();
             serverSocket.ReceiveTimeout = 10000;
 
             // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
@@ -422,7 +426,7 @@ public class GenevaTraceExporterTests
 
             // Emit trace and grab a copy of internal buffer for validation.
             var source = new ActivitySource(sourceName);
-            int messagePackDataSize = 0;
+            var messagePackDataSize = 0;
 
             using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
             {
@@ -431,7 +435,7 @@ public class GenevaTraceExporterTests
 
             // Read the data sent via socket.
             var receivedData = new byte[1024];
-            int receivedDataSize = serverSocket.Receive(receivedData);
+            var receivedDataSize = serverSocket.Receive(receivedData);
 
             // Validation
             Assert.Equal(messagePackDataSize, receivedDataSize);
@@ -439,10 +443,8 @@ public class GenevaTraceExporterTests
             // Create activity on a different thread to test for multithreading scenarios
             var thread = new Thread(() =>
             {
-                using (var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal))
-                {
-                    messagePackDataSize = exporter.SerializeActivity(activity).Count;
-                }
+                using var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal);
+                messagePackDataSize = exporter.SerializeActivity(activity).Count;
             });
             thread.Start();
             thread.Join();
@@ -490,15 +492,13 @@ public class GenevaTraceExporterTests
             .Build();
 
         var source = new ActivitySource(sourceName);
-        using (var activity = source.StartActivity("SayHello"))
-        {
-            activity?.SetTag("foo", 1);
-            activity?.SetTag("bar", "Hello, World!");
+        using var activity = source.StartActivity("SayHello");
+        activity?.SetTag("foo", 1);
+        activity?.SetTag("bar", "Hello, World!");
 #pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-            activity?.SetTag("baz", new int[] { 1, 2, 3 });
+        activity?.SetTag("baz", new int[] { 1, 2, 3 });
 #pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-            activity?.SetStatus(ActivityStatusCode.Ok);
-        }
+        activity?.SetStatus(ActivityStatusCode.Ok);
     }
 
     [Fact]
@@ -600,7 +600,7 @@ public class GenevaTraceExporterTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -678,17 +678,19 @@ public class GenevaTraceExporterTests
         Assert.Equal((byte)activity.Kind, mapping["kind"]);
         Assert.Equal(activity.StartTimeUtc, mapping["startTime"]);
 
-        var activityStatusCode = activity.GetStatus().StatusCode;
+#pragma warning disable CS0618 // Type or member is obsolete
+        var otelApiStatusCode = activity.GetStatus();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         if (activity.Status == ActivityStatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
             Assert.Equal(activity.StatusDescription, mapping["statusMessage"]);
         }
-        else if (activityStatusCode == StatusCode.Error)
+        else if (otelApiStatusCode.StatusCode == StatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
-            var activityStatusDesc = activity.GetStatus().Description;
+            var activityStatusDesc = otelApiStatusCode.Description;
             Assert.Equal(activityStatusDesc, mapping["statusMessage"]);
         }
         else
@@ -714,10 +716,10 @@ public class GenevaTraceExporterTests
         #region Assert Activity Links
         if (activity.Links.Any())
         {
-            Assert.Contains(mapping, m => m.Key as string == "links");
+            Assert.Contains(mapping, m => (m.Key as string) == "links");
             var mappingLinks = mapping["links"] as IEnumerable<object>;
-            using IEnumerator<ActivityLink> activityLinksEnumerator = activity.Links.GetEnumerator();
-            using IEnumerator<object> mappingLinksEnumerator = mappingLinks.GetEnumerator();
+            using var activityLinksEnumerator = activity.Links.GetEnumerator();
+            using var mappingLinksEnumerator = mappingLinks.GetEnumerator();
             while (activityLinksEnumerator.MoveNext() && mappingLinksEnumerator.MoveNext())
             {
                 var activityLink = activityLinksEnumerator.Current;
@@ -733,16 +735,16 @@ public class GenevaTraceExporterTests
         }
         else
         {
-            Assert.DoesNotContain(mapping, m => m.Key as string == "links");
+            Assert.DoesNotContain(mapping, m => (m.Key as string) == "links");
         }
         #endregion
 
         #region Assert Activity Tags
-        _ = mapping.TryGetValue("env_properties", out object envProperties);
+        _ = mapping.TryGetValue("env_properties", out var envProperties);
         var envPropertiesMapping = envProperties as IDictionary<object, object>;
         foreach (var tag in activity.TagObjects)
         {
-            if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out string replacementKey))
+            if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out var replacementKey))
             {
                 Assert.Equal(tag.Value.ToString(), mapping[replacementKey].ToString());
             }

@@ -4,7 +4,6 @@
 #if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using OpenTelemetry.Trace;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,7 +21,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
     {
         this.output = outputHelper;
 
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -82,15 +81,15 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         bool filter = false,
         bool includeVersion = false,
         bool enrich = false,
-        bool enrichmentExcecption = false,
+        bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
-        using ActivityListener activityListener = new ActivityListener
+        using var activityListener = new ActivityListener
         {
             ShouldListenTo = activitySource => true,
-            ActivityStopped = activity => stoppedActivities.Add(activity),
+            ActivityStopped = stoppedActivities.Add,
         };
 
         ActivitySource.AddActivityListener(activityListener);
@@ -103,44 +102,31 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentExcecption)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Failure whilst enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
                                     case WcfEnrichEventNames.AfterReceiveRequest:
-                                        activity.SetTag(
-                                            "server.afterreceiverequest",
-                                            WcfEnrichEventNames.AfterReceiveRequest);
+                                        activity.SetTag("server.afterreceiverequest", WcfEnrichEventNames.AfterReceiveRequest);
                                         break;
                                     case WcfEnrichEventNames.BeforeSendReply:
-                                        activity.SetTag(
-                                            "server.beforesendreply",
-                                            WcfEnrichEventNames.BeforeSendReply);
+                                        activity.SetTag("server.beforesendreply", WcfEnrichEventNames.BeforeSendReply);
+                                        break;
+                                    default:
                                         break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) =>
-                            {
-                                throw new Exception("Failure whilst enriching activity");
-                            };
-                        }
                     }
 
-                    options.IncomingRequestFilter = (Message m) =>
-                    {
-                        return !filter;
-                    };
+                    options.IncomingRequestFilter = _ => !filter;
                     options.SetSoapMessageVersion = includeVersion;
                 })
                 .Build();
         }
 
-        ServiceClient client = new ServiceClient(
+        var client = new ServiceClient(
             new NetTcpBinding(),
             new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
@@ -180,7 +166,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             Assert.NotEmpty(stoppedActivities);
             Assert.Single(stoppedActivities);
 
-            Activity activity = stoppedActivities[0];
+            var activity = stoppedActivities[0];
 
             if (emptyOrNullAction)
             {
@@ -208,7 +194,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
                 Assert.Equal("Soap12 (http://www.w3.org/2003/05/soap-envelope) Addressing10 (http://www.w3.org/2005/08/addressing)", activity.TagObjects.FirstOrDefault(t => t.Key == WcfInstrumentationConstants.SoapMessageVersionTag).Value);
             }
 
-            if (enrich && !enrichmentExcecption)
+            if (enrich && !enrichmentException)
             {
                 Assert.Equal(WcfEnrichEventNames.AfterReceiveRequest, activity.TagObjects.Single(t => t.Key == "server.afterreceiverequest").Value);
                 Assert.Equal(WcfEnrichEventNames.BeforeSendReply, activity.TagObjects.Single(t => t.Key == "server.beforesendreply").Value);

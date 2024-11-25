@@ -6,6 +6,13 @@
   `IConfiguration`.
   ([#1976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1976))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Fixed an issue in ASP.NET instrumentation where route extraction failed for
+  attribute-based routing with multiple HTTP methods sharing the same route template.
+  ([#2250](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2250))
+
 ## 1.9.0-beta.1
 
 Released 2024-Jun-18
@@ -44,9 +51,11 @@ Released 2024-Apr-05
 * **Breaking Change**: Renamed `AspNetInstrumentationOptions` to
   `AspNetTraceInstrumentationOptions`.
   ([#1604](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1604))
+
 * **Breaking Change**: `server.address` and `server.port` no longer added
   for `http.server.request.duration` metric.
   ([#1606](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1606))
+
 * **Breaking change** Spans names and attributes
  will be set as per [HTTP semantic convention v1.24.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md):
   * span names follows: `{HTTP method} [route name if available]` pattern
@@ -62,6 +71,7 @@ Released 2024-Apr-05
   * `url.scheme` added with `http` or `https` value,
   * `user_agent.original` replaces `http.user_agent`.
   ([#1607](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1607))
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
@@ -252,6 +262,7 @@ Released 2021-Mar-19
   and ActivityProcessors. Samplers, ActivityProcessor.OnStart will now get the
   Activity before any enrichment done by the instrumentation.
   ([#1836](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1836))
+
 * Performance optimization by leveraging sampling decision and short circuiting
   activity enrichment.
   ([#1903](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1903))
@@ -276,8 +287,10 @@ Released 2020-Nov-5
   CompositeTextMapPropagator. IPropagator is renamed to TextMapPropagator and
   changed from interface to abstract class.
   ([#1427](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1427))
+
 * Propagators.DefaultTextMapPropagator will be used as the default Propagator.
   ([#1427](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1428))
+
 * Removed Propagator from Instrumentation Options. Instrumentation now always
   respect the Propagator.DefaultTextMapPropagator.
   ([#1448](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1448))
@@ -290,6 +303,7 @@ Released 2020-Oct-16
   Activity.CustomProperty. To enrich activity, use the Enrich action on the
   instrumentation.
   ([#1261](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1261))
+
 * Span Status is populated as per new spec
   ([#1313](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1313))
 
@@ -313,6 +327,7 @@ Released 2020-08-28
     BaggageFormat)`. Baggage sent via the [W3C
     Baggage](https://github.com/w3c/baggage/blob/master/baggage/HTTP_HEADER_FORMAT.md)
     header will now be parsed and set on incoming Http spans.
+
 * Renamed `ITextPropagator` to `IPropagator`
   ([#1190](https://github.com/open-telemetry/opentelemetry-dotnet/pull/1190))
 

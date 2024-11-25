@@ -1,13 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#nullable disable
+
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
@@ -17,13 +18,6 @@ public class LogSerializationTests
     Run from the current directory:
     dotnet test -f net8.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
-    private readonly ITestOutputHelper output;
-
-    public LogSerializationTests(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
-
     [Fact]
     public void SerializationTestForException()
     {
@@ -81,18 +75,10 @@ public class LogSerializationTests
         // PrintFields(this.output, exportedFields);
     }
 
-    private static void PrintFields(ITestOutputHelper output, Dictionary<object, object> fields)
-    {
-        foreach (var field in fields)
-        {
-            output.WriteLine($"{field.Key}:{field.Value}");
-        }
-    }
-
     private static Dictionary<object, object> GetExportedFieldsAfterLogging(Action<ILogger> doLog, Action<GenevaExporterOptions> configureGeneva = null)
     {
         Socket server = null;
-        string path = string.Empty;
+        var path = string.Empty;
         try
         {
             var logRecordList = new List<LogRecord>();
@@ -126,7 +112,7 @@ public class LogSerializationTests
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }
@@ -147,7 +133,7 @@ public class LogSerializationTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -174,7 +160,7 @@ public class LogSerializationTests
 
     private class MyException : Exception
     {
-        private string stackTrace;
+        private readonly string stackTrace;
 
         public MyException(string message, string stackTrace)
         : base(message)

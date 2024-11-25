@@ -26,13 +26,15 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class TLDTraceExporterBenchmarks
+#pragma warning restore CA1515
 {
-    private readonly Activity activity;
+    private readonly Activity? activity;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter msgPackExporter;
     private readonly TldTraceExporter tldExporter;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TLDTraceExporterBenchmarks()
     {
@@ -52,10 +54,10 @@ public class TLDTraceExporterBenchmarks
 
         using (var testActivity = this.activitySource.StartActivity("Benchmark"))
         {
-            this.activity = testActivity;
-            this.activity?.SetTag("tagString", "value");
-            this.activity?.SetTag("tagInt", 100);
-            this.activity?.SetStatus(Status.Error);
+            this.activity = testActivity!;
+            this.activity.SetTag("tagString", "value");
+            this.activity.SetTag("tagInt", 100);
+            this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
         this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
@@ -84,13 +86,13 @@ public class TLDTraceExporterBenchmarks
     [Benchmark]
     public void MsgPack_SerializeActivity()
     {
-        this.msgPackExporter.SerializeActivity(this.activity);
+        this.msgPackExporter.SerializeActivity(this.activity!);
     }
 
     [Benchmark]
     public void TLD_SerializeActivity()
     {
-        this.tldExporter.SerializeActivity(this.activity);
+        this.tldExporter.SerializeActivity(this.activity!);
     }
 
     [Benchmark]
@@ -108,7 +110,7 @@ public class TLDTraceExporterBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        this.activity.Dispose();
+        this.activity?.Dispose();
         this.batch.Dispose();
         this.activitySource.Dispose();
         this.msgPackExporter.Dispose();
@@ -124,11 +126,11 @@ public class TLDTraceExporterBenchmarks
             .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
             .Build();
 
-        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        using (var activity = this.activitySource.StartActivity("Benchmark")!)
         {
             activity.SetTag("tagString", "value");
             activity.SetTag("tagInt", 100);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         return batchGeneratorExporter.Batch;

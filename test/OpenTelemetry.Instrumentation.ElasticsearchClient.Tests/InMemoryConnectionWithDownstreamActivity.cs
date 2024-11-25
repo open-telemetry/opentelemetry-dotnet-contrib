@@ -6,10 +6,10 @@ using Elasticsearch.Net;
 
 namespace OpenTelemetry.Instrumentation.ElasticsearchClient.Tests;
 
-public class InMemoryConnectionWithDownstreamActivity : InMemoryConnection
+internal class InMemoryConnectionWithDownstreamActivity : InMemoryConnection
 {
-    internal static readonly ActivitySource ActivitySource = new ActivitySource("Downstream");
-    internal static readonly ActivitySource NestedActivitySource = new ActivitySource("NestedDownstream");
+    internal static readonly ActivitySource ActivitySource = new("Downstream");
+    internal static readonly ActivitySource NestedActivitySource = new("NestedDownstream");
 
     public override Task<TResponse> RequestAsync<TResponse>(RequestData requestData, CancellationToken cancellationToken)
     {

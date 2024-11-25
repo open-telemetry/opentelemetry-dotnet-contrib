@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
-public static partial class Food
+internal static partial class Food
 {
     [LoggerMessage(
         EventId = 0,

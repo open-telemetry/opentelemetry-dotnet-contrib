@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>$(SupportedNetTargets)</TargetFramework>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

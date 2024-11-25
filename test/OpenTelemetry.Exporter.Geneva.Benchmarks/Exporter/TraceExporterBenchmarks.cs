@@ -24,13 +24,15 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class TraceExporterBenchmarks
+#pragma warning restore CA1515
 {
     private readonly Activity activity;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TraceExporterBenchmarks()
     {
@@ -51,10 +53,10 @@ public class TraceExporterBenchmarks
 
         using (var testActivity = this.activitySource.StartActivity("Benchmark"))
         {
-            this.activity = testActivity;
+            this.activity = testActivity!;
             this.activity.SetTag("tagString", "value");
             this.activity.SetTag("tagInt", 100);
-            this.activity.SetStatus(Status.Error);
+            this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
         activityListener.Dispose();
@@ -125,11 +127,11 @@ public class TraceExporterBenchmarks
             .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
             .Build();
 
-        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        using (var activity = this.activitySource.StartActivity("Benchmark")!)
         {
             activity.SetTag("tagString", "value");
             activity.SetTag("tagInt", 100);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         return batchGeneratorExporter.Batch;

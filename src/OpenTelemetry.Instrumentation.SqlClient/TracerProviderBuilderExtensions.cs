@@ -52,7 +52,6 @@ public static class TracerProviderBuilderExtensions
 #if NET
     [RequiresUnreferencedCode(SqlClientInstrumentation.SqlClientTrimmingUnsupportedMessage)]
 #endif
-
     public static TracerProviderBuilder AddSqlClientInstrumentation(
         this TracerProviderBuilder builder,
         string? name,
@@ -70,8 +69,8 @@ public static class TracerProviderBuilderExtensions
         builder.AddInstrumentation(sp =>
         {
             var sqlOptions = sp.GetRequiredService<IOptionsMonitor<SqlClientTraceInstrumentationOptions>>().Get(name);
-
-            return new SqlClientInstrumentation(sqlOptions);
+            SqlClientInstrumentation.TracingOptions = sqlOptions;
+            return SqlClientInstrumentation.AddTracingHandle();
         });
 
         builder.AddSource(SqlActivitySourceHelper.ActivitySourceName);

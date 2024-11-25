@@ -7,15 +7,12 @@ components:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - reyang
-    - utpilla
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
     - codeblanch
-    - reyang
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -95,30 +92,22 @@ components:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - reyang
-    - utpilla
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - reyang
-    - utpilla
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - cijothomas
     - codeblanch
     - rajkumar-rangaraj
-    - reyang
-    - utpilla
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
     - codeblanch
-    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
-    - reyang
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:

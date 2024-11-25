@@ -31,7 +31,9 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class LogExporterBenchmarks
+#pragma warning restore CA1515
 {
     private readonly ILogger logger;
     private readonly ILoggerFactory loggerFactory;
@@ -102,8 +104,8 @@ public class LogExporterBenchmarks
             eventId: default,
             state: new List<KeyValuePair<string, object>>()
             {
-                new KeyValuePair<string, object>("food", food),
-                new KeyValuePair<string, object>("price", price),
+                new("food", food),
+                new("price", price),
             },
             exception: null,
             formatter: (state, ex) => $"Hello from {food} {price}.");

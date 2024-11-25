@@ -6,6 +6,9 @@
   and add .NET 8/.NET Standard 2.0 targets.
   ([#2168](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2168))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
 ## 0.1.0-beta.3
 
 Released 2024-Aug-30

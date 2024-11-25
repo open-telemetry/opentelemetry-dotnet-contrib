@@ -34,8 +34,8 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
-        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
@@ -55,8 +55,8 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
-        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -79,8 +79,8 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
-        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -103,8 +103,8 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
-        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -128,8 +128,8 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         await this.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        Assert.Single(exportedItems, i => i.GetTagItem("job.id") as string == jobId);
-        var activity = exportedItems.Single(i => i.GetTagItem("job.id") as string == jobId);
+        Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = exportedItems.Single(i => (i.GetTagItem("job.id") as string) == jobId);
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
@@ -174,7 +174,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
-        string[] states = new[] { "Enqueued", "Processing" };
+        string[] states = ["Enqueued", "Processing"];
         JobDetailsDto jobDetails;
         while (((jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
                && DateTime.Now < timeout)

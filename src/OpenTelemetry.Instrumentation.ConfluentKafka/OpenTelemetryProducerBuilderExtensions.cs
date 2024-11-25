@@ -22,7 +22,7 @@ public static class OpenTelemetryProducerBuilderExtensions
 #endif
     public static InstrumentedProducerBuilder<TKey, TValue> AsInstrumentedProducerBuilder<TKey, TValue>(this ProducerBuilder<TKey, TValue> producerBuilder)
     {
-        InstrumentedProducerBuilder<TKey, TValue> instrumentedProducerBuilder = new InstrumentedProducerBuilder<TKey, TValue>(producerBuilder.GetInternalConfig() ?? Enumerable.Empty<KeyValuePair<string, string>>());
+        var instrumentedProducerBuilder = new InstrumentedProducerBuilder<TKey, TValue>(producerBuilder.GetInternalConfig() ?? []);
         instrumentedProducerBuilder.SetInternalLogHandler(producerBuilder.GetInternalLogHandler());
         instrumentedProducerBuilder.SetInternalErrorHandler(producerBuilder.GetInternalErrorHandler());
         instrumentedProducerBuilder.SetInternalStatisticsHandler(producerBuilder.GetInternalStatisticsHandler());

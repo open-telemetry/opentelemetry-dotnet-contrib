@@ -34,11 +34,11 @@ public partial class HttpWebRequestTests
             out var host,
             out var port);
 
-        bool enrichWithHttpWebRequestCalled = false;
-        bool enrichWithHttpWebResponseCalled = false;
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
-        bool enrichWithExceptionCalled = false;
+        var enrichWithHttpWebRequestCalled = false;
+        var enrichWithHttpWebResponseCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
+        var enrichWithExceptionCalled = false;
 
         var exportedItems = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -92,19 +92,14 @@ public partial class HttpWebRequestTests
             x => x.Key,
             x =>
             {
-                if (x.Key == "network.protocol.version")
-                {
-                    return "1.1";
-                }
-
-                return HttpTestData.NormalizeValues(x.Value, host, port);
+                return x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, host, port);
             });
 
-        foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
+        foreach (var tag in activity.TagObjects)
         {
             var tagValue = tag.Value?.ToString();
 
-            if (!tc.SpanAttributes.TryGetValue(tag.Key, out string? value))
+            if (!tc.SpanAttributes.TryGetValue(tag.Key, out var value))
             {
                 if (tag.Key == SpanAttributeConstants.StatusCodeKey)
                 {

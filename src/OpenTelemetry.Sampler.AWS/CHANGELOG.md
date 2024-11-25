@@ -14,6 +14,13 @@
 * Removed the `System.Net.Http` package reference from all targets.
   ([#2197](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2197))
 
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* `AWSXRayRemoteSamplerBuilder.Build()` now returns `ParentBasedSampler` which
+  which is of type `Sampler` instead of `AWSXRayRemoteSampler`.
+  ([#2188](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2188))
+
 ## 0.1.0-alpha.2
 
 Released 2024-Sep-09

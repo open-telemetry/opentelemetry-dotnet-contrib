@@ -55,32 +55,32 @@ internal sealed class SqlConnectionDetails
 
     public static SqlConnectionDetails ParseFromDataSource(string dataSource)
     {
-        if (ConnectionDetailCache.TryGetValue(dataSource, out SqlConnectionDetails? connectionDetails))
+        if (ConnectionDetailCache.TryGetValue(dataSource, out var connectionDetails))
         {
             return connectionDetails;
         }
 
         var match = DataSourceRegex.Match(dataSource);
 
-        string? serverHostName = match.Groups[2].Value;
+        var serverHostName = match.Groups[2].Value;
         string? serverIpAddress = null;
         string? instanceName = null;
         int? port = null;
 
         var uriHostNameType = Uri.CheckHostName(serverHostName);
-        if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+        if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
         {
             serverIpAddress = serverHostName;
             serverHostName = null;
         }
 
-        string maybeProtocol = match.Groups[1].Value;
-        bool isNamedPipe = maybeProtocol.Length > 0 &&
-                           maybeProtocol.StartsWith("np", StringComparison.OrdinalIgnoreCase);
+        var maybeProtocol = match.Groups[1].Value;
+        var isNamedPipe = maybeProtocol.Length > 0 &&
+                          maybeProtocol.StartsWith("np", StringComparison.OrdinalIgnoreCase);
 
         if (isNamedPipe)
         {
-            string pipeName = match.Groups[3].Value;
+            var pipeName = match.Groups[3].Value;
             if (pipeName.Length > 0)
             {
                 var namedInstancePipeMatch = NamedPipeRegex.Match(pipeName);
@@ -95,11 +95,11 @@ internal sealed class SqlConnectionDetails
             if (match.Groups[4].Length > 0)
             {
                 instanceName = match.Groups[3].Value;
-                port = int.TryParse(match.Groups[4].Value, out int parsedPort)
+                port = int.TryParse(match.Groups[4].Value, out var parsedPort)
                     ? parsedPort == 1433 ? null : parsedPort
                     : null;
             }
-            else if (int.TryParse(match.Groups[3].Value, out int parsedPort))
+            else if (int.TryParse(match.Groups[3].Value, out var parsedPort))
             {
                 instanceName = null;
                 port = parsedPort == 1433 ? null : parsedPort;

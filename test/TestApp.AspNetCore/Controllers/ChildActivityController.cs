@@ -8,7 +8,9 @@ using OpenTelemetry;
 
 namespace TestApp.AspNetCore.Controllers;
 
+#pragma warning disable CA1515
 public class ChildActivityController : Controller
+#pragma warning restore CA1515
 {
     [HttpGet]
     [Route("api/GetChildActivityTraceContext")]

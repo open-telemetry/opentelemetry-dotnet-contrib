@@ -132,7 +132,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         app.UseRateLimiter();
 
-        static string GetTicks() => (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        static string GetTicks()
+        {
+            return (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        }
 
         app.MapGet("/", () => Results.Ok($"Hello {GetTicks()}"))
                                    .RequireRateLimiting("fixed");
@@ -226,7 +229,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         AssertMetricPoints(
             metricPoints: metricPoints,
-            expectedRoutes: new List<string> { expectedRoute },
+            expectedRoutes: [expectedRoute],
             expectedErrorType,
             expectedStatusCode,
             expectedTagsCount: expectedErrorType == null ? 5 : 6);
@@ -260,8 +263,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
             })
             .CreateClient();
 
-        var message = new HttpRequestMessage();
-        message.Method = new HttpMethod(originalMethod);
+        var message = new HttpRequestMessage
+        {
+            Method = new HttpMethod(originalMethod),
+        };
 
         try
         {
@@ -370,7 +375,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.True(sum > 0);
 
         var attributes = new KeyValuePair<string, object?>[metricPoint.Tags.Count];
-        int i = 0;
+        var i = 0;
         foreach (var tag in metricPoint.Tags)
         {
             attributes[i++] = tag;

@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -27,6 +28,42 @@ public class SqlEventSourceTests
     private const string SqlConnectionStringEnvVarName = "OTEL_SQLCONNECTIONSTRING";
     private static readonly string? SqlConnectionString = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(SqlConnectionStringEnvVarName);
 
+    public static IEnumerable<object[]> EventSourceFakeTestCases()
+    {
+        /* netfx driver can't capture queries, only stored procedure names */
+        /* always emit some attribute */
+        var bools = new[] { true, false };
+        return from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
+               from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
+               from isFailure in bools
+               from captureText in bools
+               from enableConnectionLevelAttributes in bools
+               from emitOldAttributes in bools
+               from emitNewAttributes in bools
+               from tracingEnabled in bools
+               from metricsEnabled in bools
+               where !(commandType == CommandType.Text && captureText == true)
+               where emitOldAttributes != false && emitNewAttributes != false
+               let commandText = commandType == CommandType.Text
+                   ? (isFailure == false ? "select 1/1" : "select 1/0")
+                   : "sp_who"
+               let sqlExceptionNumber = 0
+               select new object[]
+               {
+                   eventSourceType,
+                   commandType,
+                   commandText,
+                   captureText,
+                   isFailure,
+                   sqlExceptionNumber,
+                   enableConnectionLevelAttributes,
+                   emitOldAttributes,
+                   emitNewAttributes,
+                   tracingEnabled,
+                   metricsEnabled,
+               };
+    }
+
     [Trait("CategoryName", "SqlIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(SqlConnectionStringEnvVarName)]
     [InlineData(CommandType.Text, "select 1/1", false)]
@@ -45,16 +82,16 @@ public class SqlEventSourceTests
             .Build();
 
         Assert.NotNull(SqlConnectionString);
-        using SqlConnection sqlConnection = new SqlConnection(SqlConnectionString);
+        using var sqlConnection = new SqlConnection(SqlConnectionString);
 
         await sqlConnection.OpenAsync();
 
-        string dataSource = sqlConnection.DataSource;
+        var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
 
 #pragma warning disable CA2100
-        using SqlCommand sqlCommand = new SqlCommand(commandText, sqlConnection)
+        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,
@@ -75,34 +112,7 @@ public class SqlEventSourceTests
     }
 
     [Theory]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true)]
-
-    // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, false, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, false, true)]
-
-    // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/1", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.Text, "select 1/0", false, true, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", false, false, 0, false, true, true)]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource), CommandType.StoredProcedure, "sp_who", true, false, 0, true, true, true)]
+    [MemberData(nameof(EventSourceFakeTestCases))]
     public void EventSourceFakeTests(
         Type eventSourceType,
         CommandType commandType,
@@ -112,45 +122,104 @@ public class SqlEventSourceTests
         int sqlExceptionNumber = 0,
         bool enableConnectionLevelAttributes = false,
         bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+        bool emitNewAttributes = false,
+        bool tracingEnabled = true,
+        bool metricsEnabled = true)
     {
-        using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
-        var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureText;
-                options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
-                options.EmitOldAttributes = emitOldAttributes;
-                options.EmitNewAttributes = emitNewAttributes;
-            })
-            .Build();
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
 
-        int objectId = Guid.NewGuid().GetHashCode();
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
 
+        if (tracingEnabled)
+        {
+            traceProviderBuilder.AddInMemoryExporter(activities)
+                .AddSqlClientInstrumentation(options =>
+                {
+                    options.SetDbStatementForText = captureText;
+                    options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
+                    options.EmitOldAttributes = emitOldAttributes;
+                    options.EmitNewAttributes = emitNewAttributes;
+                });
+        }
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (metricsEnabled)
+        {
+            meterProviderBuilder.AddInMemoryExporter(metrics)
+                .AddSqlClientInstrumentation();
+        }
+
+        using var traceProvider = traceProviderBuilder.Build();
+        using var meterProvider = meterProviderBuilder.Build();
+
+        var objectId = Guid.NewGuid().GetHashCode();
         var dataSource = "127.0.0.1\\instanceName,port";
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
-        // success is stored in the first bit in compositeState 0b001
-        int successFlag = !isFailure ? 1 : 0;
+        try
+        {
+            fakeSqlEventSource.WriteBeginExecuteEvent(objectId, dataSource, "master", commandType == CommandType.StoredProcedure ? commandText : string.Empty);
 
-        // isSqlException is stored in the second bit in compositeState 0b010
-        int isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
+            // success is stored in the first bit in compositeState 0b001
+            var successFlag = !isFailure ? 1 : 0;
 
-        // synchronous state is stored in the third bit in compositeState 0b100
-        int synchronousFlag = false ? 4 : 0;
+            // isSqlException is stored in the second bit in compositeState 0b010
+            var isSqlExceptionFlag = sqlExceptionNumber > 0 ? 2 : 0;
 
-        int compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
+            // synchronous state is stored in the third bit in compositeState 0b100
+            var synchronousFlag = false ? 4 : 0;
 
-        fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, sqlExceptionNumber);
-        shutdownSignal.Dispose();
-        Assert.Single(exportedItems);
+            var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
 
-        var activity = exportedItems[0];
+            fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, sqlExceptionNumber);
+        }
+        finally
+        {
+            traceProvider.Dispose();
+            Assert.True(meterProvider.ForceFlush());
+        }
 
-        VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+        Activity? activity = null;
+
+        if (tracingEnabled)
+        {
+            activity = Assert.Single(activities);
+            VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+        }
+
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == "db.client.operation.duration")
+            .ToArray();
+
+        if (metricsEnabled)
+        {
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            Assert.NotNull(metric);
+            Assert.Equal("s", metric.Unit);
+            Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+            var metricPoints = new List<MetricPoint>();
+            foreach (var p in metric.GetMetricPoints())
+            {
+                metricPoints.Add(p);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+
+            if (activity != null)
+            {
+                var count = metricPoint.GetHistogramCount();
+                var sum = metricPoint.GetHistogramSum();
+                Assert.Equal(activity.Duration.TotalSeconds, sum);
+            }
+        }
+        else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
+        }
     }
 
     [Theory]
@@ -158,7 +227,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeMisbehavingMdsSqlEventSource))]
     public void EventSourceFakeUnknownEventWithNullPayloadTest(Type eventSourceType)
     {
-        using IFakeMisbehavingSqlEventSource fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -178,7 +247,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeMisbehavingMdsSqlEventSource))]
     public void EventSourceFakeInvalidPayloadTest(Type eventSourceType)
     {
-        using IFakeMisbehavingSqlEventSource fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeMisbehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -199,7 +268,7 @@ public class SqlEventSourceTests
     [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
     public void DefaultCaptureTextFalse(Type eventSourceType)
     {
-        using IFakeBehavingSqlEventSource fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
+        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
         var exportedItems = new List<Activity>();
         var shutdownSignal = Sdk.CreateTracerProviderBuilder()
@@ -207,21 +276,21 @@ public class SqlEventSourceTests
             .AddSqlClientInstrumentation()
             .Build();
 
-        int objectId = Guid.NewGuid().GetHashCode();
+        var objectId = Guid.NewGuid().GetHashCode();
 
         const string commandText = "TestCommandTest";
         fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", commandText);
 
         // success is stored in the first bit in compositeState 0b001
-        int successFlag = 1;
+        var successFlag = 1;
 
         // isSqlException is stored in the second bit in compositeState 0b010
-        int isSqlExceptionFlag = 2;
+        var isSqlExceptionFlag = 2;
 
         // synchronous state is stored in the third bit in compositeState 0b100
-        int synchronousFlag = 4;
+        var synchronousFlag = 4;
 
-        int compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
+        var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
 
         fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, 0);
         shutdownSignal.Dispose();
@@ -243,7 +312,15 @@ public class SqlEventSourceTests
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        Assert.Equal("master", activity.DisplayName);
+        if (emitNewAttributes && enableConnectionLevelAttributes)
+        {
+            Assert.Equal("instanceName.master", activity.DisplayName);
+        }
+        else
+        {
+            Assert.Equal("master", activity.DisplayName);
+        }
+
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
@@ -282,7 +359,7 @@ public class SqlEventSourceTests
 
         if (emitNewAttributes)
         {
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            Assert.Equal(!enableConnectionLevelAttributes ? "master" : "instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
         if (captureText)
@@ -315,7 +392,6 @@ public class SqlEventSourceTests
     }
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
-
     // Helper interface to be able to have single test method for multiple EventSources, want to keep it close to the event sources themselves.
     private interface IFakeBehavingSqlEventSource : IDisposable
 #pragma warning restore SA1201 // Elements should appear in the correct order
