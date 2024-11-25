@@ -6,7 +6,9 @@ using System.ServiceModel.Channels;
 
 namespace Examples.Wcf.Client;
 
+#pragma warning disable CA1515
 public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
+#pragma warning restore CA1515
 {
     public StatusServiceClient(string name)
         : base(name)
