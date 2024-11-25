@@ -141,14 +141,13 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
             {
                 // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
                 HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
-            }
 
-            if (!IsNet9OrGreater && request.RequestUri != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-                activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
-
-                activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                if (request.RequestUri != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                }
             }
 
             try
