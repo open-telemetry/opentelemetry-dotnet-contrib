@@ -21,7 +21,6 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
     internal static readonly string MeterName = AssemblyName.Name!;
     internal static readonly string MeterVersion = AssemblyName.Version!.ToString();
     internal static readonly Meter Meter = new(MeterName, MeterVersion);
-
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
     private static readonly Histogram<double> HttpClientRequestDuration = Meter.CreateHistogram<double>("http.client.request.duration", "s", "Duration of HTTP client requests.");
 
