@@ -140,6 +140,7 @@ internal static class HttpWebRequestActivitySource
         {
             // TODO: consider other Status values from
             // https://learn.microsoft.com/dotnet/api/system.net.webexceptionstatus?view=netframework-4.6.2
+#pragma warning disable IDE0072 // Add missing cases
             return wexc.Status switch
             {
                 WebExceptionStatus.NameResolutionFailure => "name_resolution_failure",
@@ -161,6 +162,7 @@ internal static class HttpWebRequestActivitySource
                 WebExceptionStatus.RequestProhibitedByProxy => "request_prohibited_by_proxy",
                 _ => wexc.GetType().FullName,
             };
+#pragma warning restore IDE0072 // Add missing cases
         }
 
         return exception.GetType().FullName;
