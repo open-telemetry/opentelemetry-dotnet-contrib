@@ -44,8 +44,8 @@ Starting with .NET 9, trace instrumentation is natively implemented, and the
 HttpClient library emits attributes defined in the
 [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/http/http-spans.md).
 This instrumentation library will not overwriting attributes set by the native
-instrumentation. This instrumentation library is still necessary for performing
-context propagation, enrichment, and filtering.
+instrumentation, but is still necessary for performing context propagation,
+enrichment, and filtering.
 
 The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `TracerProviderBuilder` to
