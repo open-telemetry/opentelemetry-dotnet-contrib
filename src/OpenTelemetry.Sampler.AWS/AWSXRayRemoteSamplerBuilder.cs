@@ -70,7 +70,9 @@ public class AWSXRayRemoteSamplerBuilder
     /// <returns>an instance of <see cref="Trace.Sampler"/>.</returns>
     public Trace.Sampler Build()
     {
+#pragma warning disable CA2000
         var rootSampler = new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+#pragma warning restore CA2000
         return new ParentBasedSampler(rootSampler);
     }
 
