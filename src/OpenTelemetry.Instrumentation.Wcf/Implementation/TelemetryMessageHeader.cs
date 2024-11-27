@@ -9,8 +9,8 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 internal class TelemetryMessageHeader : MessageHeader
 {
     private const string NAMESPACE = "https://www.w3.org/TR/trace-context/";
-    private string name;
-    private string value;
+    private readonly string name;
+    private readonly string value;
 
     private TelemetryMessageHeader(string name, string value)
     {

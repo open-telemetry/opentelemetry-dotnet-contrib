@@ -15,7 +15,7 @@ public class AWSXRayRemoteSamplerBuilder
 
     private static readonly TimeSpan DefaultPollingInterval = TimeSpan.FromMinutes(5);
 
-    private Resource resource;
+    private readonly Resource resource;
     private TimeSpan pollingInterval;
     private string endpoint;
     private Clock clock;

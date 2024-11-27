@@ -8,8 +8,8 @@ namespace OpenTelemetry.Exporter.Geneva.Stress;
 
 internal class DummyServer
 {
-    private EndPoint endpoint;
-    private Socket serverSocket;
+    private readonly EndPoint endpoint;
+    private readonly Socket serverSocket;
 
     public DummyServer(string path)
     {

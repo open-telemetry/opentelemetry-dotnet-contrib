@@ -50,7 +50,7 @@ public abstract class OtlpProtobufMetricExporterTests
         "ushortKey"
     ];
 
-    private TagList exemplarTagList;
+    private readonly TagList exemplarTagList;
 
     protected OtlpProtobufMetricExporterTests()
     {
@@ -1685,7 +1685,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
     private class TestTransport : IMetricDataTransport
     {
-        public List<byte[]> ExportedItems = [];
+        public readonly List<byte[]> ExportedItems = [];
 
         public void SendOtlpProtobufEvent(byte[] body, int size)
         {
