@@ -43,9 +43,10 @@ HTTP instrumentation must be enabled at application startup.
 Starting with .NET 9, trace instrumentation is natively implemented, and the
 HttpClient library emits attributes defined in the
 [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/http/http-spans.md).
-This instrumentation library will not overwriting attributes set by the native
-instrumentation, but is still necessary for performing context propagation,
-enrichment, and filtering.
+When running on .NET 9+ this instrumentation library will not add/change/override
+any attributes set by the native instrumentation but it is still required for
+performing context propagation using the OpenTelemetry SDK and supports additional
+features not available in runtime (enrichment, filtering, etc.).
 
 The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `TracerProviderBuilder` to
