@@ -70,10 +70,7 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 
         if (disposing)
         {
-            if (this.response != null)
-            {
-                this.response.Dispose();
-            }
+            this.response?.Dispose();
 
             if (this.httpClient != null && this.disposeClient)
             {
