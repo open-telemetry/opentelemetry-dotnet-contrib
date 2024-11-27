@@ -8,6 +8,11 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
+* Trace instrumentation no longer sets attributes when running on .NET 9 and
+  greater because `HttpClient` now includes native instrumentation which adds
+  attributes directly.
+  ([#2314](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2314))
+
 ## 1.9.0
 
 Released 2024-Jun-17
