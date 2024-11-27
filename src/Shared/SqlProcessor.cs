@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OpenTelemetry.Instrumentation;
 
-public static class SqlProcessor
+internal static class SqlProcessor
 {
     public static string GetSanitizedSql(string sql)
     {
