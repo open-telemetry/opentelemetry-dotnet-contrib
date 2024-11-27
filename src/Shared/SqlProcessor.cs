@@ -65,7 +65,7 @@ public static class SqlProcessor
             for (i += 2; i < length; ++i)
             {
                 ch = sql[i];
-                if (ch == '\r' || ch == '\n')
+                if (ch is '\r' or '\n')
                 {
                     i -= 1;
                     break;
