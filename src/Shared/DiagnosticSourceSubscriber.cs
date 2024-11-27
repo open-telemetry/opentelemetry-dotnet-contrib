@@ -86,15 +86,22 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
 
         lock (this.listenerSubscriptions)
         {
-            foreach (var listenerSubscription in this.listenerSubscriptions)
+            if (disposing)
             {
-                listenerSubscription?.Dispose();
+                foreach (var listenerSubscription in this.listenerSubscriptions)
+                {
+                    listenerSubscription?.Dispose();
+                }
             }
 
             this.listenerSubscriptions.Clear();
         }
 
-        this.allSourcesSubscription?.Dispose();
+        if (disposing)
+        {
+            this.allSourcesSubscription?.Dispose();
+        }
+
         this.allSourcesSubscription = null;
     }
 }
