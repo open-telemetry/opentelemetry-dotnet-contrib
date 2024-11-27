@@ -239,6 +239,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                                 case CommandType.TableDirect:
                                     break;
+                                default:
+                                    break;
                             }
                         }
 
@@ -311,6 +313,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
                 }
 
+                break;
+            default:
                 break;
         }
     }
