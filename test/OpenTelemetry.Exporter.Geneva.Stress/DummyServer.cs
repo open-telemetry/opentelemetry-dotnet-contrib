@@ -41,18 +41,18 @@ internal class DummyServer
 
             while (true)
             {
-                Socket acceptSocket = this.serverSocket.Accept();
+                var acceptSocket = this.serverSocket.Accept();
                 Task.Run(() =>
                 {
-                    int threadId = Environment.CurrentManagedThreadId;
+                    var threadId = Environment.CurrentManagedThreadId;
                     Console.WriteLine($"ThreadID {threadId}: Start reading from socket.");
-                    int totalBytes = 0;
+                    var totalBytes = 0;
                     try
                     {
                         while (acceptSocket.Connected)
                         {
                             var receivedData = new byte[1024];
-                            int receivedDataSize = acceptSocket.Receive(receivedData);
+                            var receivedDataSize = acceptSocket.Receive(receivedData);
                             totalBytes += receivedDataSize;
                         }
 

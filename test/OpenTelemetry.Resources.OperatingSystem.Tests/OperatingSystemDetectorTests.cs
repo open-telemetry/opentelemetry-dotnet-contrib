@@ -57,7 +57,7 @@ public class OperatingSystemDetectorTests
     [Fact]
     public void TestParseMacOSPlist()
     {
-        string path = "Samples/SystemVersion.plist";
+        var path = "Samples/SystemVersion.plist";
         var osDetector = new OperatingSystemDetector(
             OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
             null,
@@ -74,8 +74,8 @@ public class OperatingSystemDetectorTests
     [Fact]
     public void TestParseLinuxOsRelease()
     {
-        string path = "Samples/os-release";
-        string kernelPath = "Samples/kernelOsrelease";
+        var path = "Samples/os-release";
+        var kernelPath = "Samples/kernelOsrelease";
         var osDetector = new OperatingSystemDetector(
             OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
             null,

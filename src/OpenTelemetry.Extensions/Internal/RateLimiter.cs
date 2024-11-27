@@ -20,7 +20,7 @@ internal sealed class RateLimiter
 
     public bool TrySpend(double itemCost)
     {
-        long cost = (long)(itemCost / this.creditsPerTick);
+        var cost = (long)(itemCost / this.creditsPerTick);
         long currentTicks;
         long currentBalanceTicks;
         long availableBalanceAfterWithdrawal;
@@ -28,7 +28,7 @@ internal sealed class RateLimiter
         {
             currentBalanceTicks = Interlocked.Read(ref this.currentBalance);
             currentTicks = this.stopwatch.ElapsedTicks;
-            long currentAvailableBalance = currentTicks - currentBalanceTicks;
+            var currentAvailableBalance = currentTicks - currentBalanceTicks;
             if (currentAvailableBalance > this.maxBalance)
             {
                 currentAvailableBalance = this.maxBalance;

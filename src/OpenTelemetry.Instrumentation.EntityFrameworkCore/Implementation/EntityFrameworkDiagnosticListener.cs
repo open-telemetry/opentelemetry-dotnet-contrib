@@ -54,7 +54,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
 
         switch (name)
         {

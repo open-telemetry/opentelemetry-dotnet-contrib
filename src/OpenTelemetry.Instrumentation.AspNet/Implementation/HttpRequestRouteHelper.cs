@@ -24,7 +24,7 @@ internal sealed class HttpRequestRouteHelper
         var routeData = request.RequestContext.RouteData;
 
         string? template = null;
-        if (routeData.Values.TryGetValue("MS_SubRoutes", out object msSubRoutes))
+        if (routeData.Values.TryGetValue("MS_SubRoutes", out var msSubRoutes))
         {
             // WebAPI attribute routing flows here. Use reflection to not take a dependency on microsoft.aspnet.webapi.core\[version]\lib\[framework]\System.Web.Http.
 
