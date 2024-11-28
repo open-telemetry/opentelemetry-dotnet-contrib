@@ -110,7 +110,7 @@ public class GenevaExporterOptions
                 schemaVersion = value[Schema.V40.PartA.Ver] as string;
             }
 
-            if (schemaVersion != "2.1" && schemaVersion != "4.0")
+            if (schemaVersion is not "2.1" and not "4.0")
             {
                 throw new ArgumentException("Unsupported schema version, only 2.1 and 4.0 are supported.");
             }

@@ -3,7 +3,7 @@
 
 namespace Examples.ConfluentKafka;
 
-public static class Constants
+internal static class Constants
 {
     public static readonly string Topic = $"test-topic-{Guid.NewGuid()}";
 }

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Net.Http;
 using System.Web;
 using System.Web.Routing;
 
@@ -39,6 +40,32 @@ internal static class RouteTestHelper
                 routeData.Values.Add(
                     "MS_SubRoutes",
                     value);
+                break;
+            case 5: // Multi-method attribute routing WebAPI.
+                routeData = new RouteData();
+                var httpMethods = new[] { HttpMethod.Get, HttpMethod.Put, HttpMethod.Delete };
+
+                var multiMethodSubroutes = httpMethods.Select(method => new
+                {
+                    Route = new
+                    {
+                        RouteTemplate = routeTemplate,
+                        DataTokens = new Dictionary<string, object>
+                        {
+                            ["actions"] = new[]
+                            {
+                                new
+                                {
+                                    SupportedHttpMethods = new[] { method },
+                                },
+                            },
+                        },
+                    },
+                }).ToArray();
+
+                routeData.Values.Add(
+                    "MS_SubRoutes",
+                    multiMethodSubroutes);
                 break;
             default:
                 throw new NotSupportedException();

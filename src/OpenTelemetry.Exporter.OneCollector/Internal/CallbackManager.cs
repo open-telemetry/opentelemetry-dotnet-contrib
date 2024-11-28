@@ -9,10 +9,9 @@ internal sealed class CallbackManager<T> : IDisposable
     where T : Delegate
 {
     private readonly object lockObject = new();
-    private T? root;
     private bool disposed;
 
-    public T? Root { get => this.root; }
+    public T? Root { get; private set; }
 
     public IDisposable Add(T callback)
     {
@@ -29,14 +28,14 @@ internal sealed class CallbackManager<T> : IDisposable
             }
 #endif
 
-            this.root = (T)Delegate.Combine(this.root, callback);
+            this.Root = (T)Delegate.Combine(this.Root, callback);
         }
 
         return new CallbackManagerRegistration(() =>
         {
             lock (this.lockObject)
             {
-                this.root = (T?)Delegate.Remove(this.root, callback);
+                this.Root = (T?)Delegate.Remove(this.Root, callback);
             }
         });
     }
@@ -45,7 +44,7 @@ internal sealed class CallbackManager<T> : IDisposable
     {
         lock (this.lockObject)
         {
-            this.root = null;
+            this.Root = null;
             this.disposed = true;
         }
     }

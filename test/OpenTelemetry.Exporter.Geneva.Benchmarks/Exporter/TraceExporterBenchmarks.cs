@@ -24,13 +24,15 @@ Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 
 [MemoryDiagnoser]
+#pragma warning disable CA1515
 public class TraceExporterBenchmarks
+#pragma warning restore CA1515
 {
     private readonly Activity activity;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TraceExporterBenchmarks()
     {

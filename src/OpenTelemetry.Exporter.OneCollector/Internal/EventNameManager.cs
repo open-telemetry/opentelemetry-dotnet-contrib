@@ -19,7 +19,6 @@ internal sealed class EventNameManager
     private readonly string defaultEventName;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly ResolvedEventFullName defaultEventFullName;
-    private readonly Hashtable eventNamespaceCache = new(StringComparer.OrdinalIgnoreCase);
 
     public EventNameManager(
         string defaultEventNamespace,
@@ -44,7 +43,7 @@ internal sealed class EventNameManager
     }
 
     // Note: This is exposed for unit tests.
-    internal Hashtable EventNamespaceCache => this.eventNamespaceCache;
+    internal Hashtable EventNamespaceCache { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public static bool IsEventNamespaceValid(string eventNamespace)
         => EventNamespaceValidationRegex.IsMatch(eventNamespace);
@@ -86,13 +85,13 @@ internal sealed class EventNameManager
             ref eventNamespace!,
             ref eventName!);
 
-        byte[]? originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
-            && originalEventNamespace != eventNamespace
+        var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace)
+                                         && originalEventNamespace != eventNamespace
             ? BuildEventFullName(string.Empty, originalEventNamespace!)
             : null;
 
-        byte[]? originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
-            && originalEventName != eventName
+        var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName)
+                                    && originalEventName != eventName
             ? BuildEventFullName(string.Empty, originalEventName!)
             : null;
 
@@ -136,15 +135,15 @@ internal sealed class EventNameManager
 
     private static void WriteEventFullNameComponent(string component, Span<byte> destination, ref int cursor)
     {
-        char firstChar = component[0];
-        if (firstChar >= 'a' && firstChar <= 'z')
+        var firstChar = component[0];
+        if (firstChar is >= 'a' and <= 'z')
         {
             firstChar -= (char)32;
         }
 
         destination[cursor++] = (byte)firstChar;
 
-        for (int i = 1; i < component.Length; i++)
+        for (var i = 1; i < component.Length; i++)
         {
             destination[cursor++] = (byte)component[i];
         }
@@ -152,7 +151,7 @@ internal sealed class EventNameManager
 
     private Hashtable GetEventNameCacheForEventNamespace(string eventNamespace)
     {
-        var eventNamespaceCache = this.eventNamespaceCache;
+        var eventNamespaceCache = this.EventNamespaceCache;
 
         if (eventNamespaceCache[eventNamespace] is not Hashtable eventNameCacheForNamespace)
         {
@@ -252,7 +251,7 @@ internal sealed class EventNameManager
         byte[] eventFullName;
 
         var finalEventFullNameLength = namespaceLength + eventName.Length;
-        if (finalEventFullNameLength < MinimumEventFullNameLength || finalEventFullNameLength > MaximumEventFullNameLength)
+        if (finalEventFullNameLength is < MinimumEventFullNameLength or > MaximumEventFullNameLength)
         {
             OneCollectorExporterEventSource.Log.EventFullNameDiscarded(eventNamespace, eventName);
             eventFullName = this.defaultEventFullName.EventFullName;

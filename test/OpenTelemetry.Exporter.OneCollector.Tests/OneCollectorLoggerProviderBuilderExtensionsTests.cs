@@ -14,7 +14,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     [Fact]
     public void ConfigureBatchOptionsTest()
     {
-        int configurationInvocations = 0;
+        var configurationInvocations = 0;
 
         using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(builder =>
         {
@@ -52,7 +52,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     [Fact]
     public void ConfigureSerializationOptionsTest()
     {
-        int configurationInvocations = 0;
+        var configurationInvocations = 0;
 
         using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(builder =>
         {
@@ -67,7 +67,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     [Fact]
     public void ConfigureTransportOptionsTest()
     {
-        int configurationInvocations = 0;
+        var configurationInvocations = 0;
 
         using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(builder =>
         {
@@ -235,7 +235,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     [Fact]
     public void OptionsTest()
     {
-        int configurationInvocations = 0;
+        var configurationInvocations = 0;
 
         using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(
             builder =>
@@ -261,7 +261,7 @@ public class OneCollectorLoggerProviderBuilderExtensionsTests
     [Fact]
     public void NamedOptionsTest()
     {
-        int configurationInvocations = 0;
+        var configurationInvocations = 0;
 
         using var loggerFactory = CreateLoggerFactoryWithOneCollectorExporter(
             builder =>

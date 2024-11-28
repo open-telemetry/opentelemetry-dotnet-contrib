@@ -31,7 +31,6 @@
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
-    <SupportedNetTargetsWithoutNet9>net8.0</SupportedNetTargetsWithoutNet9>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.0,3.0)</XUnitPkgVer>
     <WiremockNetPkgVer>[1.6.3,2.0)</WiremockNetPkgVer>
