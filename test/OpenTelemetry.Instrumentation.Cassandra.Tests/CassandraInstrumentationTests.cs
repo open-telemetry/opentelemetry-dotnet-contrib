@@ -72,8 +72,8 @@ public class CassandraInstrumentationTests
 
         var options = new DriverMetricsOptions();
 
-        options.SetEnabledNodeMetrics(new[] { NodeMetric.Gauges.InFlight });
-        options.SetEnabledSessionMetrics(new List<SessionMetric>());
+        options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
+        options.SetEnabledSessionMetrics([]);
 
         var cluster = new Builder()
             .WithConnectionString(this.cassandraConnectionString)
