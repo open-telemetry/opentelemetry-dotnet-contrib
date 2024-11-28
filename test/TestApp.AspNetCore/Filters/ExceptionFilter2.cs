@@ -5,12 +5,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace TestApp.AspNetCore.Filters;
 
-#pragma warning disable CA1515
 public class ExceptionFilter2 : IExceptionFilter
-#pragma warning restore CA1515
 {
     public void OnException(ExceptionContext context)
     {
-        // test the behaviour when an application has two ExceptionFilters defined
+        // test the behavior when an application has two ExceptionFilters defined
     }
 }

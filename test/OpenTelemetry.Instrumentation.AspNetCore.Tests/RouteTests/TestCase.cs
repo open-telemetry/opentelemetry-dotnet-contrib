@@ -5,9 +5,7 @@ using RouteTests.TestApplication;
 
 namespace RouteTests;
 
-#pragma warning disable CA1515
 public class TestCase
-#pragma warning restore CA1515
 {
     public string Name { get; set; } = string.Empty;
 

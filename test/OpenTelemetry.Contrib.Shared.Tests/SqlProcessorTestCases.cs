@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 
-#pragma warning disable CA1515
 public static class SqlProcessorTestCases
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
@@ -32,7 +31,6 @@ public static class SqlProcessorTestCases
 #pragma warning disable CA1034
     public class TestCase
 #pragma warning restore CA1034
-#pragma warning restore CA1515
     {
         public string Name { get; set; } = string.Empty;
 

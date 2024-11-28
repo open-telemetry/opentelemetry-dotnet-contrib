@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace RouteTests.Controllers;
 
-#pragma warning disable CA1515
 public class ConventionalRouteController : Controller
-#pragma warning restore CA1515
 {
     public IActionResult Default() => this.Ok();
 

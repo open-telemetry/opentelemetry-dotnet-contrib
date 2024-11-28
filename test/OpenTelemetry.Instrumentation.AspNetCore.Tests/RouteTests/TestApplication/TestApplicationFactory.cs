@@ -11,9 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace RouteTests.TestApplication;
 
-#pragma warning disable CA1515
 public enum TestApplicationScenario
-#pragma warning restore CA1515
 {
     /// <summary>
     /// An application that uses conventional routing.

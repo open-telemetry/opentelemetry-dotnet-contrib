@@ -9,9 +9,7 @@ using Xunit;
 
 namespace RouteTests;
 
-#pragma warning disable CA1515
 public class RoutingTestFixture : IAsyncLifetime
-#pragma warning restore CA1515
 {
     private static readonly HttpClient HttpClient = new();
     private readonly Dictionary<TestApplicationScenario, WebApplication> apps = [];
