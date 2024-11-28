@@ -21,8 +21,8 @@ internal class CertificateUploader : IDisposable
 
     public string FilePath
     {
-        get { return this.filePath; }
-        set { this.filePath = value; }
+        get => this.filePath;
+        set => this.filePath = value;
     }
 
     public void Create()
