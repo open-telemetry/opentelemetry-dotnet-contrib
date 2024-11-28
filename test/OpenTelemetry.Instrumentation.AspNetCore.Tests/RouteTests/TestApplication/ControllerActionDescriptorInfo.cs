@@ -5,7 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace RouteTests.TestApplication;
 
+#pragma warning disable CA1515
 public class ControllerActionDescriptorInfo
+#pragma warning restore CA1515
 {
     public ControllerActionDescriptorInfo()
     {

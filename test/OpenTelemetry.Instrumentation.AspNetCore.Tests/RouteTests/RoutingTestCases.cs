@@ -7,7 +7,9 @@ using System.Text.Json.Serialization;
 
 namespace RouteTests;
 
+#pragma warning disable CA1515
 public static class RoutingTestCases
+#pragma warning restore CA1515
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {

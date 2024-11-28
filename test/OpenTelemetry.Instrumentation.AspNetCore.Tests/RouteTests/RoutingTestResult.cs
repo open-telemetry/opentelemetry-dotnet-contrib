@@ -7,7 +7,7 @@ using RouteTests.TestApplication;
 
 namespace RouteTests;
 
-public class RoutingTestResult
+internal class RoutingTestResult
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
 
@@ -19,10 +19,10 @@ public class RoutingTestResult
 
     public string? MetricHttpRoute { get; set; }
 
-    public RouteInfo RouteInfo { get; set; } = new RouteInfo();
+    public RouteInfo RouteInfo { get; set; } = new();
 
     [JsonIgnore]
-    public TestCase TestCase { get; set; } = new TestCase();
+    public TestCase TestCase { get; set; } = new();
 
     public override string ToString()
     {

@@ -7,7 +7,9 @@ namespace RouteTests.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+#pragma warning disable CA1515
 public class AttributeRouteController : ControllerBase
+#pragma warning restore CA1515
 {
     [HttpGet]
     [HttpGet("[action]")]
