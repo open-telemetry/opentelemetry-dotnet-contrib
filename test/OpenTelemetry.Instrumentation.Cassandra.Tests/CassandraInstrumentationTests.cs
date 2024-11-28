@@ -97,7 +97,7 @@ public class CassandraInstrumentationTests
 
         var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
         Assert.NotNull(inFlightConnection);
-        Assert.True(exportedItems.Count == 1);
+        Assert.Single(exportedItems);
         Assert.NotEmpty(books);
     }
 

@@ -1535,7 +1535,7 @@ public abstract class OtlpProtobufMetricExporterTests
             Assert.Equal(0, dataPoint.Max);
             Assert.Equal(0, dataPoint.Sum);
             Assert.Null(dataPoint.Negative);
-            Assert.True(dataPoint.Positive.Offset == 0);
+            Assert.Equal(0, dataPoint.Positive.Offset);
             Assert.Empty(dataPoint.Positive.BucketCounts);
         }
 
