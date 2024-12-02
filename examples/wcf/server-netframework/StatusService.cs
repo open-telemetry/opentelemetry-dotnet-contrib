@@ -11,7 +11,7 @@ namespace Examples.Wcf.Server;
     InstanceContextMode = InstanceContextMode.Single,
     UseSynchronizationContext = false,
     Name = "StatusService")]
-public class StatusService : IStatusServiceContract
+internal class StatusService : IStatusServiceContract
 {
     public Task<StatusResponse> PingAsync(StatusRequest request)
     {

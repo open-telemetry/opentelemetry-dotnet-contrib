@@ -13,10 +13,10 @@ namespace Examples.AspNet.Controllers;
 
 public class WeatherForecastController : ApiController
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching",
-    };
+    private static readonly string[] Summaries =
+    [
+        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    ];
 
     [HttpGet] // For testing traditional routing. Ex: https://localhost:XXXX/api/weatherforecast
     public async Task<IEnumerable<WeatherForecast>> Get()
@@ -89,7 +89,7 @@ public class WeatherForecastController : ApiController
     [HttpPost]
     public async Task<HttpResponseMessage> PostData()
     {
-        string? value1 = Baggage.GetBaggage("key1");
+        var value1 = Baggage.GetBaggage("key1");
         if (string.IsNullOrEmpty(value1))
         {
             throw new InvalidOperationException("Key1 was not found on Baggage.");
