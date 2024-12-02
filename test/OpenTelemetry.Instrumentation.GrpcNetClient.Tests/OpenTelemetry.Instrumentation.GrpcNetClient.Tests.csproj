@@ -20,7 +20,7 @@
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Extensions.Propagators" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.10.0"/>
   </ItemGroup>
 
   <ItemGroup>
