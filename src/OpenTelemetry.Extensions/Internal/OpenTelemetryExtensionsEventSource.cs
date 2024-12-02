@@ -49,4 +49,10 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
     {
         this.WriteEvent(3, baggageKey, exception);
     }
+
+    [Event(4, Message = "Baggage key predicate threw exeption when trying to add baggage entry with key '{0}'. Baggage entry will not be added to the log record. Exception: '{1}'", Level = EventLevel.Warning)]
+    public void BaggageKeyLogRecordPredicateException(string baggageKey, string exception)
+    {
+        this.WriteEvent(4, baggageKey, exception);
+    }
 }
