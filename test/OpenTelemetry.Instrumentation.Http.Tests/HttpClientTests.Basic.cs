@@ -592,7 +592,7 @@ public partial class HttpClientTests : IDisposable
             using var c = new HttpClient();
             using var inMemoryEventListener = new InMemoryEventListener(HttpInstrumentationEventSource.Log);
             await c.GetAsync(new Uri(this.url));
-            Assert.Single(inMemoryEventListener.Events.Where(e => e.EventId == 4));
+            Assert.Single(inMemoryEventListener.Events, e => e.EventId == 4);
         }
 
         Assert.Empty(exportedItems);
@@ -621,7 +621,7 @@ public partial class HttpClientTests : IDisposable
 
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
-        Assert.Single(exportedItems[0].Events.Where(evt => evt.Name.Equals("exception")));
+        Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
     }
 
     [Fact]
