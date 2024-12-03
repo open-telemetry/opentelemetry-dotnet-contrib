@@ -5,7 +5,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Extensions.Internal;
 
-internal class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
+internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
 {
     private readonly Predicate<string> baggageKeyPredicate;
 
