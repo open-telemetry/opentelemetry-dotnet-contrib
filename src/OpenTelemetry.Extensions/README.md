@@ -20,6 +20,25 @@ future.
 Adds a log processor which will convert log messages into events and attach them
 to the currently running `Activity`.
 
+### AddBaggageProcessor
+
+Adds a log processor which will copy baggage entries to log records.
+The method takes an optional predicate to filter the copied baggage entries
+based on the entry key. If no predicate is provided, all entries are copied.
+
+Example of AddBaggageProcessor usage with a predicate:
+
+```csharp
+var regex = new Regex("^allow", RegexOptions.Compiled);
+var logRecordList = new List<LogRecord>();
+using var loggerFactory = LoggerFactory.Create(builder => builder
+.AddOpenTelemetry(options =>
+{
+    options.AddBaggageProcessor(regex.IsMatch);
+    // other set up (exporters, processors)
+})
+```
+
 ## Traces
 
 ### AutoFlushActivityProcessor
