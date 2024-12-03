@@ -71,8 +71,4 @@ internal sealed class ProcessMetrics
             unit: "{thread}",
             description: "Process threads count.");
     }
-
-    public ProcessMetrics(ProcessInstrumentationOptions options)
-    {
-    }
 }

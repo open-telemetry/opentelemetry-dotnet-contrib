@@ -42,7 +42,7 @@ public class GrpcTagHelperTests
         using var activity = new Activity("operationName");
         activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, "0");
 
-        bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
         Assert.True(validConversion);
 
         var statusCode = GrpcTagHelper.ResolveSpanStatusForGrpcStatusCode(status);
@@ -57,7 +57,7 @@ public class GrpcTagHelperTests
     {
         using var activity = new Activity("operationName");
 
-        bool validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out int status);
+        var validConversion = GrpcTagHelper.TryGetGrpcStatusCodeFromActivity(activity, out var status);
         Assert.False(validConversion);
         Assert.Equal(-1, status);
         Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));

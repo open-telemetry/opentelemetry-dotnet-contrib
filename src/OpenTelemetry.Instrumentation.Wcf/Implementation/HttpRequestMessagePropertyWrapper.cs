@@ -96,9 +96,9 @@ internal static class HttpRequestMessagePropertyWrapper
 
     private sealed class ReflectedInfo
     {
-        public Type Type;
-        public string Name;
-        public PropertyFetcher<WebHeaderCollection> HeadersFetcher;
+        public readonly Type Type;
+        public readonly string Name;
+        public readonly PropertyFetcher<WebHeaderCollection> HeadersFetcher;
 
         public ReflectedInfo(Type type, string name, PropertyFetcher<WebHeaderCollection> headersFetcher)
         {

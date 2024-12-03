@@ -50,7 +50,7 @@ public abstract class OtlpProtobufMetricExporterTests
         "ushortKey"
     ];
 
-    private TagList exemplarTagList;
+    private readonly TagList exemplarTagList;
 
     protected OtlpProtobufMetricExporterTests()
     {
@@ -1535,7 +1535,7 @@ public abstract class OtlpProtobufMetricExporterTests
             Assert.Equal(0, dataPoint.Max);
             Assert.Equal(0, dataPoint.Sum);
             Assert.Null(dataPoint.Negative);
-            Assert.True(dataPoint.Positive.Offset == 0);
+            Assert.Equal(0, dataPoint.Positive.Offset);
             Assert.Empty(dataPoint.Positive.BucketCounts);
         }
 
@@ -1685,7 +1685,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
     private class TestTransport : IMetricDataTransport
     {
-        public List<byte[]> ExportedItems = [];
+        public readonly List<byte[]> ExportedItems = [];
 
         public void SendOtlpProtobufEvent(byte[] body, int size)
         {

@@ -21,8 +21,7 @@ public static class MeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new ProcessInstrumentationOptions();
         builder.AddMeter(ProcessMetrics.MeterName);
-        return builder.AddInstrumentation(() => new ProcessMetrics(options));
+        return builder.AddInstrumentation(() => new ProcessMetrics());
     }
 }

@@ -241,7 +241,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             return;
         }
 
-        TagList tags = default(TagList);
+        var tags = default(TagList);
 
         if (activity != null && activity.IsAllDataRequested)
         {

@@ -6,9 +6,7 @@ using System.ServiceModel.Channels;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 
-#pragma warning disable CA1515 // Make class internal, public is needed for WCF
 public class DownstreamInstrumentationBindingElement : BindingElement
-#pragma warning restore CA1515 // Make class internal, public is needed for WCF
 {
     public override BindingElement Clone()
     {

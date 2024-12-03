@@ -115,10 +115,10 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesIpEndPointAsEndPoint()
     {
         long address = 1;
-        int port = 2;
+        var port = 2;
 
         var activity = new Activity("redis-profiler");
-        IPEndPoint ipLocalEndPoint = new IPEndPoint(address, port);
+        var ipLocalEndPoint = new IPEndPoint(address, port);
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, ipLocalEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());

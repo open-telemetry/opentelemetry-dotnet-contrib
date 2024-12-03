@@ -19,13 +19,7 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
         this.options = options;
     }
 
-    public string UniqueName
-    {
-        get
-        {
-            return "AWS Tracing Registration Customization";
-        }
-    }
+    public string UniqueName => "AWS Tracing Registration Customization";
 
     public void Customize(Type serviceClientType, RuntimePipeline pipeline)
     {

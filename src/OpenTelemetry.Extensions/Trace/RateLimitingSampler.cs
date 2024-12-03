@@ -28,7 +28,7 @@ public class RateLimitingSampler : Sampler
     /// <param name="maxTracesPerSecond">The maximum number of traces that will be emitted each second.</param>
     public RateLimitingSampler(int maxTracesPerSecond)
     {
-        double maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
+        var maxBalance = maxTracesPerSecond < 1.0 ? 1.0 : maxTracesPerSecond;
         this.rateLimiter = new RateLimiter(maxTracesPerSecond, maxBalance);
         var attributes = new Dictionary<string, object>()
         {
@@ -58,7 +58,7 @@ public class RateLimitingSampler : Sampler
 
     private static string DecimalFormat(double value)
     {
-        NumberFormatInfo numberFormatInfo = new NumberFormatInfo
+        var numberFormatInfo = new NumberFormatInfo
         {
             NumberDecimalSeparator = ".",
         };

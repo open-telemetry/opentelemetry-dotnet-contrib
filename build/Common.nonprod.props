@@ -4,7 +4,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.test.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1574,1591</NoWarn>
+    <NoWarn>$(NoWarn),1574,1591;CA1515</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

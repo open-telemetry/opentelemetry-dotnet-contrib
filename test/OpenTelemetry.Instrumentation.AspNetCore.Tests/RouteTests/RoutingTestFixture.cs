@@ -59,7 +59,7 @@ public class RoutingTestFixture : IAsyncLifetime
         await HttpClient.GetAsync(new Uri(url));
     }
 
-    public void AddTestResult(RoutingTestResult result)
+    internal void AddTestResult(RoutingTestResult result)
     {
         this.testResults.Add(result);
     }

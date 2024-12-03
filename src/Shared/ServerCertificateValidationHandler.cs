@@ -11,7 +11,7 @@ internal static class ServerCertificateValidationHandler
     {
         try
         {
-            ServerCertificateValidationProvider? serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile, log);
+            var serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile, log);
 
             if (serverCertificateValidationProvider == null)
             {

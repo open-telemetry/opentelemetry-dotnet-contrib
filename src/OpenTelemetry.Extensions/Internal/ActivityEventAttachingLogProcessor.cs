@@ -31,7 +31,7 @@ internal sealed class ActivityEventAttachingLogProcessor : BaseProcessor<LogReco
 
     public override void OnEnd(LogRecord data)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
 
         if (activity?.IsAllDataRequested == true)
         {

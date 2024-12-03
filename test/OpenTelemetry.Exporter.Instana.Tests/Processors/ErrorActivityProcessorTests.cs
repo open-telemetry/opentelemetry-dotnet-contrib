@@ -20,7 +20,7 @@ public class ErrorActivityProcessorTests
         var instanaSpan = new InstanaSpan();
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
-        Assert.True(instanaSpan.Ec == 1);
+        Assert.Equal(1, instanaSpan.Ec);
         Assert.NotNull(instanaSpan.Data);
         Assert.NotNull(instanaSpan.Data.data);
         Assert.Equal("Error", instanaSpan.Data.data[InstanaExporterConstants.ERROR_FIELD]);
@@ -34,7 +34,7 @@ public class ErrorActivityProcessorTests
         var instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() { HasExceptionEvent = true } };
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
-        Assert.True(instanaSpan.Ec == 1);
+        Assert.Equal(1, instanaSpan.Ec);
     }
 
     [Fact]
@@ -44,6 +44,6 @@ public class ErrorActivityProcessorTests
         var instanaSpan = new InstanaSpan() { TransformInfo = new Implementation.InstanaSpanTransformInfo() };
         await this.errorActivityProcessor.ProcessAsync(activity, instanaSpan);
 
-        Assert.True(instanaSpan.Ec == 0);
+        Assert.Equal(0, instanaSpan.Ec);
     }
 }

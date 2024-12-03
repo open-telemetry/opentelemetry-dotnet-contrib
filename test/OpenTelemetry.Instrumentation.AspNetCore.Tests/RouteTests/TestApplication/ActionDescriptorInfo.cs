@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace RouteTests.TestApplication;
 
-public class ActionDescriptorInfo
+internal class ActionDescriptorInfo
 {
     public ActionDescriptorInfo()
     {
