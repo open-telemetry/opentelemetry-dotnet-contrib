@@ -22,7 +22,7 @@ internal class SqlTestData
                from emitNewAttributes in bools
                from tracingEnabled in bools
                from metricsEnabled in bools
-               where emitOldAttributes != false && emitNewAttributes != false
+               where emitOldAttributes && emitNewAttributes
                let endCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
                    ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
                    : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand

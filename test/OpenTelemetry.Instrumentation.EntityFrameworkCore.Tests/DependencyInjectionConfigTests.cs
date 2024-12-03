@@ -15,7 +15,7 @@ public class DependencyInjectionConfigTests
     [InlineData("CustomName")]
     public async Task TestTracingOptionsDiConfig(string? name)
     {
-        bool optionsPickedFromDi = false;
+        var optionsPickedFromDi = false;
 
         var services = new ServiceCollection();
 

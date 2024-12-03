@@ -115,9 +115,9 @@ internal static class AspNetParentSpanCorrector
 
     private sealed class ReflectedInfo
     {
-        public Action<NameValueCollection, bool> SetHeadersReadOnly;
-        public Func<TextMapPropagator> GetTelemetryHttpModulePropagator;
-        public Func<object> SubscribeToOnRequestStartedCallback;
+        public readonly Action<NameValueCollection, bool> SetHeadersReadOnly;
+        public readonly Func<TextMapPropagator> GetTelemetryHttpModulePropagator;
+        public readonly Func<object> SubscribeToOnRequestStartedCallback;
 
         public ReflectedInfo(
             Action<NameValueCollection, bool> setHeadersReadOnly,

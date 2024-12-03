@@ -539,7 +539,7 @@ public class SqlClientTests : IDisposable
 
         if (activity != null)
         {
-            var count = metricPoint.GetHistogramCount();
+            _ = metricPoint.GetHistogramCount();
             var sum = metricPoint.GetHistogramSum();
             Assert.Equal(activity.Duration.TotalSeconds, sum);
         }

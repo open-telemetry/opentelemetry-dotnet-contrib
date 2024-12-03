@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace RouteTests.TestApplication;
 
-public class RouteInfo
+internal class RouteInfo
 {
     public static RouteInfo Current { get; set; } = new();
 

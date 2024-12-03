@@ -25,10 +25,7 @@ public class GenevaMetricExporterOptions
     /// </summary>
     public int MetricExportIntervalMilliseconds
     {
-        get
-        {
-            return this.metricExporterIntervalMilliseconds;
-        }
+        get => this.metricExporterIntervalMilliseconds;
 
         set
         {
@@ -43,10 +40,7 @@ public class GenevaMetricExporterOptions
     /// </summary>
     public IReadOnlyDictionary<string, object>? PrepopulatedMetricDimensions
     {
-        get
-        {
-            return this.prepopulatedMetricDimensions;
-        }
+        get => this.prepopulatedMetricDimensions;
 
         set
         {
