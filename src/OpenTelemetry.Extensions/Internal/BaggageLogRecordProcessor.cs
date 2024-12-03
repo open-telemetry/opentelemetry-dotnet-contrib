@@ -18,7 +18,7 @@ internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
 
     public override void OnEnd(LogRecord data)
     {
-        if (data != null)
+        if (data != null && Baggage.Current.Count > 0)
         {
             var attributes = new List<KeyValuePair<string, object?>>();
 
