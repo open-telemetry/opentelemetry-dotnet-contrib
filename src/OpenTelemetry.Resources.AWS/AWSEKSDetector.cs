@@ -41,7 +41,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
             .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
             .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEks)
             .AddAttributeK8SClusterName(clusterName)
-            .AddAttributeContainerID(containerId);
+            .AddAttributeContainerId(containerId);
 
         return resourceAttributes;
     }
