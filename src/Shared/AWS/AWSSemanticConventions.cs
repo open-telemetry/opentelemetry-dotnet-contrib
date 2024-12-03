@@ -21,16 +21,16 @@ namespace OpenTelemetry.AWS;
 public enum SemanticConventionVersion
 {
     /// <summary>
-    /// Pin to the specific state of all Semantic Conventions as of the 0.10 release of this library.
+    /// Pin to the specific state of all Semantic Conventions as of the 1.10 release of this library.
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.27.0
     /// </summary>
-    v0_10_EXPERIMENTAL,
+    v1_10_EXPERIMENTAL,
 
     /// <summary>
-    /// Pin to the specific state of all Semantic Conventions as of the 0.11 release of this library.
+    /// Pin to the specific state of all Semantic Conventions as of the 1.11 release of this library.
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.29.0
     /// </summary>
-    v0_11_EXPERIMENTAL,
+    v1_11_EXPERIMENTAL,
 
     /// <summary>
     /// Use Experimental Conventions until they become stable and then pin to stable.
@@ -88,34 +88,36 @@ internal static class AWSSemanticConventions
     // DB Attributes
     /// <inheritdoc cref="DbAttributes.AttributeDbSystem"/>
     private static readonly Func<Ver, string> AttributeDbSystem = (_) => "db.system";
+    /// <inheritdoc cref="DbAttributes.DbSystemValues.Dynamodb"/>
+    private static readonly Func<Ver, string> AttributeDynamoDb = (_) => "dynamodb";
 
     // AWS Attributes
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsContainerArn"/>
-    private static readonly Func<Ver, string> AttributeEcsContainerArn = (_) => AwsAttributes.AttributeAwsEcsContainerArn;
+    private static readonly Func<Ver, string> AttributeEcsContainerArn = (_) => "aws.ecs.container.arn";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsClusterArn"/>
-    private static readonly Func<Ver, string> AttributeEcsClusterArn = (_) => AwsAttributes.AttributeAwsEcsClusterArn;
+    private static readonly Func<Ver, string> AttributeEcsClusterArn = (_) => "aws.ecs.cluster.arn";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsLaunchtype"/>
-    private static readonly Func<Ver, string> AttributeEcsLaunchtype = (_) => AwsAttributes.AttributeAwsEcsLaunchtype;
+    private static readonly Func<Ver, string> AttributeEcsLaunchtype = (_) => "aws.ecs.launchtype";
     /// <inheritdoc cref="AwsAttributes.AwsEcsLaunchtypeValues.Ec2"/>
-    private static readonly Func<Ver, string> ValueEcsLaunchTypeEc2 = (_) => AwsAttributes.AwsEcsLaunchtypeValues.Ec2;
+    private static readonly Func<Ver, string> ValueEcsLaunchTypeEc2 = (_) => "ec2";
     /// <inheritdoc cref="AwsAttributes.AwsEcsLaunchtypeValues.Fargate"/>
-    private static readonly Func<Ver, string> ValueEcsLaunchTypeFargate = (_) => AwsAttributes.AwsEcsLaunchtypeValues.Fargate;
+    private static readonly Func<Ver, string> ValueEcsLaunchTypeFargate = (_) => "fargate";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsTaskArn"/>
-    private static readonly Func<Ver, string> AttributeEcsTaskArn = (_) => AwsAttributes.AttributeAwsEcsTaskArn;
+    private static readonly Func<Ver, string> AttributeEcsTaskArn = (_) => "aws.ecs.task.arn";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsTaskFamily"/>
-    private static readonly Func<Ver, string> AttributeEcsTaskFamily = (_) => AwsAttributes.AttributeAwsEcsTaskFamily;
+    private static readonly Func<Ver, string> AttributeEcsTaskFamily = (_) => "aws.ecs.task.family";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsEcsTaskRevision"/>
-    private static readonly Func<Ver, string> AttributeEcsTaskRevision = (_) => AwsAttributes.AttributeAwsEcsTaskRevision;
+    private static readonly Func<Ver, string> AttributeEcsTaskRevision = (_) => "aws.ecs.task.revision";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsLogGroupNames"/>
-    private static readonly Func<Ver, string> AttributeLogGroupNames = (_) => AwsAttributes.AttributeAwsLogGroupNames;
+    private static readonly Func<Ver, string> AttributeLogGroupNames = (_) => "aws.log.group.names";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsLogGroupArns"/>
-    private static readonly Func<Ver, string> AttributeLogGroupArns = (_) => AwsAttributes.AttributeAwsLogGroupArns;
+    private static readonly Func<Ver, string> AttributeLogGroupArns = (_) => "aws.log.group.arns";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsLogStreamArns"/>
-    private static readonly Func<Ver, string> AttributeLogStreamNames = (_) => AwsAttributes.AttributeAwsLogStreamArns;
+    private static readonly Func<Ver, string> AttributeLogStreamNames = (_) => "aws.log.stream.arns";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsLogStreamNames"/>
-    private static readonly Func<Ver, string> AttributeLogStreamArns = (_) => AwsAttributes.AttributeAwsLogStreamNames;
+    private static readonly Func<Ver, string> AttributeLogStreamArns = (_) => "aws.log.stream.names";
     /// <inheritdoc cref="AwsAttributes.AttributeAwsDynamodbTableNames"/>
-    private static readonly Func<Ver, string> AttributeAWSDynamoTableName = (_) => AwsAttributes.AttributeAwsDynamodbTableNames;
+    private static readonly Func<Ver, string> AttributeAWSDynamoTableName = (_) => "aws.dynamodb.table_names";
     /// <inheritdoc cref="AwsAttributes."/>
     private static readonly Func<Ver, string> AttributeAWSSQSQueueUrl = (_) => "aws.queue_url"; // todo - confirm in java;
     /// <inheritdoc cref="AwsAttributes."/>
@@ -129,100 +131,121 @@ internal static class AWSSemanticConventions
     /// <inheritdoc cref="AwsAttributes."/>
     private static readonly Func<Ver, string> AttributeAWSBedrock = (v) => v switch
     {
-        SemanticConventionVersion.v0_10_EXPERIMENTAL => "aws_bedrock",
+        SemanticConventionVersion.v1_10_EXPERIMENTAL => "aws_bedrock",
         _ => "aws.bedrock", //v1.29
     };
 
     // FAAS Attributes
     /// <inheritdoc cref="CloudAttributes.AttributeCloudResourceId"/>
-    private static readonly Func<Ver, string> AttributeFaasID = (_) => CloudAttributes.AttributeCloudResourceId;
+    private static readonly Func<Ver, string> AttributeFaasID = (_) => "cloud.resource_id";
     /// <inheritdoc cref="FaasAttributes.AttributeFaasInvocationId"/>
-    private static readonly Func<Ver, string> AttributeFaasExecution = (_) => FaasAttributes.AttributeFaasInvocationId;
+    private static readonly Func<Ver, string> AttributeFaasExecution = (_) => "faas.invocation_id";
     /// <inheritdoc cref="FaasAttributes.AttributeFaasName"/>
-    private static readonly Func<Ver, string> AttributeFaasName = (_) => FaasAttributes.AttributeFaasName;
+    private static readonly Func<Ver, string> AttributeFaasName = (_) => "faas.name";
     /// <inheritdoc cref="FaasAttributes.AttributeFaasVersion"/>
-    private static readonly Func<Ver, string> AttributeFaasVersion = (_) => FaasAttributes.AttributeFaasVersion;
+    private static readonly Func<Ver, string> AttributeFaasVersion = (_) => "faas.version";
     /// <inheritdoc cref="FaasAttributes.AttributeFaasTrigger"/>
-    private static readonly Func<Ver, string> AttributeFaasTrigger = (_) => FaasAttributes.AttributeFaasTrigger;
+    private static readonly Func<Ver, string> AttributeFaasTrigger = (_) => "faas.trigger";
     /// <inheritdoc cref="FaasAttributes.AttributeFaasColdstart"/>
-    private static readonly Func<Ver, string> AttributeFaasColdStart = (_) => FaasAttributes.AttributeFaasColdstart;
+    private static readonly Func<Ver, string> AttributeFaasColdStart = (_) => "faas.coldstart";
 
     // GEN AI Attributes
     /// <inheritdoc cref="GenAiAttributes.AttributeGenAiRequestModel"/>
-    private static readonly Func<Ver, string> AttributeGenAiModelId = (_) => GenAiAttributes.AttributeGenAiRequestModel;
+    private static readonly Func<Ver, string> AttributeGenAiModelId = (_) => "gen_ai.request.model";
     /// <inheritdoc cref="GenAiAttributes.AttributeGenAiSystem"/>
-    private static readonly Func<Ver, string> AttributeGenAiSystem = (_) => GenAiAttributes.AttributeGenAiSystem;
+    private static readonly Func<Ver, string> AttributeGenAiSystem = (_) => "gen_ai.system";
 
     // HOST Attributes
     /// <inheritdoc cref="HostAttributes.AttributeHostId"/>
-    private static readonly Func<Ver, string> AttributeHostID = (_) => HostAttributes.AttributeHostId;
+    private static readonly Func<Ver, string> AttributeHostID = (_) => "host.id";
     /// <inheritdoc cref="HostAttributes.AttributeHostType"/>
-    private static readonly Func<Ver, string> AttributeHostType = (_) => HostAttributes.AttributeHostType;
+    private static readonly Func<Ver, string> AttributeHostType = (_) => "host.type";
     /// <inheritdoc cref="HostAttributes.AttributeHostName"/>
-    private static readonly Func<Ver, string> AttributeHostName = (_) => HostAttributes.AttributeHostName;
+    private static readonly Func<Ver, string> AttributeHostName = (_) => "host.name";
 
     // Http Attributes
     /// <inheritdoc cref="HttpAttributes.AttributeHttpStatusCode"/>
     private static readonly Func<Ver, string> AttributeHttpStatusCode = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => "http.status_code",
+        Ver.v1_10_EXPERIMENTAL => "http.status_code",
         _ => AttributeHttpResponseStatusCode(v), // replaced with http response status code
     };
     /// <inheritdoc cref="HttpAttributes.AttributeHttpResponseStatusCode"/>
-    private static readonly Func<Ver, string> AttributeHttpResponseStatusCode = (_) => HttpAttributes.AttributeHttpResponseStatusCode;
+    private static readonly Func<Ver, string> AttributeHttpResponseStatusCode = (_) => "http.response.status_code";
     /// <inheritdoc cref="HttpAttributes.AttributeHttpScheme"/>
     private static readonly Func<Ver, string> AttributeHttpScheme = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => "http.scheme",
+        Ver.v1_10_EXPERIMENTAL => "http.scheme",
         _ => AttributeUrlScheme(v), // replaced with url scheme
     };
     /// <inheritdoc cref="HttpAttributes.AttributeHttpTarget"/>
     private static readonly Func<Ver, string> AttributeHttpTarget = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => "http.target",
+        Ver.v1_10_EXPERIMENTAL => "http.target",
         _ => string.Empty, // value no longer written
     };
-    /// <inheritdoc cref="HostAttributes.AttributeHostId"/>
-    private static readonly Func<Ver, string> AttributeHttpMethod = (_) => HttpAttributes.AttributeHttpMethod;
+    /// <inheritdoc cref="HttpAttributes.AttributeHttpMethod"/>
+    private static readonly Func<Ver, string> AttributeHttpMethod = (v) => v switch
+    {
+        Ver.v1_10_EXPERIMENTAL => "http.method",
+        _ => AttributeHttpRequestMethod(v), // replaced with http request method
+    };
+    /// <inheritdoc cref="HttpAttributes.AttributeHttpRequestMethod"/>
+    private static readonly Func<Ver, string> AttributeHttpRequestMethod = (_) => "http.request.method";
+
 
     // NET Attributes
     /// <inheritdoc cref="NetAttributes.AttributeNetHostName"/>
-    private static readonly Func<Ver, string> AttributeNetHostName = (_) => NetAttributes.AttributeNetHostName;
+    private static readonly Func<Ver, string> AttributeNetHostName = (v) => v switch
+    {
+        Ver.v1_10_EXPERIMENTAL => "net.host.name",
+        _ => AttributeServerAddress(v), // replaced with server address
+    };
     /// <inheritdoc cref="NetAttributes.AttributeNetHostPort"/>
-    private static readonly Func<Ver, string> AttributeNetHostPort = (_) => NetAttributes.AttributeNetHostPort;
+    private static readonly Func<Ver, string> AttributeNetHostPort = (v) => v switch
+    {
+        Ver.v1_10_EXPERIMENTAL => "net.host.port",
+        _ => AttributeServerPort(v), // replaced with server port
+    };
+
+    // SERVER Attributes
+    /// <inheritdoc cref="ServerAttributes.AttributeServerAddress"/>
+    private static readonly Func<Ver, string> AttributeServerAddress = (_) => "server.address";
+    /// <inheritdoc cref="ServerAttributes.AttributeServerPort"/>
+    private static readonly Func<Ver, string> AttributeServerPort = (_) => "server.port";
 
     // K8s Attributes
     /// <inheritdoc cref="K8sAttributes.AttributeK8sClusterName"/>
-    private static readonly Func<Ver, string> AttributeK8SClusterName = (_) => K8sAttributes.AttributeK8sClusterName;
+    private static readonly Func<Ver, string> AttributeK8SClusterName = (_) => "k8s.cluster.name";
 
     // SERVICE Attributes
     /// <inheritdoc cref="ServiceAttributes.AttributeServiceName"/>
-    private static readonly Func<Ver, string> AttributeServiceName = (_) => ServiceAttributes.AttributeServiceName;
+    private static readonly Func<Ver, string> AttributeServiceName = (_) => "service.name";
     /// <inheritdoc cref="ServiceAttributes.AttributeServiceNamespace"/>
-    private static readonly Func<Ver, string> AttributeServiceNamespace = (_) => ServiceAttributes.AttributeServiceNamespace;
+    private static readonly Func<Ver, string> AttributeServiceNamespace = (_) => "service.namespace";
     /// <inheritdoc cref="ServiceAttributes.AttributeServiceInstanceId"/>
-    private static readonly Func<Ver, string> AttributeServiceInstanceID = (_) => ServiceAttributes.AttributeServiceInstanceId;
+    private static readonly Func<Ver, string> AttributeServiceInstanceID = (_) => "service.instance.id";
     /// <inheritdoc cref="ServiceAttributes.AttributeServiceVersion"/>
-    private static readonly Func<Ver, string> AttributeServiceVersion = (_) => ServiceAttributes.AttributeServiceVersion;
+    private static readonly Func<Ver, string> AttributeServiceVersion = (_) => "service.version";
     public static string ServiceNameValuesAwsElasticBeanstalk = "aws_elastic_beanstalk";
 
     // URL Attributes
     /// <inheritdoc cref="UrlAttributes.AttributeUrlPath"/>
     private static readonly Func<Ver, string> AttributeUrlPath = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => string.Empty, //not used in v0.10
+        Ver.v1_10_EXPERIMENTAL => string.Empty, //not used in v1.10
         _ => "url.path",
     };
     /// <inheritdoc cref="UrlAttributes.AttributeUrlQuery"/>
     private static readonly Func<Ver, string> AttributeUrlQuery = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => string.Empty, //not used in v0.10
+        Ver.v1_10_EXPERIMENTAL => string.Empty, //not used in v1.10
         _ => "url.query",
     };
     /// <inheritdoc cref="UrlAttributes.AttributeUrlScheme"/>
     private static readonly Func<Ver, string> AttributeUrlScheme = (v) => v switch
     {
-        Ver.v0_10_EXPERIMENTAL => string.Empty, //not used in v0.10
+        Ver.v1_10_EXPERIMENTAL => string.Empty, //not used in v1.10
         _ => "url.scheme",
     };
 
@@ -281,10 +304,10 @@ internal static class AWSSemanticConventions
     #region AWS
     /// <inheritdoc cref="AttributeDbSystem"/>
     public static Activity? SetTagAttributeDbSystemToDynamoDb(this Activity? activity)
-        => SetTag(activity, AttributeDbSystem, DbAttributes.DbSystemValues.Dynamodb); // <---- todo
+        => SetTag(activity, AttributeDbSystem, AttributeDynamoDb);
     /// <inheritdoc cref="AttributeGenAiSystem"/>
     public static Activity? SetTagAttributeGenAiSystemToBedrock(this Activity? activity)
-        => SetTag(activity, AttributeGenAiSystem, AttributeAWSBedrock(SemanticConventionVersion));
+        => SetTag(activity, AttributeGenAiSystem, AttributeAWSBedrock);
     /// <inheritdoc cref="AttributeEcsContainerArn"/>
     public static T AddAttributeEcsContainerArn<T>(this T attributes, object? value, bool addIfNull = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, AttributeEcsContainerArn, value, addIfNull);
@@ -427,6 +450,9 @@ internal static class AWSSemanticConventions
 
         return attributes;
     }
+
+    private static Activity? SetTag(this Activity? activity, Func<Ver, string> attributeNameFunc, Func<Ver, object?> valueFunc) =>
+        SetTag(activity, attributeNameFunc, valueFunc(SemanticConventionVersion));
 
     private static Activity? SetTag(this Activity? activity, Func<Ver, string> attributeNameFunc, object? value)
     {
