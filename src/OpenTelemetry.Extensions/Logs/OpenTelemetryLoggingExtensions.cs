@@ -43,6 +43,9 @@ public static class OpenTelemetryLoggingExtensions
     /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="BaggageLogRecordProcessor"/> to.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="loggerOptions"/> is <c>null</c>.</exception>
+    /// <remarks>
+    /// Copies all current baggage entries to log record attributes.
+    /// </remarks>
     public static OpenTelemetryLoggerOptions AddBaggageProcessor(
         this OpenTelemetryLoggerOptions loggerOptions)
     {
@@ -57,6 +60,10 @@ public static class OpenTelemetryLoggingExtensions
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="loggerOptions"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="baggageKeyPredicate"/> is <c>null</c>.</exception>
+    /// <remarks>
+    /// Conditionally copies current baggage entries to log record attributes.
+    /// In case of an exception the predicate is treated as false, and the baggage entry will not be copied.
+    /// </remarks>
     public static OpenTelemetryLoggerOptions AddBaggageProcessor(
         this OpenTelemetryLoggerOptions loggerOptions,
         Predicate<string> baggageKeyPredicate)
