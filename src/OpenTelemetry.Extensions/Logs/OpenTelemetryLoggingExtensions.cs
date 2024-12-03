@@ -38,7 +38,9 @@ public static class OpenTelemetryLoggingExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="BaggageLogRecordProcessor"/> to the <see cref="OpenTelemetryLoggerOptions"/>.
+    /// Adds a <see cref="LogRecord"/> processor to the OpenTelemetry <see
+    /// cref="OpenTelemetryLoggerOptions"/> which will copy all
+    /// baggage entries as log record attributes.
     /// </summary>
     /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="BaggageLogRecordProcessor"/> to.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
@@ -53,7 +55,9 @@ public static class OpenTelemetryLoggingExtensions
     }
 
     /// <summary>
-    /// Adds the <see cref="BaggageLogRecordProcessor"/> to the <see cref="OpenTelemetryLoggerOptions"/>.
+    /// Adds a <see cref="LogRecord"/> processor to the OpenTelemetry <see
+    /// cref="OpenTelemetryLoggerOptions"/> which will conditionally copy
+    /// baggage entries as log record attributes.
     /// </summary>
     /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="BaggageLogRecordProcessor"/> to.</param>
     /// <param name="baggageKeyPredicate">Predicate to determine which baggage keys should be added to the log record.</param>

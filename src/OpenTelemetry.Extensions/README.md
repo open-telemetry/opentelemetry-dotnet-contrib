@@ -39,6 +39,10 @@ using var loggerFactory = LoggerFactory.Create(builder => builder
 })
 ```
 
+Warning: The baggage key predicate is executed for every baggage entry for each
+log record.
+Do not use slow or intensive operations.
+
 ## Traces
 
 ### AutoFlushActivityProcessor
