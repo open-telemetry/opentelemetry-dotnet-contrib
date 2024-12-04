@@ -46,8 +46,8 @@ internal sealed class AWSEC2Detector : IResourceDetector
     {
         var resourceAttributes =
             new List<KeyValuePair<string, object>>()
-                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
-                .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEc2)
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEc2()
                 .AddAttributeHostName(hostName)
                 .AddAttributeCloudAccountID(identity?.AccountId)
                 .AddAttributeCloudAvailabilityZone(identity?.AvailabilityZone)

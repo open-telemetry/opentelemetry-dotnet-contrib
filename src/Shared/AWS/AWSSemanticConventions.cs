@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using OpenTelemetry.SemanticConventions;
 
+/*
 using Ver = OpenTelemetry.AWS.SemanticConventionVersion;
 
 // disable Style Warnings to improve readability of this specific file.
@@ -53,6 +54,7 @@ public enum SemanticConventionVersion
 /// <para />
 /// On the next major version bump, cease emitting out-of-date Attributes.
 /// </summary>
+ 
 internal static class AWSSemanticConventions
 {
     public static SemanticConventionVersion SemanticConventionVersion { get; set; }
@@ -319,10 +321,10 @@ internal static class AWSSemanticConventions
         where T : IList<KeyValuePair<string, object>> => Add(attributes, AttributeEcsLaunchtype, value, addIfNull);
     /// <inheritdoc cref="AddAttributeEcsLaunchtype{T}"/>
     public static T AddAttributeEcsLaunchtypeIsEc2<T>(this T attributes)
-        where T : IList<KeyValuePair<string, object>> => AddAttributeEcsLaunchtype(attributes, AWSSemanticConventions.ValueEcsLaunchTypeEc2);
+        where T : IList<KeyValuePair<string, object>> => AddAttributeEcsLaunchtype(attributes, ValueEcsLaunchTypeEc2);
     /// <inheritdoc cref="AddAttributeEcsLaunchtype{T}"/>
     public static T AddAttributeEcsLaunchtypeIsFargate<T>(this T attributes)
-        where T : IList<KeyValuePair<string, object>> => AddAttributeEcsLaunchtype(attributes, AWSSemanticConventions.ValueEcsLaunchTypeFargate);
+        where T : IList<KeyValuePair<string, object>> => AddAttributeEcsLaunchtype(attributes, ValueEcsLaunchTypeFargate);
     /// <inheritdoc cref="AttributeEcsTaskArn"/>
     public static T AddAttributeEcsTaskArn<T>(this T attributes, object? value, bool addIfNull = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, AttributeEcsTaskArn, value, addIfNull);
@@ -441,7 +443,7 @@ internal static class AWSSemanticConventions
 
         // if attributeName is empty or there is no value, exit
         if (string.IsNullOrEmpty(attributeName) ||
-           (string.IsNullOrEmpty(value?.ToString()) && !addIfNull))
+           (value == null && !addIfNull))
         {
             return attributes;
         }
@@ -475,3 +477,4 @@ internal static class AWSSemanticConventions
         return dict;
     }
 }
+    */

@@ -31,8 +31,8 @@ internal sealed class AWSECSDetector : IResourceDetector
 
         var resourceAttributes =
             new List<KeyValuePair<string, object>>()
-                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
-                .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEcs);
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEcs();
         try
         {
             var containerId = GetECSContainerId(AWSECSMetadataPath);

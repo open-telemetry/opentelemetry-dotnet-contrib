@@ -16,7 +16,7 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
     {
         var resourceAttributes =
             new List<KeyValuePair<string, object>>(4)
-                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
+                .AddAttributeCloudProviderIsAWS()
                 .AddAttributeCloudRegion(AWSLambdaUtils.GetAWSRegion())
                 .AddAttributeFaasName(AWSLambdaUtils.GetFunctionName())
                 .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion());

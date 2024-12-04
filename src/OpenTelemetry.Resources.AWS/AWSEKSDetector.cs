@@ -38,8 +38,8 @@ internal sealed class AWSEKSDetector : IResourceDetector
     internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
-            .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
-            .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsEks)
+            .AddAttributeCloudProviderIsAWS()
+            .AddAttributeCloudPlatformIsAwsEks()
             .AddAttributeK8SClusterName(clusterName)
             .AddAttributeContainerId(containerId);
 
