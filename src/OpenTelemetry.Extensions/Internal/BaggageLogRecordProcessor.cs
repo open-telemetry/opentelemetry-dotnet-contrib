@@ -20,7 +20,8 @@ internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
     {
         if (data != null && Baggage.Current.Count > 0)
         {
-            var attributes = new List<KeyValuePair<string, object?>>();
+            var capacity = (data.Attributes?.Count ?? 0) + Baggage.Current.Count;
+            var attributes = new List<KeyValuePair<string, object?>>(capacity);
 
             foreach (var entry in Baggage.Current)
             {
