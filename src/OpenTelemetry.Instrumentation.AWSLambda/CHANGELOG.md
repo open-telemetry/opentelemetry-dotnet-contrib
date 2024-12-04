@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Following tags will be not added to spans when the exception is recorder:
+  `otel.status_code` and `otel.status_description`. Both values are handled natively.
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
+
 ## 1.10.0-beta.1
 
 Released 2024-Nov-23
