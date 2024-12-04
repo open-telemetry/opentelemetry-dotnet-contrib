@@ -155,7 +155,7 @@ public partial class HttpWebRequestTests
 
         if (tc.RecordException.HasValue && tc.RecordException.Value)
         {
-            Assert.Single(activity.Events.Where(evt => evt.Name.Equals("exception")));
+            Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));
             Assert.True(enrichWithExceptionCalled);
         }
     }
