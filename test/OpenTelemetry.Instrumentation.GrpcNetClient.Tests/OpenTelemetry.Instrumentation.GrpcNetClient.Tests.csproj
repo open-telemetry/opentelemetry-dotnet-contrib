@@ -4,7 +4,6 @@
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry Grpc for .NET instrumentation.</Description>
-    <NoWarn>$(NoWarn);CS8981</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,12 +14,12 @@
     <PackageReference Include="Google.Protobuf" Version="[3.22.5,4.0)" />
     <PackageReference Include="Grpc.AspNetCore.Server" Version="[2.59.0, 3.0)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
     <PackageReference Include="Grpc.Net.Client" Version="[2.52.0,3.0)" />
-    <PackageReference Include="Grpc.Tools" Version="[2.59.0,3.0)" PrivateAssets="All" />
+    <PackageReference Include="Grpc.Tools" Version="[2.67.0,3.0)" PrivateAssets="All" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Extensions.Propagators" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0"/>
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.10.0"/>
   </ItemGroup>
 
   <ItemGroup>

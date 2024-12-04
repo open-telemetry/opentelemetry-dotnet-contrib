@@ -150,7 +150,7 @@ public partial class HttpWebRequestTests : IDisposable
 
             using var response = await request.GetResponseAsync();
 
-            Assert.Single(inMemoryEventListener.Events.Where(e => e.EventId == 4));
+            Assert.Single(inMemoryEventListener.Events, e => e.EventId == 4);
         }
 
         Assert.Empty(exportedItems);
@@ -327,7 +327,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
-        Assert.Single(exportedItems[0].Events.Where(evt => evt.Name.Equals("exception")));
+        Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public partial class HttpWebRequestTests : IDisposable
 #if NETFRAMEWORK
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
-        Assert.Single(exportedItems[0].Events.Where(evt => evt.Name.Equals("exception")));
+        Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
 #else
         // Note: On .NET Core exceptions through HttpWebRequest do not
         // trigger exception events they just throw:
