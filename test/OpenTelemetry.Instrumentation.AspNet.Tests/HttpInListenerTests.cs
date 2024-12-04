@@ -156,7 +156,7 @@ public class HttpInListenerTests
 
                 if (filter == "{ThrowException}")
                 {
-                    Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 2));
+                    Assert.Single(inMemoryEventListener.Events, e => e.EventId == 2);
                 }
 
                 Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current!.OperationName);
