@@ -129,8 +129,8 @@ public sealed class BasicTests
 
         if (shouldEnrich)
         {
-            Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enrichedOnStart" && tag.Value == "yes"));
-            Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enrichedOnStop" && tag.Value == "yes"));
+            Assert.Contains(activity.Tags, tag => tag.Key == "enrichedOnStart" && tag.Value == "yes");
+            Assert.Contains(activity.Tags, tag => tag.Key == "enrichedOnStop" && tag.Value == "yes");
         }
 
         ValidateAspNetCoreActivity(activity, "/api/values");
@@ -321,7 +321,7 @@ public sealed class BasicTests
 
                 response1.EnsureSuccessStatusCode(); // Status Code 200-299
                 response2.EnsureSuccessStatusCode(); // Status Code 200-299
-                Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 3));
+                Assert.Single(inMemoryEventListener.Events, e => e.EventId == 3);
             }
 
             WaitForActivityExport(exportedItems, 1);

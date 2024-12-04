@@ -54,7 +54,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
 
         switch (name)
         {
@@ -239,6 +239,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                                 case CommandType.TableDirect:
                                     break;
+                                default:
+                                    break;
                             }
                         }
 
@@ -311,6 +313,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
                 }
 
+                break;
+            default:
                 break;
         }
     }

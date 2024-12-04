@@ -7,9 +7,7 @@ namespace Examples.GrpcCore.AspNetCore.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-#pragma warning disable CA1515
 public class WeatherForecastController : ControllerBase
-#pragma warning restore CA1515
 {
     private static readonly string[] Summaries =
     [

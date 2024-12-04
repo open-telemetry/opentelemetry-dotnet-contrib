@@ -18,7 +18,7 @@ internal static class Program
             .AddZipkinExporter()
             .Build();
 
-        ServiceHost serviceHost = new ServiceHost(typeof(StatusService));
+        var serviceHost = new ServiceHost(typeof(StatusService));
         serviceHost.Open();
 
         Console.WriteLine("Service listening. Press enter to exit.");

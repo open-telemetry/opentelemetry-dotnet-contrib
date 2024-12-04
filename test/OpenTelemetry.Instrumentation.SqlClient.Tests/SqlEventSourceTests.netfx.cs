@@ -42,10 +42,10 @@ public class SqlEventSourceTests
                from emitNewAttributes in bools
                from tracingEnabled in bools
                from metricsEnabled in bools
-               where !(commandType == CommandType.Text && captureText == true)
-               where emitOldAttributes != false && emitNewAttributes != false
+               where !(commandType == CommandType.Text && captureText)
+               where emitOldAttributes && emitNewAttributes
                let commandText = commandType == CommandType.Text
-                   ? (isFailure == false ? "select 1/1" : "select 1/0")
+                   ? (!isFailure ? "select 1/1" : "select 1/0")
                    : "sp_who"
                let sqlExceptionNumber = 0
                select new object[]

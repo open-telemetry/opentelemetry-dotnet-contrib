@@ -75,7 +75,7 @@ public class HttpInListenerTests
 
             typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, new TestHttpWorkerRequest());
 
-            List<Activity> exportedItems = new List<Activity>(16);
+            var exportedItems = new List<Activity>(16);
 
             Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
             using (Sdk.CreateTracerProviderBuilder()
@@ -156,7 +156,7 @@ public class HttpInListenerTests
 
                 if (filter == "{ThrowException}")
                 {
-                    Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 2));
+                    Assert.Single(inMemoryEventListener.Events, e => e.EventId == 2);
                 }
 
                 Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current!.OperationName);
@@ -177,7 +177,7 @@ public class HttpInListenerTests
 
             Assert.Single(exportedItems);
 
-            Activity span = exportedItems[0];
+            var span = exportedItems[0];
 
             Assert.Equal(TelemetryHttpModule.AspNetActivityName, span.OperationName);
             Assert.NotEqual(TimeSpan.Zero, span.Duration);
@@ -248,7 +248,7 @@ public class HttpInListenerTests
             },
             new HttpResponse(new StringWriter()));
 
-        bool isPropagatorCalled = false;
+        var isPropagatorCalled = false;
         var propagator = new TestTextMapPropagator
         {
             Extracted = () => isPropagatorCalled = true,
@@ -281,13 +281,13 @@ public class HttpInListenerTests
             },
             new HttpResponse(new StringWriter()));
 
-        bool isPropagatorCalled = false;
+        var isPropagatorCalled = false;
         var propagator = new TestTextMapPropagator
         {
             Extracted = () => isPropagatorCalled = true,
         };
 
-        bool isFilterCalled = false;
+        var isFilterCalled = false;
         var activityProcessor = new TestActivityProcessor();
         Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()

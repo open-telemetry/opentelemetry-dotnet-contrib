@@ -9,18 +9,17 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 internal class TelemetryMessageHeader : MessageHeader
 {
     private const string NAMESPACE = "https://www.w3.org/TR/trace-context/";
-    private string name;
-    private string value;
+    private readonly string name;
 
     private TelemetryMessageHeader(string name, string value)
     {
         this.name = name;
-        this.value = value;
+        this.Value = value;
     }
 
     public override string Name => this.name;
 
-    public string Value => this.value;
+    public string Value { get; }
 
     public override string Namespace => NAMESPACE;
 
@@ -51,6 +50,6 @@ internal class TelemetryMessageHeader : MessageHeader
 
     protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
     {
-        writer.WriteString(this.value);
+        writer.WriteString(this.Value);
     }
 }

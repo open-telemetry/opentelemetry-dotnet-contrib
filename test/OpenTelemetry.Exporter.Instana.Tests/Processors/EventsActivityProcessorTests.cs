@@ -37,19 +37,19 @@ public class EventsActivityProcessorTests
         }
 
         Assert.NotNull(instanaSpan.Data?.Events);
-        Assert.True(instanaSpan.Ec == 0);
-        Assert.True(instanaSpan.Data.Events.Count == 2);
-        Assert.True(instanaSpan.Data.Events[0].Name == "testActivityEvent");
+        Assert.Equal(0, instanaSpan.Ec);
+        Assert.Equal(2, instanaSpan.Data.Events.Count);
+        Assert.Equal("testActivityEvent", instanaSpan.Data.Events[0].Name);
         Assert.True(instanaSpan.Data.Events[0].Ts > 0);
         Assert.NotNull(instanaSpan.Data?.Events[0]?.Tags);
         var eventTagValue = string.Empty;
         _ = instanaSpan.Data.Events[0].Tags?.TryGetValue("eventTagKey", out eventTagValue);
-        Assert.True(eventTagValue == "eventTagValue");
-        Assert.True(instanaSpan.Data.Events[1].Name == "testActivityEvent2");
+        Assert.Equal("eventTagValue", eventTagValue);
+        Assert.Equal("testActivityEvent2", instanaSpan.Data.Events[1].Name);
         Assert.True(instanaSpan.Data.Events[1].Ts > 0);
         Assert.NotNull(instanaSpan.Data?.Events[1]?.Tags);
         eventTagValue = string.Empty;
         _ = instanaSpan.Data.Events[1].Tags?.TryGetValue("eventTagKey2", out eventTagValue);
-        Assert.True(eventTagValue == "eventTagValue2");
+        Assert.Equal("eventTagValue2", eventTagValue);
     }
 }
