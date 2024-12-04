@@ -57,9 +57,9 @@ internal sealed class AWSEBSDetector : IResourceDetector
     {
         var resourceAttributes =
             new List<KeyValuePair<string, object>>()
-                .AddAttributeCloudProvider(AWSSemanticConventions.CloudProviderValuesAws)
-                .AddAttributeCloudPlatform(AWSSemanticConventions.CloudPlatformValuesAwsElasticBeanstalk)
-                .AddAttributeServiceName(AWSSemanticConventions.ServiceNameValuesAwsElasticBeanstalk)
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsElasticBeanstalk()
+                .AddAttributeServiceNameIsAwsElasticBeanstalk()
                 .AddAttributeServiceNamespace(metadata?.EnvironmentName)
                 .AddAttributeServiceInstanceID(metadata?.DeploymentId)
                 .AddAttributeServiceVersion(metadata?.VersionLabel);
