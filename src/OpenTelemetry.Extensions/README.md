@@ -30,7 +30,6 @@ Example of AddBaggageProcessor usage with a predicate:
 
 ```csharp
 var regex = new Regex("^allow", RegexOptions.Compiled);
-var logRecordList = new List<LogRecord>();
 using var loggerFactory = LoggerFactory.Create(builder => builder
 .AddOpenTelemetry(options =>
 {
