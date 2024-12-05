@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET
-using OpenTelemetry.Instrumentation.AspNetCore;
-using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
-#endif
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Metrics;
@@ -24,25 +20,6 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-#if NET
-        return builder.ConfigureMeters();
-#else
-        // Note: Warm-up the status code and method mapping.
-        _ = TelemetryHelper.BoxedStatusCodes;
-        _ = TelemetryHelper.RequestDataHelper;
-
-        builder.AddMeter(HttpInMetricsListener.InstrumentationName);
-
-#pragma warning disable CA2000
-        builder.AddInstrumentation(new AspNetCoreMetrics());
-#pragma warning restore CA2000
-
-        return builder;
-#endif
-    }
-
-    internal static MeterProviderBuilder ConfigureMeters(this MeterProviderBuilder builder)
-    {
         return builder
              .AddMeter("Microsoft.AspNetCore.Hosting")
              .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
