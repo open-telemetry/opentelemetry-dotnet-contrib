@@ -56,9 +56,9 @@ internal sealed class AWSEBSDetector : IResourceDetector
     {
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
+            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
+            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsElasticBeanstalk),
+            new(AWSSemanticConventions.AttributeServiceName, AWSSemanticConventions.ServiceNameValuesAwsElasticBeanstalk),
         };
 
         if (metadata != null)
