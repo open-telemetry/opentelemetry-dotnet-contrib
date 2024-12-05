@@ -99,6 +99,20 @@ public class AWSXRayPropagator : TextMapPropagator
             return;
         }
 
+        if (carrier.GetType() == typeof(HttpRequestMessage))
+        {
+            var httpRequestMessage = (HttpRequestMessage)(object)carrier;
+
+            // If X-Amzn-Trace-Id already exists in the headers and the carrier is of HttpRequestMessage,
+            // This means that the request is coming from the AWS SDK Instrumentation library and in this
+            // case, we don't want to overwrite the propagation context from the AWS SDK Span with the
+            // context from the outgoing HttpRequest
+            if (httpRequestMessage.Headers.Contains(AWSXRayTraceHeaderKey))
+            {
+                return;
+            }
+        }
+
         var sb = new StringBuilder();
         sb.Append(RootKey);
         sb.Append(KeyValueDelimiter);

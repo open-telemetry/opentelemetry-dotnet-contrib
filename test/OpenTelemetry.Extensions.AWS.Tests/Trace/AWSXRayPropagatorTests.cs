@@ -28,6 +28,12 @@ public class AWSXRayPropagatorTests
 
     private readonly AWSXRayPropagator awsXRayPropagator = new();
 
+    private static Action<HttpRequestMessage, string, string> HeaderValueSetter => (request, name, value) =>
+    {
+        request.Headers.Remove(name);
+        request.Headers.Add(name, value);
+    };
+
     [Fact]
     public void TestInjectTraceHeader()
     {
@@ -46,6 +52,41 @@ public class AWSXRayPropagatorTests
     public void TestInjectTraceHeaderNotSampled()
     {
         var carrier = new Dictionary<string, string>();
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+
+        Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
+        Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0", carrier[AWSXRayTraceHeaderKey]);
+    }
+
+    [Fact]
+    public void TestInjectTraceHeaderAlreadyExists()
+    {
+        var traceIdHeader = "Root=1-00000-00000000000000000;Parent=123456789;Sampled=0";
+
+        var carrier = new HttpRequestMessage();
+        carrier.Headers.Add(AWSXRayTraceHeaderKey, traceIdHeader);
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, HeaderValueSetter);
+
+        Assert.True(carrier.Headers.Contains(AWSXRayTraceHeaderKey));
+        Assert.Equal(traceIdHeader, carrier.Headers.GetValues(AWSXRayTraceHeaderKey).FirstOrDefault());
+    }
+
+    [Fact]
+    public void TestInjectTraceHeaderAlreadyExistsButNotHttpRequestMessage()
+    {
+        var traceIdHeader = "Root=1-00000-00000000000000000;Parent=123456789;Sampled=0";
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, traceIdHeader },
+        };
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
         var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
         var traceFlags = ActivityTraceFlags.None;
