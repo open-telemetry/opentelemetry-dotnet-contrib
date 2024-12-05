@@ -12,7 +12,7 @@
   recorded (defaults to `false`). This is only supported by client instrumentation.
   ([#2271](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2271))
 
-* Following tags will be not added to spans when the request is faulted:
+* The following tags are no longer added to spans when a request is faulted:
   `otel.status_code` and `otel.status_description`. Both values are handled natively.
   ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
 

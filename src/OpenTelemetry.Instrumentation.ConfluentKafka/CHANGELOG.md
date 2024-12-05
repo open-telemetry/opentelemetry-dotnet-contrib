@@ -9,7 +9,7 @@
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
 
-* Following tags will be not added to spans when the exception is handled:
+* FThe following tags are no longer added to spans when an exception is handled:
   `otel.status_code` and `otel.status_description`. Both values are handled natively.
   ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
 
