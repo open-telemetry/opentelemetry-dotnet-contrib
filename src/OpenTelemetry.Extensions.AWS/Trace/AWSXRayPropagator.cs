@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net;
+#endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
@@ -99,6 +102,7 @@ public class AWSXRayPropagator : TextMapPropagator
             return;
         }
 
+#if !NETFRAMEWORK
         if (carrier.GetType() == typeof(HttpRequestMessage))
         {
             var httpRequestMessage = (HttpRequestMessage)(object)carrier;
@@ -112,6 +116,19 @@ public class AWSXRayPropagator : TextMapPropagator
                 return;
             }
         }
+#endif
+
+#if NETFRAMEWORK
+        if (carrier.GetType() == typeof(HttpWebRequest))
+        {
+            var httpWebRequest = (HttpWebRequest)(object)carrier;
+
+            if (httpWebRequest.Headers.Get(AWSXRayTraceHeaderKey) != null)
+            {
+                return;
+            }
+        }
+#endif
 
         var sb = new StringBuilder();
         sb.Append(RootKey);

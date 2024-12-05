@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net;
+#endif
 using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.AWS.Trace;
@@ -26,13 +29,19 @@ public class AWSXRayPropagatorTests
         carrier[name] = value;
     };
 
+#if NETFRAMEWORK
+    private static readonly Action<HttpWebRequest, string, string> HeaderValueSetter = (request, name, value) => request.Headers.Add(name, value);
+#endif
+
     private readonly AWSXRayPropagator awsXRayPropagator = new();
 
+#if !NETFRAMEWORK
     private static Action<HttpRequestMessage, string, string> HeaderValueSetter => (request, name, value) =>
     {
         request.Headers.Remove(name);
         request.Headers.Add(name, value);
     };
+#endif
 
     [Fact]
     public void TestInjectTraceHeader()
@@ -67,7 +76,11 @@ public class AWSXRayPropagatorTests
     {
         var traceIdHeader = "Root=1-00000-00000000000000000;Parent=123456789;Sampled=0";
 
+#if !NETFRAMEWORK
         var carrier = new HttpRequestMessage();
+#else
+        var carrier = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/"));
+#endif
         carrier.Headers.Add(AWSXRayTraceHeaderKey, traceIdHeader);
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
         var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
@@ -75,8 +88,12 @@ public class AWSXRayPropagatorTests
         var activityContext = new ActivityContext(traceId, parentId, traceFlags);
         this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, HeaderValueSetter);
 
+#if !NETFRAMEWORK
         Assert.True(carrier.Headers.Contains(AWSXRayTraceHeaderKey));
         Assert.Equal(traceIdHeader, carrier.Headers.GetValues(AWSXRayTraceHeaderKey).FirstOrDefault());
+#else
+        Assert.Equal(traceIdHeader, carrier.Headers.Get(AWSXRayTraceHeaderKey));
+#endif
     }
 
     [Fact]
