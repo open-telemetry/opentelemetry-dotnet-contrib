@@ -279,7 +279,10 @@ public class AWSLambdaWrapperTests
 
     private void AssertSpanException(Activity activity)
     {
-        Assert.Equal("ERROR", activity.GetTagValue(SpanAttributeConstants.StatusCodeKey));
-        Assert.NotNull(activity.GetTagValue(SpanAttributeConstants.StatusDescriptionKey));
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("TestException", activity.StatusDescription);
+        var exception = Assert.Single(activity.Events);
+        Assert.Equal("exception", exception.Name);
+        Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
     }
 }
