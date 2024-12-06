@@ -313,11 +313,11 @@ internal static partial class AWSSemanticConventions
         switch (SemanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
-            case SemanticConventionVersion.v1_10_1_Experimental:
-                return new AWSSemanticConventions_v1_10_1();
+            case SemanticConventionVersion.v1_29_0_Experimental:
+                return new AWSSemanticConventions_v1_29_0();
 
-            case SemanticConventionVersion.v1_10_Experimental:
-                return new AWSSemanticConventions_v1_10();
+            case SemanticConventionVersion.v1_27_0_Experimental:
+                return new AWSSemanticConventions_v1_27_0();
 
             default:
                 throw new InvalidEnumArgumentException(

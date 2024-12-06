@@ -13,7 +13,7 @@ namespace OpenTelemetry.AWS;
 internal static partial class AWSSemanticConventions
 {
     /// <summary>
-    /// Open Telemetry Semantic Conventions as of the 1.10 release of this library.
+    /// Open Telemetry Semantic Conventions as of the 1.27.0
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.27.0.
     /// </summary>
     /// <remarks>
@@ -22,7 +22,7 @@ internal static partial class AWSSemanticConventions
     ///
     /// Future version specific convention classes will only need to define new or changed attributes.
     /// </remarks>
-    private class AWSSemanticConventions_v1_10 : AWSSemanticConventionsBase
+    private class AWSSemanticConventions_v1_27_0 : AWSSemanticConventionsBase
     {
         // CLOUD Attributes
         public override string AttributeCloudAccountID => "cloud.account.id";

@@ -18,7 +18,7 @@ internal static partial class AWSSemanticConventions
     /// Defines all Semantic Conventions used by AWS extension projects.
     ///
     /// All values default to <c>string.Empty</c> and are then is only defined
-    /// in the first version specific class (ie <see cref="AWSSemanticConventions_v1_10"/>)
+    /// in the first version specific class (ie <see cref="AWSSemanticConventions_v1_27_0"/>)
     /// to use it.  This helps ensure the attribute doesn't get used if the user has specified
     /// a specific <see cref="SemanticConventionVersion"/>.
     ///

@@ -167,7 +167,7 @@ To opt-out of automatic upgrades, you can pin to a specific version:
     .AddAWSLambdaConfigurations(opt =>
     {
         // pin to a specific Semantic Convention version
-        opt.SemanticConventionVersion = SemanticConventionVersion.v1_10_EXPERIMENTAL;
+        opt.SemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
     })
     .Build()!);
 ```

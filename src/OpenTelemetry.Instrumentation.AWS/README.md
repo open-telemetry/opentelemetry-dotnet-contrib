@@ -67,7 +67,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddOpenTelemetryTracing((builder) => builder
         .AddAWSInstrumentation(opt => {
             // pin to a specific Semantic Convention version
-            opt.SemanticConventionVersion = SemanticConventionVersion.v1_10_EXPERIMENTAL;
+            opt.SemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
         });
 }
 ```
