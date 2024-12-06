@@ -13,7 +13,7 @@ namespace OpenTelemetry.AWS;
 /// still considered Experimental, meaning they may undergo additional changes before becoming Stable.  This can
 /// impact the aggregation and analysis of telemetry signals in environments with multiple applications or microservices.
 /// For example, a microservice using an older version of the Semantic Conventions for Http Attributes may emit
-/// <c>"http.method"</c> with a value of GET,while a different microservice, using a new version of Semantic Convention may instead emit the GET as
+/// <c>"http.method"</c> with a value of GET, while a different microservice, using a new version of Semantic Convention may instead emit the GET as
 /// <c>"http.request.method"</c>.
 /// </para>
 /// <para>
@@ -26,7 +26,7 @@ namespace OpenTelemetry.AWS;
 ///     {
 ///         opt.SemanticConventionVersion = SemanticConventionVersion.v1_10_EXPERIMENTAL;
 ///     })
-///     .Build()!)
+///     .Build()!);
 /// ]]>
 /// </code>
 /// </para>
