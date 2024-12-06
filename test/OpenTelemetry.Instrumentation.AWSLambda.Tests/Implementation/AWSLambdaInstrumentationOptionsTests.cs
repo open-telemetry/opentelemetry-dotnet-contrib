@@ -25,7 +25,7 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
     [Fact]
     public void CanUseSemanticConvention1_10()
     {
-        var semanticVersion = SemanticConventionVersion.v1_10_Experimental;
+        var semanticVersion = SemanticConventionVersion.v1_27_0_Experimental;
 
         var expectedTags = new List<string>
         {
@@ -42,7 +42,7 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
     [Fact]
     public void CanUseSemanticConvention1_10_1()
     {
-        var semanticVersion = SemanticConventionVersion.v1_10_1_Experimental;
+        var semanticVersion = SemanticConventionVersion.v1_29_0_Experimental;
 
         var expectedTags = new List<string>
         {

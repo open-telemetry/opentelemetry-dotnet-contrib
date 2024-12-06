@@ -13,10 +13,10 @@ namespace OpenTelemetry.AWS;
 internal static partial class AWSSemanticConventions
 {
     /// <summary>
-    /// Open Telemetry Semantic Conventions as of the 1.10.1 release of this library.
+    /// Open Telemetry Semantic Conventions as of 1.29.0:
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.29.0.
     /// </summary>
-    private class AWSSemanticConventions_v1_10_1 : AWSSemanticConventions_v1_10
+    private class AWSSemanticConventions_v1_29_0 : AWSSemanticConventions_v1_27_0
     {
         // AWS Attributes
         public override string AttributeAWSBedrock => "aws.bedrock";
