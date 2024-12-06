@@ -1,3 +1,6 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
 namespace OpenTelemetry.AWS;
 
 // disable Style Warnings to improve readability of this specific file.

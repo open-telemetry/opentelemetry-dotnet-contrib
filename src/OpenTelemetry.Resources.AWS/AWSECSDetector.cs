@@ -5,7 +5,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using OpenTelemetry.AWS;
-using OpenTelemetry.SemanticConventions;
 
 namespace OpenTelemetry.Resources.AWS;
 

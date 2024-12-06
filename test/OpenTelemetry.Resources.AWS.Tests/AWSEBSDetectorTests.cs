@@ -9,16 +9,6 @@ public class AWSEBSDetectorTests
 {
     private const string AWSEBSMetadataFilePath = "SampleMetadataFiles/environment.conf";
 
-    private static class AWSSemanticConventions
-    {
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudPlatform = "cloud.platform";
-        public const string AttributeServiceName = "service.name";
-        public const string AttributeServiceNamespace = "service.namespace";
-        public const string AttributeServiceInstanceID = "service.instance.id";
-        public const string AttributeServiceVersion = "service.version";
-    }
-
     [Fact]
     public void TestDetect()
     {
@@ -49,5 +39,15 @@ public class AWSEBSDetectorTests
         Assert.Equal("1234567890", ebsMetadata.DeploymentId);
         Assert.Equal("Test AWS Elastic Beanstalk Environment Name", ebsMetadata.EnvironmentName);
         Assert.Equal("Test Version", ebsMetadata.VersionLabel);
+    }
+
+    private static class AWSSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeServiceName = "service.name";
+        public const string AttributeServiceNamespace = "service.namespace";
+        public const string AttributeServiceInstanceID = "service.instance.id";
+        public const string AttributeServiceVersion = "service.version";
     }
 }

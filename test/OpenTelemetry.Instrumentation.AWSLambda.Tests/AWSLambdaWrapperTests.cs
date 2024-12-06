@@ -15,19 +15,6 @@ public class AWSLambdaWrapperTests
     private const string XRayParentId = "53995c3f42cd8ad8";
     private const string CustomParentId = "11195c3f42cd8222";
 
-    private static class ExpectedSemanticConventions
-    {
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudAccountID = "cloud.account.id";
-        public const string AttributeCloudRegion = "cloud.region";
-        public const string AttributeFaasColdStart = "faas.coldstart";
-        public const string AttributeFaasName = "faas.name";
-        public const string AttributeFaasExecution = "faas.invocation_id";
-        public const string AttributeFaasID = "cloud.resource_id";
-        public const string AttributeFaasTrigger = "faas.trigger";
-        public const string AttributeFaasVersion = "faas.version";
-    }
-
     private readonly SampleHandlers sampleHandlers;
     private readonly SampleLambdaContext sampleLambdaContext;
 
@@ -296,5 +283,18 @@ public class AWSLambdaWrapperTests
         var exception = Assert.Single(activity.Events);
         Assert.Equal("exception", exception.Name);
         Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeFaasColdStart = "faas.coldstart";
+        public const string AttributeFaasName = "faas.name";
+        public const string AttributeFaasExecution = "faas.invocation_id";
+        public const string AttributeFaasID = "cloud.resource_id";
+        public const string AttributeFaasTrigger = "faas.trigger";
+        public const string AttributeFaasVersion = "faas.version";
     }
 }

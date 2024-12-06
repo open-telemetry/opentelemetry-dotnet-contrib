@@ -12,14 +12,6 @@ public class AWSEKSDetectorTests
     private const string AWSEKSCredentialsPath = "SampleMetadataFiles/testekstoken";
     private const string AWSEKSMetadataFilePath = "SampleMetadataFiles/testcgroup";
 
-    private static class ExpectedSemanticConventions
-    {
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudPlatform = "cloud.platform";
-        public const string AttributeK8SClusterName = "k8s.cluster.name";
-        public const string AttributeContainerID = "container.id";
-    }
-
     [Fact]
     public void TestDetect()
     {
@@ -99,6 +91,14 @@ public class AWSEKSDetectorTests
         Assert.NotNull(eksClusterInformation);
         Assert.NotNull(eksClusterInformation.Data);
         Assert.Equal("Test", eksClusterInformation.Data.ClusterName);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeK8SClusterName = "k8s.cluster.name";
+        public const string AttributeContainerID = "container.id";
     }
 }
 

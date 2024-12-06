@@ -24,6 +24,6 @@ public class AWSLambdaInstrumentationOptions
     /// </remarks>
     public bool SetParentFromBatch { get; set; }
 
-    /// <inheritdoc cref="OpenTelemetry.AWS.SemanticConventionVersion"/>
+    /// <inheritdoc cref="AWS.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }

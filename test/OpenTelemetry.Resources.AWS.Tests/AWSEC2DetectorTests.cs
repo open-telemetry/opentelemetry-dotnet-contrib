@@ -7,18 +7,6 @@ namespace OpenTelemetry.Resources.AWS.Tests;
 
 public class AWSEC2DetectorTests
 {
-    private static class ExpectedSemanticConventions
-    {
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudPlatform = "cloud.platform";
-        public const string AttributeCloudAccountID = "cloud.account.id";
-        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
-        public const string AttributeCloudRegion = "cloud.region";
-        public const string AttributeHostID = "host.id";
-        public const string AttributeHostType = "host.type";
-        public const string AttributeHostName = "host.name";
-    }
-
     [Fact]
     public void TestDetect()
     {
@@ -55,5 +43,17 @@ public class AWSEC2DetectorTests
         Assert.Equal("i-12345678901234567", ec2IdentityDocumentModel.InstanceId);
         Assert.Equal("t2.micro", ec2IdentityDocumentModel.InstanceType);
         Assert.Equal("us-east-1", ec2IdentityDocumentModel.Region);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeHostID = "host.id";
+        public const string AttributeHostType = "host.type";
+        public const string AttributeHostName = "host.name";
     }
 }

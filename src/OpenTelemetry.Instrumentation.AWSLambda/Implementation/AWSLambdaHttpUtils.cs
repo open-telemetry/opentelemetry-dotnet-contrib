@@ -7,7 +7,6 @@ using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.AWS;
-using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 

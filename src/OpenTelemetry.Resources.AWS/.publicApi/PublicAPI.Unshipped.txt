@@ -1,3 +1,12 @@
+OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.v1_10_1_Experimental = 2 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.v1_10_Experimental = 1 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions
+OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions.AWSResourceBuilderOptions() -> void
+OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions.SemanticConventionVersion.get -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions.SemanticConventionVersion.set -> void
 OpenTelemetry.Resources.AWSResourceBuilderExtensions
-static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEBSDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
-static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEC2Detector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEBSDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions!>? configure = null) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.AWSResourceBuilderExtensions.AddAWSEC2Detector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Resources.AWS.AWSResourceBuilderOptions!>? configure = null) -> OpenTelemetry.Resources.ResourceBuilder!
+

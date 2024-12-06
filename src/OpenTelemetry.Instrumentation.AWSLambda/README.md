@@ -143,7 +143,7 @@ public class Function
 ## Semantic Conventions
 
 _For an overview on Semantic Conventions, see
-https://opentelemetry.io/docs/concepts/semantic-conventions/_.
+[Open Telemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
 
 While this library is intended for production use, it relies on several
 Semantic Conventions that are still considered Experimental, meaning
@@ -156,8 +156,9 @@ for Http Attributes may emit `"http.method"` with a value of GET, while a
 different microservice, using a new version of Semantic Convention may instead
 emit the GET as `"http.request.method"`.
 
-Future versions the OpenTelemetry.*.AWS libraries will include updates to the
-Semantic Convention, which may break compatibility with a previous version.
+Future versions of OpenTelemetry.Instrumentation.AWSLambda library will include
+updates to the Semantic Convention, which may break compatibility with a
+previous version.
 
 To opt-out of automatic upgrades, you can pin to a specific version:
 
@@ -171,9 +172,9 @@ To opt-out of automatic upgrades, you can pin to a specific version:
     .Build()!);
 ```
 
-__NOTE:__ Once a Semantic Convention becomes Stable, OpenTelemetry.*.AWS
-libraries will remain on that version until the
-next major version bump.
+**NOTE:** Once a Semantic Convention becomes Stable,
+OpenTelemetry.Instrumentation.AWSLambda will remain on that version until
+the next major version bump.
 
 ## Reference
 
