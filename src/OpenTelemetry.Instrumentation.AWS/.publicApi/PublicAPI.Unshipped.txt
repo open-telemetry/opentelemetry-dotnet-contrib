@@ -1,7 +1,12 @@
 #nullable enable
 OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.v1_10_1_Experimental = 2 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.AWS.SemanticConventionVersion.v1_10_Experimental = 1 -> OpenTelemetry.AWS.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.AWSClientInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.SemanticConventionVersion.get -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.SemanticConventionVersion.set -> void
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.SuppressDownstreamInstrumentation.get -> bool
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.SuppressDownstreamInstrumentation.set -> void
 OpenTelemetry.Trace.TracerProviderBuilderExtensions

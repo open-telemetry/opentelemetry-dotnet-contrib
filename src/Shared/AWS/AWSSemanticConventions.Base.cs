@@ -1,6 +1,7 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.SemanticConventions;
-
 
 namespace OpenTelemetry.AWS;
 
@@ -21,7 +22,7 @@ internal static partial class AWSSemanticConventions
     /// to use it.  This helps ensure the attribute doesn't get used if the user has specified
     /// a specific <see cref="SemanticConventionVersion"/>.
     ///
-    /// See <see cref="AWSSemanticConventions.GetSemanticConventionVersion"/> for details.
+    /// See <see cref="GetSemanticConventionVersion"/> for details.
     /// </summary>
     private abstract class AWSSemanticConventionsBase
     {
