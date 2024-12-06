@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using Amazon.Runtime.Telemetry;
 using Amazon.Runtime.Telemetry.Tracing;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
@@ -60,9 +59,7 @@ internal sealed class AWSTraceSpan : TraceSpan
         var tags = attributes != null ? new TagList(attributes.AllAttributes.ToArray()) : default;
 
         this.activity.AddException(exception, tags);
-#pragma warning disable CS0618 // Type or member is obsolete
-        this.activity.SetStatus(Status.Error.WithDescription(exception.Message));
-#pragma warning restore CS0618 // Type or member is obsolete
+        this.activity.SetStatus(ActivityStatusCode.Error, exception.Message);
     }
 
     public override void End()
