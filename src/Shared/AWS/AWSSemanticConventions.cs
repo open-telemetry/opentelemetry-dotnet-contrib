@@ -282,6 +282,12 @@ internal static partial class AWSSemanticConventions
 
         var attributeName = attributeNameFunc(semanticConventionVersionImpl);
 
+        // if attributeName is empty, exit
+        if (string.IsNullOrEmpty(attributeName))
+        {
+            return activity;
+        }
+
         activity?.SetTag(attributeName, value);
 
         return activity;
