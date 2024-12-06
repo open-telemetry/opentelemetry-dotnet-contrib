@@ -7,7 +7,6 @@ using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 

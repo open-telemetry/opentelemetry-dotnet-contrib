@@ -14,11 +14,12 @@ using System.Diagnostics;
 namespace OpenTelemetry.AWS;
 
 /// <summary>
-/// Abstracts the complexities of honoring <see cref="OpenTelemetry.AWS.SemanticConventionVersion"/>.
+/// Abstracts the complexities of honoring <see cref="AWS.SemanticConventionVersion"/>.
 /// <para/>
 /// Classes emitting attributes can use the extension methods in this class to build
-/// a List of <see cref="KeyValuePair"/>s containing Attribute Name and Value without
-/// needing to know which version of the Semantic Convention to use.
+/// a List of <see cref="KeyValuePair{K,V}"/>s containing
+/// Attribute Name and Value without  needing to know which version of the
+/// Semantic Convention to use.
 /// <example>
 /// Below is a hypothetical example showing how attributes can be constructed.  It is not necessary
 /// for this consumer to accommodate differing behavior based on <see cref="SemanticConventionVersion"/>,
