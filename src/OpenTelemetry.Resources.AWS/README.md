@@ -93,7 +93,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .ConfigureResource(resource => resource.AddAWSEC2Detector(
         opt => {
             // pin to a specific Semantic Convention version
-            opt.SemanticConventionVersion = SemanticConventionVersion.v1_10_EXPERIMENTAL;
+            opt.SemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
         }
     ))
     // other configurations
