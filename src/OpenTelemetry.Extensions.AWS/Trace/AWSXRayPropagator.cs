@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
+using System.Net;
+#endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
@@ -98,6 +101,34 @@ public class AWSXRayPropagator : TextMapPropagator
             AWSXRayEventSource.Log.FailedToInjectActivityContext(nameof(AWSXRayPropagator), "null setter");
             return;
         }
+
+#if !NETFRAMEWORK
+        if (carrier.GetType() == typeof(HttpRequestMessage))
+        {
+            var httpRequestMessage = (HttpRequestMessage)(object)carrier;
+
+            // If X-Amzn-Trace-Id already exists in the headers and the carrier is of HttpRequestMessage,
+            // This means that the request is coming from the AWS SDK Instrumentation library and in this
+            // case, we don't want to overwrite the propagation context from the AWS SDK Span with the
+            // context from the outgoing HttpRequest
+            if (httpRequestMessage.Headers.Contains(AWSXRayTraceHeaderKey))
+            {
+                return;
+            }
+        }
+#endif
+
+#if NETFRAMEWORK
+        if (carrier.GetType() == typeof(HttpWebRequest))
+        {
+            var httpWebRequest = (HttpWebRequest)(object)carrier;
+
+            if (httpWebRequest.Headers.Get(AWSXRayTraceHeaderKey) != null)
+            {
+                return;
+            }
+        }
+#endif
 
         var sb = new StringBuilder();
         sb.Append(RootKey);
