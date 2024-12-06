@@ -29,8 +29,8 @@ internal sealed class AWSECSDetector : IResourceDetector
 
         var resourceAttributes = new List<KeyValuePair<string, object>>()
         {
-            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_ecs"),
+            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
+            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsEcs),
         };
 
         try

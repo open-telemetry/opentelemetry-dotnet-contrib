@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -92,9 +91,7 @@ internal static class ClientChannelInstrumentation
             {
                 if (reply == null || reply.IsFault)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error);
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error);
 
                     if (WcfInstrumentationActivitySource.Options!.RecordException && exception != null)
                     {

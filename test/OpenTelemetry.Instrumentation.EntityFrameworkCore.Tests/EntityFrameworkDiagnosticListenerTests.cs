@@ -289,7 +289,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
-            Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
         }
     }
 
