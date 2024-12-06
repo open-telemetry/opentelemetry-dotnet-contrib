@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
+  API instead of the deprecated OpenTelemetry API package extension when setting
+  span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
+
 ## 1.10.0-beta.1
 
 Released 2024-Nov-23
