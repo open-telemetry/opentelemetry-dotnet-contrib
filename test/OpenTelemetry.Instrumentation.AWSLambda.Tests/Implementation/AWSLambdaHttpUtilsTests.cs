@@ -13,16 +13,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 [Collection("TracerProviderDependent")]
 public class AWSLambdaHttpUtilsTests
 {
-    private static class ExpectedSemanticConventions
-    {
-        public const string AttributeHttpScheme = "url.scheme";
-        public const string AttributeHttpTarget = "http.target";
-        public const string AttributeNetHostName = "server.address";
-        public const string AttributeNetHostPort = "server.port";
-        public const string AttributeHttpMethod = "http.request.method";
-        public const string AttributeHttpStatusCode = "http.response.status_code";
-    }
-
     [Fact]
     public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
     {
@@ -463,5 +453,15 @@ public class AWSLambdaHttpUtilsTests
         {
             Assert.Contains(new KeyValuePair<string, TActualValue>(tag.Key, (TActualValue)tag.Value), actualTags);
         }
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeHttpScheme = "url.scheme";
+        public const string AttributeHttpTarget = "http.target";
+        public const string AttributeNetHostName = "server.address";
+        public const string AttributeNetHostPort = "server.port";
+        public const string AttributeHttpMethod = "http.request.method";
+        public const string AttributeHttpStatusCode = "http.response.status_code";
     }
 }

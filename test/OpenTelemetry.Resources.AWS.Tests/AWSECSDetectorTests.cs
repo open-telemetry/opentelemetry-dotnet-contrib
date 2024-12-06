@@ -18,25 +18,6 @@ public class AWSECSDetectorTests : IDisposable
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
-    private static class ExpectedSemanticConventions
-    {
-        public const string AttributeCloudProvider = "cloud.provider";
-        public const string AttributeCloudPlatform = "cloud.platform";
-        public const string AttributeCloudAccountID = "cloud.account.id";
-        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
-        public const string AttributeCloudRegion = "cloud.region";
-        public const string AttributeCloudResourceId = "cloud.resource_id";
-        public const string AttributeEcsContainerArn = "aws.ecs.container.arn";
-        public const string AttributeEcsLaunchtype = "aws.ecs.launchtype";
-        public const string AttributeEcsTaskArn = "aws.ecs.task.arn";
-        public const string AttributeEcsTaskFamily = "aws.ecs.task.family";
-        public const string AttributeEcsTaskRevision = "aws.ecs.task.revision";
-        public const string AttributeLogGroupArns = "aws.log.group.arns";
-        public const string AttributeLogGroupNames = "aws.log.group.names";
-        public const string AttributeLogStreamArns = "aws.log.stream.arns";
-        public const string AttributeLogStreamNames = "aws.log.stream.names";
-    }
-
     public AWSECSDetectorTests()
     {
         this.ResetEnvironment();
@@ -192,6 +173,25 @@ public class AWSECSDetectorTests : IDisposable
         {
             await this.server.StopAsync();
         }
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeCloudResourceId = "cloud.resource_id";
+        public const string AttributeEcsContainerArn = "aws.ecs.container.arn";
+        public const string AttributeEcsLaunchtype = "aws.ecs.launchtype";
+        public const string AttributeEcsTaskArn = "aws.ecs.task.arn";
+        public const string AttributeEcsTaskFamily = "aws.ecs.task.family";
+        public const string AttributeEcsTaskRevision = "aws.ecs.task.revision";
+        public const string AttributeLogGroupArns = "aws.log.group.arns";
+        public const string AttributeLogGroupNames = "aws.log.group.names";
+        public const string AttributeLogStreamArns = "aws.log.stream.arns";
+        public const string AttributeLogStreamNames = "aws.log.stream.names";
     }
 }
 #endif

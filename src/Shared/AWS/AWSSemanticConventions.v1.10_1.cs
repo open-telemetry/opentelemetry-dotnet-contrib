@@ -1,3 +1,6 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
 namespace OpenTelemetry.AWS;
 
 // disable Style Warnings to improve readability of this specific file.
@@ -25,6 +28,7 @@ internal static partial class AWSSemanticConventions
         // HTTP Attributes
         public override string AttributeHttpStatusCode => this.AttributeHttpResponseStatusCode;
         public override string AttributeHttpScheme => this.AttributeUrlScheme;
+
         //public override string AttributeHttpTarget => string.Empty; // value no longer written ---- move to new PR
         public override string AttributeHttpMethod => this.AttributeHttpRequestMethod;
         public override string AttributeHttpResponseStatusCode => "http.response.status_code";

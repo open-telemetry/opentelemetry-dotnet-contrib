@@ -156,7 +156,7 @@ internal static class AWSLambdaUtils
         // The fifth item of function arn: https://github.com/open-telemetry/opentelemetry-specification/blob/86aeab1e0a7e6c67be09c7f15ff25063ee6d2b5c/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
         // Function arn format - arn:aws:lambda:<region>:<account-id>:function:<function-name>
 
-        var items = functionArn.Split(':');
+        var items = functionArn!.Split(':');
         return items.Length >= 5 ? items[4] : null;
     }
 
