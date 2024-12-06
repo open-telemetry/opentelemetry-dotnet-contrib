@@ -20,7 +20,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 #else
 [Collection("Sequential-.NET8")]
 #endif
-public class AWSLambdaInstrumentationOptionsTests :IDisposable
+public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
 {
     [Fact]
     public void CanUseSemanticConvention1_10()
@@ -56,6 +56,16 @@ public class AWSLambdaInstrumentationOptionsTests :IDisposable
         this.CheckHttpTags(semanticVersion, expectedTags);
     }
 
+    public void Dispose()
+    {
+        // Semantic Convention is saved statically - and needs to be reset to
+        // Latest following these tests.
+        Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations(c =>
+                c.SemanticConventionVersion = SemanticConventionVersion.Latest)
+            .Build();
+    }
+
     private void CheckHttpTags(SemanticConventionVersion version, List<string> expectedTags)
     {
         var request = new APIGatewayProxyRequest
@@ -72,11 +82,10 @@ public class AWSLambdaInstrumentationOptionsTests :IDisposable
             },
         };
 
-        using var _ =
+        using var builder =
             Sdk.CreateTracerProviderBuilder()
                 .AddAWSLambdaConfigurations(c =>
-                    c.SemanticConventionVersion = version
-                )
+                    c.SemanticConventionVersion = version)
                 .Build();
 
         var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
@@ -95,16 +104,5 @@ public class AWSLambdaInstrumentationOptionsTests :IDisposable
         {
             Assert.Contains(tag, keys);
         }
-    }
-
-    public void Dispose()
-    {
-        // Semantic Convention is saved statically - and needs to be reset to
-        // Latest following these tests.
-        Sdk.CreateTracerProviderBuilder()
-            .AddAWSLambdaConfigurations(c =>
-                 c.SemanticConventionVersion = SemanticConventionVersion.Latest
-        )
-         .Build();
     }
 }
