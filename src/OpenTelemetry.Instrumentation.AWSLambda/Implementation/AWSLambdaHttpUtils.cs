@@ -22,6 +22,8 @@ internal class AWSLambdaHttpUtils
 
         string? httpScheme;
         string? httpTarget;
+        string? urlPath;
+        string? urlQuery;
         string? httpMethod;
         string? hostName;
         int? hostPort;
@@ -30,22 +32,27 @@ internal class AWSLambdaHttpUtils
         {
             case APIGatewayProxyRequest request:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.LastOrDefault();
-                var path = request.RequestContext?.Path ?? request.Path ?? string.Empty;
-                httpTarget = string.Concat(path, GetQueryString(request));
+                urlPath = request.RequestContext?.Path ?? request.Path ?? string.Empty;
+                urlQuery = GetQueryString(request);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = request.RequestContext?.HttpMethod ?? request.HttpMethod;
                 var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                 break;
             case APIGatewayHttpApiV2ProxyRequest requestV2:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.LastOrDefault();
-                httpTarget = string.Concat(requestV2.RawPath ?? string.Empty, GetQueryString(requestV2));
+                urlPath = requestV2.RawPath ?? string.Empty;
+                urlQuery = GetQueryString(requestV2);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = requestV2.RequestContext?.Http?.Method;
                 var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                 break;
             case ApplicationLoadBalancerRequest albRequest:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderXForwardedProto)?.LastOrDefault();
-                httpTarget = string.Concat(albRequest.Path ?? string.Empty, GetQueryString(albRequest));
+                urlPath = albRequest.Path ?? string.Empty;
+                urlQuery = GetQueryString(albRequest);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = albRequest.HttpMethod;
                 var albHostHeader = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, albHostHeader);
@@ -62,6 +69,16 @@ internal class AWSLambdaHttpUtils
         if (httpTarget != null)
         {
             tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
+        }
+
+        if (urlPath != null)
+        {
+            tags.AddAttributeUrlPath(urlPath, addIfEmpty: true);
+        }
+
+        if (urlQuery != null)
+        {
+            tags.AddAttributeUrlQuery(urlQuery, addIfEmpty: true);
         }
 
         if (httpMethod != null)
