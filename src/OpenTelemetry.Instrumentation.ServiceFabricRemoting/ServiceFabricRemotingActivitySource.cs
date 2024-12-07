@@ -1,5 +1,5 @@
 // Copyright The OpenTelemetry Authors
-// SPDX-License-Identifier: Apache-2.0using System.Fabric;
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
 using System.Reflection;

@@ -19,7 +19,7 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     }
 
     /// <summary>
-    /// Gets or sets the methodId of the remote method
+    /// Gets or sets the methodId of the remote method.
     /// </summary>
     [DataMember(Name = "MethodId", IsRequired = true, Order = 0)]
     public int MethodId { get; set; }
@@ -31,7 +31,7 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
     public int InterfaceId { get; set; }
 
     /// <summary>
-    /// Gets or sets identifier for the remote method invocation
+    /// Gets or sets identifier for the remote method invocation.
     /// </summary>
     [DataMember(Name = "InvocationId", IsRequired = false, Order = 3, EmitDefaultValue = false)]
     public string? InvocationId { get; set; }

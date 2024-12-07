@@ -1,9 +1,8 @@
 // Copyright The OpenTelemetry Authors
-// SPDX-License-Identifier: Apache-2.0using System.Fabric;
+// SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
 using System.Fabric;
-using System.Text;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 using OpenTelemetry.Context.Propagation;
