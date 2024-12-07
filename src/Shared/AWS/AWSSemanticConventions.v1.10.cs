@@ -57,8 +57,8 @@ internal static partial class AWSSemanticConventions
         public override string AttributeLogGroupArns => "aws.log.group.arns";
         public override string AttributeLogStreamNames => "aws.log.stream.arns";
         public override string AttributeLogStreamArns => "aws.log.stream.names";
-        public override string AttributeAWSDynamoTableName => "aws.dynamodb.table_names";
-        public override string AttributeAWSSQSQueueUrl => "aws.queue_url"; // todo - confirm in java;
+        public override string AttributeAWSDynamoTableName => "aws.table_name";
+        public override string AttributeAWSSQSQueueUrl => "aws.queue_url";
         public override string AttributeAWSBedrockAgentId => "aws.bedrock.agent.id";
         public override string AttributeAWSBedrockDataSourceId => "aws.bedrock.data_source.id";
         public override string AttributeAWSBedrockGuardrailId => "aws.bedrock.guardrail.id";

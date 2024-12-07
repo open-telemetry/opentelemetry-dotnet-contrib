@@ -54,12 +54,27 @@ internal class AWSLambdaHttpUtils
                 return tags;
         }
 
-        tags
-            .AddAttributeHttpScheme(httpScheme)
-            .AddAttributeHttpTarget(httpTarget)
-            .AddAttributeHttpMethod(httpMethod)
-            .AddAttributeNetHostName(hostName)
-            .AddAttributeNetHostPort(hostPort);
+        if (httpScheme != null)
+        {
+            tags.AddAttributeHttpScheme(httpScheme, addIfEmpty: true);
+        }
+
+        if (httpTarget != null)
+        {
+            tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
+        }
+
+        if (httpMethod != null)
+        {
+            tags.AddAttributeHttpMethod(httpMethod, addIfEmpty: true);
+        }
+
+        if (hostName != null)
+        {
+            tags.AddAttributeNetHostName(hostName, addIfEmpty: true);
+        }
+
+        tags.AddAttributeNetHostPort(hostPort);
 
         return tags;
     }
