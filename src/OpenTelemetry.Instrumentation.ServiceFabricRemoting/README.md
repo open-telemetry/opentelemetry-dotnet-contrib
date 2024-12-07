@@ -2,8 +2,8 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@sablancoleis](https://github.com/sablancoleis)
+| Stability     |  [Beta](../../README.md#beta) |
+| Code Owners   |  [@sablancoleis](https://github.com/sablancoleis) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ServiceFabricRemoting)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ServiceFabricRemoting)
@@ -14,7 +14,6 @@ which instruments [Service Fabric Remoting](https://learn.microsoft.com/en-us/az
 and collects telemetry about incoming requests.
 
 ## Steps to enable OpenTelemetry.Instrumentation.ServiceFabricRemoting
-
 
 ### Step 1: Install Package
 
@@ -162,7 +161,9 @@ name and method name.
         .Build();
 ```
 
-- **AddExceptionAtClient** - Gets or sets a value indicating whether the exception will be recorded at the client as an `ActivityEvent` or not.
+- **AddExceptionAtClient** - Gets or sets a value indicating whether
+the exception will be recorded at the client as an `ActivityEvent` or not.
+
 ```csharp
     TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
@@ -174,7 +175,9 @@ name and method name.
         .Build();
 ```
 
-- **AddExceptionAtServer** - Gets or sets a value indicating whether the exception will be recorded at the server as an `ActivityEvent` or not
+- **AddExceptionAtServer** - Gets or sets a value indicating whether
+the exception will be recorded at the server as an `ActivityEvent` or not
+
 ```csharp
     TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ServiceFabricRemoting-Example"))
@@ -185,7 +188,6 @@ name and method name.
         .AddOtlpExporter()
         .Build();
 ```
-
 
 ## References
 
