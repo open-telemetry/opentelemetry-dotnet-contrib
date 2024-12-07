@@ -41,7 +41,8 @@ public class AWSLambdaHttpUtilsTests
         var expectedTags = new Dictionary<string, object>
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
-            { ExpectedSemanticConventions.AttributeHttpTarget, "/path/test?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -73,7 +74,8 @@ public class AWSLambdaHttpUtilsTests
         var expectedTags = new Dictionary<string, object>
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
-            { ExpectedSemanticConventions.AttributeHttpTarget, "/path/test?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -107,7 +109,8 @@ public class AWSLambdaHttpUtilsTests
         var expectedTags = new Dictionary<string, object>
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
-            { ExpectedSemanticConventions.AttributeHttpTarget, "/path/test?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -132,7 +135,8 @@ public class AWSLambdaHttpUtilsTests
 
         var expectedTags = new Dictionary<string, object>
         {
-            { ExpectedSemanticConventions.AttributeHttpTarget, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlPath, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlQuery, string.Empty },
             { ExpectedSemanticConventions.AttributeHttpScheme, "http" },
             { ExpectedSemanticConventions.AttributeNetHostName, "myhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 432 },
@@ -238,7 +242,8 @@ public class AWSLambdaHttpUtilsTests
         var expectedTags = new Dictionary<string, object>
         {
             { ExpectedSemanticConventions.AttributeHttpMethod, "POST" },
-            { ExpectedSemanticConventions.AttributeHttpTarget, "/path/test?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
         };
 
         AssertTags(expectedTags, actualTags);
@@ -260,7 +265,8 @@ public class AWSLambdaHttpUtilsTests
 
         var expectedTags = new Dictionary<string, object>
         {
-            { ExpectedSemanticConventions.AttributeHttpTarget, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlPath, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlQuery, string.Empty },
             { ExpectedSemanticConventions.AttributeHttpScheme, "http" },
             { ExpectedSemanticConventions.AttributeNetHostName, "myhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 432 },
@@ -295,7 +301,8 @@ public class AWSLambdaHttpUtilsTests
         var expectedTags = new Dictionary<string, object>
         {
             { ExpectedSemanticConventions.AttributeHttpScheme, "https" },
-            { ExpectedSemanticConventions.AttributeHttpTarget, "/path/test?q1=value1" },
+            { ExpectedSemanticConventions.AttributeUrlPath, "/path/test" },
+            { ExpectedSemanticConventions.AttributeUrlQuery, "?q1=value1" },
             { ExpectedSemanticConventions.AttributeNetHostName, "localhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 1234 },
             { ExpectedSemanticConventions.AttributeHttpMethod, "GET" },
@@ -320,7 +327,8 @@ public class AWSLambdaHttpUtilsTests
 
         var expectedTags = new Dictionary<string, object>
         {
-            { ExpectedSemanticConventions.AttributeHttpTarget, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlPath, string.Empty },
+            { ExpectedSemanticConventions.AttributeUrlQuery, string.Empty },
             { ExpectedSemanticConventions.AttributeHttpScheme, "http" },
             { ExpectedSemanticConventions.AttributeNetHostName, "myhost" },
             { ExpectedSemanticConventions.AttributeNetHostPort, 432 },
@@ -458,7 +466,8 @@ public class AWSLambdaHttpUtilsTests
     private static class ExpectedSemanticConventions
     {
         public const string AttributeHttpScheme = "url.scheme";
-        public const string AttributeHttpTarget = "http.target";
+        public const string AttributeUrlPath = "url.path";
+        public const string AttributeUrlQuery = "url.query";
         public const string AttributeNetHostName = "server.address";
         public const string AttributeNetHostPort = "server.port";
         public const string AttributeHttpMethod = "http.request.method";
