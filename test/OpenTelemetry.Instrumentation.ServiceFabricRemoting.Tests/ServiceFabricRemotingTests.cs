@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
+using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -39,8 +40,9 @@ public class ServiceFabricRemotingTests
 
         // We need to create the service, then the dispatcher, and then set the dispatcher on the service, because the dispatcher needs the service as an argument, and the service needs the dispatcher.
         MyTestStatefulService myStatefulService = new MyTestStatefulService(serviceContext, reliableStateManager);
-        TraceContextEnrichedServiceV2RemotingDispatcher dispatcher = new TraceContextEnrichedServiceV2RemotingDispatcher(serviceContext, myStatefulService);
-        myStatefulService.SetDispatcher(dispatcher);
+        ServiceRemotingMessageDispatcher serviceRemotingMessageDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, myStatefulService);
+        ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(serviceRemotingMessageDispatcher);
+        myStatefulService.SetDispatcher(dispatcherAdapter);
 
         // We create an ActivityContext and Baggage to inject into the request message, instead of starting a new Activity, because the dispatcher is in the same process as the test, and we don't want to set Activity.Current.
         ActivityContext activityContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded);
@@ -57,7 +59,7 @@ public class ServiceFabricRemotingTests
         FabricTransportServiceRemotingRequestContextMock remotingRequestContext = new FabricTransportServiceRemotingRequestContextMock();
 
         // Act
-        IServiceRemotingResponseMessage response = await dispatcher.HandleRequestResponseAsync(remotingRequestContext, requestMessage);
+        IServiceRemotingResponseMessage response = await dispatcherAdapter.HandleRequestResponseAsync(remotingRequestContext, requestMessage);
 
         // Assert
         ServiceResponse serviceResponse = (ServiceResponse)response.GetBody().Get(typeof(ServiceResponse));

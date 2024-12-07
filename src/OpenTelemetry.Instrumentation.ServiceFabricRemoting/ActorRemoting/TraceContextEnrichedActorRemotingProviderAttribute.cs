@@ -5,6 +5,7 @@ using Microsoft.ServiceFabric.Actors.Generator;
 using Microsoft.ServiceFabric.Actors.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Client;
 using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Runtime;
+using Microsoft.ServiceFabric.Actors.Remoting.V2.Runtime;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
@@ -42,10 +43,11 @@ public sealed class TraceContextEnrichedActorRemotingProviderAttribute : FabricT
 
         dictionary.Add(DefaultV2listenerName, (actorService) =>
         {
-            TraceContextEnrichedActorServiceV2RemotingDispatcher messageHandler = new TraceContextEnrichedActorServiceV2RemotingDispatcher(actorService);
+            ActorServiceRemotingDispatcher actorServiceRemotingDispatcher = new ActorServiceRemotingDispatcher(actorService, serviceRemotingRequestMessageBodyFactory: null);
+            ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(actorServiceRemotingDispatcher);
             FabricTransportRemotingListenerSettings listenerSettings = this.InitializeListenerSettings(actorService);
 
-            return new FabricTransportActorServiceRemotingListener(actorService, messageHandler, listenerSettings);
+            return new FabricTransportActorServiceRemotingListener(actorService, dispatcherAdapter, listenerSettings);
         });
 
         return dictionary;

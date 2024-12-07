@@ -9,13 +9,14 @@ using Microsoft.ServiceFabric.Services.Remoting;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
 public class MyTestStatefulService : StatefulService, ITestMyStatefulService
 {
-    private TraceContextEnrichedServiceV2RemotingDispatcher? dispatcher;
+    private IServiceRemotingMessageHandler? dispatcher;
 
     public MyTestStatefulService(StatefulServiceContext serviceContext, IReliableStateManagerReplica reliableStateManagerReplica)
         : base(serviceContext, reliableStateManagerReplica)
@@ -37,7 +38,7 @@ public class MyTestStatefulService : StatefulService, ITestMyStatefulService
         return Task.FromResult(serviceResponse);
     }
 
-    internal void SetDispatcher(TraceContextEnrichedServiceV2RemotingDispatcher dispatcher)
+    internal void SetDispatcher(IServiceRemotingMessageHandler dispatcher)
     {
         this.dispatcher = dispatcher;
     }

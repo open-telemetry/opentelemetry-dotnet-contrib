@@ -9,6 +9,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Client;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Client;
 using Microsoft.ServiceFabric.Services.Remoting.V2.FabricTransport.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -43,9 +44,10 @@ public sealed class TraceContextEnrichedServiceRemotingProviderAttribute : Fabri
         dictionary.Add(DefaultV2listenerName, (ServiceContext serviceContext, IService serviceImplementation) =>
         {
             FabricTransportRemotingListenerSettings listenerSettings = this.GetListenerSettings(serviceContext);
-            TraceContextEnrichedServiceV2RemotingDispatcher serviceRemotingMessageHandler = new TraceContextEnrichedServiceV2RemotingDispatcher(serviceContext, serviceImplementation);
+            ServiceRemotingMessageDispatcher serviceRemotingMessageDispatcher = new ServiceRemotingMessageDispatcher(serviceContext, serviceImplementation);
+            ServiceRemotingMessageDispatcherAdapter dispatcherAdapter = new ServiceRemotingMessageDispatcherAdapter(serviceRemotingMessageDispatcher);
 
-            return new FabricTransportServiceRemotingListener(serviceContext, serviceRemotingMessageHandler, listenerSettings);
+            return new FabricTransportServiceRemotingListener(serviceContext, dispatcherAdapter, listenerSettings);
         });
 
         return dictionary;

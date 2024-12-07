@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Microsoft.ServiceFabric.Actors.Remoting.V2.Runtime;
-using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.V2;
 using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 using OpenTelemetry.Context.Propagation;
@@ -12,20 +10,42 @@ using OpenTelemetry.Internal;
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
 /// <summary>
-/// Provides an implementation of Microsoft.ServiceFabric.Services.Remoting.V2.Runtime.IServiceRemotingMessageHandler
-/// that can dispatch messages to an actor service and to the actors hosted in the service
+/// Provides an implementation of <see cref="IServiceRemotingMessageHandler"/> that can dispatch
+/// messages to an actor service and to the actors hosted in the service.
 /// </summary>
-public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorServiceRemotingDispatcher
+public sealed class ServiceRemotingMessageDispatcherAdapter : IServiceRemotingMessageHandler, IDisposable
 {
     private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
 
+    private readonly IServiceRemotingMessageHandler innerDispatcher;
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="TraceContextEnrichedActorServiceV2RemotingDispatcher"/> class.
+    /// Initializes a new instance of the <see cref="ServiceRemotingMessageDispatcherAdapter"/> class.
     /// </summary>
-    /// <param name="service">An actor service instance.</param>
-    public TraceContextEnrichedActorServiceV2RemotingDispatcher(ActorService service)
-        : base(service, serviceRemotingRequestMessageBodyFactory: null)
+    /// <param name="dispatcher">The IServiceRemotingMessageHandler to wrap.</param>
+    public ServiceRemotingMessageDispatcherAdapter(IServiceRemotingMessageHandler dispatcher)
     {
+        Guard.ThrowIfNull(dispatcher);
+
+        this.innerDispatcher = dispatcher;
+    }
+
+    /// <summary>
+    /// Gets a factory for creating the remoting message bodies.
+    /// </summary>
+    /// <returns>A factory for creating the remoting message bodies.</returns>
+    public IServiceRemotingMessageBodyFactory GetRemotingMessageBodyFactory()
+    {
+        return this.innerDispatcher.GetRemotingMessageBodyFactory();
+    }
+
+    /// <summary>
+    /// Handles a one way message from the client.
+    /// </summary>
+    /// <param name="requestMessage">The request message.</param>
+    public void HandleOneWayMessage(IServiceRemotingRequestMessage requestMessage)
+    {
+        this.innerDispatcher.HandleOneWayMessage(requestMessage);
     }
 
     /// <summary>
@@ -35,14 +55,14 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
     /// <param name="requestContext">Request context that allows getting the callback channel if required.</param>
     /// <param name="requestMessage">Remoting message.</param>
     /// <returns>The response for the received request.</returns>
-    public override async Task<IServiceRemotingResponseMessage> HandleRequestResponseAsync(IServiceRemotingRequestContext requestContext, IServiceRemotingRequestMessage requestMessage)
+    public async Task<IServiceRemotingResponseMessage> HandleRequestResponseAsync(IServiceRemotingRequestContext requestContext, IServiceRemotingRequestMessage requestMessage)
     {
         Guard.ThrowIfNull(requestMessage);
 
         if (ServiceFabricRemotingActivitySource.Options?.Filter?.Invoke(requestMessage) == false)
         {
             // If we filter out the request we don't need to process anything related to the activity
-            return await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+            return await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
         }
         else
         {
@@ -59,7 +79,7 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
             {
                 try
                 {
-                    IServiceRemotingResponseMessage responseMessage = await base.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
+                    IServiceRemotingResponseMessage responseMessage = await this.innerDispatcher.HandleRequestResponseAsync(requestContext, requestMessage).ConfigureAwait(false);
 
                     return responseMessage;
                 }
@@ -78,6 +98,17 @@ public class TraceContextEnrichedActorServiceV2RemotingDispatcher : ActorService
                     throw;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    ///  Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+    /// </summary>
+    public void Dispose()
+    {
+        if (this.innerDispatcher is IDisposable disposable)
+        {
+            disposable.Dispose();
         }
     }
 }

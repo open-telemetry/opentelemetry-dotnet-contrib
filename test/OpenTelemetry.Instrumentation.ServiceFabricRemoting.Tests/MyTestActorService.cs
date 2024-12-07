@@ -4,10 +4,12 @@
 using System.Fabric;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Remoting.V2.FabricTransport.Runtime;
+using Microsoft.ServiceFabric.Actors.Remoting.V2.Runtime;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.FabricTransport.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.V2.Runtime;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests;
 
@@ -15,19 +17,21 @@ public class MyTestActorService : ActorService, IMyTestActorService
 {
     private static readonly Guid ActorId = Guid.Parse("{1F263E8C-78D4-4D91-AAE6-C4B9CE03D6EB}");
 
-    private readonly TraceContextEnrichedActorServiceV2RemotingDispatcher dispatcher;
+    private readonly ServiceRemotingMessageDispatcherAdapter dispatcher;
     private MyTestActor actor;
 
     public MyTestActorService(StatefulServiceContext context, ActorTypeInformation actorTypeInfo, Func<ActorService, ActorId, ActorBase>? actorFactory = null, Func<ActorBase, IActorStateProvider, IActorStateManager>? stateManagerFactory = null, IActorStateProvider? stateProvider = null, ActorServiceSettings? settings = null)
         : base(context, actorTypeInfo, actorFactory, stateManagerFactory, stateProvider, settings)
     {
-        this.dispatcher = new TraceContextEnrichedActorServiceV2RemotingDispatcher(this);
+        ActorServiceRemotingDispatcher actorServiceRemotingDispatcher = new ActorServiceRemotingDispatcher(this, serviceRemotingRequestMessageBodyFactory: null);
+
+        this.dispatcher = new ServiceRemotingMessageDispatcherAdapter(actorServiceRemotingDispatcher);
 
         ActorId id = new ActorId(ActorId);
         this.actor = new MyTestActor(this, id);
     }
 
-    public TraceContextEnrichedActorServiceV2RemotingDispatcher Dispatcher
+    public IServiceRemotingMessageHandler Dispatcher
     {
         get { return this.dispatcher; }
     }
