@@ -19,8 +19,8 @@ internal static partial class AWSSemanticConventions
     private class AWSSemanticConventions_v1_10_1 : AWSSemanticConventions_v1_10
     {
         // AWS Attributes
-        //public override string AttributeAWSBedrock => "aws.bedrock";
-        //public override string AttributeAWSDynamoTableName => "aws.dynamodb.table_names";
+        public override string AttributeAWSBedrock => "aws.bedrock";
+        public override string AttributeAWSDynamoTableName => "aws.dynamodb.table_names";
 
         // FAAS Attributes
         public override string AttributeFaasID => "cloud.resource_id";
