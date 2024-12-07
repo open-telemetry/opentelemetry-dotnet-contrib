@@ -18,6 +18,13 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
     public static MeterProviderBuilder AddAspNetCoreInstrumentation(
         this MeterProviderBuilder builder)
     {
+#if NETSTANDARD2_0_OR_GREATER
+        if (Environment.Version.Major < 8)
+        {
+            throw new PlatformNotSupportedException("Metrics instrumentation is not supported when executing on .NET 7 and lower.");
+        }
+
+#endif
         Guard.ThrowIfNull(builder);
 
         return builder
