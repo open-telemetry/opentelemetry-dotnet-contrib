@@ -30,6 +30,7 @@ internal static partial class AWSSemanticConventions
         public override string AttributeHttpStatusCode => this.AttributeHttpResponseStatusCode;
         public override string AttributeHttpScheme => this.AttributeUrlScheme;
 
+        public override string AttributeHttpTarget => string.Empty; // value no longer written
         public override string AttributeHttpMethod => this.AttributeHttpRequestMethod;
         public override string AttributeHttpResponseStatusCode => "http.response.status_code";
         public override string AttributeHttpRequestMethod => "http.request.method";
