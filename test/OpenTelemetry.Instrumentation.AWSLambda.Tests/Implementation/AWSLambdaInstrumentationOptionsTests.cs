@@ -47,7 +47,8 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
         var expectedTags = new List<string>
         {
             "url.scheme",
-            "http.target",
+            "url.path",
+            "url.query",
             "server.address",
             "server.port",
             "http.request.method",
