@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -234,7 +233,7 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(activity);
         Assert.NotNull(activity.TagObjects);
         var expectedColdStartValue = invocationsCount == 1;
-        Assert.Contains(activity.TagObjects, x => x.Key == AWSLambdaSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
+        Assert.Contains(activity.TagObjects, x => x.Key == ExpectedSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
     }
 
     private static ActivityContext CreateParentContext()
@@ -262,19 +261,19 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(resource);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-        Assert.Equal("aws", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("us-east-1", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudRegion]);
-        Assert.Equal("testfunction", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasName]);
-        Assert.Equal("latest", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasVersion]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("us-east-1", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal("testfunction", resourceAttributes[ExpectedSemanticConventions.AttributeFaasName]);
+        Assert.Equal("latest", resourceAttributes[ExpectedSemanticConventions.AttributeFaasVersion]);
     }
 
     private void AssertSpanAttributes(Activity activity)
     {
-        Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasExecution));
-        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasID));
-        Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasName));
-        Assert.Equal("other", activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasTrigger));
-        Assert.Equal("111111111111", activity.GetTagValue(AWSLambdaSemanticConventions.AttributeCloudAccountID));
+        Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasExecution));
+        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasID));
+        Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasName));
+        Assert.Equal("other", activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        Assert.Equal("111111111111", activity.GetTagValue(ExpectedSemanticConventions.AttributeCloudAccountID));
     }
 
     private void AssertSpanException(Activity activity)
@@ -284,5 +283,18 @@ public class AWSLambdaWrapperTests
         var exception = Assert.Single(activity.Events);
         Assert.Equal("exception", exception.Name);
         Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeFaasColdStart = "faas.coldstart";
+        public const string AttributeFaasName = "faas.name";
+        public const string AttributeFaasExecution = "faas.invocation_id";
+        public const string AttributeFaasID = "cloud.resource_id";
+        public const string AttributeFaasTrigger = "faas.trigger";
+        public const string AttributeFaasVersion = "faas.version";
     }
 }

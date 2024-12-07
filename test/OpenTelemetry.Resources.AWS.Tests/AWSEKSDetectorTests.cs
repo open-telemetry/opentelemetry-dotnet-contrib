@@ -31,10 +31,10 @@ public class AWSEKSDetectorTests
         var resourceAttributes = AWSEKSDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal(4, resourceAttributes.Count);
-        Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("aws_eks", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
-        Assert.Equal("Test cluster name", resourceAttributes[AWSSemanticConventions.AttributeK8SClusterName]);
-        Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("aws_eks", resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("Test cluster name", resourceAttributes[ExpectedSemanticConventions.AttributeK8SClusterName]);
+        Assert.Equal("Test container id", resourceAttributes[ExpectedSemanticConventions.AttributeContainerID]);
     }
 
     [Fact]
@@ -46,9 +46,9 @@ public class AWSEKSDetectorTests
 
         // Validate the count of resourceAttributes -> Excluding cluster name, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);
-        Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("aws_eks", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
-        Assert.Equal("Test container id", resourceAttributes[AWSSemanticConventions.AttributeContainerID]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("aws_eks", resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("Test container id", resourceAttributes[ExpectedSemanticConventions.AttributeContainerID]);
     }
 
     [Fact]
@@ -60,9 +60,9 @@ public class AWSEKSDetectorTests
 
         // Validate the count of resourceAttributes -> Excluding container id, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);
-        Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("aws_eks", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
-        Assert.Equal("Test cluster name", resourceAttributes[AWSSemanticConventions.AttributeK8SClusterName]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("aws_eks", resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("Test cluster name", resourceAttributes[ExpectedSemanticConventions.AttributeK8SClusterName]);
     }
 
     [Fact]
@@ -91,6 +91,14 @@ public class AWSEKSDetectorTests
         Assert.NotNull(eksClusterInformation);
         Assert.NotNull(eksClusterInformation.Data);
         Assert.Equal("Test", eksClusterInformation.Data.ClusterName);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeK8SClusterName = "k8s.cluster.name";
+        public const string AttributeContainerID = "container.id";
     }
 }
 

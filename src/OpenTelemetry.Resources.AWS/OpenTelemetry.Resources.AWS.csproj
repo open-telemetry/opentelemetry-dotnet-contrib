@@ -24,11 +24,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IServerCertificateValidationEventSource.cs" Link="Includes\IServerCertificateValidationEventSource.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationHandler.cs" Link="Includes\ServerCertificateValidationHandler.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ServerCertificateValidationProvider.cs" Link="Includes\ServerCertificateValidationProvider.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
   </ItemGroup>
 
 </Project>

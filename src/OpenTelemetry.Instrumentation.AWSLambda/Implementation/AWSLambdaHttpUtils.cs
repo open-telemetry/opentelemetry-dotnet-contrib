@@ -6,7 +6,7 @@ using System.Text;
 using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
-using OpenTelemetry.Trace;
+using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
@@ -54,11 +54,27 @@ internal class AWSLambdaHttpUtils
                 return tags;
         }
 
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpTarget, httpTarget);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostName, hostName);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostPort, hostPort);
+        if (httpScheme != null)
+        {
+            tags.AddAttributeHttpScheme(httpScheme, addIfEmpty: true);
+        }
+
+        if (httpTarget != null)
+        {
+            tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
+        }
+
+        if (httpMethod != null)
+        {
+            tags.AddAttributeHttpMethod(httpMethod, addIfEmpty: true);
+        }
+
+        if (hostName != null)
+        {
+            tags.AddAttributeNetHostName(hostName, addIfEmpty: true);
+        }
+
+        tags.AddAttributeNetHostPort(hostPort);
 
         return tags;
     }
@@ -73,13 +89,13 @@ internal class AWSLambdaHttpUtils
         switch (result)
         {
             case APIGatewayProxyResponse response:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+                activity.SetTagAttributeHttpStatusCode(response.StatusCode);
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
+                activity.SetTagAttributeHttpStatusCode(responseV2.StatusCode);
                 break;
             case ApplicationLoadBalancerResponse albResponse:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, albResponse.StatusCode);
+                activity.SetTagAttributeHttpStatusCode(albResponse.StatusCode);
                 break;
             default:
                 break;

@@ -40,4 +40,14 @@ public class AWSEBSDetectorTests
         Assert.Equal("Test AWS Elastic Beanstalk Environment Name", ebsMetadata.EnvironmentName);
         Assert.Equal("Test Version", ebsMetadata.VersionLabel);
     }
+
+    private static class AWSSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeServiceName = "service.name";
+        public const string AttributeServiceNamespace = "service.namespace";
+        public const string AttributeServiceInstanceID = "service.instance.id";
+        public const string AttributeServiceVersion = "service.version";
+    }
 }
