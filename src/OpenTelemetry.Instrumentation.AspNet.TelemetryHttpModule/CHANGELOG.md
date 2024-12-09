@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
 * `TelemetryHttpModule` will now pass the `url.path` tag (set to
   [Request.Unvalidated.Path](https://learn.microsoft.com/dotnet/api/system.web.unvalidatedrequestvalues.path))
   when starting `Activity` instances for incoming requests so that it is
