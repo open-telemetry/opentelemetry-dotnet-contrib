@@ -18,12 +18,14 @@ internal sealed class BaggageLogRecordProcessor : BaseProcessor<LogRecord>
 
     public override void OnEnd(LogRecord data)
     {
-        if (data != null && Baggage.Current.Count > 0)
+        var baggage = Baggage.Current;
+
+        if (data != null && baggage.Count > 0)
         {
-            var capacity = (data.Attributes?.Count ?? 0) + Baggage.Current.Count;
+            var capacity = (data.Attributes?.Count ?? 0) + baggage.Count;
             var attributes = new List<KeyValuePair<string, object?>>(capacity);
 
-            foreach (var entry in Baggage.Current)
+            foreach (var entry in baggage)
             {
                 if (this.baggageKeyPredicate(entry.Key))
                 {
