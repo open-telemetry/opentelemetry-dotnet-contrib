@@ -66,21 +66,27 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoTableName"/>
     public static IDictionary<string, string> AddAttributeAWSDynamoTableName(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSDynamoTableName, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSQSQueueUrl"/>
     public static IDictionary<string, string> AddAttributeAWSSQSQueueUrl(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSSQSQueueUrl, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiModelId"/>
     public static IDictionary<string, string> AddAttributeGenAiModelId(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeGenAiModelId, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockAgentId"/>
     public static IDictionary<string, string> AddAttributeAWSBedrockAgentId(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSBedrockAgentId, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockDataSourceId"/>
     public static IDictionary<string, string> AddAttributeAWSBedrockDataSourceId(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSBedrockDataSourceId, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockGuardrailId"/>
     public static IDictionary<string, string> AddAttributeAWSBedrockGuardrailId(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSBedrockGuardrailId, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockKnowledgeBaseId"/>
     public static IDictionary<string, string> AddAttributeAWSBedrockKnowledgeBaseId(this IDictionary<string, string> dict, string value)
         => AddDic(dict, x => x.AttributeAWSBedrockKnowledgeBaseId, value);
@@ -90,27 +96,35 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudAccountID"/>
     public static T AddAttributeCloudAccountID<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudAccountID, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudAvailabilityZone"/>
     public static T AddAttributeCloudAvailabilityZone<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudAvailabilityZone, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudPlatform"/>
     public static T AddAttributeCloudPlatformIsAwsEc2<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudPlatform, x => x.CloudPlatformValuesAwsEc2);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudPlatform"/>
     public static T AddAttributeCloudPlatformIsAwsEcs<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudPlatform, x => x.CloudPlatformValuesAwsEcs);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudPlatform"/>
     public static T AddAttributeCloudPlatformIsAwsEks<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudPlatform, x => x.CloudPlatformValuesAwsEks);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudPlatform"/>
     public static T AddAttributeCloudPlatformIsAwsElasticBeanstalk<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudPlatform, x => x.CloudPlatformValuesAwsElasticBeanstalk);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudProvider"/>
     public static T AddAttributeCloudProviderIsAWS<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudProvider, x => x.CloudProviderValuesAws);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
     public static T AddAttributeCloudRegion<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudRegion, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudResourceId"/>
     public static T AddAttributeCloudResourceId<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeCloudResourceId, value, addIfEmpty);
@@ -126,60 +140,78 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeDbSystem"/>
     public static Activity? SetTagAttributeDbSystemToDynamoDb(this Activity? activity)
         => SetTag(activity, x => x.AttributeDbSystem, x => x.AttributeDynamoDb);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiSystem"/>
     public static Activity? SetTagAttributeGenAiSystemToBedrock(this Activity? activity)
         => SetTag(activity, x => x.AttributeGenAiSystem, x => x.AttributeAWSBedrock);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsContainerArn"/>
     public static T AddAttributeEcsContainerArn<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsContainerArn, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsClusterArn"/>
     public static T AddAttributeEcsClusterArn<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsClusterArn, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsLaunchtype"/>
     public static T AddAttributeEcsLaunchtypeIsEc2<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsLaunchtype, x => x.ValueEcsLaunchTypeEc2);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsLaunchtype"/>
     public static T AddAttributeEcsLaunchtypeIsFargate<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsLaunchtype, x => x.ValueEcsLaunchTypeFargate);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsTaskArn"/>
     public static T AddAttributeEcsTaskArn<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsTaskArn, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsTaskFamily"/>
     public static T AddAttributeEcsTaskFamily<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsTaskFamily, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeEcsTaskRevision"/>
     public static T AddAttributeEcsTaskRevision<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeEcsTaskRevision, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeLogGroupNames"/>
     public static T AddAttributeLogGroupNames<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeLogGroupNames, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeLogGroupArns"/>
     public static T AddAttributeLogGroupArns<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeLogGroupArns, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeLogStreamNames"/>
     public static T AddAttributeLogStreamNames<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeLogStreamNames, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeLogStreamArns"/>
     public static T AddAttributeLogStreamArns<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeLogStreamArns, value, addIfEmpty);
+
     #endregion
 
     #region Faas
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasID"/>
     public static T AddAttributeFaasID<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasID, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasExecution"/>
     public static T AddAttributeFaasExecution<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasExecution, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasName"/>
     public static T AddAttributeFaasName<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasName, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasVersion"/>
     public static T AddAttributeFaasVersion<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasVersion, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasTrigger"/>
     public static T AddAttributeFaasTrigger<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasTrigger, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasColdStart"/>
     public static T AddAttributeFaasColdStart<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeFaasColdStart, value, addIfEmpty);
@@ -190,24 +222,30 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHostID"/>
     public static T AddAttributeHostID<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHostID, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHostType"/>
     public static T AddAttributeHostType<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHostType, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHostName"/>
     public static T AddAttributeHostName<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHostName, value, addIfEmpty);
+
     #endregion
 
     #region Http
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpStatusCode"/>
     public static Activity? SetTagAttributeHttpStatusCode(this Activity? activity, int value)
         => SetTag(activity, x => x.AttributeHttpStatusCode, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpScheme"/>
     public static T AddAttributeHttpScheme<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpScheme, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpTarget"/>
     public static T AddAttributeHttpTarget<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpTarget, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpMethod"/>
     public static T AddAttributeHttpMethod<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpMethod, value, addIfEmpty);
@@ -217,6 +255,7 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeNetHostName"/>
     public static T AddAttributeNetHostName<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeNetHostName, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeNetHostPort"/>
     public static T AddAttributeNetHostPort<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeNetHostPort, value, addIfEmpty);
@@ -232,12 +271,15 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceName"/>
     public static T AddAttributeServiceNameIsAwsElasticBeanstalk<T>(this T attributes)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServiceName, x => x.ServiceNameValuesAwsElasticBeanstalk);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceNamespace"/>
     public static T AddAttributeServiceNamespace<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServiceNamespace, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceInstanceID"/>
     public static T AddAttributeServiceInstanceID<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServiceInstanceID, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceVersion"/>
     public static T AddAttributeServiceVersion<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServiceVersion, value, addIfEmpty);
@@ -247,6 +289,7 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeUrlPath"/>
     public static T AddAttributeUrlPath<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeUrlPath, value, addIfEmpty);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceName"/>
     public static T AddAttributeUrlQuery<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeUrlQuery, value, addIfEmpty);
