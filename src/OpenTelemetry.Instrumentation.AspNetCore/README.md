@@ -113,28 +113,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-Following list of attributes are added by default on
-`http.server.request.duration` metric. See
-[http-metrics](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-metrics.md)
-for more details about each individual attribute. `.NET8.0` and above supports
-additional metrics, see [list of metrics produced](#list-of-metrics-produced) for
-more details.
-
-* `error.type`
-* `http.response.status_code`
-* `http.request.method`
-* `http.route`
-* `network.protocol.version`
-* `url.scheme`
-
 #### List of metrics produced
-
-When the application targets `.NET6.0` or `.NET7.0`, the instrumentation emits
-the following metric:
-
-| Name                              | Details                                                                                                                                                 |
-|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `http.server.request.duration`    | [Specification](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md#metric-httpserverrequestduration) |
 
 Starting from `.NET8.0`, metrics instrumentation is natively implemented, and
 the ASP.NET Core library has incorporated support for [built-in
@@ -164,16 +143,6 @@ to achieve this.
 > There is no difference in features or emitted metrics when enabling metrics
 using `AddMeter()` or `AddAspNetCoreInstrumentation()` on `.NET8.0` and newer
 versions.
-<!-- This comment is to make sure the two notes above and below are not merged -->
-> [!NOTE]
-> The `http.server.request.duration` metric is emitted in `seconds` as per the
-semantic convention. While the convention [recommends using custom histogram
-buckets](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md)
-, this feature is not yet available via .NET Metrics API. A
-[workaround](https://github.com/open-telemetry/opentelemetry-dotnet/pull/4820)
-has been included in OTel SDK starting version `1.6.0` which applies recommended
-buckets by default for `http.server.request.duration`. This applies to all
-targeted frameworks.
 
 ## Advanced configuration
 

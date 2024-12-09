@@ -11,6 +11,11 @@ internal static class AWSSemanticConventions
     public const string AttributeCloudProvider = "cloud.provider";
     public const string AttributeCloudRegion = "cloud.region";
     public const string AttributeCloudResourceId = "cloud.resource_id";
+    public const string CloudPlatformValuesAwsEc2 = "aws_ec2";
+    public const string CloudPlatformValuesAwsEcs = "aws_ecs";
+    public const string CloudPlatformValuesAwsEks = "aws_eks";
+    public const string CloudPlatformValuesAwsElasticBeanstalk = "aws_elastic_beanstalk";
+    public const string CloudProviderValuesAws = "aws";
 
     public const string AttributeContainerID = "container.id";
 
@@ -43,4 +48,5 @@ internal static class AWSSemanticConventions
     public const string AttributeServiceNamespace = "service.namespace";
     public const string AttributeServiceInstanceID = "service.instance.id";
     public const string AttributeServiceVersion = "service.version";
+    public const string ServiceNameValuesAwsElasticBeanstalk = "aws_elastic_beanstalk";
 }
