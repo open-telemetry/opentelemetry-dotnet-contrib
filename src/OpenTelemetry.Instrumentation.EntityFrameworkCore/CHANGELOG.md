@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
 * The new database semantic conventions can be opted in to by setting
   the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable. This allows for a
   transition period for users to experiment with the new semantic conventions
