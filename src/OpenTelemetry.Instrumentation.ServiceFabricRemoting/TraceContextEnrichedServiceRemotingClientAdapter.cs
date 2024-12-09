@@ -75,7 +75,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                     }
                     catch (Exception)
                     {
-                        //TODO: Log error
+                        // TODO: Log error
                     }
 
                     try
@@ -101,7 +101,7 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                         }
                         catch (Exception)
                         {
-                            //TODO: Log error
+                            // TODO: Log error
                         }
                     }
 
@@ -124,9 +124,10 @@ internal class TraceContextEnrichedServiceRemotingClientAdapter : IServiceRemoti
                         }
                         catch (Exception)
                         {
-                            //TODO: Log error
+                            // TODO: Log error
                         }
                     }
+
                     throw;
                 }
             }
