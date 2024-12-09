@@ -104,7 +104,7 @@ By default, all remoting calls are instrumented.
         {
             options.Filter = requestMessage =>
             {
-                // Exclude remoting calls to a specific method 
+                // Exclude remoting calls to a specific method
                 IServiceRemotingRequestMessageHeader requestMessageHeader = requestMessage?.GetHeader();
                 if (requestMessageHeader?.MethodName == "SomeMethodToIgnore")
                 {

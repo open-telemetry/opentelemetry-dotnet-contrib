@@ -54,6 +54,7 @@ internal class ServiceRemotingRequestMessageHeaderMock : IServiceRemotingRequest
         {
             throw new FabricElementAlreadyExistsException(string.Format((IFormatProvider)(object)CultureInfo.CurrentCulture, "ErrorHeaderAlreadyExists"));
         }
+
         this.headers[headerName] = headerValue;
     }
 
