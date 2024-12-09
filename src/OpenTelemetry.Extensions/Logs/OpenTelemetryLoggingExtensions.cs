@@ -42,7 +42,7 @@ public static class OpenTelemetryLoggingExtensions
     /// cref="OpenTelemetryLoggerOptions"/> which will copy all
     /// baggage entries as log record attributes.
     /// </summary>
-    /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="BaggageLogRecordProcessor"/> to.</param>
+    /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="LogRecord"/> processor to.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="loggerOptions"/> is <c>null</c>.</exception>
     /// <remarks>
@@ -59,7 +59,7 @@ public static class OpenTelemetryLoggingExtensions
     /// cref="OpenTelemetryLoggerOptions"/> which will conditionally copy
     /// baggage entries as log record attributes.
     /// </summary>
-    /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="BaggageLogRecordProcessor"/> to.</param>
+    /// <param name="loggerOptions"><see cref="OpenTelemetryLoggerOptions"/> to add the <see cref="LogRecord"/> processor to.</param>
     /// <param name="baggageKeyPredicate">Predicate to determine which baggage keys should be added to the log record.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="loggerOptions"/> is <c>null</c>.</exception>
