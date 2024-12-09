@@ -15,4 +15,8 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestActivityProcessor.cs" Link="Includes\TestActivityProcessor.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
+  </ItemGroup>
+
 </Project>
