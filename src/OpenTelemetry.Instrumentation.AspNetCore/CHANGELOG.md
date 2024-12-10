@@ -2,13 +2,16 @@
 
 ## Unreleased
 
+* Metric support for the .NET Standard target was removed by mistake in 1.10.0.
+  This functionality has been restored.
+  ([#2403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2403))
+
 ## 1.10.0
 
 Released 2024-Dec-09
 
 * Drop support for .NET 6 as this target is no longer supported.
-  ([#2138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2138),
-  ([#2360](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2360))
+  ([#2138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2138))
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
