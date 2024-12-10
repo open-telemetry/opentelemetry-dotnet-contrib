@@ -9,7 +9,7 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
 [Collection("TracerProviderDependent")]
-public class AWSLambdaWrapperTests
+public class AWSLambdaWrapperTests : IDisposable
 {
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string XRayParentId = "53995c3f42cd8ad8";
@@ -28,6 +28,13 @@ public class AWSLambdaWrapperTests
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
     }
 
+    public void Dispose()
+    {
+        // reset Semantic Convention to default
+        Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -36,7 +43,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -61,7 +71,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -86,7 +99,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                       {
+                           opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -111,7 +127,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -136,7 +155,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -168,7 +190,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -187,7 +212,10 @@ public class AWSLambdaWrapperTests
 
         Activity? activity = null;
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .Build())
         {
             activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
