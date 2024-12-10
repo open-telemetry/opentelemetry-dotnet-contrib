@@ -1,15 +1,15 @@
 #nullable enable
-OpenTelemetry.AWS.SemanticConventionVersion
-OpenTelemetry.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.AWS.SemanticConventionVersion
-OpenTelemetry.AWS.SemanticConventionVersion.v1_29_0_Experimental = 2 -> OpenTelemetry.AWS.SemanticConventionVersion
-OpenTelemetry.AWS.SemanticConventionVersion.v1_27_0_Experimental = 1 -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion.v1_29_0_Experimental = 2 -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion.v1_27_0_Experimental = 1 -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.AWSLambdaInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.get -> bool
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.DisableAwsXRayContextExtraction.set -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromBatch.get -> bool
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SetParentFromBatch.set -> void
-OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SemanticConventionVersion.get -> OpenTelemetry.AWS.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SemanticConventionVersion.get -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.SemanticConventionVersion.set -> void
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaWrapper
 OpenTelemetry.Instrumentation.AWSLambda.TracerProviderBuilderExtensions

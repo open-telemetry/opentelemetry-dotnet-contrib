@@ -1,7 +1,16 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.AWS;
+// because this class is shared and public, each project that exposes it must
+// ensure that it has a unique namespace, otherwise users could face type collisions
+// if they import multiple projects.
+#if INSTRUMENTATION_AWSLAMBDA
+namespace OpenTelemetry.Instrumentation.AWSLambda;
+#elif INSTRUMENTATION_AWS
+namespace OpenTelemetry.Instrumentation.AWS;
+#elif RESOURCES_AWS
+namespace OpenTelemetry.Resources.AWS;
+#endif
 
 #pragma warning disable SA1300
 #pragma warning disable CA1707
@@ -33,7 +42,7 @@ namespace OpenTelemetry.AWS;
 /// bump.
 /// </para>
 /// <para>
-/// To opt in to automatic upgrades, you can use <see cref="SemanticConventionVersion.Latest"/>
+/// To opt in to automatic upgrades, you can use <see cref="Latest"/>
 /// or you can specify a specific version:
 /// </para>
 /// <para>

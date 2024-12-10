@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Lambda.APIGatewayEvents;
-using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;

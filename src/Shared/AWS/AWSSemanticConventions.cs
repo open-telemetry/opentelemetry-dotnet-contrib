@@ -4,18 +4,25 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
+#if INSTRUMENTATION_AWSLAMBDA
+using OpenTelemetry.Instrumentation.AWSLambda;
+#elif INSTRUMENTATION_AWS
+using OpenTelemetry.Instrumentation.AWS;
+#elif RESOURCES_AWS
+using OpenTelemetry.Resources.AWS;
+#endif
+
 // disable Style Warnings to improve readability of this specific file.
 #pragma warning disable SA1124
 #pragma warning disable SA1005
 #pragma warning disable SA1514
 #pragma warning disable SA1201
 #pragma warning disable SA1623
-#pragma warning disable IDE0001
 
 namespace OpenTelemetry.AWS;
 
 /// <summary>
-/// Abstracts the complexities of honoring <see cref="AWS.SemanticConventionVersion"/>.
+/// Abstracts the complexities of honoring <see cref="SemanticConventionVersion"/>.
 /// <para/>
 /// Classes emitting attributes can use the extension methods in this class to build
 /// a List of <see cref="KeyValuePair{K,V}"/>s containing
@@ -61,7 +68,7 @@ internal static partial class AWSSemanticConventions
     /// </code>
     /// </summary>
     /// <remarks>
-    /// Per <see cref="OpenTelemetry.AWS.SemanticConventionVersion"/>, default should stay as
+    /// Per SemanticConventionVersion, default should stay as
     /// <see cref="SemanticConventionVersion.v1_27_0_Experimental"/> until next major version bump.
     /// </remarks>
     internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;

@@ -24,6 +24,6 @@ public class AWSLambdaInstrumentationOptions
     /// </remarks>
     public bool SetParentFromBatch { get; set; }
 
-    /// <inheritdoc cref="AWS.SemanticConventionVersion"/>
+    /// <inheritdoc cref="AWSLambda.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }

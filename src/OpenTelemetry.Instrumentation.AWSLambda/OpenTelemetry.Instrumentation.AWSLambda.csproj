@@ -6,6 +6,7 @@
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
     <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
+    <DefineConstants>INSTRUMENTATION_AWSLAMBDA;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
