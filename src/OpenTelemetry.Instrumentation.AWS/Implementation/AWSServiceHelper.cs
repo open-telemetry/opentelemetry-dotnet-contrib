@@ -8,7 +8,22 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceHelper
 {
-    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap = new Dictionary<string, List<string>>()
+    public AWSServiceHelper(AWSSemanticConventions semanticConventions)
+    {
+        this.ParameterAttributeMap =
+            semanticConventions
+                .ParameterMappingBuilder
+                .AddAttributeAWSDynamoTableName("TableName")
+                .AddAttributeAWSSQSQueueUrl("QueueUrl")
+                .AddAttributeGenAiModelId("ModelId")
+                .AddAttributeAWSBedrockAgentId("AgentId")
+                .AddAttributeAWSBedrockDataSourceId("DataSourceId")
+                .AddAttributeAWSBedrockGuardrailId("GuardrailId")
+                .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId")
+                .Build();
+    }
+
+    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.DynamoDbService, ["TableName"] },
         { AWSServiceType.SQSService, ["QueueUrl"] },
@@ -17,24 +32,14 @@ internal class AWSServiceHelper
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
     };
 
-    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap = new Dictionary<string, List<string>>()
+    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.BedrockService, ["GuardrailId"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
     };
 
-    internal static IDictionary<string, string> ParameterAttributeMap =
-        new Dictionary<string, string>()
-            .AddAttributeAWSDynamoTableName("TableName")
-            .AddAttributeAWSSQSQueueUrl("QueueUrl")
-            .AddAttributeGenAiModelId("ModelId")
-            .AddAttributeAWSBedrockAgentId("AgentId")
-            .AddAttributeAWSBedrockDataSourceId("DataSourceId")
-            .AddAttributeAWSBedrockGuardrailId("GuardrailId")
-            .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId");
-
     // for Bedrock Agent operations, we map each supported operation to one resource: Agent, DataSource, or KnowledgeBase
-    internal static List<string> BedrockAgentAgentOps =
+    internal static List<string> BedrockAgentAgentOps { get; } =
     [
         "CreateAgentActionGroup",
         "CreateAgentAlias",
@@ -56,7 +61,7 @@ internal class AWSServiceHelper
         "UpdateAgent"
     ];
 
-    internal static List<string> BedrockAgentKnowledgeBaseOps =
+    internal static List<string> BedrockAgentKnowledgeBaseOps { get; } =
     [
         "AssociateAgentKnowledgeBase",
         "CreateDataSource",
@@ -68,12 +73,14 @@ internal class AWSServiceHelper
         "UpdateAgentKnowledgeBase"
     ];
 
-    internal static List<string> BedrockAgentDataSourceOps =
+    internal static List<string> BedrockAgentDataSourceOps { get; } =
     [
         "DeleteDataSource",
         "GetDataSource",
         "UpdateDataSource"
     ];
+
+    internal IDictionary<string, string> ParameterAttributeMap { get; }
 
     internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
     {

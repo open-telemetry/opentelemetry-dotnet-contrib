@@ -15,7 +15,10 @@ public class AWSEKSDetectorTests
     [Fact]
     public void TestDetect()
     {
-        var eksResourceDetector = new AWSEKSDetector();
+        var eksResourceDetector = new AWSEKSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
         var resourceAttributes = eksResourceDetector.Detect();
 
         Assert.NotNull(resourceAttributes);
@@ -28,7 +31,11 @@ public class AWSEKSDetectorTests
         var clusterName = "Test cluster name";
         var containerId = "Test container id";
 
-        var resourceAttributes = AWSEKSDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
+        var eksResourceDetector = new AWSEKSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
+        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(clusterName, containerId).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal(4, resourceAttributes.Count);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
@@ -42,7 +49,11 @@ public class AWSEKSDetectorTests
     {
         var containerId = "Test container id";
 
-        var resourceAttributes = AWSEKSDetector.ExtractResourceAttributes(string.Empty, containerId).ToDictionary(x => x.Key, x => x.Value);
+        var eksResourceDetector = new AWSEKSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
+        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(string.Empty, containerId).ToDictionary(x => x.Key, x => x.Value);
 
         // Validate the count of resourceAttributes -> Excluding cluster name, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);
@@ -56,7 +67,11 @@ public class AWSEKSDetectorTests
     {
         var clusterName = "Test cluster name";
 
-        var resourceAttributes = AWSEKSDetector.ExtractResourceAttributes(clusterName, string.Empty).ToDictionary(x => x.Key, x => x.Value);
+        var eksResourceDetector = new AWSEKSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
+        var resourceAttributes = eksResourceDetector.ExtractResourceAttributes(clusterName, string.Empty).ToDictionary(x => x.Key, x => x.Value);
 
         // Validate the count of resourceAttributes -> Excluding container id, there will be only three resourceAttributes
         Assert.Equal(3, resourceAttributes.Count);

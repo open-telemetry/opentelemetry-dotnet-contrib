@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -11,24 +12,10 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 
 [Collection("TracerProviderDependent")]
-public class AWSLambdaHttpUtilsTests : IDisposable
+public class AWSLambdaHttpUtilsTests
 {
-    public AWSLambdaHttpUtilsTests()
-    {
-        // have all tests use the latest Semantic Convention
-        Sdk.CreateTracerProviderBuilder()
-            .AddAWSLambdaConfigurations(opt =>
-            {
-                opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-            });
-    }
-
-    public void Dispose()
-    {
-        // reset Semantic Convention to default
-        Sdk.CreateTracerProviderBuilder()
-            .AddAWSLambdaConfigurations();
-    }
+    private readonly AWSSemanticConventions latestSemanticConventions =
+        new AWSSemanticConventions(SemanticConventionVersion.Latest);
 
     [Fact]
     public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
@@ -53,7 +40,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             },
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -86,7 +73,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             Path = "/path/test",
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -121,7 +108,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             Path = "/path/test",
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -148,7 +135,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             },
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -177,7 +164,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
         using var testActivitySource = new ActivitySource("TestActivitySource");
         using var activity = testActivitySource.StartActivity("TestActivity");
 
-        AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
+        AWSLambdaHttpUtils.SetHttpTagsFromResult(this.latestSemanticConventions, activity, response);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -254,7 +241,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             Path = "/path/test",
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -278,7 +265,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             },
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -313,7 +300,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             },
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -340,7 +327,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             },
         };
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(this.latestSemanticConventions, request);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -369,7 +356,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
         using var testActivitySource = new ActivitySource("TestActivitySource");
         using var activity = testActivitySource.StartActivity("TestActivity");
 
-        AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
+        AWSLambdaHttpUtils.SetHttpTagsFromResult(this.latestSemanticConventions, activity, response);
 
         var expectedTags = new Dictionary<string, object>
         {
@@ -398,7 +385,7 @@ public class AWSLambdaHttpUtilsTests : IDisposable
         using var testActivitySource = new ActivitySource("TestActivitySource");
         using var activity = testActivitySource.StartActivity("TestActivity");
 
-        AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, response);
+        AWSLambdaHttpUtils.SetHttpTagsFromResult(this.latestSemanticConventions, activity, response);
 
         var expectedTags = new Dictionary<string, object>
         {

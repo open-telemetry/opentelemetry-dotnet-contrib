@@ -17,6 +17,13 @@ internal sealed class AWSECSDetector : IResourceDetector
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
     private const string AWSECSMetadataURLV4Key = "ECS_CONTAINER_METADATA_URI_V4";
 
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSECSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
+
     /// <summary>
     /// Detector the required and optional resource attributes from AWS ECS.
     /// </summary>
@@ -29,7 +36,8 @@ internal sealed class AWSECSDetector : IResourceDetector
         }
 
         var resourceAttributes =
-            new List<KeyValuePair<string, object>>()
+            this.semanticConventionBuilder
+                .AttributeBuilder
                 .AddAttributeCloudProviderIsAWS()
                 .AddAttributeCloudPlatformIsAwsEcs();
         try
@@ -47,22 +55,47 @@ internal sealed class AWSECSDetector : IResourceDetector
 
         try
         {
-            resourceAttributes.AddRange(ExtractMetadataV4ResourceAttributes());
+            this.ExtractMetadataV4ResourceAttributes(resourceAttributes);
         }
         catch (Exception ex)
         {
             AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), ex);
         }
 
-        return new Resource(resourceAttributes);
+        return new Resource(resourceAttributes.Build());
     }
 
-    internal static List<KeyValuePair<string, object>> ExtractMetadataV4ResourceAttributes()
+    internal static string? GetECSContainerId(string path)
+    {
+        string? containerId = null;
+
+        using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+        {
+            while (!streamReader.EndOfStream)
+            {
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
+                {
+                    containerId = trimmedLine.Substring(trimmedLine.Length - 64);
+                    return containerId;
+                }
+            }
+        }
+
+        return containerId;
+    }
+
+    internal static bool IsECSProcess()
+    {
+        return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
+    }
+
+    internal void ExtractMetadataV4ResourceAttributes(AWSSemanticConventions.AttributeBuilderImpl resourceAttributes)
     {
         var metadataV4Url = Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key);
         if (metadataV4Url == null)
         {
-            return [];
+            return;
         }
 
         using var httpClientHandler = new HttpClientHandler();
@@ -76,14 +109,14 @@ internal sealed class AWSECSDetector : IResourceDetector
             || containerArnElement.GetString() is not string containerArn)
         {
             AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'ContainerARN' field"));
-            return [];
+            return;
         }
 
         if (!taskResponse.RootElement.TryGetProperty("Cluster", out var clusterArnElement)
             || clusterArnElement.GetString() is not string clusterArn)
         {
             AWSResourcesEventSource.Log.ResourceAttributesExtractException(nameof(AWSECSDetector), new ArgumentException("The ECS Metadata V4 response did not contain the 'Cluster' field"));
-            return [];
+            return;
         }
 
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
@@ -92,7 +125,7 @@ internal sealed class AWSECSDetector : IResourceDetector
 #pragma warning restore CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
         }
 
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
+        resourceAttributes
             .AddAttributeCloudResourceId(containerArn)
             .AddAttributeEcsContainerArn(containerArn)
             .AddAttributeEcsClusterArn(clusterArn);
@@ -176,33 +209,6 @@ internal sealed class AWSECSDetector : IResourceDetector
                 }
             }
         }
-
-        return resourceAttributes;
-    }
-
-    internal static string? GetECSContainerId(string path)
-    {
-        string? containerId = null;
-
-        using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
-        {
-            while (!streamReader.EndOfStream)
-            {
-                var trimmedLine = streamReader.ReadLine()?.Trim();
-                if (trimmedLine?.Length > 64)
-                {
-                    containerId = trimmedLine.Substring(trimmedLine.Length - 64);
-                    return containerId;
-                }
-            }
-        }
-
-        return containerId;
-    }
-
-    internal static bool IsECSProcess()
-    {
-        return Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null || Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
     }
 }
 #endif

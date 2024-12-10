@@ -10,15 +10,23 @@ public class AWSEC2DetectorTests
     [Fact]
     public void TestDetect()
     {
-        Assert.Empty(new AWSEC2Detector().Detect().Attributes); // will be null as it's not in ec2 environment
+        var awsEC2Detector = new AWSEC2Detector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
+        Assert.Empty(awsEC2Detector.Detect().Attributes); // will be null as it's not in ec2 environment
     }
 
     [Fact]
     public void TestExtractResourceAttributes()
     {
+        var awsEC2Detector = new AWSEC2Detector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
         var sampleEC2IdentityDocumentModel = new SampleAWSEC2IdentityDocumentModel();
         var hostName = "Test host name";
-        var resourceAttributes = AWSEC2Detector.ExtractResourceAttributes(sampleEC2IdentityDocumentModel, hostName).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = awsEC2Detector.ExtractResourceAttributes(sampleEC2IdentityDocumentModel, hostName).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_ec2", resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform]);

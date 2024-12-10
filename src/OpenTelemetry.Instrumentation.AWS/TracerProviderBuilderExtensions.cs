@@ -3,7 +3,6 @@
 
 using Amazon;
 using Amazon.Runtime.Telemetry;
-using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWS;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
@@ -38,8 +37,6 @@ public static class TracerProviderBuilderExtensions
 
         var awsClientOptions = new AWSClientInstrumentationOptions();
         configure?.Invoke(awsClientOptions);
-
-        AWSSemanticConventions.SemanticConventionVersion = awsClientOptions.SemanticConventionVersion;
 
         _ = new AWSClientsInstrumentation(awsClientOptions);
 

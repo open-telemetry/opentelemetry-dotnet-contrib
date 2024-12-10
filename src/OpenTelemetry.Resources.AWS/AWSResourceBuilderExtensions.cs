@@ -25,9 +25,9 @@ public static class AWSResourceBuilderExtensions
         var options = new AWSResourceBuilderOptions();
         configure?.Invoke(options);
 
-        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
 
-        return builder.AddDetector(new AWSEBSDetector());
+        return builder.AddDetector(new AWSEBSDetector(semanticConventionBuilder));
     }
 
     /// <summary>
@@ -43,9 +43,9 @@ public static class AWSResourceBuilderExtensions
         var options = new AWSResourceBuilderOptions();
         configure?.Invoke(options);
 
-        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
 
-        return builder.AddDetector(new AWSEC2Detector());
+        return builder.AddDetector(new AWSEC2Detector(semanticConventionBuilder));
     }
 
 #if NET
@@ -62,9 +62,9 @@ public static class AWSResourceBuilderExtensions
         var options = new AWSResourceBuilderOptions();
         configure?.Invoke(options);
 
-        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
 
-        return builder.AddDetector(new AWSECSDetector());
+        return builder.AddDetector(new AWSECSDetector(semanticConventionBuilder));
     }
 
     /// <summary>
@@ -80,9 +80,9 @@ public static class AWSResourceBuilderExtensions
         var options = new AWSResourceBuilderOptions();
         configure?.Invoke(options);
 
-        AWSSemanticConventions.SemanticConventionVersion = options.SemanticConventionVersion;
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
 
-        return builder.AddDetector(new AWSEKSDetector());
+        return builder.AddDetector(new AWSEKSDetector(semanticConventionBuilder));
     }
 #endif
 }
