@@ -100,7 +100,7 @@ jobs:
     - name: dotnet test ${{ steps.resolve-project.outputs.title }}
       if: ${{ inputs.run-tests }}
       run: >
-        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && 'dotnet --info && echo $PATH && sudo -E' || '' }}
+        ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && 'dotnet --info && echo $PATH && sudo -E echo $PATH && sudo -E' || '' }}
         dotnet test ${{ steps.resolve-project.outputs.project }}
         --collect:"Code Coverage"
         --results-directory:TestResults
