@@ -19,6 +19,13 @@ internal sealed class AWSEBSDetector : IResourceDetector
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
 #endif
 
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEBSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
+
     /// <summary>
     /// Detector the required and optional resource attributes from AWS Elastic Beanstalk.
     /// </summary>
@@ -43,7 +50,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
             var metadata = GetEBSMetadata(filePath);
 
-            return new Resource(ExtractResourceAttributes(metadata));
+            return new Resource(this.ExtractResourceAttributes(metadata));
         }
         catch (Exception ex)
         {
@@ -53,20 +60,6 @@ internal sealed class AWSEBSDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
-    {
-        var resourceAttributes =
-            new List<KeyValuePair<string, object>>()
-                .AddAttributeCloudProviderIsAWS()
-                .AddAttributeCloudPlatformIsAwsElasticBeanstalk()
-                .AddAttributeServiceNameIsAwsElasticBeanstalk()
-                .AddAttributeServiceNamespace(metadata?.EnvironmentName)
-                .AddAttributeServiceInstanceID(metadata?.DeploymentId)
-                .AddAttributeServiceVersion(metadata?.VersionLabel);
-
-        return resourceAttributes;
-    }
-
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
 #if NETFRAMEWORK
@@ -74,5 +67,21 @@ internal sealed class AWSEBSDetector : IResourceDetector
 #else
         return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #endif
+    }
+
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsElasticBeanstalk()
+                .AddAttributeServiceNameIsAwsElasticBeanstalk()
+                .AddAttributeServiceNamespace(metadata?.EnvironmentName)
+                .AddAttributeServiceInstanceID(metadata?.DeploymentId)
+                .AddAttributeServiceVersion(metadata?.VersionLabel)
+                .Build();
+
+        return resourceAttributes;
     }
 }

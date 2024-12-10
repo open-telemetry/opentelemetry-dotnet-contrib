@@ -1,6 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if Instrumentation_AWSLambda
+using OpenTelemetry.Instrumentation.AWSLambda;
+#elif Instrumentation_AWS
+using OpenTelemetry.Instrumentation.AWS;
+#elif Resources_AWS
+using OpenTelemetry.Resources.AWS;
+#endif
+
 namespace OpenTelemetry.AWS;
 
 // disable Style Warnings to improve readability of this specific file.
@@ -9,7 +17,7 @@ namespace OpenTelemetry.AWS;
 #pragma warning disable SA1623
 #pragma warning disable CS1570 // XML comment has badly formed XML (from original source)
 
-internal static partial class AWSSemanticConventions
+internal partial class AWSSemanticConventions
 {
     /// <summary>
     /// Defines all Semantic Conventions used by AWS extension projects.
