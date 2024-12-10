@@ -23,7 +23,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
 {
     [Fact]
-    public void CanUseSemanticConvention1_10()
+    public void CanUseSemanticConvention_v1_27_0()
     {
         var semanticVersion = SemanticConventionVersion.v1_27_0_Experimental;
 
@@ -40,7 +40,7 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
     }
 
     [Fact]
-    public void CanUseSemanticConvention1_10_1()
+    public void CanUseSemanticConvention_v1_29_0()
     {
         var semanticVersion = SemanticConventionVersion.v1_29_0_Experimental;
 
