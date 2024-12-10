@@ -15,6 +15,6 @@ public class AWSClientInstrumentationOptions
     /// </summary>
     public bool SuppressDownstreamInstrumentation { get; set; }
 
-    /// <inheritdoc cref="OpenTelemetry.AWS.SemanticConventionVersion"/>
+    /// <inheritdoc cref="AWS.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }
