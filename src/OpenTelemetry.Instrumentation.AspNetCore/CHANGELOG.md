@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.1
+
+Released 2024-Dec-10
+
 * Metric support for the .NET Standard target was removed by mistake in 1.10.0.
   This functionality has been restored.
   ([#2403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2403))
