@@ -235,28 +235,42 @@ internal static partial class AWSSemanticConventions
 
     #region Http
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpStatusCode"/>
+    [Obsolete("Replaced by <c>http.response.status_code</c>.")]
     public static Activity? SetTagAttributeHttpStatusCode(this Activity? activity, int value)
         => SetTag(activity, x => x.AttributeHttpStatusCode, value);
 
+    /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseStatusCode"/>
+    public static Activity? SetTagAttributeHttpResponseStatusCode(this Activity? activity, int value)
+        => SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
+
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpScheme"/>
+    [Obsolete("Replaced by <c>url.scheme</c> instead.")]
     public static T AddAttributeHttpScheme<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpScheme, value, addIfEmpty);
 
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpTarget"/>
+    [Obsolete("Split to <c>url.path</c> and `url.query.")]
     public static T AddAttributeHttpTarget<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpTarget, value, addIfEmpty);
 
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpMethod"/>
+    [Obsolete("Replaced by <c>http.request.method</c>.")]
     public static T AddAttributeHttpMethod<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpMethod, value, addIfEmpty);
+
+    /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpRequestMethod"/>
+    public static T AddAttributeHttpRequestMethod<T>(this T attributes, object? value, bool addIfEmpty = false)
+        where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeHttpRequestMethod, value, addIfEmpty);
     #endregion
 
     #region Net
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeNetHostName"/>
+    [Obsolete("Replaced by <c>server.address</c>.")]
     public static T AddAttributeNetHostName<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeNetHostName, value, addIfEmpty);
 
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeNetHostPort"/>
+    [Obsolete("Replaced by <c>server.port</c>.")]
     public static T AddAttributeNetHostPort<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeNetHostPort, value, addIfEmpty);
     #endregion
@@ -265,6 +279,16 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeK8SClusterName"/>
     public static T AddAttributeK8SClusterName<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeK8SClusterName, value, addIfEmpty);
+    #endregion
+
+    #region Server
+    /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServerAddress"/>
+    public static T AddAttributeServerAddress<T>(this T attributes, object? value, bool addIfEmpty = false)
+        where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServerAddress, value, addIfEmpty);
+
+    /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServerPort"/>
+    public static T AddAttributeServerPort<T>(this T attributes, object? value, bool addIfEmpty = false)
+        where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeServerPort, value, addIfEmpty);
     #endregion
 
     #region Service
@@ -293,6 +317,10 @@ internal static partial class AWSSemanticConventions
     /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServiceName"/>
     public static T AddAttributeUrlQuery<T>(this T attributes, object? value, bool addIfEmpty = false)
         where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeUrlQuery, value, addIfEmpty);
+
+    /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeUrlScheme"/>
+    public static T AddAttributeUrlScheme<T>(this T attributes, object? value, bool addIfEmpty = false)
+        where T : IList<KeyValuePair<string, object>> => Add(attributes, x => x.AttributeUrlScheme, value, addIfEmpty);
     #endregion
 
     private static T Add<T>(this T attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc)
