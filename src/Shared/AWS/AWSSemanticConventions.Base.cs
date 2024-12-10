@@ -1,7 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.SemanticConventions;
+#if INSTRUMENTATION_AWSLAMBDA
+using OpenTelemetry.Instrumentation.AWSLambda;
+#elif INSTRUMENTATION_AWS
+using OpenTelemetry.Instrumentation.AWS;
+#elif RESOURCES_AWS
+using OpenTelemetry.Resources.AWS;
+#endif
 
 namespace OpenTelemetry.AWS;
 
