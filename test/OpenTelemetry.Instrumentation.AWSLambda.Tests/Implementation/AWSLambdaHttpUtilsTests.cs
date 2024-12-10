@@ -30,7 +30,6 @@ public class AWSLambdaHttpUtilsTests : IDisposable
             .AddAWSLambdaConfigurations();
     }
 
-
     [Fact]
     public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
     {
