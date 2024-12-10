@@ -4,6 +4,7 @@
 #if NET
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Resources.AWS;
 
@@ -27,18 +28,16 @@ internal sealed class AWSECSDetector : IResourceDetector
             return Resource.Empty;
         }
 
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsEcs),
-        };
-
+        var resourceAttributes =
+            new List<KeyValuePair<string, object>>()
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEcs();
         try
         {
             var containerId = GetECSContainerId(AWSECSMetadataPath);
             if (containerId != null)
             {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId));
+                resourceAttributes.AddAttributeContainerId(containerId);
             }
         }
         catch (Exception ex)
@@ -94,15 +93,13 @@ internal sealed class AWSECSDetector : IResourceDetector
         }
 
         var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudResourceId, containerArn),
-            new(AWSSemanticConventions.AttributeEcsContainerArn, containerArn),
-            new(AWSSemanticConventions.AttributeEcsClusterArn, clusterArn),
-        };
+            .AddAttributeCloudResourceId(containerArn)
+            .AddAttributeEcsContainerArn(containerArn)
+            .AddAttributeEcsClusterArn(clusterArn);
 
         if (taskResponse.RootElement.TryGetProperty("AvailabilityZone", out var availabilityZoneElement) && availabilityZoneElement.ValueKind == JsonValueKind.String)
         {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailabilityZone, availabilityZoneElement.GetString()!));
+            resourceAttributes.AddAttributeCloudAvailabilityZone(availabilityZoneElement.GetString()!);
         }
 
         if (!taskResponse.RootElement.TryGetProperty("LaunchType", out var launchTypeElement))
@@ -110,16 +107,13 @@ internal sealed class AWSECSDetector : IResourceDetector
             launchTypeElement = default;
         }
 
-        var launchType = launchTypeElement switch
+        if (string.Equals("ec2", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase))
         {
-            { ValueKind: JsonValueKind.String } when string.Equals("ec2", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeEc2,
-            { ValueKind: JsonValueKind.String } when string.Equals("fargate", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase) => AWSSemanticConventions.ValueEcsLaunchTypeFargate,
-            _ => null,
-        };
-
-        if (launchType != null)
+            resourceAttributes.AddAttributeEcsLaunchtypeIsEc2();
+        }
+        else if (string.Equals("fargate", launchTypeElement.GetString(), StringComparison.OrdinalIgnoreCase))
         {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsLaunchtype, launchType));
+            resourceAttributes.AddAttributeEcsLaunchtypeIsFargate();
         }
         else
         {
@@ -129,24 +123,25 @@ internal sealed class AWSECSDetector : IResourceDetector
         if (taskResponse.RootElement.TryGetProperty("TaskARN", out var taskArnElement) && taskArnElement.ValueKind == JsonValueKind.String)
         {
             var taskArn = taskArnElement.GetString()!;
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskArn, taskArn));
+            resourceAttributes
+                .AddAttributeEcsTaskArn(taskArn);
 
             var arnParts = taskArn.Split(':');
             if (arnParts.Length > 5)
             {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, arnParts[4]));
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, arnParts[3]));
+                resourceAttributes.AddAttributeCloudAccountID(arnParts[4]);
+                resourceAttributes.AddAttributeCloudRegion(arnParts[3]);
             }
         }
 
         if (taskResponse.RootElement.TryGetProperty("Family", out var familyElement) && familyElement.ValueKind == JsonValueKind.String)
         {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskFamily, familyElement.GetString()!));
+            resourceAttributes.AddAttributeEcsTaskFamily(familyElement.GetString()!);
         }
 
         if (taskResponse.RootElement.TryGetProperty("Revision", out var revisionElement) && revisionElement.ValueKind == JsonValueKind.String)
         {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeEcsTaskRevision, revisionElement.GetString()!));
+            resourceAttributes.AddAttributeEcsTaskRevision(revisionElement.GetString()!);
         }
 
         if (containerResponse.RootElement.TryGetProperty("LogDriver", out var logDriverElement)
@@ -169,14 +164,14 @@ internal sealed class AWSECSDetector : IResourceDetector
                 if (logOptionsElement.TryGetProperty("awslogs-group", out var logGroupElement) && logGroupElement.ValueKind == JsonValueKind.String)
                 {
                     var logGroupName = logGroupElement.GetString()!;
-                    resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogGroupNames, new[] { logGroupName }));
-                    resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogGroupArns, new[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:*" }));
+                    resourceAttributes.AddAttributeLogGroupNames(new[] { logGroupName });
+                    resourceAttributes.AddAttributeLogGroupArns(new[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:*" });
 
                     if (logOptionsElement.TryGetProperty("awslogs-stream", out var logStreamElement) && logStreamElement.ValueKind == JsonValueKind.String)
                     {
                         var logStreamName = logStreamElement.GetString()!;
-                        resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogStreamNames, new[] { logStreamName }));
-                        resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeLogStreamArns, new[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:log-stream:{logStreamName}" }));
+                        resourceAttributes.AddAttributeLogStreamNames(new[] { logStreamName });
+                        resourceAttributes.AddAttributeLogStreamArns(new[] { $"arn:aws:logs:{logsRegion}:{logsAccount}:log-group:{logGroupName}:log-stream:{logStreamName}" });
                     }
                 }
             }

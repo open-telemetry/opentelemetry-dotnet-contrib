@@ -20,14 +20,14 @@ public class AWSEC2DetectorTests
         var hostName = "Test host name";
         var resourceAttributes = AWSEC2Detector.ExtractResourceAttributes(sampleEC2IdentityDocumentModel, hostName).ToDictionary(x => x.Key, x => x.Value);
 
-        Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("aws_ec2", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);
-        Assert.Equal("Test account id", resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID]);
-        Assert.Equal("Test availability zone", resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone]);
-        Assert.Equal("Test instance id", resourceAttributes[AWSSemanticConventions.AttributeHostID]);
-        Assert.Equal("Test instance type", resourceAttributes[AWSSemanticConventions.AttributeHostType]);
-        Assert.Equal("Test aws region", resourceAttributes[AWSSemanticConventions.AttributeCloudRegion]);
-        Assert.Equal("Test host name", resourceAttributes[AWSSemanticConventions.AttributeHostName]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("aws_ec2", resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal("Test account id", resourceAttributes[ExpectedSemanticConventions.AttributeCloudAccountID]);
+        Assert.Equal("Test availability zone", resourceAttributes[ExpectedSemanticConventions.AttributeCloudAvailabilityZone]);
+        Assert.Equal("Test instance id", resourceAttributes[ExpectedSemanticConventions.AttributeHostID]);
+        Assert.Equal("Test instance type", resourceAttributes[ExpectedSemanticConventions.AttributeHostType]);
+        Assert.Equal("Test aws region", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal("Test host name", resourceAttributes[ExpectedSemanticConventions.AttributeHostName]);
     }
 
     [Fact]
@@ -43,5 +43,17 @@ public class AWSEC2DetectorTests
         Assert.Equal("i-12345678901234567", ec2IdentityDocumentModel.InstanceId);
         Assert.Equal("t2.micro", ec2IdentityDocumentModel.InstanceType);
         Assert.Equal("us-east-1", ec2IdentityDocumentModel.Region);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeHostID = "host.id";
+        public const string AttributeHostType = "host.type";
+        public const string AttributeHostName = "host.name";
     }
 }

@@ -5,8 +5,8 @@ using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
@@ -161,7 +161,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (AWSServiceType.IsDynamoDbService(service))
         {
-            activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
+            activity.SetTagAttributeDbSystemToDynamoDb();
         }
         else if (AWSServiceType.IsSqsService(service))
         {
@@ -175,7 +175,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
-            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, AWSSemanticConventions.AttributeAWSBedrock);
+            activity.SetTagAttributeGenAiSystemToBedrock();
         }
     }
 
