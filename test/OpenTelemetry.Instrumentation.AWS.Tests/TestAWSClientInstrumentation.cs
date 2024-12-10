@@ -39,7 +39,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -84,7 +87,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -129,7 +135,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -189,7 +198,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -235,7 +247,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -276,7 +291,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -317,7 +335,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -358,7 +379,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -399,7 +423,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -440,7 +467,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -487,7 +517,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {

@@ -10,6 +10,7 @@ using System.Diagnostics;
 #pragma warning disable SA1514
 #pragma warning disable SA1201
 #pragma warning disable SA1623
+#pragma warning disable IDE0001
 
 namespace OpenTelemetry.AWS;
 
@@ -59,7 +60,11 @@ internal static partial class AWSSemanticConventions
     /// ]]>
     /// </code>
     /// </summary>
-    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.Latest;
+    /// <remarks>
+    /// Per <see cref="OpenTelemetry.AWS.SemanticConventionVersion"/>, default should stay as
+    /// <see cref="SemanticConventionVersion.v1_27_0_Experimental"/> until next major version bump.
+    /// </remarks>
+    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
 
     #region Service Parameter Mapping
 

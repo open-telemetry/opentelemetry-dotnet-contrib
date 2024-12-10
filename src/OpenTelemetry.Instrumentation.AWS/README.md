@@ -53,7 +53,10 @@ emit the GET as `"http.request.method"`.
 Future versions the OpenTelemetry.*.AWS libraries will include updates to the
 Semantic Convention, which may break compatibility with a previous version.
 
-To opt-out of automatic upgrades, you can pin to a specific version:
+The default will remain as `v1_27_0_Experimental` until the next major version bump.
+
+To opt in to automatic upgrades, you can use `SemanticConventionVersion.Latest`
+or you can specify a specific version:
 
 ```csharp
 using OpenTelemetry;
@@ -67,7 +70,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddOpenTelemetryTracing((builder) => builder
         .AddAWSInstrumentation(opt => {
             // pin to a specific Semantic Convention version
-            opt.SemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
+            opt.SemanticConventionVersion = SemanticConventionVersion.v1_29_0_Experimental;
         });
 }
 ```

@@ -62,8 +62,7 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
         // Semantic Convention is saved statically - and needs to be reset to
         // Latest following these tests.
         Sdk.CreateTracerProviderBuilder()
-            .AddAWSLambdaConfigurations(c =>
-                c.SemanticConventionVersion = SemanticConventionVersion.Latest)
+            .AddAWSLambdaConfigurations()
             .Build();
     }
 
