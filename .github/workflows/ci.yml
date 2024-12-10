@@ -380,7 +380,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Instrumentation.ServiceFabricRemoting
+      project-name: Component[OpenTelemetry.Instrumentation.ServiceFabricRemoting]
       code-cov-name: Instrumentation.ServiceFabricRemoting
 
   build-test-instrumentation-sqlclient:
