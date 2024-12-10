@@ -11,8 +11,26 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 
 [Collection("TracerProviderDependent")]
-public class AWSLambdaHttpUtilsTests
+public class AWSLambdaHttpUtilsTests : IDisposable
 {
+    public AWSLambdaHttpUtilsTests()
+    {
+        // have all tests use the latest Semantic Convention
+        Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations(opt =>
+            {
+                opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+            });
+    }
+
+    public void Dispose()
+    {
+        // reset Semantic Convention to default
+        Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations();
+    }
+
+
     [Fact]
     public void GetHttpTags_APIGatewayProxyRequest_ReturnsCorrectTags()
     {

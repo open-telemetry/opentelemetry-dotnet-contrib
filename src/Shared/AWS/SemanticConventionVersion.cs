@@ -15,7 +15,7 @@ namespace OpenTelemetry.AWS;
 /// <para>
 /// While these libraries are intended for production use, they rely on several
 /// Semantic Conventions that are still considered Experimental, meaning they
-/// may undergo additional changes before becoming Stable.  This can  impact
+/// may undergo additional changes before becoming Stable.  This can impact
 /// the aggregation and analysis of telemetry signals in environments with
 /// multiple applications or microservices. For example, a microservice using
 /// an older version of the Semantic Conventions for Http Attributes may emit
@@ -27,15 +27,22 @@ namespace OpenTelemetry.AWS;
 /// Future versions the OpenTelemetry.*.AWS libraries will include updates
 /// to the Semantic Convention, which may break compatibility with a previous
 /// version.
-/// <para>
-/// To opt-out of automatic upgrades, you can pin to a specific version:
 /// </para>
+/// <para>
+/// The default will remain as <see cref="v1_27_0_Experimental"/> until the next major version
+/// bump.
+/// </para>
+/// <para>
+/// To opt in to automatic upgrades, you can use <see cref="SemanticConventionVersion.Latest"/>
+/// or you can specify a specific version:
+/// </para>
+/// <para>
 /// <code>
 /// <![CDATA[
 ///  using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ///     .AddAWSLambdaConfigurations(opt =>
 ///     {
-///         opt.SemanticConventionVersion = SemanticConventionVersion.v1_27_0_Experimental;
+///         opt.SemanticConventionVersion = SemanticConventionVersion.v1_29_0_Experimental;
 ///     })
 ///     .Build()!);
 /// ]]>
