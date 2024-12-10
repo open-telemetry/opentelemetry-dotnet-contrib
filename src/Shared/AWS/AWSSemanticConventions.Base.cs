@@ -142,22 +142,28 @@ internal static partial class AWSSemanticConventions
 
         // HTTP Attributes
         /// <inheritdoc cref="HttpAttributes.AttributeHttpStatusCode"/>
+        [Obsolete("Replaced by <c>http.response.status_code</c>.")]
         public virtual string AttributeHttpStatusCode => string.Empty;
         /// <inheritdoc cref="HttpAttributes.AttributeHttpResponseStatusCode"/>
         public virtual string AttributeHttpResponseStatusCode => string.Empty;
         /// <inheritdoc cref="HttpAttributes.AttributeHttpScheme"/>
+        [Obsolete("Replaced by <c>url.scheme</c> instead.")]
         public virtual string AttributeHttpScheme => string.Empty;
         /// <inheritdoc cref="HttpAttributes.AttributeHttpTarget"/>
+        [Obsolete("Split to <c>url.path</c> and `url.query.")]
         public virtual string AttributeHttpTarget => string.Empty;
         /// <inheritdoc cref="HttpAttributes.AttributeHttpMethod"/>
+        [Obsolete("Replaced by <c>http.request.method</c>.")]
         public virtual string AttributeHttpMethod => string.Empty;
         /// <inheritdoc cref="HttpAttributes.AttributeHttpRequestMethod"/>
         public virtual string AttributeHttpRequestMethod => string.Empty;
 
         // NET Attributes
         /// <inheritdoc cref="NetAttributes.AttributeNetHostName"/>
+        [Obsolete("Replaced by <c>server.address</c>.")]
         public virtual string AttributeNetHostName => string.Empty;
         /// <inheritdoc cref="NetAttributes.AttributeNetHostPort"/>
+        [Obsolete("Replaced by <c>server.port</c>.")]
         public virtual string AttributeNetHostPort => string.Empty;
 
         // SERVER Attributes

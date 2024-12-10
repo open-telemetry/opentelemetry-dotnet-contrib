@@ -83,13 +83,19 @@ internal static partial class AWSSemanticConventions
         public override string AttributeHostName => "host.name";
 
         // HTTP Attributes
+        [Obsolete("Replaced by <c>http.response.status_code</c>.")]
         public override string AttributeHttpStatusCode => "http.status_code";
+        [Obsolete("Replaced by <c>url.scheme</c> instead.")]
         public override string AttributeHttpScheme => "http.scheme";
+        [Obsolete("Split to <c>url.path</c> and `url.query.")]
         public override string AttributeHttpTarget => "http.target";
+        [Obsolete("Replaced by <c>http.request.method</c>.")]
         public override string AttributeHttpMethod => "http.method";
 
         // NET Attributes
+        [Obsolete("Replaced by <c>server.address</c>.")]
         public override string AttributeNetHostName => "net.host.name";
+        [Obsolete("Replaced by <c>server.port</c>.")]
         public override string AttributeNetHostPort => "net.host.port";
 
         // K8s Attributes

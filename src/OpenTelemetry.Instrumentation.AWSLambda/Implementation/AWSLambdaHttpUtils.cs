@@ -8,6 +8,9 @@ using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using OpenTelemetry.AWS;
 
+// Continue to off obsolete Semantic Convention until the next major version bump
+#pragma warning disable CS0618 // Type or member is obsolete
+
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
 internal class AWSLambdaHttpUtils
@@ -64,17 +67,11 @@ internal class AWSLambdaHttpUtils
         if (httpScheme != null)
         {
             tags.AddAttributeHttpScheme(httpScheme, addIfEmpty: true);
+            tags.AddAttributeUrlScheme(httpScheme, addIfEmpty: true);
         }
 
-        if (httpTarget != null)
-        {
-            tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
-        }
-
-        if (urlPath != null)
-        {
-            tags.AddAttributeUrlPath(urlPath, addIfEmpty: true);
-        }
+        tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
+        tags.AddAttributeUrlPath(urlPath, addIfEmpty: true);
 
         if (urlQuery != null)
         {
@@ -84,14 +81,17 @@ internal class AWSLambdaHttpUtils
         if (httpMethod != null)
         {
             tags.AddAttributeHttpMethod(httpMethod, addIfEmpty: true);
+            tags.AddAttributeHttpRequestMethod(httpMethod, addIfEmpty: true);
         }
 
         if (hostName != null)
         {
             tags.AddAttributeNetHostName(hostName, addIfEmpty: true);
+            tags.AddAttributeServerAddress(hostName, addIfEmpty: true);
         }
 
         tags.AddAttributeNetHostPort(hostPort);
+        tags.AddAttributeServerPort(hostPort);
 
         return tags;
     }
@@ -107,12 +107,15 @@ internal class AWSLambdaHttpUtils
         {
             case APIGatewayProxyResponse response:
                 activity.SetTagAttributeHttpStatusCode(response.StatusCode);
+                activity.SetTagAttributeHttpResponseStatusCode(response.StatusCode);
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
                 activity.SetTagAttributeHttpStatusCode(responseV2.StatusCode);
+                activity.SetTagAttributeHttpResponseStatusCode(responseV2.StatusCode);
                 break;
             case ApplicationLoadBalancerResponse albResponse:
                 activity.SetTagAttributeHttpStatusCode(albResponse.StatusCode);
+                activity.SetTagAttributeHttpResponseStatusCode(albResponse.StatusCode);
                 break;
             default:
                 break;

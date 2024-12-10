@@ -27,17 +27,23 @@ internal static partial class AWSSemanticConventions
         public override string AttributeFaasExecution => "faas.invocation_id";
 
         // HTTP Attributes
-        public override string AttributeHttpStatusCode => this.AttributeHttpResponseStatusCode;
-        public override string AttributeHttpScheme => this.AttributeUrlScheme;
+        [Obsolete("Replaced by <c>http.response.status_code</c>.")]
+        public override string AttributeHttpStatusCode => string.Empty; // value no longer written
+        [Obsolete("Replaced by <c>url.scheme</c> instead.")]
+        public override string AttributeHttpScheme => string.Empty; // value no longer written
 
+        [Obsolete("Split to <c>url.path</c> and `url.query.")]
         public override string AttributeHttpTarget => string.Empty; // value no longer written
-        public override string AttributeHttpMethod => this.AttributeHttpRequestMethod;
+        [Obsolete("Replaced by <c>http.request.method</c>.")]
+        public override string AttributeHttpMethod => string.Empty; // value no longer written
         public override string AttributeHttpResponseStatusCode => "http.response.status_code";
         public override string AttributeHttpRequestMethod => "http.request.method";
 
         // NET Attributes
-        public override string AttributeNetHostName => this.AttributeServerAddress;
-        public override string AttributeNetHostPort => this.AttributeServerPort;
+        [Obsolete("Replaced by <c>server.address</c>.")]
+        public override string AttributeNetHostName => string.Empty; // value no longer written
+        [Obsolete("Replaced by <c>server.port</c>.")]
+        public override string AttributeNetHostPort => string.Empty; // value no longer written
 
         // SERVER Attributes
         public override string AttributeServerAddress => "server.address";
