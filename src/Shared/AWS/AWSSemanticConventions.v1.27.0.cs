@@ -10,7 +10,7 @@ namespace OpenTelemetry.AWS;
 #pragma warning disable SA1516
 #pragma warning disable SA1201
 
-internal static partial class AWSSemanticConventions
+internal partial class AWSSemanticConventions
 {
     /// <summary>
     /// Open Telemetry Semantic Conventions as of the 1.27.0

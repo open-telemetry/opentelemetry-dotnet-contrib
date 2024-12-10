@@ -12,15 +12,23 @@ public class AWSEBSDetectorTests
     [Fact]
     public void TestDetect()
     {
-        Assert.Empty(new AWSEBSDetector().Detect().Attributes); // will be null as it's not in ebs environment
+        var awsEBSDetector = new AWSEBSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
+        Assert.Empty(awsEBSDetector.Detect().Attributes); // will be null as it's not in ebs environment
     }
 
     [Fact]
     public void TestExtractResourceAttributes()
     {
+        var awsEBSDetector = new AWSEBSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
         var sampleModel = new SampleAWSEBSMetadataModel();
 
-        var resourceAttributes = AWSEBSDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = awsEBSDetector.ExtractResourceAttributes(sampleModel).ToDictionary(x => x.Key, x => x.Value);
 
         Assert.Equal("aws", resourceAttributes[AWSSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("aws_elastic_beanstalk", resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform]);

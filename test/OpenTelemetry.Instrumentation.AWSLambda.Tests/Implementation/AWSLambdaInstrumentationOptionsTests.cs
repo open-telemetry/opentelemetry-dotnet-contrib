@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Lambda.APIGatewayEvents;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
@@ -19,7 +19,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 #else
 [Collection("Sequential-.NET8")]
 #endif
-public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
+public sealed class AWSLambdaInstrumentationOptionsTests
 {
     [Fact]
     public void CanUseSemanticConvention_v1_27_0()
@@ -56,15 +56,6 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
         this.CheckHttpTags(semanticVersion, expectedTags);
     }
 
-    public void Dispose()
-    {
-        // Semantic Convention is saved statically - and needs to be reset to
-        // Latest following these tests.
-        Sdk.CreateTracerProviderBuilder()
-            .AddAWSLambdaConfigurations()
-            .Build();
-    }
-
     private void CheckHttpTags(SemanticConventionVersion version, List<string> expectedTags)
     {
         var request = new APIGatewayProxyRequest
@@ -81,13 +72,9 @@ public sealed class AWSLambdaInstrumentationOptionsTests : IDisposable
             },
         };
 
-        using var builder =
-            Sdk.CreateTracerProviderBuilder()
-                .AddAWSLambdaConfigurations(c =>
-                    c.SemanticConventionVersion = version)
-                .Build();
+        var semanticConventions = new AWSSemanticConventions(version);
 
-        var actualTags = AWSLambdaHttpUtils.GetHttpTags(request);
+        var actualTags = AWSLambdaHttpUtils.GetHttpTags(semanticConventions, request);
 
         this.AssertContainsTags(expectedTags, actualTags);
     }

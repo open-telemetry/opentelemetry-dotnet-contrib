@@ -19,10 +19,8 @@ internal class AWSLambdaHttpUtils
     private const string HeaderXForwardedProto = "x-forwarded-proto";
     private const string HeaderHost = "host";
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
+    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(AWSSemanticConventions semanticConventions, TInput input)
     {
-        var tags = new List<KeyValuePair<string, object>>();
-
         string? httpScheme;
         string? httpTarget;
         string? urlPath;
@@ -61,8 +59,10 @@ internal class AWSLambdaHttpUtils
                 (hostName, hostPort) = GetHostAndPort(httpScheme, albHostHeader);
                 break;
             default:
-                return tags;
+                return Enumerable.Empty<KeyValuePair<string, object>>();
         }
+
+        var tags = semanticConventions.AttributeBuilder;
 
         if (httpScheme != null)
         {
@@ -93,10 +93,10 @@ internal class AWSLambdaHttpUtils
         tags.AddAttributeNetHostPort(hostPort);
         tags.AddAttributeServerPort(hostPort);
 
-        return tags;
+        return tags.Build();
     }
 
-    internal static void SetHttpTagsFromResult(Activity? activity, object? result)
+    internal static void SetHttpTagsFromResult(AWSSemanticConventions semanticConventions, Activity? activity, object? result)
     {
         if (activity == null || result == null)
         {
@@ -106,16 +106,16 @@ internal class AWSLambdaHttpUtils
         switch (result)
         {
             case APIGatewayProxyResponse response:
-                activity.SetTagAttributeHttpStatusCode(response.StatusCode);
-                activity.SetTagAttributeHttpResponseStatusCode(response.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, response.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, response.StatusCode);
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
-                activity.SetTagAttributeHttpStatusCode(responseV2.StatusCode);
-                activity.SetTagAttributeHttpResponseStatusCode(responseV2.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpStatusCode(activity, responseV2.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, responseV2.StatusCode);
                 break;
             case ApplicationLoadBalancerResponse albResponse:
-                activity.SetTagAttributeHttpStatusCode(albResponse.StatusCode);
-                activity.SetTagAttributeHttpResponseStatusCode(albResponse.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, albResponse.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, albResponse.StatusCode);
                 break;
             default:
                 break;

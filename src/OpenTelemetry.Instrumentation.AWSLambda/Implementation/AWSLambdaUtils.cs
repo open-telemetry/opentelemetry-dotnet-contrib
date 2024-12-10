@@ -16,7 +16,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 /// <summary>
 /// Class for getting AWS Lambda related attributes.
 /// </summary>
-internal static class AWSLambdaUtils
+internal class AWSLambdaUtils
 {
     private const string AWSRegion = "AWS_REGION";
     private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
@@ -28,6 +28,13 @@ internal static class AWSLambdaUtils
     {
         return headers.TryGetValue(name, out var value) ? [value] : [];
     };
+
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSLambdaUtils(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
 
     internal static ActivityContext GetXRayParentContext()
     {
@@ -94,21 +101,6 @@ internal static class AWSLambdaUtils
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context, bool isColdStart)
-    {
-        var functionArn = context.InvokedFunctionArn;
-
-        var tags = new List<KeyValuePair<string, object>>()
-            .AddAttributeFaasTrigger(GetFaasTrigger(input))
-            .AddAttributeFaasColdStart(isColdStart)
-            .AddAttributeFaasName(GetFunctionName(context))
-            .AddAttributeFaasExecution(context.AwsRequestId)
-            .AddAttributeFaasID(GetFaasId(functionArn))
-            .AddAttributeCloudAccountID(GetAccountId(functionArn));
-
-        return tags;
-    }
-
     internal static IEnumerable<string>? GetHeaderValues(APIGatewayProxyRequest request, string name)
     {
         var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
@@ -141,6 +133,24 @@ internal static class AWSLambdaUtils
         var headerValue = request.Headers?.GetValueByKeyIgnoringCase(name);
 
         return headerValue != null ? new[] { headerValue } : null;
+    }
+
+    internal IEnumerable<KeyValuePair<string, object>> GetFunctionTags<TInput>(TInput input, ILambdaContext context, bool isColdStart)
+    {
+        var functionArn = context.InvokedFunctionArn;
+
+        var tags =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeFaasTrigger(GetFaasTrigger(input))
+                .AddAttributeFaasColdStart(isColdStart)
+                .AddAttributeFaasName(GetFunctionName(context))
+                .AddAttributeFaasExecution(context.AwsRequestId)
+                .AddAttributeFaasID(GetFaasId(functionArn))
+                .AddAttributeCloudAccountID(GetAccountId(functionArn))
+                .Build();
+
+        return tags;
     }
 
     private static string? GetHeaderValue(APIGatewayHttpApiV2ProxyRequest request, string name) =>
