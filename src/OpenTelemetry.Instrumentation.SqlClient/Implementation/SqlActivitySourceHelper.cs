@@ -51,7 +51,7 @@ internal sealed class SqlActivitySourceHelper
             { SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName },
         };
 
-        if (options.EnableConnectionLevelAttributes && dataSource != null)
+        if (dataSource != null)
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 

@@ -101,26 +101,6 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-## EnableConnectionLevelAttributes
-
-By default, `EnabledConnectionLevelAttributes` is disabled and this
-instrumentation sets the `peer.service` attribute to the
-[`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
-property of the connection. If `EnabledConnectionLevelAttributes` is enabled,
-the `DataSource` will be parsed and the server name will be sent as the
-`net.peer.name` or `net.peer.ip` attribute, and the port will be sent as the
-`net.peer.port` attribute.
-
-The following example shows how to use `EnableConnectionLevelAttributes`.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddMySqlDataInstrumentation(
-        options => options.EnableConnectionLevelAttributes = true)
-    .AddConsoleExporter()
-    .Build();
-```
-
 ### RecordException
 
 This option can be set to instruct the instrumentation to record Exceptions
