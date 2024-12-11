@@ -189,21 +189,18 @@ public class SqlClientTests : IDisposable
     [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null)]
     [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434)]
     [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818)]
-    [InlineData("localhost", null, null, null, null)]
 
     // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
     [InlineData("localhost", "localhost", null, null, null, false, true)]
     [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, false, true)]
     [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, false, true)]
     [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", null, 1818, false, true)]
-    [InlineData("localhost", null, null, null, null, false, true)]
 
     // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
     [InlineData("localhost", "localhost", null, null, null, true, true)]
     [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, true, true)]
     [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, true, true)]
     [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818, true, true)]
-    [InlineData("localhost", null, null, null, null, true, true)]
     public void SqlClientAddsConnectionLevelAttributes(
         string dataSource,
         string? expectedServerHostName,
