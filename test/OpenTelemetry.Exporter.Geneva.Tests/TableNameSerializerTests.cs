@@ -111,12 +111,12 @@ public class TableNameSerializerTests
 
         var numberOfCategoryNames = TableNameSerializer.MaxCachedSanitizedTableNames * 2;
 
-        for (int i = 0; i < numberOfCategoryNames; i++)
+        for (var i = 0; i < numberOfCategoryNames; i++)
         {
             var categoryName = $"category.{i}-test";
             var sanitizedCategoryName = $"Category{i}test";
 
-            for (int c = 0; c < 10; c++)
+            for (var c = 0; c < 10; c++)
             {
                 var bytesWritten = tableNameSerializer.ResolveAndSerializeTableNameForCategoryName(buffer, 0, categoryName, out var tableName);
 

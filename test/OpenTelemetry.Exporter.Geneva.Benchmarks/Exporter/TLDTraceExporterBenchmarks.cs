@@ -32,7 +32,7 @@ public class TLDTraceExporterBenchmarks
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter msgPackExporter;
     private readonly TldTraceExporter tldExporter;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TLDTraceExporterBenchmarks()
     {

@@ -2,11 +2,24 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
 * Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
   ([#2263](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2263))
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Added a `RecordException` property to specify if exceptions should be
+  recorded (defaults to `false`). This is only supported by client instrumentation.
+  ([#2271](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2271))
+
+* Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
+  API instead of the deprecated OpenTelemetry API package extension when setting
+  span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
 
 ## 1.0.0-rc.18
 

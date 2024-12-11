@@ -113,9 +113,7 @@ public static class OpenTelemetryConsumeResultExtensions
         }
         catch (Exception ex)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            processActivity?.SetStatus(Status.Error);
-#pragma warning restore CS0618 // Type or member is obsolete
+            processActivity?.SetStatus(ActivityStatusCode.Error);
             processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().FullName);
         }
         finally

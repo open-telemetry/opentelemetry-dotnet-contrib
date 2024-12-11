@@ -70,9 +70,9 @@ public class FileBlobProviderTests
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
         long maxSizeInBytes = 100000;
-        int maintenancePeriodInMilliseconds = 3000;
-        int retentionPeriodInMilliseconds = 1000;
-        int writeTimeOutInMilliseconds = 1000;
+        var maintenancePeriodInMilliseconds = 3000;
+        var retentionPeriodInMilliseconds = 1000;
+        var writeTimeOutInMilliseconds = 1000;
         using var blobProvider = new FileBlobProvider(
             testDirectory.FullName,
             maxSizeInBytes,
@@ -99,9 +99,9 @@ public class FileBlobProviderTests
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
         long maxSizeInBytes = 100000;
-        int maintenancePeriodInMilliseconds = 3000;
-        int retentionPeriodInMilliseconds = 2000;
-        int writeTimeOutInMilliseconds = 1000;
+        var maintenancePeriodInMilliseconds = 3000;
+        var retentionPeriodInMilliseconds = 2000;
+        var writeTimeOutInMilliseconds = 1000;
         using var blobProvider = new FileBlobProvider(
             testDirectory.FullName,
             maxSizeInBytes,
@@ -136,9 +136,9 @@ public class FileBlobProviderTests
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
         long maxSizeInBytes = 100000;
-        int maintenancePeriodInMilliseconds = 3000;
-        int retentionPeriodInMilliseconds = 2000;
-        int writeTimeOutInMilliseconds = 1000;
+        var maintenancePeriodInMilliseconds = 3000;
+        var retentionPeriodInMilliseconds = 2000;
+        var writeTimeOutInMilliseconds = 1000;
         using var blobProvider = new FileBlobProvider(
             testDirectory.FullName,
             maxSizeInBytes,

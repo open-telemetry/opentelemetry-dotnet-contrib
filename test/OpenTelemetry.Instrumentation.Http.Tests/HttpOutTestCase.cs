@@ -3,9 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
-#pragma warning disable CA1515
 public class HttpOutTestCase
-#pragma warning restore CA1515
 {
     public HttpOutTestCase(string name, string method, string url, Dictionary<string, string>? headers, int responseCode, string spanName, bool responseExpected, bool? recordException, string spanStatus, Dictionary<string, string> spanAttributes)
     {

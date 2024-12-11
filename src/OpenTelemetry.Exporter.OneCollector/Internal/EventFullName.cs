@@ -40,16 +40,11 @@ internal sealed class EventFullName
         }
 
         var parts = eventFullNameMapping!.Split('.');
-        if (parts.Length > 1)
-        {
-            eventFullName = new(
+        eventFullName = parts.Length > 1
+            ? new(
                 string.Join(".", parts, 0, parts.Length - 1),
-                parts[parts.Length - 1]);
-        }
-        else
-        {
-            eventFullName = new(string.Empty, parts[0]);
-        }
+                parts[parts.Length - 1])
+            : new(string.Empty, parts[0]);
 
         return true;
     }
@@ -80,8 +75,8 @@ internal sealed class EventFullName
 
             length += this.EventName.Length;
 
-            if (length < EventNameManager.MinimumEventFullNameLength
-                || length > EventNameManager.MaximumEventFullNameLength)
+            if (length is < EventNameManager.MinimumEventFullNameLength
+                or > EventNameManager.MaximumEventFullNameLength)
             {
                 throw new OneCollectorExporterValidationException($"The event full name mapping value provided for key '{key}' is shorter or longer than what is allowed.");
             }

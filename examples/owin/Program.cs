@@ -24,7 +24,7 @@ internal static class Program
                 // the request as soon as possible.
                 appBuilder.UseOpenTelemetry();
 
-                HttpConfiguration config = new HttpConfiguration();
+                var config = new HttpConfiguration();
 
                 config.MessageHandlers.Add(new ActivityDisplayNameRouteEnrichingHandler());
 

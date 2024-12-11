@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace TestApp.AspNetCore.Controllers;
 
 [Route("api/[controller]")]
-#pragma warning disable CA1515
 public class ValuesController : Controller
-#pragma warning restore CA1515
 {
     // GET api/values
     [HttpGet]

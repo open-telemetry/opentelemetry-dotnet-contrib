@@ -20,7 +20,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
-    internal static readonly bool IsNet7OrGreater = InitializeIsNet7OrGreater();
+    internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
+    internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
@@ -35,6 +36,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<TaskStatus> StopRequestStatusFetcher = new("RequestTaskStatus");
+
     private readonly HttpClientTraceInstrumentationOptions options;
 
     public HttpHandlerDiagnosticListener(HttpClientTraceInstrumentationOptions options)
@@ -135,15 +137,17 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
             }
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-            HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
-
-            if (request.RequestUri != null)
+            if (!IsNet9OrGreater)
             {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-                activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+                // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
+                HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
 
-                activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                if (request.RequestUri != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                }
             }
 
             try
@@ -199,16 +203,19 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             if (TryFetchResponse(payload, out var response))
             {
-                if (currentStatusCode == ActivityStatusCode.Unset)
+                if (!IsNet9OrGreater)
                 {
-                    activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
-                }
+                    if (currentStatusCode == ActivityStatusCode.Unset)
+                    {
+                        activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
+                    }
 
-                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
-                activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
-                if (activity.Status == ActivityStatusCode.Error)
-                {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
+                    activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                    if (activity.Status == ActivityStatusCode.Error)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    }
                 }
 
                 try
@@ -317,22 +324,10 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 HttpRequestError.ConfigurationLimitExceeded => "configuration_limit_exceeded",
 
                 // Fall back to the exception type name in case of HttpRequestError.Unknown
-                _ => exc.GetType().FullName,
+                HttpRequestError.Unknown or _ => exc.GetType().FullName,
             };
         }
 #endif
         return exc.GetType().FullName;
-    }
-
-    private static bool InitializeIsNet7OrGreater()
-    {
-        try
-        {
-            return typeof(HttpClient).Assembly.GetName().Version!.Major >= 7;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
     }
 }

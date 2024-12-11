@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net8.0" ]'
+        default: '[ "net462", "net8.0", "net9.0" ]'
         required: false
         type: string
       test-case-filter:

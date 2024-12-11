@@ -41,6 +41,7 @@ public class HttpInListenerTests
     [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", "HEAD about_attr_route/{customerId}")]
     [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET api/{controller}/{id}")]
     [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", "GET subroute/{customerId}")]
+    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 5, "subroute/{customerId}", "GET subroute/{customerId}")]
     [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "/api/value")] // Request will be filtered
     [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, "{ThrowException}")] // Filter user code will throw an exception
     [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", false, null, true, "System.InvalidOperationException")] // Test RecordException option
@@ -74,7 +75,7 @@ public class HttpInListenerTests
 
             typeof(HttpRequest).GetField("_wr", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(HttpContext.Current.Request, new TestHttpWorkerRequest());
 
-            List<Activity> exportedItems = new List<Activity>(16);
+            var exportedItems = new List<Activity>(16);
 
             Sdk.SetDefaultTextMapPropagator(new TraceContextPropagator());
             using (Sdk.CreateTracerProviderBuilder()
@@ -155,7 +156,7 @@ public class HttpInListenerTests
 
                 if (filter == "{ThrowException}")
                 {
-                    Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 2));
+                    Assert.Single(inMemoryEventListener.Events, e => e.EventId == 2);
                 }
 
                 Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current!.OperationName);
@@ -176,7 +177,7 @@ public class HttpInListenerTests
 
             Assert.Single(exportedItems);
 
-            Activity span = exportedItems[0];
+            var span = exportedItems[0];
 
             Assert.Equal(TelemetryHttpModule.AspNetActivityName, span.OperationName);
             Assert.NotEqual(TimeSpan.Zero, span.Duration);
@@ -247,7 +248,7 @@ public class HttpInListenerTests
             },
             new HttpResponse(new StringWriter()));
 
-        bool isPropagatorCalled = false;
+        var isPropagatorCalled = false;
         var propagator = new TestTextMapPropagator
         {
             Extracted = () => isPropagatorCalled = true,
@@ -280,13 +281,13 @@ public class HttpInListenerTests
             },
             new HttpResponse(new StringWriter()));
 
-        bool isPropagatorCalled = false;
+        var isPropagatorCalled = false;
         var propagator = new TestTextMapPropagator
         {
             Extracted = () => isPropagatorCalled = true,
         };
 
-        bool isFilterCalled = false;
+        var isFilterCalled = false;
         var activityProcessor = new TestActivityProcessor();
         Sdk.SetDefaultTextMapPropagator(propagator);
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()

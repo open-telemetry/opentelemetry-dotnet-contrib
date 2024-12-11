@@ -26,18 +26,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
 
-    private static readonly string[] SharedTagNames =
-    [
-        SemanticConventions.AttributeDbSystem,
-        SemanticConventions.AttributeDbCollectionName,
-        SemanticConventions.AttributeDbNamespace,
-        SemanticConventions.AttributeDbResponseStatusCode,
-        SemanticConventions.AttributeDbOperationName,
-        SemanticConventions.AttributeErrorType,
-        SemanticConventions.AttributeServerPort,
-        SemanticConventions.AttributeServerAddress,
-    ];
-
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
     private readonly PropertyFetcher<string> dataSourceFetcher = new("DataSource");
@@ -253,11 +241,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             return;
         }
 
-        TagList tags = default(TagList);
+        var tags = default(TagList);
 
         if (activity != null && activity.IsAllDataRequested)
         {
-            foreach (var name in SharedTagNames)
+            foreach (var name in SqlActivitySourceHelper.SharedTagNames)
             {
                 var value = activity.GetTagItem(name);
                 if (value != null)
@@ -310,19 +298,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             }
         }
 
-        var duration = activity?.Duration.TotalSeconds ?? this.CalculateDurationFromTimestamp();
+        var duration = activity?.Duration.TotalSeconds
+            ?? SqlActivitySourceHelper.CalculateDurationFromTimestamp(this.beginTimestamp.Value);
         SqlActivitySourceHelper.DbClientOperationDuration.Record(duration, tags);
-    }
-
-    private double CalculateDurationFromTimestamp()
-    {
-        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-        var begin = this.beginTimestamp.Value;
-        var end = Stopwatch.GetTimestamp();
-        var delta = end - begin;
-        var ticks = (long)(timestampToTicks * delta);
-        var duration = new TimeSpan(ticks);
-        return duration.TotalSeconds;
     }
 }
 #endif

@@ -5,17 +5,17 @@ using Confluent.Kafka;
 
 namespace Examples.ConfluentKafka;
 
-public class ProduceConsumeHostedService(
+internal class ProduceConsumeHostedService(
     InstrumentedProducerBuilder<string, string> instrumentedProducerBuilder,
     InstrumentedConsumerBuilder<string, string> instrumentedConsumerBuilder)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        IProducer<string, string> producer = instrumentedProducerBuilder.Build();
-        IConsumer<string, string> consumer = instrumentedConsumerBuilder.Build();
+        var producer = instrumentedProducerBuilder.Build();
+        var consumer = instrumentedConsumerBuilder.Build();
 
-        for (int j = 0; j < 100; j++)
+        for (var j = 0; j < 100; j++)
         {
             await producer.ProduceAsync(
                 Constants.Topic,
@@ -23,7 +23,7 @@ public class ProduceConsumeHostedService(
                 stoppingToken);
         }
 
-        for (int j = 0; j < 100; j++)
+        for (var j = 0; j < 100; j++)
         {
             producer.Produce(
                 Constants.Topic,
@@ -35,7 +35,7 @@ public class ProduceConsumeHostedService(
         consumer.Subscribe(Constants.Topic);
         while (!stoppingToken.IsCancellationRequested)
         {
-            ConsumeResult<string, string> consumeResult = consumer.Consume(stoppingToken);
+            var consumeResult = consumer.Consume(stoppingToken);
             if (consumeResult == null)
             {
                 continue;

@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -82,21 +81,22 @@ internal static class ClientChannelInstrumentation
         };
     }
 
-    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state)
+    public static void AfterRequestCompleted(Message? reply, RequestTelemetryState? state, Exception? exception = null)
     {
         Guard.ThrowIfNull(state);
-
         state.SuppressionScope?.Dispose();
-
         if (state.Activity is Activity activity)
         {
             if (activity.IsAllDataRequested)
             {
                 if (reply == null || reply.IsFault)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error);
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error);
+
+                    if (WcfInstrumentationActivitySource.Options!.RecordException && exception != null)
+                    {
+                        activity.AddException(exception);
+                    }
                 }
 
                 if (reply != null)

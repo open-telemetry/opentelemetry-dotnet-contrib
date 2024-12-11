@@ -20,7 +20,7 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteStringTag(byte[] buffer, ref int cursor, int fieldNumber, string value)
     {
-        int stringSize = Utf8Encoding.GetByteCount(value);
+        var stringSize = Utf8Encoding.GetByteCount(value);
 
         WriteTag(buffer, ref cursor, fieldNumber, WireType.LEN);
 
@@ -92,12 +92,12 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarintCustom(byte[] buffer, ref int cursor, uint value)
     {
-        int index = 0;
+        var index = 0;
 
         // Loop until all 7 bits from the integer value have been encoded
         while (value > 0)
         {
-            byte chunk = (byte)(value & 0x7F); // Extract the least significant 7 bits
+            var chunk = (byte)(value & 0x7F); // Extract the least significant 7 bits
             value >>= 7; // Right shift the value by 7 bits to process the next chunk
 
             // If there are more bits to encode, set the most significant bit to 1
@@ -166,7 +166,7 @@ internal static class ProtobufSerializerHelper
     {
         if (cursor < buffer.Length)
         {
-            Span<byte> span = new Span<byte>(buffer, cursor, Fixed64Size);
+            var span = new Span<byte>(buffer, cursor, Fixed64Size);
 
             BinaryPrimitives.WriteUInt64LittleEndian(span, value);
 

@@ -57,7 +57,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             Assert.False(redisValue.HasValue);
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -122,7 +122,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             var db = connection.GetDatabase();
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -199,7 +199,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             var db = connection.GetDatabase();
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -232,7 +232,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
-        using Activity rootActivity = new Activity("Parent")
+        using var rootActivity = new Activity("Parent")
             .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
             .Start();
 
@@ -240,7 +240,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession? profiler0 = profilerFactory();
+        var profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
         using (Activity.Current = new Activity("Child-Span-1").SetParentId(rootActivity.Id).Start())
@@ -271,7 +271,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
-        using Activity rootActivity = new Activity("Parent")
+        using var rootActivity = new Activity("Parent")
             .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
             .Start();
 
@@ -279,7 +279,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession? profiler0 = profilerFactory();
+        var profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
         ProfilingSession? profiler1;
@@ -297,7 +297,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             // lose async context on purpose
             await Task.Delay(100);
 
-            ProfilingSession? profiler2 = profilerFactory();
+            var profiler2 = profilerFactory();
             Assert.NotSame(profiler0, profiler2);
             Assert.NotSame(profiler1, profiler2);
         }
@@ -305,15 +305,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         Activity.Current = rootActivity;
 
         // ensure same result back in root activity
-        ProfilingSession? profiles3 = profilerFactory();
+        var profiles3 = profilerFactory();
         Assert.Same(profiler0, profiles3);
     }
 
     [Fact]
     public void StackExchangeRedis_DependencyInjection_Success()
     {
-        bool connectionMultiplexerPickedFromDI = false;
-        bool optionsPickedFromDI = false;
+        var connectionMultiplexerPickedFromDI = false;
+        var optionsPickedFromDI = false;
 
         var connectionOptions = new ConfigurationOptions
         {

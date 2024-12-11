@@ -15,7 +15,7 @@ public class ServerCertificateValidationProviderTests
     [Fact]
     public void TestValidCertificate()
     {
-        using CertificateUploader certificateUploader = new CertificateUploader();
+        using var certificateUploader = new CertificateUploader();
         certificateUploader.Create();
 
         var serverCertificateValidationProvider =
@@ -23,8 +23,12 @@ public class ServerCertificateValidationProviderTests
 
         Assert.NotNull(serverCertificateValidationProvider);
 
+#if NET9_0_OR_GREATER
+        var certificate = X509CertificateLoader.LoadCertificateFromFile(certificateUploader.FilePath);
+#else
         var certificate = new X509Certificate2(certificateUploader.FilePath);
-        X509Chain chain = new X509Chain();
+#endif
+        var chain = new X509Chain();
         chain.Build(certificate);
 
         // validates if certificate is valid
@@ -65,7 +69,12 @@ public class ServerCertificateValidationProviderTests
             ServerCertificateValidationProvider.FromCertificateFile(certificateUploader.FilePath, NoopServerCertificateValidationEventSource.Instance);
 
         Assert.NotNull(serverCertificateValidationProvider);
-        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, new X509Certificate2(certificateUploader.FilePath), null, default));
+#if NET9_0_OR_GREATER
+        var certificate = X509CertificateLoader.LoadCertificateFromFile(certificateUploader.FilePath);
+#else
+        var certificate = new X509Certificate2(certificateUploader.FilePath);
+#endif
+        Assert.False(serverCertificateValidationProvider.ValidationCallback(this, certificate, null, default));
     }
 }
 

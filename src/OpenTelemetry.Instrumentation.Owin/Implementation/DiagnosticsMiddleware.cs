@@ -150,9 +150,7 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
                 if (exception != null)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error);
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error);
 
                     if (OwinInstrumentationActivitySource.Options?.RecordException == true)
                     {

@@ -30,7 +30,7 @@ public class TraceExporterBenchmarks
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TraceExporterBenchmarks()
     {

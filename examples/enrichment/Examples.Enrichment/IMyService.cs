@@ -3,7 +3,7 @@
 
 namespace Examples.Enrichment;
 
-public interface IMyService
+internal interface IMyService
 {
     public (string Service, string Status) MyDailyStatus();
 }

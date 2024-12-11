@@ -104,7 +104,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
 
-#if NET8_0
+#if NET
         Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
 #else
         Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
@@ -115,10 +115,10 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     public void ProfilerCommandToActivity_UsesIpEndPointAsEndPoint()
     {
         long address = 1;
-        int port = 2;
+        var port = 2;
 
         var activity = new Activity("redis-profiler");
-        IPEndPoint ipLocalEndPoint = new IPEndPoint(address, port);
+        var ipLocalEndPoint = new IPEndPoint(address, port);
         var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, ipLocalEndPoint);
 
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());

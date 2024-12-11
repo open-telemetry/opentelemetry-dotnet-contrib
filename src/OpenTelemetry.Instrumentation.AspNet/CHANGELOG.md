@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
 * Updated registration extension code to retrieve environment variables through
   `IConfiguration`.
   ([#1976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1976))
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Fixed an issue in ASP.NET instrumentation where route extraction failed for
+  attribute-based routing with multiple HTTP methods sharing the same route template.
+  ([#2250](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2250))
 
 ## 1.9.0-beta.1
 

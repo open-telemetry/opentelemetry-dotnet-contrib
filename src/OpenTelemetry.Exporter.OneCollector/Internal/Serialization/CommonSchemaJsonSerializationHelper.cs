@@ -175,7 +175,7 @@ internal static class CommonSchemaJsonSerializationHelper
     {
         writer.WriteStartObject();
 
-        for (int i = 0; i < value.Count; i++)
+        for (var i = 0; i < value.Count; i++)
         {
             var element = value[i];
 
@@ -213,7 +213,7 @@ internal static class CommonSchemaJsonSerializationHelper
         if (value is ISpanFormattable spanFormattable)
         {
             Span<char> destination = stackalloc char[MaximumStackAllocSizeInBytes / 2];
-            if (spanFormattable.TryFormat(destination, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))
+            if (spanFormattable.TryFormat(destination, out var charsWritten, string.Empty, CultureInfo.InvariantCulture))
             {
                 writer.WriteStringValue(destination.Slice(0, charsWritten));
                 return;

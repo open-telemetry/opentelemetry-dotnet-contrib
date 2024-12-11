@@ -79,7 +79,7 @@ public class AWSXRayIdGeneratorTests
             {
                 using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
                 {
-                    Assert.True(activity?.ActivityTraceFlags == ActivityTraceFlags.Recorded);
+                    Assert.Equal(ActivityTraceFlags.Recorded, activity?.ActivityTraceFlags);
                 }
             }
         }
@@ -100,7 +100,7 @@ public class AWSXRayIdGeneratorTests
             {
                 using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
                 {
-                    Assert.True(activity?.ActivityTraceFlags == ActivityTraceFlags.None);
+                    Assert.Equal(ActivityTraceFlags.None, activity?.ActivityTraceFlags);
                 }
             }
         }
