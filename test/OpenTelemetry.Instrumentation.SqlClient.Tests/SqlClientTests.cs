@@ -185,27 +185,23 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true, "localhost", "localhost", null, null, null)]
-    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null)]
-    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434)]
-    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818)]
-    [InlineData(false, "localhost", null, null, null, null)]
+    [InlineData("localhost", "localhost", null, null, null)]
+    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null)]
+    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434)]
+    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818)]
 
     // Test cases when EmitOldAttributes = false and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database)
-    [InlineData(true, "localhost", "localhost", null, null, null, false, true)]
-    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null, false, true)]
-    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434, false, true)]
-    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", null, 1818, false, true)]
-    [InlineData(false, "localhost", null, null, null, null, false, true)]
+    [InlineData("localhost", "localhost", null, null, null, false, true)]
+    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, false, true)]
+    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, false, true)]
+    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", null, 1818, false, true)]
 
     // Test cases when EmitOldAttributes = true and EmitNewAttributes = true (i.e., OTEL_SEMCONV_STABILITY_OPT_IN=database/dup)
-    [InlineData(true, "localhost", "localhost", null, null, null, true, true)]
-    [InlineData(true, "127.0.0.1,1433", null, "127.0.0.1", null, null, true, true)]
-    [InlineData(true, "127.0.0.1,1434", null, "127.0.0.1", null, 1434, true, true)]
-    [InlineData(true, "127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818, true, true)]
-    [InlineData(false, "localhost", null, null, null, null, true, true)]
+    [InlineData("localhost", "localhost", null, null, null, true, true)]
+    [InlineData("127.0.0.1,1433", null, "127.0.0.1", null, null, true, true)]
+    [InlineData("127.0.0.1,1434", null, "127.0.0.1", null, 1434, true, true)]
+    [InlineData("127.0.0.1\\instanceName, 1818", null, "127.0.0.1", "instanceName", 1818, true, true)]
     public void SqlClientAddsConnectionLevelAttributes(
-        bool enableConnectionLevelAttributes,
         string dataSource,
         string? expectedServerHostName,
         string? expectedServerIpAddress,
@@ -216,7 +212,6 @@ public class SqlClientTests : IDisposable
     {
         var options = new SqlClientTraceInstrumentationOptions()
         {
-            EnableConnectionLevelAttributes = enableConnectionLevelAttributes,
             EmitOldAttributes = emitOldAttributes,
             EmitNewAttributes = emitNewAttributes,
         };
