@@ -52,6 +52,75 @@ your application is running:
 
 - **ContainerDetector**: container.id.
 
+## Kubernetes
+
+To make container ID resolution work, container and pod name should be provided
+through `KUBERNETES_CONTAINER_NAME` and `KUBERNETES_POD_NAME` environment variable
+respectively and pod should have at least
+get permission to kubernetes resource pods.
+It can be done by utilizing YAML anchoring, downwards API
+and RBAC (Role-Based Access Control).
+
+If `KUBERNETES_POD_NAME` is not provided, detector will use `HOSTNAME`
+as a fallback, but it may not work in some environments
+or if hostname was overridden in pod spec.
+
+Below is an example of how to configure sample pod
+to make container ID resolution working:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reader-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: read-pods
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: pod-reader-account
+  namespace: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: container-resolve-demo
+spec:
+  serviceAccountName: pod-reader-account
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+  containers:
+  - name: &container_name my_container_name
+    image: ubuntu:latest
+    command: [ "/bin/bash", "-c", "--" ]
+    args: [ "while true; do sleep 30; done;" ]
+    env:
+    - name: KUBERNETES_CONTAINER_NAME
+      value: *container_name
+    - name: KUBERNETES_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+```
+
 ## References
 
 - [OpenTelemetry Project](https://opentelemetry.io/)
