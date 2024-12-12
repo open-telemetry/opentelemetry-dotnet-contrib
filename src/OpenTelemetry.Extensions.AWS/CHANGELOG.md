@@ -4,7 +4,7 @@
 
 ## 1.10.0-beta.2
 
-Released 2024-Dec-11
+Released 2024-Dec-12
 
 ## 1.10.0-beta.1
 

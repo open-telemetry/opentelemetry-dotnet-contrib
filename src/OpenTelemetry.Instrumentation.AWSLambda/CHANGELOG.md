@@ -4,7 +4,7 @@
 
 ## 1.10.0-beta.2
 
-Released 2024-Dec-11
+Released 2024-Dec-12
 
 * Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
   API instead of the deprecated OpenTelemetry API package extension when setting
