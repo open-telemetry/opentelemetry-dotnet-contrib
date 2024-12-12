@@ -37,7 +37,7 @@ public void ConfigureServices(IServiceCollection services)
 ## Semantic Conventions
 
 _For an overview on Semantic Conventions, see
-[Open Telemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
+[OpenTelemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
 
 While this library is intended for production use, it relies on several
 Semantic Conventions that are still considered Experimental, meaning
