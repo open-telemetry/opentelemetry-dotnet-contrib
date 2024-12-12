@@ -64,26 +64,6 @@ public class SqlClientTraceInstrumentationOptions
     public bool SetDbStatementForText { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see
-    /// cref="SqlClientInstrumentation"/> should parse the DataSource on a
-    /// SqlConnection into server name, instance name, and/or port
-    /// connection-level attribute tags. Default value: <see
-    /// langword="true"/>.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <b>EnableConnectionLevelAttributes is supported on all runtimes.</b>
-    /// </para>
-    /// <para>
-    /// If enabled, SqlConnection DataSource will be parsed and the server name will be sent as the
-    /// <see cref="SemanticConventions.AttributeServerAddress"/> tag,
-    /// the instance name will be sent as the <see cref="SemanticConventions.AttributeDbMsSqlInstanceName"/> tag,
-    /// and the port will be sent as the <see cref="SemanticConventions.AttributeServerPort"/> tag if it is not 1433 (the default port).
-    /// </para>
-    /// </remarks>
-    public bool EnableConnectionLevelAttributes { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with the
     /// raw <c>SqlCommand</c> object.
     /// </summary>
