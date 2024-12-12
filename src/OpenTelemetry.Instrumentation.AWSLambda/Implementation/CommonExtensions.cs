@@ -5,14 +5,6 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
 internal static class CommonExtensions
 {
-    internal static void AddTagIfNotNull(this List<KeyValuePair<string, object>> tags, string tagName, object? tagValue)
-    {
-        if (tagValue != null)
-        {
-            tags.Add(new(tagName, tagValue));
-        }
-    }
-
     internal static T? GetValueByKeyIgnoringCase<T>(this IDictionary<string, T> dict, string key)
     {
         // TODO: there may be opportunities for performance improvements of this method.
