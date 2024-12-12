@@ -49,10 +49,12 @@ dotnet add package --prerelease OpenTelemetry.Instrumentation.SqlClient
 
 SqlClient instrumentation must be enabled at application startup.
 
-The following example demonstrates adding SqlClient instrumentation to a console
-application. This example also sets up the OpenTelemetry Console exporter, which
-requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+#### Traces
+
+The following example demonstrates adding SqlClient traces instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -70,13 +72,50 @@ public class Program
 }
 ```
 
+#### Metrics
+
+The following example demonstrates adding SqlClient metrics instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
+
+```csharp
+using OpenTelemetry.Metrics;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        using var tracerProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
+##### List of metrics produced
+
+The instrumentation is implemented based on [metrics semantic
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md#database-operation).
+Currently, the instrumentation supports the following metric.
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. |
+
+#### ASP.NET Core
+
 For an ASP.NET Core application, adding instrumentation is typically done in the
 `ConfigureServices` of your `Startup` class. Refer to documentation for
 [OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
+#### ASP.NET
+
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to the documentation for
-[OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Instrumentation.AspNet/README.md).
+[OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
 
 ## Advanced configuration
 
@@ -151,29 +190,6 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 command names will ever be captured. When using the `Microsoft.Data.SqlClient`
 NuGet package (v1.1+) stored procedure command names, full query text, and other
 command text will be captured.
-
-### EnableConnectionLevelAttributes
-
-> [!NOTE]
-> EnableConnectionLevelAttributes is supported on all runtimes.
-
-By default, `EnabledConnectionLevelAttributes` is enabled.
-When `EnabledConnectionLevelAttributes` is enabled,
-the [`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
-will be parsed and the server name or IP address will be sent as
-the `server.address` attribute, the instance name will be sent as
-the `db.mssql.instance_name` attribute, and the port will be sent as the
-`server.port` attribute if it is not 1433 (the default port).
-
-The following example shows how to use `EnableConnectionLevelAttributes`.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.EnableConnectionLevelAttributes = true)
-    .AddConsoleExporter()
-    .Build();
-```
 
 ### Enrich
 

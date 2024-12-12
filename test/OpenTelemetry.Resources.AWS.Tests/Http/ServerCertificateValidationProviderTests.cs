@@ -15,7 +15,7 @@ public class ServerCertificateValidationProviderTests
     [Fact]
     public void TestValidCertificate()
     {
-        using CertificateUploader certificateUploader = new CertificateUploader();
+        using var certificateUploader = new CertificateUploader();
         certificateUploader.Create();
 
         var serverCertificateValidationProvider =
@@ -28,7 +28,7 @@ public class ServerCertificateValidationProviderTests
 #else
         var certificate = new X509Certificate2(certificateUploader.FilePath);
 #endif
-        X509Chain chain = new X509Chain();
+        var chain = new X509Chain();
         chain.Build(certificate);
 
         // validates if certificate is valid

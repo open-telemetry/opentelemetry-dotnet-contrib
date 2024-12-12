@@ -34,8 +34,8 @@ public class ActivityExtensionsTest
         activity.AddTag("key2", "value3");
 
         var span = activity.ToSpan("project1");
-        Assert.True(span.Attributes.AttributeMap.Count == 2);
-        Assert.True(span.Attributes.AttributeMap["key2"].StringValue.Value == "value3");
+        Assert.Equal(2, span.Attributes.AttributeMap.Count);
+        Assert.Equal("value3", span.Attributes.AttributeMap["key2"].StringValue.Value);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class ActivityExtensionsTest
         using var activity = source.StartActivity("NewActivityWithLinks", ActivityKind.Internal, parentContext: default, links: links);
 
         var span = activity?.ToSpan("project1");
-        Assert.True((span?.Links.Link.Count ?? 0) == 2);
-        Assert.True(span?.Links.Link.First().Attributes.AttributeMap["key1"].StringValue.Value == "value3");
+        Assert.Equal(2, span?.Links.Link.Count ?? 0);
+        Assert.Equal("value3", span?.Links.Link.First().Attributes.AttributeMap["key1"].StringValue.Value);
     }
 }

@@ -8,7 +8,6 @@ using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -123,9 +122,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 if (reply.IsFault)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete
-                    activity.SetStatus(Status.Error);
-#pragma warning restore CS0618 // Type or member is obsolete
+                    activity.SetStatus(ActivityStatusCode.Error);
                 }
 
                 activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);

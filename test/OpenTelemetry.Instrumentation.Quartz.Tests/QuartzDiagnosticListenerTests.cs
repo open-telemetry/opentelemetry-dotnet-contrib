@@ -186,9 +186,10 @@ public class QuartzDiagnosticListenerTests
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        Assert.Equal("exception", activity.Events.First().Name);
-        Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
-        Assert.Equal("Catch me if you can!", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusDescriptionKey)).Value);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        var exception = Assert.Single(activity.Events);
+        Assert.Equal("exception", exception.Name);
+        Assert.Equal("Catch me if you can!", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
     }
 
     [Fact]
@@ -253,8 +254,10 @@ public class QuartzDiagnosticListenerTests
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
-        Assert.Equal("Catch me if you can!", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusDescriptionKey)).Value);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        var exception = Assert.Single(activity.Events);
+        Assert.Equal("exception", exception.Name);
+        Assert.Equal("Catch me if you can!", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
         Assert.Equal(testId, activity.Tags.SingleOrDefault(t => t.Key.Equals("test.id")).Value);
     }
 

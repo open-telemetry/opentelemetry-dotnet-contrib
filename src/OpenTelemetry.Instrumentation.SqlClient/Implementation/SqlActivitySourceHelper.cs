@@ -51,7 +51,7 @@ internal sealed class SqlActivitySourceHelper
             { SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName },
         };
 
-        if (options.EnableConnectionLevelAttributes && dataSource != null)
+        if (dataSource != null)
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
@@ -112,7 +112,7 @@ internal sealed class SqlActivitySourceHelper
 
     internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
     {
-        end = end ?? Stopwatch.GetTimestamp();
+        end ??= Stopwatch.GetTimestamp();
         var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
         var delta = end - begin;
         var ticks = (long)(timestampToTicks * delta);

@@ -192,9 +192,7 @@ public static class AWSLambdaWrapper
             if (activity.IsAllDataRequested)
             {
                 activity.AddException(exception);
-#pragma warning disable CS0618 // Type or member is obsolete
-                activity.SetStatus(Status.Error.WithDescription(exception.Message));
-#pragma warning restore CS0618 // Type or member is obsolete
+                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
             }
         }
     }

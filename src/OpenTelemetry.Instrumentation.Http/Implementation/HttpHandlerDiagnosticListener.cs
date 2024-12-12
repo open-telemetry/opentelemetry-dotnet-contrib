@@ -324,7 +324,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 HttpRequestError.ConfigurationLimitExceeded => "configuration_limit_exceeded",
 
                 // Fall back to the exception type name in case of HttpRequestError.Unknown
-                _ => exc.GetType().FullName,
+                HttpRequestError.Unknown or _ => exc.GetType().FullName,
             };
         }
 #endif

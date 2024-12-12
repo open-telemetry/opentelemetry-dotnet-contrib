@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
 
@@ -140,9 +139,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
                 activity.AddException(exc);
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            activity.SetStatus(Status.Error.WithDescription(exc.Message));
-#pragma warning restore CS0618 // Type or member is obsolete
+            activity.SetStatus(ActivityStatusCode.Error, exc.Message);
 
             try
             {

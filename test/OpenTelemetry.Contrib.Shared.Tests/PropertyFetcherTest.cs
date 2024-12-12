@@ -17,7 +17,7 @@ public class PropertyFetcherTest
 
         Assert.Equal(0, fetch.NumberOfInnerFetchers);
 
-        Assert.True(fetch.TryFetch(activity, out string? result));
+        Assert.True(fetch.TryFetch(activity, out var result));
         Assert.Equal(activity.DisplayName, result);
 
         Assert.Equal(1, fetch.NumberOfInnerFetchers);
@@ -33,10 +33,10 @@ public class PropertyFetcherTest
     {
         using var activity = new Activity("test");
         var fetch = new PropertyFetcher<string>("DisplayName2");
-        Assert.False(fetch.TryFetch(activity, out string? result));
+        Assert.False(fetch.TryFetch(activity, out var result));
 
         var fetchInt = new PropertyFetcher<int>("DisplayName2");
-        Assert.False(fetchInt.TryFetch(activity, out int resultInt));
+        Assert.False(fetchInt.TryFetch(activity, out var resultInt));
 
         Assert.Equal(default, result);
         Assert.Equal(default, resultInt);
@@ -56,7 +56,7 @@ public class PropertyFetcherTest
 
         Assert.Equal(0, fetch.NumberOfInnerFetchers);
 
-        Assert.True(fetch.TryFetch(new PayloadTypeA(), out string? propertyValue));
+        Assert.True(fetch.TryFetch(new PayloadTypeA(), out var propertyValue));
         Assert.Equal("A", propertyValue);
 
         Assert.Equal(1, fetch.NumberOfInnerFetchers);
@@ -82,7 +82,7 @@ public class PropertyFetcherTest
 
         Assert.False(fetch.TryFetch(new PayloadTypeC(), out _));
 
-        Assert.True(fetch.TryFetch(new PayloadTypeA(), out string? propertyValue));
+        Assert.True(fetch.TryFetch(new PayloadTypeA(), out var propertyValue));
         Assert.Equal("A", propertyValue);
     }
 
@@ -91,7 +91,7 @@ public class PropertyFetcherTest
     {
         var fetch = new PropertyFetcher<BaseType>("Property");
 
-        Assert.True(fetch.TryFetch(new PayloadTypeWithBaseType(), out BaseType? value));
+        Assert.True(fetch.TryFetch(new PayloadTypeWithBaseType(), out var value));
         Assert.IsType<DerivedType>(value);
     }
 
@@ -100,7 +100,7 @@ public class PropertyFetcherTest
     {
         var fetch = new PropertyFetcher<BaseType>("Property");
 
-        Assert.True(fetch.TryFetch(new PayloadTypeWithDerivedType(), out BaseType? value));
+        Assert.True(fetch.TryFetch(new PayloadTypeWithDerivedType(), out var value));
         Assert.IsType<DerivedType>(value);
     }
 
@@ -108,7 +108,7 @@ public class PropertyFetcherTest
     public void FetchPropertyWhenPayloadIsValueType()
     {
         var fetch = new PropertyFetcher<BaseType>("Property");
-        var ex = Assert.Throws<NotSupportedException>(() => fetch.TryFetch(new PayloadTypeIsValueType(), out BaseType? value));
+        var ex = Assert.Throws<NotSupportedException>(() => fetch.TryFetch(new PayloadTypeIsValueType(), out var value));
         Assert.Contains("PropertyFetcher can only operate on reference payload types.", ex.Message);
     }
 

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* **Breaking change** The `EnableConnectionLevelAttributes` option has been removed.
+  ([#2414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2414))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
 * Drop support for .NET 6 as this target is no longer supported.
   ([#2159](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2159))
 
@@ -52,11 +59,13 @@
   ([#2277](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2277))
 
 * **Breaking change**: The `SetDbStatementForStoredProcedure` option has been removed.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#2284](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2284))
+
 * Add support for metric `db.client.operation.duration`
   from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration)
   on .NET 8+.
   ([#2309](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2309))
+
 * Add support for metric `db.client.operation.duration`
   from [new database semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-metrics.md#metric-dbclientoperationduration)
   on .NET Framework.

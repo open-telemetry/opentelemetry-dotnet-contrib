@@ -37,15 +37,14 @@ public class SqlEventSourceTests
                from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
                from isFailure in bools
                from captureText in bools
-               from enableConnectionLevelAttributes in bools
                from emitOldAttributes in bools
                from emitNewAttributes in bools
                from tracingEnabled in bools
                from metricsEnabled in bools
-               where !(commandType == CommandType.Text && captureText == true)
-               where emitOldAttributes != false && emitNewAttributes != false
+               where !(commandType == CommandType.Text && captureText)
+               where emitOldAttributes && emitNewAttributes
                let commandText = commandType == CommandType.Text
-                   ? (isFailure == false ? "select 1/1" : "select 1/0")
+                   ? (!isFailure ? "select 1/1" : "select 1/0")
                    : "sp_who"
                let sqlExceptionNumber = 0
                select new object[]
@@ -56,7 +55,6 @@ public class SqlEventSourceTests
                    captureText,
                    isFailure,
                    sqlExceptionNumber,
-                   enableConnectionLevelAttributes,
                    emitOldAttributes,
                    emitNewAttributes,
                    tracingEnabled,
@@ -120,7 +118,6 @@ public class SqlEventSourceTests
         bool captureText,
         bool isFailure = false,
         int sqlExceptionNumber = 0,
-        bool enableConnectionLevelAttributes = false,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false,
         bool tracingEnabled = true,
@@ -139,7 +136,6 @@ public class SqlEventSourceTests
                 .AddSqlClientInstrumentation(options =>
                 {
                     options.SetDbStatementForText = captureText;
-                    options.EnableConnectionLevelAttributes = enableConnectionLevelAttributes;
                     options.EmitOldAttributes = emitOldAttributes;
                     options.EmitNewAttributes = emitNewAttributes;
                 });
@@ -187,7 +183,7 @@ public class SqlEventSourceTests
         if (tracingEnabled)
         {
             activity = Assert.Single(activities);
-            VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, enableConnectionLevelAttributes, emitOldAttributes, emitNewAttributes);
+            VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, emitOldAttributes, emitNewAttributes);
         }
 
         var dbClientOperationDurationMetrics = metrics
@@ -308,11 +304,10 @@ public class SqlEventSourceTests
         bool isFailure,
         string dataSource,
         Activity activity,
-        bool enableConnectionLevelAttributes = false,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
-        if (emitNewAttributes && enableConnectionLevelAttributes)
+        if (emitNewAttributes)
         {
             Assert.Equal("instanceName.master", activity.DisplayName);
         }
@@ -324,32 +319,29 @@ public class SqlEventSourceTests
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
-        if (enableConnectionLevelAttributes)
+        var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+
+        if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
         {
-            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+            Assert.Equal(connectionDetails.ServerHostName, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        }
+        else
+        {
+            Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        }
 
-            if (!string.IsNullOrEmpty(connectionDetails.ServerHostName))
-            {
-                Assert.Equal(connectionDetails.ServerHostName, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-            }
-            else
-            {
-                Assert.Equal(connectionDetails.ServerIpAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
-            }
+        if (emitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
+        {
+            Assert.Equal(connectionDetails.InstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+        }
+        else
+        {
+            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+        }
 
-            if (emitOldAttributes && !string.IsNullOrEmpty(connectionDetails.InstanceName))
-            {
-                Assert.Equal(connectionDetails.InstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
-            }
-            else
-            {
-                Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
-            }
-
-            if (connectionDetails.Port.HasValue)
-            {
-                Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
-            }
+        if (connectionDetails.Port.HasValue)
+        {
+            Assert.Equal(connectionDetails.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
 
         if (emitOldAttributes)
@@ -359,7 +351,7 @@ public class SqlEventSourceTests
 
         if (emitNewAttributes)
         {
-            Assert.Equal(!enableConnectionLevelAttributes ? "master" : "instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+            Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
         if (captureText)

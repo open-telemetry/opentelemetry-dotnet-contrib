@@ -4,7 +4,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.test.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1574,1591</NoWarn>
+    <NoWarn>$(NoWarn),1574,1591;CA1515</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,13 +27,13 @@
     <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
     <MicrosoftExtensionsConfigurationJsonPkgVer>8.0.1</MicrosoftExtensionsConfigurationJsonPkgVer>
     <MicrosoftExtensionsHostingPkgVer>8.0.1</MicrosoftExtensionsHostingPkgVer>
-    <MicrosoftNETTestSdkPkgVer>[17.11.1,18.0)</MicrosoftNETTestSdkPkgVer>
+    <MicrosoftNETTestSdkPkgVer>[17.12.0,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
-    <XUnitPkgVer>[2.9.0,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.6.3,2.0)</WiremockNetPkgVer>
+    <XUnitPkgVer>[2.9.2,3.0)</XUnitPkgVer>
+    <WiremockNetPkgVer>[1.6.8,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">

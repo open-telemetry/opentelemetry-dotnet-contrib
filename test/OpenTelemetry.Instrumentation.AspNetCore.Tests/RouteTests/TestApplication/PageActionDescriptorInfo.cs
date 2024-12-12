@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace RouteTests.TestApplication;
 
-public class PageActionDescriptorInfo
+internal class PageActionDescriptorInfo
 {
     public PageActionDescriptorInfo()
     {

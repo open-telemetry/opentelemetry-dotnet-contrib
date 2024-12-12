@@ -28,7 +28,9 @@ public static class SqlProcessorTestCases
         }
     }
 
+#pragma warning disable CA1034 // Nested types should not be visible
     public class TestCase
+#pragma warning restore CA1034
     {
         public string Name { get; set; } = string.Empty;
 
