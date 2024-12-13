@@ -1,7 +1,5 @@
 #nullable enable
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.EnableConnectionLevelAttributes.get -> bool
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.EnableConnectionLevelAttributes.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, string!, object!>?
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Filter.get -> System.Func<object!, bool>?
