@@ -22,9 +22,9 @@ namespace OpenTelemetry.Instrumentation.AWSLambda.Tests.Implementation;
 public sealed class AWSLambdaInstrumentationOptionsTests
 {
     [Fact]
-    public void CanUseSemanticConvention_v1_27_0()
+    public void CanUseSemanticConvention_V1_27_0()
     {
-        var semanticVersion = SemanticConventionVersion.v1_27_0_Experimental;
+        var semanticVersion = SemanticConventionVersion.V1_27_0_Experimental;
 
         var expectedTags = new List<string>
         {
@@ -39,9 +39,9 @@ public sealed class AWSLambdaInstrumentationOptionsTests
     }
 
     [Fact]
-    public void CanUseSemanticConvention_v1_29_0()
+    public void CanUseSemanticConvention_V1_29_0()
     {
-        var semanticVersion = SemanticConventionVersion.v1_29_0_Experimental;
+        var semanticVersion = SemanticConventionVersion.V1_29_0_Experimental;
 
         var expectedTags = new List<string>
         {

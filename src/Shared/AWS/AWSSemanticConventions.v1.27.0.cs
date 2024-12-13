@@ -22,7 +22,7 @@ internal partial class AWSSemanticConventions
     ///
     /// Future version specific convention classes will only need to define new or changed attributes.
     /// </remarks>
-    private class AWSSemanticConventions_v1_27_0 : AWSSemanticConventionsBase
+    private class AWSSemanticConventions_V1_27_0 : AWSSemanticConventionsBase
     {
         // CLOUD Attributes
         public override string AttributeCloudAccountID => "cloud.account.id";

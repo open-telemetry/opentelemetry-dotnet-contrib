@@ -16,7 +16,7 @@ internal partial class AWSSemanticConventions
     /// Open Telemetry Semantic Conventions as of 1.29.0:
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.29.0.
     /// </summary>
-    private class AWSSemanticConventions_v1_29_0 : AWSSemanticConventions_v1_27_0
+    private class AWSSemanticConventions_V1_29_0 : AWSSemanticConventions_V1_27_0
     {
         // AWS Attributes
         public override string AttributeAWSBedrock => "aws.bedrock";
