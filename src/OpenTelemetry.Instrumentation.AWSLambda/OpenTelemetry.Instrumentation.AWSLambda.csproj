@@ -34,8 +34,4 @@
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\OpenTelemetry.SemanticConventions\OpenTelemetry.SemanticConventions.csproj" />
-  </ItemGroup>
-
 </Project>
