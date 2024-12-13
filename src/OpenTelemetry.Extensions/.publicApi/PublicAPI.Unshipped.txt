@@ -14,6 +14,8 @@ OpenTelemetry.Trace.BaggageActivityProcessor
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override OpenTelemetry.RateLimitingSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
 override OpenTelemetry.Trace.BaggageActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
+static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Logs.LoggerProviderBuilder!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AttachLogsToActivityEvent(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Action<OpenTelemetry.Logs.LogToActivityEventConversionOptions!>? configure = null) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
