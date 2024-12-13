@@ -1,8 +1,8 @@
 #nullable enable
 OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
-OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.v1_29_0_Experimental = 2 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
-OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.v1_27_0_Experimental = 1 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.V1_29_0_Experimental = 2 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
+OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.V1_27_0_Experimental = 1 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.AWSClientInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.SemanticConventionVersion.get -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion
