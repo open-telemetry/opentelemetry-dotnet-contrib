@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for exporting exception stack using `Exception.StackTrace`.
+  This can be enabled via enum `ExceptionStackExportMode.ExportAsStackTraceString`.
+
 ## 1.10.0
 
 Released 2024-Nov-18
