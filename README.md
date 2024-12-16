@@ -94,7 +94,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 
 *Find more about the maintainer role in [community
-repository](h[ttps://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer)).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*
 
 ### Emeritus
 

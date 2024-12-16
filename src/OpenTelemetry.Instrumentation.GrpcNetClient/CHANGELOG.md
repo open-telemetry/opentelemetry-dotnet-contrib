@@ -32,7 +32,7 @@ Released 2024-Feb-09
 
 * **Breaking Change**:
   Please be advised that the
-  [SuppressDownstreamInstrumentation](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.GrpcNetClient#suppressdownstreaminstrumentation)
+  [SuppressDownstreamInstrumentation](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.GrpcNetClient#suppressdownstreaminstrumentation)
   option no longer works when used in conjunction with the
   `OpenTelemetry.Instrumentation.Http` package version `1.6.0` or greater.
   This is not a result of a change in the `OpenTelemetry.Instrumentation.GrpcNetClient`
