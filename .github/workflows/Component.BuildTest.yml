@@ -127,7 +127,7 @@ jobs:
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
