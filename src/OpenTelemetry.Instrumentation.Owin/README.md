@@ -95,7 +95,7 @@ even if tracing is disabled.
 ```
 
 The instrumentation is implemented based on [metrics semantic
-conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestduration).
 Currently, the instrumentation supports the following metric.
 
 | Name  | Instrument Type | Unit | Description |
@@ -107,7 +107,7 @@ Currently, the instrumentation supports the following metric.
 The OpenTelemetry OWIN instrumentation will create spans with very generic names
 based on the http method of the request. For example: `HTTP GET` or `HTTP POST`.
 The reason for this is the [OpenTelemetry Specification http semantic
-conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name)
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#name)
 call specifically for low cardinality values and OWIN does not expose any kind
 of route template.
 

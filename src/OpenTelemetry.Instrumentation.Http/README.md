@@ -52,7 +52,7 @@ The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `TracerProviderBuilder` to
 a console application. This example also sets up the OpenTelemetry Console
 Exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -97,7 +97,7 @@ The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `MeterProviderBuilder` to
 a console application. This example also sets up the OpenTelemetry Console
 Exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -116,8 +116,8 @@ public class Program
 }
 ```
 
-Refer to this [example](../../examples/AspNetCore/Program.cs) to see how to
-enable this instrumentation in an ASP.NET core application.
+Refer to this [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs)
+to see how to enable this instrumentation in an ASP.NET Core application.
 
 Refer to this
 [example](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Instrumentation.AspNet/README.md)
@@ -344,9 +344,9 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor), is the
-general extensibility point to add additional properties to any activity. The
-`Enrich` option is specific to this instrumentation, and is provided to get
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
+is the general extensibility point to add additional properties to any activity.
+The `Enrich` option is specific to this instrumentation, and is provided to get
 access to raw request, response, and exception objects.
 
 When overriding the default settings provided by instrumentation or adding
@@ -406,8 +406,8 @@ This component uses an
 [EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
 with the name "OpenTelemetry-Instrumentation-Http" for its internal logging.
 Please refer to [SDK
-troubleshooting](../OpenTelemetry/README.md#troubleshooting) for instructions on
-seeing these internal logs.
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/README.md#troubleshooting)
+for instructions on seeing these internal logs.
 
 ## References
 
