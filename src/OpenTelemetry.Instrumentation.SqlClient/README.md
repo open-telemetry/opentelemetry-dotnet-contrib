@@ -186,10 +186,10 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ```
 
 > [!NOTE]
-> When using the built-in `System.Data.SqlClient` only stored procedure
-command names will ever be captured. When using the `Microsoft.Data.SqlClient`
-NuGet package (v1.1+) stored procedure command names, full query text, and other
-command text will be captured.
+> When using the built-in `System.Data.SqlClient`, only stored procedure command
+names will be captured. To capture query text, other command text and
+stored procedure command names, you need to use the `Microsoft.Data.SqlClient`
+NuGet package (v1.1+).
 
 ### Enrich
 
