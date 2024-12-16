@@ -151,7 +151,7 @@ components:
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17
-  src/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
+  test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
