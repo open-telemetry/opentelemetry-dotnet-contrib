@@ -22,7 +22,7 @@ public enum ExceptionStackExportMode
 
     /// <summary>
     /// Exception stack traces are exported as string, using the StackTrace property of the Exception.
-    /// See <see href="https://learn.microsoft.com/dotnet/api/system.exception.tostring"/>.
+    /// See <see href="https://learn.microsoft.com/dotnet/api/system.exception.stacktrace"/>.
     /// </summary>
     ExportAsStackTraceString,
 
