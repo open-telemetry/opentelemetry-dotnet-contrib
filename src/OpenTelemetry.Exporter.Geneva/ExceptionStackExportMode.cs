@@ -16,7 +16,7 @@ public enum ExceptionStackExportMode
     /// <summary>
     /// Exception stack traces are exported as string, using a culture agnostic representation of the results of ToString() implementation of the Exception.
     /// Though formatted in culture-agnostic way, this is more targetted towards human readability.
-    /// See <see href="https://learn.microsoft.com/dotnet/api/system.exception.stacktrace"/>.
+    /// See <see href="https://learn.microsoft.com/dotnet/api/system.exception.tostring"/>.
     /// </summary>
     ExportAsString,
 
