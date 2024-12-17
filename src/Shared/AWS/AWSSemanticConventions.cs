@@ -64,9 +64,9 @@ internal partial class AWSSemanticConventions
     /// </summary>
     /// <remarks>
     /// Per SemanticConventionVersion, default should stay as
-    /// <see cref="SemanticConventionVersion.V1_27_0_Experimental"/> until next major version bump.
+    /// <see cref="SemanticConventionVersion.V1_28_0_Experimental"/> until next major version bump.
     /// </remarks>
-    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_27_0_Experimental;
+    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_28_0_Experimental;
 
     private readonly SemanticConventionVersion semanticConventionVersion;
 
@@ -485,8 +485,8 @@ internal partial class AWSSemanticConventions
             case SemanticConventionVersion.V1_29_0_Experimental:
                 return new AWSSemanticConventions_V1_29_0();
 
-            case SemanticConventionVersion.V1_27_0_Experimental:
-                return new AWSSemanticConventions_V1_27_0();
+            case SemanticConventionVersion.V1_28_0_Experimental:
+                return new AWSSemanticConventions_V1_28_0();
 
             default:
                 throw new InvalidEnumArgumentException(
