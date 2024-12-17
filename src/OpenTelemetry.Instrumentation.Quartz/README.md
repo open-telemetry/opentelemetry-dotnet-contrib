@@ -17,7 +17,7 @@ Automatically instruments the Quartz jobs from
 QuartzNET Instrumentation is only supported when using .NET Framework >=
 `net472` and .NET Standard >= `netstandard2.0`. Quartz`net461` support for
 activity sources has been removed, more information can be found
-[here](https://www.quartz-scheduler.net/2021/04/07/quartznet-3-3-released/).
+[here](https://github.com/quartznet/quartznet/releases/tag/v3.3.0).
 
 ## Installation
 

@@ -21,7 +21,7 @@ Released 2023-Apr-17
 ([#1110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1110))
 
 * Going forward the NuGet package will be
-  [`OpenTelemetry.PersistentStorage.FileSystem`](https://www.nuget.org/packages/OpenTelemetry.Extensions.FileSystem).
+  [`OpenTelemetry.PersistentStorage.FileSystem`](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem).
   Older versions will remain at
   [`OpenTelemetry.Extensions.PersistentStorage`](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
   [(#1079)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1079)
