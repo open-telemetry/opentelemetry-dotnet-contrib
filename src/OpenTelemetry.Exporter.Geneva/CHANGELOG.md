@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added support for exporting exception stack traces using
+* Added support for exporting exception stack traces using
   `Exception.StackTrace`. This can be enabled via the
   `ExceptionStackExportMode.ExportAsStackTraceString` enum. Applicable only to
   the LogExporter.
