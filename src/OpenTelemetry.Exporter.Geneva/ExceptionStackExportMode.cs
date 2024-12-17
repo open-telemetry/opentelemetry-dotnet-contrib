@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Exporter.Geneva;
 
-/// <summary>
+    /// <summary>
     /// Defines modes for exporting exception stack traces. Currently applicable only to the Logs signal.
     /// </summary>
     public enum ExceptionStackExportMode
