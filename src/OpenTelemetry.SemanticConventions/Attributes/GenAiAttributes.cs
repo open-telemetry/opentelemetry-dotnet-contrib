@@ -31,7 +31,7 @@ public static class GenAiAttributes
     public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
 
     /// <summary>
-    /// The service tier requested. May be a specific tier, detault, or auto.
+    /// The service tier requested. May be a specific tier, default, or auto.
     /// </summary>
     public const string AttributeGenAiOpenaiRequestServiceTier = "gen_ai.openai.request.service_tier";
 
@@ -39,6 +39,11 @@ public static class GenAiAttributes
     /// The service tier used for the response.
     /// </summary>
     public const string AttributeGenAiOpenaiResponseServiceTier = "gen_ai.openai.response.service_tier";
+
+    /// <summary>
+    /// A fingerprint to track any eventual change in the Generative AI environment.
+    /// </summary>
+    public const string AttributeGenAiOpenaiResponseSystemFingerprint = "gen_ai.openai.response.system_fingerprint";
 
     /// <summary>
     /// The name of the operation being performed.
@@ -53,6 +58,14 @@ public static class GenAiAttributes
     /// </summary>
     [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
+
+    /// <summary>
+    /// The encoding formats requested in an embeddings operation, if specified.
+    /// </summary>
+    /// <remarks>
+    /// In some GenAI systems the encoding formats are called embedding types. Also, some GenAI systems only accept a single format per request.
+    /// </remarks>
+    public const string AttributeGenAiRequestEncodingFormats = "gen_ai.request.encoding_formats";
 
     /// <summary>
     /// The frequency penalty setting for the GenAI request.
@@ -174,7 +187,7 @@ public static class GenAiAttributes
     }
 
     /// <summary>
-    /// The service tier requested. May be a specific tier, detault, or auto.
+    /// The service tier requested. May be a specific tier, default, or auto.
     /// </summary>
     public static class GenAiOpenaiRequestServiceTierValues
     {
@@ -203,6 +216,11 @@ public static class GenAiAttributes
         /// Text completions operation such as <a href="https://platform.openai.com/docs/api-reference/completions">OpenAI Completions API (Legacy)</a>.
         /// </summary>
         public const string TextCompletion = "text_completion";
+
+        /// <summary>
+        /// Embeddings operation such as <a href="https://platform.openai.com/docs/api-reference/embeddings/create">OpenAI Create embeddings API</a>.
+        /// </summary>
+        public const string Embeddings = "embeddings";
     }
 
     /// <summary>
@@ -229,6 +247,21 @@ public static class GenAiAttributes
         /// Cohere.
         /// </summary>
         public const string Cohere = "cohere";
+
+        /// <summary>
+        /// Azure AI Inference.
+        /// </summary>
+        public const string AzAiInference = "az.ai.inference";
+
+        /// <summary>
+        /// IBM Watsonx AI.
+        /// </summary>
+        public const string IbmWatsonxAi = "ibm.watsonx.ai";
+
+        /// <summary>
+        /// AWS Bedrock.
+        /// </summary>
+        public const string AwsBedrock = "aws.bedrock";
     }
 
     /// <summary>
