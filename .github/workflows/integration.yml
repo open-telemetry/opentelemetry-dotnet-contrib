@@ -10,7 +10,7 @@ on:
 jobs:
   redis-integration-test:
     if: inputs.job == 'all' || inputs.job == 'redis-integration-test'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -23,7 +23,7 @@ jobs:
 
   kafka-integration-test:
     if: inputs.job == 'all' || inputs.job == 'kafka-integration-test'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
