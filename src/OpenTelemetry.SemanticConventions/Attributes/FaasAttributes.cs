@@ -104,7 +104,6 @@ public static class FaasAttributes
     /// For some cloud providers, the above definition is ambiguous. The following
     /// definition of function name MUST be used for this attribute
     /// (and consequently the span name) for the listed cloud providers/products:
-    /// <p>
     /// <ul>
     ///   <li><strong>Azure:</strong>  The full name <c><FUNCAPP>/<FUNC></c>, i.e., function app name
     /// followed by a forward slash followed by the function name (this form
@@ -131,7 +130,6 @@ public static class FaasAttributes
     /// </summary>
     /// <remarks>
     /// Depending on the cloud provider and platform, use:
-    /// <p>
     /// <ul>
     ///   <li><strong>AWS Lambda:</strong> The <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-versions.html">function version</a>
     /// (an integer represented as a decimal string).</li>

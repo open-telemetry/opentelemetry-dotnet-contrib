@@ -25,7 +25,7 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineRunId = "cicd.pipeline.run.id";
 
     /// <summary>
-    /// The human readable name of a task within a pipeline. Task here most closely aligns with a <a href="https://en.wikipedia.org/wiki/Pipeline_(computing)">computing process</a> in a pipeline. Other terms for tasks include commands, steps, and procedures.
+    /// The human readable name of a task within a pipeline. Task here most closely aligns with a <a href="https://wikipedia.org/wiki/Pipeline_(computing)">computing process</a> in a pipeline. Other terms for tasks include commands, steps, and procedures.
     /// </summary>
     public const string AttributeCicdPipelineTaskName = "cicd.pipeline.task.name";
 
@@ -35,7 +35,7 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineTaskRunId = "cicd.pipeline.task.run.id";
 
     /// <summary>
-    /// The <a href="https://en.wikipedia.org/wiki/URL">URL</a> of the pipeline run providing the complete address in order to locate and identify the pipeline run.
+    /// The <a href="https://wikipedia.org/wiki/URL">URL</a> of the pipeline run providing the complete address in order to locate and identify the pipeline run.
     /// </summary>
     public const string AttributeCicdPipelineTaskRunUrlFull = "cicd.pipeline.task.run.url.full";
 

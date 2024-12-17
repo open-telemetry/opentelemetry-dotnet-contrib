@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class TestAttributes
 {
     /// <summary>
-    /// The fully qualified human readable name of the <a href="https://en.wikipedia.org/wiki/Test_case">test case</a>.
+    /// The fully qualified human readable name of the <a href="https://wikipedia.org/wiki/Test_case">test case</a>.
     /// </summary>
     public const string AttributeTestCaseName = "test.case.name";
 
@@ -25,7 +25,7 @@ public static class TestAttributes
     public const string AttributeTestCaseResultStatus = "test.case.result.status";
 
     /// <summary>
-    /// The human readable name of a <a href="https://en.wikipedia.org/wiki/Test_suite">test suite</a>.
+    /// The human readable name of a <a href="https://wikipedia.org/wiki/Test_suite">test suite</a>.
     /// </summary>
     public const string AttributeTestSuiteName = "test.suite.name";
 

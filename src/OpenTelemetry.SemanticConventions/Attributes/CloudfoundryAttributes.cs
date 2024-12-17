@@ -28,7 +28,7 @@ public static class CloudfoundryAttributes
     /// The index of the application instance. 0 when just one instance is active.
     /// </summary>
     /// <remarks>
-    /// CloudFoundry defines the <c>instance_id</c> in the <a href="https://github.com/cloudfoundry/loggregator-api#v2-envelope">Loggegator v2 envelope</a>.
+    /// CloudFoundry defines the <c>instance_id</c> in the <a href="https://github.com/cloudfoundry/loggregator-api#v2-envelope">Loggregator v2 envelope</a>.
     /// It is used for logs and metrics emitted by CloudFoundry. It is
     /// supposed to contain the application instance index for applications
     /// deployed on the runtime.
