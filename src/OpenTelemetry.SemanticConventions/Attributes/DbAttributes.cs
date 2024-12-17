@@ -77,8 +77,13 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-    /// If the collection name is parsed from the query text, it SHOULD be the first collection name found in the query and it SHOULD match the value provided in the query text including any schema and database name prefix.
-    /// For batch operations, if the individual operations are known to have the same collection name then that collection name SHOULD be used, otherwise <c>db.collection.name</c> SHOULD NOT be captured.
+    /// <p>
+    /// The collection name SHOULD NOT be extracted from <c>db.query.text</c>,
+    /// unless the query format is known to only ever have a single collection name present.
+    /// <p>
+    /// For batch operations, if the individual operations are known to have the same collection name
+    /// then that collection name SHOULD be used.
+    /// <p>
     /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbCollectionName = "db.collection.name";
@@ -100,18 +105,32 @@ public static class DbAttributes
     public const string AttributeDbCosmosdbConnectionMode = "db.cosmosdb.connection_mode";
 
     /// <summary>
+    /// Account or request <a href="https://learn.microsoft.com/azure/cosmos-db/consistency-levels">consistency level</a>.
+    /// </summary>
+    public const string AttributeDbCosmosdbConsistencyLevel = "db.cosmosdb.consistency_level";
+
+    /// <summary>
     /// Deprecated, use <c>db.collection.name</c> instead.
     /// </summary>
     [Obsolete("Replaced by <c>db.collection.name</c>.")]
     public const string AttributeDbCosmosdbContainer = "db.cosmosdb.container";
 
     /// <summary>
-    /// Cosmos DB Operation Type.
+    /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("No replacement at this time.")]
     public const string AttributeDbCosmosdbOperationType = "db.cosmosdb.operation_type";
 
     /// <summary>
-    /// RU consumed for that operation.
+    /// List of regions contacted during operation in the order that they were contacted. If there is more than one region listed, it indicates that the operation was performed on multiple regions i.e. cross-regional call.
+    /// </summary>
+    /// <remarks>
+    /// Region name matches the format of <c>displayName</c> in <a href="https://learn.microsoft.com/rest/api/subscription/subscriptions/list-locations?view=rest-subscription-2021-10-01&tabs=HTTP#location">Azure Location API</a>.
+    /// </remarks>
+    public const string AttributeDbCosmosdbRegionsContacted = "db.cosmosdb.regions_contacted";
+
+    /// <summary>
+    /// Request units consumed for the operation.
     /// </summary>
     public const string AttributeDbCosmosdbRequestCharge = "db.cosmosdb.request_charge";
 
@@ -210,22 +229,46 @@ public static class DbAttributes
     /// The name of the operation or command being executed.
     /// </summary>
     /// <remarks>
-    /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-    /// If the operation name is parsed from the query text, it SHOULD be the first operation name found in the query.
-    /// For batch operations, if the individual operations are known to have the same operation name then that operation name SHOULD be used prepended by <c>BATCH </c>, otherwise <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database system specific term if more applicable.
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
+    /// <p>
+    /// The operation name SHOULD NOT be extracted from <c>db.query.text</c>,
+    /// unless the query format is known to only ever have a single operation name present.
+    /// <p>
+    /// For batch operations, if the individual operations are known to have the same operation name
+    /// then that operation name SHOULD be used prepended by <c>BATCH </c>,
+    /// otherwise <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database
+    /// system specific term if more applicable.
+    /// <p>
     /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationName = "db.operation.name";
 
     /// <summary>
-    /// A query parameter used in <c>db.query.text</c>, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
+    /// A database operation parameter, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
     /// </summary>
     /// <remarks>
-    /// Query parameters should only be captured when <c>db.query.text</c> is parameterized with placeholders.
     /// If a parameter has no name and instead is referenced only by index, then <c><key></c> SHOULD be the 0-based index.
+    /// If <c>db.query.text</c> is also captured, then <c>db.operation.parameter.<key></c> SHOULD match up with the parameterized placeholders present in <c>db.query.text</c>.
     /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
+    public const string AttributeDbOperationParameterTemplate = "db.operation.parameter";
+
+    /// <summary>
+    /// A query parameter used in <c>db.query.text</c>, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
+    /// </summary>
+    [Obsolete("Replaced by <c>db.operation.parameter</c>.")]
     public const string AttributeDbQueryParameterTemplate = "db.query.parameter";
+
+    /// <summary>
+    /// Low cardinality representation of a database query text.
+    /// </summary>
+    /// <remarks>
+    /// <c>db.query.summary</c> provides static summary of the query text. It describes a class of database queries and is useful as a grouping key, especially when analyzing telemetry for database calls involving complex queries.
+    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../../docs/database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
+    /// This attribute has stability level RELEASE CANDIDATE.
+    /// </remarks>
+    public const string AttributeDbQuerySummary = "db.query.summary";
 
     /// <summary>
     /// The database query being executed.
@@ -243,6 +286,11 @@ public static class DbAttributes
     /// </summary>
     [Obsolete("Replaced by <c>db.namespace</c>.")]
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
+
+    /// <summary>
+    /// Number of rows returned by the operation.
+    /// </summary>
+    public const string AttributeDbResponseReturnedRows = "db.response.returned_rows";
 
     /// <summary>
     /// Database response status code.
@@ -382,7 +430,7 @@ public static class DbAttributes
     public static class DbCosmosdbConnectionModeValues
     {
         /// <summary>
-        /// Gateway (HTTP) connections mode.
+        /// Gateway (HTTP) connection.
         /// </summary>
         public const string Gateway = "gateway";
 
@@ -393,83 +441,129 @@ public static class DbAttributes
     }
 
     /// <summary>
-    /// Cosmos DB Operation Type.
+    /// Account or request <a href="https://learn.microsoft.com/azure/cosmos-db/consistency-levels">consistency level</a>.
+    /// </summary>
+    public static class DbCosmosdbConsistencyLevelValues
+    {
+        /// <summary>
+        /// strong.
+        /// </summary>
+        public const string Strong = "Strong";
+
+        /// <summary>
+        /// bounded_staleness.
+        /// </summary>
+        public const string BoundedStaleness = "BoundedStaleness";
+
+        /// <summary>
+        /// session.
+        /// </summary>
+        public const string Session = "Session";
+
+        /// <summary>
+        /// eventual.
+        /// </summary>
+        public const string Eventual = "Eventual";
+
+        /// <summary>
+        /// consistent_prefix.
+        /// </summary>
+        public const string ConsistentPrefix = "ConsistentPrefix";
+    }
+
+    /// <summary>
+    /// Deprecated, no replacement at this time.
     /// </summary>
     public static class DbCosmosdbOperationTypeValues
     {
         /// <summary>
         /// batch.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Batch = "batch";
 
         /// <summary>
         /// create.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Create = "create";
 
         /// <summary>
         /// delete.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// execute.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Execute = "execute";
 
         /// <summary>
         /// execute_javascript.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string ExecuteJavascript = "execute_javascript";
 
         /// <summary>
         /// invalid.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Invalid = "invalid";
 
         /// <summary>
         /// head.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Head = "head";
 
         /// <summary>
         /// head_feed.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string HeadFeed = "head_feed";
 
         /// <summary>
         /// patch.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Patch = "patch";
 
         /// <summary>
         /// query.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Query = "query";
 
         /// <summary>
         /// query_plan.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string QueryPlan = "query_plan";
 
         /// <summary>
         /// read.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Read = "read";
 
         /// <summary>
         /// read_feed.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string ReadFeed = "read_feed";
 
         /// <summary>
         /// replace.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Replace = "replace";
 
         /// <summary>
         /// upsert.
         /// </summary>
+        [Obsolete("No replacement at this time.")]
         public const string Upsert = "upsert";
     }
 

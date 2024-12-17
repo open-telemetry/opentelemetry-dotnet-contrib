@@ -45,6 +45,11 @@ public static class NetworkAttributes
     public const string AttributeNetworkConnectionType = "network.connection.type";
 
     /// <summary>
+    /// The network interface name.
+    /// </summary>
+    public const string AttributeNetworkInterfaceName = "network.interface.name";
+
+    /// <summary>
     /// The network IO operation direction.
     /// </summary>
     public const string AttributeNetworkIoDirection = "network.io.direction";
@@ -70,7 +75,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkPeerPort = "network.peer.port";
 
     /// <summary>
-    /// <a href="https://osi-model.com/application-layer/">OSI application layer</a> or non-OSI equivalent.
+    /// <a href="https://wikipedia.org/wiki/Application_layer">OSI application layer</a> or non-OSI equivalent.
     /// </summary>
     /// <remarks>
     /// The value SHOULD be normalized to lowercase.
@@ -86,7 +91,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkProtocolVersion = "network.protocol.version";
 
     /// <summary>
-    /// <a href="https://osi-model.com/transport-layer/">OSI transport layer</a> or <a href="https://wikipedia.org/wiki/Inter-process_communication">inter-process communication method</a>.
+    /// <a href="https://wikipedia.org/wiki/Transport_layer">OSI transport layer</a> or <a href="https://wikipedia.org/wiki/Inter-process_communication">inter-process communication method</a>.
     /// </summary>
     /// <remarks>
     /// The value SHOULD be normalized to lowercase.
@@ -98,7 +103,7 @@ public static class NetworkAttributes
     public const string AttributeNetworkTransport = "network.transport";
 
     /// <summary>
-    /// <a href="https://osi-model.com/network-layer/">OSI network layer</a> or non-OSI equivalent.
+    /// <a href="https://wikipedia.org/wiki/Network_layer">OSI network layer</a> or non-OSI equivalent.
     /// </summary>
     /// <remarks>
     /// The value SHOULD be normalized to lowercase.
@@ -264,7 +269,7 @@ public static class NetworkAttributes
     }
 
     /// <summary>
-    /// <a href="https://osi-model.com/transport-layer/">OSI transport layer</a> or <a href="https://wikipedia.org/wiki/Inter-process_communication">inter-process communication method</a>.
+    /// <a href="https://wikipedia.org/wiki/Transport_layer">OSI transport layer</a> or <a href="https://wikipedia.org/wiki/Inter-process_communication">inter-process communication method</a>.
     /// </summary>
     public static class NetworkTransportValues
     {
@@ -295,7 +300,7 @@ public static class NetworkAttributes
     }
 
     /// <summary>
-    /// <a href="https://osi-model.com/network-layer/">OSI network layer</a> or non-OSI equivalent.
+    /// <a href="https://wikipedia.org/wiki/Network_layer">OSI network layer</a> or non-OSI equivalent.
     /// </summary>
     public static class NetworkTypeValues
     {

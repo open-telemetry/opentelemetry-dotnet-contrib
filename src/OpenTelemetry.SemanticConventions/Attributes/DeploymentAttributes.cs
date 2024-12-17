@@ -28,7 +28,6 @@ public static class DeploymentAttributes
     /// the <c>service.namespace</c>, <c>service.name</c> and <c>service.instance.id</c> resource attributes.
     /// This implies that resources carrying the following attribute combinations MUST be
     /// considered to be identifying the same service:
-    /// <p>
     /// <ul>
     ///   <li><c>service.name=frontend</c>, <c>deployment.environment.name=production</c></li>
     ///   <li><c>service.name=frontend</c>, <c>deployment.environment.name=staging</c>.</li>
