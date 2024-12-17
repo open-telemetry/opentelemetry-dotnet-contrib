@@ -263,7 +263,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
             {
                 var stackTrace = logRecord.Exception.StackTrace;
-                if (!string.IsNullOrEmpty(stackTrace))
+                if (stackTrace != null)
                 {
                     eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, StringLengthLimit));
                     partAFieldsCount++;
