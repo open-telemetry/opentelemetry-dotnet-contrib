@@ -479,7 +479,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
-      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-resources-operatingsystem:
     needs: detect-changes
@@ -491,7 +491,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
-      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -628,7 +628,7 @@ jobs:
       verify-aot-compat
     ]
     if: always() && !cancelled()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - run: |
           if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi
