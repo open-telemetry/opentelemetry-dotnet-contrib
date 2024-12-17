@@ -27,7 +27,7 @@ internal partial class AWSSemanticConventions
     /// Defines all Semantic Conventions used by AWS extension projects.
     ///
     /// All values default to <c>string.Empty</c> and are then is only defined
-    /// in the first version specific class (ie <see cref="AWSSemanticConventions_V1_27_0"/>)
+    /// in the first version specific class (ie <see cref="AWSSemanticConventions_V1_28_0"/>)
     /// to use it.  This helps ensure the attribute doesn't get used if the user has specified
     /// a specific <see cref="SemanticConventionVersion"/>.
     ///
@@ -35,7 +35,7 @@ internal partial class AWSSemanticConventions
     /// </summary>
     private abstract class AWSSemanticConventionsBase
     {
-        // CLOUD Attributes
+        #region CLOUD Attributes
         /// <summary>
         /// The cloud account ID the resource is assigned to.
         /// </summary>
@@ -153,8 +153,9 @@ internal partial class AWSSemanticConventions
         /// CloudAttributes.CloudProviderValues.Aws
         /// </remarks>
         public virtual string CloudProviderValuesAws => string.Empty;
+        #endregion
 
-        // CONTAINER Attributes
+        #region CONTAINER Attributes
 
         /// <summary>
         /// Container ID. Usually a UUID, as for example used to <a href="https://docs.docker.com/engine/containers/run/#container-identification">identify Docker containers</a>. The UUID might be abbreviated.
@@ -163,8 +164,9 @@ internal partial class AWSSemanticConventions
         /// ContainerAttributes.AttributeContainerId
         /// </remarks>
         public virtual string AttributeContainerID => string.Empty;
+        #endregion
 
-        // DB Attributes
+        #region DB Attributes
 
         /// <summary>
         /// The database management system (DBMS) product as identified by the client instrumentation.
@@ -185,8 +187,9 @@ internal partial class AWSSemanticConventions
         /// DbAttributes.DbSystemValues.Dynamodb
         /// </remarks>
         public virtual string AttributeDynamoDb => string.Empty;
+        #endregion
 
-        // AWS Attributes
+        #region AWS Attributes
 
         /// <summary>
         /// The Amazon Resource Name (ARN) of an <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_instances.html">ECS container instance</a>.
@@ -331,7 +334,9 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string AttributeAWSBedrock => string.Empty;
 
-        // FAAS Attributes
+        #endregion
+
+        #region FAAS Attributes
 
         /// <summary>
         /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://cloud.google.com/apis/design/resource_names#full_resource_name">full resource name</a> on GCP).
@@ -434,8 +439,9 @@ internal partial class AWSSemanticConventions
         /// FaasAttributes.AttributeFaasColdstart
         /// </remarks>
         public virtual string AttributeFaasColdStart => string.Empty;
+        #endregion
 
-        // GEN AI Attributes
+        #region GEN AI Attributes
         /// <summary>
         /// The name of the GenAI model a request is being made to.
         /// </summary>
@@ -463,7 +469,9 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeGenAiSystem => string.Empty;
 
-        // HOST Attributes
+        #endregion
+
+        #region HOST Attributes
 
         /// <summary>
         /// Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider. For non-containerized systems, this should be the <c>machine-id</c>. See the table below for the sources to use to determine the <c>machine-id</c> based on operating system.
@@ -489,7 +497,9 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeHostName => string.Empty;
 
-        // HTTP Attributes
+        #endregion
+
+        #region HTTP Attributes
 
         /// <summary>
         /// Deprecated, use <c>http.response.status_code</c> instead.
@@ -559,7 +569,9 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeHttpRequestMethod => string.Empty;
 
-        // NET Attributes
+        #endregion
+
+        #region NET Attributes
 
         /// <summary>
         /// Deprecated, use <c>server.address</c>.
@@ -579,7 +591,9 @@ internal partial class AWSSemanticConventions
         [Obsolete("Replaced by <c>server.port</c>.")]
         public virtual string AttributeNetHostPort => string.Empty;
 
-        // SERVER Attributes
+        #endregion
+
+        #region SERVER Attributes
 
         /// <summary>
         /// Server domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
@@ -613,7 +627,9 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeK8SClusterName => string.Empty;
 
-        // SERVICE Attributes
+        #endregion
+
+        #region SERVICE Attributes
 
         /// <summary>
         /// Logical name of the service.
@@ -686,7 +702,9 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string ServiceNameValuesAwsElasticBeanstalk => string.Empty;
 
-        // URL Attributes
+        #endregion
+
+        #region URL Attributes
 
         /// <summary>
         /// The <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.3">URI path</a> component.
@@ -704,6 +722,19 @@ internal partial class AWSSemanticConventions
         /// </summary>
         /// <remarks>
         /// Sensitive content provided in <c>url.query</c> SHOULD be scrubbed when instrumentations can identify it.
+        /// <p>
+        /// Query string values for the following keys SHOULD be redacted by default and replaced by the value <c>REDACTED</c>:
+        /// <p>
+        /// <ul>
+        ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
+        ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>Signature</c></a></li>
+        ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
+        ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
+        /// </ul>
+        /// This list is subject to change over time.
+        /// <p>
+        /// When a query string value is redacted, the query string key SHOULD still be preserved, e.g.
+        /// <c>q=OpenTelemetry&sig=REDACTED</c>.
         /// </remarks>
         /// <remarks>
         /// UrlAttributes.AttributeUrlQuery
@@ -717,5 +748,7 @@ internal partial class AWSSemanticConventions
         /// UrlAttributes.AttributeUrlScheme
         /// </remarks>
         public virtual string AttributeUrlScheme => string.Empty;
+
+        #endregion
     }
 }

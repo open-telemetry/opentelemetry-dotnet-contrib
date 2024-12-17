@@ -37,7 +37,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// version.
 /// </para>
 /// <para>
-/// The default will remain as <see cref="V1_27_0_Experimental"/> until the next major version
+/// The default will remain as <see cref="V1_28_0_Experimental"/> until the next major version
 /// bump.
 /// </para>
 /// <para>
@@ -74,11 +74,11 @@ public enum SemanticConventionVersion
     Latest = 0,
 
     /// <summary>
-    /// Pin to the specific state of all Semantic Conventions as of the 1.27.0
+    /// Pin to the specific state of all Semantic Conventions as of the 1.28.0
     /// release. See:
-    /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.27.0.
+    /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.28.0.
     /// </summary>
-    V1_27_0_Experimental = 1,
+    V1_28_0_Experimental = 1,
 
     /// <summary>
     /// Pin to the specific state of all Semantic Conventions as of the 1.29.0

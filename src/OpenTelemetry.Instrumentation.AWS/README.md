@@ -53,7 +53,7 @@ emit the GET as `"http.request.method"`.
 Future versions the OpenTelemetry.*.AWS libraries will include updates to the
 Semantic Convention, which may break compatibility with a previous version.
 
-The default will remain as `V1_27_0_Experimental` until the next major version bump.
+The default will remain as `V1_28_0_Experimental` until the next major version bump.
 
 To opt in to automatic upgrades, you can use `SemanticConventionVersion.Latest`
 or you can specify a specific version:
