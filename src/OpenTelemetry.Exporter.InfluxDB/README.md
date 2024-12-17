@@ -26,7 +26,7 @@ dotnet add package --prerelease OpenTelemetry.Exporter.InfluxDB
 
 ### Step 2: Configure OpenTelemetry MeterProvider
 
-* When using the [OpenTelemetry.Extensions.Hosting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Extensions.Hosting/README.md)
+* When using the [OpenTelemetry.Extensions.Hosting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
 package on .NET 6.0+:
 
 ```csharp

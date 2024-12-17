@@ -88,7 +88,7 @@ Released 2023-Dec-01
 
 * Removed reference to `OpenTelemetry` package. This is a **breaking change**
   for users relying on
-  [SuppressDownstreamInstrumentation](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Instrumentation.GrpcNetClient#suppressdownstreaminstrumentation)
+  [SuppressDownstreamInstrumentation](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/tree/main/src/OpenTelemetry.Instrumentation.GrpcNetClient#suppressdownstreaminstrumentation)
   option in `OpenTelemetry.Instrumentation.GrpcNetClient`. For details, check
   out this
   [issue](https://github.com/open-telemetry/opentelemetry-dotnet/issues/5092).
