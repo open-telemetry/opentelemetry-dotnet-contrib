@@ -1,0 +1,1 @@
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.ExportAsStackTraceString = 2 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode

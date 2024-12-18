@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Added support for exporting exception stack traces using
+  `Exception.StackTrace`. This can be enabled via the
+  `ExceptionStackExportMode.ExportAsStackTraceString` enum. Applicable only to
+  the LogExporter.
+  ([#2422](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2422))
+
 ## 1.10.0
 
 Released 2024-Nov-18
