@@ -20,6 +20,8 @@ public class Program
 
         builder.Services.AddMvc();
 
+        builder.Services.AddSignalR();
+
         builder.Services.AddSingleton<HttpClient>();
 
         builder.Services.AddSingleton(
@@ -42,6 +44,8 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.MapHub<TestHub>("/testHub");
 
         app.UseMiddleware<CallbackMiddleware>();
 
