@@ -5,6 +5,9 @@
 * **Breaking change** The `EnableConnectionLevelAttributes` option has been removed.
   ([#2414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2414))
 
+* Histograms produced by this instrumentation package specify explicit bucket boundaries.
+  ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
+
 ## 1.10.0-beta.1
 
 Released 2024-Dec-09

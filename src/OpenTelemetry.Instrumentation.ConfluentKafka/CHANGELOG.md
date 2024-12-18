@@ -14,6 +14,9 @@
   span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
   ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
 
+* Histograms produced by this instrumentation package specify explicit bucket boundaries.
+  ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
+
 ## 0.1.0-alpha.2
 
 Released 2024-Sep-18
