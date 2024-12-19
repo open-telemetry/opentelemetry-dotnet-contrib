@@ -39,7 +39,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -84,7 +87,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -129,7 +135,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -189,7 +198,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -235,7 +247,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -276,7 +291,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -317,7 +335,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -358,7 +379,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -399,7 +423,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -440,7 +467,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -487,7 +517,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -522,7 +555,7 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
+        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
@@ -551,7 +584,7 @@ public class TestAWSClientInstrumentation
     {
         Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
         Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
-        Assert.Equal("aws_bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
+        Assert.Equal("aws.bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));

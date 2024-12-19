@@ -6,7 +6,10 @@ using System.Text;
 using System.Web;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
-using OpenTelemetry.Trace;
+using OpenTelemetry.AWS;
+
+// Continue to off obsolete Semantic Convention until the next major version bump
+#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 
@@ -16,12 +19,12 @@ internal class AWSLambdaHttpUtils
     private const string HeaderXForwardedProto = "x-forwarded-proto";
     private const string HeaderHost = "host";
 
-    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(TInput input)
+    internal static IEnumerable<KeyValuePair<string, object>> GetHttpTags<TInput>(AWSSemanticConventions semanticConventions, TInput input)
     {
-        var tags = new List<KeyValuePair<string, object>>();
-
         string? httpScheme;
         string? httpTarget;
+        string? urlPath;
+        string? urlQuery;
         string? httpMethod;
         string? hostName;
         int? hostPort;
@@ -30,40 +33,70 @@ internal class AWSLambdaHttpUtils
         {
             case APIGatewayProxyRequest request:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(request, HeaderXForwardedProto)?.LastOrDefault();
-                var path = request.RequestContext?.Path ?? request.Path ?? string.Empty;
-                httpTarget = string.Concat(path, GetQueryString(request));
+                urlPath = request.RequestContext?.Path ?? request.Path ?? string.Empty;
+                urlQuery = GetQueryString(request);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = request.RequestContext?.HttpMethod ?? request.HttpMethod;
                 var hostHeader = AWSLambdaUtils.GetHeaderValues(request, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeader);
                 break;
             case APIGatewayHttpApiV2ProxyRequest requestV2:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderXForwardedProto)?.LastOrDefault();
-                httpTarget = string.Concat(requestV2.RawPath ?? string.Empty, GetQueryString(requestV2));
+                urlPath = requestV2.RawPath ?? string.Empty;
+                urlQuery = GetQueryString(requestV2);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = requestV2.RequestContext?.Http?.Method;
                 var hostHeaderV2 = AWSLambdaUtils.GetHeaderValues(requestV2, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, hostHeaderV2);
                 break;
             case ApplicationLoadBalancerRequest albRequest:
                 httpScheme = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderXForwardedProto)?.LastOrDefault();
-                httpTarget = string.Concat(albRequest.Path ?? string.Empty, GetQueryString(albRequest));
+                urlPath = albRequest.Path ?? string.Empty;
+                urlQuery = GetQueryString(albRequest);
+                httpTarget = string.Concat(urlPath, urlQuery);
                 httpMethod = albRequest.HttpMethod;
                 var albHostHeader = AWSLambdaUtils.GetHeaderValues(albRequest, HeaderHost)?.LastOrDefault();
                 (hostName, hostPort) = GetHostAndPort(httpScheme, albHostHeader);
                 break;
             default:
-                return tags;
+                return Enumerable.Empty<KeyValuePair<string, object>>();
         }
 
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpScheme, httpScheme);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpTarget, httpTarget);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeHttpMethod, httpMethod);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostName, hostName);
-        tags.AddTagIfNotNull(SemanticConventions.AttributeNetHostPort, hostPort);
+        var tags = semanticConventions.AttributeBuilder;
 
-        return tags;
+        if (httpScheme != null)
+        {
+            tags.AddAttributeHttpScheme(httpScheme, addIfEmpty: true);
+            tags.AddAttributeUrlScheme(httpScheme, addIfEmpty: true);
+        }
+
+        tags.AddAttributeHttpTarget(httpTarget, addIfEmpty: true);
+        tags.AddAttributeUrlPath(urlPath, addIfEmpty: true);
+
+        if (urlQuery != null)
+        {
+            tags.AddAttributeUrlQuery(urlQuery, addIfEmpty: true);
+        }
+
+        if (httpMethod != null)
+        {
+            tags.AddAttributeHttpMethod(httpMethod, addIfEmpty: true);
+            tags.AddAttributeHttpRequestMethod(httpMethod, addIfEmpty: true);
+        }
+
+        if (hostName != null)
+        {
+            tags.AddAttributeNetHostName(hostName, addIfEmpty: true);
+            tags.AddAttributeServerAddress(hostName, addIfEmpty: true);
+        }
+
+        tags.AddAttributeNetHostPort(hostPort);
+        tags.AddAttributeServerPort(hostPort);
+
+        return tags.Build();
     }
 
-    internal static void SetHttpTagsFromResult(Activity? activity, object? result)
+    internal static void SetHttpTagsFromResult(AWSSemanticConventions semanticConventions, Activity? activity, object? result)
     {
         if (activity == null || result == null)
         {
@@ -73,13 +106,16 @@ internal class AWSLambdaHttpUtils
         switch (result)
         {
             case APIGatewayProxyResponse response:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, response.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, response.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, response.StatusCode);
                 break;
             case APIGatewayHttpApiV2ProxyResponse responseV2:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, responseV2.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpStatusCode(activity, responseV2.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, responseV2.StatusCode);
                 break;
             case ApplicationLoadBalancerResponse albResponse:
-                activity.SetTag(SemanticConventions.AttributeHttpStatusCode, albResponse.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, albResponse.StatusCode);
+                semanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, albResponse.StatusCode);
                 break;
             default:
                 break;

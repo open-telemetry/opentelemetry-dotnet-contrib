@@ -64,6 +64,49 @@ log group ids, log stream names, log stream ids.
 - **AWSEKSDetector**: cloud provider, cloud platform, cluster name,
 container id.
 
+## Semantic Conventions
+
+_For an overview on Semantic Conventions, see
+[Open Telemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
+
+While this library is intended for production use, it relies on several
+Semantic Conventions that are still considered Experimental, meaning
+they may undergo additional changes before becoming Stable.  This can impact
+the aggregation and analysis of telemetry signals in environments with
+multiple applications or microservices.
+
+For example, a microservice using an older version of the Semantic Conventions
+for Http Attributes may emit `"http.method"` with a value of GET, while a
+different microservice, using a new version of Semantic Convention may instead
+emit the GET as `"http.request.method"`.
+
+Future versions the OpenTelemetry.*.AWS libraries will include updates to the
+Semantic Convention, which may break compatibility with a previous version.
+
+The default will remain as `V1_28_0` until the next major version bump.
+
+To opt in to automatic upgrades, you can use `SemanticConventionVersion.Latest`
+or you can specify a specific version:
+
+```csharp
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .ConfigureResource(resource => resource.AddAWSEC2Detector(
+        opt => {
+            // pin to a specific Semantic Convention version
+            opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0;
+        }
+    ))
+    // other configurations
+    .Build();
+```
+
+**NOTE:** Once a Semantic Convention becomes Stable, OpenTelemetry.*.AWS
+libraries will remain on that version until the
+next major version bump.
+
 ## References
 
 - [OpenTelemetry Project](https://opentelemetry.io/)
