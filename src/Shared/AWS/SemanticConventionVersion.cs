@@ -37,7 +37,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// version.
 /// </para>
 /// <para>
-/// The default will remain as <see cref="V1_28_0_Experimental"/> until the next major version
+/// The default will remain as <see cref="V1_28_0"/> until the next major version
 /// bump.
 /// </para>
 /// <para>
@@ -50,7 +50,7 @@ namespace OpenTelemetry.Resources.AWS;
 ///  using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ///     .AddAWSLambdaConfigurations(opt =>
 ///     {
-///         opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0_Experimental;
+///         opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0;
 ///     })
 ///     .Build()!);
 /// ]]>
@@ -77,13 +77,17 @@ public enum SemanticConventionVersion
     /// Pin to the specific state of all Semantic Conventions as of the 1.28.0
     /// release. See:
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.28.0.
+    /// <para />
+    /// This version contains conventions marked Experimental and may change in future versions.
     /// </summary>
-    V1_28_0_Experimental = 1,
+    V1_28_0 = 1,
 
     /// <summary>
     /// Pin to the specific state of all Semantic Conventions as of the 1.29.0
     /// release. See:
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.29.0.
+    /// <para />
+    /// This version contains conventions marked Experimental and may change in future versions.
     /// </summary>
-    V1_29_0_Experimental = 2,
+    V1_29_0 = 2,
 }

@@ -83,7 +83,7 @@ emit the GET as `"http.request.method"`.
 Future versions the OpenTelemetry.*.AWS libraries will include updates to the
 Semantic Convention, which may break compatibility with a previous version.
 
-The default will remain as `V1_28_0_Experimental` until the next major version bump.
+The default will remain as `V1_28_0` until the next major version bump.
 
 To opt in to automatic upgrades, you can use `SemanticConventionVersion.Latest`
 or you can specify a specific version:
@@ -96,7 +96,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .ConfigureResource(resource => resource.AddAWSEC2Detector(
         opt => {
             // pin to a specific Semantic Convention version
-            opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0_Experimental;
+            opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0;
         }
     ))
     // other configurations

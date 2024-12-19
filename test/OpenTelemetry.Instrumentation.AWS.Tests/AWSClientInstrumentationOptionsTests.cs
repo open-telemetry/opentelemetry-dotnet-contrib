@@ -25,7 +25,7 @@ public sealed class AWSClientInstrumentationOptionsTests
     [Fact]
     public void CanUseSemanticConvention_V1_28_0()
     {
-        var semanticVersion = SemanticConventionVersion.V1_28_0_Experimental;
+        var semanticVersion = SemanticConventionVersion.V1_28_0;
 
         var tags = this.GetActivityTags(semanticVersion);
 
@@ -36,7 +36,7 @@ public sealed class AWSClientInstrumentationOptionsTests
     [Fact]
     public void CanUseSemanticConvention_V1_29_0()
     {
-        var semanticVersion = SemanticConventionVersion.V1_29_0_Experimental;
+        var semanticVersion = SemanticConventionVersion.V1_29_0;
 
         var tags = this.GetActivityTags(semanticVersion);
 
