@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* BREAKING: Change default Semantic Convention to 1.28
+
 * Introduce `AWSResourceBuilderOptions.SemanticConventionVersion` which
   provides a mechanism for developers to opt-in to newer versions of the
   of the Open Telemetry Semantic Conventions.
