@@ -18,10 +18,11 @@ internal sealed class HttpInMetricsListener : IDisposable
 
     public HttpInMetricsListener(Meter meter, AspNetMetricsInstrumentationOptions options)
     {
-        this.httpServerDuration = meter.CreateHistogram<double>(
+        this.httpServerDuration = meter.CreateHistogram(
             "http.server.request.duration",
             unit: "s",
-            description: "Duration of HTTP server requests.");
+            description: "Duration of HTTP server requests.",
+            advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         this.options = options;
     }

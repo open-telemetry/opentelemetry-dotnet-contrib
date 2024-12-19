@@ -25,10 +25,11 @@ internal sealed class SqlActivitySourceHelper
     public static readonly string MeterName = AssemblyName.Name!;
     public static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
 
-    public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram<double>(
+    public static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram(
         "db.client.operation.duration",
-        "s",
-        "Duration of database client operations.");
+        unit: "s",
+        description: "Duration of database client operations.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] });
 
     internal static readonly string[] SharedTagNames =
     [
