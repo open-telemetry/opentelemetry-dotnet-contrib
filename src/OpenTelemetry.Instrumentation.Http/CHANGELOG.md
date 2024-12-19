@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* Histograms produced by this instrumentation package specify explicit bucket boundaries.
+* The `http.client.request.duration` histogram (measured in seconds) produced by
+  the metrics instrumentation in this package now uses the [Advice API](https://github.com/open-telemetry/opentelemetry-dotnet/blob/core-1.10.0/docs/metrics/customizing-the-sdk/README.md#explicit-bucket-histogram-aggregation)
+  to set default explicit buckets following the [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/http/http-metrics.md).
   ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
 
 ## 1.10.0
