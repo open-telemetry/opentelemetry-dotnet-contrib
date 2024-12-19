@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* BREAKING: Change default Semantic Convention to 1.28
+
 ## 1.10.0-beta.3
 
 Released 2024-Dec-20
