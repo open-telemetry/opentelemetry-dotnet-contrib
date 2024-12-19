@@ -64,9 +64,9 @@ internal partial class AWSSemanticConventions
     /// </summary>
     /// <remarks>
     /// Per SemanticConventionVersion, default should stay as
-    /// <see cref="SemanticConventionVersion.V1_28_0_Experimental"/> until next major version bump.
+    /// <see cref="SemanticConventionVersion.V1_28_0"/> until next major version bump.
     /// </remarks>
-    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_28_0_Experimental;
+    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_28_0;
 
     private readonly SemanticConventionVersion semanticConventionVersion;
 
@@ -482,10 +482,10 @@ internal partial class AWSSemanticConventions
         switch (this.semanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
-            case SemanticConventionVersion.V1_29_0_Experimental:
+            case SemanticConventionVersion.V1_29_0:
                 return new AWSSemanticConventions_V1_29_0();
 
-            case SemanticConventionVersion.V1_28_0_Experimental:
+            case SemanticConventionVersion.V1_28_0:
                 return new AWSSemanticConventions_V1_28_0();
 
             default:
