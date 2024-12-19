@@ -74,6 +74,18 @@ public enum SemanticConventionVersion
     Latest = 0,
 
     /// <summary>
+    /// Represents the mixture of Semantic Conventions used in OpenTelemetry.*.AWS libraries
+    /// in 1.10.0-beta.x.
+    /// <para />
+    /// This allows users to upgrade to the latest beta nuget package without experiencing a change in
+    /// Semantic Convention output.  Then there is an opportunity for users to trial <see cref="V1_28_0"/>.
+    /// <para />
+    /// This option will be REMOVED in the next Release Candidate.
+    /// </summary>
+    [Obsolete("This will be removed in the 1.10.0-RC", error: false)]
+    Legacy = -1,
+
+    /// <summary>
     /// Pin to the specific state of all Semantic Conventions as of the 1.28.0
     /// release. See:
     /// https://github.com/open-telemetry/semantic-conventions/releases/tag/v1.28.0.

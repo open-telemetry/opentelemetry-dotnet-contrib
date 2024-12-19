@@ -19,6 +19,9 @@ using OpenTelemetry.Resources.AWS;
 #pragma warning disable SA1201
 #pragma warning disable SA1623
 
+// disable obsolete warning - remove in RC
+#pragma warning disable CS0618
+
 namespace OpenTelemetry.AWS;
 
 /// <summary>
@@ -66,7 +69,10 @@ internal partial class AWSSemanticConventions
     /// Per SemanticConventionVersion, default should stay as
     /// <see cref="SemanticConventionVersion.V1_28_0"/> until next major version bump.
     /// </remarks>
-    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.V1_28_0;
+    internal const SemanticConventionVersion DefaultSemanticConventionVersion = SemanticConventionVersion.Legacy;
+
+    // RC Release: change to
+    //SemanticConventionVersion.V1_28_0;
 
     private readonly SemanticConventionVersion semanticConventionVersion;
 
@@ -487,6 +493,9 @@ internal partial class AWSSemanticConventions
 
             case SemanticConventionVersion.V1_28_0:
                 return new AWSSemanticConventions_V1_28_0();
+
+            case SemanticConventionVersion.Legacy:
+                return new AWSSemanticConventionsLegacy();
 
             default:
                 throw new InvalidEnumArgumentException(

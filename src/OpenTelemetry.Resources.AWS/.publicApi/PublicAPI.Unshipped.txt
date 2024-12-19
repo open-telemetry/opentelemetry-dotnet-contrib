@@ -1,4 +1,5 @@
 OpenTelemetry.Resources.AWS.SemanticConventionVersion
+OpenTelemetry.Resources.AWS.SemanticConventionVersion.Legacy = -1 -> OpenTelemetry.Resources.AWS.SemanticConventionVersion
 OpenTelemetry.Resources.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.Resources.AWS.SemanticConventionVersion
 OpenTelemetry.Resources.AWS.SemanticConventionVersion.V1_29_0 = 2 -> OpenTelemetry.Resources.AWS.SemanticConventionVersion
 OpenTelemetry.Resources.AWS.SemanticConventionVersion.V1_28_0 = 1 -> OpenTelemetry.Resources.AWS.SemanticConventionVersion
