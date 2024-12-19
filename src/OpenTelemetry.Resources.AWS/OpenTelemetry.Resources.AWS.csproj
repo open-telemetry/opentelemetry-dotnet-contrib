@@ -7,6 +7,7 @@
     <Description>OpenTelemetry Resource Detectors for AWS ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>Resources.AWS-</MinVerTagPrefix>
     <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
+    <DefineConstants>RESOURCES_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -24,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\IServerCertificateValidationEventSource.cs" Link="Includes\IServerCertificateValidationEventSource.cs" />
