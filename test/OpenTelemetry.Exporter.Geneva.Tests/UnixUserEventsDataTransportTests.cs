@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -49,7 +50,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true)]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -113,7 +114,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true)]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
