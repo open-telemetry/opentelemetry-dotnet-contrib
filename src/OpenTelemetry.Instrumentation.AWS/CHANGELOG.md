@@ -4,7 +4,10 @@
 
 * Introduce `AWSClientInstrumentationOptions.SemanticConventionVersion` which
   provides a mechanism for developers to opt-in to newer versions of the
-  of the Open Telemetry Semantic Conventions.
+  of the OpenTelemetry Semantic Conventions. Currently, you need to opt-in
+  to these new conventions. In the upcoming stable release of this library,
+  the new conventions will be enabled by default, and the conventions this library
+  currently emit will no longer be supported.
   ([#2367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2367))
 
 ## 1.10.0-beta.2
