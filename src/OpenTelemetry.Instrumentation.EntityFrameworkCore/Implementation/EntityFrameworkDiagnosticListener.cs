@@ -1,6 +1,3 @@
-// Copyright The OpenTelemetry Authors
-// SPDX-License-Identifier: Apache-2.0
-
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
@@ -40,6 +37,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+    private readonly PropertyFetcher<string> hostFetcher = new("Host");
+    private readonly PropertyFetcher<string> portFetcher = new("Port");
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -140,10 +139,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                         }
 
-                        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        if (!string.IsNullOrEmpty(dataSource))
+                        var host = (string)this.hostFetcher.Fetch(connection);
+                        if (!string.IsNullOrEmpty(host))
                         {
-                            activity.AddTag(AttributeServerAddress, dataSource);
+                            activity.AddTag(AttributeServerAddress, host);
+                        }
+                        else
+                        {
+                            var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+                            if (!string.IsNullOrEmpty(dataSource))
+                            {
+                                activity.AddTag(AttributeServerAddress, dataSource);
+                            }
+                        }
+
+                        var port = (string)this.portFetcher.Fetch(connection);
+                        if (!string.IsNullOrEmpty(port))
+                        {
+                            activity.AddTag(AttributeServerAddress, port);
                         }
 
                         if (this.options.EmitOldAttributes)
