@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Introduce `AWSClientInstrumentationOptions.SemanticConventionVersion` which
+  provides a mechanism for developers to opt-in to newer versions of the
+  of the Open Telemetry Semantic Conventions.
+  ([#2367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2367))
+
 ## 1.10.0-beta.2
 
 Released 2024-Dec-12
