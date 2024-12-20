@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-20
+
 * Updated activity tags to use new
   [semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md)
   attribute schema.
