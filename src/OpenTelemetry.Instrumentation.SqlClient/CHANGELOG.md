@@ -13,7 +13,7 @@
 * Enabling `SetDbStatementForText` will no longer capture the raw query text.
   The query is now sanitized. Literal values in the query text are replaced
   by a `?` character.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#2446](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2446))
 
 ## 1.10.0-beta.1
 
