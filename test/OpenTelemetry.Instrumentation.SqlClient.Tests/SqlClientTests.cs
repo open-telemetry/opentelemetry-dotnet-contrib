@@ -408,7 +408,7 @@ public class SqlClientTests : IDisposable
 
     internal static void VerifyActivityData(
         CommandType commandType,
-        string commandText,
+        string? commandText,
         bool captureTextCommandContent,
         bool isFailure,
         bool recordException,
