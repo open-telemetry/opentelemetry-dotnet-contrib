@@ -26,6 +26,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SqlProcessor.cs" Link="Includes\SqlProcessor.cs" />
   </ItemGroup>
 
   <ItemGroup>

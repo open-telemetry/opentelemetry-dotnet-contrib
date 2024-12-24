@@ -123,12 +123,13 @@ This instrumentation can be configured to change the default behavior by using
 
 ### SetDbStatementForText
 
-Capturing the text of a database query may run the risk of capturing sensitive data.
-`SetDbStatementForText` controls whether the
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute is captured in scenarios where there could be a risk of exposing
-sensitive data. The behavior of `SetDbStatementForText` depends on the runtime
-used.
+`SetDbStatementForText` controls whether the `db.statement` attribute is
+emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
+see below for more details.
+
+Query text may contain sensitive data, so when `SetDbStatementForText` is
+enabled the raw query text is sanitized by automatically replacing literal
+values with a `?` character.
 
 #### .NET
 

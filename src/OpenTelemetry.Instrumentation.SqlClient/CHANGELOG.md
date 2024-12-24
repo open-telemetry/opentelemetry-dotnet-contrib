@@ -10,6 +10,11 @@
   to set default explicit buckets following the [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md).
   ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
 
+* Enabling `SetDbStatementForText` will no longer capture the raw query text.
+  The query is now sanitized. Literal values in the query text are replaced
+  by a `?` character.
+  ([#2446](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2446))
+
 ## 1.10.0-beta.1
 
 Released 2024-Dec-09
