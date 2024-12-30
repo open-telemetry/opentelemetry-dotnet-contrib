@@ -3,6 +3,7 @@
 ## Unreleased
 
 * BREAKING: Change default Semantic Convention to 1.28
+* BREAKING: Remove option to use Legacy semantic conventions (the old default)
 
 ## 1.10.0-beta.1
 
