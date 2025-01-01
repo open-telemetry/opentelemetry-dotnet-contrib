@@ -185,15 +185,17 @@ public class TestAWSClientInstrumentation
 
     [Fact]
 #if NETFRAMEWORK
-    public void TestSQSSendMessageSuccessful()
+    public void TestSQSSendMessageSuccessfulSampled()
 #else
-    public async Task TestSQSSendMessageSuccessful()
+    public async Task TestSQSSendMessageSuccessfulSampled()
 #endif
     {
         var exportedItems = new List<Activity>();
 
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        SendMessageRequest send_msg_req;
 
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
@@ -208,7 +210,7 @@ public class TestAWSClientInstrumentation
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
-            var send_msg_req = new SendMessageRequest
+            send_msg_req = new SendMessageRequest
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
@@ -230,6 +232,14 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+
+        Assert.Equal(2, send_msg_req.MessageAttributes.Count);
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "traceparent" && kv.Value.StringValue == $"00-{awssdk_activity.TraceId}-{awssdk_activity.SpanId}-01");
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "Custom" && kv.Value.StringValue == "Value");
     }
 
     [Fact]
@@ -273,10 +283,11 @@ public class TestAWSClientInstrumentation
         }
 
         Assert.Empty(exportedItems);
+
         Assert.Equal(2, send_msg_req.MessageAttributes.Count);
         Assert.Contains(
             send_msg_req.MessageAttributes,
-            kv => kv.Key == "traceparent" && kv.Value.StringValue.EndsWith("00", StringComparison.Ordinal));
+            kv => kv.Key == "traceparent" && kv.Value.StringValue == $"00-{parent.TraceId}-{parent.SpanId}-00");
         Assert.Contains(
             send_msg_req.MessageAttributes,
             kv => kv.Key == "Custom" && kv.Value.StringValue == "Value");
