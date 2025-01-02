@@ -222,7 +222,6 @@ public static class AwsAttributes
     /// The <c>copy_source</c> attribute applies to S3 copy operations and corresponds to the <c>--copy-source</c> parameter
     /// of the <a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/copy-object.html">copy-object operation within the S3 API</a>.
     /// This applies in particular to the following operations:
-    /// <p>
     /// <ul>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/copy-object.html">copy-object</a></li>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part-copy.html">upload-part-copy</a>.</li>
@@ -246,7 +245,6 @@ public static class AwsAttributes
     /// <remarks>
     /// The <c>key</c> attribute is applicable to all object-related S3 operations, i.e. that require the object key as a mandatory parameter.
     /// This applies in particular to the following operations:
-    /// <p>
     /// <ul>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/copy-object.html">copy-object</a></li>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/delete-object.html">delete-object</a></li>
@@ -283,7 +281,6 @@ public static class AwsAttributes
     /// The <c>upload_id</c> attribute applies to S3 multipart-upload operations and corresponds to the <c>--upload-id</c> parameter
     /// of the <a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/index.html">S3 API</a> multipart operations.
     /// This applies in particular to the following operations:
-    /// <p>
     /// <ul>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/abort-multipart-upload.html">abort-multipart-upload</a></li>
     ///   <li><a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/complete-multipart-upload.html">complete-multipart-upload</a></li>

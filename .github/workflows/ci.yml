@@ -19,7 +19,7 @@ jobs:
         filters: |
           md: [ '**.md' ]
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
-          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
+          build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
@@ -47,6 +47,7 @@ jobs:
           instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
           instrumentation-runtime: ['*/OpenTelemetry.Instrumentation.Runtime*/**', 'examples/runtime-instrumentation/**', '!**/*.md']
+          instrumentation-servicefabricremoting: ['*/OpenTelemetry.Instrumentation.ServiceFabricRemoting*/**', '!**/*.md']
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
@@ -371,6 +372,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Runtime
       code-cov-name: Instrumentation.Runtime
 
+  build-test-instrumentation-servicefabricremoting:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.ServiceFabricRemoting]
+      code-cov-name: Instrumentation.ServiceFabricRemoting
+
   build-test-instrumentation-sqlclient:
     needs: detect-changes
     if: |
@@ -479,7 +491,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
-      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-resources-operatingsystem:
     needs: detect-changes
@@ -491,7 +503,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
-      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -563,6 +575,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-runtime')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
@@ -610,6 +623,7 @@ jobs:
       build-test-instrumentation-process,
       build-test-instrumentation-quartz,
       build-test-instrumentation-runtime,
+      build-test-instrumentation-servicefabricremoting,
       build-test-instrumentation-sqlclient,
       build-test-instrumentation-stackexchangeredis,
       build-test-instrumentation-stackexchangeredis-integration,
@@ -628,7 +642,7 @@ jobs:
       verify-aot-compat
     ]
     if: always() && !cancelled()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - run: |
           if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

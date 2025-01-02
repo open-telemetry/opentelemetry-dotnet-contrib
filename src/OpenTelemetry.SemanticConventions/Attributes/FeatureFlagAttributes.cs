@@ -15,27 +15,99 @@ namespace OpenTelemetry.SemanticConventions;
 public static class FeatureFlagAttributes
 {
     /// <summary>
-    /// The unique identifier of the feature flag.
+    /// The unique identifier for the flag evaluation context. For example, the targeting key.
+    /// </summary>
+    public const string AttributeFeatureFlagContextId = "feature_flag.context.id";
+
+    /// <summary>
+    /// A message explaining the nature of an error occurring during flag evaluation.
+    /// </summary>
+    public const string AttributeFeatureFlagEvaluationErrorMessage = "feature_flag.evaluation.error.message";
+
+    /// <summary>
+    /// The reason code which shows how a feature flag value was determined.
+    /// </summary>
+    public const string AttributeFeatureFlagEvaluationReason = "feature_flag.evaluation.reason";
+
+    /// <summary>
+    /// The lookup key of the feature flag.
     /// </summary>
     public const string AttributeFeatureFlagKey = "feature_flag.key";
 
     /// <summary>
-    /// The name of the service provider that performs the flag evaluation.
+    /// Identifies the feature flag provider.
     /// </summary>
     public const string AttributeFeatureFlagProviderName = "feature_flag.provider_name";
 
     /// <summary>
-    /// SHOULD be a semantic identifier for a value. If one is unavailable, a stringified version of the value can be used.
+    /// The identifier of the <a href="https://openfeature.dev/specification/glossary/#flag-set">flag set</a> to which the feature flag belongs.
+    /// </summary>
+    public const string AttributeFeatureFlagSetId = "feature_flag.set.id";
+
+    /// <summary>
+    /// A semantic identifier for an evaluated flag value.
     /// </summary>
     /// <remarks>
     /// A semantic identifier, commonly referred to as a variant, provides a means
     /// for referring to a value without including the value itself. This can
     /// provide additional context for understanding the meaning behind a value.
     /// For example, the variant <c>red</c> maybe be used for the value <c>#c05543</c>.
-    /// <p>
-    /// A stringified version of the value can be used in situations where a
-    /// semantic identifier is unavailable. String representation of the value
-    /// should be determined by the implementer.
     /// </remarks>
     public const string AttributeFeatureFlagVariant = "feature_flag.variant";
+
+    /// <summary>
+    /// The version of the ruleset used during the evaluation. This may be any stable value which uniquely identifies the ruleset.
+    /// </summary>
+    public const string AttributeFeatureFlagVersion = "feature_flag.version";
+
+    /// <summary>
+    /// The reason code which shows how a feature flag value was determined.
+    /// </summary>
+    public static class FeatureFlagEvaluationReasonValues
+    {
+        /// <summary>
+        /// The resolved value is static (no dynamic evaluation).
+        /// </summary>
+        public const string Static = "static";
+
+        /// <summary>
+        /// The resolved value fell back to a pre-configured value (no dynamic evaluation occurred or dynamic evaluation yielded no result).
+        /// </summary>
+        public const string Default = "default";
+
+        /// <summary>
+        /// The resolved value was the result of a dynamic evaluation, such as a rule or specific user-targeting.
+        /// </summary>
+        public const string TargetingMatch = "targeting_match";
+
+        /// <summary>
+        /// The resolved value was the result of pseudorandom assignment.
+        /// </summary>
+        public const string Split = "split";
+
+        /// <summary>
+        /// The resolved value was retrieved from cache.
+        /// </summary>
+        public const string Cached = "cached";
+
+        /// <summary>
+        /// The resolved value was the result of the flag being disabled in the management system.
+        /// </summary>
+        public const string Disabled = "disabled";
+
+        /// <summary>
+        /// The reason for the resolved value could not be determined.
+        /// </summary>
+        public const string Unknown = "unknown";
+
+        /// <summary>
+        /// The resolved value is non-authoritative or possibly out of date.
+        /// </summary>
+        public const string Stale = "stale";
+
+        /// <summary>
+        /// The resolved value was the result of an error.
+        /// </summary>
+        public const string Error = "error";
+    }
 }

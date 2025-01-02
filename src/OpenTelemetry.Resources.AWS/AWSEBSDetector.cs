@@ -4,6 +4,7 @@
 #if NET
 using System.Runtime.InteropServices;
 #endif
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -17,6 +18,13 @@ internal sealed class AWSEBSDetector : IResourceDetector
 #if NET
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
 #endif
+
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEBSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
 
     /// <summary>
     /// Detector the required and optional resource attributes from AWS Elastic Beanstalk.
@@ -42,7 +50,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
             var metadata = GetEBSMetadata(filePath);
 
-            return new Resource(ExtractResourceAttributes(metadata));
+            return new Resource(this.ExtractResourceAttributes(metadata));
         }
         catch (Exception ex)
         {
@@ -52,36 +60,6 @@ internal sealed class AWSEBSDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
-    {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsElasticBeanstalk),
-            new(AWSSemanticConventions.AttributeServiceName, AWSSemanticConventions.ServiceNameValuesAwsElasticBeanstalk),
-        };
-
-        if (metadata != null)
-        {
-            if (metadata.EnvironmentName != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName));
-            }
-
-            if (metadata.DeploymentId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId));
-            }
-
-            if (metadata.VersionLabel != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel));
-            }
-        }
-
-        return resourceAttributes;
-    }
-
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
 #if NETFRAMEWORK
@@ -89,5 +67,21 @@ internal sealed class AWSEBSDetector : IResourceDetector
 #else
         return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #endif
+    }
+
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsElasticBeanstalk()
+                .AddAttributeServiceNameIsAwsElasticBeanstalk()
+                .AddAttributeServiceNamespace(metadata?.EnvironmentName)
+                .AddAttributeServiceInstanceID(metadata?.DeploymentId)
+                .AddAttributeServiceVersion(metadata?.VersionLabel)
+                .Build();
+
+        return resourceAttributes;
     }
 }

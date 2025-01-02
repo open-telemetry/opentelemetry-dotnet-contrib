@@ -33,7 +33,11 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     private static readonly PropertyFetcher<HttpContext> HttpContextPropertyFetcher = new("HttpContext");
     private static readonly object ErrorTypeHttpContextItemsKey = new();
 
-    private static readonly Histogram<double> HttpServerRequestDuration = Meter.CreateHistogram<double>(HttpServerRequestDurationMetricName, "s", "Duration of HTTP server requests.");
+    private static readonly Histogram<double> HttpServerRequestDuration = Meter.CreateHistogram(
+        HttpServerRequestDurationMetricName,
+        unit: "s",
+        description: " Duration of HTTP server requests.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
     internal HttpInMetricsListener(string name)
         : base(name)

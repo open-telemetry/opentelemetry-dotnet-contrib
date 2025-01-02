@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-30
+
 * Dropped support for the `net7.0` target because .NET 7 is no longer supported.
   ([#2038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2038))
 
@@ -18,6 +22,9 @@ rate per second. For details see
 
 * Updated OpenTelemetry core component version(s) to `1.10.0`.
   ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Adds Baggage LogRecord Processor.
+  ([#2354](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2354))
 
 ## 1.0.0-beta.5
 

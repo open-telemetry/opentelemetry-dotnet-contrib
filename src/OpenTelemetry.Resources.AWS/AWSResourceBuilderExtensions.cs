@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources.AWS;
 
@@ -15,22 +16,36 @@ public static class AWSResourceBuilderExtensions
     /// Enables AWS Elastic Beanstalk resource detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="AWSResourceBuilderOptions"/>.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEBSDetector());
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
+
+        return builder.AddDetector(new AWSEBSDetector(semanticConventionBuilder));
     }
 
     /// <summary>
     /// Enables AWS EC2 resource detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="AWSResourceBuilderOptions"/>.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEC2Detector());
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
+
+        return builder.AddDetector(new AWSEC2Detector(semanticConventionBuilder));
     }
 
 #if NET
@@ -38,22 +53,36 @@ public static class AWSResourceBuilderExtensions
     /// Enables AWS ECS resource detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="AWSResourceBuilderOptions"/>.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSECSDetector());
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
+
+        return builder.AddDetector(new AWSECSDetector(semanticConventionBuilder));
     }
 
     /// <summary>
     /// Enables AWS EKS resource detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="AWSResourceBuilderOptions"/>.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder)
+    public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder, Action<AWSResourceBuilderOptions>? configure = null)
     {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new AWSEKSDetector());
+
+        var options = new AWSResourceBuilderOptions();
+        configure?.Invoke(options);
+
+        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
+
+        return builder.AddDetector(new AWSEKSDetector(semanticConventionBuilder));
     }
 #endif
 }

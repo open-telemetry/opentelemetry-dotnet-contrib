@@ -56,6 +56,8 @@ components:
   src/OpenTelemetry.Instrumentation.Runtime/:
     - twenzel
     - xiang17
+  src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
+    - sablancoleis
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
   src/OpenTelemetry.PersistentStorage.Abstractions/:
@@ -149,6 +151,8 @@ components:
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17
+  test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
+    - sablancoleis
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:

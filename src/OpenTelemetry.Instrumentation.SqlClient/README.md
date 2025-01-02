@@ -27,11 +27,10 @@ and later.
 [traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
-and hence, this package is a [pre-release](../../VERSIONING.md#pre-releases).
+and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
+is released, there can be breaking changes.
 
 ## Steps to enable OpenTelemetry.Instrumentation.SqlClient
 
@@ -124,12 +123,13 @@ This instrumentation can be configured to change the default behavior by using
 
 ### SetDbStatementForText
 
-Capturing the text of a database query may run the risk of capturing sensitive data.
-`SetDbStatementForText` controls whether the
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute is captured in scenarios where there could be a risk of exposing
-sensitive data. The behavior of `SetDbStatementForText` depends on the runtime
-used.
+`SetDbStatementForText` controls whether the `db.statement` attribute is
+emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
+see below for more details.
+
+Query text may contain sensitive data, so when `SetDbStatementForText` is
+enabled the raw query text is sanitized by automatically replacing literal
+values with a `?` character.
 
 #### .NET
 
@@ -223,9 +223,9 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor), is the
-general extensibility point to add additional properties to any activity. The
-`Enrich` option is specific to this instrumentation, and is provided to get
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk/README.md#processor),
+is the general extensibility point to add additional properties to any activity.
+The `Enrich` option is specific to this instrumentation, and is provided to get
 access to `SqlCommand` object.
 
 ### RecordException
