@@ -1,19 +1,49 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections;
 using System.Text;
 
 namespace OpenTelemetry.Instrumentation;
 
 internal static class SqlProcessor
 {
-    public static string GetSanitizedSql(string sql)
+    private const int CacheCapacity = 1000;
+    private static readonly Hashtable Cache = [];
+
+    public static string GetSanitizedSql(string? sql)
     {
         if (sql == null)
         {
             return string.Empty;
         }
 
+        if (Cache[sql] is not string sanitizedSql)
+        {
+            sanitizedSql = SanitizeSql(sql);
+
+            if (Cache.Count == CacheCapacity)
+            {
+                return sanitizedSql;
+            }
+
+            lock (Cache)
+            {
+                if ((Cache[sql] as string) == null)
+                {
+                    if (Cache.Count < CacheCapacity)
+                    {
+                        Cache[sql] = sanitizedSql;
+                    }
+                }
+            }
+        }
+
+        return sanitizedSql!;
+    }
+
+    private static string SanitizeSql(string sql)
+    {
         var sb = new StringBuilder(capacity: sql.Length);
         for (var i = 0; i < sql.Length; ++i)
         {

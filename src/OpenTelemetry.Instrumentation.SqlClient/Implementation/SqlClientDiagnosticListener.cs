@@ -31,7 +31,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> dataSourceFetcher = new("DataSource");
     private readonly PropertyFetcher<string> databaseFetcher = new("Database");
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
-    private readonly PropertyFetcher<object> commandTextFetcher = new("CommandText");
+    private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly AsyncLocal<long> beginTimestamp = new();
@@ -102,9 +102,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        _ = this.commandTextFetcher.TryFetch(command, out var commandText);
-
-                        if (this.commandTypeFetcher.TryFetch(command, out var commandType))
+                        if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
+                            this.commandTextFetcher.TryFetch(command, out var commandText))
                         {
                             switch (commandType)
                             {
@@ -126,14 +125,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (options.SetDbStatementForText)
                                     {
+                                        var sanitizedSql = SqlProcessor.GetSanitizedSql(commandText);
                                         if (options.EmitOldAttributes)
                                         {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                                            activity.SetTag(SemanticConventions.AttributeDbStatement, sanitizedSql);
                                         }
 
                                         if (options.EmitNewAttributes)
                                         {
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, sanitizedSql);
                                         }
                                     }
 
