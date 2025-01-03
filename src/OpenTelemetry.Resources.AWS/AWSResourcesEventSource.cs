@@ -26,7 +26,16 @@ internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateV
         }
     }
 
-    [Event(EventIdFailedToExtractAttributes, Message = "Failed to extract resource attributes in '{0}'.", Level = EventLevel.Warning)]
+    [NonEvent]
+    public void FailedToCreateHttpHandler(Exception exception)
+    {
+        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        {
+            this.FailedToCreateHttpHandler(exception.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToExtractAttributes, Message = "Failed to extract resource attributes in '{0}'. Error Message: '{1}'", Level = EventLevel.Warning)]
     public void FailedToExtractResourceAttributes(string format, string exception)
     {
         this.WriteEvent(EventIdFailedToExtractAttributes, format, exception);
@@ -39,9 +48,9 @@ internal sealed class AWSResourcesEventSource : EventSource, IServerCertificateV
     }
 
     [Event(EventIdFailedToCreateHttpHandler, Message = "Failed to create HTTP handler. Exception: '{0}'", Level = EventLevel.Warning)]
-    public void FailedToCreateHttpHandler(Exception exception)
+    public void FailedToCreateHttpHandler(string error)
     {
-        this.WriteEvent(EventIdFailedToCreateHttpHandler, exception.ToInvariantString());
+        this.WriteEvent(EventIdFailedToCreateHttpHandler, error);
     }
 
     [Event(EventIdFailedCertificateFileNotExists, Message = "Certificate file does not exist. File: '{0}'", Level = EventLevel.Warning)]
