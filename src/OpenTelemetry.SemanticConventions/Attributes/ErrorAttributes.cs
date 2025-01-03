@@ -34,7 +34,6 @@ public static class ErrorAttributes
     /// <p>
     /// If a specific domain defines its own set of error identifiers (such as HTTP or gRPC status codes),
     /// it's RECOMMENDED to:
-    /// <p>
     /// <ul>
     ///   <li>Use a domain-specific attribute</li>
     ///   <li>Set <c>error.type</c> to capture all errors, regardless of whether they are defined within the domain-specific set or not.</li>

@@ -30,7 +30,7 @@ public static class ServiceAttributes
     /// <p>
     /// UUIDs are typically recommended, as only an opaque value for the purposes of identifying a service instance is
     /// needed. Similar to what can be seen in the man page for the
-    /// <a href="https://www.freedesktop.org/software/systemd/man/machine-id.html"><c>/etc/machine-id</c></a> file, the underlying
+    /// <a href="https://www.freedesktop.org/software/systemd/man/latest/machine-id.html"><c>/etc/machine-id</c></a> file, the underlying
     /// data, such as pod name and namespace should be treated as confidential, being the user's choice to expose it
     /// or not via another resource attribute.
     /// <p>

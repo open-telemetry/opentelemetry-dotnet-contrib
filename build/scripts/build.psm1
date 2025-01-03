@@ -125,7 +125,7 @@ function FindComponentOwners {
   {
     $projectName = [System.IO.Path]::GetFileName($projectDir)
 
-    $match = [regex]::Match($componentOwnersContent, "src\/$projectName\/:([\w\W\s]*?)src")
+    $match = [regex]::Match($componentOwnersContent, "src\/$projectName\/:([\w\W\s]*?)(src|test)")
     if ($match.Success -eq $true)
     {
       $matches = [regex]::Matches($match.Groups[1].Value, "-\s*(.*)")

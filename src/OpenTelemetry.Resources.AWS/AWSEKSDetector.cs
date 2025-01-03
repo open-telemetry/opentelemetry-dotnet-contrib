@@ -3,6 +3,7 @@
 
 #if NET
 using System.Text;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -18,6 +19,13 @@ internal sealed class AWSEKSDetector : IResourceDetector
     private const string AWSClusterInfoUrl = "https://kubernetes.default.svc/api/v1/namespaces/amazon-cloudwatch/configmaps/cluster-info";
     private const string AWSAuthUrl = "https://kubernetes.default.svc/api/v1/namespaces/kube-system/configmaps/aws-auth";
 
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEKSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
+
     /// <summary>
     /// Detector the required and optional resource attributes from AWS EKS.
     /// </summary>
@@ -29,30 +37,9 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
         return credentials == null || !IsEKSProcess(credentials, httpClientHandler)
             ? Resource.Empty
-            : new Resource(ExtractResourceAttributes(
+            : new Resource(this.ExtractResourceAttributes(
                 GetEKSClusterName(credentials, httpClientHandler),
                 GetEKSContainerId(AWSEKSMetadataFilePath)));
-    }
-
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
-    {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, AWSSemanticConventions.CloudProviderValuesAws),
-            new(AWSSemanticConventions.AttributeCloudPlatform, AWSSemanticConventions.CloudPlatformValuesAwsEks),
-        };
-
-        if (!string.IsNullOrEmpty(clusterName))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName!));
-        }
-
-        if (!string.IsNullOrEmpty(containerId))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId!));
-        }
-
-        return resourceAttributes;
     }
 
     internal static string? GetEKSCredentials(string path)
@@ -108,6 +95,20 @@ internal sealed class AWSEKSDetector : IResourceDetector
 #else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
 #endif
+    }
+
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEks()
+                .AddAttributeK8SClusterName(clusterName)
+                .AddAttributeContainerId(containerId)
+                .Build();
+
+        return resourceAttributes;
     }
 
     private static string? GetEKSClusterName(string credentials, HttpClientHandler? httpClientHandler)

@@ -1,13 +1,22 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
+#endif
 using Microsoft.AspNetCore.Hosting;
+#if NET
 using Microsoft.AspNetCore.Http;
+#endif
 using Microsoft.AspNetCore.Mvc.Testing;
+#if NET
 using Microsoft.AspNetCore.RateLimiting;
+#endif
+#if NET
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+#endif
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -29,6 +38,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.Throws<ArgumentNullException>(builder!.AddAspNetCoreInstrumentation);
     }
 
+#if NET
     [Fact]
     public async Task ValidateNet8MetricsAsync()
     {
@@ -168,6 +178,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         await app.DisposeAsync();
     }
+#endif
 
     [Theory]
     [InlineData("/api/values/2", "api/Values/{id}", null, 200)]

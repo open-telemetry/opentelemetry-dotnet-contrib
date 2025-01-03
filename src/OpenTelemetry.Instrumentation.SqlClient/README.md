@@ -27,11 +27,10 @@ and later.
 [traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
-and hence, this package is a [pre-release](../../VERSIONING.md#pre-releases).
+and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
+is released, there can be breaking changes.
 
 ## Steps to enable OpenTelemetry.Instrumentation.SqlClient
 
@@ -49,10 +48,12 @@ dotnet add package --prerelease OpenTelemetry.Instrumentation.SqlClient
 
 SqlClient instrumentation must be enabled at application startup.
 
-The following example demonstrates adding SqlClient instrumentation to a console
-application. This example also sets up the OpenTelemetry Console exporter, which
-requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+#### Traces
+
+The following example demonstrates adding SqlClient traces instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -70,13 +71,50 @@ public class Program
 }
 ```
 
+#### Metrics
+
+The following example demonstrates adding SqlClient metrics instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
+
+```csharp
+using OpenTelemetry.Metrics;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        using var tracerProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
+##### List of metrics produced
+
+The instrumentation is implemented based on [metrics semantic
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md#database-operation).
+Currently, the instrumentation supports the following metric.
+
+| Name  | Instrument Type | Unit | Description |
+|-------|-----------------|------|-------------|
+| `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. |
+
+#### ASP.NET Core
+
 For an ASP.NET Core application, adding instrumentation is typically done in the
 `ConfigureServices` of your `Startup` class. Refer to documentation for
 [OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
+#### ASP.NET
+
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to the documentation for
-[OpenTelemetry.Instrumentation.AspNet](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Instrumentation.AspNet/README.md).
+[OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
 
 ## Advanced configuration
 
@@ -85,12 +123,13 @@ This instrumentation can be configured to change the default behavior by using
 
 ### SetDbStatementForText
 
-Capturing the text of a database query may run the risk of capturing sensitive data.
-`SetDbStatementForText` controls whether the
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute is captured in scenarios where there could be a risk of exposing
-sensitive data. The behavior of `SetDbStatementForText` depends on the runtime
-used.
+`SetDbStatementForText` controls whether the `db.statement` attribute is
+emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
+see below for more details.
+
+Query text may contain sensitive data, so when `SetDbStatementForText` is
+enabled the raw query text is sanitized by automatically replacing literal
+values with a `?` character.
 
 #### .NET
 
@@ -147,33 +186,10 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ```
 
 > [!NOTE]
-> When using the built-in `System.Data.SqlClient` only stored procedure
-command names will ever be captured. When using the `Microsoft.Data.SqlClient`
-NuGet package (v1.1+) stored procedure command names, full query text, and other
-command text will be captured.
-
-### EnableConnectionLevelAttributes
-
-> [!NOTE]
-> EnableConnectionLevelAttributes is supported on all runtimes.
-
-By default, `EnabledConnectionLevelAttributes` is enabled.
-When `EnabledConnectionLevelAttributes` is enabled,
-the [`DataSource`](https://docs.microsoft.com/dotnet/api/system.data.common.dbconnection.datasource)
-will be parsed and the server name or IP address will be sent as
-the `server.address` attribute, the instance name will be sent as
-the `db.mssql.instance_name` attribute, and the port will be sent as the
-`server.port` attribute if it is not 1433 (the default port).
-
-The following example shows how to use `EnableConnectionLevelAttributes`.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.EnableConnectionLevelAttributes = true)
-    .AddConsoleExporter()
-    .Build();
-```
+> When using the built-in `System.Data.SqlClient`, only stored procedure command
+names will be captured. To capture query text, other command text and
+stored procedure command names, you need to use the `Microsoft.Data.SqlClient`
+NuGet package (v1.1+).
 
 ### Enrich
 
@@ -207,9 +223,9 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor), is the
-general extensibility point to add additional properties to any activity. The
-`Enrich` option is specific to this instrumentation, and is provided to get
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk/README.md#processor),
+is the general extensibility point to add additional properties to any activity.
+The `Enrich` option is specific to this instrumentation, and is provided to get
 access to `SqlCommand` object.
 
 ### RecordException

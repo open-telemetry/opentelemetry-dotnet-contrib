@@ -24,15 +24,16 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
     [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
     [InlineData(CommandType.Text, "select 1/1")]
-    [InlineData(CommandType.Text, "select 1/1", true)]
-    [InlineData(CommandType.Text, "select 1/0", false, true)]
-    [InlineData(CommandType.Text, "select 1/0", false, true, false, false)]
-    [InlineData(CommandType.Text, "select 1/0", false, true, true, false)]
-    [InlineData(CommandType.StoredProcedure, "sp_who")]
+    [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
+    [InlineData(CommandType.Text, "select 1/0", false, null, true)]
+    [InlineData(CommandType.Text, "select 1/0", false, null, true, false, false)]
+    [InlineData(CommandType.Text, "select 1/0", false, null, true, true, false)]
+    [InlineData(CommandType.StoredProcedure, "sp_who", false, "sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
         bool captureTextCommandContent = false,
+        string? sanitizedCommandText = null,
         bool isFailure = false,
         bool recordException = false,
         bool shouldEnrich = true)
@@ -84,7 +85,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-        SqlClientTests.VerifyActivityData(commandType, commandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
+        SqlClientTests.VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
         SqlClientTests.VerifySamplingParameters(sampler.LatestSamplingParameters);
 
         if (isFailure)

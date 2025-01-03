@@ -66,6 +66,12 @@ public static class ProcessAttributes
     /// <summary>
     /// Profiling specific build ID for executables. See the OTel specification for Profiles for more information.
     /// </summary>
+    public const string AttributeProcessExecutableBuildIdHtlhash = "process.executable.build_id.htlhash";
+
+    /// <summary>
+    /// "Deprecated, use <c>process.executable.build_id.htlhash</c> instead.".
+    /// </summary>
+    [Obsolete("Replaced by <c>process.executable.build_id.htlhash</c>.")]
     public const string AttributeProcessExecutableBuildIdProfiling = "process.executable.build_id.profiling";
 
     /// <summary>
@@ -97,6 +103,14 @@ public static class ProcessAttributes
     /// Whether the process is connected to an interactive shell.
     /// </summary>
     public const string AttributeProcessInteractive = "process.interactive";
+
+    /// <summary>
+    /// The control group associated with the process.
+    /// </summary>
+    /// <remarks>
+    /// Control groups (cgroups) are a kernel feature used to organize and manage process resources. This attribute provides the path(s) to the cgroup(s) associated with the process, which should match the contents of the <a href="https://man7.org/linux/man-pages/man7/cgroups.7.html">/proc/<PID>/cgroup</a> file.
+    /// </remarks>
+    public const string AttributeProcessLinuxCgroup = "process.linux.cgroup";
 
     /// <summary>
     /// The username of the user that owns the process.

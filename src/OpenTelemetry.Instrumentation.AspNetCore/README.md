@@ -41,7 +41,7 @@ ASP.NET Core instrumentation must be enabled at application startup. This is
 typically done in the `ConfigureServices` of your `Startup` class. Both examples
 below enables OpenTelemetry by calling `AddOpenTelemetry()` on `IServiceCollection`.
  This extension method requires adding the package
-[`OpenTelemetry.Extensions.Hosting`](../OpenTelemetry.Extensions.Hosting/README.md)
+[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
 to the application. This ensures instrumentations are disposed when the host
 is shutdown.
 
@@ -51,7 +51,7 @@ The following example demonstrates adding ASP.NET Core instrumentation with the
 extension method `WithTracing()` on `OpenTelemetryBuilder`.
 then extension method `AddAspNetCoreInstrumentation()` on `TracerProviderBuilder`
 to the application. This example also sets up the Console Exporter,
-which requires adding the package [`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -97,7 +97,7 @@ The following example demonstrates adding ASP.NET Core instrumentation with the
 extension method `WithMetrics()` on `OpenTelemetryBuilder`
 then extension method `AddAspNetCoreInstrumentation()` on `MeterProviderBuilder`
 to the application. This example also sets up the Console Exporter,
-which requires adding the package [`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -113,7 +113,28 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+Following list of attributes are added by default on
+`http.server.request.duration` metric. See
+[http-metrics](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-metrics.md)
+for more details about each individual attribute. `.NET8.0` and above supports
+additional metrics, see [list of metrics produced](#list-of-metrics-produced) for
+more details.
+
+* `error.type`
+* `http.response.status_code`
+* `http.request.method`
+* `http.route`
+* `network.protocol.version`
+* `url.scheme`
+
 #### List of metrics produced
+
+When the application targets `.NET6.0` or `.NET7.0`, the instrumentation emits
+the following metric:
+
+| Name                              | Details                                                                                                                                                 |
+|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `http.server.request.duration`    | [Specification](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md#metric-httpserverrequestduration) |
 
 Starting from `.NET8.0`, metrics instrumentation is natively implemented, and
 the ASP.NET Core library has incorporated support for [built-in
@@ -143,6 +164,16 @@ to achieve this.
 > There is no difference in features or emitted metrics when enabling metrics
 using `AddMeter()` or `AddAspNetCoreInstrumentation()` on `.NET8.0` and newer
 versions.
+<!-- This comment is to make sure the two notes above and below are not merged -->
+> [!NOTE]
+> The `http.server.request.duration` metric is emitted in `seconds` as per the
+semantic convention. While the convention [recommends using custom histogram
+buckets](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md)
+, this feature is not yet available via .NET Metrics API. A
+[workaround](https://github.com/open-telemetry/opentelemetry-dotnet/pull/4820)
+has been included in OTel SDK starting version `1.6.0` which applies recommended
+buckets by default for `http.server.request.duration`. This applies to all
+targeted frameworks.
 
 ## Advanced configuration
 
@@ -154,7 +185,7 @@ This instrumentation can be configured to change the default behavior by using
 
 // TODO: This section could be refined.
 When used with
-[`OpenTelemetry.Extensions.Hosting`](../OpenTelemetry.Extensions.Hosting/README.md),
+[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
 all configurations to `AspNetCoreTraceInstrumentationOptions` can be done in the
 `ConfigureServices`
 method of you applications `Startup` class as shown below.
@@ -239,7 +270,7 @@ services.AddOpenTelemetry()
         }));
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor),
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
 is the general extensibility point to add additional properties to any activity.
 The `Enrich` option is specific to this instrumentation, and is provided to
 get access to `HttpRequest` and `HttpResponse`.
@@ -334,8 +365,8 @@ This component uses an
 [EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
 with the name "OpenTelemetry-Instrumentation-AspNetCore" for its internal
 logging. Please refer to [SDK
-troubleshooting](../OpenTelemetry/README.md#troubleshooting) for instructions on
-seeing these internal logs.
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry/README.md#troubleshooting)
+for instructions on seeing these internal logs.
 
 ## References
 
