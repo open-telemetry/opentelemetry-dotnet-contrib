@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
+using Amazon.Util;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Trace;
 
@@ -123,7 +124,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 #endif
     private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
     {
-        var service = requestContext.ServiceMetaData.ServiceId;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
+        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
 
         if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
@@ -176,6 +178,20 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, AWSSemanticConventions.AttributeAWSBedrock);
+        }
+
+        activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
+        activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
+
+        // Follow: https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/cloud-providers/aws-sdk.md#common-attributes
+        activity.SetTag(AWSSemanticConventions.AttributeValueRPCSystem, "aws-api");
+        activity.SetTag(AWSSemanticConventions.AttributeValueRPCService, service);
+        activity.SetTag(AWSSemanticConventions.AttributeValueRPCMethod, operation);
+        var client = requestContext.ClientConfig;
+        if (client != null)
+        {
+            var region = client.RegionEndpoint?.SystemName;
+            activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
         }
     }
 

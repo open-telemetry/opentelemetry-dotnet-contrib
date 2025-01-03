@@ -10,10 +10,12 @@ internal class AWSServiceHelper
     internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.DynamoDbService, ["TableName"] },
-        { AWSServiceType.SQSService, ["QueueUrl"] },
+        { AWSServiceType.SQSService, ["QueueUrl", "QueueName"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "KnowledgeBaseId", "DataSourceId"] },
         { AWSServiceType.BedrockAgentRuntimeService, ["AgentId", "KnowledgeBaseId"] },
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
+        { AWSServiceType.S3Service, ["BucketName"] },
+        { AWSServiceType.KinesisService, ["StreamName"] },
     };
 
     internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap = new Dictionary<string, List<string>>()
@@ -31,6 +33,9 @@ internal class AWSServiceHelper
         { "DataSourceId", AWSSemanticConventions.AttributeAWSBedrockDataSourceId },
         { "GuardrailId", AWSSemanticConventions.AttributeAWSBedrockGuardrailId },
         { "KnowledgeBaseId", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId },
+        { "QueueName", AWSSemanticConventions.AttributeAWSSQSQueueName },
+        { "BucketName", AWSSemanticConventions.AttributeAWSS3BucketName },
+        { "StreamName", AWSSemanticConventions.AttributeAWSKinesisStreamName },
     };
 
     // for Bedrock Agent operations, we map each supported operation to one resource: Agent, DataSource, or KnowledgeBase

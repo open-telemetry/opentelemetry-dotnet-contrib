@@ -6,6 +6,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS client instrumentation for OpenTelemetry .NET.</Description>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -22,6 +23,7 @@
     <PackageReference Include="AWSSDK.Core" Version="3.7.400" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.400" />
     <PackageReference Include="AWSSDK.SQS" Version="3.7.400" />
+    <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
   </ItemGroup>
 
   <ItemGroup>

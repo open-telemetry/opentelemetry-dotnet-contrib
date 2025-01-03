@@ -12,6 +12,9 @@ internal static class AWSSemanticConventions
 
     public const string AttributeAWSDynamoTableName = "aws.table_name";
     public const string AttributeAWSSQSQueueUrl = "aws.queue_url";
+    public const string AttributeAWSSQSQueueName = "aws.sqs.queue_name";
+    public const string AttributeAWSS3BucketName = "aws.s3.bucket";
+    public const string AttributeAWSKinesisStreamName = "aws.kinesis.stream_name";
 
     // AWS Bedrock service attributes not yet defined in semantic conventions
     public const string AttributeAWSBedrockAgentId = "aws.bedrock.agent.id";
@@ -23,6 +26,12 @@ internal static class AWSSemanticConventions
     // should be global convention for Gen AI attributes
     public const string AttributeGenAiModelId = "gen_ai.request.model";
     public const string AttributeGenAiSystem = "gen_ai.system";
+    public const string AttributeGenAiTopP = "gen_ai.request.top_p";
+    public const string AttributeGenAiTemperature = "gen_ai.request.temperature";
+    public const string AttributeGenAiMaxTokens = "gen_ai.request.max_tokens";
+    public const string AttributeGenAiInputTokens = "gen_ai.usage.input_tokens";
+    public const string AttributeGenAiOutputTokens = "gen_ai.usage.output_tokens";
+    public const string AttributeGenAiFinishReasons = "gen_ai.response.finish_reasons";
 
     public const string AttributeHttpStatusCode = "http.status_code";
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
