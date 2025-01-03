@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="$(MicrosoftAspNetCoreSignalRClientPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>
