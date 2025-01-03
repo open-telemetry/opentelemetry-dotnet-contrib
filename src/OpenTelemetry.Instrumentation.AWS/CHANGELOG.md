@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Context propagation data is always added to SQS and SNS requests regardless of sampling decision.
+  This enables downstream services to make consistent sampling decisions and prevents incomplete traces.
+  ([#2447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2447))
+
 ## 1.10.0-beta.3
 
 Released 2024-Dec-20
