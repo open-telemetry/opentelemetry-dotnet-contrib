@@ -68,7 +68,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         {
             deferredTracerProviderBuilder.Configure((sp, builder) =>
             {
-                AddAspNetCoreInstrumentationSources(builder, sp);
+                AddAspNetCoreInstrumentationSources(builder, name, sp);
             });
         }
 
@@ -84,9 +84,12 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
     // Note: This is used by unit tests.
     internal static TracerProviderBuilder AddAspNetCoreInstrumentation(
         this TracerProviderBuilder builder,
-        HttpInListener listener)
+        HttpInListener listener,
+        string? optionsName = null)
     {
-        builder.AddAspNetCoreInstrumentationSources();
+        optionsName ??= Options.DefaultName;
+
+        builder.AddAspNetCoreInstrumentationSources(optionsName);
 
 #pragma warning disable CA2000
         return builder.AddInstrumentation(
@@ -96,6 +99,7 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
 
     private static void AddAspNetCoreInstrumentationSources(
         this TracerProviderBuilder builder,
+        string optionsName,
         IServiceProvider? serviceProvider = null)
     {
         // For .NET7.0 onwards activity will be created using activitySource.
@@ -125,8 +129,12 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         // SignalR activities first added in .NET 9.0
         if (Environment.Version.Major >= 9)
         {
-            // https://github.com/dotnet/aspnetcore/blob/6ae3ea387b20f6497b82897d613e9b8a6e31d69c/src/SignalR/server/Core/src/Internal/SignalRServerActivitySource.cs#L13C35-L13C70
-            builder.AddSource("Microsoft.AspNetCore.SignalR.Server");
+            var options = serviceProvider?.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(optionsName);
+            if (options is null || !options.DisableAspNetCoreSignalRSupport)
+            {
+                // https://github.com/dotnet/aspnetcore/blob/6ae3ea387b20f6497b82897d613e9b8a6e31d69c/src/SignalR/server/Core/src/Internal/SignalRServerActivitySource.cs#L13C35-L13C70
+                builder.AddSource("Microsoft.AspNetCore.SignalR.Server");
+            }
         }
     }
 }

@@ -1170,6 +1170,47 @@ public sealed class BasicTests
                 Assert.Equal("TestApp.AspNetCore.TestHub/OnDisconnectedAsync", three.DisplayName);
             });
     }
+
+    [Fact]
+    public async Task SignalRActivitesCanBeDisabled()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation(o => o.DisableAspNetCoreSignalRSupport = true)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        // Arrange
+        using (var server = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            await using var client = new HubConnectionBuilder()
+                .WithUrl(server.Server.BaseAddress + "testHub", o =>
+                {
+                    o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
+                    o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                }).Build();
+            await client.StartAsync();
+
+            await client.SendAsync("Send", "text");
+
+            await client.StopAsync();
+        }
+
+        WaitForActivityExport(exportedItems, 8);
+
+        var hubActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
+
+        Assert.Empty(hubActivity);
+    }
 #endif
 
     public void Dispose()
