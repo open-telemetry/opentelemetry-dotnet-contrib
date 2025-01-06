@@ -7,6 +7,7 @@
     <Description>AWS client instrumentation for OpenTelemetry .NET.</Description>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
     <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
+    <DefineConstants>INSTRUMENTATION_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -27,9 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
   </ItemGroup>
 
 </Project>

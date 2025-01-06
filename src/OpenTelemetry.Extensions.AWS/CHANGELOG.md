@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.10.0-beta.3
+
+Released 2024-Dec-20
+
+## 1.10.0-beta.2
+
+Released 2024-Dec-12
+
 ## 1.10.0-beta.1
 
 Released 2024-Nov-23
@@ -99,4 +107,4 @@ SDK](https://www.nuget.org/packages/OpenTelemetry/).
 The AWSXRay extensions include plugin to generate X-Ray format trace-ids and a
 propagator to propagate the X-Ray trace header to downstream. For more details,
 please refer to the
-[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Contrib.Extensions.AWSXRay/README.md)
+[README](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Extensions.AWS/README.md)

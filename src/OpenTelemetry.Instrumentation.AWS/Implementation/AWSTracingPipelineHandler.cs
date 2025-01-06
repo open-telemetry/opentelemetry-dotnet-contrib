@@ -6,8 +6,8 @@ using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
 using Amazon.Util;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
@@ -20,17 +20,21 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
     private readonly AWSClientInstrumentationOptions options;
+    private readonly AWSSemanticConventions awsSemanticConventions;
+    private readonly AWSServiceHelper awsServiceHelper;
 
     public AWSTracingPipelineHandler(AWSClientInstrumentationOptions options)
     {
         this.options = options;
+        this.awsSemanticConventions = new AWSSemanticConventions(options.SemanticConventionVersion);
+        this.awsServiceHelper = new AWSServiceHelper(this.awsSemanticConventions);
     }
 
     public override void InvokeSync(IExecutionContext executionContext)
     {
         var activity = this.ProcessBeginRequest(executionContext);
         base.InvokeSync(executionContext);
-        ProcessEndRequest(activity, executionContext);
+        this.ProcessEndRequest(activity, executionContext);
     }
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
@@ -38,7 +42,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         var activity = this.ProcessBeginRequest(executionContext);
         var ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
 
-        ProcessEndRequest(activity, executionContext);
+        this.ProcessEndRequest(activity, executionContext);
 
         return ret;
     }
@@ -49,7 +53,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         "IL2075",
         Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
 #endif
-    private static void AddResponseSpecificInformation(Activity activity, IExecutionContext executionContext)
+    private void AddResponseSpecificInformation(Activity activity, IExecutionContext executionContext)
     {
         var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
         var responseContext = executionContext.ResponseContext;
@@ -68,14 +72,14 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                         var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
                         if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
                         {
-                            AddBedrockAgentResponseAttribute(activity, response, parameter);
+                            this.AddBedrockAgentResponseAttribute(activity, response, parameter);
                         }
                     }
 
                     var property = response.GetType().GetProperty(parameter);
                     if (property != null)
                     {
-                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                         {
                             activity.SetTag(attribute, property.GetValue(response));
                         }
@@ -96,7 +100,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         "IL2075",
         Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
 #endif
-    private static void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
+    private void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
     {
         var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
         if (responseObject != null)
@@ -107,7 +111,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                 var property = attributeObject.GetType().GetProperty(parameter);
                 if (property != null)
                 {
-                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                     {
                         activity.SetTag(attribute, property.GetValue(attributeObject));
                     }
@@ -122,7 +126,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         "IL2075",
         Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
 #endif
-    private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
+    private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
     {
         var service = AWSServiceHelper.GetAWSServiceName(requestContext);
         var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
@@ -147,7 +151,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                     var property = request.GetType().GetProperty(parameter);
                     if (property != null)
                     {
-                        if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                         {
                             activity.SetTag(attribute, property.GetValue(request));
                         }
@@ -163,7 +167,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (AWSServiceType.IsDynamoDbService(service))
         {
-            activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
         }
         else if (AWSServiceType.IsSqsService(service))
         {
@@ -177,7 +181,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
-            activity.SetTag(AWSSemanticConventions.AttributeGenAiSystem, AWSSemanticConventions.AttributeAWSBedrock);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
         }
 
         activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
@@ -195,14 +199,14 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
-    private static void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)
+    private void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)
     {
         if (activity == null || !activity.IsAllDataRequested)
         {
             return;
         }
 
-        AddResponseSpecificInformation(activity, executionContext);
+        this.AddResponseSpecificInformation(activity, executionContext);
     }
 
     private Activity? ProcessBeginRequest(IExecutionContext executionContext)
@@ -221,7 +225,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             return null;
         }
 
-        AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
+        this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
         return currentActivity;
     }
 }

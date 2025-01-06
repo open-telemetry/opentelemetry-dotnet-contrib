@@ -22,7 +22,11 @@ internal sealed class HttpHandlerMetricsDiagnosticListener : ListenerHandler
     internal static readonly string MeterVersion = AssemblyName.Version!.ToString();
     internal static readonly Meter Meter = new(MeterName, MeterVersion);
     private const string OnUnhandledExceptionEvent = "System.Net.Http.Exception";
-    private static readonly Histogram<double> HttpClientRequestDuration = Meter.CreateHistogram<double>("http.client.request.duration", "s", "Duration of HTTP client requests.");
+    private static readonly Histogram<double> HttpClientRequestDuration = Meter.CreateHistogram(
+        "http.client.request.duration",
+        unit: "s",
+        description: "Duration of HTTP client requests.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
     private static readonly PropertyFetcher<HttpRequestMessage> StopRequestFetcher = new("Request");
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");

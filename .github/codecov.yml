@@ -150,6 +150,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Runtime
 
+  unittests-Instrumentation.ServiceFabricRemoting:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Instrumentation.ServiceFabricRemoting
+
   unittests-Instrumentation.SqlClient:
     carryforward: true
     paths:

@@ -34,6 +34,7 @@ on:
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
         - OpenTelemetry.Instrumentation.Runtime
+        - OpenTelemetry.Instrumentation.ServiceFabricRemoting
         - OpenTelemetry.Instrumentation.SqlClient
         - OpenTelemetry.Instrumentation.StackExchangeRedis
         - OpenTelemetry.Instrumentation.Wcf
@@ -79,7 +80,7 @@ jobs:
     secrets: inherit
 
   prepare-release-pr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: automation
 
@@ -110,7 +111,7 @@ jobs:
           -gitUserEmail '${{ needs.automation.outputs.email }}'
 
   lock-pr-and-post-notice-to-create-release-tag:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: automation
 
@@ -142,7 +143,7 @@ jobs:
           -botUserName '${{ needs.automation.outputs.username }}'
 
   create-release-tag-unlock-pr-post-notice:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: automation
 
@@ -181,7 +182,7 @@ jobs:
           -gitUserEmail '${{ needs.automation.outputs.email }}'
 
   update-changelog-release-dates-on-prepare-pr-post-notice:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: automation
 
@@ -221,7 +222,7 @@ jobs:
           -gitUserEmail '${{ needs.automation.outputs.email }}'
 
   process-release-request-issue:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: automation
 

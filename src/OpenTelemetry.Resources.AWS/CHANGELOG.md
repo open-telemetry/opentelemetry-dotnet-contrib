@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.10.0-beta.1
+
+Released 2024-Dec-20
+
+* Introduce `AWSResourceBuilderOptions.SemanticConventionVersion` which
+  provides a mechanism for developers to opt-in to newer versions of the
+  of the Open Telemetry Semantic Conventions.
+  ([#2367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2367))
+
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
   ([#2164](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2164))
