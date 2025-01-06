@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-rc.1
+
+Released 2025-Jan-06
+
 ## 1.10.0-beta.3
 
 Released 2024-Dec-20
