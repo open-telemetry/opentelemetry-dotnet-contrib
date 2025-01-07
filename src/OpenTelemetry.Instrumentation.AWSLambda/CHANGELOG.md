@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Trace instrumentation will not fail with an exception if empty `LambdaContext` instance is passed.
+  ([#2457](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2457))
+
 ## 1.10.0-rc.1
 
 Released 2025-Jan-06
