@@ -13,7 +13,10 @@ public class SqlProcessorTests
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase test)
     {
-        var sanitized = SqlProcessor.GetSanitizedSql(test.Sql);
-        Assert.Equal(test.Sanitized, sanitized);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Sql);
+        Assert.Equal(test.Sanitized, sqlStatementInfo.SanitizedSql);
+        Assert.Equal(test.Summary, sqlStatementInfo.DbQuerySummary);
+        Assert.Equal(test.Operation, sqlStatementInfo.DbOperationName);
+        Assert.Equal(test.Collection, sqlStatementInfo.DbCollectionName);
     }
 }
