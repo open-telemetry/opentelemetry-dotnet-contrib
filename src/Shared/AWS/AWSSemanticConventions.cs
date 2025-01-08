@@ -101,7 +101,7 @@ internal partial class AWSSemanticConventions
     public class ParameterMappingBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private Dictionary<string, string> state = new();
+        private Dictionary<string, string> state = [];
 
         public ParameterMappingBuilderImpl(AWSSemanticConventions semanticConventions)
         {
@@ -114,7 +114,7 @@ internal partial class AWSSemanticConventions
         {
             var builtState = this.state;
 
-            this.state = new Dictionary<string, string>();
+            this.state = [];
 
             return builtState;
         }
@@ -590,6 +590,7 @@ internal partial class AWSSemanticConventions
 
     private AWSSemanticConventionsBase GetSemanticConventionVersion()
     {
+#pragma warning disable IDE0066 // Convert switch statement to expression
         switch (this.semanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
@@ -605,5 +606,6 @@ internal partial class AWSSemanticConventions
                     (int)this.semanticConventionVersion,
                     typeof(SemanticConventionVersion));
         }
+#pragma warning restore IDE0066 // Convert switch statement to expression
     }
 }
