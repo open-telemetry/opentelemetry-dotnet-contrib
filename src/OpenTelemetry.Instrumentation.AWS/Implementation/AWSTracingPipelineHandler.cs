@@ -46,6 +46,22 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         return ret;
     }
 
+    private static void AddPropagationDataToRequest(Activity activity, IRequestContext requestContext)
+    {
+        var service = requestContext.ServiceMetaData.ServiceId;
+
+        if (AWSServiceType.IsSqsService(service))
+        {
+            SqsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            SnsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+    }
+
 #if NET
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
         "Trimming",
@@ -167,16 +183,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
         }
-        else if (AWSServiceType.IsSqsService(service))
-        {
-            SqsRequestContextHelper.AddAttributes(
-                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
-        }
-        else if (AWSServiceType.IsSnsService(service))
-        {
-            SnsRequestContextHelper.AddAttributes(
-                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
-        }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
@@ -202,14 +208,21 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         var currentActivity = Activity.Current;
 
-        if (currentActivity == null
-            || !currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal)
-            || !currentActivity.IsAllDataRequested)
+        if (currentActivity == null)
         {
             return null;
         }
 
-        this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
+        if (currentActivity.IsAllDataRequested
+            && currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
+        {
+            this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
+        }
+
+        // Context propagation should always happen regardless of sampling decision (which affects Activity.IsAllDataRequested and Activity.Source).
+        // Otherwise, downstream services can make inconsistent sampling decisions and create incomplete traces.
+        AddPropagationDataToRequest(currentActivity, executionContext.RequestContext);
+
         return currentActivity;
     }
 }
