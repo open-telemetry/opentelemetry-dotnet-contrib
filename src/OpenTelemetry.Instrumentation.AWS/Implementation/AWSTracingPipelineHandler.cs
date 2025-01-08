@@ -162,7 +162,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
     {
         var service = AWSServiceHelper.GetAWSServiceName(requestContext);
-        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
 
         if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
@@ -221,13 +220,20 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
         }
+        else if (AWSServiceType.IsSqsService(service))
+        {
+            SqsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            SnsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
         }
-
-        this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSServiceName(activity, service);
-        this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSOperationName(activity, operation);
 
         var client = requestContext.ClientConfig;
         if (client != null)

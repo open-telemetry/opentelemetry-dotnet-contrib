@@ -444,14 +444,6 @@ internal partial class AWSSemanticConventions
         public Activity? SetTagAttributeGenAiSystemToBedrock(Activity? activity)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiSystem, x => x.AttributeAWSBedrock);
 
-        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSServiceName"/>
-        public Activity? SetTagAttributeAWSServiceName(Activity? activity, string serviceName)
-            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSServiceName, serviceName);
-
-        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSOperationName"/>
-        public Activity? SetTagAttributeAWSOperationName(Activity? activity, string operationName)
-            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSOperationName, operationName);
-
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRegion"/>
         public Activity? SetTagAttributeAWSRegion(Activity? activity, string operationName)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSRegion, operationName);

@@ -357,16 +357,6 @@ internal partial class AWSSemanticConventions
         /// <summary>
         /// Not yet incorporated in Semantic Conventions repository.
         /// </summary>
-        public virtual string AttributeAWSServiceName => string.Empty;
-
-        /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
-        /// </summary>
-        public virtual string AttributeAWSOperationName => string.Empty;
-
-        /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
-        /// </summary>
         public virtual string AttributeAWSRequestId => string.Empty;
 
         /// <summary>

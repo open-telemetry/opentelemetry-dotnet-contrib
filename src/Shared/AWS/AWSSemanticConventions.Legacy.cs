@@ -63,9 +63,7 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSBedrockKnowledgeBaseId => "aws.bedrock.knowledge_base.id";
         public override string AttributeAWSBedrock => "aws_bedrock";
         public override string AttributeAWSRegion => "aws.region";
-        public override string AttributeAWSServiceName => "aws.service";
-        public override string AttributeAWSOperationName => "aws.operation";
-        public override string AttributeAWSRequestId => "aws.requestId";
+        public override string AttributeAWSRequestId => "aws.request_id";
         public override string AttributeAWSSQSQueueName => "aws.sqs.queue_name";
         public override string AttributeAWSS3BucketName => "aws.s3.bucket";
         public override string AttributeAWSKinesisStreamName => "aws.kinesis.stream_name";
