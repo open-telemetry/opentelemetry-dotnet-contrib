@@ -499,6 +499,10 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseStatusCode"/>
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseContentLength"/>
+        public Activity? SetTagAttributeHttpResponseContentLength(Activity? activity, long value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseContentLength, value);
         #endregion
     }
 

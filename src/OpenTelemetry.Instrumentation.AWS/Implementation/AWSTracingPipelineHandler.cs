@@ -142,6 +142,15 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                 }
             }
         }
+
+        var httpResponse = responseContext.HttpResponse;
+        if (httpResponse != null)
+        {
+            var statusCode = (int)httpResponse.StatusCode;
+
+            this.AddStatusCodeToActivity(activity, statusCode);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseContentLength(activity, httpResponse.ContentLength);
+        }
     }
 
 #if NET
@@ -270,5 +279,10 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         AddPropagationDataToRequest(currentActivity, executionContext.RequestContext);
 
         return currentActivity;
+    }
+
+    private void AddStatusCodeToActivity(Activity activity, int status_code)
+    {
+        this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, status_code);
     }
 }

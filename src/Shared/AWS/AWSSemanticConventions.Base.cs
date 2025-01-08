@@ -657,6 +657,15 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeHttpRequestMethod => string.Empty;
 
+        /// <summary>
+        /// The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always,
+        /// present as the Content-Length header. For requests using transport encoding, this should be the compressed size.
+        /// </summary>
+        /// <remarks>
+        /// HttpAttributes.AttributeHttpResponseContentLength
+        /// </remarks>
+        public virtual string AttributeHttpResponseContentLength => string.Empty;
+
         #endregion
 
         #region NET Attributes

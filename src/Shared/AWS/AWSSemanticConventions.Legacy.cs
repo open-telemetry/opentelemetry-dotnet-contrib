@@ -107,6 +107,7 @@ internal partial class AWSSemanticConventions
         public override string AttributeHttpTarget => "http.target";
         [Obsolete("Replaced by <c>http.request.method</c>.")]
         public override string AttributeHttpMethod => "http.method";
+        public override string AttributeHttpResponseContentLength => "http.response_content_length";
 
         // NET Attributes
         [Obsolete("Replaced by <c>server.address</c>.")]
