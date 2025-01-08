@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+* Context propagation data is always added to SQS and SNS requests regardless of
+  sampling decision. This enables downstream services to make consistent sampling
+  decisions and prevents incomplete traces.
+  ([#2447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2447))
+
+## 1.10.0-rc.1
+
+Released 2025-Jan-06
+
+* BREAKING: Change default Semantic Convention to 1.28
+* BREAKING: Remove option to use Legacy semantic conventions (the old default)
+
 ## 1.10.0-beta.3
 
 Released 2024-Dec-20
