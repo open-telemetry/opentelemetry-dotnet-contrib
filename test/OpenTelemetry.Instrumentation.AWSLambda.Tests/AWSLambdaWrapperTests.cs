@@ -264,6 +264,35 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Contains(activity.TagObjects, x => x.Key == ExpectedSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
     }
 
+    [Fact]
+    public async Task TraceAsyncDoesNotCrashForEmptyLambdaContext()
+    {
+        var emptyLambdaContext = new SampleLambdaContext
+        {
+            AwsRequestId = null!,
+            ClientContext = null,
+            FunctionName = null!,
+            FunctionVersion = null!,
+            Identity = null!,
+            InvokedFunctionArn = null!,
+            Logger = null!,
+            LogGroupName = null!,
+            LogStreamName = null!,
+            MemoryLimitInMB = 0,
+            RemainingTime = TimeSpan.Zero,
+        };
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .Build();
+
+        // We simply verify that no exception is thrown here.
+        await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", emptyLambdaContext);
+    }
+
     private static ActivityContext CreateParentContext()
     {
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
