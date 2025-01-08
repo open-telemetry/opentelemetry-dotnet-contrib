@@ -62,6 +62,18 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSBedrockGuardrailId => "aws.bedrock.guardrail.id";
         public override string AttributeAWSBedrockKnowledgeBaseId => "aws.bedrock.knowledge_base.id";
         public override string AttributeAWSBedrock => "aws_bedrock";
+        public override string AttributeAWSRegion => "aws.region";
+        public override string AttributeAWSServiceName => "aws.service";
+        public override string AttributeAWSOperationName => "aws.operation";
+        public override string AttributeAWSRequestId => "aws.requestId";
+        public override string AttributeAWSSQSQueueName => "aws.sqs.queue_name";
+        public override string AttributeAWSS3BucketName => "aws.s3.bucket";
+        public override string AttributeAWSKinesisStreamName => "aws.kinesis.stream_name";
+        public override string AttributeAWSLambdaResourceMappingId => "aws.lambda.resource_mapping.id";
+        public override string AttributeAWSSecretsManagerSecretArn => "aws.secretsmanager.secret.arn";
+        public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
+        public override string AttributeAWSStepFunctionsActivityArn => "aws.stepfunctions.activity.arn";
+        public override string AttributeAWSStepFunctionsStateMachineArn => "aws.stepfunctions.state_machine.arn";
 
         // FAAS Attributes
         public override string AttributeFaasID => "faas.id";
@@ -74,6 +86,12 @@ internal partial class AWSSemanticConventions
         // GEN AI Attributes
         public override string AttributeGenAiModelId => "gen_ai.request.model";
         public override string AttributeGenAiSystem => "gen_ai.system";
+        public override string AttributeGenAiTopP => "gen_ai.request.top_p";
+        public override string AttributeGenAiTemperature => "gen_ai.request.temperature";
+        public override string AttributeGenAiMaxTokens => "gen_ai.request.max_tokens";
+        public override string AttributeGenAiInputTokens => "gen_ai.usage.input_tokens";
+        public override string AttributeGenAiOutputTokens => "gen_ai.usage.output_tokens";
+        public override string AttributeGenAiFinishReasons => "gen_ai.response.finish_reasons";
 
         // HOST Attributes
         public override string AttributeHostID => "host.id";

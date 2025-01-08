@@ -14,6 +14,9 @@ internal class AWSServiceType
     internal const string BedrockRuntimeService = "Bedrock Runtime";
     internal const string S3Service = "S3";
     internal const string KinesisService = "Kinesis";
+    internal const string LambdaService = "Lambda";
+    internal const string SecretsManagerService = "Secrets Manager";
+    internal const string StepFunctionsService = "SFN";
 
     internal static bool IsDynamoDbService(string service)
         => DynamoDbService.Equals(service, StringComparison.OrdinalIgnoreCase);
@@ -41,4 +44,13 @@ internal class AWSServiceType
 
     internal static bool IsKinesisService(string service)
         => KinesisService.Equals(service, StringComparison.OrdinalIgnoreCase);
+
+    internal static bool IsLambdaService(string service)
+        => LambdaService.Equals(service, StringComparison.OrdinalIgnoreCase);
+
+    internal static bool IsSecretsManagerService(string service)
+        => SecretsManagerService.Equals(service, StringComparison.OrdinalIgnoreCase);
+
+    internal static bool IsStepFunctionsService(string service)
+        => StepFunctionsService.Equals(service, StringComparison.OrdinalIgnoreCase);
 }

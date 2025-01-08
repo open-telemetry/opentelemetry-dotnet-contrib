@@ -20,6 +20,15 @@ internal class AWSServiceHelper
                 .AddAttributeAWSBedrockDataSourceId("DataSourceId")
                 .AddAttributeAWSBedrockGuardrailId("GuardrailId")
                 .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId")
+                .AddAttributeAWSSQSQueueName("QueueName")
+                .AddAttributeAWSS3BucketName("BucketName")
+                .AddAttributeAWSKinesisStreamName("StreamName")
+                .AddAttributeAWSSNSTopicArn("TopicArn")
+                .AddAttributeAWSSecretsManagerSecretArn("ARN")
+                .AddAttributeAWSSecretsManagerSecretArn("SecretId")
+                .AddAttributeAWSStepFunctionsActivityArn("ActivityArn")
+                .AddAttributeAWSStepFunctionsStateMachineArn("StateMachineArn")
+                .AddAttributeAWSLambdaResourceMappingId("UUID")
                 .Build();
     }
 
@@ -32,93 +41,21 @@ internal class AWSServiceHelper
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
         { AWSServiceType.S3Service, ["BucketName"] },
         { AWSServiceType.KinesisService, ["StreamName"] },
+        { AWSServiceType.LambdaService, ["UUID"] },
+        { AWSServiceType.SecretsManagerService, ["SecretId"] },
+        { AWSServiceType.SNSService, ["TopicArn"] },
+        { AWSServiceType.StepFunctionsService, ["ActivityArn", "StateMachineArn"] },
     };
 
     internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>()
     {
         { AWSServiceType.BedrockService, ["GuardrailId"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
+        { AWSServiceType.SecretsManagerService, ["ARN"] },
+        { AWSServiceType.SQSService, ["QueueUrl"] },
     };
-
-    internal static IReadOnlyDictionary<string, string> ParameterAttributeMap = new Dictionary<string, string>()
-    {
-        { "TableName", AWSSemanticConventions.AttributeAWSDynamoTableName },
-        { "QueueUrl", AWSSemanticConventions.AttributeAWSSQSQueueUrl },
-        { "ModelId", AWSSemanticConventions.AttributeGenAiModelId },
-        { "AgentId", AWSSemanticConventions.AttributeAWSBedrockAgentId },
-        { "DataSourceId", AWSSemanticConventions.AttributeAWSBedrockDataSourceId },
-        { "GuardrailId", AWSSemanticConventions.AttributeAWSBedrockGuardrailId },
-        { "KnowledgeBaseId", AWSSemanticConventions.AttributeAWSBedrockKnowledgeBaseId },
-        { "QueueName", AWSSemanticConventions.AttributeAWSSQSQueueName },
-        { "BucketName", AWSSemanticConventions.AttributeAWSS3BucketName },
-        { "StreamName", AWSSemanticConventions.AttributeAWSKinesisStreamName },
-    };
-
-    // for Bedrock Agent operations, we map each supported operation to one resource: Agent, DataSource, or KnowledgeBase
-    internal static List<string> BedrockAgentAgentOps { get; } =
-    [
-        "CreateAgentActionGroup",
-        "CreateAgentAlias",
-        "DeleteAgentActionGroup",
-        "DeleteAgentAlias",
-        "DeleteAgent",
-        "DeleteAgentVersion",
-        "GetAgentActionGroup",
-        "GetAgentAlias",
-        "GetAgent",
-        "GetAgentVersion",
-        "ListAgentActionGroups",
-        "ListAgentAliases",
-        "ListAgentKnowledgeBases",
-        "ListAgentVersions",
-        "PrepareAgent",
-        "UpdateAgentActionGroup",
-        "UpdateAgentAlias",
-        "UpdateAgent"
-    ];
-
-    internal static List<string> BedrockAgentKnowledgeBaseOps { get; } =
-    [
-        "AssociateAgentKnowledgeBase",
-        "CreateDataSource",
-        "DeleteKnowledgeBase",
-        "DisassociateAgentKnowledgeBase",
-        "GetAgentKnowledgeBase",
-        "GetKnowledgeBase",
-        "ListDataSources",
-        "UpdateAgentKnowledgeBase"
-    ];
-
-    internal static List<string> BedrockAgentDataSourceOps { get; } =
-    [
-        "DeleteDataSource",
-        "GetDataSource",
-        "UpdateDataSource"
-    ];
 
     internal IDictionary<string, string> ParameterAttributeMap { get; }
-
-    internal static IReadOnlyDictionary<string, string> OperationNameToResourceMap()
-    {
-        var operationClassMap = new Dictionary<string, string>();
-
-        foreach (var op in BedrockAgentKnowledgeBaseOps)
-        {
-            operationClassMap[op] = "KnowledgeBaseId";
-        }
-
-        foreach (var op in BedrockAgentDataSourceOps)
-        {
-            operationClassMap[op] = "DataSourceId";
-        }
-
-        foreach (var op in BedrockAgentAgentOps)
-        {
-            operationClassMap[op] = "AgentId";
-        }
-
-        return operationClassMap;
-    }
 
     internal static string GetAWSServiceName(IRequestContext requestContext)
         => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);

@@ -334,6 +334,65 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string AttributeAWSBedrock => string.Empty;
 
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSSQSQueueName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSS3BucketName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSKinesisStreamName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSRegion => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSServiceName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSOperationName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSRequestId => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSLambdaResourceMappingId => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSSecretsManagerSecretArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSSNSTopicArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSStepFunctionsActivityArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSStepFunctionsStateMachineArn => string.Empty;
         #endregion
 
         #region FAAS Attributes
@@ -469,6 +528,35 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeGenAiSystem => string.Empty;
 
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiTopP => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiTemperature => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiMaxTokens => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiInputTokens => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiOutputTokens => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// </summary>
+        public virtual string AttributeGenAiFinishReasons => string.Empty;
         #endregion
 
         #region HOST Attributes
