@@ -179,19 +179,9 @@ public class GenevaMetricExporterTests
             metricPointsEnumerator.MoveNext();
             var metricPoint = metricPointsEnumerator.Current;
             var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-            var metricData = new MetricData { UInt64Value = metricDataValue };
 
-            metricPoint.TryGetExemplars(out var exemplars);
-            var bodyLength = exporter.SerializeMetricWithTLV(
-                MetricEventType.ULongMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                MetricType.LongSum,
-                exemplars,
-                out _,
-                out _);
+            var buffer = new byte[GenevaMetricExporter.BufferSize];
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
             // Wait a little more than the ExportInterval for the exporter to export the data.
             await Task.Delay(5500);
@@ -948,6 +938,7 @@ public class GenevaMetricExporterTests
 
     private static void CheckSerializationWithTLVForSingleMetricPoint(Metric metric, TlvMetricExporter exporter, GenevaMetricExporterOptions exporterOptions)
     {
+        var buffer = new byte[GenevaMetricExporter.BufferSize];
         var metricType = metric.MetricType;
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
@@ -961,19 +952,8 @@ public class GenevaMetricExporterTests
         if (metricType == MetricType.LongSum)
         {
             var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-            var metricData = new MetricData { UInt64Value = metricDataValue };
-            var bodyLength = exporter.SerializeMetricWithTLV(
-                MetricEventType.ULongMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -988,19 +968,8 @@ public class GenevaMetricExporterTests
         else if (metricType == MetricType.LongGauge)
         {
             var metricDataValue = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            var bodyLength = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1017,19 +986,8 @@ public class GenevaMetricExporterTests
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
                 metricPoint.GetGaugeLastValueDouble();
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            var bodyLength = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1046,19 +1004,8 @@ public class GenevaMetricExporterTests
             var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
                 Convert.ToDouble(metricPoint.GetSumLong()) :
                 Convert.ToDouble(metricPoint.GetSumDouble());
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            var bodyLength = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1072,29 +1019,8 @@ public class GenevaMetricExporterTests
         }
         else if (metricType == MetricType.Histogram)
         {
-            var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
-            var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
-            {
-                min = 0;
-                max = 0;
-            }
+            var bodyLength = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-            var bodyLength = exporter.SerializeHistogramMetricWithTLV(
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricPoint.GetHistogramBuckets(),
-                sum,
-                count,
-                min,
-                max,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
             var stream = new KaitaiStream(buffer);
             var data = new MetricsContract(stream);
             var userData = data.Body as UserdataV2;
@@ -1120,8 +1046,9 @@ public class GenevaMetricExporterTests
 
             Assert.Equal(bucketsWithPositiveCount, valueCountPairs.DistributionSize);
 
-            Assert.Equal(count, valueSection.Count);
+            Assert.Equal(metricPoint.GetHistogramCount(), valueSection.Count);
             Assert.Equal(Convert.ToUInt64(metricPoint.GetHistogramSum()), valueSection.Sum);
+            metricPoint.TryGetHistogramMinMaxValues(out var min, out var max);
             Assert.Equal(min, valueSection.Min);
             Assert.Equal(max, valueSection.Max);
             Assert.Equal((ulong)metricPoint.EndTime.ToFileTime(), valueSection.Timestamp);
@@ -1234,7 +1161,7 @@ public class GenevaMetricExporterTests
         var expectedUnixNanoSeconds = DateTime.FromFileTimeUtc(expectedExemplar.Timestamp.ToFileTime())
                 .ToUniversalTime()
                 .Subtract(new DateTime(1970, 1, 1))
-                .TotalMilliseconds * 1000000;
+                .Ticks * 100;
 
         // TODO: Test for exemplar values stored as long
         // Ideally we could assert the long on serializedExemplarBody.Value.ValueAsVlq
@@ -1286,130 +1213,17 @@ public class GenevaMetricExporterTests
 
     private static UserdataV2 GetSerializedData(Metric metric, TlvMetricExporter exporter)
     {
+        var buffer = new byte[GenevaMetricExporter.BufferSize];
         var metricType = metric.MetricType;
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
-        metricPoint.TryGetExemplars(out var exemplars);
+        _ = exporter.SerializeMetric(metric, metricPoint, buffer, out _, out _);
 
-        UserdataV2 result = null;
-
-        if (metricType == MetricType.LongSum)
-        {
-            var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-            var metricData = new MetricData { UInt64Value = metricDataValue };
-            _ = exporter.SerializeMetricWithTLV(
-                MetricEventType.ULongMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
-            var stream = new KaitaiStream(buffer);
-            var data = new MetricsContract(stream);
-            result = data.Body as UserdataV2;
-        }
-        else if (metricType == MetricType.LongGauge)
-        {
-            var metricDataValue = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            _ = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
-            var stream = new KaitaiStream(buffer);
-            var data = new MetricsContract(stream);
-            result = data.Body as UserdataV2;
-        }
-        else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
-        {
-            var metricDataValue = metricType == MetricType.DoubleSum ?
-                metricPoint.GetSumDouble() :
-                metricPoint.GetGaugeLastValueDouble();
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            _ = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
-            var stream = new KaitaiStream(buffer);
-            var data = new MetricsContract(stream);
-            result = data.Body as UserdataV2;
-        }
-        else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
-        {
-            var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
-                Convert.ToDouble(metricPoint.GetSumLong()) :
-                Convert.ToDouble(metricPoint.GetSumDouble());
-            var metricData = new MetricData { DoubleValue = metricDataValue };
-            _ = exporter.SerializeMetricWithTLV(
-                MetricEventType.DoubleMetric,
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricData,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
-            var stream = new KaitaiStream(buffer);
-            var data = new MetricsContract(stream);
-            result = data.Body as UserdataV2;
-        }
-        else if (metricType == MetricType.Histogram)
-        {
-            var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
-            var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
-            {
-                min = 0;
-                max = 0;
-            }
-
-            _ = exporter.SerializeHistogramMetricWithTLV(
-                metric.Name,
-                metricPoint.EndTime.ToFileTime(),
-                metricPoint.Tags,
-                metricPoint.GetHistogramBuckets(),
-                sum,
-                count,
-                min,
-                max,
-                metricType,
-                exemplars,
-                out _,
-                out _);
-
-            var buffer = typeof(TlvMetricExporter).GetField("buffer", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter) as byte[];
-            var stream = new KaitaiStream(buffer);
-            var data = new MetricsContract(stream);
-            result = data.Body as UserdataV2;
-        }
-
-        return result;
+        var stream = new KaitaiStream(buffer);
+        var data = new MetricsContract(stream);
+        return (UserdataV2)data.Body;
     }
 }
 #pragma warning restore CA1861 // // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array

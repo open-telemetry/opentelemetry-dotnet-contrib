@@ -13,6 +13,6 @@ internal static class TimestampHelpers
 
     internal static long ToUnixTimeNanoseconds(this DateTimeOffset dto)
     {
-        return (dto.Ticks - UnixEpochTicks) * NanosecondsPerTick;
+        return (dto.UtcTicks - UnixEpochTicks) * NanosecondsPerTick;
     }
 }

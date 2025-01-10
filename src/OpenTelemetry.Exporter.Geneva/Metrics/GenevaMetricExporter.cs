@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -33,8 +32,6 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
     private readonly ExportMetricsFunc exportMetrics;
 
     private bool isDisposed;
-
-    private Resource? resource;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
@@ -87,7 +84,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
                 out var metricsNamespace);
 
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
-                () => { return this.Resource; },
+                () => this.ParentProvider.GetResource(),
                 transport,
                 metricsAccount,
                 metricsNamespace,
@@ -108,8 +105,6 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
     }
 
     private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
-
-    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
 
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)

@@ -12,15 +12,10 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMetricDataTransport
 {
     private const int OtlpProtobufMetricEventId = 81;
-    private readonly int fixedPayloadEndIndex;
     private bool isDisposed;
 
     private MetricWindowsEventTracingDataTransport()
     {
-        unsafe
-        {
-            this.fixedPayloadEndIndex = sizeof(BinaryHeader);
-        }
     }
 
     public static MetricWindowsEventTracingDataTransport Instance { get; private set; } = new();
@@ -31,12 +26,12 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
 #endif
     public unsafe void Send(MetricEventType eventType, byte[] data, int size)
     {
-        var eventDataPtr = stackalloc EventData[1];
-        fixed (byte* bufferPtr = data)
+        EventData eventData = default;
+        fixed (byte* bufferPtr = &data[sizeof(BinaryHeader)])
         {
-            eventDataPtr[0].DataPointer = (IntPtr)bufferPtr + this.fixedPayloadEndIndex;
-            eventDataPtr[0].Size = size;
-            this.WriteEventCore((int)eventType, 1, eventDataPtr);
+            eventData.DataPointer = (nint)bufferPtr;
+            eventData.Size = size;
+            this.WriteEventCore((int)eventType, 1, &eventData);
         }
     }
 
@@ -46,18 +41,12 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
 #endif
     public unsafe void SendOtlpProtobufEvent(byte[] data, int size)
     {
-        if (this.IsEnabled())
+        EventData descr = default;
+        fixed (byte* blob = &data[0])
         {
-            var descr = stackalloc EventData[1];
-            if (data != null && data.Length != 0)
-            {
-                fixed (byte* blob = data)
-                {
-                    descr[0].DataPointer = (IntPtr)blob;
-                    descr[0].Size = size;
-                    this.WriteEventCore(OtlpProtobufMetricEventId, 1, descr);
-                }
-            }
+            descr.DataPointer = (nint)blob;
+            descr.Size = size;
+            this.WriteEventCore(OtlpProtobufMetricEventId, 1, &descr);
         }
     }
 

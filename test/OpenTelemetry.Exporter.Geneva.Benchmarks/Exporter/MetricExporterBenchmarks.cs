@@ -60,22 +60,12 @@ public class MetricExporterBenchmarks
     private Metric? counterMetricWith4Dimensions;
     private MetricPoint counterMetricPointWith3Dimensions;
     private MetricPoint counterMetricPointWith4Dimensions;
-    private MetricData counterMetricDataWith3Dimensions;
-    private MetricData counterMetricDataWith4Dimensions;
     private Batch<Metric> counterMetricBatchWith3Dimensions;
     private Batch<Metric> counterMetricBatchWith4Dimensions;
     private Metric? histogramMetricWith3Dimensions;
     private Metric? histogramMetricWith4Dimensions;
     private MetricPoint histogramMetricPointWith3Dimensions;
     private MetricPoint histogramMetricPointWith4Dimensions;
-    private ulong histogramSumWith3Dimensions;
-    private ulong histogramSumWith4Dimensions;
-    private double histogramMinWith3Dimensions;
-    private double histogramMinWith4Dimensions;
-    private double histogramMaxWith3Dimensions;
-    private double histogramMaxWith4Dimensions;
-    private uint histogramCountWith3Dimensions;
-    private uint histogramCountWith4Dimensions;
     private Batch<Metric> histogramMetricBatchWith3Dimensions;
     private Batch<Metric> histogramMetricBatchWith4Dimensions;
     private Counter<long>? counterWithNoListener;
@@ -111,17 +101,19 @@ public class MetricExporterBenchmarks
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
         this.tlvMetricsExporter = new TlvMetricExporter(connectionStringBuilder, exporterOptions.PrepopulatedMetricDimensions);
 
+        this.buffer = new byte[GenevaMetricExporter.BufferSize];
+
         // Using test transport here with noop to benchmark just the serialization part.
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport(), metricsAccount: null, metricsNamespace: null, prepopulatedMetricDimensions: null);
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(new TestTransport(), this.buffer, metricsAccount: null, metricsNamespace: null, prepopulatedMetricDimensions: null);
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
            .AddAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")]);
         this.resource = resourceBuilder.Build();
+        this.otlpProtobufSerializer.InitializeResource(this.resource);
         this.otlpProtobufMetricExporter = new OtlpProtobufMetricExporter(() => { return this.resource; }, new TestTransport(), metricsAccount: null, metricsNamespace: null, prepopulatedMetricDimensions: null);
-        this.buffer = new byte[GenevaMetricExporter.BufferSize];
 
-        this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions(out this.counterMetricDataWith3Dimensions);
-        this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions(out this.counterMetricDataWith4Dimensions);
+        this.counterMetricPointWith3Dimensions = this.GenerateCounterMetricItemWith3Dimensions();
+        this.counterMetricPointWith4Dimensions = this.GenerateCounterMetricItemWith4Dimensions();
 
         this.counterMetricBatchWith3Dimensions = this.GenerateCounterBatchWith3Dimensions();
         this.counterMetricBatchWith4Dimensions = this.GenerateCounterBatchWith4Dimensions();
@@ -134,8 +126,8 @@ public class MetricExporterBenchmarks
         enumeratorForCounterBatchWith4Dimensions.MoveNext();
         this.counterMetricWith4Dimensions = enumeratorForCounterBatchWith4Dimensions.Current;
 
-        this.histogramMetricPointWith3Dimensions = this.GenerateHistogramMetricItemWith3Dimensions(out this.histogramSumWith3Dimensions, out this.histogramCountWith3Dimensions, out this.histogramMinWith3Dimensions, out this.histogramMaxWith3Dimensions);
-        this.histogramMetricPointWith4Dimensions = this.GenerateHistogramMetricItemWith4Dimensions(out this.histogramSumWith4Dimensions, out this.histogramCountWith4Dimensions, out this.histogramMinWith4Dimensions, out this.histogramMaxWith4Dimensions);
+        this.histogramMetricPointWith3Dimensions = this.GenerateHistogramMetricItemWith3Dimensions();
+        this.histogramMetricPointWith4Dimensions = this.GenerateHistogramMetricItemWith4Dimensions();
 
         this.histogramMetricBatchWith3Dimensions = this.GenerateHistogramBatchWith3Dimensions();
         this.histogramMetricBatchWith4Dimensions = this.GenerateHistogramBatchWith4Dimensions();
@@ -177,7 +169,7 @@ public class MetricExporterBenchmarks
             .Build();
     }
 
-    private MetricPoint GenerateCounterMetricItemWith3Dimensions(out MetricData metricData)
+    private MetricPoint GenerateCounterMetricItemWith3Dimensions()
     {
         using var meterWithInMemoryExporter = new Meter("GenerateCounterMetricItemWith3Dimensions", "0.0.1");
         var counter = meterWithInMemoryExporter.CreateCounter<long>("CounterWithThreeDimensions");
@@ -204,14 +196,10 @@ public class MetricExporterBenchmarks
         var metric = exportedItems[0];
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
-        var metricPoint = metricPointsEnumerator.Current;
-        var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-        metricData = new MetricData { UInt64Value = metricDataValue };
-
-        return metricPoint;
+        return metricPointsEnumerator.Current;
     }
 
-    private MetricPoint GenerateCounterMetricItemWith4Dimensions(out MetricData metricData)
+    private MetricPoint GenerateCounterMetricItemWith4Dimensions()
     {
         using var meterWithInMemoryExporter = new Meter("GenerateCounterMetricItemWith4Dimensions", "0.0.1");
         var counter = meterWithInMemoryExporter.CreateCounter<long>("CounterWith4Dimensions");
@@ -242,11 +230,7 @@ public class MetricExporterBenchmarks
         var metric = exportedItems[0];
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
-        var metricPoint = metricPointsEnumerator.Current;
-        var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-        metricData = new MetricData { UInt64Value = metricDataValue };
-
-        return metricPoint;
+        return metricPointsEnumerator.Current;
     }
 
     private Batch<Metric> GenerateCounterBatchWith3Dimensions()
@@ -305,7 +289,7 @@ public class MetricExporterBenchmarks
         return batchGeneratorExporter.Batch;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith3Dimensions(out ulong sum, out uint count, out double min, out double max)
+    private MetricPoint GenerateHistogramMetricItemWith3Dimensions()
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith3Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith3Dimensions");
@@ -335,20 +319,10 @@ public class MetricExporterBenchmarks
         var metric = exportedItems[0];
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
-        var metricPoint = metricPointsEnumerator.Current;
-        sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
-        count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-
-        if (!metricPoint.TryGetHistogramMinMaxValues(out min, out max))
-        {
-            min = 0;
-            max = 0;
-        }
-
-        return metricPoint;
+        return metricPointsEnumerator.Current;
     }
 
-    private MetricPoint GenerateHistogramMetricItemWith4Dimensions(out ulong sum, out uint count, out double min, out double max)
+    private MetricPoint GenerateHistogramMetricItemWith4Dimensions()
     {
         using var meterWithInMemoryExporter = new Meter("GenerateHistogramMetricItemWith4Dimensions", "0.0.1");
         var histogram = meterWithInMemoryExporter.CreateHistogram<long>("HistogramWith4Dimensions");
@@ -382,17 +356,7 @@ public class MetricExporterBenchmarks
         var metric = exportedItems[0];
         var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
         metricPointsEnumerator.MoveNext();
-        var metricPoint = metricPointsEnumerator.Current;
-        sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
-        count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-
-        if (!metricPoint.TryGetHistogramMinMaxValues(out min, out max))
-        {
-            min = 0;
-            max = 0;
-        }
-
-        return metricPoint;
+        return metricPointsEnumerator.Current;
     }
 
     private Batch<Metric> GenerateHistogramBatchWith3Dimensions()
@@ -574,16 +538,10 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith3Dimensions()
     {
-        this.counterMetricPointWith3Dimensions.TryGetExemplars(out var exemplars);
-
-        this.tlvMetricsExporter!.SerializeMetricWithTLV(
-            MetricEventType.ULongMetric,
-            this.counterMetricWith3Dimensions!.Name,
-            this.counterMetricPointWith3Dimensions.EndTime.ToFileTime(),
-            this.counterMetricPointWith3Dimensions.Tags,
-            this.counterMetricDataWith3Dimensions,
-            MetricType.LongSum,
-            exemplars,
+        this.tlvMetricsExporter!.SerializeMetric(
+            this.counterMetricWith3Dimensions!,
+            this.counterMetricPointWith3Dimensions,
+            this.buffer!,
             out _,
             out _);
     }
@@ -591,15 +549,10 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith4Dimensions()
     {
-        this.counterMetricPointWith4Dimensions.TryGetExemplars(out var exemplars);
-        this.tlvMetricsExporter!.SerializeMetricWithTLV(
-            MetricEventType.ULongMetric,
-            this.counterMetricWith4Dimensions!.Name,
-            this.counterMetricPointWith4Dimensions.EndTime.ToFileTime(),
-            this.counterMetricPointWith4Dimensions.Tags,
-            this.counterMetricDataWith4Dimensions,
-            MetricType.LongSum,
-            exemplars,
+        this.tlvMetricsExporter!.SerializeMetric(
+            this.counterMetricWith4Dimensions!,
+            this.counterMetricPointWith4Dimensions,
+            this.buffer!,
             out _,
             out _);
     }
@@ -619,18 +572,10 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions()
     {
-        this.histogramMetricPointWith3Dimensions.TryGetExemplars(out var exemplars);
-        this.tlvMetricsExporter!.SerializeHistogramMetricWithTLV(
-            this.histogramMetricWith3Dimensions!.Name,
-            this.histogramMetricPointWith3Dimensions.EndTime.ToFileTime(),
-            this.histogramMetricPointWith3Dimensions.Tags,
-            this.histogramMetricPointWith3Dimensions.GetHistogramBuckets(),
-            this.histogramSumWith3Dimensions,
-            this.histogramCountWith3Dimensions,
-            this.histogramMinWith3Dimensions,
-            this.histogramMaxWith3Dimensions,
-            MetricType.Histogram,
-            exemplars,
+        this.tlvMetricsExporter!.SerializeMetric(
+            this.histogramMetricWith3Dimensions!,
+            this.histogramMetricPointWith3Dimensions,
+            this.buffer!,
             out _,
             out _);
     }
@@ -638,18 +583,10 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith4Dimensions()
     {
-        this.histogramMetricPointWith4Dimensions.TryGetExemplars(out var exemplars);
-        this.tlvMetricsExporter!.SerializeHistogramMetricWithTLV(
-            this.histogramMetricWith4Dimensions!.Name,
-            this.histogramMetricPointWith4Dimensions.EndTime.ToFileTime(),
-            this.histogramMetricPointWith4Dimensions.Tags,
-            this.histogramMetricPointWith4Dimensions.GetHistogramBuckets(),
-            this.histogramSumWith4Dimensions,
-            this.histogramCountWith4Dimensions,
-            this.histogramMinWith4Dimensions,
-            this.histogramMaxWith4Dimensions,
-            MetricType.Histogram,
-            exemplars,
+        this.tlvMetricsExporter!.SerializeMetric(
+            this.histogramMetricWith4Dimensions!,
+            this.histogramMetricPointWith4Dimensions,
+            this.buffer!,
             out _,
             out _);
     }
@@ -669,13 +606,13 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeCounterMetricItemWith3Dimensions_Otlp()
     {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith3Dimensions);
+        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.counterMetricBatchWith3Dimensions);
     }
 
     [Benchmark]
     public void SerializeCounterMetricItemWith4Dimensions_Otlp()
     {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.counterMetricBatchWith4Dimensions);
+        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.counterMetricBatchWith4Dimensions);
     }
 
     [Benchmark]
@@ -693,13 +630,13 @@ public class MetricExporterBenchmarks
     [Benchmark]
     public void SerializeHistogramMetricItemWith3Dimensions_Otlp()
     {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith3Dimensions);
+        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.histogramMetricBatchWith3Dimensions);
     }
 
     [Benchmark]
     public void SerializeHistogramMetricItemWith4Dimensions_Otlp()
     {
-        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.buffer!, this.resource!, this.histogramMetricBatchWith4Dimensions);
+        this.otlpProtobufSerializer!.SerializeAndSendMetrics(this.histogramMetricBatchWith4Dimensions);
     }
 
     [Benchmark]

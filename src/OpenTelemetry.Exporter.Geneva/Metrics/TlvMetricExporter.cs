@@ -4,18 +4,16 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Exporter.Geneva.Metrics;
 
 internal sealed class TlvMetricExporter : IDisposable
 {
-    private readonly ushort prepopulatedDimensionsCount;
-    private readonly int fixedPayloadStartIndex;
+    private readonly int prepopulatedDimensionsCount;
     private readonly IMetricDataTransport metricDataTransport;
-    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
-    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
+    private readonly byte[]? serializedPrepopulatedDimensionsKeys;
+    private readonly byte[]? serializedPrepopulatedDimensionsValues;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
     private readonly string defaultMonitoringAccount;
     private readonly string defaultMetricNamespace;
@@ -31,7 +29,7 @@ internal sealed class TlvMetricExporter : IDisposable
 
         if (prepopulatedMetricDimensions != null)
         {
-            this.prepopulatedDimensionsCount = (ushort)prepopulatedMetricDimensions.Count;
+            this.prepopulatedDimensionsCount = prepopulatedMetricDimensions.Count;
             this.serializedPrepopulatedDimensionsKeys = this.SerializePrepopulatedDimensionsKeys(prepopulatedMetricDimensions.Keys);
             this.serializedPrepopulatedDimensionsValues = this.SerializePrepopulatedDimensionsValues(prepopulatedMetricDimensions.Values);
         }
@@ -64,11 +62,6 @@ internal sealed class TlvMetricExporter : IDisposable
             case TransportProtocol.EtwTld:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
-        }
-
-        unsafe
-        {
-            this.fixedPayloadStartIndex = sizeof(BinaryHeader);
         }
     }
 
@@ -104,144 +97,19 @@ internal sealed class TlvMetricExporter : IDisposable
         var result = ExportResult.Success;
         foreach (var metric in batch)
         {
+            if (metric.MetricType is not (MetricType.LongSum or MetricType.LongSumNonMonotonic or MetricType.LongGauge
+                    or MetricType.DoubleSum or MetricType.DoubleSumNonMonotonic or MetricType.DoubleGauge or MetricType.Histogram))
+            {
+                continue;
+            }
+
             foreach (ref readonly var metricPoint in metric.GetMetricPoints())
             {
                 try
                 {
-                    metricPoint.TryGetExemplars(out var exemplars);
-
-                    var metricType = metric.MetricType;
-                    switch (metricType)
-                    {
-                        case MetricType.LongSum:
-                            {
-                                var ulongSum = Convert.ToUInt64(metricPoint.GetSumLong());
-                                var metricData = new MetricData { UInt64Value = ulongSum };
-                                var bodyLength = this.SerializeMetricWithTLV(
-                                    MetricEventType.ULongMetric,
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(), // Using the endTime here as the timestamp as Geneva Metrics only allows for one field for timestamp
-                                    metricPoint.Tags,
-                                    metricData,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
-                        case MetricType.LongGauge:
-                            {
-                                // potential for minor precision loss implicitly going from long->double
-                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
-                                var doubleSum = Convert.ToDouble(metricPoint.GetGaugeLastValueLong());
-                                var metricData = new MetricData { DoubleValue = doubleSum };
-                                var bodyLength = this.SerializeMetricWithTLV(
-                                    MetricEventType.DoubleMetric,
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(),
-                                    metricPoint.Tags,
-                                    metricData,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
-                        case MetricType.LongSumNonMonotonic:
-                            {
-                                // potential for minor precision loss implicitly going from long->double
-                                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
-                                var doubleSum = Convert.ToDouble(metricPoint.GetSumLong());
-                                var metricData = new MetricData { DoubleValue = doubleSum };
-                                var bodyLength = this.SerializeMetricWithTLV(
-                                    MetricEventType.DoubleMetric,
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(),
-                                    metricPoint.Tags,
-                                    metricData,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        case MetricType.DoubleSum:
-                        case MetricType.DoubleSumNonMonotonic:
-                            {
-                                var doubleSum = metricPoint.GetSumDouble();
-                                var metricData = new MetricData { DoubleValue = doubleSum };
-                                var bodyLength = this.SerializeMetricWithTLV(
-                                    MetricEventType.DoubleMetric,
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(),
-                                    metricPoint.Tags,
-                                    metricData,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        case MetricType.DoubleGauge:
-                            {
-                                var doubleSum = metricPoint.GetGaugeLastValueDouble();
-                                var metricData = new MetricData { DoubleValue = doubleSum };
-                                var bodyLength = this.SerializeMetricWithTLV(
-                                    MetricEventType.DoubleMetric,
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(),
-                                    metricPoint.Tags,
-                                    metricData,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        case MetricType.Histogram:
-                            {
-                                var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
-                                var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-                                if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
-                                {
-                                    min = 0;
-                                    max = 0;
-                                }
-
-                                var bodyLength = this.SerializeHistogramMetricWithTLV(
-                                    metric.Name,
-                                    metricPoint.EndTime.ToFileTime(),
-                                    metricPoint.Tags,
-                                    metricPoint.GetHistogramBuckets(),
-                                    sum,
-                                    count,
-                                    min,
-                                    max,
-                                    metricType,
-                                    exemplars,
-                                    out monitoringAccount,
-                                    out metricNamespace);
-                                this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
-                                break;
-                            }
-
-                        case MetricType.ExponentialHistogram:
-                            break;
-                        default:
-                            break;
-                    }
+                    var buffer = this.buffer;
+                    var size = this.SerializeMetric(metric, metricPoint, buffer, out monitoringAccount, out metricNamespace);
+                    this.metricDataTransport.Send(MetricEventType.TLV, buffer, size);
                 }
                 catch (Exception ex)
                 {
@@ -254,123 +122,74 @@ internal sealed class TlvMetricExporter : IDisposable
         return result;
     }
 
-    internal unsafe ushort SerializeMetricWithTLV(
-        MetricEventType eventType,
-        string metricName,
-        long timestamp,
-        in ReadOnlyTagCollection tags,
-        MetricData value,
-        MetricType metricType,
-        ReadOnlyExemplarCollection exemplars,
-        out string monitoringAccount,
-        out string metricNamespace)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal int SerializeMetric(Metric metric, in MetricPoint metricPoint, byte[] buffer, out string monitoringAccount, out string metricNamespace)
     {
-        ushort bodyLength;
-        try
+        // Leave enough space for the header
+        var bufferIndex = Unsafe.SizeOf<BinaryHeader>();
+        SerializeMetricName(metric.Name, buffer, ref bufferIndex);
+
+        ulong metricData;
+        PayloadType payloadType;
+        switch (metric.MetricType)
         {
-            // The buffer format is as follows:
-            // -- BinaryHeader
-            // -- Sequence of payload types
+            case MetricType.LongSum:
+                metricData = Convert.ToUInt64(metricPoint.GetSumLong());
+                payloadType = PayloadType.ULongMetric;
+                goto SerializeNonHistogram;
 
-            // Leave enough space for the header
-            var bufferIndex = sizeof(BinaryHeader);
+            // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+            case MetricType.LongGauge:
+                // potential for minor precision loss implicitly going from long->double
+                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                metricData = (ulong)BitConverter.DoubleToInt64Bits(Convert.ToDouble(metricPoint.GetGaugeLastValueLong()));
+                payloadType = PayloadType.DoubleMetric;
+                goto SerializeNonHistogram;
 
-            SerializeMetricName(metricName, this.buffer, ref bufferIndex);
+            // The value here could be negative hence we have to use `MetricEventType.DoubleMetric`
+            case MetricType.LongSumNonMonotonic:
+                // potential for minor precision loss implicitly going from long->double
+                // see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions#implicit-numeric-conversions
+                metricData = (ulong)BitConverter.DoubleToInt64Bits(Convert.ToDouble(metricPoint.GetSumLong()));
+                payloadType = PayloadType.DoubleMetric;
+                goto SerializeNonHistogram;
 
-            SerializeNonHistogramMetricData(eventType, value, timestamp, this.buffer, ref bufferIndex);
+            case MetricType.DoubleSum:
+            case MetricType.DoubleSumNonMonotonic:
+                metricData = (ulong)BitConverter.DoubleToInt64Bits(metricPoint.GetSumDouble());
+                payloadType = PayloadType.DoubleMetric;
+                goto SerializeNonHistogram;
 
-            // Serializes metric dimensions and also gets the custom account name and metric namespace
-            // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
-            this.SerializeDimensionsAndGetCustomAccountNamespace(
-                tags,
-                this.buffer,
-                ref bufferIndex,
-                out monitoringAccount,
-                out metricNamespace);
+            case MetricType.DoubleGauge:
+                metricData = (ulong)BitConverter.DoubleToInt64Bits(metricPoint.GetGaugeLastValueDouble());
+                payloadType = PayloadType.DoubleMetric;
+SerializeNonHistogram:
+                SerializeNonHistogramMetricData(payloadType, metricData, metricPoint, buffer, ref bufferIndex);
+                break;
 
-            SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
-
-            SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
-
-            SerializeMetricNamespace(metricNamespace, this.buffer, ref bufferIndex);
-
-            // Write the final size of the payload
-            bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
-
-            // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.buffer)
-            {
-                var ptr = (BinaryHeader*)bufferBytes;
-                ptr->EventId = (ushort)MetricEventType.TLV;
-                ptr->BodyLength = bodyLength;
-            }
-        }
-        finally
-        {
-        }
-
-        return bodyLength;
-    }
-
-    internal unsafe ushort SerializeHistogramMetricWithTLV(
-        string metricName,
-        long timestamp,
-        in ReadOnlyTagCollection tags,
-        HistogramBuckets buckets,
-        double sum,
-        uint count,
-        double min,
-        double max,
-        MetricType metricType,
-        ReadOnlyExemplarCollection exemplars,
-        out string monitoringAccount,
-        out string metricNamespace)
-    {
-        ushort bodyLength;
-        try
-        {
-            // The buffer format is as follows:
-            // -- BinaryHeader
-            // -- Sequence of payload types
-
-            // Leave enough space for the header
-            var bufferIndex = sizeof(BinaryHeader);
-
-            SerializeMetricName(metricName, this.buffer, ref bufferIndex);
-
-            SerializeHistogramMetricData(buckets, sum, count, min, max, timestamp, this.buffer, ref bufferIndex);
-
-            // Serializes metric dimensions and also gets the custom account name and metric namespace
-            // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
-            this.SerializeDimensionsAndGetCustomAccountNamespace(
-                tags,
-                this.buffer,
-                ref bufferIndex,
-                out monitoringAccount,
-                out metricNamespace);
-
-            SerializeExemplars(exemplars, metricType, this.buffer, ref bufferIndex);
-
-            SerializeMonitoringAccount(monitoringAccount, this.buffer, ref bufferIndex);
-
-            SerializeMetricNamespace(metricNamespace, this.buffer, ref bufferIndex);
-
-            // Write the final size of the payload
-            bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
-
-            // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.buffer)
-            {
-                var ptr = (BinaryHeader*)bufferBytes;
-                ptr->EventId = (ushort)MetricEventType.TLV;
-                ptr->BodyLength = bodyLength;
-            }
-        }
-        finally
-        {
+            case MetricType.Histogram:
+                bufferIndex = SerializeHistogramMetricData(metricPoint, buffer, bufferIndex);
+                break;
         }
 
-        return bodyLength;
+        // Serializes metric dimensions and also gets the custom account name and metric namespace
+        // if specified by adding custom tags: _microsoft_metrics_namespace and _microsoft_metrics_namespace
+        this.SerializeDimensionsAndGetCustomAccountNamespace(metricPoint.Tags, buffer, ref bufferIndex, out monitoringAccount, out metricNamespace);
+
+        if (metricPoint.TryGetExemplars(out var exemplars))
+        {
+            bufferIndex = SerializeExemplars(exemplars, metric.MetricType, buffer, bufferIndex);
+        }
+
+        SerializeMonitoringAccount(monitoringAccount, buffer, ref bufferIndex);
+
+        SerializeMetricNamespace(metricNamespace, buffer, ref bufferIndex);
+
+        // Write the final size of the payload
+        ref var header = ref Unsafe.As<byte, BinaryHeader>(ref buffer[0]);
+        header.EventId = (ushort)MetricEventType.TLV;
+        header.BodyLength = (ushort)(bufferIndex -= Unsafe.SizeOf<BinaryHeader>());
+        return bufferIndex;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -394,8 +213,7 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeString(buffer, ref bufferIndex, monitoringAccount);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeExemplars(in ReadOnlyExemplarCollection exemplars, MetricType metricType, byte[] buffer, ref int bufferIndex)
+    private static int SerializeExemplars(ReadOnlyExemplarCollection exemplars, MetricType metricType, byte[] buffer, int bufferIndex)
     {
         var exemplarsCount = 0;
         foreach (ref readonly var exemplar in exemplars)
@@ -408,33 +226,31 @@ internal sealed class TlvMetricExporter : IDisposable
             MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Exemplars);
 
             // Get a placeholder to add the payloadType length
-            var payloadTypeStartIndex = bufferIndex;
+            nuint payloadTypeStartIndex = (uint)bufferIndex;
             bufferIndex += 2;
 
             MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
 
-            MetricSerializer.SerializeInt32AsBase128(buffer, ref bufferIndex, exemplarsCount);
+            MetricSerializer.SerializeUInt32AsBase128(buffer, ref bufferIndex, (uint)exemplarsCount);
 
             foreach (ref readonly var exemplar in exemplars)
             {
                 SerializeSingleExemplar(exemplar, metricType, buffer, ref bufferIndex);
             }
 
-            var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-            MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+            MetricSerializer.SerializeUInt16Length(buffer, payloadTypeStartIndex, bufferIndex - 2 - (int)payloadTypeStartIndex);
         }
+
+        return bufferIndex;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeSingleExemplar(Exemplar exemplar, MetricType metricType, byte[] buffer, ref int bufferIndex)
+    private static void SerializeSingleExemplar(in Exemplar exemplar, MetricType metricType, byte[] buffer, ref int bufferIndex)
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // version
 
         var bufferIndexForLength = bufferIndex;
-        bufferIndex++;
-
-        var bufferIndexForFlags = bufferIndex;
-        bufferIndex++;
+        bufferIndex += 2; // reserve 1 byte for length and 1 byte for flags
 
         var flags = ExemplarFlags.IsTimestampAvailable; // we only serialize exemplars with Timestamp != default
 
@@ -449,35 +265,27 @@ internal sealed class TlvMetricExporter : IDisposable
         }
 
         var bufferIndexForNumberOfLabels = bufferIndex;
-        MetricSerializer.SerializeByte(buffer, ref bufferIndex, 0); // serialize zero as the count of labels; this would be updated later if the exemplar has labels
+        bufferIndex++; // reserve 1 byte for the count of labels
 
         // Convert exemplar timestamp to unix nanoseconds
-        var unixNanoSeconds = DateTime.FromFileTimeUtc(exemplar.Timestamp.ToFileTime())
-                        .ToUniversalTime()
-                        .Subtract(new DateTime(1970, 1, 1))
-                        .TotalMilliseconds * 1000000;
-
-        MetricSerializer.SerializeInt64(buffer, ref bufferIndex, (long)unixNanoSeconds); // serialize timestamp
+        var unixNanoSeconds = exemplar.Timestamp.ToUnixTimeNanoseconds();
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)unixNanoSeconds); // serialize timestamp
 
         if (exemplar.TraceId != default)
         {
-            Span<byte> traceIdBytes = stackalloc byte[16];
-            exemplar.TraceId.CopyTo(traceIdBytes);
-            MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, traceIdBytes, traceIdBytes.Length); // serialize traceId
-
+            exemplar.TraceId.CopyTo(buffer.AsSpan(bufferIndex, 16)); // serialize traceId
+            bufferIndex += 16;
             flags |= ExemplarFlags.TraceIdExists;
         }
 
         if (exemplar.SpanId != default)
         {
-            Span<byte> spanIdBytes = stackalloc byte[8];
-            exemplar.SpanId.CopyTo(spanIdBytes);
-            MetricSerializer.SerializeSpanOfBytes(buffer, ref bufferIndex, spanIdBytes, spanIdBytes.Length); // serialize spanId
-
+            exemplar.SpanId.CopyTo(buffer.AsSpan(bufferIndex, 8)); // serialize spanId
+            bufferIndex += 8;
             flags |= ExemplarFlags.SpanIdExists;
         }
 
-        byte numberOfLabels = 0;
+        int numberOfLabels = 0;
 
         foreach (var tag in exemplar.FilteredTags)
         {
@@ -486,79 +294,48 @@ internal sealed class TlvMetricExporter : IDisposable
             numberOfLabels++;
         }
 
-        if (numberOfLabels > 0)
-        {
-            MetricSerializer.SerializeByte(buffer, ref bufferIndexForNumberOfLabels, numberOfLabels);
-        }
+        buffer[bufferIndexForNumberOfLabels] = (byte)numberOfLabels;
 
-        MetricSerializer.SerializeByte(buffer, ref bufferIndexForFlags, (byte)flags);
+        buffer[bufferIndexForLength + 1] = (byte)flags;
 
         var exemplarLength = bufferIndex - bufferIndexForLength + 1;
-        MetricSerializer.SerializeByte(buffer, ref bufferIndexForLength, (byte)exemplarLength);
+        buffer[bufferIndexForLength] = checked((byte)exemplarLength);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeNonHistogramMetricData(MetricEventType eventType, MetricData value, long timestamp, byte[] buffer, ref int bufferIndex)
+    private static void SerializeNonHistogramMetricData(PayloadType payloadType, ulong value, in MetricPoint metricPoint, byte[] buffer, ref int bufferIndex)
     {
-        var payloadType = eventType == MetricEventType.ULongMetric ? PayloadType.ULongMetric : PayloadType.DoubleMetric;
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)payloadType);
-
-        // Get a placeholder to add the payloadType length
-        var payloadTypeStartIndex = bufferIndex;
-        bufferIndex += 2;
-
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
-
-        if (payloadType == PayloadType.ULongMetric)
-        {
-            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, value.UInt64Value);
-        }
-        else
-        {
-            MetricSerializer.SerializeFloat64(buffer, ref bufferIndex, value.DoubleValue);
-        }
-
-        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+        MetricSerializer.SerializeUInt16(buffer, ref bufferIndex, 2 * sizeof(ulong)); // payloadType length
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)metricPoint.EndTime.UtcDateTime.ToFileTimeUtc()); // timestamp
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, value);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SerializeHistogramMetricData(HistogramBuckets buckets, double sum, uint count, double min, double max, long timestamp, byte[] buffer, ref int bufferIndex)
+    private static int SerializeHistogramMetricData(in MetricPoint metricPoint, byte[] buffer, int bufferIndex)
     {
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
-
-        // Get a placeholder to add the payloadType length
-        var payloadTypeStartIndex = bufferIndex;
-        bufferIndex += 2;
-
-        // Serialize sum, count, min, and max
-        MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, count); // histogram count
-        MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, 0); // padding
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
-        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(sum)); // histogram sum
+        MetricSerializer.SerializeUInt16(buffer, ref bufferIndex, 5 * sizeof(ulong)); // payloadType length
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt32(metricPoint.GetHistogramCount())); // histogram count + padding
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)metricPoint.EndTime.UtcDateTime.ToFileTimeUtc()); // timestamp
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(metricPoint.GetHistogramSum())); // histogram sum
+        metricPoint.TryGetHistogramMinMaxValues(out var min, out var max);
         MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(min)); // histogram min
         MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(max)); // histogram max
-
-        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
 
         // Serialize histogram buckets as value-count pairs
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.HistogramULongValueCountPairs);
 
         // Get a placeholder to add the payloadType length
-        payloadTypeStartIndex = bufferIndex;
-        bufferIndex += 2;
+        nuint payloadStartIndex = (uint)(bufferIndex += 2);
 
         // Get a placeholder to add the number of value-count pairs added
         // with value being the bucket boundary and count being the respective count
-
-        var itemsWrittenIndex = bufferIndex;
-        MetricSerializer.SerializeUInt16(buffer, ref bufferIndex, 0);
+        bufferIndex += 2;
 
         // Bucket values
-        ushort bucketCount = 0;
+        int bucketCount = 0;
         double lastExplicitBound = default;
-        foreach (var bucket in buckets)
+        foreach (var bucket in metricPoint.GetHistogramBuckets())
         {
             if (bucket.BucketCount > 0)
             {
@@ -570,41 +347,36 @@ internal sealed class TlvMetricExporter : IDisposable
         }
 
         // Write the number of items in distribution emitted and reset back to end.
-        MetricSerializer.SerializeUInt16(buffer, ref itemsWrittenIndex, bucketCount);
+        MetricSerializer.SerializeUInt16Length(buffer, payloadStartIndex, bucketCount);
 
-        payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+        MetricSerializer.SerializeUInt16Length(buffer, payloadStartIndex - 2, bufferIndex - (int)payloadStartIndex);
+        return bufferIndex;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void SerializeHistogramBucketWithTLV(in HistogramBucket bucket, byte[] buffer, ref int bufferIndex, double lastExplicitBound)
     {
-        if (bucket.ExplicitBound != double.PositiveInfinity)
-        {
-            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(bucket.ExplicitBound));
-        }
-        else
+        var value = bucket.ExplicitBound;
+        if (value == double.PositiveInfinity)
         {
             // The bucket to catch the overflows is one greater than the last bound provided
-            MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(lastExplicitBound + 1));
+            value = lastExplicitBound + 1;
         }
 
+        MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, Convert.ToUInt64(value));
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
-    private static string? ConvertTagValueToString(object? value)
+    private static string ConvertTagValueToString(object? value)
     {
-        string? repr;
         try
         {
-            repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+            return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
         }
         catch
         {
-            repr = $"ERROR: type {value?.GetType().FullName} is not supported";
+            return $"ERROR: type {value?.GetType().FullName} is not supported";
         }
-
-        return repr;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -615,25 +387,15 @@ internal sealed class TlvMetricExporter : IDisposable
 
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.Dimensions);
 
-        // Get a placeholder to add the payloadType length
-        var payloadTypeStartIndex = bufferIndex;
-        bufferIndex += 2;
-
-        // Get a placeholder to add dimensions count later
-        var bufferIndexForDimensionsCount = bufferIndex;
-        bufferIndex += 2;
-
-        ushort dimensionsWritten = 0;
+        // Get a placeholder to add the payloadType length and dimensions count later
+        nuint payloadTypeStartIndex = (uint)bufferIndex;
+        bufferIndex += 4;
 
         // Serialize PrepopulatedDimensions keys
-        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        if (this.serializedPrepopulatedDimensionsKeys is { } prepopulatedDimensionsKeys)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
-        }
-
-        if (this.prepopulatedDimensionsCount > 0)
-        {
-            dimensionsWritten += this.prepopulatedDimensionsCount;
+            Array.Copy(prepopulatedDimensionsKeys, 0, buffer, bufferIndex, prepopulatedDimensionsKeys.Length);
+            bufferIndex += prepopulatedDimensionsKeys.Length;
         }
 
         var reservedTags = 0;
@@ -641,11 +403,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize MetricPoint Dimension keys
         foreach (var tag in tags)
         {
-            if (tag.Key.Length > GenevaMetricExporter.MaxDimensionNameSize)
-            {
-                // TODO: Data Validation
-            }
-
+            // TODO: Data Validation if (tag.Key.Length > GenevaMetricExporter.MaxDimensionNameSize)
             if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) ||
                 tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
             {
@@ -656,76 +414,69 @@ internal sealed class TlvMetricExporter : IDisposable
             MetricSerializer.SerializeString(buffer, ref bufferIndex, tag.Key);
         }
 
-        dimensionsWritten += (ushort)(tags.Count - reservedTags);
+        var dimensionsWritten = this.prepopulatedDimensionsCount + tags.Count - reservedTags;
 
         // Serialize PrepopulatedDimensions values
-        for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
+        if (this.serializedPrepopulatedDimensionsValues is { } prepopulatedDimensionsValues)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
+            Array.Copy(prepopulatedDimensionsValues, 0, buffer, bufferIndex, prepopulatedDimensionsValues.Length);
+            bufferIndex += prepopulatedDimensionsValues.Length;
         }
 
         // Serialize MetricPoint Dimension values
         foreach (var tag in tags)
         {
-            if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsAccount)
+            if (tag.Value is not string stringValue)
             {
-                if (!string.IsNullOrWhiteSpace(metricsAccount))
+                stringValue = ConvertTagValueToString(tag.Value);
+            }
+            else if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(stringValue))
                 {
-                    monitoringAccount = metricsAccount;
+                    monitoringAccount = stringValue;
+                }
+
+                continue;
+            }
+            else if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(stringValue))
+                {
+                    metricNamespace = stringValue;
                 }
 
                 continue;
             }
 
-            if (tag.Key.Equals(GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, StringComparison.OrdinalIgnoreCase) && tag.Value is string metricsNamespace)
-            {
-                if (!string.IsNullOrWhiteSpace(metricsNamespace))
-                {
-                    metricNamespace = metricsNamespace;
-                }
-
-                continue;
-            }
-
-            var dimensionValue = ConvertTagValueToString(tag.Value);
-            if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
-            {
-                // TODO: Data Validation
-            }
-
-            MetricSerializer.SerializeString(buffer, ref bufferIndex, dimensionValue);
+            // TODO: Data Validation: if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
+            MetricSerializer.SerializeString(buffer, ref bufferIndex, stringValue);
         }
 
         // Backfill the number of dimensions written
-        MetricSerializer.SerializeUInt16(buffer, ref bufferIndexForDimensionsCount, dimensionsWritten);
-
-        var payloadTypeLength = (ushort)(bufferIndex - payloadTypeStartIndex - 2);
-        MetricSerializer.SerializeUInt16(buffer, ref payloadTypeStartIndex, payloadTypeLength);
+        MetricSerializer.SerializeUInt16Length(buffer, payloadTypeStartIndex + 2, dimensionsWritten);
+        MetricSerializer.SerializeUInt16Length(buffer, payloadTypeStartIndex, bufferIndex - 2 - (int)payloadTypeStartIndex);
     }
 
-    private List<byte[]> SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)
+    private byte[] SerializePrepopulatedDimensionsKeys(IEnumerable<string> keys)
     {
-        var serializedKeys = new List<byte[]>(this.prepopulatedDimensionsCount);
+        var index = 0;
         foreach (var key in keys)
         {
-            serializedKeys.Add(Encoding.UTF8.GetBytes(key));
+            MetricSerializer.SerializeString(this.buffer, ref index, key);
         }
 
-        return serializedKeys;
+        return this.buffer.AsSpan(0, index).ToArray();
     }
 
-    private List<byte[]> SerializePrepopulatedDimensionsValues(IEnumerable<object> values)
+    private byte[] SerializePrepopulatedDimensionsValues(IEnumerable<object> values)
     {
-        var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
+        var index = 0;
         foreach (var value in values)
         {
-            var valueAsString = ConvertTagValueToString(value);
-            if (valueAsString != null)
-            {
-                serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
-            }
+            MetricSerializer.SerializeString(this.buffer, ref index, ConvertTagValueToString(value));
         }
 
-        return serializedValues;
+        return this.buffer.AsSpan(0, index).ToArray();
     }
 }
