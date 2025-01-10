@@ -132,36 +132,16 @@ internal static class FieldNumberConstants
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int GetMetricTypeFieldNumber(MetricType metricType)
     {
-        switch (metricType)
-        {
-            case MetricType.LongSum:
-            case MetricType.LongSumNonMonotonic:
-            case MetricType.DoubleSum:
-            case MetricType.DoubleSumNonMonotonic:
-                {
-                    return 7;
-                }
-
-            case MetricType.DoubleGauge:
-            case MetricType.LongGauge:
-                {
-                    return 5;
-                }
-
-            case MetricType.Histogram:
-                {
-                    return 9;
-                }
-
-            case MetricType.ExponentialHistogram:
-                {
-                    return 10;
-                }
-
-            default:
-                break;
-        }
-
-        return 0;
+        // Field numbers map for metric types:
+        // 0x10: Sum
+        // 0x20: Gauge
+        // 0x30: Summary(reserved)
+        // 0x40: Histogram
+        // 0x50: ExponentialHistogram
+        // 0x60: (unused)
+        // 0x70: (unused)
+        // 0x80: SumNonMonotonic
+        ReadOnlySpan<byte> map = [0, Metric_sum, Metric_gauge, 0, Metric_histogram, Metric_exponential_histogram, 0, 0, Metric_sum];
+        return map[(int)metricType >>> 4];
     }
 }
