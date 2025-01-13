@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using Amazon;
 using Amazon.Bedrock;
 using Amazon.Bedrock.Model;
@@ -24,6 +26,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 public class TestAWSClientInstrumentation
 {
+    private static readonly string[] BedrockRuntimeExpectedFinishReasons = { "finish_reason" };
+
     [Fact]
 #if NETFRAMEWORK
     public void TestDDBScanSuccessful()
@@ -339,9 +343,9 @@ public class TestAWSClientInstrumentation
 
     [Fact]
 #if NETFRAMEWORK
-    public void TestBedrockRuntimeInvokeModelSuccessful()
+    public void TestBedrockRuntimeInvokeModelNovaSuccessful()
 #else
-    public async Task TestBedrockRuntimeInvokeModelSuccessful()
+    public async Task TestBedrockRuntimeInvokeModelNovaSuccessful()
 #endif
     {
         var exportedItems = new List<Activity>();
@@ -360,9 +364,29 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            var dummyResponse = "{}";
+            var dummyResponse = @"
+            {
+                ""usage"": 
+                {
+                    ""inputTokens"": 12345,
+                    ""outputTokens"": 67890
+                },
+                ""stopReason"": ""finish_reason""
+            }";
             CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
-            var invokeModelRequest = new InvokeModelRequest { ModelId = "amazon.titan-text-express-v1" };
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "amazon.nova-micro-v1:0",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    inferenceConfig = new
+                    {
+                        temperature = 0.123,
+                        top_p = 0.456,
+                        max_new_tokens = 789,
+                    },
+                }))),
+            };
 #if NETFRAMEWORK
             var response = bedrockruntime.InvokeModel(invokeModelRequest);
 #else
@@ -375,7 +399,382 @@ public class TestAWSClientInstrumentation
         Assert.NotNull(awssdk_activity);
 
         this.ValidateAWSActivity(awssdk_activity, parent);
-        this.ValidateBedrockRuntimeActivityTags(awssdk_activity);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "amazon.nova-micro-v1:0");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelTitanSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelTitanSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = @"
+            {
+                ""inputTextTokenCount"": 12345,
+                ""results"": [
+                    {
+                        ""tokenCount"": 67890,
+                        ""completionReason"": ""finish_reason""
+                    }
+                ]
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "amazon.titan-text-express-v1",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    textGenerationConfig = new
+                    {
+                        temperature = 0.123,
+                        topP = 0.456,
+                        maxTokenCount = 789,
+                    },
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "amazon.titan-text-express-v1");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelClaudeSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelClaudeSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = @"
+            {
+                ""usage"": 
+                {
+                    ""input_tokens"": 12345,
+                    ""output_tokens"": 67890
+                },
+                ""stop_reason"": ""finish_reason""
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "anthropic.claude-3-5-haiku-202410-22-v1:0",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    temperature = 0.123,
+                    top_p = 0.456,
+                    max_tokens = 789,
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "anthropic.claude-3-5-haiku-202410-22-v1:0");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelLlamaSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelLlamaSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = @"
+            {
+                ""prompt_token_count"": 12345,
+                ""generation_token_count"": 67890,
+                ""stop_reason"": ""finish_reason""
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "meta.llama3-8b-instruct-v1:0",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    temperature = 0.123,
+                    top_p = 0.456,
+                    max_gen_len = 789,
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "meta.llama3-8b-instruct-v1:0");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelCommandSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelCommandSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+
+            // no input_tokens or output_tokens in response body, so we generate input and output text of the desired length
+            // (6 chars * number of tokens) to get the desired token estimation.
+            var dummyResponse = @"
+            {
+                ""text"": """ + string.Concat(Enumerable.Repeat("sample", 67890)) + @""",
+                ""finish_reason"": ""finish_reason""
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "cohere.command-r-v1:0",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    message = string.Concat(Enumerable.Repeat("sample", 12345)),
+                    temperature = 0.123,
+                    p = 0.456,
+                    max_tokens = 789,
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "cohere.command-r-v1:0");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelJambaSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelJambaSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = @"
+            {
+                ""usage"": 
+                {
+                    ""prompt_tokens"": 12345,
+                    ""completion_tokens"": 67890
+                },
+                ""choices"": [
+                    {
+                        ""finish_reason"": ""finish_reason""
+                    }
+                ]
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "ai21.jamba-1-5-large-v1:0",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    temperature = 0.123,
+                    top_p = 0.456,
+                    max_tokens = 789,
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "ai21.jamba-1-5-large-v1:0");
+
+        Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
+        Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestBedrockRuntimeInvokeModelMistralSuccessful()
+#else
+    public async Task TestBedrockRuntimeInvokeModelMistralSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+
+            // no input_tokens or output_tokens in response body, so we generate input and output text of the desired length
+            // (6 chars * number of tokens) to get the desired token estimation.
+            var dummyResponse = @"
+            {
+                ""outputs"": [
+                    {
+                        ""text"": """ + string.Concat(Enumerable.Repeat("sample", 67890)) + @""",
+                        ""stop_reason"": ""finish_reason""
+                    }
+                ]
+            }";
+            CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+            var invokeModelRequest = new InvokeModelRequest
+            {
+                ModelId = "mistral.mistral-7b-instruct-v0:2",
+                Body = new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+                {
+                    prompt = string.Concat(Enumerable.Repeat("sample", 12345)),
+                    temperature = 0.123,
+                    top_p = 0.456,
+                    max_tokens = 789,
+                }))),
+            };
+#if NETFRAMEWORK
+            var response = bedrockruntime.InvokeModel(invokeModelRequest);
+#else
+            var response = await bedrockruntime.InvokeModelAsync(invokeModelRequest);
+#endif
+        }
+
+        Assert.NotEmpty(exportedItems);
+        var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "Bedrock Runtime.InvokeModel");
+        Assert.NotNull(awssdk_activity);
+
+        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateBedrockRuntimeActivityTags(awssdk_activity, "mistral.mistral-7b-instruct-v0:2");
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
@@ -641,11 +1040,17 @@ public class TestAWSClientInstrumentation
         Assert.Equal("GetGuardrail", Utils.GetTagValue(bedrock_activity, "rpc.method"));
     }
 
-    private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity)
+    private void ValidateBedrockRuntimeActivityTags(Activity bedrock_activity, string model_id)
     {
         Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
-        Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
+        Assert.Equal(model_id, Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
         Assert.Equal("aws.bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
+        Assert.Equal(0.123, Utils.GetTagValue(bedrock_activity, "gen_ai.request.temperature"));
+        Assert.Equal(0.456, Utils.GetTagValue(bedrock_activity, "gen_ai.request.top_p"));
+        Assert.Equal(789, Utils.GetTagValue(bedrock_activity, "gen_ai.request.max_tokens"));
+        Assert.Equal(12345, Utils.GetTagValue(bedrock_activity, "gen_ai.usage.input_tokens"));
+        Assert.Equal(67890, Utils.GetTagValue(bedrock_activity, "gen_ai.usage.output_tokens"));
+        Assert.Equal(BedrockRuntimeExpectedFinishReasons, Utils.GetTagValue(bedrock_activity, "gen_ai.response.finish_reasons"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));
