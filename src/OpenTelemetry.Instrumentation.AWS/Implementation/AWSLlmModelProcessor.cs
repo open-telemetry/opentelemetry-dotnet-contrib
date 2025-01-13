@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -15,8 +18,10 @@ internal class AWSLlmModelProcessor
         "Specify StringComparison for clarity",
         "CA1307",
         Justification = "Adding StringComparison only works for NET Core but not the framework.")]
-#endif
+    internal static void ProcessGenAiAttributes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+#else
     internal static void ProcessGenAiAttributes<T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+#endif
     {
         // message can be either a request or a response. isRequest is used by the model-specific methods to determine
         // whether to extract the request or response attributes.
@@ -35,7 +40,11 @@ internal class AWSLlmModelProcessor
                 try
                 {
                     var jsonString = Encoding.UTF8.GetString(body.ToArray());
+#if NET
+                    var jsonObject = JsonSerializer.Deserialize(jsonString, SourceGenerationContext.Default.DictionaryStringJsonElement);
+#else
                     var jsonObject = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString);
+#endif
                     if (jsonObject == null)
                     {
                         return;
@@ -73,7 +82,7 @@ internal class AWSLlmModelProcessor
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception: " + ex.Message);
+                    AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
                 }
             }
         }
@@ -126,7 +135,7 @@ internal class AWSLlmModelProcessor
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -166,17 +175,19 @@ internal class AWSLlmModelProcessor
                     var results = resultsArray[0];
                     if (results.TryGetProperty("tokenCount", out var outputTokens))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiOutputTokens(activity, outputTokens.GetInt32());
                     }
 
                     if (results.TryGetProperty("completionReason", out var finishReasons))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -212,17 +223,19 @@ internal class AWSLlmModelProcessor
 
                     if (usage.TryGetProperty("output_tokens", out var outputTokens))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiOutputTokens(activity, outputTokens.GetInt32());
                     }
                 }
 
                 if (jsonBody.TryGetValue("stop_reason", out var finishReasons))
                 {
+                    awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -256,16 +269,18 @@ internal class AWSLlmModelProcessor
 
                 if (jsonBody.TryGetValue("generation_token_count", out var outputTokens))
                 {
+                    awsSemanticConventions.TagBuilder.SetTagAttributeGenAiOutputTokens(activity, outputTokens.GetInt32());
                 }
 
                 if (jsonBody.TryGetValue("stop_reason", out var finishReasons))
                 {
+                    awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -300,6 +315,7 @@ internal class AWSLlmModelProcessor
             {
                 if (jsonBody.TryGetValue("finish_reason", out var finishReasons))
                 {
+                    awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                 }
 
                 // completion tokens not provided in Command response body, so we estimate the value based on output length
@@ -311,7 +327,7 @@ internal class AWSLlmModelProcessor
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -347,6 +363,7 @@ internal class AWSLlmModelProcessor
 
                     if (usage.TryGetProperty("completion_tokens", out var outputTokens))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiOutputTokens(activity, outputTokens.GetInt32());
                     }
                 }
 
@@ -354,13 +371,14 @@ internal class AWSLlmModelProcessor
                 {
                     if (choices[0].TryGetProperty("finish_reason", out var finishReasons))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
@@ -398,6 +416,7 @@ internal class AWSLlmModelProcessor
                     var output = outputsArray[0];
                     if (output.TryGetProperty("stop_reason", out var finishReasons))
                     {
+                        awsSemanticConventions.TagBuilder.SetTagAttributeGenAiFinishReasons(activity, [finishReasons.GetString() ?? string.Empty]);
                     }
 
                     // output tokens not provided in Mistral response body, so we estimate the value based on output length
@@ -410,7 +429,7 @@ internal class AWSLlmModelProcessor
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception: " + ex.Message);
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 }
