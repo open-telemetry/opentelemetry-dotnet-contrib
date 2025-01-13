@@ -62,7 +62,6 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSBedrockGuardrailId => "aws.bedrock.guardrail.id";
         public override string AttributeAWSBedrockKnowledgeBaseId => "aws.bedrock.knowledge_base.id";
         public override string AttributeAWSBedrock => "aws_bedrock";
-        public override string AttributeAWSRegion => "aws.region";
         public override string AttributeAWSRequestId => "aws.request_id";
         public override string AttributeAWSSQSQueueName => "aws.sqs.queue_name";
         public override string AttributeAWSS3BucketName => "aws.s3.bucket";
@@ -105,7 +104,9 @@ internal partial class AWSSemanticConventions
         public override string AttributeHttpTarget => "http.target";
         [Obsolete("Replaced by <c>http.request.method</c>.")]
         public override string AttributeHttpMethod => "http.method";
+        [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
         public override string AttributeHttpResponseContentLength => "http.response_content_length";
+        public override string AttributeHttpResponseHeaderContentLength => "http.response.header.content-length";
 
         // NET Attributes
         [Obsolete("Replaced by <c>server.address</c>.")]

@@ -14,11 +14,11 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 internal class AWSLlmModelProcessor
 {
 #if NET
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+    [UnconditionalSuppressMessage(
         "Specify StringComparison for clarity",
         "CA1307",
         Justification = "Adding StringComparison only works for NET Core but not the framework.")]
-    internal static void ProcessGenAiAttributes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+    internal static void ProcessGenAiAttributes<T>(Activity activity, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #else
     internal static void ProcessGenAiAttributes<T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #endif

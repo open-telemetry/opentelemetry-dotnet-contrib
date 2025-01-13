@@ -149,7 +149,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             var statusCode = (int)httpResponse.StatusCode;
 
             this.AddStatusCodeToActivity(activity, statusCode);
-            this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseContentLength(activity, httpResponse.ContentLength);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseHeaderContentLength(activity, httpResponse.ContentLength);
         }
     }
 
@@ -239,7 +239,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (client != null)
         {
             var region = client.RegionEndpoint?.SystemName;
-            this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSRegion(activity, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
         }
     }
 

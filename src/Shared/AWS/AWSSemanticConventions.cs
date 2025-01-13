@@ -444,10 +444,6 @@ internal partial class AWSSemanticConventions
         public Activity? SetTagAttributeGenAiSystemToBedrock(Activity? activity)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiSystem, x => x.AttributeAWSBedrock);
 
-        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRegion"/>
-        public Activity? SetTagAttributeAWSRegion(Activity? activity, string operationName)
-            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSRegion, operationName);
-
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRequestId"/>
         public Activity? SetTagAttributeAWSRequestId(Activity? activity, string operationName)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSRequestId, operationName);
@@ -492,9 +488,16 @@ internal partial class AWSSemanticConventions
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
 
-        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseContentLength"/>
-        public Activity? SetTagAttributeHttpResponseContentLength(Activity? activity, long value)
-            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseContentLength, value);
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseHeaderContentLength"/>
+        public Activity? SetTagAttributeHttpResponseHeaderContentLength(Activity? activity, long value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseHeaderContentLength, value);
+        #endregion
+
+        #region Cloud
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
+        public Activity? SetTagAttributeCloudRegion(Activity? activity, string operationName)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeCloudRegion, operationName);
         #endregion
     }
 

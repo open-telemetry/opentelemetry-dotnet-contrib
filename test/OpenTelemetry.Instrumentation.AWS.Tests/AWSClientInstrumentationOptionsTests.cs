@@ -87,6 +87,6 @@ public sealed class AWSClientInstrumentationOptionsTests
                 .FirstOrDefault(a => a.DisplayName == "Bedrock Runtime.InvokeModel")
                 ?.Tags
                 .ToDictionary(x => x.Key, x => x.Value)
-                ?? new Dictionary<string, string?>();
+                ?? [];
     }
 }

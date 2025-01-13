@@ -26,7 +26,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 public class TestAWSClientInstrumentation
 {
-    private static readonly string[] BedrockRuntimeExpectedFinishReasons = { "finish_reason" };
+    private static readonly string[] BedrockRuntimeExpectedFinishReasons = ["finish_reason"];
 
     [Fact]
 #if NETFRAMEWORK

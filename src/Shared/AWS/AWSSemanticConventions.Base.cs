@@ -340,8 +340,11 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSSQSQueueName => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
+        /// The S3 bucket name the request refers to. Corresponds to the `--bucket` parameter of the [S3 API](https://docs.aws.amazon.com/cli/latest/reference/s3api/index.html) operations.
         /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAWSS3BucketName
+        /// </remarks>
         public virtual string AttributeAWSS3BucketName => string.Empty;
 
         /// <summary>
@@ -350,13 +353,11 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSKinesisStreamName => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
+        /// The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
         /// </summary>
-        public virtual string AttributeAWSRegion => string.Empty;
-
-        /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository.
-        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAWSRequestId
+        /// </remarks>
         public virtual string AttributeAWSRequestId => string.Empty;
 
         /// <summary>
@@ -519,33 +520,51 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeGenAiSystem => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// The top_p sampling setting for the GenAI request.
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiTopP
+        /// </remarks>
         public virtual string AttributeGenAiTopP => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// The temperature setting for the GenAI request.
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiTemperature
+        /// </remarks>
         public virtual string AttributeGenAiTemperature => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// The maximum number of tokens the model generates for a request.
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiMaxTokens
+        /// </remarks>
         public virtual string AttributeGenAiMaxTokens => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// The number of tokens used in the GenAI input (prompt).
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiInputTokens
+        /// </remarks>
         public virtual string AttributeGenAiInputTokens => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// The number of tokens used in the GenAI response (completion).
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiOutputTokens
+        /// </remarks>
         public virtual string AttributeGenAiOutputTokens => string.Empty;
 
         /// <summary>
-        /// Not yet incorporated in Semantic Conventions repository. Check if more details need to be added
+        /// Array of reasons the model stopped generating tokens, corresponding to each generation received.
         /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiFinishReasons
+        /// </remarks>
         public virtual string AttributeGenAiFinishReasons => string.Empty;
         #endregion
 
@@ -654,7 +673,17 @@ internal partial class AWSSemanticConventions
         /// <remarks>
         /// HttpAttributes.AttributeHttpResponseContentLength
         /// </remarks>
+        [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
         public virtual string AttributeHttpResponseContentLength => string.Empty;
+
+        /// <summary>
+        /// The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always,
+        /// present as the Content-Length header. For requests using transport encoding, this should be the compressed size.
+        /// </summary>
+        /// <remarks>
+        /// HttpAttributes.AttributeHttpResponseHeaderContentLength
+        /// </remarks>
+        public virtual string AttributeHttpResponseHeaderContentLength => string.Empty;
 
         #endregion
 
