@@ -366,7 +366,7 @@ public class TestAWSClientInstrumentation
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = @"
             {
-                ""usage"": 
+                ""usage"":
                 {
                     ""inputTokens"": 12345,
                     ""outputTokens"": 67890
@@ -495,7 +495,7 @@ public class TestAWSClientInstrumentation
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = @"
             {
-                ""usage"": 
+                ""usage"":
                 {
                     ""input_tokens"": 12345,
                     ""output_tokens"": 67890
@@ -675,7 +675,7 @@ public class TestAWSClientInstrumentation
             var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = @"
             {
-                ""usage"": 
+                ""usage"":
                 {
                     ""prompt_tokens"": 12345,
                     ""completion_tokens"": 67890
