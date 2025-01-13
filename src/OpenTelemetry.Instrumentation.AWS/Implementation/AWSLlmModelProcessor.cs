@@ -18,9 +18,9 @@ internal class AWSLlmModelProcessor
         "Specify StringComparison for clarity",
         "CA1307",
         Justification = "Adding StringComparison only works for NET Core but not the framework.")]
-    internal static void ProcessGenAiAttributes<T>(Activity activity, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+    internal static void ProcessGenAiAttributes(Activity activity, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]object message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #else
-    internal static void ProcessGenAiAttributes<T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+    internal static void ProcessGenAiAttributes(Activity activity, object message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #endif
     {
         // message can be either a request or a response. isRequest is used by the model-specific methods to determine
