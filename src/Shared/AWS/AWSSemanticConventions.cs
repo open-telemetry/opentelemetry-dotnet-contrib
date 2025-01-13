@@ -79,6 +79,9 @@ internal partial class AWSSemanticConventions
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
 
+    /// <inheritdoc cref="TagExtractorImpl"/>
+    public TagExtractorImpl TagExtractor { get; }
+
     /// <inheritdoc cref="AWSSemanticConventions"/>
     /// <param name="semanticConventionVersion">
     /// Sets the <see cref="SemanticConventionVersion"/> that will be used to resolve attribute names.
@@ -89,6 +92,7 @@ internal partial class AWSSemanticConventions
         this.AttributeBuilder = new(this);
         this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
+        this.TagExtractor = new(this);
     }
 
     /// <summary>
@@ -97,7 +101,7 @@ internal partial class AWSSemanticConventions
     public class ParameterMappingBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private Dictionary<string, string> state = new();
+        private Dictionary<string, string> state = [];
 
         public ParameterMappingBuilderImpl(AWSSemanticConventions semanticConventions)
         {
@@ -110,7 +114,7 @@ internal partial class AWSSemanticConventions
         {
             var builtState = this.state;
 
-            this.state = new Dictionary<string, string>();
+            this.state = [];
 
             return builtState;
         }
@@ -143,6 +147,38 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSBedrockKnowledgeBaseId"/>
         public ParameterMappingBuilderImpl AddAttributeAWSBedrockKnowledgeBaseId(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSBedrockKnowledgeBaseId, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSQSQueueName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSSQSQueueName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSQSQueueName, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSS3BucketName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSS3BucketName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3BucketName, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSKinesisStreamName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSKinesisStreamName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSKinesisStreamName, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSNSTopicArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSSNSTopicArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSNSTopicArn, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSecretsManagerSecretArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSSecretsManagerSecretArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSecretsManagerSecretArn, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSStepFunctionsActivityArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSStepFunctionsActivityArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSStepFunctionsActivityArn, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSStepFunctionsStateMachineArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSStepFunctionsStateMachineArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSStepFunctionsStateMachineArn, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSLambdaResourceMappingId"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSLambdaResourceMappingId(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSLambdaResourceMappingId, value);
         #endregion
     }
 
@@ -407,6 +443,42 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiSystem"/>
         public Activity? SetTagAttributeGenAiSystemToBedrock(Activity? activity)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiSystem, x => x.AttributeAWSBedrock);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRegion"/>
+        public Activity? SetTagAttributeAWSRegion(Activity? activity, string operationName)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSRegion, operationName);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRequestId"/>
+        public Activity? SetTagAttributeAWSRequestId(Activity? activity, string operationName)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeAWSRequestId, operationName);
+        #endregion
+
+        #region GEN AI
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiTopP"/>
+        public Activity? SetTagAttributeGenAiTopP(Activity? activity, double topP)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiTopP, topP);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiTemperature"/>
+        public Activity? SetTagAttributeGenAiTemperature(Activity? activity, double temperature)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiTemperature, temperature);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiMaxTokens"/>
+        public Activity? SetTagAttributeGenAiMaxTokens(Activity? activity, int maxTokens)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiMaxTokens, maxTokens);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiInputTokens"/>
+        public Activity? SetTagAttributeGenAiInputTokens(Activity? activity, int inputTokens)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiInputTokens, inputTokens);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiOutputTokens"/>
+        public Activity? SetTagAttributeGenAiOutputTokens(Activity? activity, int outputTokens)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiOutputTokens, outputTokens);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiFinishReasons"/>
+        public Activity? SetTagAttributeGenAiFinishReasons(Activity? activity, string[] finishReasons)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeGenAiFinishReasons, finishReasons);
+
         #endregion
 
         #region Http
@@ -419,6 +491,35 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseStatusCode"/>
         public Activity? SetTagAttributeHttpResponseStatusCode(Activity? activity, int value)
             => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseStatusCode, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpResponseContentLength"/>
+        public Activity? SetTagAttributeHttpResponseContentLength(Activity? activity, long value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeHttpResponseContentLength, value);
+        #endregion
+    }
+
+    /// <summary>
+    /// Get Attributes from <see cref="Activity"/>.
+    /// </summary>
+    public class TagExtractorImpl
+    {
+        private readonly AWSSemanticConventions awsSemanticConventions;
+
+        public TagExtractorImpl(AWSSemanticConventions semanticConventions)
+        {
+            this.awsSemanticConventions = semanticConventions;
+        }
+
+        #region AWS
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSRequestId"/>
+        public object? GetTagAttributeAWSRequestId(Activity? activity)
+            => this.awsSemanticConventions.GetTag(activity, x => x.AttributeAWSRequestId);
+        #endregion
+
+        #region GEN AI
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeGenAiModelId"/>
+        public object? GetTagAttributeGenAiModelId(Activity? activity)
+            => this.awsSemanticConventions.GetTag(activity, x => x.AttributeGenAiModelId);
         #endregion
     }
 
@@ -463,6 +564,16 @@ internal partial class AWSSemanticConventions
         return activity;
     }
 
+    private object? GetTag(Activity? activity, Func<AWSSemanticConventionsBase, string> attributeNameFunc)
+    {
+        var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
+
+        var attributeName = attributeNameFunc(semanticConventionVersionImpl);
+
+        // if attributeName is empty, exit
+        return string.IsNullOrEmpty(attributeName) ? null : activity?.GetTagItem(attributeName);
+    }
+
     private ParameterMappingBuilderImpl AddDic(ParameterMappingBuilderImpl dict, Func<AWSSemanticConventionsBase, string> attributeNameFunc, string value)
     {
         var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
@@ -479,6 +590,7 @@ internal partial class AWSSemanticConventions
 
     private AWSSemanticConventionsBase GetSemanticConventionVersion()
     {
+#pragma warning disable IDE0066 // Convert switch statement to expression
         switch (this.semanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
@@ -494,5 +606,6 @@ internal partial class AWSSemanticConventions
                     (int)this.semanticConventionVersion,
                     typeof(SemanticConventionVersion));
         }
+#pragma warning restore IDE0066 // Convert switch statement to expression
     }
 }

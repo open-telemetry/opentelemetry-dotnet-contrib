@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
+using Amazon.Util;
 using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
 
@@ -46,6 +47,36 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         return ret;
     }
 
+    private static string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
+    {
+        var request_id = string.Empty;
+        var response = responseContext.Response;
+        if (response != null)
+        {
+            request_id = response.ResponseMetadata.RequestId;
+        }
+        else
+        {
+            var request_headers = requestContext.Request.Headers;
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out var req_id))
+            {
+                request_id = req_id;
+            }
+
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-request-id", out req_id))
+            {
+                request_id = req_id;
+            }
+
+            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-id-2", out req_id))
+            {
+                request_id = req_id;
+            }
+        }
+
+        return request_id;
+    }
+
     private static void AddPropagationDataToRequest(Activity activity, IRequestContext requestContext)
     {
         var service = requestContext.ServiceMetaData.ServiceId;
@@ -81,16 +112,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             {
                 try
                 {
-                    // for bedrock agent, extract attribute from object in response.
-                    if (AWSServiceType.IsBedrockAgentService(service))
-                    {
-                        var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
-                        if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
-                        {
-                            this.AddBedrockAgentResponseAttribute(activity, response, parameter);
-                        }
-                    }
-
                     var property = response.GetType().GetProperty(parameter);
                     if (property != null)
                     {
@@ -107,31 +128,28 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                 }
             }
         }
-    }
 
-#if NET
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
-        "Trimming",
-        "IL2075",
-        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
-#endif
-    private void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
-    {
-        var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
-        if (responseObject != null)
+        // for bedrock runtime, LLM specific attributes are extracted based on the model ID.
+        if (AWSServiceType.IsBedrockRuntimeService(service))
         {
-            var attributeObject = responseObject.GetValue(response);
-            if (attributeObject != null)
+            var model = this.awsSemanticConventions.TagExtractor.GetTagAttributeGenAiModelId(activity);
+            if (model != null)
             {
-                var property = attributeObject.GetType().GetProperty(parameter);
-                if (property != null)
+                var modelString = model.ToString();
+                if (modelString != null)
                 {
-                    if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
-                    {
-                        activity.SetTag(attribute, property.GetValue(attributeObject));
-                    }
+                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, responseContext.Response, modelString, false, this.awsSemanticConventions);
                 }
             }
+        }
+
+        var httpResponse = responseContext.HttpResponse;
+        if (httpResponse != null)
+        {
+            var statusCode = (int)httpResponse.StatusCode;
+
+            this.AddStatusCodeToActivity(activity, statusCode);
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseContentLength(activity, httpResponse.ContentLength);
         }
     }
 
@@ -143,7 +161,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 #endif
     private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
     {
-        var service = requestContext.ServiceMetaData.ServiceId;
+        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
 
         if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
         {
@@ -153,18 +171,37 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             {
                 try
                 {
-                    // for bedrock agent, we only extract one attribute based on the operation.
-                    if (AWSServiceType.IsBedrockAgentService(service))
-                    {
-                        if (AWSServiceHelper.OperationNameToResourceMap()[AWSServiceHelper.GetAWSOperationName(requestContext)] != parameter)
-                        {
-                            continue;
-                        }
-                    }
-
                     var property = request.GetType().GetProperty(parameter);
                     if (property != null)
                     {
+                        // for bedrock runtime, LLM specific attributes are extracted based on the model ID.
+                        if (AWSServiceType.IsBedrockRuntimeService(service) && parameter == "ModelId")
+                        {
+                            var model = property.GetValue(request);
+                            if (model != null)
+                            {
+                                var modelString = model.ToString();
+                                if (modelString != null)
+                                {
+                                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, request, modelString, true, this.awsSemanticConventions);
+                                }
+                            }
+                        }
+
+                        // for secrets manager, only extract SecretId from request if it is a secret ARN.
+                        if (AWSServiceType.IsSecretsManagerService(service) && parameter == "SecretId")
+                        {
+                            var secretId = property.GetValue(request);
+                            if (secretId != null)
+                            {
+                                var secretIdString = secretId.ToString();
+                                if (secretIdString != null && !secretIdString.StartsWith("arn:aws:secretsmanager:", StringComparison.Ordinal))
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
                         if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                         {
                             activity.SetTag(attribute, property.GetValue(request));
@@ -183,9 +220,26 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
         }
+        else if (AWSServiceType.IsSqsService(service))
+        {
+            SqsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
+        else if (AWSServiceType.IsSnsService(service))
+        {
+            SnsRequestContextHelper.AddAttributes(
+                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+        }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
+        }
+
+        var client = requestContext.ClientConfig;
+        if (client != null)
+        {
+            var region = client.RegionEndpoint?.SystemName;
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSRegion(activity, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
         }
     }
 
@@ -194,6 +248,13 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (activity == null || !activity.IsAllDataRequested)
         {
             return;
+        }
+
+        var responseContext = executionContext.ResponseContext;
+        var requestContext = executionContext.RequestContext;
+        if (this.awsSemanticConventions.TagExtractor.GetTagAttributeAWSRequestId == null)
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeAWSRequestId(activity, FetchRequestId(requestContext, responseContext));
         }
 
         this.AddResponseSpecificInformation(activity, executionContext);
@@ -224,5 +285,10 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         AddPropagationDataToRequest(currentActivity, executionContext.RequestContext);
 
         return currentActivity;
+    }
+
+    private void AddStatusCodeToActivity(Activity activity, int status_code)
+    {
+        this.awsSemanticConventions.TagBuilder.SetTagAttributeHttpResponseStatusCode(activity, status_code);
     }
 }
