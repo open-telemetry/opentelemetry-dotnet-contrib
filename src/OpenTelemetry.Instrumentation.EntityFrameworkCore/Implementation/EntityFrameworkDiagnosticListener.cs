@@ -19,6 +19,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     internal const string AttributePeerService = "peer.service";
     internal const string AttributeServerAddress = "server.address";
+    internal const string AttributeServerPort = "server.port";
     internal const string AttributeDbSystem = "db.system";
     internal const string AttributeDbName = "db.name";
     internal const string AttributeDbNamespace = "db.namespace";
@@ -159,7 +160,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         var port = (string)this.portFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(port))
                         {
-                            activity.AddTag(AttributeServerAddress, port);
+                            activity.AddTag(AttributeServerPort, port);
                         }
 
                         if (this.options.EmitOldAttributes)
