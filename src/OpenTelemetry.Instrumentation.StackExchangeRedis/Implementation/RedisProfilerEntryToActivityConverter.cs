@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
@@ -135,18 +136,23 @@ internal static class RedisProfilerEntryToActivityConverter
             {
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, ipEndPoint.Address.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerName, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, dnsEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
                 }
-                else
+#if NET8_0_OR_GREATER
+                else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributePeerService, command.EndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, unixDomainSocketEndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, unixDomainSocketEndPoint.ToString());
                 }
+#endif
             }
 
             activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
