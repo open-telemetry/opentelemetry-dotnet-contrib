@@ -1,5 +1,7 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
 using System.Diagnostics;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
@@ -16,7 +18,7 @@ public class EntityFrameworkInstrumentationTests
         {
             Host = "my.domain.example",
             DataSource = "tcp:my.domain.example",
-            Port = "5432"
+            Port = "5432",
         };
 
         var hostFetcher = new PropertyFetcher<string>("Host");
