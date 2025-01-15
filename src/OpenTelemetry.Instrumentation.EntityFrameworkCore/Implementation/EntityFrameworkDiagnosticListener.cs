@@ -199,7 +199,20 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
+                        if (command.GetType().FullName?.Contains("Devart.Data.Oracle") == true)
+                        {
+                            string payloadString = payload?.ToString() ?? string.Empty;
+                            if ((payloadString.Contains("CommandType='Text'") && this.options.SetDbStatementForText) ||
+                               (payloadString.Contains("CommandType='StoredProcedure'") && this.options.SetDbStatementForStoredProcedure))
+                            {
+                                string[] result = payloadString.Split("\r\n", count: 2);
+                                if (result.Length > 1)
+                                {
+                                    activity.AddTag(AttributeDbStatement, result[1]);
+                                }
+                            }
+                        }
+                        else if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
                             switch (commandType)
