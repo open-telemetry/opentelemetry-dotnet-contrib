@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Amazon.BedrockRuntime.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
@@ -138,7 +139,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                 var modelString = model.ToString();
                 if (modelString != null)
                 {
-                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, responseContext.Response, modelString, false, this.awsSemanticConventions);
+                    var response = (InvokeModelResponse)responseContext.Response;
+                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, response.Body, modelString, false, this.awsSemanticConventions);
                 }
             }
         }
@@ -183,7 +185,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                                 var modelString = model.ToString();
                                 if (modelString != null)
                                 {
-                                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, request, modelString, true, this.awsSemanticConventions);
+                                    var invokeModelRequest = (InvokeModelRequest)request;
+                                    AWSLlmModelProcessor.ProcessGenAiAttributes(activity, invokeModelRequest.Body, modelString, true, this.awsSemanticConventions);
                                 }
                             }
                         }

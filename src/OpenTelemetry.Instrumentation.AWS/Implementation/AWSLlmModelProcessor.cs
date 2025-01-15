@@ -18,10 +18,8 @@ internal class AWSLlmModelProcessor
         "Specify StringComparison for clarity",
         "CA1307",
         Justification = "Adding StringComparison only works for NET Core but not the framework.")]
-    internal static void ProcessGenAiAttributes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
-#else
-    internal static void ProcessGenAiAttributes<T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #endif
+    internal static void ProcessGenAiAttributes(Activity activity, MemoryStream body, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
     {
         // message can be either a request or a response. isRequest is used by the model-specific methods to determine
         // whether to extract the request or response attributes.
@@ -31,65 +29,52 @@ internal class AWSLlmModelProcessor
         // the response body. For the Claude, Command, and Mistral models, the input and output tokens are not provided
         // in the response body, so we approximate their values by dividing the input and output lengths by 6, based on
         // the Bedrock documentation here: https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-prepare.html
-
-        if (message is null)
+        try
         {
-            return;
-        }
-
-        var messageBodyProperty = typeof(T).GetProperty("Body");
-        if (messageBodyProperty != null)
-        {
-            if (messageBodyProperty.GetValue(message) is MemoryStream body)
-            {
-                try
-                {
-                    var jsonString = Encoding.UTF8.GetString(body.ToArray());
+            var jsonString = Encoding.UTF8.GetString(body.ToArray());
 #if NET
-                    var jsonObject = JsonSerializer.Deserialize(jsonString, SourceGenerationContext.Default.DictionaryStringJsonElement);
+            var jsonObject = JsonSerializer.Deserialize(jsonString, SourceGenerationContext.Default.DictionaryStringJsonElement);
 #else
-                    var jsonObject = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString);
+            var jsonObject = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonString);
 #endif
-                    if (jsonObject == null)
-                    {
-                        return;
-                    }
-
-                    // extract model specific attributes based on model name
-                    if (modelName.Contains("amazon.nova"))
-                    {
-                        ProcessNovaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("amazon.titan"))
-                    {
-                        ProcessTitanModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("anthropic.claude"))
-                    {
-                        ProcessClaudeModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("meta.llama3"))
-                    {
-                        ProcessLlamaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("cohere.command"))
-                    {
-                        ProcessCommandModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("ai21.jamba"))
-                    {
-                        ProcessJambaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                    else if (modelName.Contains("mistral.mistral"))
-                    {
-                        ProcessMistralModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
-                }
+            if (jsonObject == null)
+            {
+                return;
             }
+
+            // extract model specific attributes based on model name
+            if (modelName.Contains("amazon.nova"))
+            {
+                ProcessNovaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("amazon.titan"))
+            {
+                ProcessTitanModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("anthropic.claude"))
+            {
+                ProcessClaudeModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("meta.llama3"))
+            {
+                ProcessLlamaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("cohere.command"))
+            {
+                ProcessCommandModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("ai21.jamba"))
+            {
+                ProcessJambaModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+            else if (modelName.Contains("mistral.mistral"))
+            {
+                ProcessMistralModelAttributes(activity, jsonObject, isRequest, awsSemanticConventions);
+            }
+        }
+        catch (Exception ex)
+        {
+            AWSInstrumentationEventSource.Log.JsonParserException(nameof(AWSLlmModelProcessor), ex);
         }
     }
 
