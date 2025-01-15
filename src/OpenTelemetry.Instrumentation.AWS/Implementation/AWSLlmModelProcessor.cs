@@ -18,9 +18,9 @@ internal class AWSLlmModelProcessor
         "Specify StringComparison for clarity",
         "CA1307",
         Justification = "Adding StringComparison only works for NET Core but not the framework.")]
-    internal static void ProcessGenAiAttributes(Activity activity, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]object message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+    internal static void ProcessGenAiAttributes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #else
-    internal static void ProcessGenAiAttributes(Activity activity, object message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
+    internal static void ProcessGenAiAttributes<T>(Activity activity, T message, string modelName, bool isRequest, AWSSemanticConventions awsSemanticConventions)
 #endif
     {
         // message can be either a request or a response. isRequest is used by the model-specific methods to determine
@@ -32,7 +32,12 @@ internal class AWSLlmModelProcessor
         // in the response body, so we approximate their values by dividing the input and output lengths by 6, based on
         // the Bedrock documentation here: https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-prepare.html
 
-        var messageBodyProperty = message?.GetType()?.GetProperty("Body");
+        if (message is null)
+        {
+            return;
+        }
+
+        var messageBodyProperty = typeof(T).GetProperty("Body");
         if (messageBodyProperty != null)
         {
             if (messageBodyProperty.GetValue(message) is MemoryStream body)
