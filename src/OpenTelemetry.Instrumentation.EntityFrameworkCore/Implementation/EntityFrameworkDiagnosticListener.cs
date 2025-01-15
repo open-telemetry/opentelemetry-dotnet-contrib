@@ -205,7 +205,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             if ((payloadString.Contains("CommandType='Text'") && this.options.SetDbStatementForText) ||
                                (payloadString.Contains("CommandType='StoredProcedure'") && this.options.SetDbStatementForStoredProcedure))
                             {
-                                string[] result = payloadString.Split("\r\n", count: 2);
+                                string[] result = payloadString.Split(['\n'], 2);
                                 if (result.Length > 1)
                                 {
                                     activity.AddTag(AttributeDbStatement, result[1]);
