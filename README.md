@@ -1,3 +1,5 @@
+[![NuGet Version](https://img.shields.io/nuget/vpre/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)[![NuGet Downloads](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.AWS)](https://www.nuget.org/packages/OpenTelemetry.Extensions.AWS)
+
 # OpenTelemetry .NET Contrib
 
 [![Slack](https://img.shields.io/badge/slack-@cncf/otel/dotnet-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C01N3BC2W7Q)
