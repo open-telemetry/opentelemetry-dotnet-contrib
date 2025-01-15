@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added case when `providerName` has 
+value `"Devart.Data.Oracle.Entity.EFCore"` ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
+
 ## 1.10.0-beta.1
 
 Released 2024-Dec-09
