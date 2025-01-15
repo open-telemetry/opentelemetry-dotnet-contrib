@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.10.0-rc.2
+
+Released 2025-Jan-15
+
 * Context propagation data is always added to SQS and SNS requests regardless of
   sampling decision. This enables downstream services to make consistent sampling
   decisions and prevents incomplete traces.
