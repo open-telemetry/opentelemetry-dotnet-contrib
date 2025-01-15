@@ -3,7 +3,9 @@
 
 using System.Diagnostics;
 using System.Net;
+#if NET8_0_OR_GREATER
 using System.Net.Sockets;
+#endif
 using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
