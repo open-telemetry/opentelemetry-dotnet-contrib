@@ -94,6 +94,14 @@ public class AspNetCoreTraceInstrumentationOptions
     public bool RecordException { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether SignalR activities are recorded.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to true.
+    /// </remarks>
+    public bool EnableAspNetCoreSignalRSupport { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether RPC attributes are added to an Activity when using Grpc.AspNetCore.
     /// </summary>
     /// <remarks>
