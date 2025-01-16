@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+
 * Added case when `providerName` has
   value `Devart.Data.Oracle.Entity.EFCore`.
   ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))

@@ -6,8 +6,8 @@
   The lowest supported version is .NET Framework 4.6.2.
   ([#1050](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1050))
 
-* Updated OpenTelemetry core component version(s) to `1.10.0`.
-  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
 
 ## 1.0.3
 
