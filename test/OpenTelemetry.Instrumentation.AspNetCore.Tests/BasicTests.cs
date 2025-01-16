@@ -1178,7 +1178,7 @@ public sealed class BasicTests
         void ConfigureTestServices(IServiceCollection services)
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
-                .AddAspNetCoreInstrumentation(o => o.DisableAspNetCoreSignalRSupport = true)
+                .AddAspNetCoreInstrumentation(o => o.EnableAspNetCoreSignalRSupport = false)
                 .AddInMemoryExporter(exportedItems)
                 .Build();
         }
