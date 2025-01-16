@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+
+* Attribute `db.system` reports `oracle` when
+  `Devart.Data.Oracle.Entity.EFCore` is used a provider.
+  ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
+  
 * Added code to fix exception thrown when Devart Oracle is used
 (`this.commandTypeFetcher.Fetch(command)`). If Devart Oracle is used,
 the SQL statement will be extracted from the payload.
