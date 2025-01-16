@@ -8,7 +8,7 @@
 * Attribute `db.system` reports `oracle` when
   `Devart.Data.Oracle.Entity.EFCore` is used a provider.
   ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
-  
+
 * Correctly report `db.statement`/`db.query.text` when
   Devart Oracle is used as a provider.
   ([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
