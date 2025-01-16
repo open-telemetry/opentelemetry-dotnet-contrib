@@ -5,8 +5,8 @@
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 
-* Updated OpenTelemetry core component version(s) to `1.10.0`.
-  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
 
 ## 1.5.1-alpha.1
 

@@ -14,5 +14,5 @@
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2198))
 
-* Updated OpenTelemetry core component version(s) to `1.10.0`.
-  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
