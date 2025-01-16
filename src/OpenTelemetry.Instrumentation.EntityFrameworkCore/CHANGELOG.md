@@ -9,10 +9,9 @@
   `Devart.Data.Oracle.Entity.EFCore` is used a provider.
   ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
   
-* Added code to fix exception thrown when Devart Oracle is used
-(`this.commandTypeFetcher.Fetch(command)`). If Devart Oracle is used,
-the SQL statement will be extracted from the payload.
-([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
+* Correctly report `db.statement`/`db.query.text` when
+  Devart Oracle is used as a provider.
+  ([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
 
 ## 1.10.0-beta.1
 
