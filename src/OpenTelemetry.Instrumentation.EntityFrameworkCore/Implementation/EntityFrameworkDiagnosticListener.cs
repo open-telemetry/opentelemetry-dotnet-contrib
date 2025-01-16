@@ -203,14 +203,44 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         if (command.GetType().FullName?.Contains("Devart.Data.Oracle") == true)
                         {
                             string payloadString = payload?.ToString() ?? string.Empty;
-                            if ((payloadString.Contains("CommandType='Text'") && this.options.SetDbStatementForText) ||
-                               (payloadString.Contains("CommandType='StoredProcedure'") && this.options.SetDbStatementForStoredProcedure))
+                            string[] result = payloadString.Split([Environment.NewLine], 2, StringSplitOptions.None);
+                            string commandText = result.Length > 1 ? result[1] : payloadString;
+
+                            if (payloadString.Contains("CommandType='Text'"))
                             {
-                                string[] result = payloadString.Split(['\n'], 2);
-                                if (result.Length > 1)
+                                if (this.options.SetDbStatementForText)
                                 {
-                                    activity.AddTag(AttributeDbStatement, result[1]);
+                                    if (this.options.EmitOldAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbStatement, commandText);
+                                    }
+
+                                    if (this.options.EmitNewAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                    }
                                 }
+                            }
+                            else if (payloadString.Contains("CommandType='StoredProcedure'"))
+                            {
+                                if (this.options.SetDbStatementForText)
+                                {
+                                    if (this.options.EmitOldAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbStatement, commandText);
+                                    }
+
+                                    if (this.options.EmitNewAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                    }
+                                }
+                            }
+                            else if (payloadString.Contains("CommandType='TableDirect'"))
+                            {
+                            }
+                            else
+                            {
                             }
                         }
                         else if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
