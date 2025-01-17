@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed the `server.address` field in EntityFrameworkCore spans to populate
+  with the server domain name without the `tcp` prefix.
+  ([#2439](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2439))
+
 * Updated OpenTelemetry core component version(s) to `1.11.0`.
   ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
 
