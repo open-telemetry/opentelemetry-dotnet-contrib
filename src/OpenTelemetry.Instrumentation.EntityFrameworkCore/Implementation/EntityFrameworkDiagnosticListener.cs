@@ -110,6 +110,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "Oracle.EntityFrameworkCore":
                             case "Devart.Data.Oracle.EFCore":
+                            case "Devart.Data.Oracle.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":

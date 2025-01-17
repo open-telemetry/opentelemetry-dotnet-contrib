@@ -2,11 +2,15 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.11.0`.
+  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+
 ## 1.10.0-rc.1
 
 Released 2025-Jan-06
 
 * BREAKING: Change default Semantic Convention to 1.28
+
 * BREAKING: Remove option to use Legacy semantic conventions (the old default)
 
 ## 1.10.0-beta.1
