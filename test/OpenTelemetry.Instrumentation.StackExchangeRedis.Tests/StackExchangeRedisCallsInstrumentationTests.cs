@@ -417,17 +417,19 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         if (endPoint is IPEndPoint ipEndPoint)
         {
-            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
         else if (endPoint is DnsEndPoint dnsEndPoint)
         {
-            Assert.Equal(dnsEndPoint.Host, activity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(dnsEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(dnsEndPoint.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(dnsEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
         else
         {
-            Assert.Equal(endPoint.ToString(), activity.GetTagValue(SemanticConventions.AttributePeerService));
+            var tags = activity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            Assert.DoesNotContain(SemanticConventions.AttributeServerAddress, tags.Keys);
+            Assert.DoesNotContain(SemanticConventions.AttributeServerPort, tags.Keys);
         }
     }
 

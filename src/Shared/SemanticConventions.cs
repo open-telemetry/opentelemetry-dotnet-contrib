@@ -25,8 +25,6 @@ internal static class SemanticConventions
     public const string AttributeEnduserRole = "enduser.role";
     public const string AttributeEnduserScope = "enduser.scope";
 
-    public const string AttributePeerService = "peer.service";
-
     public const string AttributeHttpMethod = "http.method";
     public const string AttributeHttpUrl = "http.url";
     public const string AttributeHttpTarget = "http.target";
@@ -115,6 +113,11 @@ internal static class SemanticConventions
     public const string AttributeServerAddress = "server.address"; // replaces: "net.host.name" (AttributeNetHostName)
     public const string AttributeServerPort = "server.port"; // replaces: "net.host.port" (AttributeNetHostPort)
     public const string AttributeUserAgentOriginal = "user_agent.original"; // replaces: http.user_agent (AttributeHttpUserAgent)
+
+    // v1.23.0 Database spans
+    // https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/database/database-spans.md
+    public const string AttributeNetworkPeerAddress = "network.peer.address"; // replaces: "net.peer.ip" (AttributeNetPeerIp)
+    public const string AttributeNetworkPeerPort = "network.peer.port"; // replaces: "net.peer.port" (AttributeNetPeerPort)
 
     // v1.24.0 Messaging spans
     // https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/messaging/messaging-spans.md
