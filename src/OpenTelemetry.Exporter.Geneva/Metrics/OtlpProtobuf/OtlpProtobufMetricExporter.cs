@@ -9,11 +9,9 @@ namespace OpenTelemetry.Exporter.Geneva;
 
 internal sealed class OtlpProtobufMetricExporter : IDisposable
 {
-    private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
-
     private readonly OtlpProtobufSerializer otlpProtobufSerializer;
 
-    private readonly Func<Resource> getResource;
+    private Func<Resource>? getResource;
 
     public OtlpProtobufMetricExporter(
         Func<Resource> getResource,
@@ -25,10 +23,11 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
         Debug.Assert(getResource != null, "getResource was null");
         Debug.Assert(transport != null, "transport was null");
 
-        this.getResource = getResource!;
+        this.getResource = getResource;
 
         this.otlpProtobufSerializer = new OtlpProtobufSerializer(
             transport!,
+            new byte[GenevaMetricExporter.BufferSize],
             metricsAccount,
             metricsNamespace,
             prepopulatedMetricDimensions,
@@ -39,7 +38,14 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
     {
         try
         {
-            return this.otlpProtobufSerializer.SerializeAndSendMetrics(this.buffer, this.getResource(), batch);
+            if (this.getResource is { } getResource)
+            {
+                var resource = getResource();
+                this.otlpProtobufSerializer.InitializeResource(resource);
+                this.getResource = null;
+            }
+
+            return this.otlpProtobufSerializer.SerializeAndSendMetrics(batch);
         }
         catch (Exception ex)
         {
