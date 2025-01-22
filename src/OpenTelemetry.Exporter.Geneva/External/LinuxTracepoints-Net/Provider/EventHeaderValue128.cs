@@ -11,7 +11,7 @@ namespace Microsoft.LinuxTracepoints.Provider
     /// that needs to be used as a field in an EventHeader event.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct EventHeaderValue128
+    internal struct EventHeaderValue128
     {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public byte Byte0;
