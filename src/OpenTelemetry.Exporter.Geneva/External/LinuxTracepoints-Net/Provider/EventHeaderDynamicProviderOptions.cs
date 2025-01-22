@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+#nullable enable
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 namespace Microsoft.LinuxTracepoints.Provider;
@@ -8,7 +10,7 @@ using System;
 /// <summary>
 /// Options used when creating an <see cref="EventHeaderDynamicProvider"/>.
 /// </summary>
-public class EventHeaderDynamicProviderOptions
+internal class EventHeaderDynamicProviderOptions
 {
     private string groupName = "";
 
@@ -30,7 +32,7 @@ public class EventHeaderDynamicProviderOptions
 
         set
         {
-            foreach (var ch  in value)
+            foreach (var ch in value)
             {
                 if ((ch < 'a' || ch > 'z') && (ch < '0' || ch > '9'))
                 {

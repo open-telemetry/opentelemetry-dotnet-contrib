@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+#nullable enable
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 namespace Microsoft.LinuxTracepoints.Provider;
@@ -30,7 +32,7 @@ using EventLevel = System.Diagnostics.Tracing.EventLevel;
 /// Call provider.Dispose() at component cleanup to unregister all tracepoints.
 /// </item></list>
 /// </summary>
-public class EventHeaderDynamicProvider : IDisposable
+internal class EventHeaderDynamicProvider : IDisposable
 {
     private const int EventHeaderNameMax = 256; // includes nul
     private const int SuffixMax = 21; // "_LffKffffffffffffffff"

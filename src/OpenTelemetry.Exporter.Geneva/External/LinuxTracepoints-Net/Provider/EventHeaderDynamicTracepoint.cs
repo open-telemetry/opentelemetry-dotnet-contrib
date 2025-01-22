@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+#nullable enable
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 namespace Microsoft.LinuxTracepoints.Provider;
@@ -34,7 +36,7 @@ using EventLevel = System.Diagnostics.Tracing.EventLevel;
 /// RegisterResult property.
 /// </item></list>
 /// </summary>
-public sealed class EventHeaderDynamicTracepoint : IDisposable
+internal sealed class EventHeaderDynamicTracepoint : IDisposable
 {
     private readonly TracepointHandle handle;
 

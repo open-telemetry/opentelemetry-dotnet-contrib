@@ -1,4 +1,6 @@
-﻿namespace Microsoft.LinuxTracepoints.Provider
+#nullable enable
+
+namespace Microsoft.LinuxTracepoints.Provider
 {
     using System;
     using System.Runtime.CompilerServices;
@@ -39,7 +41,7 @@
         {
             if (source.Length < 16)
             {
-                throw new ArgumentOutOfRangeException(nameof(source), nameof(source) +  ".Length < 16");
+                throw new ArgumentOutOfRangeException(nameof(source), nameof(source) + ".Length < 16");
             }
 
             Unsafe.CopyBlockUnaligned(ref this.Byte0, ref MemoryMarshal.GetReference(source), 16);

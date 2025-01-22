@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+#nullable enable
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 namespace Microsoft.LinuxTracepoints.Provider;
@@ -37,7 +39,7 @@ using MemoryMarshal = System.Runtime.InteropServices.MemoryMarshal;
 /// so that they can be used by the next builder.
 /// </para>
 /// </remarks>
-public class EventHeaderDynamicBuilder : IDisposable
+internal class EventHeaderDynamicBuilder : IDisposable
 {
     private const uint SizeOfGuid = 16;
     private const EventHeaderFieldEncoding VArrayFlag = EventHeaderFieldEncoding.VArrayFlag;
