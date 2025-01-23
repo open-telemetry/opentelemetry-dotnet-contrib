@@ -33,7 +33,7 @@
     <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.2,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.6.8,2.0)</WiremockNetPkgVer>
+    <WiremockNetPkgVer>[1.7.0,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
