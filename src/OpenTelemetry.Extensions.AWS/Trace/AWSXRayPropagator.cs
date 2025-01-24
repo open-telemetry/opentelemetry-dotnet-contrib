@@ -37,6 +37,8 @@ public class AWSXRayPropagator : TextMapPropagator
     private const char SampledValue = '1';
     private const char NotSampledValue = '0';
 
+    private const string LineageKey = "Lineage";
+
     /// <inheritdoc/>
     public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
 
@@ -71,7 +73,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
             var parentHeader = parentTraceHeader.First();
 
-            return !TryParseXRayTraceHeader(parentHeader, out var newActivityContext) ? context : new PropagationContext(newActivityContext, context.Baggage);
+            return !TryParseXRayTraceHeader(context, parentHeader, out var newActivityContext, out var baggage) ? context : new PropagationContext(newActivityContext, baggage);
         }
         catch (Exception ex)
         {
@@ -143,10 +145,21 @@ public class AWSXRayPropagator : TextMapPropagator
         sb.Append(KeyValueDelimiter);
         sb.Append((context.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0 ? SampledValue : NotSampledValue);
 
+        Baggage baggage = context.Baggage;
+        string lineageV2Header = baggage.GetBaggage(LineageKey);
+
+        if (lineageV2Header != null)
+        {
+            sb.Append(TraceHeaderDelimiter);
+            sb.Append(LineageKey);
+            sb.Append(KeyValueDelimiter);
+            sb.Append(lineageV2Header);
+        }
+
         setter(carrier, AWSXRayTraceHeaderKey, sb.ToString());
     }
 
-    internal static bool TryParseXRayTraceHeader(string rawHeader, out ActivityContext activityContext)
+    internal static bool TryParseXRayTraceHeader(PropagationContext context, string rawHeader, out ActivityContext activityContext, out Baggage baggage)
     {
         // from https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-tracingheader
         // rawHeader format: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
@@ -155,11 +168,14 @@ public class AWSXRayPropagator : TextMapPropagator
         ReadOnlySpan<char> traceId = default;
         ReadOnlySpan<char> parentId = default;
         char traceOptions = default;
+        baggage = default;
 
         if (string.IsNullOrEmpty(rawHeader))
         {
             return false;
         }
+
+        baggage = context.Baggage;
 
         var header = rawHeader.AsSpan();
         while (header.Length > 0)
@@ -211,6 +227,10 @@ public class AWSXRayPropagator : TextMapPropagator
                 }
 
                 traceOptions = sampleDecision;
+            }
+            else if (trimmedPart.StartsWith(LineageKey.AsSpan()))
+            {
+                baggage = baggage.SetBaggage(LineageKey, value.ToString());
             }
         }
 
