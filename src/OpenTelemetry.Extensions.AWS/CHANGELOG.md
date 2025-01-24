@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for Lambda lineage in X-Ray propagator.
+  ([#2480](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2480))
+
 ## 1.10.0-rc.1
 
 Released 2025-Jan-06
