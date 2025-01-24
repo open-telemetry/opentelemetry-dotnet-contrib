@@ -151,7 +151,7 @@ public class AWSXRayPropagator : TextMapPropagator
         sb.Append((context.ActivityContext.TraceFlags & ActivityTraceFlags.Recorded) != 0 ? SampledValue : NotSampledValue);
 
         Baggage baggage = context.Baggage;
-        string lineageV2Header = baggage.GetBaggage(LineageKey);
+        string? lineageV2Header = baggage.GetBaggage(LineageKey);
 
         if (lineageV2Header != null)
         {
