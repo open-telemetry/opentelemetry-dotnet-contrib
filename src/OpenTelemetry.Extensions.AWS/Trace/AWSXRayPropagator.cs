@@ -173,15 +173,13 @@ public class AWSXRayPropagator : TextMapPropagator
         ReadOnlySpan<char> traceId = default;
         ReadOnlySpan<char> parentId = default;
         char traceOptions = default;
-        baggage = default;
+        baggage = context.Baggage;
 
         if (string.IsNullOrEmpty(rawHeader))
         {
             return false;
         }
-
-        baggage = context.Baggage;
-
+        
         var header = rawHeader.AsSpan();
         while (header.Length > 0)
         {
