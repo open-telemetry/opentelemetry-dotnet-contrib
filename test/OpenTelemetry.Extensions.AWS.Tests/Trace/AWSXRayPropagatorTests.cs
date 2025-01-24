@@ -16,6 +16,7 @@ public class AWSXRayPropagatorTests
     private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string ParentId = "53995c3f42cd8ad8";
+    private const string LineageId = "100:e3b0c442:11";
 
     private static readonly string[] Empty = [];
 
@@ -115,6 +116,21 @@ public class AWSXRayPropagatorTests
     }
 
     [Fact]
+    public void TestInjectTraceHeaderWithLineage()
+    {
+        var carrier = new Dictionary<string, string>();
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        var baggage = Baggage.Create(new Dictionary<string, string> { { "Lineage", LineageId } });
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, baggage), carrier, Setter);
+
+        Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
+        Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;Lineage=100:e3b0c442:11", carrier[AWSXRayTraceHeaderKey]);
+    }
+
+    [Fact]
     public void TestExtractTraceHeader()
     {
         var carrier = new Dictionary<string, string>()
@@ -157,6 +173,52 @@ public class AWSXRayPropagatorTests
         var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
 
         Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithLineage()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;Lineage=100:e3b0c442:11" },
+        };
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.Recorded;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+        var baggage = Baggage.Create(new Dictionary<string, string> { { "Lineage", LineageId } });
+
+        Assert.Equal(new PropagationContext(activityContext, baggage), this.awsXRayPropagator.Extract(default, carrier, Getter));
+    }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithInvalidLineage()
+    {
+        var invalidLineages = new List<string>
+        {
+            string.Empty,
+            "::",
+            "1::",
+            "1::1",
+            "1:badc0de:13",
+            ":fbadc0de:13",
+            "65535:fbadc0de:255",
+        };
+
+        foreach (var invalidLineage in invalidLineages)
+        {
+            var carrier = new Dictionary<string, string>()
+            {
+                { AWSXRayTraceHeaderKey, $"Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1;Lineage={invalidLineage}" },
+            };
+
+            var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+            var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+            var traceFlags = ActivityTraceFlags.Recorded;
+            var activityContext = new ActivityContext(traceId, parentId, traceFlags, isRemote: true);
+
+            Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
+        }
     }
 
     [Fact]
