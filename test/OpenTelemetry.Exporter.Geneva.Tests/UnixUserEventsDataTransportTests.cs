@@ -7,12 +7,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-[Trait("CategoryName", "Geneva:user_events:metrics")]
+[Trait("CategoryName", "Geneva:user_events")]
 public class UnixUserEventsDataTransportTests
 {
     /*
@@ -26,7 +27,7 @@ public class UnixUserEventsDataTransportTests
      *     these tests do).
      *
      *  Command:
-     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events:metrics
+     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events
      *
      * How these tests work:
      *

@@ -5,7 +5,7 @@
 
 using Microsoft.LinuxTracepoints.Provider;
 
-namespace OpenTelemetry.Exporter.Geneva;
+namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal sealed class UnixUserEventsDataTransport : IDisposable
 {
