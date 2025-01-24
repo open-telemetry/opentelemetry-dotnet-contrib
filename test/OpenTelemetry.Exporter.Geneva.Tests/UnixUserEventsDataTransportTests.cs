@@ -50,7 +50,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -114,7 +114,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -144,8 +144,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    // [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
-    [Fact]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Logs_Success_Linux()
     {
         EnsureUserEventsEnabled();
