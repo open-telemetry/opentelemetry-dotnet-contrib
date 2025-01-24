@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using OpenTelemetry.Context.Propagation;
 
 namespace OpenTelemetry.Extensions.AWS.Trace;
@@ -38,6 +39,10 @@ public class AWSXRayPropagator : TextMapPropagator
     private const char NotSampledValue = '0';
 
     private const string LineageKey = "Lineage";
+    private const string LineageDelimiter = ":";
+    private const int LineageHashLength = 8;
+    private const int LineageMaxRequestCounter = 255;
+    private const int LineageMaxLoopCounter = 32767;
 
     /// <inheritdoc/>
     public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
@@ -230,7 +235,10 @@ public class AWSXRayPropagator : TextMapPropagator
             }
             else if (trimmedPart.StartsWith(LineageKey.AsSpan()))
             {
-                baggage = baggage.SetBaggage(LineageKey, value.ToString());
+                if (IsLineageIdValid(value.ToString()))
+                {
+                    baggage = baggage.SetBaggage(LineageKey, value.ToString());
+                }
             }
         }
 
@@ -324,6 +332,33 @@ public class AWSXRayPropagator : TextMapPropagator
         result = tempChar;
 
         return true;
+    }
+
+    internal static bool IsLineageIdValid(string lineageId)
+    {
+        var lineageSubstrings = lineageId.Split(LineageDelimiter);
+        if (lineageSubstrings.Length != 3)
+        {
+            return false;
+        }
+
+        if (!int.TryParse(lineageSubstrings[0], out var requestCounter))
+        {
+            return false;
+        }
+
+        var hashedResourceId = lineageSubstrings[1];
+
+        if (!int.TryParse(lineageSubstrings[2], out var loopCounter))
+        {
+            return false;
+        }
+
+        var isValidKey = hashedResourceId.Length == LineageHashLength && Regex.IsMatch(hashedResourceId, "^[0-9a-fA-F]+$");
+        var isValidRequestCounter = requestCounter >= 0 && requestCounter <= LineageMaxRequestCounter;
+        var isValidLoopCounter = loopCounter >= 0 && loopCounter <= LineageMaxLoopCounter;
+
+        return isValidKey && isValidRequestCounter && isValidLoopCounter;
     }
 
     internal static string ToXRayTraceIdFormat(string traceId)
