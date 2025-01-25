@@ -116,6 +116,7 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     {
         long address = 1;
         var port = 2;
+        var ip = $"{address}.0.0.0";
 
         var activity = new Activity("redis-profiler");
         var ipLocalEndPoint = new IPEndPoint(address, port);
@@ -124,10 +125,14 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-        Assert.Equal($"{address}.0.0.0", result.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(ip, result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(ip, result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
+        Assert.Equal(port, result.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
     }
 
     [Fact]
@@ -141,10 +146,10 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
-        Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(dnsEndPoint.Host, result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerPort));
+        Assert.Equal(dnsEndPoint.Port, result.GetTagValue(SemanticConventions.AttributeServerPort));
     }
 
 #if !NETFRAMEWORK
@@ -158,8 +163,10 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributePeerService));
-        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributePeerService));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(unixEndPoint.ToString(), result.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
     }
 #endif
 }

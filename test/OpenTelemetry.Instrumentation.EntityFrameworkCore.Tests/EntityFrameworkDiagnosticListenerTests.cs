@@ -200,6 +200,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [InlineData("Devart.Data.PostgreSql.EFCore")]
     [InlineData("Oracle.EntityFrameworkCore")]
     [InlineData("Devart.Data.Oracle.EFCore")]
+    [InlineData("Devart.Data.Oracle.Entity.EFCore")]
     [InlineData("Microsoft.EntityFrameworkCore.InMemory")]
     [InlineData("FirebirdSql.EntityFrameworkCore.Firebird")]
     [InlineData("FileContextCore")]
