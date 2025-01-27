@@ -39,7 +39,7 @@ public class AWSXRayPropagator : TextMapPropagator
     private const char NotSampledValue = '0';
 
     private const string LineageKey = "Lineage";
-    private const string LineageDelimiter = ":";
+    private const char LineageDelimiter = ':';
     private const int LineageHashLength = 8;
     private const int LineageMaxRequestCounter = 255;
     private const int LineageMaxLoopCounter = 32767;
@@ -179,7 +179,7 @@ public class AWSXRayPropagator : TextMapPropagator
         {
             return false;
         }
-        
+
         var header = rawHeader.AsSpan();
         while (header.Length > 0)
         {
