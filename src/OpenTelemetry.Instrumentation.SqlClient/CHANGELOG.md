@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
 * **Breaking change** The `EnableConnectionLevelAttributes` option has been removed.
   ([#2414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2414))
 
