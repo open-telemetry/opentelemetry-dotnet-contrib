@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -9,11 +10,14 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestRulesCache
 {
+    private Resource resource = ResourceBuilder.CreateEmpty().Build();
+    private AWSSemanticConventions semConv = new();
+
     [Fact]
     public void TestExpiredRulesCache()
     {
         var testClock = new TestClock(new DateTime(2023, 4, 15));
-        var rulesCache = new RulesCache(testClock, "testId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOnSampler());
+        var rulesCache = new RulesCache(this.semConv, testClock, "testId", this.resource, new AlwaysOnSampler());
 
         // advance the clock by 2 hours
         testClock.Advance(TimeSpan.FromHours(2));
@@ -34,11 +38,11 @@ public class TestRulesCache
             BorrowCount = 5,
         };
 
-        var cache = new RulesCache(clock, "test", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var cache = new RulesCache(this.semConv, clock, "test", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new("testId", clock, defaultRule, stats) },
+                { new(this.semConv, "testId", clock, defaultRule, stats) },
             },
         };
 
@@ -63,12 +67,12 @@ public class TestRulesCache
         var clock = new TestClock();
 
         // set up rule cache with 2 rules
-        var rulesCache = new RulesCache(clock, "test", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var rulesCache = new RulesCache(this.semConv, clock, "test", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new("testId", clock, this.CreateDefaultRule(1, 0.05), null) },
-                { new("testId", clock, this.CreateRule("Rule1", 5, 0.20, 1), null) },
+                { new(this.semConv, "testId", clock, this.CreateDefaultRule(1, 0.05), null) },
+                { new(this.semConv, "testId", clock, this.CreateRule("Rule1", 5, 0.20, 1), null) },
             },
         };
 
@@ -86,12 +90,12 @@ public class TestRulesCache
     public void TestShouldSampleMatchesExactRule()
     {
         var clock = new TestClock();
-        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var rulesCache = new RulesCache(this.semConv, clock, "clientId", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new("clientId", clock, this.CreateRule("ruleWillMatch", 1, 0.0, 1), new Statistics()) }, // higher priority rule will sample
-                { new("clientId", clock, this.CreateRule("ruleWillNotMatch", 0, 0.0, 2), new Statistics()) }, // this rule will not sample
+                { new(this.semConv, "clientId", clock, this.CreateRule("ruleWillMatch", 1, 0.0, 1), new Statistics()) }, // higher priority rule will sample
+                { new(this.semConv, "clientId", clock, this.CreateRule("ruleWillNotMatch", 0, 0.0, 2), new Statistics()) }, // this rule will not sample
             },
         };
 
@@ -114,7 +118,7 @@ public class TestRulesCache
     public void TestFallbackSamplerMatchesWhenNoRules()
     {
         var clock = new TestClock();
-        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var rulesCache = new RulesCache(this.semConv, clock, "clientId", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = [],
         };
@@ -127,12 +131,12 @@ public class TestRulesCache
     public void TestUpdateTargets()
     {
         var clock = new TestClock();
-        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var rulesCache = new RulesCache(this.semConv, clock, "clientId", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) }, // this rule will sample 1 req/sec
-                { new("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+                { new(this.semConv, "clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) }, // this rule will sample 1 req/sec
+                { new(this.semConv, "clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
             },
         };
 
@@ -175,12 +179,12 @@ public class TestRulesCache
     public void TestNextTargetFetchTime()
     {
         var clock = new TestClock();
-        var rulesCache = new RulesCache(clock, "clientId", ResourceBuilder.CreateEmpty().Build(), new AlwaysOffSampler())
+        var rulesCache = new RulesCache(this.semConv, clock, "clientId", this.resource, new AlwaysOffSampler())
         {
             RuleAppliers = new List<SamplingRuleApplier>
             {
-                { new("clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
-                { new("clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
+                { new(this.semConv, "clientId", clock, this.CreateRule("rule1", 1, 0.0, 1), new Statistics()) },
+                { new(this.semConv, "clientId", clock, this.CreateRule("rule2", 0, 0.0, 2), new Statistics()) },
             },
         };
 

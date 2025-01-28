@@ -4,12 +4,16 @@
 using System.ComponentModel;
 using System.Diagnostics;
 
+using OpenTelemetry.Trace;
+
 #if INSTRUMENTATION_AWSLAMBDA
 using OpenTelemetry.Instrumentation.AWSLambda;
 #elif INSTRUMENTATION_AWS
 using OpenTelemetry.Instrumentation.AWS;
 #elif RESOURCES_AWS
 using OpenTelemetry.Resources.AWS;
+#elif SAMPLER_AWS
+using OpenTelemetry.Sampler.AWS;
 #endif
 
 // disable Style Warnings to improve readability of this specific file.
@@ -79,6 +83,9 @@ internal partial class AWSSemanticConventions
     /// <inheritdoc cref="TagBuilderImpl"/>
     public TagBuilderImpl TagBuilder { get; }
 
+    /// <inheritdoc cref="TagBuilderImpl"/>
+    public TagReaderImpl TagReader { get; }
+
     /// <inheritdoc cref="AWSSemanticConventions"/>
     /// <param name="semanticConventionVersion">
     /// Sets the <see cref="SemanticConventionVersion"/> that will be used to resolve attribute names.
@@ -89,6 +96,7 @@ internal partial class AWSSemanticConventions
         this.AttributeBuilder = new(this);
         this.ParameterMappingBuilder = new(this);
         this.TagBuilder = new(this);
+        this.TagReader = new(this);
     }
 
     /// <summary>
@@ -422,6 +430,44 @@ internal partial class AWSSemanticConventions
         #endregion
     }
 
+    /// <summary>
+    /// Reads Tags from <see cref="SamplingParameters"/>.
+    /// </summary>
+    public class TagReaderImpl
+    {
+        private readonly AWSSemanticConventions awsSemanticConventions;
+
+        public TagReaderImpl(AWSSemanticConventions semanticConventions)
+        {
+            this.awsSemanticConventions = semanticConventions;
+        }
+
+        #region HTTP
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeHttpRequestMethod"/>
+        public bool TryReadAttributeHttpRequestMethod(SamplingParameters samplingParameters, out string value) =>
+            this.awsSemanticConventions.TryReadTag(samplingParameters, x => x.AttributeHttpRequestMethod, out value);
+        #endregion
+
+        #region URL
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeUrlPath"/>
+        public bool TryReadAttributeUrlPath(SamplingParameters samplingParameters, out string value) =>
+            this.awsSemanticConventions.TryReadTag(samplingParameters, x => x.AttributeUrlPath, out value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeUrlFull"/>
+        public bool TryReadAttributeUrlFull(SamplingParameters samplingParameters, out string value) =>
+            this.awsSemanticConventions.TryReadTag(samplingParameters, x => x.AttributeUrlFull, out value);
+        #endregion
+
+        #region SERVER
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeServerAddress"/>
+        public bool TryReadAttributeServerAddress(SamplingParameters samplingParameters, out string value) =>
+            this.awsSemanticConventions.TryReadTag(samplingParameters, x => x.AttributeServerAddress, out value);
+        #endregion
+    }
+
     private AttributeBuilderImpl Add(AttributeBuilderImpl attributes, Func<AWSSemanticConventionsBase, string> attributeNameFunc, Func<AWSSemanticConventionsBase, string> valueFunc) =>
         this.Add(attributes, attributeNameFunc, valueFunc(this.GetSemanticConventionVersion()));
 
@@ -461,6 +507,38 @@ internal partial class AWSSemanticConventions
         activity?.SetTag(attributeName, value);
 
         return activity;
+    }
+
+    private bool TryReadTag(SamplingParameters samplingParameters, Func<AWSSemanticConventionsBase, string> attributeNameFunc, out string value)
+    {
+        value = string.Empty;
+
+        if (samplingParameters.Tags == null)
+        {
+            return false;
+        }
+
+        var semanticConventionVersionImpl = this.GetSemanticConventionVersion();
+
+        var attributeName = attributeNameFunc(semanticConventionVersionImpl);
+
+        // if attributeName is empty, exit
+        if (string.IsNullOrEmpty(attributeName))
+        {
+            return false;
+        }
+
+        var matchTag = samplingParameters.Tags?.FirstOrDefault(kvp => kvp.Key.Equals(attributeName, StringComparison.Ordinal));
+
+        if (matchTag?.Value == null)
+        {
+            return false;
+        }
+
+        // found a match
+        value = matchTag.Value.ToString();
+
+        return true;
     }
 
     private ParameterMappingBuilderImpl AddDic(ParameterMappingBuilderImpl dict, Func<AWSSemanticConventionsBase, string> attributeNameFunc, string value)

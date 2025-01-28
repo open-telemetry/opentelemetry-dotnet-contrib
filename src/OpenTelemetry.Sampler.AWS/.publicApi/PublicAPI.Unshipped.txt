@@ -1,9 +1,18 @@
 #nullable enable
 OpenTelemetry.Sampler.AWS.AWSXRayRemoteSampler
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSampler.AWSXRayRemoteSampler(OpenTelemetry.Resources.Resource! resource, System.Action<OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions!>? configure = null) -> void
 OpenTelemetry.Sampler.AWS.AWSXRayRemoteSampler.Dispose() -> void
-OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder
-OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder.Build() -> OpenTelemetry.Trace.Sampler!
-OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder.SetEndpoint(string! endpoint) -> OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder!
-OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder.SetPollingInterval(System.TimeSpan pollingInterval) -> OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder!
 override OpenTelemetry.Sampler.AWS.AWSXRayRemoteSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
-static OpenTelemetry.Sampler.AWS.AWSXRayRemoteSampler.Builder(OpenTelemetry.Resources.Resource! resource) -> OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerBuilder!
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.AWSXRayRemoteSamplerOptions() -> void
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.Endpoint.get -> string!
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.Endpoint.set -> void
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.PollingInterval.get -> System.TimeSpan
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.PollingInterval.set -> void
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.SemanticConventionVersion.get -> OpenTelemetry.Sampler.AWS.SemanticConventionVersion
+OpenTelemetry.Sampler.AWS.AWSXRayRemoteSamplerOptions.SemanticConventionVersion.set -> void
+OpenTelemetry.Sampler.AWS.SemanticConventionVersion
+OpenTelemetry.Sampler.AWS.SemanticConventionVersion.Latest = 0 -> OpenTelemetry.Sampler.AWS.SemanticConventionVersion
+OpenTelemetry.Sampler.AWS.SemanticConventionVersion.V1_28_0 = 1 -> OpenTelemetry.Sampler.AWS.SemanticConventionVersion
+OpenTelemetry.Sampler.AWS.SemanticConventionVersion.V1_29_0 = 2 -> OpenTelemetry.Sampler.AWS.SemanticConventionVersion
+

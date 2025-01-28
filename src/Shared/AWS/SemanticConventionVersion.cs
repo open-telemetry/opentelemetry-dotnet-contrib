@@ -10,6 +10,8 @@ namespace OpenTelemetry.Instrumentation.AWSLambda;
 namespace OpenTelemetry.Instrumentation.AWS;
 #elif RESOURCES_AWS
 namespace OpenTelemetry.Resources.AWS;
+#elif SAMPLER_AWS
+namespace OpenTelemetry.Sampler.AWS;
 #endif
 
 #pragma warning disable CA1707

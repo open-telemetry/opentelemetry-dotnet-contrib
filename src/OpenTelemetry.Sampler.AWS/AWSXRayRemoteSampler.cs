@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.CodeAnalysis;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -17,17 +18,36 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     private static readonly Random Random = new();
     private bool isFallBackEventToWriteSwitch = true;
 
-    [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
-    internal AWSXRayRemoteSampler(Resource resource, TimeSpan pollingInterval, string endpoint, Clock clock)
+    /// <inheritdoc cref="AWSXRayRemoteSampler"/>
+    public AWSXRayRemoteSampler(Resource resource, Action<AWSXRayRemoteSamplerOptions>? configure = null)
+        : this(resource, Clock.GetDefault(), configure)
     {
+    }
+
+    [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
+    internal AWSXRayRemoteSampler(Resource resource, Clock clock, Action<AWSXRayRemoteSamplerOptions>? configure = null)
+    {
+        var options = new AWSXRayRemoteSamplerOptions();
+
+        if (configure != null)
+        {
+            configure(options);
+        }
+
+        if (options.PollingInterval < TimeSpan.Zero)
+        {
+            throw new ArgumentException("Polling interval must be non-negative.");
+        }
+
         this.Resource = resource;
-        this.PollingInterval = pollingInterval;
-        this.Endpoint = endpoint;
+        this.PollingInterval = options.PollingInterval;
+        this.Endpoint = options.Endpoint;
         this.Clock = clock;
         this.ClientId = GenerateClientId();
         this.Client = new AWSXRaySamplerClient(this.Endpoint);
         this.FallbackSampler = new FallbackSampler(this.Clock);
-        this.RulesCache = new RulesCache(this.Clock, this.ClientId, this.Resource, this.FallbackSampler);
+        this.AWSSemanticConventions = new AWSSemanticConventions(options.SemanticConventionVersion);
+        this.RulesCache = new RulesCache(this.AWSSemanticConventions, this.Clock, this.ClientId, this.Resource, this.FallbackSampler);
 
         // upto 5 seconds of jitter for rule polling
         this.RulePollerJitter = TimeSpan.FromMilliseconds(Random.Next(1, 5000));
@@ -50,6 +70,8 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
 
     internal string ClientId { get; set; }
 
+    internal AWSSemanticConventions AWSSemanticConventions { get; set; }
+
     internal Resource Resource { get; set; }
 
     internal string Endpoint { get; set; }
@@ -65,18 +87,6 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     internal TimeSpan PollingInterval { get; set; }
 
     internal Trace.Sampler FallbackSampler { get; set; }
-
-    /// <summary>
-    /// Initializes a <see cref="AWSXRayRemoteSamplerBuilder"/> for the sampler.
-    /// </summary>
-    /// <param name="resource">an instance of <see cref="Resources.Resource"/>
-    /// to identify the service attributes for sampling. This resource should
-    /// be the same as what the OpenTelemetry SDK is configured with.</param>
-    /// <returns>an instance of <see cref="AWSXRayRemoteSamplerBuilder"/>.</returns>
-    public static AWSXRayRemoteSamplerBuilder Builder(Resource resource)
-    {
-        return new AWSXRayRemoteSamplerBuilder(resource);
-    }
 
     /// <inheritdoc/>
     public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)

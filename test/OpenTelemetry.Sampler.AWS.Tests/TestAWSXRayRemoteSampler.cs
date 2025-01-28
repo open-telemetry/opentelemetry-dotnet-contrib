@@ -19,10 +19,14 @@ public class TestAWSXRayRemoteSampler
     {
         var pollingInterval = TimeSpan.FromSeconds(5);
         var endpoint = "http://localhost:3000";
-        var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
-            .SetPollingInterval(pollingInterval)
-            .SetEndpoint(endpoint)
-            .Build();
+        var parentBasedSampler =
+            new AWSXRayRemoteSampler(
+                ResourceBuilder.CreateEmpty().Build(),
+                cfg =>
+                {
+                    cfg.PollingInterval = pollingInterval;
+                    cfg.Endpoint = endpoint;
+                });
 
         var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -37,7 +41,7 @@ public class TestAWSXRayRemoteSampler
     [Fact]
     public void TestSamplerWithDefaults()
     {
-        var parentBasedSampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build()).Build();
+        var parentBasedSampler = new AWSXRayRemoteSampler(ResourceBuilder.CreateEmpty().Build());
 
         var rootSamplerFieldInfo = typeof(ParentBasedSampler).GetField("rootSampler", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -57,11 +61,17 @@ public class TestAWSXRayRemoteSampler
         var mockServer = WireMockServer.Start();
 
         // create sampler
-        var sampler = AWSXRayRemoteSampler.Builder(ResourceBuilder.CreateEmpty().Build())
-            .SetPollingInterval(TimeSpan.FromMilliseconds(10))
-            .SetEndpoint(mockServer.Url!)
-            .SetClock(clock)
-            .Build();
+        var sampler =
+            new AWSXRayRemoteSampler(
+                ResourceBuilder.CreateEmpty().Build(),
+                clock,
+                cfg =>
+                {
+                    cfg.PollingInterval = TimeSpan.FromMilliseconds(10);
+                    cfg.Endpoint = mockServer.Url!;
+                });
+
+        sampler.Clock = clock;
 
         // the sampler will use fallback sampler until rules are fetched.
         Assert.Equal(SamplingDecision.RecordAndSample, this.DoSample(sampler, "cat-service"));

@@ -105,5 +105,8 @@ internal partial class AWSSemanticConventions
         public override string AttributeServiceInstanceID => "service.instance.id";
         public override string AttributeServiceVersion => "service.version";
         public override string ServiceNameValuesAwsElasticBeanstalk => "aws_elastic_beanstalk";
+
+        // URL Attributes
+        public override string AttributeUrlFull { get; } = "url.full";
     }
 }

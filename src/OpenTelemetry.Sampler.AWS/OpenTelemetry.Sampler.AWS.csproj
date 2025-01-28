@@ -7,6 +7,7 @@
     <Description>OpenTelemetry remote sampler for AWS X-Ray.</Description>
     <MinVerTagPrefix>Sampler.AWS-</MinVerTagPrefix>
     <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
+    <DefineConstants>SAMPLER_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -25,7 +26,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
   </ItemGroup>
 
 </Project>

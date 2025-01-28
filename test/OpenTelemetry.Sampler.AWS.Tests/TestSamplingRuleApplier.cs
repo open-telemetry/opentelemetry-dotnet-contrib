@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -8,6 +9,8 @@ namespace OpenTelemetry.Sampler.AWS.Tests;
 
 public class TestSamplingRuleApplier
 {
+    private AWSSemanticConventions semConv = new();
+
     [Fact]
     public void TestRuleMatchesWithAllAttributes()
     {
@@ -33,7 +36,7 @@ public class TestSamplingRuleApplier
             { "faas.id", "arn:aws:lambda:us-west-2:123456789012:function:my-function" },
         };
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_lambda")));
     }
 
@@ -61,7 +64,7 @@ public class TestSamplingRuleApplier
             { "url.full", @"http://127.0.0.1:5000/helloworld" },
         };
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
@@ -84,7 +87,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>();
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.False(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
@@ -107,7 +110,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>();
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ec2")));
     }
 
@@ -133,7 +136,7 @@ public class TestSamplingRuleApplier
             { "url.path", "/helloworld" },
         };
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", string.Empty)));
     }
 
@@ -167,7 +170,7 @@ public class TestSamplingRuleApplier
             { "cat", "meow" },
         };
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.True(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
     }
 
@@ -200,7 +203,7 @@ public class TestSamplingRuleApplier
             { "dog", "bark" },
         };
 
-        var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", new TestClock(), rule, new Statistics());
         Assert.False(applier.Matches(Utils.CreateSamplingParametersWithTags(activityTags), Utils.CreateResource("myServiceName", "aws_ecs")));
     }
 
@@ -223,7 +226,7 @@ public class TestSamplingRuleApplier
             1,
             []);
 
-        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", clock, rule, new Statistics());
 
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
 
@@ -262,7 +265,7 @@ public class TestSamplingRuleApplier
             1,
             []);
 
-        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", clock, rule, new Statistics());
 
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
 
@@ -294,7 +297,7 @@ public class TestSamplingRuleApplier
            1,
            []);
 
-        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", clock, rule, new Statistics());
 
         // sampled by borrowing
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
@@ -330,7 +333,7 @@ public class TestSamplingRuleApplier
            1,
            []);
 
-        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", clock, rule, new Statistics());
 
         // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);
@@ -375,7 +378,7 @@ public class TestSamplingRuleApplier
            1,
            []);
 
-        var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
+        var applier = new SamplingRuleApplier(this.semConv, "clientId", clock, rule, new Statistics());
 
         // no target assigned yet. so borrow 1 from reservoir every second
         Assert.Equal(SamplingDecision.RecordAndSample, applier.ShouldSample(default).Decision);

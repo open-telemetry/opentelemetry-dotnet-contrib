@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -8,8 +9,9 @@ namespace OpenTelemetry.Sampler.AWS;
 
 internal class SamplingRuleApplier
 {
-    public SamplingRuleApplier(string clientId, Clock clock, SamplingRule rule, Statistics? statistics)
+    public SamplingRuleApplier(AWSSemanticConventions semanticConventions, string clientId, Clock clock, SamplingRule rule, Statistics? statistics)
     {
+        this.SemanticConventions = semanticConventions;
         this.ClientId = clientId;
         this.Clock = clock;
         this.Rule = rule;
@@ -40,6 +42,7 @@ internal class SamplingRuleApplier
     }
 
     private SamplingRuleApplier(
+        AWSSemanticConventions semanticConventions,
         string clientId,
         SamplingRule rule,
         Clock clock,
@@ -50,6 +53,7 @@ internal class SamplingRuleApplier
         DateTimeOffset reservoirEndTime,
         DateTimeOffset nextSnapshotTime)
     {
+        this.SemanticConventions = semanticConventions;
         this.ClientId = clientId;
         this.Rule = rule;
         this.RuleName = rule.RuleName;
@@ -61,6 +65,8 @@ internal class SamplingRuleApplier
         this.ReservoirEndTime = reservoirEndTime;
         this.NextSnapshotTime = nextSnapshotTime;
     }
+
+    internal AWSSemanticConventions SemanticConventions { get; set; }
 
     internal string ClientId { get; set; }
 
@@ -85,33 +91,10 @@ internal class SamplingRuleApplier
     // check if this rule applier matches the request
     public bool Matches(SamplingParameters samplingParameters, Resource resource)
     {
-        string? httpTarget = null;
-        string? httpUrl = null;
-        string? httpMethod = null;
-        string? httpHost = null;
-
-        if (samplingParameters.Tags is not null)
-        {
-            foreach (var tag in samplingParameters.Tags)
-            {
-                if (tag.Key.Equals(SemanticConventions.AttributeUrlPath, StringComparison.Ordinal))
-                {
-                    httpTarget = (string?)tag.Value;
-                }
-                else if (tag.Key.Equals(SemanticConventions.AttributeUrlFull, StringComparison.Ordinal))
-                {
-                    httpUrl = (string?)tag.Value;
-                }
-                else if (tag.Key.Equals(SemanticConventions.AttributeHttpRequestMethod, StringComparison.Ordinal))
-                {
-                    httpMethod = (string?)tag.Value;
-                }
-                else if (tag.Key.Equals(SemanticConventions.AttributeHttpHost, StringComparison.Ordinal))
-                {
-                    httpHost = (string?)tag.Value;
-                }
-            }
-        }
+        this.SemanticConventions.TagReader.TryReadAttributeUrlPath(samplingParameters, out var httpTarget);
+        this.SemanticConventions.TagReader.TryReadAttributeUrlFull(samplingParameters, out var httpUrl);
+        this.SemanticConventions.TagReader.TryReadAttributeHttpRequestMethod(samplingParameters, out var httpMethod);
+        this.SemanticConventions.TagReader.TryReadAttributeServerAddress(samplingParameters, out var httpHost);
 
         // URL path may be in either http.target or http.url
         if (httpTarget == null && httpUrl != null)
@@ -210,6 +193,7 @@ internal class SamplingRuleApplier
             : now.Add(AWSXRayRemoteSampler.DefaultTargetInterval);
 
         return new SamplingRuleApplier(
+            this.SemanticConventions,
             this.ClientId,
             this.Rule,
             this.Clock,

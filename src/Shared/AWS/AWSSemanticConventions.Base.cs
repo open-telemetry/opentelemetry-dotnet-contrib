@@ -8,6 +8,8 @@ using OpenTelemetry.Instrumentation.AWS;
 #elif RESOURCES_AWS
 using OpenTelemetry.Resources.AWS;
 #pragma warning disable SA1629
+#elif SAMPLER_AWS
+using OpenTelemetry.Sampler.AWS;
 #endif
 
 namespace OpenTelemetry.AWS;
@@ -705,6 +707,37 @@ internal partial class AWSSemanticConventions
         #endregion
 
         #region URL Attributes
+
+        /// <summary>
+        /// Absolute URL describing a network resource according to <a href="https://www.rfc-editor.org/rfc/rfc3986">RFC3986</a>.
+        /// </summary>
+        /// <remarks>
+        /// For network calls, URL usually has <c>scheme://host[:port][path][?query][#fragment]</c> format, where the fragment
+        /// is not transmitted over HTTP, but if it is known, it SHOULD be included nevertheless.
+        /// <p>
+        /// <c>url.full</c> MUST NOT contain credentials passed via URL in form of <c>https://username:password@www.example.com/</c>.
+        /// In such case username and password SHOULD be redacted and attribute's value SHOULD be <c>https://REDACTED:REDACTED@www.example.com/</c>.
+        /// <p>
+        /// <c>url.full</c> SHOULD capture the absolute URL when it is available (or can be reconstructed).
+        /// <p>
+        /// Sensitive content provided in <c>url.full</c> SHOULD be scrubbed when instrumentations can identify it.
+        /// <p>
+        ///
+        /// Query string values for the following keys SHOULD be redacted by default and replaced by the
+        /// value <c>REDACTED</c>:
+        /// <ul>
+        ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>AWSAccessKeyId</c></a></li>
+        ///   <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RESTAuthentication.html#RESTAuthenticationQueryStringAuth"><c>Signature</c></a></li>
+        ///   <li><a href="https://learn.microsoft.com/azure/storage/common/storage-sas-overview#sas-token"><c>sig</c></a></li>
+        ///   <li><a href="https://cloud.google.com/storage/docs/access-control/signed-urls"><c>X-Goog-Signature</c></a></li>
+        /// </ul>
+        /// <p>
+        /// This list is subject to change over time.
+        /// <p>
+        /// When a query string value is redacted, the query string key SHOULD still be preserved, e.g.
+        /// <c>https://www.example.com/path?color=blue&sig=REDACTED</c>.
+        /// </remarks>
+        public virtual string AttributeUrlFull => string.Empty;
 
         /// <summary>
         /// The <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.3">URI path</a> component.

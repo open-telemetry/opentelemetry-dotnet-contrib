@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -10,11 +11,13 @@ internal class RulesCache : IDisposable
 {
     private const int CacheTTL = 60 * 60; // cache expires 1 hour after the refresh (in sec)
 
+    private readonly AWSSemanticConventions semanticConventions;
     private readonly ReaderWriterLockSlim rwLock;
     private bool isFallBackEventToWriteSwitch = true;
 
-    public RulesCache(Clock clock, string clientId, Resource resource, Trace.Sampler fallbackSampler)
+    public RulesCache(AWSSemanticConventions semanticConventions, Clock clock, string clientId, Resource resource, Trace.Sampler fallbackSampler)
     {
+        this.semanticConventions = semanticConventions;
         this.rwLock = new ReaderWriterLockSlim();
         this.Clock = clock;
         this.ClientId = clientId;
@@ -60,7 +63,7 @@ internal class RulesCache : IDisposable
             // If the ruleApplier already exists in the current list of appliers, then we reuse it.
             var ruleApplier = this.RuleAppliers
                 .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
-                new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
+                new SamplingRuleApplier(this.semanticConventions, this.ClientId, this.Clock, rule, new Statistics());
 
             // update the rule in the applier in case rule attributes have changed
             ruleApplier.Rule = rule;
