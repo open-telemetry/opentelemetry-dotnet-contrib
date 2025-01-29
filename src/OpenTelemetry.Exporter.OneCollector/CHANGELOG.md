@@ -5,6 +5,10 @@
 * Updated OpenTelemetry core component version(s) to `1.11.1`.
   ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
+* Event full name validation can now be bypassed by supplying the
+  `{EventFullName}` attribute on logs.
+  ([#2529](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2529))
+
 ## 1.10.0
 
 Released 2024-Nov-18
