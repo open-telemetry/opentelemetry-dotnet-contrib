@@ -204,6 +204,16 @@ public static class CloudAttributes
         public const string IbmCloudOpenshift = "ibm_cloud_openshift";
 
         /// <summary>
+        /// Compute on Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloudCompute = "oracle_cloud_compute";
+
+        /// <summary>
+        /// Kubernetes Engine (OKE) on Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloudOke = "oracle_cloud_oke";
+
+        /// <summary>
         /// Tencent Cloud Cloud Virtual Machine (CVM).
         /// </summary>
         public const string TencentCloudCvm = "tencent_cloud_cvm";
@@ -253,6 +263,11 @@ public static class CloudAttributes
         /// IBM Cloud.
         /// </summary>
         public const string IbmCloud = "ibm_cloud";
+
+        /// <summary>
+        /// Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloud = "oracle_cloud";
 
         /// <summary>
         /// Tencent Cloud.

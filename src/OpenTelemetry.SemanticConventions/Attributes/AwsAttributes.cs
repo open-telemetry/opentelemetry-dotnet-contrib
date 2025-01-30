@@ -165,6 +165,11 @@ public static class AwsAttributes
     public const string AttributeAwsEksClusterArn = "aws.eks.cluster.arn";
 
     /// <summary>
+    /// The AWS extended request ID as returned in the response header <c>x-amz-id-2</c>.
+    /// </summary>
+    public const string AttributeAwsExtendedRequestId = "aws.extended_request_id";
+
+    /// <summary>
     /// The full invoked ARN as provided on the <c>Context</c> passed to the function (<c>Lambda-Runtime-Invoked-Function-Arn</c> header on the <c>/runtime/invocation/next</c> applicable).
     /// </summary>
     /// <remarks>
@@ -202,7 +207,7 @@ public static class AwsAttributes
     public const string AttributeAwsLogStreamNames = "aws.log.stream.names";
 
     /// <summary>
-    /// The AWS request ID as returned in the response headers <c>x-amz-request-id</c> or <c>x-amz-requestid</c>.
+    /// The AWS request ID as returned in the response headers <c>x-amzn-requestid</c>, <c>x-amzn-request-id</c> or <c>x-amz-request-id</c>.
     /// </summary>
     public const string AttributeAwsRequestId = "aws.request_id";
 
