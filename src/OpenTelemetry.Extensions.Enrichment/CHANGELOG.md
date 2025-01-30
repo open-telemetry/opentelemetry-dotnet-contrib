@@ -8,5 +8,5 @@
 * Drop support for .NET 6 as this target is no longer supported.
   ([#2126](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2126))
 
-* Updated OpenTelemetry core component version(s) to `1.11.0`.
-  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))

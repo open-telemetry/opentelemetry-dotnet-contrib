@@ -8,8 +8,8 @@
   the LogExporter.
   ([#2422](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2422))
 
-* Updated OpenTelemetry core component version(s) to `1.11.0`.
-  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
 ## 1.10.0
 

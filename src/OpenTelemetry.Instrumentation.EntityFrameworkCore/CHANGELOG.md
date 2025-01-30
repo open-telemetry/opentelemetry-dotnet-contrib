@@ -2,16 +2,20 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.11.0`.
-  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+* Correctly report `db.statement`/`db.query.text` when
+  Devart Oracle is used as a provider.
+  ([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
 
 * Attribute `db.system` reports `oracle` when
   `Devart.Data.Oracle.Entity.EFCore` is used a provider.
   ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
 
-* Correctly report `db.statement`/`db.query.text` when
-  Devart Oracle is used as a provider.
-  ([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
 ## 1.10.0-beta.1
 
