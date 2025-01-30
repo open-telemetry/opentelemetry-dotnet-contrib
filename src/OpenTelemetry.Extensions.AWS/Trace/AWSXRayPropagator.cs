@@ -41,8 +41,8 @@ public class AWSXRayPropagator : TextMapPropagator
     private const string LineageKey = "Lineage";
     private const char LineageDelimiter = ':';
     private const int LineageHashLength = 8;
-    private const int LineageMaxRequestCounter = 255;
-    private const int LineageMaxLoopCounter = 32767;
+    private const int LineageMaxCounter1 = 32767;
+    private const int LineageMaxCounter2 = 255;
 
     /// <inheritdoc/>
     public override ISet<string> Fields => new HashSet<string>() { AWSXRayTraceHeaderKey };
@@ -340,23 +340,23 @@ public class AWSXRayPropagator : TextMapPropagator
             return false;
         }
 
-        if (!int.TryParse(lineageSubstrings[0], out var requestCounter))
+        if (!int.TryParse(lineageSubstrings[0], out var lineageCounter1))
         {
             return false;
         }
 
-        var hashedResourceId = lineageSubstrings[1];
+        var hashedString = lineageSubstrings[1];
 
-        if (!int.TryParse(lineageSubstrings[2], out var loopCounter))
+        if (!int.TryParse(lineageSubstrings[2], out var lineageCounter2))
         {
             return false;
         }
 
-        var isValidKey = hashedResourceId.Length == LineageHashLength && Regex.IsMatch(hashedResourceId, "^[0-9a-fA-F]+$");
-        var isValidRequestCounter = requestCounter >= 0 && requestCounter <= LineageMaxRequestCounter;
-        var isValidLoopCounter = loopCounter >= 0 && loopCounter <= LineageMaxLoopCounter;
+        var isValidHash = hashedString.Length == LineageHashLength && Regex.IsMatch(hashedString, "^[0-9a-fA-F]+$");
+        var isValidCounter1 = lineageCounter1 >= 0 && lineageCounter1 <= LineageMaxCounter1;
+        var isValidCounter2 = lineageCounter2 >= 0 && lineageCounter2 <= LineageMaxCounter2;
 
-        return isValidKey && isValidRequestCounter && isValidLoopCounter;
+        return isValidHash && isValidCounter1 && isValidCounter2;
     }
 
     internal static string ToXRayTraceIdFormat(string traceId)

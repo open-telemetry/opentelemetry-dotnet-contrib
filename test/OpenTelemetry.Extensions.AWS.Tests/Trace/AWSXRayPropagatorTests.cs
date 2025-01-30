@@ -202,7 +202,8 @@ public class AWSXRayPropagatorTests
             "1::1",
             "1:badc0de:13",
             ":fbadc0de:13",
-            "65535:fbadc0de:255",
+            "32768:fbadc0de:1",
+            "1:fbadc0de:256",
         };
 
         foreach (var invalidLineage in invalidLineages)
