@@ -6,6 +6,10 @@
   with the server domain name without the `tcp` prefix.
   ([#2439](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2439))
 
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
 * Attribute `db.system` reports `oracle` when
   `Devart.Data.Oracle.Entity.EFCore` is used a provider.
   ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))

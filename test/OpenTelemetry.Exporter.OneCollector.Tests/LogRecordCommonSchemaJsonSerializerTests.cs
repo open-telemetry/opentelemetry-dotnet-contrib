@@ -207,7 +207,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     }
 
     [Fact]
-    public void LogRecordStateValuesJsonTest()
+    public void LogRecordAttributesJsonTest()
     {
         var json = GetLogRecordJson(1, (index, logRecord) =>
         {
@@ -220,6 +220,24 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordAttributesWithEventFullNameJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Attributes = new List<KeyValuePair<string, object?>>
+            {
+                new KeyValuePair<string, object?>("{EventFullName}", "company_Product_EventName"),
+                new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
+                new KeyValuePair<string, object?>("stateKey2", "stateValue2"),
+            };
+        });
+
+        Assert.Equal(
+            """{"ver":"4.0","name":"Company_Product_EventName","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
             json);
     }
 

@@ -12,6 +12,7 @@ internal sealed class EventNameManager
     // Note: OneCollector will silently drop events which have a name less than 4 characters.
     internal const int MinimumEventFullNameLength = 4;
     internal const int MaximumEventFullNameLength = 100;
+
     private static readonly Regex EventNamespaceValidationRegex = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
     private static readonly Regex EventNameValidationRegex = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
@@ -19,6 +20,7 @@ internal sealed class EventNameManager
     private readonly string defaultEventName;
     private readonly IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings;
     private readonly ResolvedEventFullName defaultEventFullName;
+    private readonly Hashtable eventFullNameCache = new(StringComparer.OrdinalIgnoreCase);
 
     public EventNameManager(
         string defaultEventNamespace,
@@ -42,14 +44,42 @@ internal sealed class EventNameManager
 #endif
     }
 
-    // Note: This is exposed for unit tests.
+    // Note: These caches are exposed for unit tests.
     internal Hashtable EventNamespaceCache { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    internal Hashtable EventFullNameCache => this.eventFullNameCache;
 
     public static bool IsEventNamespaceValid(string eventNamespace)
         => EventNamespaceValidationRegex.IsMatch(eventNamespace);
 
     public static bool IsEventNameValid(string eventName)
         => EventNameValidationRegex.IsMatch(eventName);
+
+    public ResolvedEventFullName ResolveEventFullName(
+        string eventFullName)
+    {
+        if (this.eventFullNameCache[eventFullName] is ResolvedEventFullName cachedEventFullName)
+        {
+            return cachedEventFullName;
+        }
+
+        byte[] eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+
+        var resolvedEventFullName = new ResolvedEventFullName(
+            eventFullNameBlob,
+            originalEventNamespace: null,
+            originalEventName: null);
+
+        lock (this.eventFullNameCache)
+        {
+            if (this.eventFullNameCache[eventFullName] is null)
+            {
+                this.eventFullNameCache[eventFullName] = resolvedEventFullName;
+            }
+        }
+
+        return resolvedEventFullName;
+    }
 
     public ResolvedEventFullName ResolveEventFullName(
         string? eventNamespace,
