@@ -5,6 +5,13 @@
 * Updated OpenTelemetry core component version(s) to `1.11.1`.
   ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
+* BREAKING: Change default Semantic Convention to 1.28
+* Introduce `AWSClientInstrumentationOptions.SemanticConventionVersion` which
+  provides a mechanism for developers to opt-in to newer versions of the
+  of the OpenTelemetry Semantic Conventions. Currently, you need to opt-in
+  to these new conventions.
+  ([#2538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2538))
+
 ## 0.1.0-alpha.3
 
 Released 2024-Dec-12
