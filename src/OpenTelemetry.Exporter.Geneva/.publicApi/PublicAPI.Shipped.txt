@@ -5,6 +5,7 @@ OpenTelemetry.Exporter.Geneva.EventNameExportMode.ExportAsPartAName = 1 -> OpenT
 OpenTelemetry.Exporter.Geneva.EventNameExportMode.None = 0 -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.Drop = 0 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
+OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.ExportAsStackTraceString = 2 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode.ExportAsString = 1 -> OpenTelemetry.Exporter.Geneva.ExceptionStackExportMode
 OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>
 OpenTelemetry.Exporter.Geneva.GenevaBaseExporter<T>.GenevaBaseExporter() -> void
