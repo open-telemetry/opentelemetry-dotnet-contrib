@@ -2,8 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.11.0`.
-  ([#2470](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2470))
+## 1.11.0-beta.1
+
+Released 2025-Jan-29
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+* Event full name validation can now be bypassed by supplying `{EventFullName}`
+  as the first attribute on logs.
+  ([#2529](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2529))
 
 ## 1.10.0
 
