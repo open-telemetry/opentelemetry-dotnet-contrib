@@ -4,7 +4,6 @@
 # Please add the entries in alphabetically sorted order
 components:
   src/OpenTelemetry.Exporter.Geneva/:
-    - cijothomas
     - codeblanch
     - rajkumar-rangaraj
   src/OpenTelemetry.Exporter.InfluxDB/:
@@ -91,15 +90,12 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
-    - cijothomas
     - codeblanch
     - rajkumar-rangaraj
   test/OpenTelemetry.Exporter.Geneva.Stress/:
-    - cijothomas
     - codeblanch
     - rajkumar-rangaraj
   test/OpenTelemetry.Exporter.Geneva.Tests/:
-    - cijothomas
     - codeblanch
     - rajkumar-rangaraj
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
