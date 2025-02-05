@@ -7,6 +7,7 @@ components:
     - codeblanch
     - rajkumar-rangaraj
     - xiang17
+    - TimothyMothra
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
   src/OpenTelemetry.Exporter.Instana/:
@@ -94,14 +95,17 @@ components:
     - codeblanch
     - rajkumar-rangaraj
     - xiang17
+    - TimothyMothra
   test/OpenTelemetry.Exporter.Geneva.Stress/:
     - codeblanch
     - rajkumar-rangaraj
     - xiang17
+    - TimothyMothra
   test/OpenTelemetry.Exporter.Geneva.Tests/:
     - codeblanch
     - rajkumar-rangaraj
     - xiang17
+    - TimothyMothra
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
