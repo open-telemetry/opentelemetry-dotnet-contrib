@@ -22,7 +22,7 @@ components:
     - srprash
     - ppittle
   src/OpenTelemetry.Extensions.Enrichment/:
-    - xakep139
+    - evgenyfedorov2
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - ppittle
@@ -119,7 +119,7 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
-    - xakep139
+    - evgenyfedorov2
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
     - ppittle
