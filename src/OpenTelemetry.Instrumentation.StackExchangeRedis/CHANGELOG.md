@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Rename span network attributes to comply with
+  [v1.23.0 of Semantic Conventions for Database Client Calls](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/database/database-spans.md)
+  ([#2468](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2468))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
 ## 1.10.0-beta.1
 
 Released 2024-Dec-09

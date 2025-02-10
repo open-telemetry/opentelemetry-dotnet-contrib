@@ -39,7 +39,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -84,7 +87,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -129,7 +135,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
                    .AddXRayTraceId()
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -176,9 +185,9 @@ public class TestAWSClientInstrumentation
 
     [Fact]
 #if NETFRAMEWORK
-    public void TestSQSSendMessageSuccessful()
+    public void TestSQSSendMessageSuccessfulSampled()
 #else
-    public async Task TestSQSSendMessageSuccessful()
+    public async Task TestSQSSendMessageSuccessfulSampled()
 #endif
     {
         var exportedItems = new List<Activity>();
@@ -186,17 +195,22 @@ public class TestAWSClientInstrumentation
         var parent = new Activity("parent").Start();
         var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
 
+        SendMessageRequest send_msg_req;
+
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
             var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
             var dummyResponse = "{}";
             CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
-            var send_msg_req = new SendMessageRequest
+            send_msg_req = new SendMessageRequest
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
@@ -218,6 +232,65 @@ public class TestAWSClientInstrumentation
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+
+        Assert.Equal(2, send_msg_req.MessageAttributes.Count);
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "traceparent" && kv.Value.StringValue == $"00-{awssdk_activity.TraceId}-{awssdk_activity.SpanId}-01");
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "Custom" && kv.Value.StringValue == "Value");
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestSQSSendMessageSuccessfulNotSampled()
+#else
+    public async Task TestSQSSendMessageSuccessfulNotSampled()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+
+        var parent = new Activity("parent").Start();
+        var requestId = @"fakerequ-esti-dfak-ereq-uestidfakere";
+
+        SendMessageRequest send_msg_req;
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddXRayTraceId()
+                   .SetSampler(new AlwaysOffSampler())
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = "{}";
+            CustomResponses.SetResponse(sqs, dummyResponse, requestId, true);
+            send_msg_req = new SendMessageRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                MessageBody = "Hello from OT",
+            };
+            send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
+#if NETFRAMEWORK
+            sqs.SendMessage(send_msg_req);
+#else
+            await sqs.SendMessageAsync(send_msg_req);
+#endif
+        }
+
+        Assert.Empty(exportedItems);
+
+        Assert.Equal(2, send_msg_req.MessageAttributes.Count);
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "traceparent" && kv.Value.StringValue == $"00-{parent.TraceId}-{parent.SpanId}-00");
+        Assert.Contains(
+            send_msg_req.MessageAttributes,
+            kv => kv.Key == "Custom" && kv.Value.StringValue == "Value");
     }
 
     [Fact]
@@ -235,7 +308,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -276,7 +352,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -317,7 +396,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -358,7 +440,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -399,7 +484,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -440,7 +528,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -487,7 +578,10 @@ public class TestAWSClientInstrumentation
         using (Sdk.CreateTracerProviderBuilder()
                    .AddXRayTraceId()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation()
+                   .AddAWSInstrumentation(o =>
+                   {
+                       o.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -522,7 +616,7 @@ public class TestAWSClientInstrumentation
     private void ValidateDynamoActivityTags(Activity ddb_activity)
     {
         Assert.Equal("DynamoDB.Scan", ddb_activity.DisplayName);
-        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.table_name"));
+        Assert.Equal("SampleProduct", Utils.GetTagValue(ddb_activity, "aws.dynamodb.table_names"));
         Assert.Equal("dynamodb", Utils.GetTagValue(ddb_activity, "db.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(ddb_activity, "rpc.system"));
         Assert.Equal("DynamoDB", Utils.GetTagValue(ddb_activity, "rpc.service"));
@@ -551,7 +645,7 @@ public class TestAWSClientInstrumentation
     {
         Assert.Equal("Bedrock Runtime.InvokeModel", bedrock_activity.DisplayName);
         Assert.Equal("amazon.titan-text-express-v1", Utils.GetTagValue(bedrock_activity, "gen_ai.request.model"));
-        Assert.Equal("aws_bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
+        Assert.Equal("aws.bedrock", Utils.GetTagValue(bedrock_activity, "gen_ai.system"));
         Assert.Equal("aws-api", Utils.GetTagValue(bedrock_activity, "rpc.system"));
         Assert.Equal("Bedrock Runtime", Utils.GetTagValue(bedrock_activity, "rpc.service"));
         Assert.Equal("InvokeModel", Utils.GetTagValue(bedrock_activity, "rpc.method"));

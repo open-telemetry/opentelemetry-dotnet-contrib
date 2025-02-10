@@ -2,7 +2,7 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
+| Stability     |  [Stable](../../README.md#stable)|
 | Code Owners   |  [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@ppittle](https://github.com/ppittle)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
@@ -139,6 +139,45 @@ public class Function
     }
 }
 ```
+
+## Semantic Conventions
+
+_For an overview on Semantic Conventions, see
+[Open Telemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
+
+While this library is intended for production use, it relies on several
+Semantic Conventions that are still considered Experimental, meaning
+they may undergo additional changes before becoming Stable.  This can impact
+the aggregation and analysis of telemetry signals in environments with
+multiple applications or microservices.
+
+For example, a microservice using an older version of the Semantic Conventions
+for Http Attributes may emit `"http.method"` with a value of GET, while a
+different microservice, using a new version of Semantic Convention may instead
+emit the GET as `"http.request.method"`.
+
+Future versions of OpenTelemetry.Instrumentation.AWSLambda library will include
+updates to the Semantic Convention, which may break compatibility with a
+previous version.
+
+The default will remain as `V1_28_0` until the next major version bump.
+
+To opt in to automatic upgrades, you can use `SemanticConventionVersion.Latest`
+or you can specify a specific version:
+
+```csharp
+ using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddAWSLambdaConfigurations(opt =>
+    {
+        // pin to a specific Semantic Convention version
+        opt.SemanticConventionVersion = SemanticConventionVersion.V1_29_0;
+    })
+    .Build()!);
+```
+
+**NOTE:** Once a Semantic Convention becomes Stable,
+OpenTelemetry.Instrumentation.AWSLambda will remain on that version until
+the next major version bump.
 
 ## Reference
 

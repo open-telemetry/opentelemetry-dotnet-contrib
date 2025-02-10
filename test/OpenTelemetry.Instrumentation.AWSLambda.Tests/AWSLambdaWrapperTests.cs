@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -10,7 +9,7 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
 [Collection("TracerProviderDependent")]
-public class AWSLambdaWrapperTests
+public class AWSLambdaWrapperTests : IDisposable
 {
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string XRayParentId = "53995c3f42cd8ad8";
@@ -29,6 +28,13 @@ public class AWSLambdaWrapperTests
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
     }
 
+    public void Dispose()
+    {
+        // reset Semantic Convention to default
+        Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations();
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -37,7 +43,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -62,7 +71,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -87,7 +99,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                       {
+                           opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -112,7 +127,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -137,7 +155,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -169,7 +190,10 @@ public class AWSLambdaWrapperTests
         var exportedItems = new List<Activity>();
 
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
         {
@@ -188,7 +212,10 @@ public class AWSLambdaWrapperTests
 
         Activity? activity = null;
         using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
                    .Build())
         {
             activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
@@ -234,7 +261,36 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(activity);
         Assert.NotNull(activity.TagObjects);
         var expectedColdStartValue = invocationsCount == 1;
-        Assert.Contains(activity.TagObjects, x => x.Key == AWSLambdaSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
+        Assert.Contains(activity.TagObjects, x => x.Key == ExpectedSemanticConventions.AttributeFaasColdStart && expectedColdStartValue.Equals(x.Value));
+    }
+
+    [Fact]
+    public async Task TraceAsyncDoesNotCrashForEmptyLambdaContext()
+    {
+        var emptyLambdaContext = new SampleLambdaContext
+        {
+            AwsRequestId = null!,
+            ClientContext = null,
+            FunctionName = null!,
+            FunctionVersion = null!,
+            Identity = null!,
+            InvokedFunctionArn = null!,
+            Logger = null!,
+            LogGroupName = null!,
+            LogStreamName = null!,
+            MemoryLimitInMB = 0,
+            RemainingTime = TimeSpan.Zero,
+        };
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                   })
+                   .Build();
+
+        // We simply verify that no exception is thrown here.
+        await AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncInputAndNoReturn, "TestStream", emptyLambdaContext);
     }
 
     private static ActivityContext CreateParentContext()
@@ -262,19 +318,19 @@ public class AWSLambdaWrapperTests
         Assert.NotNull(resource);
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-        Assert.Equal("aws", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudProvider]);
-        Assert.Equal("us-east-1", resourceAttributes[AWSLambdaSemanticConventions.AttributeCloudRegion]);
-        Assert.Equal("testfunction", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasName]);
-        Assert.Equal("latest", resourceAttributes[AWSLambdaSemanticConventions.AttributeFaasVersion]);
+        Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
+        Assert.Equal("us-east-1", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal("testfunction", resourceAttributes[ExpectedSemanticConventions.AttributeFaasName]);
+        Assert.Equal("latest", resourceAttributes[ExpectedSemanticConventions.AttributeFaasVersion]);
     }
 
     private void AssertSpanAttributes(Activity activity)
     {
-        Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasExecution));
-        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasID));
-        Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasName));
-        Assert.Equal("other", activity.GetTagValue(AWSLambdaSemanticConventions.AttributeFaasTrigger));
-        Assert.Equal("111111111111", activity.GetTagValue(AWSLambdaSemanticConventions.AttributeCloudAccountID));
+        Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasExecution));
+        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasID));
+        Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasName));
+        Assert.Equal("other", activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
+        Assert.Equal("111111111111", activity.GetTagValue(ExpectedSemanticConventions.AttributeCloudAccountID));
     }
 
     private void AssertSpanException(Activity activity)
@@ -284,5 +340,18 @@ public class AWSLambdaWrapperTests
         var exception = Assert.Single(activity.Events);
         Assert.Equal("exception", exception.Name);
         Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeFaasColdStart = "faas.coldstart";
+        public const string AttributeFaasName = "faas.name";
+        public const string AttributeFaasExecution = "faas.invocation_id";
+        public const string AttributeFaasID = "cloud.resource_id";
+        public const string AttributeFaasTrigger = "faas.trigger";
+        public const string AttributeFaasVersion = "faas.version";
     }
 }

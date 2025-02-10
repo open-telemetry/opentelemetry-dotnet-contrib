@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.11.0
+
+Released 2025-Jan-29
+
+## 1.10.0-rc.2
+
+Released 2025-Jan-15
+
+* Context propagation data is always added to SQS and SNS requests regardless of
+  sampling decision. This enables downstream services to make consistent sampling
+  decisions and prevents incomplete traces.
+  ([#2447](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2447))
+
+## 1.10.0-rc.1
+
+Released 2025-Jan-06
+
+* BREAKING: Change default Semantic Convention to 1.28
+* BREAKING: Remove option to use Legacy semantic conventions (the old default)
+
+## 1.10.0-beta.3
+
+Released 2024-Dec-20
+
+* Introduce `AWSClientInstrumentationOptions.SemanticConventionVersion` which
+  provides a mechanism for developers to opt-in to newer versions of the
+  of the OpenTelemetry Semantic Conventions. Currently, you need to opt-in
+  to these new conventions. In the upcoming stable release of this library,
+  the new conventions will be enabled by default, and the conventions this library
+  currently emit will no longer be supported.
+  ([#2367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2367))
+
 ## 1.10.0-beta.2
 
 Released 2024-Dec-12

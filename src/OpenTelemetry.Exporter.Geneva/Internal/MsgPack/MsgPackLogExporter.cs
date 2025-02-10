@@ -419,19 +419,29 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
             cntFields += 1;
 
+            // The current approach relies on the existing trim
+            // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
+            // TODO: Revisit this:
+            // 1. Trim it off based on how much more bytes are available
+            // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
+            // 2. Trim smarter, by trimming the middle of stack, an
+            // keep top and bottom.
             if (this.exportExceptionStack == ExceptionStackExportMode.ExportAsString)
             {
-                // The current approach relies on the existing trim
-                // capabilities which trims string in excess of STRING_SIZE_LIMIT_CHAR_COUNT
-                // TODO: Revisit this:
-                // 1. Trim it off based on how much more bytes are available
-                // before running out of limit instead of STRING_SIZE_LIMIT_CHAR_COUNT.
-                // 2. Trim smarter, by trimming the middle of stack, an
-                // keep top and bottom.
                 var exceptionStack = logRecord.Exception.ToInvariantString();
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
                 cntFields += 1;
+            }
+            else if (this.exportExceptionStack == ExceptionStackExportMode.ExportAsStackTraceString)
+            {
+                var exceptionStack = logRecord.Exception.StackTrace;
+                if (exceptionStack != null)
+                {
+                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
+                    cntFields += 1;
+                }
             }
         }
 

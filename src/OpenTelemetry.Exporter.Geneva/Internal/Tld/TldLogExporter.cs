@@ -260,6 +260,15 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
                 partAFieldsCount++;
             }
+            else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
+            {
+                var stackTrace = logRecord.Exception.StackTrace;
+                if (stackTrace != null)
+                {
+                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, StringLengthLimit));
+                    partAFieldsCount++;
+                }
+            }
         }
 
         eb.SetStructFieldCount(partAFieldsCountPatch, partAFieldsCount);

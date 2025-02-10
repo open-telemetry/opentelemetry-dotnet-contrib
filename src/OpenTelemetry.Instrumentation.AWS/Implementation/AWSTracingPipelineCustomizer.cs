@@ -12,6 +12,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 /// </summary>
 internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
 {
+    public const string UniqueName = "AWS Tracing Registration Customization";
+
     private readonly AWSClientInstrumentationOptions options;
 
     public AWSTracingPipelineCustomizer(AWSClientInstrumentationOptions options)
@@ -19,7 +21,7 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
         this.options = options;
     }
 
-    public string UniqueName => "AWS Tracing Registration Customization";
+    string IRuntimePipelineCustomizer.UniqueName => UniqueName;
 
     public void Customize(Type serviceClientType, RuntimePipeline pipeline)
     {
