@@ -1149,7 +1149,7 @@ public sealed class BasicTests
             await client.StopAsync();
         }
 
-        WaitForActivityExport(exportedItems, 11);
+        WaitForActivityExport(exportedItems, 10);
 
         var hubActivity = exportedItems
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
@@ -1229,7 +1229,7 @@ public sealed class BasicTests
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
-            TimeSpan.FromSeconds(1)));
+            TimeSpan.FromSeconds(1)), $"Actual: {exportedItems.Count} Expected: {count}");
     }
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)

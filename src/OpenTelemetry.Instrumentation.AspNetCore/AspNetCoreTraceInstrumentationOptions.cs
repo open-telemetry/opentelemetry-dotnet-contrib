@@ -98,6 +98,7 @@ public class AspNetCoreTraceInstrumentationOptions
     /// </summary>
     /// <remarks>
     /// Defaults to true.
+    /// Only applies to .NET 9.0 or greater.
     /// </remarks>
     public bool EnableAspNetCoreSignalRSupport { get; set; } = true;
 
