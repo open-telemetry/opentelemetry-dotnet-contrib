@@ -9,11 +9,9 @@ namespace OpenTelemetry.Exporter.Geneva.Transports;
 
 internal sealed class UnixUserEventsDataTransport : IDisposable
 {
-    public const string LogsTracepointName = "geneva_logs";  // TODO: find the correct tracepoint name
-    public const string LogsTracepointNameArgs = $"{LogsTracepointName} u32 protocol;char[8] version;__rel_loc u8[] buffer";  // TODO: find the correct tracepoint args
     public const string EventHeaderDynamicProviderName = "MicrosoftOpenTelemetryLogs";
     public const System.Diagnostics.Tracing.EventLevel LogsTracepointEventLevel = System.Diagnostics.Tracing.EventLevel.Informational;  // TODO: find the correct event level
-    public const ulong LogsTracepointKeyword = 1;  // TODO: find the correct keyword
+    public const ulong LogsTracepointKeyword = 1;  // TODO: This will be a constant in the future. The actual value is TBD.
 
     private readonly EventHeaderDynamicProvider eventHeaderDynamicProvider;
 
