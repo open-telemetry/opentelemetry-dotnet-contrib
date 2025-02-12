@@ -369,7 +369,9 @@ public class UnixUserEventsDataTransportTests
             this.name = name;
 
             this.tracepoint = new PerfTracepoint(nameArgs);
-            if (this.tracepoint.RegisterResult == 13) // EACCES (13): Permission denied
+
+            // EACCES (13): Permission denied
+            if (this.tracepoint.RegisterResult == 13)
             {
                 throw new UnauthorizedAccessException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'. Permission denied.");
             }
