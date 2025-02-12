@@ -147,18 +147,11 @@ public class UnixUserEventsDataTransportTests
     [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Logs_Success_Linux()
     {
-        EnsureUserEventsEnabled();
-
         var listener = new PerfTracepointListener(
             "MicrosoftOpenTelemetryLogs_L4K1",
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
 
         var logsTracepoint = UnixUserEventsDataTransport.Instance.RegisterUserEventProviderForLogs();
-
-        if (listener.IsEnabled())
-        {
-            throw new NotSupportedException($"{MetricUnixUserEventsDataTransport.MetricsTracepointName} is already enabled");
-        }
 
         try
         {
@@ -376,6 +369,11 @@ public class UnixUserEventsDataTransportTests
             this.name = name;
 
             this.tracepoint = new PerfTracepoint(nameArgs);
+            if (this.tracepoint.RegisterResult == 13) // EACCES (13): Permission denied
+            {
+                throw new UnauthorizedAccessException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'. Permission denied.");
+            }
+
             if (this.tracepoint.RegisterResult != 0)
             {
                 throw new NotSupportedException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'");
