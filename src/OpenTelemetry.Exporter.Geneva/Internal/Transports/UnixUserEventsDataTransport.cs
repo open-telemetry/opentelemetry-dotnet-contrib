@@ -3,6 +3,7 @@
 
 #if NET
 
+using System.Diagnostics.Tracing;
 using Microsoft.LinuxTracepoints.Provider;
 
 namespace OpenTelemetry.Exporter.Geneva.Transports;
@@ -10,7 +11,7 @@ namespace OpenTelemetry.Exporter.Geneva.Transports;
 internal sealed class UnixUserEventsDataTransport : IDisposable
 {
     public const string EventHeaderDynamicProviderName = "MicrosoftOpenTelemetryLogs";
-    public const System.Diagnostics.Tracing.EventLevel LogsTracepointEventLevel = System.Diagnostics.Tracing.EventLevel.Informational;  // TODO: find the correct event level
+    public const EventLevel LogsTracepointEventLevel = EventLevel.Informational;  // TODO: find the correct event level
     public const ulong LogsTracepointKeyword = 1;  // TODO: This will be a constant in the future. The actual value is TBD.
 
     private readonly EventHeaderDynamicProvider eventHeaderDynamicProvider;
