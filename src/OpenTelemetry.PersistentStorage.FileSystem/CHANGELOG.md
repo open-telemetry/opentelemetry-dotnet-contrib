@@ -5,6 +5,12 @@
 * Fix `System.FormatException` thrown by `PersistentStorageEventSource`.
   [#1613](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1613)
 
+* Enabled deterministic flag.
+  * This change was bundled with other changes in a previous PR merged on
+    2023-Oct-13. Thus the last release was built without the deterministic.
+    Relevant PR: [repo] Add dedicated CI for persistent storage projects
+    ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
+
 ## 1.0.0
 
 Released 2023-Aug-28
