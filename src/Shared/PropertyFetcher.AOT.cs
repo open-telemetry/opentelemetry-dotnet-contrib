@@ -38,6 +38,21 @@ internal sealed class PropertyFetcher<T>
         : 1 + this.innerFetcher.NumberOfInnerFetchers;
 
     /// <summary>
+    /// Fetch the property from the object.
+    /// </summary>
+    /// <param name="obj">Object to be fetched.</param>
+    /// <returns>Fetched value.</returns>
+#if NET
+    [RequiresUnreferencedCode(TrimCompatibilityMessage)]
+#endif
+    public T Fetch(object? obj)
+    {
+        return !this.TryFetch(obj, out var value)
+            ? throw new ArgumentException("Supplied object was null or did not match the expected type.", nameof(obj))
+            : value;
+    }
+
+    /// <summary>
     /// Try to fetch the property from the object.
     /// </summary>
     /// <param name="obj">Object to be fetched.</param>
