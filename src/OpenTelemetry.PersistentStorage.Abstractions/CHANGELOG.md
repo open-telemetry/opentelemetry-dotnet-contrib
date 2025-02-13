@@ -2,10 +2,8 @@
 
 ## Unreleased
 
-* Enabled deterministic flag.
-  * This change was bundled with other changes in a previous PR merged on
-    2023-Oct-13. Thus the last release was built without the deterministic.
-    ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
+* Switch to deterministic builds.
+  ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
 
 ## 1.0.0
 
