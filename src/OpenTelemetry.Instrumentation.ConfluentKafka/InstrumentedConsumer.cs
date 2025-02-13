@@ -108,6 +108,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
+        using var activity = this.StartReceiveActivity(consumeResult.TopicPartitionOffset, consumeResult.Key);
         try
         {
             result = this.consumer.Consume(timeout);
@@ -310,6 +311,12 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     private static void RecordReceive(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
     {
+        if (!ConfluentKafkaCommon.ReceiveMessagesCounter.Enabled &&
+            !ConfluentKafkaCommon.ReceiveDurationHistogram.Enabled)
+        {
+            return;
+        }
+
         GetTags(topicPartition.Topic, out var tags, partition: topicPartition.Partition, errorType);
 
         ConfluentKafkaCommon.ReceiveMessagesCounter.Add(1, in tags);
@@ -318,46 +325,34 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
     {
-        if (this.options.Traces)
-        {
-            var propagationContext = consumeResult.Headers != null
-                ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
-                : default;
+        var propagationContext = consumeResult.Headers != null
+            ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
+            : default;
 
-            using var activity = this.StartReceiveActivity(propagationContext, startTime, consumeResult.TopicPartitionOffset, consumeResult.Key);
-            if (activity != null)
+        using var activity = this.StartReceiveActivity(consumeResult.TopicPartitionOffset, consumeResult.Key);
+        if (activity != null)
+        {
+            if (errorType != null)
             {
-                if (errorType != null)
+                activity.SetStatus(ActivityStatusCode.Error);
+                if (activity.IsAllDataRequested)
                 {
-                    activity.SetStatus(ActivityStatusCode.Error);
-                    if (activity.IsAllDataRequested)
-                    {
-                        activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
-                    }
+                    activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
                 }
-
-                activity.SetEndTime(endTime.UtcDateTime);
             }
+
+            activity.SetEndTime(endTime.UtcDateTime);
         }
 
-        if (this.options.Metrics)
-        {
-            var duration = endTime - startTime;
-            RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
-        }
+        var duration = endTime - startTime;
+        RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
     }
 
-    private Activity? StartReceiveActivity(PropagationContext propagationContext, DateTimeOffset start, TopicPartitionOffset? topicPartitionOffset, object? key)
+    private Activity? StartReceiveActivity(TopicPartitionOffset? topicPartitionOffset, object? key)
     {
-        var spanName = string.IsNullOrEmpty(topicPartitionOffset?.Topic)
-            ? ConfluentKafkaCommon.ReceiveOperationName
-            : string.Concat(topicPartitionOffset!.Topic, " ", ConfluentKafkaCommon.ReceiveOperationName);
+        var spanName = $"{ConfluentKafkaCommon.ReceiveOperationName} {topicPartitionOffset?.Topic ?? "unknown"}";
 
-        ActivityLink[] activityLinks = propagationContext.ActivityContext.IsValid()
-            ? [new ActivityLink(propagationContext.ActivityContext)]
-            : [];
-
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, links: activityLinks, startTime: start, parentContext: default);
+        var activity = ConfluentKafkaCommon.ConsumerActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, parentContext: default);
         if (activity?.IsAllDataRequested == true)
         {
             activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);

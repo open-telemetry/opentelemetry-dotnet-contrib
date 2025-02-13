@@ -17,7 +17,8 @@ internal static class ConfluentKafkaCommon
 
     internal static readonly string InstrumentationName = typeof(ConfluentKafkaCommon).Assembly.GetName().Name!;
     internal static readonly string InstrumentationVersion = typeof(ConfluentKafkaCommon).Assembly.GetPackageVersion();
-    internal static readonly ActivitySource ActivitySource = new(InstrumentationName, InstrumentationVersion);
+    internal static readonly ActivitySource ConsumerActivitySource = new(InstrumentationName + ".Consumer");
+    internal static readonly ActivitySource ProducerActivitySource = new(InstrumentationName + ".Producer");
     internal static readonly Meter Meter = new(InstrumentationName, InstrumentationVersion);
     internal static readonly Counter<long> ReceiveMessagesCounter = Meter.CreateCounter<long>(
         SemanticConventions.MetricMessagingReceiveMessages,

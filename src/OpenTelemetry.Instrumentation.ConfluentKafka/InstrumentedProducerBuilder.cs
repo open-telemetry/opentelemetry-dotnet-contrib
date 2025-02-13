@@ -12,8 +12,6 @@ namespace Confluent.Kafka;
 /// <typeparam name="TValue">Type of value.</typeparam>
 public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<TKey, TValue>
 {
-    private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options = new();
-
     /// <summary>
     /// Initializes a new instance of the <see cref="InstrumentedProducerBuilder{TKey, TValue}"/> class.
     /// </summary>
@@ -23,24 +21,12 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
     }
 
-    internal bool EnableMetrics
-    {
-        get => this.options.Metrics;
-        set => this.options.Metrics = value;
-    }
-
-    internal bool EnableTraces
-    {
-        get => this.options.Traces;
-        set => this.options.Traces = value;
-    }
-
     /// <summary>
     /// Build a new IProducer instance.
     /// </summary>
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options);
+        return new InstrumentedProducer<TKey, TValue>(base.Build());
     }
 }
