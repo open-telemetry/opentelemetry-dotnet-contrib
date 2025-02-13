@@ -64,8 +64,8 @@ internal sealed class PropertyFetcher<T>
         [NotNullWhen(true)]
         out T? value)
     {
-        var innerFetcher = this.innerFetcher;
-        return innerFetcher is null ? TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value) : innerFetcher.TryFetch(obj, out value);
+        var localInnerFetcher = this.innerFetcher;
+        return localInnerFetcher is null ? TryFetchRare(obj, this.propertyName, ref this.innerFetcher, out value) : localInnerFetcher.TryFetch(obj, out value);
     }
 
 #if NET
