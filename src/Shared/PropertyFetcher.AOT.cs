@@ -5,9 +5,7 @@
 // Usages of the non-AOT-compatible version can be moved over to this one when they need to support AOT/trimming.
 // Copied from https://github.com/open-telemetry/opentelemetry-dotnet/blob/86a6ba0b7f7ed1f5e84e5a6610e640989cd3ae9f/src/Shared/DiagnosticSourceInstrumentation/PropertyFetcher.cs#L30
 
-#if NETSTANDARD2_1_0_OR_GREATER || NET
 using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Reflection;
 
 namespace OpenTelemetry.Instrumentation;
@@ -62,10 +60,8 @@ internal sealed class PropertyFetcher<T>
     [RequiresUnreferencedCode(TrimCompatibilityMessage)]
 #endif
     public bool TryFetch(
-#if NETSTANDARD2_1_0_OR_GREATER || NET
-        [NotNullWhen(true)]
-#endif
         object? obj,
+        [NotNullWhen(true)]
         out T? value)
     {
         var innerFetcher = this.innerFetcher;
