@@ -5,6 +5,9 @@
 * Fix `System.FormatException` thrown by `PersistentStorageEventSource`.
   [#1613](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1613)
 
+* Switch to deterministic builds.
+  ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
+
 ## 1.0.0
 
 Released 2023-Aug-28
