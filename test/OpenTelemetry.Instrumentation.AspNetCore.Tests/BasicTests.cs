@@ -1223,13 +1223,15 @@ public sealed class BasicTests
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the End callback to complete
-        Assert.True(SpinWait.SpinUntil(
+        Assert.True(
+            SpinWait.SpinUntil(
             () =>
             {
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
-            TimeSpan.FromSeconds(1)), $"Actual: {exportedItems.Count} Expected: {count}");
+            TimeSpan.FromSeconds(1)),
+            $"Actual: {exportedItems.Count} Expected: {count}");
     }
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
