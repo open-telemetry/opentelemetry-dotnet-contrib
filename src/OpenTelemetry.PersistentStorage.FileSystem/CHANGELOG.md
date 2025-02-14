@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.1
+
+Released 2025-Feb-14
+
 * Fix `System.FormatException` thrown by `PersistentStorageEventSource`.
   [#1613](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1613)
 
