@@ -12,11 +12,10 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class EventAttributes
+public static class ElasticsearchAttributes
 {
     /// <summary>
-    /// Identifies the class / type of event.
+    /// Represents the human-readable identifier of the node/instance to which a request was routed.
     /// </summary>
-    [Obsolete("Replaced by EventName top-level field on the LogRecord.")]
-    public const string AttributeEventName = "event.name";
+    public const string AttributeElasticsearchNodeName = "elasticsearch.node.name";
 }

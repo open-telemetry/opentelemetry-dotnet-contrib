@@ -15,27 +15,50 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CodeAttributes
 {
     /// <summary>
-    /// The column number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>.
+    /// Deprecated, use <c>code.column.number</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>code.column.number</c>.")]
     public const string AttributeCodeColumn = "code.column";
+
+    /// <summary>
+    /// The column number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>.
+    /// </summary>
+    public const string AttributeCodeColumnNumber = "code.column.number";
 
     /// <summary>
     /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path).
     /// </summary>
+    public const string AttributeCodeFilePath = "code.file.path";
+
+    /// <summary>
+    /// Deprecated, use <c>code.file.path</c> instead.
+    /// </summary>
     public const string AttributeCodeFilepath = "code.filepath";
+
+    /// <summary>
+    /// Deprecated, use <c>code.function.name</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>code.function.name</c>.")]
+    public const string AttributeCodeFunction = "code.function";
 
     /// <summary>
     /// The method or function name, or equivalent (usually rightmost part of the code unit's name).
     /// </summary>
-    public const string AttributeCodeFunction = "code.function";
+    public const string AttributeCodeFunctionName = "code.function.name";
 
     /// <summary>
-    /// The line number in <c>code.filepath</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function</c>.
+    /// The line number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>.
     /// </summary>
+    public const string AttributeCodeLineNumber = "code.line.number";
+
+    /// <summary>
+    /// Deprecated, use <c>code.line.number</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>code.line.number</c>.")]
     public const string AttributeCodeLineno = "code.lineno";
 
     /// <summary>
-    /// The "namespace" within which <c>code.function</c> is defined. Usually the qualified class or module name, such that <c>code.namespace</c> + some separator + <c>code.function</c> form a unique identifier for the code unit.
+    /// The "namespace" within which <c>code.function.name</c> is defined. Usually the qualified class or module name, such that <c>code.namespace</c> + some separator + <c>code.function.name</c> form a unique identifier for the code unit.
     /// </summary>
     public const string AttributeCodeNamespace = "code.namespace";
 
