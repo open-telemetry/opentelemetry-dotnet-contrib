@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.0.1
+
+Released 2025-Feb-14
+
+* Switch to deterministic builds.
+  ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
+
 ## 1.0.0
 
 Released 2023-Aug-28
