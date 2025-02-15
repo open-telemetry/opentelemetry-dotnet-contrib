@@ -18,4 +18,6 @@ public static class DiagnosticConfig
     /// </summary>
     public static readonly string ProducerActivitySourceName = ConfluentKafkaCommon.ProducerActivitySource.Name;
 
+    public static readonly string ProcessorActivitySourceName = ConfluentKafkaCommon.ProcessorActivitySource.Name;
+
 }

@@ -11,12 +11,12 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 {
     private readonly IConsumer<TKey, TValue> consumer;
-    private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options;
+    private readonly ConsumerConfig config;
 
-    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options)
+    public InstrumentedConsumer(IConsumer<TKey, TValue> consumer, ConsumerConfig config)
     {
         this.consumer = consumer;
-        this.options = options;
+        this.config = config;
     }
 
     public Handle Handle => this.consumer.Handle;
@@ -31,7 +31,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
 
     public IConsumerGroupMetadata ConsumerGroupMetadata => this.consumer.ConsumerGroupMetadata;
 
-    public string? GroupId { get; internal set; }
+    public ConsumerConfig Config => this.config;
 
     public void Dispose()
     {
@@ -48,32 +48,8 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         this.consumer.SetSaslCredentials(username, password);
     }
 
-    public ConsumeResult<TKey, TValue>? Consume(int millisecondsTimeout)
-    {
-        var start = DateTimeOffset.UtcNow;
-        ConsumeResult<TKey, TValue>? result = null;
-        ConsumeResult consumeResult = default;
-        string? errorType = null;
-        try
-        {
-            result = this.consumer.Consume(millisecondsTimeout);
-            consumeResult = ExtractConsumeResult(result);
-            return result;
-        }
-        catch (ConsumeException e)
-        {
-            (consumeResult, errorType) = ExtractConsumeResult(e);
-            throw;
-        }
-        finally
-        {
-            var end = DateTimeOffset.UtcNow;
-            if (result is { IsPartitionEOF: false })
-            {
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
-            }
-        }
-    }
+    public ConsumeResult<TKey, TValue>? Consume(int millisecondsTimeout) =>
+        this.Consume(TimeSpan.FromMilliseconds(millisecondsTimeout));
 
     public ConsumeResult<TKey, TValue>? Consume(CancellationToken cancellationToken = default)
     {
@@ -81,15 +57,20 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
+        using var activity = this.StartReceiveActivity();
         try
         {
             result = this.consumer.Consume(cancellationToken);
             consumeResult = ExtractConsumeResult(result);
+            UpdateActivityWithConsumeResults(activity, result);
             return result;
         }
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
+            activity?.AddException(e);
+            activity?.SetStatus(ActivityStatusCode.Error);
+
             throw;
         }
         finally
@@ -97,7 +78,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             var end = DateTimeOffset.UtcNow;
             if (result is { IsPartitionEOF: false })
             {
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
+                InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
     }
@@ -108,16 +89,19 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConsumeResult<TKey, TValue>? result = null;
         ConsumeResult consumeResult = default;
         string? errorType = null;
-        using var activity = this.StartReceiveActivity(consumeResult.TopicPartitionOffset, consumeResult.Key);
+        using var activity = this.StartReceiveActivity();
         try
         {
             result = this.consumer.Consume(timeout);
             consumeResult = ExtractConsumeResult(result);
+            UpdateActivityWithConsumeResults(activity, result);
             return result;
         }
         catch (ConsumeException e)
         {
             (consumeResult, errorType) = ExtractConsumeResult(e);
+            activity?.AddException(e);
+            activity?.SetStatus(ActivityStatusCode.Error);
             throw;
         }
         finally
@@ -125,7 +109,7 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
             var end = DateTimeOffset.UtcNow;
             if (result is { IsPartitionEOF: false })
             {
-                this.InstrumentConsumption(start, end, consumeResult, errorType);
+                InstrumentConsumption(start, end, consumeResult, errorType);
             }
         }
     }
@@ -309,6 +293,21 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         }
     }
 
+    private static void UpdateActivityWithConsumeResults(Activity? activity, ConsumeResult<TKey, TValue>? consumeResult)
+    {
+        if (activity == null || consumeResult == null)
+        {
+            return;
+        }
+
+        if (!consumeResult.IsPartitionEOF)
+        {
+            activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, consumeResult.TopicPartition.Partition.Value);
+            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, consumeResult.Topic);
+            activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageOffset, consumeResult.Offset.Value);
+        }
+    }
+
     private static void RecordReceive(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
     {
         if (!ConfluentKafkaCommon.ReceiveMessagesCounter.Enabled &&
@@ -323,50 +322,30 @@ internal class InstrumentedConsumer<TKey, TValue> : IConsumer<TKey, TValue>
         ConfluentKafkaCommon.ReceiveDurationHistogram.Record(duration.TotalSeconds, in tags);
     }
 
-    private void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
+    private static void InstrumentConsumption(DateTimeOffset startTime, DateTimeOffset endTime, ConsumeResult consumeResult, string? errorType)
     {
-        var propagationContext = consumeResult.Headers != null
-            ? OpenTelemetryConsumeResultExtensions.ExtractPropagationContext(consumeResult.Headers)
-            : default;
-
-        using var activity = this.StartReceiveActivity(consumeResult.TopicPartitionOffset, consumeResult.Key);
-        if (activity != null)
-        {
-            if (errorType != null)
-            {
-                activity.SetStatus(ActivityStatusCode.Error);
-                if (activity.IsAllDataRequested)
-                {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
-                }
-            }
-
-            activity.SetEndTime(endTime.UtcDateTime);
-        }
-
         var duration = endTime - startTime;
         RecordReceive(consumeResult.TopicPartitionOffset!.TopicPartition, duration, errorType);
     }
 
-    private Activity? StartReceiveActivity(TopicPartitionOffset? topicPartitionOffset, object? key)
+    private Activity? StartReceiveActivity()
     {
-        var spanName = $"{ConfluentKafkaCommon.ReceiveOperationName} {topicPartitionOffset?.Topic ?? "unknown"}";
-
-        var activity = ConfluentKafkaCommon.ConsumerActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, parentContext: default);
-        if (activity?.IsAllDataRequested == true)
+        if (!ConfluentKafkaCommon.ConsumerActivitySource.HasListeners())
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
-            activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topicPartitionOffset?.Topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, topicPartitionOffset?.Partition.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageOffset, topicPartitionOffset?.Offset.Value);
-            activity.SetTag(SemanticConventions.AttributeMessagingKafkaConsumerGroup, this.GroupId);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.ReceiveOperationName);
-            if (key != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, key);
-            }
+            return null;
         }
+
+        var spanName = $"{ConfluentKafkaCommon.ReceiveOperationName} {this.config.BootstrapServers}";
+
+        var tags = default(TagList);
+        tags.Add(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
+        tags.Add(SemanticConventions.AttributeMessagingClientId, this.Name);
+        tags.Add(SemanticConventions.AttributeMessagingKafkaConsumerGroup, this.config.GroupId);
+        tags.Add(SemanticConventions.AttributeMessagingDestinationName, this.config.BootstrapServers);
+        tags.Add(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.ReceiveOperationName);
+
+
+        var activity = ConfluentKafkaCommon.ConsumerActivitySource.StartActivity(spanName, kind: ActivityKind.Consumer, parentContext: default, tags: tags);
 
         return activity;
     }

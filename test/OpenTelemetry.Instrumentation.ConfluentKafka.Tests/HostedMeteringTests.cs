@@ -40,8 +40,8 @@ public class HostedMeteringTests(ITestOutputHelper outputHelper)
             {
                 metricsBuilder
                     .AddInMemoryExporter(metrics)
-                    .AddKafkaProducerInstrumentation<string, string>()
-                    .AddKafkaConsumerInstrumentation<string, string>();
+                    .AddKafkaProducerInstrumentation()
+                    .AddKafkaConsumerInstrumentation();
             });
         });
 

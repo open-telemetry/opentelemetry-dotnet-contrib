@@ -12,7 +12,6 @@ namespace Confluent.Kafka;
 /// <typeparam name="TValue">Type of value.</typeparam>
 public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<TKey, TValue>
 {
-    private readonly ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue> options = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InstrumentedConsumerBuilder{TKey, TValue}"/> class.
@@ -23,18 +22,6 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
     {
     }
 
-    internal bool EnableMetrics
-    {
-        get => this.options.Metrics;
-        set => this.options.Metrics = value;
-    }
-
-    internal bool EnableTraces
-    {
-        get => this.options.Traces;
-        set => this.options.Traces = value;
-    }
-
     /// <summary>
     /// Build a new IConsumer instance.
     /// </summary>
@@ -43,10 +30,7 @@ public sealed class InstrumentedConsumerBuilder<TKey, TValue> : ConsumerBuilder<
     {
         var config = (ConsumerConfig)this.Config;
 
-        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), this.options)
-        {
-            GroupId = config.GroupId,
-        };
+        var consumer = new InstrumentedConsumer<TKey, TValue>(base.Build(), config);
 
         return consumer;
     }
