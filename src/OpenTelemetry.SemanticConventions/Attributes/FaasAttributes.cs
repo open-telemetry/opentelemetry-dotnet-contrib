@@ -98,7 +98,7 @@ public static class FaasAttributes
     /// This is the name of the function as configured/deployed on the FaaS
     /// platform and is usually different from the name of the callback
     /// function (which may be stored in the
-    /// <a href="/docs/general/attributes.md#source-code-attributes"><c>code.namespace</c>/<c>code.function</c></a>
+    /// <a href="/docs/general/attributes.md#source-code-attributes"><c>code.namespace</c>/<c>code.function.name</c></a>
     /// span attributes).
     /// <p>
     /// For some cloud providers, the above definition is ambiguous. The following

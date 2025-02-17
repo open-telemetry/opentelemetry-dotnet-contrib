@@ -20,9 +20,19 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineName = "cicd.pipeline.name";
 
     /// <summary>
+    /// The result of a pipeline run.
+    /// </summary>
+    public const string AttributeCicdPipelineResult = "cicd.pipeline.result";
+
+    /// <summary>
     /// The unique identifier of a pipeline run within a CI/CD system.
     /// </summary>
     public const string AttributeCicdPipelineRunId = "cicd.pipeline.run.id";
+
+    /// <summary>
+    /// The pipeline run goes through these states during its lifecycle.
+    /// </summary>
+    public const string AttributeCicdPipelineRunState = "cicd.pipeline.run.state";
 
     /// <summary>
     /// The human readable name of a task within a pipeline. Task here most closely aligns with a <a href="https://wikipedia.org/wiki/Pipeline_(computing)">computing process</a> in a pipeline. Other terms for tasks include commands, steps, and procedures.
@@ -45,6 +55,73 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineTaskType = "cicd.pipeline.task.type";
 
     /// <summary>
+    /// The name of a component of the CICD system.
+    /// </summary>
+    public const string AttributeCicdSystemComponent = "cicd.system.component";
+
+    /// <summary>
+    /// The state of a CICD worker / agent.
+    /// </summary>
+    public const string AttributeCicdWorkerState = "cicd.worker.state";
+
+    /// <summary>
+    /// The result of a pipeline run.
+    /// </summary>
+    public static class CicdPipelineResultValues
+    {
+        /// <summary>
+        /// The pipeline run finished successfully.
+        /// </summary>
+        public const string Success = "success";
+
+        /// <summary>
+        /// The pipeline run did not finish successfully, eg. due to a compile error or a failing test. Such failures are usually detected by non-zero exit codes of the tools executed in the pipeline run.
+        /// </summary>
+        public const string Failure = "failure";
+
+        /// <summary>
+        /// The pipeline run failed due to an error in the CICD system, eg. due to the worker being killed.
+        /// </summary>
+        public const string Error = "error";
+
+        /// <summary>
+        /// A timeout caused the pipeline run to be interrupted.
+        /// </summary>
+        public const string Timeout = "timeout";
+
+        /// <summary>
+        /// The pipeline run was cancelled, eg. by a user manually cancelling the pipeline run.
+        /// </summary>
+        public const string Cancellation = "cancellation";
+
+        /// <summary>
+        /// The pipeline run was skipped, eg. due to a precondition not being met.
+        /// </summary>
+        public const string Skip = "skip";
+    }
+
+    /// <summary>
+    /// The pipeline run goes through these states during its lifecycle.
+    /// </summary>
+    public static class CicdPipelineRunStateValues
+    {
+        /// <summary>
+        /// The run pending state spans from the event triggering the pipeline run until the execution of the run starts (eg. time spent in a queue, provisioning agents, creating run resources).
+        /// </summary>
+        public const string Pending = "pending";
+
+        /// <summary>
+        /// The executing state spans the execution of any run tasks (eg. build, test).
+        /// </summary>
+        public const string Executing = "executing";
+
+        /// <summary>
+        /// The finalizing state spans from when the run has finished executing (eg. cleanup of run resources).
+        /// </summary>
+        public const string Finalizing = "finalizing";
+    }
+
+    /// <summary>
     /// The type of the task within a pipeline.
     /// </summary>
     public static class CicdPipelineTaskTypeValues
@@ -63,5 +140,26 @@ public static class CicdAttributes
         /// deploy.
         /// </summary>
         public const string Deploy = "deploy";
+    }
+
+    /// <summary>
+    /// The state of a CICD worker / agent.
+    /// </summary>
+    public static class CicdWorkerStateValues
+    {
+        /// <summary>
+        /// The worker is not performing work for the CICD system. It is available to the CICD system to perform work on (online / idle).
+        /// </summary>
+        public const string Available = "available";
+
+        /// <summary>
+        /// The worker is performing work for the CICD system.
+        /// </summary>
+        public const string Busy = "busy";
+
+        /// <summary>
+        /// The worker is not available to the CICD system (disconnected / down).
+        /// </summary>
+        public const string Offline = "offline";
     }
 }
