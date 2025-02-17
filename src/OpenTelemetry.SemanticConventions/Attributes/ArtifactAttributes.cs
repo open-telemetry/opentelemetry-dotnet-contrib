@@ -20,7 +20,7 @@ public static class ArtifactAttributes
     public const string AttributeArtifactAttestationFilename = "artifact.attestation.filename";
 
     /// <summary>
-    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, of the built attestation. Some envelopes in the software attestation space also refer to this as the <a href="https://github.com/in-toto/attestation/blob/main/spec/README.md#in-toto-attestation-framework-spec">digest</a>.
+    /// The full <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf">hash value (see glossary)</a>, of the built attestation. Some envelopes in the <a href="https://github.com/in-toto/attestation/tree/main/spec">software attestation space</a> also refer to this as the <strong>digest</strong>.
     /// </summary>
     public const string AttributeArtifactAttestationHash = "artifact.attestation.hash";
 

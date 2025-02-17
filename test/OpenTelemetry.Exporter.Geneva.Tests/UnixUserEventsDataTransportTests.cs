@@ -7,12 +7,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-[Trait("CategoryName", "Geneva:user_events:metrics")]
+[Trait("CategoryName", "Geneva:user_events")]
 public class UnixUserEventsDataTransportTests
 {
     /*
@@ -26,7 +27,7 @@ public class UnixUserEventsDataTransportTests
      *     these tests do).
      *
      *  Command:
-     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events:metrics
+     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events
      *
      * How these tests work:
      *
@@ -49,7 +50,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -113,7 +114,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -141,6 +142,99 @@ public class UnixUserEventsDataTransportTests
         {
             listener.Dispose();
         }
+    }
+
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
+    public void UserEvents_Logs_Success_Linux()
+    {
+        var listener = new PerfTracepointListener(
+            "MicrosoftOpenTelemetryLogs_L4K1",
+            MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
+
+        var logsTracepoint = UnixUserEventsDataTransport.Instance.RegisterUserEventProviderForLogs();
+
+        try
+        {
+            listener.Enable();
+
+            Console.WriteLine("------------- ready to write events -------------");
+            Thread.Sleep(5000);
+
+            if (logsTracepoint.IsEnabled)
+            {
+                var eventBuilder = CreateEventHeaderDynamicBuilder();
+
+                Console.WriteLine("About to write tracepoint:");
+                eventBuilder.Write(logsTracepoint);
+                Console.WriteLine("Written tracepoint.");
+            }
+
+            Thread.Sleep(5000);
+
+            this.testOutputHelper.WriteLine("Writing events from listener:");
+            Console.WriteLine("Writing events from listener:");
+            foreach (var e in listener.Events)
+            {
+                this.testOutputHelper.WriteLine(string.Join(", ", e.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+                Console.WriteLine(string.Join(", ", e.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+            }
+
+            this.testOutputHelper.WriteLine("Total events: " + listener.Events.Count);
+            Console.WriteLine("Total events: " + listener.Events.Count);
+        }
+        finally
+        {
+            try
+            {
+                listener.Disable();
+            }
+            catch
+            {
+            }
+
+            listener.Dispose();
+        }
+    }
+
+    private static EventHeaderDynamicBuilder CreateEventHeaderDynamicBuilder()
+    {
+        var eb = new EventHeaderDynamicBuilder();
+        eb.Reset("_");
+        eb.AddUInt16("__csver__", 1024, Microsoft.LinuxTracepoints.EventHeaderFieldFormat.HexInt);
+
+        eb.AddStructWithMetadataPosition("partA", out var partAFieldsCountMetadataPosition);
+
+        string rfc3339String = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
+        eb.AddString16("time", rfc3339String);
+
+        byte partAFieldsCount = 1;
+
+        eb.SetStructFieldCount(partAFieldsCountMetadataPosition, partAFieldsCount);
+
+        // Part B
+
+        byte partBFieldsCount = 4; // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
+        eb.AddStructWithMetadataPosition("PartB", out var partBFieldsCountMetadataPosition);
+        eb.AddString16("_typeName", "Log");
+        eb.AddUInt8("severityNumber", 21);
+
+        eb.AddString16("severityText", "Critical");
+        eb.AddString16("name", "CheckoutFailed");
+
+        eb.SetStructFieldCount(partBFieldsCountMetadataPosition, partBFieldsCount);
+
+        // Part C
+
+        byte partCFieldsCount = 0;
+        eb.AddStructWithMetadataPosition("PartC", out var partCFieldsCountMetadataPosition);
+
+        eb.AddString16("book_id", "12345");
+        eb.AddString16("book_name", "The Hitchhiker's Guide to the Galaxy");
+        partCFieldsCount += 2;
+
+        eb.SetStructFieldCount(partCFieldsCountMetadataPosition, partCFieldsCount);
+
+        return eb;
     }
 
     private static void EnsureUserEventsEnabled()
@@ -184,7 +278,7 @@ public class UnixUserEventsDataTransportTests
                 if (!string.IsNullOrEmpty(args.Data))
                 {
                     this.output.Add(args.Data);
-                    Console.WriteLine($"[OUT] {args.Data}");
+                    Console.WriteLine($"{command} {arguments} [OUT] {args.Data}");
 
                     onOutputReceived?.Invoke(args.Data);
                 }
@@ -275,6 +369,13 @@ public class UnixUserEventsDataTransportTests
             this.name = name;
 
             this.tracepoint = new PerfTracepoint(nameArgs);
+
+            // EACCES (13): Permission denied
+            if (this.tracepoint.RegisterResult == 13)
+            {
+                throw new UnauthorizedAccessException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'. Permission denied.");
+            }
+
             if (this.tracepoint.RegisterResult != 0)
             {
                 throw new NotSupportedException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'");

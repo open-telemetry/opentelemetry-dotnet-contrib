@@ -68,5 +68,10 @@ public static class ProfileAttributes
         /// <a href="https://wikipedia.org/wiki/V8_(JavaScript_engine)">V8JS</a>.
         /// </summary>
         public const string V8js = "v8js";
+
+        /// <summary>
+        /// <a href="https://en.wikipedia.org/wiki/BEAM_(Erlang_virtual_machine)">Erlang</a>.
+        /// </summary>
+        public const string Beam = "beam";
     }
 }
