@@ -42,7 +42,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<string> hostFetcher = new("Host");
-    private readonly PropertyFetcher<string> portFetcher = new("Port");
+    private readonly PropertyFetcher<int> portFetcher = new("Port");
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -159,7 +159,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var hasPort = this.portFetcher.TryFetch(connection, out var port);
-                        if (hasPort && !string.IsNullOrEmpty(port))
+                        if (hasPort)
                         {
                             activity.AddTag(AttributeServerPort, port);
                         }
