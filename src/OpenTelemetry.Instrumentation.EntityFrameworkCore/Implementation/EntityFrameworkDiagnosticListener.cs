@@ -200,7 +200,50 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
+                        if (command.GetType().FullName?.Contains("Devart.Data.Oracle") == true)
+                        {
+                            string payloadString = payload?.ToString() ?? string.Empty;
+                            string[] result = payloadString.Split([Environment.NewLine], 2, StringSplitOptions.None);
+                            string commandText = result.Length > 1 ? result[1] : payloadString;
+
+                            if (payloadString.Contains("CommandType='Text'"))
+                            {
+                                if (this.options.SetDbStatementForText)
+                                {
+                                    if (this.options.EmitOldAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbStatement, commandText);
+                                    }
+
+                                    if (this.options.EmitNewAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                    }
+                                }
+                            }
+                            else if (payloadString.Contains("CommandType='StoredProcedure'"))
+                            {
+                                if (this.options.SetDbStatementForText)
+                                {
+                                    if (this.options.EmitOldAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbStatement, commandText);
+                                    }
+
+                                    if (this.options.EmitNewAttributes)
+                                    {
+                                        activity.AddTag(AttributeDbQueryText, commandText);
+                                    }
+                                }
+                            }
+                            else if (payloadString.Contains("CommandType='TableDirect'"))
+                            {
+                            }
+                            else
+                            {
+                            }
+                        }
+                        else if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
                             switch (commandType)
