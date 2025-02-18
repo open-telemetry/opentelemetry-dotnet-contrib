@@ -32,15 +32,15 @@ builder.Services.AddOpenTelemetry()
     {
         tracing.AddConsoleExporter()
             .AddOtlpExporter()
-            .AddKafkaProducerInstrumentation<string, string>()
-            .AddKafkaConsumerInstrumentation<string, string>();
+            .AddKafkaProducerInstrumentation()
+            .AddKafkaConsumerInstrumentation();
     })
     .WithMetrics(metering =>
     {
         metering.AddConsoleExporter()
             .AddOtlpExporter()
-            .AddKafkaProducerInstrumentation<string, string>()
-            .AddKafkaConsumerInstrumentation<string, string>();
+            .AddKafkaProducerInstrumentation()
+            .AddKafkaConsumerInstrumentation();
     });
 
 builder.Services.AddHostedService<ProduceConsumeHostedService>();

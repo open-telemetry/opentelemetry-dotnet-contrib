@@ -8,17 +8,18 @@ services:
     image: confluentinc/confluent-local
     environment:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://kafka:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_INTERNAL://kafka:9093,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092,PLAINTEXT_INTERNAL://localhost:9093,PLAINTEXT_HOST://localhost:9092
     ports:
       - "9093:9093"
+      - "9092:9092"
 
   tests:
-    build:
-      context: .
-      dockerfile: ./test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/Dockerfile
-    command: --TestCaseFilter:CategoryName=KafkaIntegrationTests
-    environment:
-      - OTEL_KAFKAENDPOINT=kafka:9093
-    depends_on:
-      - kafka
+     build:
+       context: .
+       dockerfile: ./test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/Dockerfile
+     command: --TestCaseFilter:CategoryName=KafkaIntegrationTests
+     environment:
+       - OTEL_KAFKAENDPOINT=kafka:9093
+     depends_on:
+       - kafka

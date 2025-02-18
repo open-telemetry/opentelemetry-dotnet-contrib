@@ -13,14 +13,11 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 {
     private readonly TextMapPropagator propagator = Propagators.DefaultTextMapPropagator;
     private readonly IProducer<TKey, TValue> producer;
-    private readonly ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options;
 
     public InstrumentedProducer(
-        IProducer<TKey, TValue> producer,
-        ConfluentKafkaProducerInstrumentationOptions<TKey, TValue> options)
+        IProducer<TKey, TValue> producer)
     {
         this.producer = producer;
-        this.options = options;
     }
 
     public Handle Handle => this.producer.Handle;
@@ -43,7 +40,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
-        using var activity = this.StartPublishActivity(start, topic, message);
+        using var activity = this.StartPublishActivity(topic, message);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -58,14 +55,23 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
-
+            activity?.AddException(
+                produceException.InnerException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException) },
+                });
             throw;
         }
         catch (ArgumentException argumentException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            activity?.AddException(
+                argumentException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException) },
+                });
 
             throw;
         }
@@ -75,10 +81,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             activity?.SetEndTime(end.UtcDateTime);
             var duration = end - start;
 
-            if (this.options.Metrics)
-            {
-                RecordPublish(topic, duration, errorType);
-            }
+            RecordPublish(topic, duration, errorType);
         }
 
         return result;
@@ -90,7 +93,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         CancellationToken cancellationToken = default)
     {
         var start = DateTimeOffset.UtcNow;
-        using var activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
+        using var activity = this.StartPublishActivity(topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -105,15 +108,24 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
-
+            activity?.AddException(
+                produceException.InnerException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException) },
+                });
             throw;
         }
         catch (ArgumentException argumentException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
 
+            activity?.AddException(
+                argumentException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException) },
+                });
             throw;
         }
         finally
@@ -122,10 +134,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             activity?.SetEndTime(end.UtcDateTime);
             var duration = end - start;
 
-            if (this.options.Metrics)
-            {
-                RecordPublish(topicPartition, duration, errorType);
-            }
+            RecordPublish(topicPartition, duration, errorType);
         }
 
         return result;
@@ -134,7 +143,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     public void Produce(string topic, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>>? deliveryHandler = null)
     {
         var start = DateTimeOffset.UtcNow;
-        using var activity = this.StartPublishActivity(start, topic, message);
+        using var activity = this.StartPublishActivity(topic, message);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -148,34 +157,40 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         catch (ProduceException<TKey, TValue> produceException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException));
+            activity?.AddException(
+                produceException.InnerException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatProduceException(produceException) },
+                });
 
             throw;
         }
         catch (ArgumentException argumentException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
-            activity?.SetTag(SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException));
+            activity?.AddException(
+                argumentException,
+                tags: new TagList()
+                {
+                    { SemanticConventions.AttributeErrorType, errorType = FormatArgumentException(argumentException) },
+                });
 
             throw;
         }
         finally
         {
             var end = DateTimeOffset.UtcNow;
-            activity?.SetEndTime(end.UtcDateTime);
             var duration = end - start;
 
-            if (this.options.Metrics)
-            {
-                RecordPublish(topic, duration, errorType);
-            }
+            RecordPublish(topic, duration, errorType);
         }
     }
 
     public void Produce(TopicPartition topicPartition, Message<TKey, TValue> message, Action<DeliveryReport<TKey, TValue>>? deliveryHandler = null)
     {
         var start = DateTimeOffset.UtcNow;
-        using var activity = this.StartPublishActivity(start, topicPartition.Topic, message, topicPartition.Partition);
+        using var activity = this.StartPublishActivity(topicPartition.Topic, message, topicPartition.Partition);
         if (activity != null)
         {
             this.InjectActivity(activity, message);
@@ -203,13 +218,9 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
         finally
         {
             var end = DateTimeOffset.UtcNow;
-            activity?.SetEndTime(end.UtcDateTime);
             var duration = end - start;
 
-            if (this.options.Metrics)
-            {
-                RecordPublish(topicPartition, duration, errorType);
-            }
+            RecordPublish(topicPartition, duration, errorType);
         }
     }
 
@@ -308,6 +319,12 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
     private static void RecordPublish(string topic, TimeSpan duration, string? errorType = null)
     {
+        if (!ConfluentKafkaCommon.PublishMessagesCounter.Enabled &&
+            ConfluentKafkaCommon.PublishDurationHistogram.Enabled)
+        {
+            return;
+        }
+
         GetTags(topic, out var tags, partition: null, errorType);
 
         ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
@@ -315,44 +332,36 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
     }
 
     private static void RecordPublish(TopicPartition topicPartition, TimeSpan duration, string? errorType = null)
-    {
-        GetTags(topicPartition.Topic, out var tags, partition: topicPartition.Partition, errorType);
+        => RecordPublish(topicPartition.Topic, duration, errorType);
 
-        ConfluentKafkaCommon.PublishMessagesCounter.Add(1, in tags);
-        ConfluentKafkaCommon.PublishDurationHistogram.Record(duration.TotalSeconds, in tags);
-    }
-
-    private Activity? StartPublishActivity(DateTimeOffset start, string topic, Message<TKey, TValue> message, int? partition = null)
+    private Activity? StartPublishActivity(string topic, Message<TKey, TValue> message, int? partition = null)
     {
-        if (!this.options.Traces)
+        if (!ConfluentKafkaCommon.ProducerActivitySource.HasListeners())
         {
             return null;
         }
 
-        var spanName = string.Concat(topic, " ", ConfluentKafkaCommon.PublishOperationName);
-        var activity = ConfluentKafkaCommon.ActivitySource.StartActivity(name: spanName, kind: ActivityKind.Producer, startTime: start);
-        if (activity == null)
+        var spanName = $"{ConfluentKafkaCommon.PublishOperationName} {topic}";
+
+        var tags = new TagList
         {
-            return null;
+            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
+            { SemanticConventions.AttributeMessagingClientId, this.Name },
+            { SemanticConventions.AttributeMessagingDestinationName, topic },
+            { SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.PublishOperationName },
+        };
+
+        if (message.Key != null)
+        {
+            tags.Add(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
         }
 
-        if (activity.IsAllDataRequested)
+        if (partition is not null)
         {
-            activity.SetTag(SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem);
-            activity.SetTag(SemanticConventions.AttributeMessagingClientId, this.Name);
-            activity.SetTag(SemanticConventions.AttributeMessagingDestinationName, topic);
-            activity.SetTag(SemanticConventions.AttributeMessagingOperation, ConfluentKafkaCommon.PublishOperationName);
-
-            if (message.Key != null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, message.Key);
-            }
-
-            if (partition is not null)
-            {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaDestinationPartition, partition);
-            }
+            tags.Add(SemanticConventions.AttributeMessagingKafkaDestinationPartition, partition);
         }
+
+        var activity = ConfluentKafkaCommon.ProducerActivitySource.StartActivity(spanName, ActivityKind.Producer, default(ActivityContext), tags: tags);
 
         return activity;
     }
