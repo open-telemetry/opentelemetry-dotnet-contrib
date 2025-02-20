@@ -190,7 +190,7 @@ public class GenevaMetricExporterTests
             var receivedData = new byte[1024];
             var receivedDataSize = serverSocket.Receive(receivedData);
 
-            var fixedPayloadLength = (int)typeof(TlvMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
+            var fixedPayloadLength = 4; // sizeof(BinaryHeader)
 
             // The whole payload is sent to the Unix Domain Socket
             // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
