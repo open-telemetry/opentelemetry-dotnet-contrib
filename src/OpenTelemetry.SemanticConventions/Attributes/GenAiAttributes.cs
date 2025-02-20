@@ -26,8 +26,9 @@ public static class GenAiAttributes
     public const string AttributeGenAiOpenaiRequestResponseFormat = "gen_ai.openai.request.response_format";
 
     /// <summary>
-    /// Requests with same seed value more likely to return same result.
+    /// Deprecated, use <c>gen_ai.request.seed</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.request.seed</c> attribute.")]
     public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
 
     /// <summary>
@@ -88,6 +89,11 @@ public static class GenAiAttributes
     public const string AttributeGenAiRequestPresencePenalty = "gen_ai.request.presence_penalty";
 
     /// <summary>
+    /// Requests with same seed value more likely to return same result.
+    /// </summary>
+    public const string AttributeGenAiRequestSeed = "gen_ai.request.seed";
+
+    /// <summary>
     /// List of sequences that the model will use to stop generating further tokens.
     /// </summary>
     public const string AttributeGenAiRequestStopSequences = "gen_ai.request.stop_sequences";
@@ -130,8 +136,10 @@ public static class GenAiAttributes
     /// by <c>gen_ai.request.model</c> and <c>gen_ai.response.model</c> attributes.
     /// <p>
     /// The actual GenAI product may differ from the one identified by the client.
-    /// For example, when using OpenAI client libraries to communicate with Mistral, the <c>gen_ai.system</c>
-    /// is set to <c>openai</c> based on the instrumentation's best knowledge.
+    /// Multiple systems, including Azure OpenAI and Gemini, are accessible by OpenAI client
+    /// libraries. In such cases, the <c>gen_ai.system</c> is set to <c>openai</c> based on the
+    /// instrumentation's best knowledge, instead of the actual system. The <c>server.address</c>
+    /// attribute may help identify the actual system in use for <c>openai</c>.
     /// <p>
     /// For custom model, a custom friendly name SHOULD be used.
     /// If none of these options apply, the <c>gen_ai.system</c> SHOULD be set to <c>_OTHER</c>.
@@ -239,6 +247,11 @@ public static class GenAiAttributes
         public const string VertexAi = "vertex_ai";
 
         /// <summary>
+        /// Gemini.
+        /// </summary>
+        public const string Gemini = "gemini";
+
+        /// <summary>
         /// Anthropic.
         /// </summary>
         public const string Anthropic = "anthropic";
@@ -254,6 +267,11 @@ public static class GenAiAttributes
         public const string AzAiInference = "az.ai.inference";
 
         /// <summary>
+        /// Azure OpenAI.
+        /// </summary>
+        public const string AzAiOpenai = "az.ai.openai";
+
+        /// <summary>
         /// IBM Watsonx AI.
         /// </summary>
         public const string IbmWatsonxAi = "ibm.watsonx.ai";
@@ -262,6 +280,31 @@ public static class GenAiAttributes
         /// AWS Bedrock.
         /// </summary>
         public const string AwsBedrock = "aws.bedrock";
+
+        /// <summary>
+        /// Perplexity.
+        /// </summary>
+        public const string Perplexity = "perplexity";
+
+        /// <summary>
+        /// xAI.
+        /// </summary>
+        public const string Xai = "xai";
+
+        /// <summary>
+        /// DeepSeek.
+        /// </summary>
+        public const string Deepseek = "deepseek";
+
+        /// <summary>
+        /// Groq.
+        /// </summary>
+        public const string Groq = "groq";
+
+        /// <summary>
+        /// Mistral AI.
+        /// </summary>
+        public const string MistralAi = "mistral_ai";
     }
 
     /// <summary>

@@ -109,6 +109,15 @@ public static class K8sAttributes
     public const string AttributeK8sNamespaceName = "k8s.namespace.name";
 
     /// <summary>
+    /// The phase of the K8s namespace.
+    /// </summary>
+    /// <remarks>
+    /// This attribute aligns with the <c>phase</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#namespacestatus-v1-core">K8s NamespaceStatus</a>.
+    /// </remarks>
+    public const string AttributeK8sNamespacePhase = "k8s.namespace.phase";
+
+    /// <summary>
     /// The name of the Node.
     /// </summary>
     public const string AttributeK8sNodeName = "k8s.node.name";
@@ -175,37 +184,53 @@ public static class K8sAttributes
     public const string AttributeK8sVolumeType = "k8s.volume.type";
 
     /// <summary>
+    /// The phase of the K8s namespace.
+    /// </summary>
+    public static class K8sNamespacePhaseValues
+    {
+        /// <summary>
+        /// Active namespace phase as described by <a href="https://pkg.go.dev/k8s.io/api@v0.31.3/core/v1#NamespacePhase">K8s API</a>.
+        /// </summary>
+        public const string Active = "active";
+
+        /// <summary>
+        /// Terminating namespace phase as described by <a href="https://pkg.go.dev/k8s.io/api@v0.31.3/core/v1#NamespacePhase">K8s API</a>.
+        /// </summary>
+        public const string Terminating = "terminating";
+    }
+
+    /// <summary>
     /// The type of the K8s volume.
     /// </summary>
     public static class K8sVolumeTypeValues
     {
         /// <summary>
-        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim">persistentVolumeClaim</a> volume.
+        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim">persistentVolumeClaim</a> volume.
         /// </summary>
         public const string PersistentVolumeClaim = "persistentVolumeClaim";
 
         /// <summary>
-        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#configmap">configMap</a> volume.
+        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#configmap">configMap</a> volume.
         /// </summary>
         public const string ConfigMap = "configMap";
 
         /// <summary>
-        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#downwardapi">downwardAPI</a> volume.
+        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#downwardapi">downwardAPI</a> volume.
         /// </summary>
         public const string DownwardApi = "downwardAPI";
 
         /// <summary>
-        /// An <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#emptydir">emptyDir</a> volume.
+        /// An <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#emptydir">emptyDir</a> volume.
         /// </summary>
         public const string EmptyDir = "emptyDir";
 
         /// <summary>
-        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#secret">secret</a> volume.
+        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#secret">secret</a> volume.
         /// </summary>
         public const string Secret = "secret";
 
         /// <summary>
-        /// A <a href="https://v1-29.docs.kubernetes.io/docs/concepts/storage/volumes/#local">local</a> volume.
+        /// A <a href="https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#local">local</a> volume.
         /// </summary>
         public const string Local = "local";
     }

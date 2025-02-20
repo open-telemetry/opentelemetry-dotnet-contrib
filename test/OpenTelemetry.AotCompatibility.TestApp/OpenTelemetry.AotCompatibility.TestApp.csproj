@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
   </ItemGroup>
 
   <ItemGroup>
