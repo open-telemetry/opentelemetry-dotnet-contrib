@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -1114,6 +1115,104 @@ public sealed class BasicTests
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
     }
 
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task SignalRActivitesAreListenedTo()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        // Arrange
+        using (var server = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            await using var client = new HubConnectionBuilder()
+                .WithUrl(server.Server.BaseAddress + "testHub", o =>
+                {
+                    o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
+                    o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                }).Build();
+            await client.StartAsync();
+
+            await client.SendAsync("Send", "text");
+
+            await client.StopAsync();
+        }
+
+        WaitForActivityExport(exportedItems, 10);
+
+        var hubActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
+
+        Assert.Equal(3, hubActivity.Count());
+        Assert.Collection(
+            hubActivity,
+            one =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/OnConnectedAsync", one.DisplayName);
+            },
+            two =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/Send", two.DisplayName);
+            },
+            three =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/OnDisconnectedAsync", three.DisplayName);
+            });
+    }
+
+    [Fact]
+    public async Task SignalRActivitesCanBeDisabled()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation(o => o.EnableAspNetCoreSignalRSupport = false)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        // Arrange
+        using (var server = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            await using var client = new HubConnectionBuilder()
+                .WithUrl(server.Server.BaseAddress + "testHub", o =>
+                {
+                    o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
+                    o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                }).Build();
+            await client.StartAsync();
+
+            await client.SendAsync("Send", "text");
+
+            await client.StopAsync();
+        }
+
+        WaitForActivityExport(exportedItems, 8);
+
+        var hubActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
+
+        Assert.Empty(hubActivity);
+    }
+#endif
+
     public void Dispose()
     {
         this.tracerProvider?.Dispose();
@@ -1124,13 +1223,15 @@ public sealed class BasicTests
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the End callback to complete
-        Assert.True(SpinWait.SpinUntil(
+        Assert.True(
+            SpinWait.SpinUntil(
             () =>
             {
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
-            TimeSpan.FromSeconds(1)));
+            TimeSpan.FromSeconds(1)),
+            $"Actual: {exportedItems.Count} Expected: {count}");
     }
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)

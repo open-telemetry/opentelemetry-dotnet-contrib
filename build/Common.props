@@ -34,6 +34,7 @@
       Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
     -->
     <MinVerPkgVer>[6.0.0,7.0)</MinVerPkgVer>
+    <MicrosoftAspNetCoreSignalRClientPkgVer>[9.0.0,)</MicrosoftAspNetCoreSignalRClientPkgVer>
     <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
     <MicrosoftExtensionsConfigurationPkgVer>[9.0.0,)</MicrosoftExtensionsConfigurationPkgVer>
     <MicrosoftExtensionsOptionsPkgVer>[9.0.0,)</MicrosoftExtensionsOptionsPkgVer>
