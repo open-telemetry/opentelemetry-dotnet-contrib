@@ -35,6 +35,14 @@ public static class NetworkAttributes
     public const string AttributeNetworkCarrierName = "network.carrier.name";
 
     /// <summary>
+    /// The state of network connection.
+    /// </summary>
+    /// <remarks>
+    /// Connection states are defined as part of the <a href="https://datatracker.ietf.org/doc/html/rfc9293#section-3.3.2">rfc9293</a>.
+    /// </remarks>
+    public const string AttributeNetworkConnectionState = "network.connection.state";
+
+    /// <summary>
     /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
     /// </summary>
     public const string AttributeNetworkConnectionSubtype = "network.connection.subtype";
@@ -109,6 +117,67 @@ public static class NetworkAttributes
     /// The value SHOULD be normalized to lowercase.
     /// </remarks>
     public const string AttributeNetworkType = "network.type";
+
+    /// <summary>
+    /// The state of network connection.
+    /// </summary>
+    public static class NetworkConnectionStateValues
+    {
+        /// <summary>
+        /// closed.
+        /// </summary>
+        public const string Closed = "closed";
+
+        /// <summary>
+        /// close_wait.
+        /// </summary>
+        public const string CloseWait = "close_wait";
+
+        /// <summary>
+        /// closing.
+        /// </summary>
+        public const string Closing = "closing";
+
+        /// <summary>
+        /// established.
+        /// </summary>
+        public const string Established = "established";
+
+        /// <summary>
+        /// fin_wait_1.
+        /// </summary>
+        public const string FinWait1 = "fin_wait_1";
+
+        /// <summary>
+        /// fin_wait_2.
+        /// </summary>
+        public const string FinWait2 = "fin_wait_2";
+
+        /// <summary>
+        /// last_ack.
+        /// </summary>
+        public const string LastAck = "last_ack";
+
+        /// <summary>
+        /// listen.
+        /// </summary>
+        public const string Listen = "listen";
+
+        /// <summary>
+        /// syn_received.
+        /// </summary>
+        public const string SynReceived = "syn_received";
+
+        /// <summary>
+        /// syn_sent.
+        /// </summary>
+        public const string SynSent = "syn_sent";
+
+        /// <summary>
+        /// time_wait.
+        /// </summary>
+        public const string TimeWait = "time_wait";
+    }
 
     /// <summary>
     /// This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
