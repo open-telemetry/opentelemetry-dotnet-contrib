@@ -3,6 +3,8 @@
 
 #if NET
 using System.Collections.Frozen;
+using System.Text.Json;
+using MessagePack;
 #endif
 using System.Diagnostics;
 using System.Globalization;
@@ -54,6 +56,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
+    private readonly bool timeAsInteger;
     private readonly byte[] bufferPrologue;
     private readonly byte[] bufferEpilogue;
     private readonly ushort prepopulatedFieldsCount;
@@ -74,6 +77,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             partAName = customTableName;
         }
+
+        this.timeAsInteger = options.TimeAsInteger;
+        MessagePackSerializer.TimeAsInteger = options.TimeAsInteger;
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         switch (connectionStringBuilder.Protocol)
@@ -167,9 +173,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
 
         // timestamp
-        cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
-        this.timestampPatchIndex = cursor;
-        cursor += 12; // reserve 12 bytes for the timestamp
+        if (this.timeAsInteger)
+        {
+            cursor = MessagePackSerializer.WriteTimestamp64Header(buffer, cursor);
+            this.timestampPatchIndex = cursor;
+            cursor += 8; // reserve 8 bytes for the timestamp
+        }
+        else
+        {
+            cursor = MessagePackSerializer.WriteTimestamp96Header(buffer, cursor);
+            this.timestampPatchIndex = cursor;
+            cursor += 12; // reserve 12 bytes for the timestamp
+        }
 
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
         this.mapSizePatchIndex = cursor - 2;
@@ -217,6 +232,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             try
             {
                 var data = this.SerializeActivity(activity);
+
+#if NET
+                var json = MessagePack.MessagePackSerializer.ConvertToJson(data);
+                Console.WriteLine(json);
+#endif
 
                 this.dataTransport.Send(data.Array!, data.Count);
             }
@@ -269,11 +289,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var tsEnd = tsBegin + activity.Duration.Ticks;
         var dtEnd = new DateTime(tsEnd);
 
-        MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
+        if (this.timeAsInteger)
+        {
+            MessagePackSerializer.WriteTimestamp64(buffer, this.timestampPatchIndex, tsEnd);
+        }
+        else
+        {
+            MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
+        }
 
         #region Part A - core envelope
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtEnd);
+        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtEnd, this.timeAsInteger);
         cntFields += 1;
         #endregion
 
@@ -299,7 +326,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cntFields += 1;
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "startTime");
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtBegin);
+        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtBegin, this.timeAsInteger);
         cntFields += 1;
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "success");

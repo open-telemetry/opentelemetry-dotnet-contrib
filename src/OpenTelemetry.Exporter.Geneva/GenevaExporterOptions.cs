@@ -44,6 +44,11 @@ public class GenevaExporterOptions
     public bool IncludeTraceStateForSpan { get; set; }
 
     /// <summary>
+    /// Gets or sets timestamps in integer format, it enable compatibility mode for Fluentd v0.12 series.
+    /// </summary>
+    public bool TimeAsInteger { get; set; } = false;
+
+    /// <summary>
     /// Gets or sets table name mappings.
     /// </summary>
     public IReadOnlyDictionary<string, string>? TableNameMappings
