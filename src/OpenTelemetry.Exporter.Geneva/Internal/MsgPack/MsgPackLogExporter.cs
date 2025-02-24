@@ -3,8 +3,6 @@
 
 #if NET
 using System.Collections.Frozen;
-using System.Text.Json;
-using MessagePack;
 #endif
 using System.Diagnostics;
 using System.Globalization;
@@ -14,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
-using System;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
@@ -142,14 +139,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             try
             {
                 var data = this.SerializeLogRecord(logRecord);
-                // Console.WriteLine(data.Array);
-#if NET
-                var json = MessagePack.MessagePackSerializer.ConvertToJson(data);
-                Console.WriteLine(json);
 
-                // MessagePackSerializer.Deserialize<string>(bytes);
-                // Console.WriteLine(JsonSerializer.Serialize(data));
-#endif
                 this.dataTransport.Send(data.Array!, data.Count);
             }
             catch (Exception ex)

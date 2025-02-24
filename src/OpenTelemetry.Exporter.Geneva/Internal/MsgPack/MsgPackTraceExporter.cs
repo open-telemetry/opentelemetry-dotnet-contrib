@@ -3,8 +3,6 @@
 
 #if NET
 using System.Collections.Frozen;
-using System.Text.Json;
-using MessagePack;
 #endif
 using System.Diagnostics;
 using System.Globalization;
@@ -232,11 +230,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             try
             {
                 var data = this.SerializeActivity(activity);
-
-#if NET
-                var json = MessagePack.MessagePackSerializer.ConvertToJson(data);
-                Console.WriteLine(json);
-#endif
 
                 this.dataTransport.Send(data.Array!, data.Count);
             }
