@@ -12,6 +12,12 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 [Collection("Kafka")]
 public class TracingTests
 {
+
+    public TracingTests()
+    {
+        Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+        Activity.ForceDefaultIdFormat = true;
+    }
     /*
         To run the integration tests, set the OTEL_KAFKAENDPOINT machine-level environment variable to a valid Kafka endpoint.
 
@@ -35,7 +41,7 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             using var producer = producerBuilder.Build();
@@ -45,7 +51,7 @@ public class TracingTests
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == $"publish {topic}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -67,7 +73,7 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             using var producer = producerBuilder.Build();
@@ -77,7 +83,7 @@ public class TracingTests
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == $"publish {topic}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -100,7 +106,7 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             using var producer = producerBuilder.Build();
@@ -110,7 +116,7 @@ public class TracingTests
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == $"publish {topic}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -132,7 +138,7 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                    .AddInMemoryExporter(activities)
                    .SetSampler(sampler)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             using var producer = producerBuilder.Build();
@@ -142,7 +148,7 @@ public class TracingTests
             });
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " publish");
+        Assert.Contains(activities, activity => activity.DisplayName == $"publish {topic}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("publish", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -169,29 +175,17 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                 .AddInMemoryExporter(activities)
                 .SetSampler(sampler)
-                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .AddKafkaConsumerInstrumentation()
                 .Build())
         {
             using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
-            while (true)
-            {
-                var consumeResult = consumer.Consume();
-                if (consumeResult == null)
-                {
-                    continue;
-                }
-
-                if (consumeResult.IsPartitionEOF)
-                {
-                    break;
-                }
-            }
+            var consumeResult = consumer.Consume();
 
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == $"receive {consumerConfig.BootstrapServers}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -220,29 +214,17 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                 .AddInMemoryExporter(activities)
                 .SetSampler(sampler)
-                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .AddKafkaConsumerInstrumentation()
                 .Build())
         {
             using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
-            while (true)
-            {
-                var consumeResult = consumer.Consume(100);
-                if (consumeResult == null)
-                {
-                    continue;
-                }
-
-                if (consumeResult.IsPartitionEOF)
-                {
-                    break;
-                }
-            }
+            var consumeResult = consumer.Consume(2000);
 
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == $"receive {consumerConfig.BootstrapServers}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -271,29 +253,17 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                 .AddInMemoryExporter(activities)
                 .SetSampler(sampler)
-                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .AddKafkaConsumerInstrumentation()
                 .Build())
         {
             using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
-            while (true)
-            {
-                var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(100));
-                if (consumeResult == null)
-                {
-                    continue;
-                }
-
-                if (consumeResult.IsPartitionEOF)
-                {
-                    break;
-                }
-            }
+            var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(2000));
 
             consumer.Close();
         }
 
-        Assert.Contains(activities, activity => activity.DisplayName == topic + " receive");
+        Assert.Contains(activities, activity => activity.DisplayName == $"receive {consumerConfig.BootstrapServers}");
         var activity = Assert.Single(activities);
         Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("receive", activity.GetTagValue(SemanticConventions.AttributeMessagingOperation));
@@ -322,29 +292,17 @@ public class TracingTests
         using (Sdk.CreateTracerProviderBuilder()
                 .AddInMemoryExporter(activities)
                 .SetSampler(sampler)
-                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .AddKafkaProcessorInstrumentation()
                 .Build())
         {
             using var consumer = consumerBuilder.Build();
             consumer.Subscribe(topic);
-            while (true)
-            {
-                var consumeResult = await consumer.ConsumeAndProcessMessageAsync(NoOpAsync);
-                if (consumeResult == null)
-                {
-                    continue;
-                }
-
-                if (consumeResult.IsPartitionEOF)
-                {
-                    break;
-                }
-            }
+            var consumeResult = await consumer.ConsumeAndProcessMessageAsync(NoOpAsync);
 
             consumer.Close();
         }
 
-        var processActivity = Assert.Single(activities, activity => activity.DisplayName == topic + " process");
+        var processActivity = Assert.Single(activities, activity => activity.DisplayName == $"process {topic}");
 
         Assert.Equal("kafka", processActivity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
         Assert.Equal("process", processActivity.GetTagValue(SemanticConventions.AttributeMessagingOperation));

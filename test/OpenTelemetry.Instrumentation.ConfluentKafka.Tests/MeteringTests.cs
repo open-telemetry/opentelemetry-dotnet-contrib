@@ -32,7 +32,7 @@ public class MeteringTests
         var topic = $"otel-topic-{Guid.NewGuid()}";
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
                    .AddInMemoryExporter(metrics)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             var producer = producerBuilder.Build();
@@ -64,7 +64,7 @@ public class MeteringTests
         var topic = $"otel-topic-{Guid.NewGuid()}";
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
                    .AddInMemoryExporter(metrics)
-                   .AddKafkaProducerInstrumentation(producerBuilder)
+                   .AddKafkaProducerInstrumentation()
                    .Build())
         {
             var producer = producerBuilder.Build();
@@ -101,7 +101,7 @@ public class MeteringTests
         var metrics = new List<Metric>();
         using (var meterProvider = Sdk.CreateMeterProviderBuilder()
                 .AddInMemoryExporter(metrics)
-                .AddKafkaConsumerInstrumentation(consumerBuilder)
+                .AddKafkaConsumerInstrumentation()
                 .Build())
         {
             using (var consumer = consumerBuilder.Build())
