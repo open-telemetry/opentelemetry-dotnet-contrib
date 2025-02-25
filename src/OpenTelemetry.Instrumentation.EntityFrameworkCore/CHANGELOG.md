@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Correctly report `db.statement`/`db.query.text` when
+  Devart Oracle is used as a provider.
+  ([#2466](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2466))
+
 ## 1.11.0-beta.1
 
 Released 2025-Jan-27
