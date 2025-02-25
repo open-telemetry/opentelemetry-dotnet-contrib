@@ -40,6 +40,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 #endif
 
     private readonly ExceptionStackExportMode exportExceptionStack;
+    private readonly bool timeAsInteger;
     private readonly List<string>? prepopulatedFieldKeys;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
@@ -55,6 +56,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         this.tableNameSerializer = new(options, defaultTableName: "Log");
         this.exportExceptionStack = options.ExceptionStackExportMode;
+        this.timeAsInteger = options.TimeAsInteger;
+        MessagePackSerializer.TimeAsInteger = options.TimeAsInteger;
 
         this.shouldExportEventName = (options.EventNameExportMode & EventNameExportMode.ExportAsPartAName) != 0;
 
@@ -220,7 +223,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 1);
         cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, 2);
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp);
+        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp, this.timeAsInteger);
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
         ushort cntFields = 0;
         var idxMapSizePatch = cursor - 2;
@@ -255,7 +258,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
+        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp, this.timeAsInteger); // LogRecord.Timestamp should already be converted to UTC format in the SDK
         cntFields += 1;
 
         // Part A - dt extension
