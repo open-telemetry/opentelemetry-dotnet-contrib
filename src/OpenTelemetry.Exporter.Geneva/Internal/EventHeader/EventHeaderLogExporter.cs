@@ -1,26 +1,30 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Exporter.Geneva.External;
+using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Exporter.Geneva.Tld;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
-namespace OpenTelemetry.Exporter.Geneva.Tld;
+namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal sealed class TldLogExporter : TldExporter, IDisposable
+internal class EventHeaderLogExporter : EventHeaderExporter
 {
+    internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     private const int MaxSanitizedEventNameLength = 50;
 
-    // TODO: Is using a single ThreadLocal a better idea?
-    private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
-    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
+    private static readonly ThreadLocal<EventHeaderDynamicBuilder> EventBuilder = new();
     private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
-    private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
+    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
+    private static readonly Action<LogRecordScope, EventHeaderLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
+
     private static readonly string[] LogLevels =
     [
         "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
@@ -32,18 +36,20 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
     private readonly string defaultEventName = "Log";
     private readonly HashSet<string>? customFields;
     private readonly Dictionary<string, string>? tableMappings;
-    private readonly Tuple<byte[], byte[]>? repeatedPartAFields;
+    private readonly ValueTuple<byte[], byte[]>? repeatedPartAFields;
     private readonly ExceptionStackExportMode exceptionStackExportMode;
-    private readonly EventProvider eventProvider;
+
+#pragma warning disable CA2213 // Disposable fields should be disposed: it is managed and disposed in the Dispose method of EventHeaderDynamicProvider
+    private readonly EventHeaderDynamicTracepoint logsTracepoint;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
     private bool isDisposed;
 
-    public TldLogExporter(GenevaExporterOptions options)
+    public EventHeaderLogExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
 
-        var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
-        this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
+        this.logsTracepoint = UnixUserEventsDataTransport.Instance.RegisterUserEventProviderForLogs();
 
         this.exceptionStackExportMode = options.ExceptionStackExportMode;
 
@@ -90,7 +96,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
             this.partAFieldsCount += prePopulatedFieldsCount;
 
-            var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+            var eb = EventBuilder.Value ??= new EventHeaderDynamicBuilder();
 
             eb.Reset("_"); // EventName does not matter here as we only need the serialized key-value pairs
 
@@ -104,32 +110,30 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
+                V40_PART_A_EVENT_HEADER_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
                 Serialize(eb, keyToSerialize, value);
-
-                this.repeatedPartAFields = eb.GetRawFields();
             }
+
+            this.repeatedPartAFields = eb.GetRawFields();
         }
     }
 
     public ExportResult Export(in Batch<LogRecord> batch)
     {
-        if (this.eventProvider.IsEnabled())
+        if (this.logsTracepoint.IsEnabled)
         {
             var result = ExportResult.Success;
-
             foreach (var logRecord in batch)
             {
                 try
                 {
                     var eventBuilder = this.SerializeLogRecord(logRecord);
-
-                    this.eventProvider.Write(eventBuilder);
+                    eventBuilder.Write(this.logsTracepoint);
                 }
                 catch (Exception ex)
                 {
-                    ExporterEventSource.Log.FailedToSendLogData(ex); // TODO: preallocate exception or no exception
+                    ExporterEventSource.Log.FailedToSendLogData(ex);
                     result = ExportResult.Failure;
                 }
             }
@@ -150,18 +154,17 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         try
         {
             // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-            this.eventProvider.Dispose();
             this.serializationData?.Dispose();
         }
         catch (Exception ex)
         {
-            ExporterEventSource.Log.ExporterException("TldLogExporter Dispose failed.", ex);
+            ExporterEventSource.Log.ExporterException("EventHeaderLogExporter Dispose failed.", ex);
         }
 
         this.isDisposed = true;
     }
 
-    internal EventBuilder SerializeLogRecord(LogRecord logRecord)
+    internal EventHeaderDynamicBuilder SerializeLogRecord(LogRecord logRecord)
     {
         IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
 
@@ -205,32 +208,33 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             }
         }
 
-        var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
+        var eb = EventBuilder.Value ??= new EventHeaderDynamicBuilder(); // TODO: make sure it can be reused with a reset
 
         var timestamp = logRecord.Timestamp;
 
         eb.Reset(eventName!);
-        eb.AddUInt16("__csver__", 1024, EventOutType.Hex);
+        eb.AddUInt16("__csver__", 1024, Microsoft.LinuxTracepoints.EventHeaderFieldFormat.HexInt);
 
-        var partAFieldsCountPatch = eb.AddStruct("PartA", this.partAFieldsCount);
-        eb.AddFileTime("time", timestamp);
+        eb.AddStructWithMetadataPosition("partA", out var partAFieldsCountMetadataPosition);
+        Serialize(eb, "time", timestamp); // TODO: this is different from TldLogExporter due to lack of AddFileTime method.
+        byte partAFieldsCount = 1; // TODO: time field is not counted as PartA fields in TldLogExporter. Is it missing? Should time be counted as PartA field?
         if (this.repeatedPartAFields != null)
         {
-            eb.AppendRawFields(this.repeatedPartAFields);
+            eb.AddRawFields(this.repeatedPartAFields.Value);
         }
 
-        var partAFieldsCount = this.partAFieldsCount;
+        partAFieldsCount += this.partAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
         {
-            eb.AddCountedString("ext_dt_traceId", logRecord.TraceId.ToHexString());
+            eb.AddString16("ext_dt_traceId", logRecord.TraceId.ToHexString());
             partAFieldsCount++;
         }
 
         if (logRecord.SpanId != default)
         {
-            eb.AddCountedString("ext_dt_spanId", logRecord.SpanId.ToHexString());
+            eb.AddString16("ext_dt_spanId", logRecord.SpanId.ToHexString());
             partAFieldsCount++;
         }
 
@@ -240,10 +244,10 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             var fullName = logRecord.Exception.GetType().FullName;
             if (!string.IsNullOrEmpty(fullName))
             {
-                eb.AddCountedAnsiString("ext_ex_type", fullName, Encoding.UTF8);
+                eb.AddString16("ext_ex_type", fullName);
             }
 
-            eb.AddCountedAnsiString("ext_ex_msg", logRecord.Exception.Message, Encoding.UTF8);
+            eb.AddString16("ext_ex_msg", logRecord.Exception.Message);
 
             partAFieldsCount += 2;
 
@@ -257,7 +261,12 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
                 var exceptionStack = logRecord.Exception.ToInvariantString();
-                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
+                if (exceptionStack.Length > StringLengthLimit)
+                {
+                    exceptionStack = exceptionStack[..StringLengthLimit];
+                }
+
+                eb.AddString16("ext_ex_stack", exceptionStack);
                 partAFieldsCount++;
             }
             else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
@@ -265,26 +274,31 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 var stackTrace = logRecord.Exception.StackTrace;
                 if (stackTrace != null)
                 {
-                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, StringLengthLimit));
+                    if (stackTrace.Length > StringLengthLimit)
+                    {
+                        stackTrace = stackTrace[..StringLengthLimit];
+                    }
+
+                    eb.AddString16("ext_ex_stack", stackTrace);
                     partAFieldsCount++;
                 }
             }
         }
 
-        eb.SetStructFieldCount(partAFieldsCountPatch, partAFieldsCount);
+        eb.SetStructFieldCount(partAFieldsCountMetadataPosition, partAFieldsCount);
 
         // Part B
 
-        byte partBFieldsCount = 4;
-        var partBFieldsCountPatch = eb.AddStruct("PartB", partBFieldsCount); // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
-        eb.AddCountedString("_typeName", "Log");
+        byte partBFieldsCount = 4; // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
+        eb.AddStructWithMetadataPosition("PartB", out var partBFieldsCountMetadataPosition);
+        eb.AddString16("_typeName", "Log");
 
         // `LogRecord.LogLevel` was marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4568
 #pragma warning disable 0618
         var logLevel = logRecord.LogLevel;
 #pragma warning restore 0618
 
-        eb.AddCountedString("severityText", LogLevels[(int)logLevel]);
+        eb.AddString16("severityText", LogLevels[(int)logLevel]);
         eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
 
         var eventId = logRecord.EventId;
@@ -311,10 +325,9 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
             // i.e all Part B fields and opt-in Part C fields.
             if (entry.Key == "{OriginalFormat}")
             {
-                eb.AddCountedAnsiString(
+                eb.AddString16(
                     "body",
-                    logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty,
-                    Encoding.UTF8);
+                    logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture) ?? string.Empty);
                 partBFieldsCount++;
                 bodyPopulated = true;
                 continue;
@@ -330,7 +343,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                         if (entry.Value is string nameValue)
                         {
                             // name must be string according to Part B in Common Schema. Skip serializing this field otherwise
-                            eb.AddCountedAnsiString("name", nameValue, Encoding.UTF8);
+                            eb.AddString16("name", nameValue);
                             namePopulated = true;
                         }
                     }
@@ -358,16 +371,16 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
         if (!namePopulated)
         {
-            eb.AddCountedAnsiString("name", categoryName, Encoding.UTF8);
+            eb.AddString16("name", categoryName);
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)
         {
-            eb.AddCountedAnsiString("body", logRecord.FormattedMessage, Encoding.UTF8);
+            eb.AddString16("body", logRecord.FormattedMessage);
             partBFieldsCount++;
         }
 
-        eb.SetStructFieldCount(partBFieldsCountPatch, partBFieldsCount);
+        eb.SetStructFieldCount(partBFieldsCountMetadataPosition, partBFieldsCount);
 
         // Part C
 
@@ -383,11 +396,11 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         hasEnvProperties = dataForScopes.HasEnvProperties;
         partCFieldsCountFromState = dataForScopes.PartCFieldsCountFromState;
 
-        var partCFieldsCount = partCFieldsCountFromState + hasEnvProperties; // We at least have these many fields in Part C
+        var partCFieldsCount = (byte)(partCFieldsCountFromState + hasEnvProperties); // We at least have these many fields in Part C
 
         if (partCFieldsCount > 0)
         {
-            var partCFieldsCountPatch = eb.AddStruct("PartC", (byte)partCFieldsCount);
+            eb.AddStructWithMetadataPosition("PartC", out var partCFieldsCountMetadataPosition);
 
             for (var i = 0; i < partCFieldsCountFromState; i++)
             {
@@ -399,10 +412,10 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // Get all "other" fields and collapse them into single field
                 // named "env_properties".
                 var serializedEnvPropertiesStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(envPropertiesList, out var count);
-                eb.AddCountedAnsiString("env_properties", serializedEnvPropertiesStringAsBytes, 0, count);
+                eb.AddString8("env_properties", serializedEnvPropertiesStringAsBytes);
             }
 
-            eb.SetStructFieldCount(partCFieldsCountPatch, (byte)partCFieldsCount);
+            eb.SetStructFieldCount(partCFieldsCountMetadataPosition, partCFieldsCount);
         }
 
         return eb;
@@ -481,7 +494,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         return result.Slice(0, validNameLength).ToString();
     }
 
-    private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
+    private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, EventHeaderLogExporter state)
     {
         Debug.Assert(state.serializationData.Value != null, "state.serializationData was null");
         Debug.Assert(PartCFields.Value != null, "PartCFields.Value was null");
@@ -530,3 +543,5 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         public byte PartCFieldsCountFromState;
     }
 }
+
+#endif
