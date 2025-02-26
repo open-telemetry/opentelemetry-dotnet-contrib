@@ -107,6 +107,17 @@ public class GenevaLogExporterTests
         Assert.Equal("Unix domain socket should not be used on Windows.", exception.Message);
     }
 
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
+    public void IncompatibleConnectionString_Windows_UserEvents()
+    {
+        var exporterOptions = new GenevaExporterOptions() { ConnectionString = "PrivatePreviewEnableUserEvents=true" };
+        var exception = Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaLogExporter(exporterOptions);
+        });
+        Assert.Equal("Exporting data in user_events is not supported on Windows.", exception.Message);
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void IncompatibleConnectionString_Linux()
     {

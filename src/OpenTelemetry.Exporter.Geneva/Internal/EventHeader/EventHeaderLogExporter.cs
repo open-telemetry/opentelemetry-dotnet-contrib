@@ -15,7 +15,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal class EventHeaderLogExporter : EventHeaderExporter
+internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     private const int MaxSanitizedEventNameLength = 50;
