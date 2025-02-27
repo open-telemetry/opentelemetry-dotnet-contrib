@@ -1,27 +1,32 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.EventHeader;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
-using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 
 /*
-BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)
-Intel Core i7-9700 CPU 3.00GHz, 1 CPU, 8 logical and 8 physical cores
-.NET SDK 8.0.100
-  [Host]     : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
-  DefaultJob : .NET 8.0.0 (8.0.23.53103), X64 RyuJIT AVX2
+BenchmarkDotNet v0.13.12, Ubuntu 24.04.1 LTS (Noble Numbat) WSL
+AMD EPYC 7763, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 9.0.103
+  [Host]     : .NET 8.0.12 (8.0.1224.60305), X64 RyuJIT AVX2
+  DefaultJob : .NET 8.0.12 (8.0.1224.60305), X64 RyuJIT AVX2
 
 
-| Method                     | Mean       | Error    | StdDev   | Allocated |
-|--------------------------- |-----------:|---------:|---------:|----------:|
-| MsgPack_SerializeLogRecord |   441.4 ns |  3.19 ns |  2.99 ns |         - |
-| TLD_SerializeLogRecord     |   263.5 ns |  2.93 ns |  2.75 ns |         - |
-| MsgPack_ExportLogRecord    | 1,039.3 ns | 20.55 ns | 46.81 ns |         - |
-| TLD_ExportLogRecord        |   890.5 ns | 17.48 ns | 25.07 ns |         - |
+| Method                        | Mean          | Error       | StdDev      | Gen0   | Allocated |
+|------------------------------ |--------------:|------------:|------------:|-------:|----------:|
+| MsgPack_SerializeLogRecord    |    440.674 ns |   3.1138 ns |   2.7603 ns |      - |         - |
+| UserEvents_SerializeLogRecord |    641.591 ns |   3.9530 ns |   3.3010 ns | 0.0057 |     104 B |
+| MsgPack_ExportLogRecord       | 52,815.968 ns | 396.9791 ns | 351.9117 ns | 0.0610 |    1552 B |
+| UserEvents_ExportLogRecord    |      2.024 ns |   0.0472 ns |   0.0394 ns |      - |         - |
+
+$ uname -r
+6.6.36.3-microsoft-standard-WSL2
 */
 
 namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
@@ -32,14 +37,14 @@ public class UserEventsLogExporterBenchmarks
     private readonly LogRecord logRecord;
     private readonly Batch<LogRecord> batch;
     private readonly MsgPackLogExporter msgPackExporter;
-    private readonly TldLogExporter tldExporter;
+    private readonly EventHeaderLogExporter eventHeaderExporter;
     private readonly ILoggerFactory loggerFactoryForMsgPack;
 
     public UserEventsLogExporterBenchmarks()
     {
         this.msgPackExporter = new MsgPackLogExporter(new GenevaExporterOptions
         {
-            ConnectionString = "EtwSession=OpenTelemetry",
+            ConnectionString = "Endpoint=unix:/var/run/mdsd/default_fluent.socket",
             PrepopulatedFields = new Dictionary<string, object>
             {
                 ["cloud.role"] = "BusyWorker",
@@ -48,9 +53,9 @@ public class UserEventsLogExporterBenchmarks
             },
         });
 
-        this.tldExporter = new TldLogExporter(new GenevaExporterOptions()
+        this.eventHeaderExporter = new EventHeaderLogExporter(new GenevaExporterOptions()
         {
-            ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true",
+            ConnectionString = "PrivatePreviewEnableUserEvents=true",
             PrepopulatedFields = new Dictionary<string, object>
             {
                 ["cloud.role"] = "BusyWorker",
@@ -67,7 +72,7 @@ public class UserEventsLogExporterBenchmarks
             {
                 loggerOptions.AddGenevaLogExporter(exporterOptions =>
                 {
-                    exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+                    exporterOptions.ConnectionString = "Endpoint=unix:/var/run/mdsd/default_fluent.socket";
                     exporterOptions.PrepopulatedFields = new Dictionary<string, object>
                     {
                         ["cloud.role"] = "BusyWorker",
@@ -85,9 +90,9 @@ public class UserEventsLogExporterBenchmarks
     }
 
     [Benchmark]
-    public void TLD_SerializeLogRecord()
+    public void UserEvents_SerializeLogRecord()
     {
-        this.tldExporter.SerializeLogRecord(this.logRecord);
+        this.eventHeaderExporter.SerializeLogRecord(this.logRecord);
     }
 
     [Benchmark]
@@ -97,9 +102,9 @@ public class UserEventsLogExporterBenchmarks
     }
 
     [Benchmark]
-    public void TLD_ExportLogRecord()
+    public void UserEvents_ExportLogRecord()
     {
-        this.tldExporter.Export(this.batch);
+        this.eventHeaderExporter.Export(this.batch);
     }
 
     [GlobalCleanup]
@@ -107,7 +112,7 @@ public class UserEventsLogExporterBenchmarks
     {
         this.batch.Dispose();
         this.loggerFactoryForMsgPack.Dispose();
-        this.tldExporter.Dispose();
+        this.eventHeaderExporter.Dispose();
         this.msgPackExporter.Dispose();
     }
 
@@ -151,3 +156,5 @@ public class UserEventsLogExporterBenchmarks
         }
     }
 }
+
+#endif
