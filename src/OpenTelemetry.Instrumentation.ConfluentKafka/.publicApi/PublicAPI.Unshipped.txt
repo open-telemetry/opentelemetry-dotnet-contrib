@@ -6,6 +6,7 @@ Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>
 Confluent.Kafka.OpenTelemetryConsumerBuilderExtensions
 Confluent.Kafka.OpenTelemetryConsumeResultExtensions
 Confluent.Kafka.OpenTelemetryProducerBuilderExtensions
+OpenTelemetry.Instrumentation.ConfluentKafka.DiagnosticConfig
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 override Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>.Build() -> Confluent.Kafka.IConsumer<TKey, TValue>!
@@ -15,6 +16,7 @@ static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMes
 static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.ConsumeAndProcessMessageAsync<TKey, TValue>(this Confluent.Kafka.IConsumer<TKey, TValue>! consumer, Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>! handler, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Confluent.Kafka.ConsumeResult<TKey, TValue>?>
 static Confluent.Kafka.OpenTelemetryConsumeResultExtensions.TryExtractPropagationContext<TKey, TValue>(this Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, out OpenTelemetry.Context.Propagation.PropagationContext propagationContext) -> bool
 static Confluent.Kafka.OpenTelemetryProducerBuilderExtensions.AsInstrumentedProducerBuilder<TKey, TValue>(this Confluent.Kafka.ProducerBuilder<TKey, TValue>! producerBuilder) -> Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>!
+static OpenTelemetry.Instrumentation.ConfluentKafka.ConsumeResultExtensions.StartProcessActivity<TKey, TValue>(this Confluent.Kafka.ConsumeResult<TKey, TValue>! result) -> System.Diagnostics.Activity?
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, Confluent.Kafka.InstrumentedConsumerBuilder<TKey, TValue>! consumerBuilder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddKafkaConsumerInstrumentation<TKey, TValue>(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, string? name) -> OpenTelemetry.Metrics.MeterProviderBuilder!
@@ -31,4 +33,7 @@ static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstr
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder, Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>! producerBuilder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKafkaProducerInstrumentation<TKey, TValue>(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, Confluent.Kafka.InstrumentedProducerBuilder<TKey, TValue>? producerBuilder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static readonly OpenTelemetry.Instrumentation.ConfluentKafka.DiagnosticConfig.ConsumerActivitySourceName -> string!
+static readonly OpenTelemetry.Instrumentation.ConfluentKafka.DiagnosticConfig.ProducerActivitySourceName -> string!
+virtual Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>.Invoke(Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, System.Diagnostics.Activity? activity, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 virtual Confluent.Kafka.OpenTelemetryConsumeAndProcessMessageHandler<TKey, TValue>.Invoke(Confluent.Kafka.ConsumeResult<TKey, TValue>! consumeResult, System.Diagnostics.Activity? activity, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask

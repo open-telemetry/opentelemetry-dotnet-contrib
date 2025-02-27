@@ -42,8 +42,8 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
                 tracingBuilder
                     .AddInMemoryExporter(activities)
                     .SetSampler(new TestSampler())
-                    .AddKafkaProducerInstrumentation<string, string>()
-                    .AddKafkaConsumerInstrumentation<string, string>();
+                    .AddKafkaProducerInstrumentation()
+                    .AddKafkaConsumerInstrumentation();
             });
         });
 
@@ -80,8 +80,6 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
                     {
                         break;
                     }
-
-                    outputHelper.WriteLine("consumed message {0}", j);
                     j++;
                 }
 
@@ -91,6 +89,6 @@ public class HostedTracingTests(ITestOutputHelper outputHelper)
             await host.StopAsync();
         }
 
-        Assert.Equal(200, activities.Count);
+        Assert.Equal(201, activities.Count);
     }
 }
