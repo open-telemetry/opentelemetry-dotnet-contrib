@@ -68,11 +68,11 @@ public class UserEventsLogExporterBenchmarks
             },
         });
 
-        var perfTracepointListener = new PerfTracepointListener(
+        this.perfTracepointListener = new PerfTracepointListener(
             "MicrosoftOpenTelemetryLogs_L4K1",
             MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
 
-        perfTracepointListener.Enable();
+        this.perfTracepointListener.Enable();
 
         this.logRecord = GenerateTestLogRecord();
         this.batch = GenerateTestLogRecordBatch();
