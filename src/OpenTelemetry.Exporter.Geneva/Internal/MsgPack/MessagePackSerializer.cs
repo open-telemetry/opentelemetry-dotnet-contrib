@@ -43,6 +43,8 @@ internal static class MessagePackSerializer
     public const byte MAP32 = 0xDF;
     public const byte EXT_DATE_TIME = 0xFF;
 
+    public static bool TimeAsInteger;
+
     private const int LIMIT_MIN_FIX_NEGATIVE_INT = -32;
     private const int LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES = 31;
     private const int LIMIT_MAX_STR8_LENGTH_IN_BYTES = (1 << 8) - 1; // str8 stores 2^8 - 1 bytes
@@ -580,8 +582,35 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUtcDateTime(byte[] buffer, int cursor, DateTime utc)
+    public static int WriteTimestamp64Header(byte[] buffer, int cursor)
     {
+        buffer[cursor++] = INT64;
+        return cursor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int WriteTimestamp64(byte[] buffer, int cursor, long ticks)
+    {
+        cursor = WriteInt64(buffer, cursor, (ticks / TimeSpan.TicksPerSecond) - 62135596800L);
+        return cursor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeTimestamp64(byte[] buffer, int cursor, long ticks)
+    {
+        cursor = WriteTimestamp64Header(buffer, cursor);
+        cursor = WriteTimestamp64(buffer, cursor, ticks);
+        return cursor;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int SerializeUtcDateTime(byte[] buffer, int cursor, DateTime utc, bool timeAsInteger)
+    {
+        if (timeAsInteger)
+        {
+            return SerializeTimestamp64(buffer, cursor, utc.Ticks);
+        }
+
         return SerializeTimestamp96(buffer, cursor, utc.Ticks);
     }
 
@@ -623,9 +652,9 @@ internal static class MessagePackSerializer
             case object[] v:
                 return SerializeArray(buffer, cursor, v);
             case DateTime v:
-                return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime());
+                return SerializeUtcDateTime(buffer, cursor, v.ToUniversalTime(), TimeAsInteger);
             case DateTimeOffset v:
-                return SerializeUtcDateTime(buffer, cursor, v.UtcDateTime);
+                return SerializeUtcDateTime(buffer, cursor, v.UtcDateTime, TimeAsInteger);
 
 #if NET
             case ISpanFormattable v:
