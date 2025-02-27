@@ -215,7 +215,7 @@ internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
         eb.Reset(eventName!);
         eb.AddUInt16("__csver__", 1024, Microsoft.LinuxTracepoints.EventHeaderFieldFormat.HexInt);
 
-        eb.AddStructWithMetadataPosition("partA", out var partAFieldsCountMetadataPosition);
+        eb.AddStructWithMetadataPosition("PartA", out var partAFieldsCountMetadataPosition);
         Serialize(eb, "time", timestamp); // TODO: this is different from TldLogExporter due to lack of AddFileTime method.
         byte partAFieldsCount = 1; // TODO: time field is not counted as PartA fields in TldLogExporter. Is it missing? Should time be counted as PartA field?
         if (this.repeatedPartAFields != null)
@@ -245,11 +245,11 @@ internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
             if (!string.IsNullOrEmpty(fullName))
             {
                 eb.AddString16("ext_ex_type", fullName);
+                partAFieldsCount++;
             }
 
             eb.AddString16("ext_ex_msg", logRecord.Exception.Message);
-
-            partAFieldsCount += 2;
+            partAFieldsCount++;
 
             if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsString)
             {
