@@ -115,7 +115,7 @@ public class GenevaLogExporterTests
         {
             using var exporter = new GenevaLogExporter(exporterOptions);
         });
-        Assert.Equal("Exporting data in user_events is not supported on Windows.", exception.Message);
+        Assert.Equal("Exporting data in user_events is only supported for .NET 8 or later on Linux.", exception.Message);
     }
 
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]

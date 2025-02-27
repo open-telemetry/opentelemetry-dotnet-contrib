@@ -40,7 +40,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 #if NET
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                throw new ArgumentException("Exporting data in user_events is not supported on Windows.");
+                throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
             }
 
             var eventHeaderLogExporter = new EventHeaderLogExporter(options);
@@ -49,7 +49,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             this.exporter = eventHeaderLogExporter;
             return;
 #else
-            throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later.");
+            throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
 #endif
         }
 
