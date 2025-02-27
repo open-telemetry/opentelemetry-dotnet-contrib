@@ -93,20 +93,19 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "cosmosdb");
                                 break;
                             case "Microsoft.EntityFrameworkCore.Sqlite":
-                            case "Devart.Data.SQLite.EFCore":
+                            case "Devart.Data.SQLite.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "sqlite");
                                 break;
                             case "MySql.Data.EntityFrameworkCore":
                             case "Pomelo.EntityFrameworkCore.MySql":
-                            case "Devart.Data.MySql.EFCore":
+                            case "Devart.Data.MySql.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
-                            case "Devart.Data.PostgreSql.EFCore":
+                            case "Devart.Data.PostgreSql.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
-                            case "Devart.Data.Oracle.EFCore":
                             case "Devart.Data.Oracle.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
