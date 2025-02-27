@@ -49,7 +49,7 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
             this.exporter = eventHeaderLogExporter;
             return;
 #else
-            throw new NotSupportedException("Exporting data in user_events is only supported for .NET 8 or later.");
+            throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later.");
 #endif
         }
 
