@@ -11,9 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-#if NET
-using OpenTelemetry.Exporter.Geneva.EventHeader;
-#endif
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Tests;
@@ -1458,18 +1455,6 @@ public class GenevaLogExporterTests
                     options.AddInMemoryExporter(logRecordList);
                 }));
 
-            // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-            using var exporter = new EventHeaderLogExporter(new GenevaExporterOptions
-            {
-                ConnectionString = "PrivatePreviewEnableUserEvents=true",
-                PrepopulatedFields = new Dictionary<string, object>
-                {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
-                },
-            });
-
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
@@ -1477,32 +1462,6 @@ public class GenevaLogExporterTests
 
             // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
             Assert.Single(logRecordList);
-
-            var eventHeaderDynamicBuilder = exporter.SerializeLogRecord(logRecordList[0]);
-
-            //// Read the data sent via socket.
-            // var receivedData = new byte[1024];
-            // var receivedDataSize = serverSocket.Receive(receivedData);
-
-            //// Validation
-            // Assert.Equal(eventHeaderDynamicBuilder, receivedDataSize);
-
-            logRecordList.Clear();
-
-            // Emit log on a different thread to test for multithreading scenarios
-            var thread = new Thread(() =>
-            {
-                logger.LogInformation("Hello from another thread {Food} {Price}.", "artichoke", 3.99);
-            });
-            thread.Start();
-            thread.Join();
-
-            // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
-            Assert.Single(logRecordList);
-
-            eventHeaderDynamicBuilder = exporter.SerializeLogRecord(logRecordList[0]);
-            // receivedDataSize = serverSocket.Receive(receivedData);
-            // Assert.Equal(messagePackDataSize, receivedDataSize);
         }
         finally
         {
