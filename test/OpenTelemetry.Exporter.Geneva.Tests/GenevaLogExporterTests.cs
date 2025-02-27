@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
-using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Tests;
 using Xunit;
@@ -1437,10 +1436,6 @@ public class GenevaLogExporterTests
     public void SuccessfulUserEventsExport_Linux()
     {
 #if NET
-        var listener = new PerfTracepointListener(
-            "MicrosoftOpenTelemetryLogs_L4K1",
-            MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
-
         var logRecordList = new List<LogRecord>();
         try
         {
@@ -1460,8 +1455,6 @@ public class GenevaLogExporterTests
                     options.AddInMemoryExporter(logRecordList);
                 }));
 
-            listener.Enable();
-
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
@@ -1472,15 +1465,6 @@ public class GenevaLogExporterTests
         }
         finally
         {
-            try
-            {
-                listener.Disable();
-            }
-            catch
-            {
-            }
-
-            listener.Dispose();
         }
 #endif
     }
