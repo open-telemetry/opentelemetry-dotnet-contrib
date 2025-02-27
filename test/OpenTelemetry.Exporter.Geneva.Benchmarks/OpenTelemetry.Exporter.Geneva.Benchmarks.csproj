@@ -18,4 +18,8 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\OpenTelemetry.Exporter.Geneva.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\ConsoleCommand.cs" Link="Includes\ConsoleCommand.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\PerfTracepointListener.cs" Link="Includes\PerfTracepointListener.cs" />
+  </ItemGroup>
 </Project>
