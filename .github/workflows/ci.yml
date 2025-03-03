@@ -24,7 +24,7 @@ jobs:
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
-          appenders-serilog: ['*/OpenTelemetry.Appenders.Serilog*/**', '*/OpenTelemetry.Appenders.Serilog.Tests/**', '!**/*.md']
+          appenders-serilog: ['*/OpenTelemetry.Appenders.Serilog*/**', '!**/*.md']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
           exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
