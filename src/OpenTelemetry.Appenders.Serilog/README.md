@@ -1,7 +1,12 @@
-# OpenTelemetry.Appenders.Serilog
+# Serilog for OpenTelemetry .NET
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Alpha](../../README.md#alpha)|
+
+[![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
+[![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
+[![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Appenders.Serilog)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Appenders.Serilog)
 
 This project contains a [Serilog](https://github.com/serilog/)
 [sink](https://github.com/serilog/serilog/wiki/Configuration-Basics#sinks) for
