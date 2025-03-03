@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(NetMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Extensions to enable OpenTelemetry logging when using the Serilog library</Description>
     <PackageTags>$(PackageTags);serilog;logging</PackageTags>
   </PropertyGroup>
