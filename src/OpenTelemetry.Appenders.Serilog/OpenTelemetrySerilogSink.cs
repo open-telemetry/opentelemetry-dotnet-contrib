@@ -1,22 +1,10 @@
-// <copyright file="OpenTelemetrySerilogSink.cs" company="OpenTelemetry Authors">
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
+// SPDX-License-Identifier: Apache-2.0
+#pragma warning disable OTEL1001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using OpenTelemetry.Internal;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -34,6 +22,16 @@ internal sealed class OpenTelemetrySerilogSink : ILogEventSink, IDisposable
         nameof(LogEventLevel.Fatal),
     };
 
+    private static readonly LogRecordSeverity[] LogRecordSeverityMapping = new LogRecordSeverity[]
+    {
+        LogRecordSeverity.Trace, // Verbose
+        LogRecordSeverity.Debug,
+        LogRecordSeverity.Info,
+        LogRecordSeverity.Warn,
+        LogRecordSeverity.Error,
+        LogRecordSeverity.Fatal,
+    };
+
     private readonly LoggerProvider loggerProvider;
     private readonly bool includeRenderedMessage;
     private readonly Logger logger;
@@ -44,29 +42,25 @@ internal sealed class OpenTelemetrySerilogSink : ILogEventSink, IDisposable
         OpenTelemetrySerilogSinkOptions? options,
         bool disposeProvider)
     {
-        Debug.Assert(loggerProvider != null, "loggerProvider was null");
+        Guard.ThrowIfNull(loggerProvider);
 
         options ??= new();
 
-        this.loggerProvider = loggerProvider!;
+        this.loggerProvider = loggerProvider;
         this.disposeProvider = disposeProvider;
 
-        this.logger = loggerProvider!.GetLogger(new LoggerOptions(
-            new InstrumentationScope("OpenTelemetry.Extensions.Serilog")
-            {
-                Version = $"semver:{typeof(OpenTelemetrySerilogSink).Assembly.GetName().Version}",
-            }));
+        this.logger = loggerProvider!.GetLogger("OpenTelemetry.Appenders.Serilog", $"semver:{typeof(OpenTelemetrySerilogSink).Assembly.GetName().Version}");
 
         this.includeRenderedMessage = options.IncludeRenderedMessage;
     }
 
     public void Emit(LogEvent logEvent)
     {
-        Debug.Assert(logEvent != null, "LogEvent was null.");
+        Guard.ThrowIfNull(logEvent);
 
         LogRecordData data = new(Activity.Current)
         {
-            Timestamp = logEvent!.Timestamp.UtcDateTime,
+            Timestamp = logEvent.Timestamp.UtcDateTime,
             Body = logEvent.MessageTemplate.Text,
         };
 
@@ -74,14 +68,14 @@ internal sealed class OpenTelemetrySerilogSink : ILogEventSink, IDisposable
         if (severityNumber < 6)
         {
             data.SeverityText = LogEventLevels[severityNumber];
-            data.Severity = (LogRecordSeverity)severityNumber;
+            data.Severity = LogRecordSeverityMapping[severityNumber];
         }
 
         LogRecordAttributeList attributes = default;
 
         if (this.includeRenderedMessage)
         {
-            attributes.Add("serilog.rendered_message", logEvent.RenderMessage());
+            attributes.Add("serilog.rendered_message", logEvent.RenderMessage(CultureInfo.InvariantCulture));
         }
 
         var exception = logEvent.Exception;

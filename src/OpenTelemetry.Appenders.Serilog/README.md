@@ -1,7 +1,7 @@
-# OpenTelemetry.Extensions.Serilog
+# OpenTelemetry.Appenders.Serilog
 
-[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.Serilog)
-[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Extensions.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Extensions.Serilog)
+[![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
+[![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Appenders.Serilog.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.Serilog)
 
 This project contains a [Serilog](https://github.com/serilog/)
 [sink](https://github.com/serilog/serilog/wiki/Configuration-Basics#sinks) for
@@ -12,7 +12,7 @@ for adding OpenTelemetry trace details to log messages.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Extensions.Serilog --prerelease
+dotnet add package OpenTelemetry.Appenders.Serilog --prerelease
 ```
 
 ## Usage Examples

@@ -3,6 +3,7 @@
 # Each component identified by its path prefix has a list of users
 # Please add the entries in alphabetically sorted order
 components:
+  src/OpenTelemetry.Appenders.Serilog/:
   src/OpenTelemetry.Exporter.Geneva/:
     - codeblanch
     - rajkumar-rangaraj
