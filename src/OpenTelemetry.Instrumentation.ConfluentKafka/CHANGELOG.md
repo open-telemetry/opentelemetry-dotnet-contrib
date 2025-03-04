@@ -17,8 +17,8 @@
   to set default explicit buckets following the [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/messaging/messaging-metrics.md).
   ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
 
-* Updated OpenTelemetry core component version(s) to `1.11.1`.
-  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
 
 ## 0.1.0-alpha.2
 

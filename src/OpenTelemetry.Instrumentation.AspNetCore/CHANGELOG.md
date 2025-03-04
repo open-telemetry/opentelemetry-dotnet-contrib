@@ -8,6 +8,9 @@
   option which defaults to `true`. Only applies to .NET 9.0 or greater.
   ([#2539](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2539))
 
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
 ## 1.11.0
 
 Released 2025-Jan-27
