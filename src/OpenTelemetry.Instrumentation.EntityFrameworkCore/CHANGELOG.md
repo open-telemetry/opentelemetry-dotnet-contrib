@@ -6,6 +6,12 @@
   with the server domain name without the `tcp` prefix and added `server.port` with server port.
   ([#2439](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2439))
 
+* Fixed attribute `db.system` for following providers:
+  * `Devart.Data.SQLite.Entity.EFCore`,
+  * `Devart.Data.MySql.Entity.EFCore`,
+  * `Devart.Data.PostgreSql.Entity.EFCore`.
+  ([#2571](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2571))
+
 ## 1.11.0-beta.1
 
 Released 2025-Jan-27
