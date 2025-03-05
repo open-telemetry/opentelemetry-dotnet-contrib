@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 1.11.0-beta.2
+## 1.11.1
 
 Released 2025-Mar-05
 
