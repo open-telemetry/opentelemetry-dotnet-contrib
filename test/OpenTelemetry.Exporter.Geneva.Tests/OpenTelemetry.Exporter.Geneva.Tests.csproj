@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\ConsoleCommand.cs" Link="Includes\ConsoleCommand.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\PerfTracepointListener.cs" Link="Includes\PerfTracepointListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\PlatformHelpers.cs" Link="Includes\PlatformHelpers.cs" />
   </ItemGroup>
 
