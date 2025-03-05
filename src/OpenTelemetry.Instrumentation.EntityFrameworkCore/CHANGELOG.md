@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed the `server.address` field in EntityFrameworkCore spans to populate
+  with the server domain name without the `tcp` prefix and added `server.port` with server port.
+  ([#2439](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2439))
+
 * Fixed attribute `db.system` for following providers:
   * `Devart.Data.SQLite.Entity.EFCore`,
   * `Devart.Data.MySql.Entity.EFCore`,
