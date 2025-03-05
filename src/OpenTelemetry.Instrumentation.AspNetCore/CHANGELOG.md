@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.1
+
+Released 2025-Mar-05
+
 * Added support for listening to ASP.NET Core SignalR activities.
   Configurable with the
   `AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport`
