@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
 * Fixed attribute `db.system` for following providers:
   * `Devart.Data.SQLite.Entity.EFCore`,
   * `Devart.Data.MySql.Entity.EFCore`,
