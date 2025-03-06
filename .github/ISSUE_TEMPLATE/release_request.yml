@@ -15,6 +15,7 @@ body:
       description: Which component does this release request concern?
       multiple: false
       options:
+        - OpenTelemetry.Appenders.EventSource
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana

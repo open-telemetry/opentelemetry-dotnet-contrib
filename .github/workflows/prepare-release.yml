@@ -6,6 +6,7 @@ on:
       component:
         type: choice
         options:
+        - OpenTelemetry.Appenders.EventSource
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana
