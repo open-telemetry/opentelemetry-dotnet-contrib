@@ -1455,6 +1455,10 @@ public class GenevaLogExporterTests
                     options.AddInMemoryExporter(logRecordList);
                 }));
 
+            // Uncomment this if testing manually with the perf tool.
+            // Console.WriteLine("------------- ready to write events -------------");
+            // Thread.Sleep(5000);
+
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 

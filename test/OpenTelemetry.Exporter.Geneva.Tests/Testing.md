@@ -1,4 +1,4 @@
-# Reading events from user_events on Linux
+# Manual testing steps: Reading events from user_events on Linux
 
 `UnixUserEventsDataTransport` class can write events to user_events on .NET 8
 and later on versions of Linux with user_events available in the kernel (6.6+).
@@ -15,11 +15,14 @@ user_events feature works.
 * Perf Tool: Install the [perf](https://perf.wiki.kernel.org/index.php/Main_Page) tool to capture the user_events.
 * Decode-Perf Tool: Install the [decode-perf](https://github.com/microsoft/LinuxTracepoints/tree/main/libeventheader-decode-cpp/tools) tool to decode the user_events.
 
-### Steps
+### Steps for testing UnixUserEventsDataTransport
 
 To capture the user_events, the perf tool has to be run while `dotnet test` is running. The most simple way is to do in two terminals.
 
 #### Terminal 1
+
+First, remove `(Skip = "This would fail on Ubuntu. Skipping for now. See issue:
+#2326.")` for the `UserEvents_Logs_Success_Linux` test case to enable the tests.
 
 Go to the `test/OpenTelemetry.Exporter.Geneva.Tests/` folder and run the tests:
 
@@ -110,6 +113,61 @@ Formatted:
             "cpu": 4,
             "pid": 89238,
             "tid": 89259,
+            "level": 4,
+            "keyword": "0x1"
+        }
+    }]
+}
+```
+
+### Steps for testing GenevaLogExporter
+
+Go into `test/OpenTelemetry.Exporter.Geneva.Tests` folder
+and run the following command in one terminal.
+
+```
+sudo dotnet test --configuration Debug --framework net8.0 --filter SuccessfulUserEventsExport_Linux
+```
+
+In the other terminal, run the same commands in the above steps. See the following for the result.
+
+```
+$ sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data
+{
+"./perf.data": [
+  { "n": "MicrosoftOpenTelemetryLogs:Log", "__csver__": "0x400", "PartA": { "time": "2025-02-28T02:54:12.704863Z", "ext_cloud_role": "BusyWorker", "ext_cloud_roleInstance": "CY1SCH030021417", "ext_cloud_roleVer": "9.0.15289.2", "PartB": { "_typeName": "Log", "severityText": "Information", "severityNumber": 9, "body": "Hello from {Food} {Price}.", "name": "OpenTelemetry.Exporter.Geneva.Tests.GenevaLogExporterTests" } }, "PartC": { "Food": "artichoke", "Price": 3.99 }, "meta": { "time": 612654.051887500, "cpu": 14, "pid": 38500, "tid": 38519, "level": 4, "keyword": "0x1" } } ]
+}
+```
+
+Formatted:
+
+```
+{
+    "./perf.data": [{
+        "n": "MicrosoftOpenTelemetryLogs:Log",
+        "__csver__": "0x400",
+        "PartA": {
+            "time": "2025-02-28T02:54:12.704863Z",
+            "ext_cloud_role": "BusyWorker",
+            "ext_cloud_roleInstance": "CY1SCH030021417",
+            "ext_cloud_roleVer": "9.0.15289.2",
+            "PartB": {
+                "_typeName": "Log",
+                "severityText": "Information",
+                "severityNumber": 9,
+                "body": "Hello from {Food} {Price}.",
+                "name": "OpenTelemetry.Exporter.Geneva.Tests.GenevaLogExporterTests"
+            }
+        },
+        "PartC": {
+            "Food": "artichoke",
+            "Price": 3.99
+        },
+        "meta": {
+            "time": 612654.051887500,
+            "cpu": 14,
+            "pid": 38500,
+            "tid": 38519,
             "level": 4,
             "keyword": "0x1"
         }
