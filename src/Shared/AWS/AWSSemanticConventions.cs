@@ -152,7 +152,10 @@ internal partial class AWSSemanticConventions
     public class AttributeBuilderImpl
     {
         private readonly AWSSemanticConventions awsSemanticConventions;
-        private List<KeyValuePair<string, object>> state = [];
+        private List<KeyValuePair<string, object>> state = new (
+            // set initial capacity to prevent array resizing
+            // and prevent #2652 - possible race condition when running from unit tests
+            capacity: 16);
 
         public AttributeBuilderImpl(AWSSemanticConventions semanticConventions)
         {
