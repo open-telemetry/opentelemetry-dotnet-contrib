@@ -611,6 +611,7 @@ jobs:
       lint-md,
       lint-yml,
       lint-dotnet-format,
+      build-test-appenders-eventsource,
       build-test-exporter-geneva,
       build-test-exporter-geneva-integration,
       build-test-exporter-influxdb,
