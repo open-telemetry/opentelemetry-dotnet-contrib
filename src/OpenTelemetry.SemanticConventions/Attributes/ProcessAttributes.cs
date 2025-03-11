@@ -75,7 +75,7 @@ public static class ProcessAttributes
     public const string AttributeProcessExecutableBuildIdProfiling = "process.executable.build_id.profiling";
 
     /// <summary>
-    /// The name of the process executable. On Linux based systems, can be set to the <c>Name</c> in <c>proc/[pid]/status</c>. On Windows, can be set to the base name of <c>GetProcessImageFileNameW</c>.
+    /// The name of the process executable. On Linux based systems, this SHOULD be set to the base name of the target of <c>/proc/[pid]/exe</c>. On Windows, this SHOULD be set to the base name of <c>GetProcessImageFileNameW</c>.
     /// </summary>
     public const string AttributeProcessExecutableName = "process.executable.name";
 

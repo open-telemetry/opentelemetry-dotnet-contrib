@@ -15,14 +15,30 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GenAiAttributes
 {
     /// <summary>
+    /// Free-form description of the GenAI agent provided by the application.
+    /// </summary>
+    public const string AttributeGenAiAgentDescription = "gen_ai.agent.description";
+
+    /// <summary>
+    /// The unique identifier of the GenAI agent.
+    /// </summary>
+    public const string AttributeGenAiAgentId = "gen_ai.agent.id";
+
+    /// <summary>
+    /// Human-readable name of the GenAI agent provided by the application.
+    /// </summary>
+    public const string AttributeGenAiAgentName = "gen_ai.agent.name";
+
+    /// <summary>
     /// Deprecated, use Event API to report completions contents.
     /// </summary>
     [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiCompletion = "gen_ai.completion";
 
     /// <summary>
-    /// The response format that is requested.
+    /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
     public const string AttributeGenAiOpenaiRequestResponseFormat = "gen_ai.openai.request.response_format";
 
     /// <summary>
@@ -55,10 +71,25 @@ public static class GenAiAttributes
     public const string AttributeGenAiOperationName = "gen_ai.operation.name";
 
     /// <summary>
+    /// Represents the content type requested by the client.
+    /// </summary>
+    /// <remarks>
+    /// This attribute SHOULD be used when the client requests output of a specific type. The model may return zero or more outputs of this type.
+    /// This attribute specifies the output modality and not the actual output format. For example, if an image is requested, the actual output could be a URL pointing to an image file.
+    /// Additional output format details may be recorded in the future in the <c>gen_ai.output.{type}.*</c> attributes.
+    /// </remarks>
+    public const string AttributeGenAiOutputType = "gen_ai.output.type";
+
+    /// <summary>
     /// Deprecated, use Event API to report prompt contents.
     /// </summary>
     [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
+
+    /// <summary>
+    /// The target number of candidate completions to return.
+    /// </summary>
+    public const string AttributeGenAiRequestChoiceCount = "gen_ai.request.choice.count";
 
     /// <summary>
     /// The encoding formats requested in an embeddings operation, if specified.
@@ -152,6 +183,28 @@ public static class GenAiAttributes
     public const string AttributeGenAiTokenType = "gen_ai.token.type";
 
     /// <summary>
+    /// The tool call identifier.
+    /// </summary>
+    public const string AttributeGenAiToolCallId = "gen_ai.tool.call.id";
+
+    /// <summary>
+    /// Name of the tool utilized by the agent.
+    /// </summary>
+    public const string AttributeGenAiToolName = "gen_ai.tool.name";
+
+    /// <summary>
+    /// Type of the tool utilized by the agent.
+    /// </summary>
+    /// <remarks>
+    /// Extension: A tool executed on the agent-side to directly call external APIs, bridging the gap between the agent and real-world systems.
+    /// Agent-side operations involve actions that are performed by the agent on the server or within the agent's controlled environment.
+    /// Function: A tool executed on the client-side, where the agent generates parameters for a predefined function, and the client executes the logic.
+    /// Client-side operations are actions taken on the user's end or within the client application.
+    /// Datastore: A tool used by the agent to access and query structured or unstructured external data for retrieval-augmented tasks or knowledge updates.
+    /// </remarks>
+    public const string AttributeGenAiToolType = "gen_ai.tool.type";
+
+    /// <summary>
     /// Deprecated, use <c>gen_ai.usage.output_tokens</c> instead.
     /// </summary>
     [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c> attribute.")]
@@ -174,23 +227,26 @@ public static class GenAiAttributes
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
 
     /// <summary>
-    /// The response format that is requested.
+    /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
     public static class GenAiOpenaiRequestResponseFormatValues
     {
         /// <summary>
         /// Text response format.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string Text = "text";
 
         /// <summary>
         /// JSON object response format.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string JsonObject = "json_object";
 
         /// <summary>
         /// JSON schema response format.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string JsonSchema = "json_schema";
     }
 
@@ -229,6 +285,42 @@ public static class GenAiAttributes
         /// Embeddings operation such as <a href="https://platform.openai.com/docs/api-reference/embeddings/create">OpenAI Create embeddings API</a>.
         /// </summary>
         public const string Embeddings = "embeddings";
+
+        /// <summary>
+        /// Create GenAI agent.
+        /// </summary>
+        public const string CreateAgent = "create_agent";
+
+        /// <summary>
+        /// Execute a tool.
+        /// </summary>
+        public const string ExecuteTool = "execute_tool";
+    }
+
+    /// <summary>
+    /// Represents the content type requested by the client.
+    /// </summary>
+    public static class GenAiOutputTypeValues
+    {
+        /// <summary>
+        /// Plain text.
+        /// </summary>
+        public const string Text = "text";
+
+        /// <summary>
+        /// JSON object with known or unknown schema.
+        /// </summary>
+        public const string Json = "json";
+
+        /// <summary>
+        /// Image.
+        /// </summary>
+        public const string Image = "image";
+
+        /// <summary>
+        /// Speech.
+        /// </summary>
+        public const string Speech = "speech";
     }
 
     /// <summary>
@@ -321,5 +413,10 @@ public static class GenAiAttributes
         /// Output tokens (completion, response, etc.).
         /// </summary>
         public const string Completion = "output";
+
+        /// <summary>
+        /// Output tokens (completion, response, etc.).
+        /// </summary>
+        public const string Output = "output";
     }
 }
