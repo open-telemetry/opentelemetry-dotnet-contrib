@@ -12,21 +12,25 @@ user_events feature works.
 
 ### Prerequisites
 
-* Perf Tool: Install the [perf](https://perf.wiki.kernel.org/index.php/Main_Page) tool to capture the user_events.
-* Decode-Perf Tool: Install the [decode-perf](https://github.com/microsoft/LinuxTracepoints/tree/main/libeventheader-decode-cpp/tools) tool to decode the user_events.
+* Perf Tool: Install the [perf](https://perf.wiki.kernel.org/index.php/Main_Page)
+  tool to capture the user_events.
+* Decode-Perf Tool: Install the [decode-perf](https://github.com/microsoft/LinuxTracepoints/tree/main/libeventheader-decode-cpp/tools)
+  tool to decode the user_events.
 
 ### Steps for testing UnixUserEventsDataTransport
 
-To capture the user_events, the perf tool has to be run while `dotnet test` is running. The most simple way is to do in two terminals.
+To capture the user_events, the perf tool has to be run while `dotnet test` is
+running. The most simple way is to do in two terminals.
 
 #### Terminal 1
 
-First, remove `(Skip = "This would fail on Ubuntu. Skipping for now. See issue:
-#2326.")` for the `UserEvents_Logs_Success_Linux` test case to enable the tests.
+First, remove `(Skip = "This would fail on Ubuntu. Skipping for now. See
+issue: #2326.")` for the `UserEvents_Logs_Success_Linux` test case to enable the
+tests.
 
 Go to the `test/OpenTelemetry.Exporter.Geneva.Tests/` folder and run the tests:
 
-```
+```bash
 $ sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events --no-build
 [xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 8.0.12)
 [xUnit.net 00:00:00.12]   Discovering: OpenTelemetry.Exporter.Geneva.Tests
@@ -80,7 +84,7 @@ MicrosoftOpenTelemetryLogs_L4K1  enable  filter  otlp_metrics
 
 6. Run `sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data` to decode the user_events data:
 
-```
+```bash
 $ sudo ./perf-decode ./perf.data
 {
 "./perf.data": [
@@ -131,7 +135,7 @@ sudo dotnet test --configuration Debug --framework net8.0 --filter SuccessfulUse
 
 In the other terminal, run the same commands in the above steps. See the following for the result.
 
-```
+```bash
 $ sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data
 {
 "./perf.data": [
@@ -141,7 +145,7 @@ $ sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data
 
 Formatted:
 
-```
+```json
 {
     "./perf.data": [{
         "n": "MicrosoftOpenTelemetryLogs:Log",
