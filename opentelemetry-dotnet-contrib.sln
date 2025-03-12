@@ -357,10 +357,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Contrib.Share
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{70CA77D4-5D7F-4D70-A6B5-8AAC07A8EA3C}"
 	ProjectSection(SolutionItems) = preProject
+		test\Shared\ConsoleCommand.cs = test\Shared\ConsoleCommand.cs
 		test\Shared\CustomTextMapPropagator.cs = test\Shared\CustomTextMapPropagator.cs
 		test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs = test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs
 		test\Shared\EventSourceTestHelper.cs = test\Shared\EventSourceTestHelper.cs
 		test\Shared\InMemoryEventListener.cs = test\Shared\InMemoryEventListener.cs
+		test\Shared\PerfTracepointListener.cs = test\Shared\PerfTracepointListener.cs
 		test\Shared\PlatformHelpers.cs = test\Shared\PlatformHelpers.cs
 		test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs = test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs
 		test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs = test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs
