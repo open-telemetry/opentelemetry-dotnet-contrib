@@ -140,3 +140,9 @@ jobs:
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
+
+    - name: Publish NuGet packages to Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.project-name }}-packages
+        path: 'src\**\*.*nupkg'
