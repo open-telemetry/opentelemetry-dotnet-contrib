@@ -3,6 +3,7 @@
 
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
 
@@ -26,9 +27,19 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
-    internal static readonly string ActivitySourceName = Assembly.GetName().Name;
+    public static readonly AssemblyName AssemblyName = Assembly.GetName();
+
+    internal static readonly string ActivitySourceName = AssemblyName.Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+
+    internal static readonly string MeterName = AssemblyName.Name!;
+    internal static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
+    internal static readonly Histogram<double> DbClientOperationDuration = Meter.CreateHistogram(
+        "db.client.operation.duration",
+        unit: "s",
+        description: "Duration of database client operations.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] });
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -40,6 +51,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
