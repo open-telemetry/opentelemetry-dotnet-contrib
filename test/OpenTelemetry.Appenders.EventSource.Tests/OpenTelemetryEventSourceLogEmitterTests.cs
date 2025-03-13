@@ -10,6 +10,7 @@ using Xunit;
 
 namespace OpenTelemetry.Appenders.EventSource.Tests;
 
+[Collection("OpenTelemetryEventSourceLogEmitterTests")]
 public class OpenTelemetryEventSourceLogEmitterTests
 {
     [Theory]
