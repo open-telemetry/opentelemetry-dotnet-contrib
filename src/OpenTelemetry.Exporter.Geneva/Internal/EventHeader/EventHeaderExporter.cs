@@ -8,31 +8,16 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.LinuxTracepoints;
 using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Exporter.Geneva.Tld;
 
 namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal class EventHeaderExporter
+internal class EventHeaderExporter : TraceLoggingDynamicCommon
 {
-    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_EVENT_HEADER_MAPPING = new Dictionary<string, string>
+    protected EventHeaderExporter(GenevaExporterOptions options)
+        : base(options)
     {
-        // Part A
-        [Schema.V40.PartA.IKey] = "iKey",
-        [Schema.V40.PartA.Name] = "name",
-        [Schema.V40.PartA.Time] = "time",
-
-        // Part A Application Extension
-        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
-        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
-
-        // Part A Cloud Extension
-        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
-        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
-        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
-
-        // Part A Os extension
-        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
-        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
-    };
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static void Serialize(EventHeaderDynamicBuilder eb, string key, object value)
