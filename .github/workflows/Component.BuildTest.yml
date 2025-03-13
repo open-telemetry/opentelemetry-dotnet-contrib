@@ -145,4 +145,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.project-name }}-packages
-        path: 'src\**\*.*nupkg'
+        path: '.\src\**\*.*nupkg'
