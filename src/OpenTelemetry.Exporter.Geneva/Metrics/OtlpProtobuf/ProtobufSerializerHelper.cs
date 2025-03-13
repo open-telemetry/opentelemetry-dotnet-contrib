@@ -2,50 +2,57 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+#if NET8_0_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
 internal static class ProtobufSerializerHelper
 {
-    private const int Fixed64Size = 8;
-
-    private const ulong Ulong128 = 128;
-
-    private const uint Uint128 = 128;
-
-    internal static Encoding Utf8Encoding => Encoding.UTF8;
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteStringTag(byte[] buffer, ref int cursor, int fieldNumber, string value)
+        => cursor = WriteStringTag(buffer, cursor, GetTagValue(fieldNumber, WireType.LEN), value);
+
+    internal static int WriteStringTag(byte[] buffer, int cursor, uint tagValue, string value)
     {
-        var stringSize = Utf8Encoding.GetByteCount(value);
+        int prefixLen = value.Length <= 0x7f / 3 ? 2 : 4;
+        var stringSize = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, cursor += prefixLen);
 
-        WriteTag(buffer, ref cursor, fieldNumber, WireType.LEN);
+        nuint idx = (uint)cursor;
+        if (prefixLen == 2)
+        {
+#if NET8_0_OR_GREATER
+            Unsafe.AddByteOffset(ref MemoryMarshal.GetArrayDataReference(buffer), idx - 2) = (byte)tagValue;
+            Unsafe.AddByteOffset(ref MemoryMarshal.GetArrayDataReference(buffer), idx - 1) = (byte)stringSize;
+#else
+            buffer[(int)idx - 2] = (byte)tagValue;
+            buffer[(int)idx - 1] = (byte)stringSize;
+#endif
+        }
+        else
+        {
+            WriteTagAndLengthPrefixImpl(buffer, idx - 4, stringSize, tagValue);
+        }
 
-        WriteLength(buffer, ref cursor, stringSize);
-
-        _ = Encoding.UTF8.GetBytes(value, 0, value.Length, buffer, cursor);
-
-        cursor += stringSize;
+        return (int)idx + stringSize;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteEnumWithTag(byte[] buffer, ref int cursor, int fieldNumber, int value)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
-
-        // Assuming 1 byte which matches the intended use.
-        buffer[cursor++] = (byte)value;
+        Debug.Assert((uint)value <= 0x7f, "Enum value must fit within 1-byte varint encoding");
+        ref var target = ref buffer[cursor += 2];
+        Unsafe.AddByteOffset(ref target, (nint)(-2)) = (byte)GetTagValue(fieldNumber, WireType.VARINT);
+        Unsafe.AddByteOffset(ref target, (nint)(-1)) = (byte)value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteBoolWithTag(byte[] buffer, ref int cursor, int fieldNumber, bool value)
-    {
-        WriteTag(buffer, ref cursor, fieldNumber, WireType.VARINT);
-        buffer[cursor++] = value ? (byte)1 : (byte)0;
-    }
+        => WriteEnumWithTag(buffer, ref cursor, fieldNumber, value ? 1 : 0);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteFixed64WithTag(byte[] buffer, ref int cursor, int fieldNumber, ulong value)
@@ -78,58 +85,11 @@ internal static class ProtobufSerializerHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteLengthCustom(byte[] buffer, ref int cursor, int length)
-    {
-        WriteVarintCustom(buffer, ref cursor, (uint)length);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteLength(byte[] buffer, ref int cursor, int length)
-    {
-        WriteVarint32(buffer, ref cursor, (uint)length);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteVarintCustom(byte[] buffer, ref int cursor, uint value)
-    {
-        var index = 0;
-
-        // Loop until all 7 bits from the integer value have been encoded
-        while (value > 0)
-        {
-            var chunk = (byte)(value & 0x7F); // Extract the least significant 7 bits
-            value >>= 7; // Right shift the value by 7 bits to process the next chunk
-
-            // If there are more bits to encode, set the most significant bit to 1
-            if (index < 3)
-            {
-                chunk |= 0x80;
-            }
-
-            buffer[cursor++] = chunk; // Store the encoded chunk
-            index++;
-        }
-
-        // If fewer than 3 bytes were used, pad with zeros
-        while (index < 2)
-        {
-            buffer[cursor++] = 0x80;
-            index++;
-        }
-
-        while (index < 3)
-        {
-            buffer[cursor++] = 0x00;
-            index++;
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarint32(byte[] buffer, ref int cursor, uint value)
     {
-        while (value >= Uint128)
+        while (value > 0x7f)
         {
-            buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
+            buffer[cursor++] = (byte)(0x80 | value);
             value >>= 7;
         }
 
@@ -139,9 +99,9 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteVarint64(byte[] buffer, ref int cursor, ulong value)
     {
-        while (value >= Ulong128)
+        while (value > 0x7f)
         {
-            buffer[cursor++] = (byte)(0x80 | (value & 0x7F));
+            buffer[cursor++] = (byte)(0x80 | (uint)value);
             value >>= 7;
         }
 
@@ -151,31 +111,52 @@ internal static class ProtobufSerializerHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteTag(byte[] buffer, ref int cursor, int fieldNumber, WireType type)
     {
-        WriteVarint32(buffer, ref cursor, GetTagValue(fieldNumber, type));
+        buffer[cursor++] = (byte)GetTagValue(fieldNumber, type);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void WriteTagAndLengthPrefix(byte[] buffer, ref int cursor, int contentLength, int fieldNumber, WireType type)
+    internal static void WriteTagAndLengthPrefix(byte[] buffer, int tagAndLengthIndex, int cursor, int fieldNumber, WireType type)
+        => WriteTagAndLengthPrefixImpl(buffer, (uint)tagAndLengthIndex, cursor - 4 - tagAndLengthIndex, GetTagValue(fieldNumber, type));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void WriteTagAndLengthPrefixImpl(byte[] buffer, nuint tagAndLengthIndex, int contentLength, uint tagValue)
     {
-        WriteTag(buffer, ref cursor, fieldNumber, type);
-        WriteLengthCustom(buffer, ref cursor, contentLength);
+        var value = (uint)contentLength;
+        Debug.Assert(value <= 0b_1111111_1111111_1111111, "Length must fit within 3-byte varint encoding");
+
+        // The tag and length are encoded in 4 bytes as [tag, 7bits of length + 0x80, 7bits of length + 0x80, 7bits of length]
+#if NET8_0_OR_GREATER
+        if (System.Runtime.Intrinsics.X86.Bmi2.IsSupported)
+        {
+            value = tagValue | 0x00808000 | System.Runtime.Intrinsics.X86.Bmi2.ParallelBitDeposit(value, 0x7f7f7f00);
+        }
+        else
+#endif
+        {
+            value = tagValue | 0x00808000 | ((value & 0b_1111111) << 8) | ((value & 0b_1111111_0000000) << 9) | ((value & 0b_1111111_0000000_0000000) << 10);
+        }
+
+        if (!BitConverter.IsLittleEndian)
+        {
+            value = BinaryPrimitives.ReverseEndianness(value);
+        }
+
+#if NET8_0_OR_GREATER
+        Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetArrayDataReference(buffer), tagAndLengthIndex), value);
+#else
+        Unsafe.WriteUnaligned(ref buffer[(int)tagAndLengthIndex], value);
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteFixed64LittleEndianFormat(byte[] buffer, ref int cursor, ulong value)
     {
-        if (cursor < buffer.Length)
+        if (!BitConverter.IsLittleEndian)
         {
-            var span = new Span<byte>(buffer, cursor, Fixed64Size);
-
-            BinaryPrimitives.WriteUInt64LittleEndian(span, value);
-
-            cursor += Fixed64Size;
+            value = BinaryPrimitives.ReverseEndianness(value);
         }
-        else
-        {
-            // TODO: handle insufficient space.
-        }
+
+        Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref buffer[cursor += sizeof(ulong)], (nint)(-sizeof(ulong))), value);
     }
 
     internal static uint GetTagValue(int fieldNumber, WireType wireType)
