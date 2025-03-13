@@ -135,7 +135,7 @@ jobs:
         FILTER: ${{ inputs.test-case-filter }}
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
-        file: TestResults/Cobertura.xml
+        files: TestResults/Cobertura.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
