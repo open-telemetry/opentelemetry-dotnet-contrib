@@ -2,11 +2,16 @@
 
 | Status        |           |
 | ------------- |-----------|
-| Stability     |  [Alpha](../../README.md#alpha)|
+| Stability     | [Alpha](../../README.md#alpha) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Appenders.EventSource.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.EventSource)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Appenders.EventSource.svg)](https://www.nuget.org/packages/OpenTelemetry.Appenders.EventSource)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Appenders.EventSource)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Appenders.EventSource)
+
+> [!IMPORTANT]
+> This package is in the [Alpha](../../README.md#alpha) state. The main goal
+  of this package is to stabilize [OpenTelemetry Logs (Bridge) API](https://github.com/open-telemetry/opentelemetry-dotnet/issues/4433).
+  There is no plan to go beyond Alpha until API reach stability.
 
 This project contains an
 [EventListener](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventlistener)
