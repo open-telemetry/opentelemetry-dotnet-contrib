@@ -12,7 +12,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
+internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
@@ -48,9 +48,9 @@ internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
+                TldExporter.V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                Serialize(eb, keyToSerialize, value);
+                EventHeaderExporter.Serialize(eb, keyToSerialize, value);
             }
 
             this.repeatedPartAFields = eb.GetRawFields();
@@ -134,7 +134,7 @@ internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
         eb.AddUInt16("__csver__", 1024, Microsoft.LinuxTracepoints.EventHeaderFieldFormat.HexInt);
 
         eb.AddStructWithMetadataPosition("PartA", out var partAFieldsCountMetadataPosition);
-        Serialize(eb, "time", timestamp); // TODO: this is different from TldLogExporter due to lack of AddFileTime method.
+        EventHeaderExporter.Serialize(eb, "time", timestamp); // TODO: this is different from TldLogExporter due to lack of AddFileTime method.
         byte partAFieldsCount = 1; // TODO: time field is not counted as PartA fields in TldLogExporter. Is it missing? Should time be counted as PartA field?
         if (this.repeatedPartAFields != null)
         {
@@ -322,7 +322,7 @@ internal class EventHeaderLogExporter : EventHeaderExporter, IDisposable
 
             for (var i = 0; i < partCFieldsCountFromState; i++)
             {
-                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+                EventHeaderExporter.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
 
             if (hasEnvProperties == 1)

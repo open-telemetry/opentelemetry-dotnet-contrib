@@ -9,7 +9,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal sealed class TldLogExporter : TldExporter, IDisposable
+internal sealed class TldLogExporter : TldLogCommon, IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
@@ -44,9 +44,9 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
+                TldExporter.V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                Serialize(eb, keyToSerialize, value);
+                TldExporter.Serialize(eb, keyToSerialize, value);
 
                 this.repeatedPartAFields = eb.GetRawFields();
             }
@@ -176,7 +176,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
                 var exceptionStack = logRecord.Exception.ToInvariantString();
-                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
+                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, TldExporter.StringLengthLimit));
                 partAFieldsCount++;
             }
             else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
@@ -184,7 +184,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 var stackTrace = logRecord.Exception.StackTrace;
                 if (stackTrace != null)
                 {
-                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, StringLengthLimit));
+                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, TldExporter.StringLengthLimit));
                     partAFieldsCount++;
                 }
             }
@@ -310,7 +310,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
             for (var i = 0; i < partCFieldsCountFromState; i++)
             {
-                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+                TldExporter.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
 
             if (hasEnvProperties == 1)

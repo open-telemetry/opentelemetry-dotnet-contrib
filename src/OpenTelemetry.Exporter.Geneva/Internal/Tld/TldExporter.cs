@@ -9,17 +9,32 @@ using OpenTelemetry.Exporter.Geneva.External;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal abstract class TldExporter : TldLogCommon
+internal static class TldExporter
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
-
-    protected TldExporter(GenevaExporterOptions options)
-        : base(options)
+    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
     {
-    }
+        // Part A
+        [Schema.V40.PartA.IKey] = "iKey",
+        [Schema.V40.PartA.Name] = "name",
+        [Schema.V40.PartA.Time] = "time",
+
+        // Part A Application Extension
+        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
+        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
+
+        // Part A Cloud Extension
+        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
+        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
+        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
+
+        // Part A Os extension
+        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
+        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
+    };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Serialize(EventBuilder eb, string key, object value)
+    public static void Serialize(EventBuilder eb, string key, object value)
     {
         Debug.Assert(value != null, "value was null");
 

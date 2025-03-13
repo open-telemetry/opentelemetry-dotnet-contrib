@@ -8,19 +8,13 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.LinuxTracepoints;
 using Microsoft.LinuxTracepoints.Provider;
-using OpenTelemetry.Exporter.Geneva.Tld;
 
 namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal class EventHeaderExporter : TldLogCommon
+internal static class EventHeaderExporter
 {
-    protected EventHeaderExporter(GenevaExporterOptions options)
-        : base(options)
-    {
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Serialize(EventHeaderDynamicBuilder eb, string key, object value)
+    public static void Serialize(EventHeaderDynamicBuilder eb, string key, object value)
     {
         Debug.Assert(value != null, "value was null");
 

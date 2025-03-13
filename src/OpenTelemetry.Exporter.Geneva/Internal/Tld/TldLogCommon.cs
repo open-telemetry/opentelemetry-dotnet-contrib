@@ -10,27 +10,6 @@ namespace OpenTelemetry.Exporter.Geneva.Tld;
 
 internal abstract class TldLogCommon : IDisposable
 {
-    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
-    {
-        // Part A
-        [Schema.V40.PartA.IKey] = "iKey",
-        [Schema.V40.PartA.Name] = "name",
-        [Schema.V40.PartA.Time] = "time",
-
-        // Part A Application Extension
-        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
-        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
-
-        // Part A Cloud Extension
-        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
-        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
-        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
-
-        // Part A Os extension
-        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
-        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
-    };
-
     protected const int MaxSanitizedEventNameLength = 50;
 
     protected static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
