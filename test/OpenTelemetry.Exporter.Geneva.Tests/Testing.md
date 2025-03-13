@@ -64,25 +64,32 @@ Build succeeded in 12.1s
 
 #### Terminal 2
 
-1. Check if events are ready with this command: `sudo ls /sys/kernel/tracing/events/user_events/`. Before the test sets up the user_events, it would return an error:
+1. Check if events are ready with this command:
+`sudo ls /sys/kernel/tracing/events/user_events/`. Before the test sets up the
+user_events, it would return an error:
 
-```
+```bash
 $ sudo ls /sys/kernel/tracing/events/user_events/
 ls: cannot access '/sys/kernel/tracing/events/user_events/': No such file or directory
 ```
 
-2. When the dotnet test outputs reached `------------- ready to write events -------------`, the test would wait for 5 seconds before actually sending user_events. You can see events are ready by running the first command:
+1. When the dotnet test outputs reached
+`------------- ready to write events -------------`, the test would wait for 5
+seconds before actually sending user_events. You can see events are ready by
+running the first command:
 
-```
+```bash
 $ sudo ls /sys/kernel/tracing/events/user_events/
 MicrosoftOpenTelemetryLogs_L4K1  enable  filter  otlp_metrics
 ```
 
-3. Before the tests send out user_events in 5 seconds, run the perf tool: `sudo ./perf record -v -e user_events:MicrosoftOpenTelemetryLogs_L4K1`.
+1. Before the tests send out user_events in 5 seconds, run the perf tool:
+`sudo ./perf record -v -e user_events:MicrosoftOpenTelemetryLogs_L4K1`.
 
-5. Once the dotnet test command finishes, ctrl-c to terminate the capture.
+1. Once the dotnet test command finishes, ctrl-c to terminate the capture.
 
-6. Run `sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data` to decode the user_events data:
+1. Run `sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data` to
+decode the user_events data:
 
 ```bash
 $ sudo ./perf-decode ./perf.data
@@ -129,11 +136,12 @@ Formatted:
 Go into `test/OpenTelemetry.Exporter.Geneva.Tests` folder
 and run the following command in one terminal.
 
-```
+```bash
 sudo dotnet test --configuration Debug --framework net8.0 --filter SuccessfulUserEventsExport_Linux
 ```
 
-In the other terminal, run the same commands in the above steps. See the following for the result.
+In the other terminal, run the same commands in the above steps. See the
+following for the result.
 
 ```bash
 $ sudo /mnt/c/repos/LinuxTracepoints/bin/perf-decode ./perf.data
