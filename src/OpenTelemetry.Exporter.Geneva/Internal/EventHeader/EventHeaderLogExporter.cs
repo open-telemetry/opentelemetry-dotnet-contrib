@@ -135,13 +135,12 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 
         eb.AddStructWithMetadataPosition("PartA", out var partAFieldsCountMetadataPosition);
         EventHeaderExporter.Serialize(eb, "time", timestamp); // TODO: this is different from TldLogExporter due to lack of AddFileTime method.
-        byte partAFieldsCount = 1; // TODO: time field is not counted as PartA fields in TldLogExporter. Is it missing? Should time be counted as PartA field?
         if (this.repeatedPartAFields != null)
         {
             eb.AddRawFields(this.repeatedPartAFields.Value);
         }
 
-        partAFieldsCount += this.partAFieldsCount;
+        var partAFieldsCount = this.partAFieldsCount;
 
         // Part A - dt extension
         if (logRecord.TraceId != default)
