@@ -9,7 +9,7 @@ using OpenTelemetry.Exporter.Geneva.External;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal abstract class TldExporter : TraceLoggingDynamicCommon
+internal abstract class TldExporter : TldLogCommon
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 

@@ -12,7 +12,7 @@ using OpenTelemetry.Exporter.Geneva.Tld;
 
 namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal class EventHeaderExporter : TraceLoggingDynamicCommon
+internal class EventHeaderExporter : TldLogCommon
 {
     protected EventHeaderExporter(GenevaExporterOptions options)
         : base(options)

@@ -8,7 +8,7 @@ using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal abstract class TraceLoggingDynamicCommon : IDisposable
+internal abstract class TldLogCommon : IDisposable
 {
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
     {
@@ -51,7 +51,7 @@ internal abstract class TraceLoggingDynamicCommon : IDisposable
 
     private bool isDisposed;
 
-    protected TraceLoggingDynamicCommon(GenevaExporterOptions options)
+    protected TldLogCommon(GenevaExporterOptions options)
     {
         this.exceptionStackExportMode = options.ExceptionStackExportMode;
 
