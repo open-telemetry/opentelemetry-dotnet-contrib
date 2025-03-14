@@ -28,6 +28,22 @@ public static class UserAgentAttributes
     public const string AttributeUserAgentOriginal = "user_agent.original";
 
     /// <summary>
+    /// Human readable operating system name.
+    /// </summary>
+    /// <remarks>
+    /// For mapping user agent strings to OS names, libraries such as <a href="https://github.com/ua-parser">ua-parser</a> can be utilized.
+    /// </remarks>
+    public const string AttributeUserAgentOsName = "user_agent.os.name";
+
+    /// <summary>
+    /// The version string of the operating system as defined in <a href="/docs/resource/README.md#version-attributes">Version Attributes</a>.
+    /// </summary>
+    /// <remarks>
+    /// For mapping user agent strings to OS versions, libraries such as <a href="https://github.com/ua-parser">ua-parser</a> can be utilized.
+    /// </remarks>
+    public const string AttributeUserAgentOsVersion = "user_agent.os.version";
+
+    /// <summary>
     /// Specifies the category of synthetic traffic, such as tests or bots.
     /// </summary>
     /// <remarks>

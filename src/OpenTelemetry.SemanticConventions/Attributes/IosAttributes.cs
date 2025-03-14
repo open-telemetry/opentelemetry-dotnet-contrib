@@ -15,47 +15,86 @@ namespace OpenTelemetry.SemanticConventions;
 public static class IosAttributes
 {
     /// <summary>
-    /// Deprecated use the <c>device.app.lifecycle</c> event definition including <c>ios.state</c> as a payload field instead.
+    /// This attribute represents the state of the application.
     /// </summary>
     /// <remarks>
-    /// The iOS lifecycle states are defined in the <a href="https://developer.apple.com/documentation/uikit/uiapplicationdelegate#1656902">UIApplicationDelegate documentation</a>, and from which the <c>OS terminology</c> column values are derived.
+    /// The iOS lifecycle states are defined in the <a href="https://developer.apple.com/documentation/uikit/uiapplicationdelegate">UIApplicationDelegate documentation</a>, and from which the <c>OS terminology</c> column values are derived.
     /// </remarks>
-    [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+    public const string AttributeIosAppState = "ios.app.state";
+
+    /// <summary>
+    /// Deprecated. use the <c>ios.app.state</c> instead.
+    /// </summary>
+    /// <remarks>
+    /// The iOS lifecycle states are defined in the <a href="https://developer.apple.com/documentation/uikit/uiapplicationdelegate">UIApplicationDelegate documentation</a>, and from which the <c>OS terminology</c> column values are derived.
+    /// </remarks>
+    [Obsolete("Renamed to <c>ios.app.state</c>.")]
     public const string AttributeIosState = "ios.state";
 
     /// <summary>
-    /// Deprecated use the <c>device.app.lifecycle</c> event definition including <c>ios.state</c> as a payload field instead.
+    /// This attribute represents the state of the application.
+    /// </summary>
+    public static class IosAppStateValues
+    {
+        /// <summary>
+        /// The app has become <c>active</c>. Associated with UIKit notification <c>applicationDidBecomeActive</c>.
+        /// </summary>
+        public const string Active = "active";
+
+        /// <summary>
+        /// The app is now <c>inactive</c>. Associated with UIKit notification <c>applicationWillResignActive</c>.
+        /// </summary>
+        public const string Inactive = "inactive";
+
+        /// <summary>
+        /// The app is now in the background. This value is associated with UIKit notification <c>applicationDidEnterBackground</c>.
+        /// </summary>
+        public const string Background = "background";
+
+        /// <summary>
+        /// The app is now in the foreground. This value is associated with UIKit notification <c>applicationWillEnterForeground</c>.
+        /// </summary>
+        public const string Foreground = "foreground";
+
+        /// <summary>
+        /// The app is about to terminate. Associated with UIKit notification <c>applicationWillTerminate</c>.
+        /// </summary>
+        public const string Terminate = "terminate";
+    }
+
+    /// <summary>
+    /// Deprecated. use the <c>ios.app.state</c> instead.
     /// </summary>
     public static class IosStateValues
     {
         /// <summary>
         /// The app has become <c>active</c>. Associated with UIKit notification <c>applicationDidBecomeActive</c>.
         /// </summary>
-        [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+        [Obsolete("Renamed to <c>ios.app.state</c>.")]
         public const string Active = "active";
 
         /// <summary>
         /// The app is now <c>inactive</c>. Associated with UIKit notification <c>applicationWillResignActive</c>.
         /// </summary>
-        [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+        [Obsolete("Renamed to <c>ios.app.state</c>.")]
         public const string Inactive = "inactive";
 
         /// <summary>
         /// The app is now in the background. This value is associated with UIKit notification <c>applicationDidEnterBackground</c>.
         /// </summary>
-        [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+        [Obsolete("Renamed to <c>ios.app.state</c>.")]
         public const string Background = "background";
 
         /// <summary>
         /// The app is now in the foreground. This value is associated with UIKit notification <c>applicationWillEnterForeground</c>.
         /// </summary>
-        [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+        [Obsolete("Renamed to <c>ios.app.state</c>.")]
         public const string Foreground = "foreground";
 
         /// <summary>
         /// The app is about to terminate. Associated with UIKit notification <c>applicationWillTerminate</c>.
         /// </summary>
-        [Obsolete("Moved to a payload field of <c>device.app.lifecycle</c>.")]
+        [Obsolete("Renamed to <c>ios.app.state</c>.")]
         public const string Terminate = "terminate";
     }
 }

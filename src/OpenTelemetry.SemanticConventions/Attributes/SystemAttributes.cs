@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class SystemAttributes
 {
     /// <summary>
-    /// The logical CPU number [0..n-1].
+    /// Deprecated, use <c>cpu.logical_number</c> instead.
     /// </summary>
     public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
 

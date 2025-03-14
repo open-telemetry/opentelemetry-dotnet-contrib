@@ -99,12 +99,12 @@ public static class TlsAttributes
     public const string AttributeTlsNextProtocol = "tls.next_protocol";
 
     /// <summary>
-    /// Normalized lowercase protocol name parsed from original string of the negotiated <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES">SSL/TLS protocol version</a>.
+    /// Normalized lowercase protocol name parsed from original string of the negotiated <a href="https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values">SSL/TLS protocol version</a>.
     /// </summary>
     public const string AttributeTlsProtocolName = "tls.protocol.name";
 
     /// <summary>
-    /// Numeric part of the version parsed from the original string of the negotiated <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES">SSL/TLS protocol version</a>.
+    /// Numeric part of the version parsed from the original string of the negotiated <a href="https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values">SSL/TLS protocol version</a>.
     /// </summary>
     public const string AttributeTlsProtocolVersion = "tls.protocol.version";
 
@@ -164,7 +164,7 @@ public static class TlsAttributes
     public const string AttributeTlsServerSubject = "tls.server.subject";
 
     /// <summary>
-    /// Normalized lowercase protocol name parsed from original string of the negotiated <a href="https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES">SSL/TLS protocol version</a>.
+    /// Normalized lowercase protocol name parsed from original string of the negotiated <a href="https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values">SSL/TLS protocol version</a>.
     /// </summary>
     public static class TlsProtocolNameValues
     {
