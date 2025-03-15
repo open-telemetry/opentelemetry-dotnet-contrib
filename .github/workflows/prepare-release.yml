@@ -6,6 +6,7 @@ on:
       component:
         type: choice
         options:
+        - OpenTelemetry.Appenders.Serilog
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana
