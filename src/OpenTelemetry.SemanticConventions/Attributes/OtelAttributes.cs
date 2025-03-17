@@ -15,6 +15,35 @@ namespace OpenTelemetry.SemanticConventions;
 public static class OtelAttributes
 {
     /// <summary>
+    /// A name uniquely identifying the instance of the OpenTelemetry component within its containing SDK instance.
+    /// </summary>
+    /// <remarks>
+    /// Implementations SHOULD ensure a low cardinality for this attribute, even across application or SDK restarts.
+    /// E.g. implementations MUST NOT use UUIDs as values for this attribute.
+    /// <p>
+    /// Implementations MAY achieve these goals by following a <c><otel.component.type>/<instance-counter></c> pattern, e.g. <c>batching_span_processor/0</c>.
+    /// Hereby <c>otel.component.type</c> refers to the corresponding attribute value of the component.
+    /// <p>
+    /// The value of <c>instance-counter</c> MAY be automatically assigned by the component and uniqueness within the enclosing SDK instance MUST be guaranteed.
+    /// For example, <c><instance-counter></c> MAY be implemented by using a monotonically increasing counter (starting with <c>0</c>), which is incremented every time an
+    /// instance of the given component type is started.
+    /// <p>
+    /// With this implementation, for example the first Batching Span Processor would have <c>batching_span_processor/0</c>
+    /// as <c>otel.component.name</c>, the second one <c>batching_span_processor/1</c> and so on.
+    /// These values will therefore be reused in the case of an application restart.
+    /// </remarks>
+    public const string AttributeOtelComponentName = "otel.component.name";
+
+    /// <summary>
+    /// A name identifying the type of the OpenTelemetry component.
+    /// </summary>
+    /// <remarks>
+    /// If none of the standardized values apply, implementations SHOULD use the language-defined name of the type.
+    /// E.g. for Java the fully qualified classname SHOULD be used in this case.
+    /// </remarks>
+    public const string AttributeOtelComponentType = "otel.component.type";
+
+    /// <summary>
     /// The name of the instrumentation scope - (<c>InstrumentationScope.Name</c> in OTLP).
     /// </summary>
     public const string AttributeOtelScopeName = "otel.scope.name";
@@ -25,6 +54,11 @@ public static class OtelAttributes
     public const string AttributeOtelScopeVersion = "otel.scope.version";
 
     /// <summary>
+    /// The result value of the sampler for this span.
+    /// </summary>
+    public const string AttributeOtelSpanSamplingResult = "otel.span.sampling_result";
+
+    /// <summary>
     /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
     /// </summary>
     public const string AttributeOtelStatusCode = "otel.status_code";
@@ -33,6 +67,58 @@ public static class OtelAttributes
     /// Description of the Status if it has a value, otherwise not set.
     /// </summary>
     public const string AttributeOtelStatusDescription = "otel.status_description";
+
+    /// <summary>
+    /// A name identifying the type of the OpenTelemetry component.
+    /// </summary>
+    public static class OtelComponentTypeValues
+    {
+        /// <summary>
+        /// The builtin SDK Batching Span Processor.
+        /// </summary>
+        public const string BatchingSpanProcessor = "batching_span_processor";
+
+        /// <summary>
+        /// The builtin SDK Simple Span Processor.
+        /// </summary>
+        public const string SimpleSpanProcessor = "simple_span_processor";
+
+        /// <summary>
+        /// OTLP span exporter over gRPC with protobuf serialization.
+        /// </summary>
+        public const string OtlpGrpcSpanExporter = "otlp_grpc_span_exporter";
+
+        /// <summary>
+        /// OTLP span exporter over HTTP with protobuf serialization.
+        /// </summary>
+        public const string OtlpHttpSpanExporter = "otlp_http_span_exporter";
+
+        /// <summary>
+        /// OTLP span exporter over HTTP with JSON serialization.
+        /// </summary>
+        public const string OtlpHttpJsonSpanExporter = "otlp_http_json_span_exporter";
+    }
+
+    /// <summary>
+    /// The result value of the sampler for this span.
+    /// </summary>
+    public static class OtelSpanSamplingResultValues
+    {
+        /// <summary>
+        /// The span is not sampled and not recording.
+        /// </summary>
+        public const string Drop = "DROP";
+
+        /// <summary>
+        /// The span is not sampled, but recording.
+        /// </summary>
+        public const string RecordOnly = "RECORD_ONLY";
+
+        /// <summary>
+        /// The span is sampled and recording.
+        /// </summary>
+        public const string RecordAndSample = "RECORD_AND_SAMPLE";
+    }
 
     /// <summary>
     /// Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
