@@ -4,7 +4,7 @@
 
 ## 1.11.2
 
-Released 2025-Mar-17
+Released 2025-Mar-18
 
 ## 1.11.1
 
