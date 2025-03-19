@@ -143,8 +143,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                         }
 
-                        var hasHost = this.hostFetcher.TryFetch(connection, out var host);
-                        if (hasHost && !string.IsNullOrEmpty(host))
+                        if (this.hostFetcher.TryFetch(connection, out var host) && !string.IsNullOrEmpty(host))
                         {
                             activity.AddTag(AttributeServerAddress, host);
                         }
@@ -157,8 +156,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             }
                         }
 
-                        var hasPort = this.portFetcher.TryFetch(connection, out var port);
-                        if (hasPort)
+                        if (this.portFetcher.TryFetch(connection, out var port))
                         {
                             activity.AddTag(AttributeServerPort, port);
                         }
