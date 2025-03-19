@@ -217,7 +217,7 @@ internal abstract class TldLogCommon : IDisposable
             }
             catch (Exception ex)
             {
-                ExporterEventSource.Log.ExporterException("TraceLoggingDynamicCommon Dispose failed.", ex);
+                ExporterEventSource.Log.ExporterException("TldLogCommon Dispose failed.", ex);
             }
         }
 

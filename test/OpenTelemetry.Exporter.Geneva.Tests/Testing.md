@@ -24,11 +24,11 @@ running. The most simple way is to do in two terminals.
 
 #### Terminal 1
 
-First, remove `(Skip = "This would fail on Ubuntu. Skipping for now. See
+1. Remove `(Skip = "This would fail on Ubuntu. Skipping for now. See
 issue: #2326.")` for the `UserEvents_Logs_Success_Linux` test case to enable the
 tests.
 
-Go to the `test/OpenTelemetry.Exporter.Geneva.Tests/` folder and run the tests:
+2. Go to the `test/OpenTelemetry.Exporter.Geneva.Tests/` folder and run the tests:
 
 ```bash
 $ sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events --no-build
@@ -68,20 +68,20 @@ Build succeeded in 12.1s
 `sudo ls /sys/kernel/tracing/events/user_events/`. Before the test sets up the
 user_events, it would return an error:
 
-```bash
-$ sudo ls /sys/kernel/tracing/events/user_events/
-ls: cannot access '/sys/kernel/tracing/events/user_events/': No such file or directory
-```
+    ```bash
+    $ sudo ls /sys/kernel/tracing/events/user_events/
+    ls: cannot access '/sys/kernel/tracing/events/user_events/': No such file or directory
+    ```
 
 1. When the dotnet test outputs reached
 `------------- ready to write events -------------`, the test would wait for 5
 seconds before actually sending user_events. You can see events are ready by
 running the first command:
 
-```bash
-$ sudo ls /sys/kernel/tracing/events/user_events/
-MicrosoftOpenTelemetryLogs_L4K1  enable  filter  otlp_metrics
-```
+    ```bash
+    $ sudo ls /sys/kernel/tracing/events/user_events/
+    MicrosoftOpenTelemetryLogs_L4K1  enable  filter  otlp_metrics
+    ```
 
 1. Before the tests send out user_events in 5 seconds, run the perf tool:
 `sudo ./perf record -v -e user_events:MicrosoftOpenTelemetryLogs_L4K1`.
