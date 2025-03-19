@@ -21,7 +21,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 
     private readonly ValueTuple<byte[], byte[]>? repeatedPartAFields;
 
-#pragma warning disable CA2213 // Disposable fields should be disposed: it is managed and disposed in the Dispose method of EventHeaderDynamicProvider
+#pragma warning disable CA2213 // Disposable fields should be disposed: logsTracepoint is a local reference set in the ctor. It's lifecycle is managed by UnixUserEventsDataTransport and is disposed in EventHeaderDynamicProvider.Dispose
     private readonly EventHeaderDynamicTracepoint logsTracepoint;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
