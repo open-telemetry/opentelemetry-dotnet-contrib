@@ -3,7 +3,8 @@
 ## Unreleased
 
 * Fixed the `server.address` field in EntityFrameworkCore spans to populate
-  with the server domain name without the `tcp` prefix and added `server.port` with server port.
+  with the server domain name without the `tcp` prefix and added `server.port`
+  with server port.
   ([#2439](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2439))
 
 ## 1.11.0-beta.2
