@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
@@ -14,9 +12,9 @@ namespace RouteTests;
 public class RoutingTestFixture : IAsyncLifetime
 {
     private static readonly HttpClient HttpClient = new();
-    private readonly Dictionary<TestApplicationScenario, WebApplication> apps = new();
+    private readonly Dictionary<TestApplicationScenario, WebApplication> apps = [];
     private readonly RouteInfoDiagnosticObserver diagnostics = new();
-    private readonly List<RoutingTestResult> testResults = new();
+    private readonly List<RoutingTestResult> testResults = [];
 
     public RoutingTestFixture()
     {
@@ -61,7 +59,7 @@ public class RoutingTestFixture : IAsyncLifetime
         await HttpClient.GetAsync(new Uri(url));
     }
 
-    public void AddTestResult(RoutingTestResult result)
+    internal void AddTestResult(RoutingTestResult result)
     {
         this.testResults.Add(result);
     }

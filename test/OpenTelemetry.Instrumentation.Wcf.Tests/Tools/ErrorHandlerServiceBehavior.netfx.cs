@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
 using System.Collections.ObjectModel;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
-using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 
@@ -29,7 +27,7 @@ internal class ErrorHandlerServiceBehavior : IServiceBehavior
 
     public void ApplyDispatchBehavior(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
     {
-        foreach (ChannelDispatcher dispatcher in serviceHostBase.ChannelDispatchers)
+        foreach (var dispatcher in serviceHostBase.ChannelDispatchers.Cast<ChannelDispatcher>())
         {
             dispatcher.ErrorHandlers.Add(new ErrorHandler(this.handle, this.action));
         }

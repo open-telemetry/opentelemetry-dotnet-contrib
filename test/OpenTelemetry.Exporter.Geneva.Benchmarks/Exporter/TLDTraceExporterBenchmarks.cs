@@ -1,10 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Trace;
 
 /*
@@ -28,11 +28,11 @@ namespace OpenTelemetry.Exporter.Geneva.Benchmarks;
 [MemoryDiagnoser]
 public class TLDTraceExporterBenchmarks
 {
-    private readonly Activity activity;
+    private readonly Activity? activity;
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter msgPackExporter;
     private readonly TldTraceExporter tldExporter;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TLDTraceExporterBenchmarks()
     {
@@ -52,10 +52,10 @@ public class TLDTraceExporterBenchmarks
 
         using (var testActivity = this.activitySource.StartActivity("Benchmark"))
         {
-            this.activity = testActivity;
-            this.activity?.SetTag("tagString", "value");
-            this.activity?.SetTag("tagInt", 100);
-            this.activity?.SetStatus(Status.Error);
+            this.activity = testActivity!;
+            this.activity.SetTag("tagString", "value");
+            this.activity.SetTag("tagInt", 100);
+            this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
         this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
@@ -84,13 +84,13 @@ public class TLDTraceExporterBenchmarks
     [Benchmark]
     public void MsgPack_SerializeActivity()
     {
-        this.msgPackExporter.SerializeActivity(this.activity);
+        this.msgPackExporter.SerializeActivity(this.activity!);
     }
 
     [Benchmark]
     public void TLD_SerializeActivity()
     {
-        this.tldExporter.SerializeActivity(this.activity);
+        this.tldExporter.SerializeActivity(this.activity!);
     }
 
     [Benchmark]
@@ -108,7 +108,7 @@ public class TLDTraceExporterBenchmarks
     [GlobalCleanup]
     public void Cleanup()
     {
-        this.activity.Dispose();
+        this.activity?.Dispose();
         this.batch.Dispose();
         this.activitySource.Dispose();
         this.msgPackExporter.Dispose();
@@ -124,11 +124,11 @@ public class TLDTraceExporterBenchmarks
             .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
             .Build();
 
-        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        using (var activity = this.activitySource.StartActivity("Benchmark")!)
         {
             activity.SetTag("tagString", "value");
             activity.SetTag("tagInt", 100);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         return batchGeneratorExporter.Batch;

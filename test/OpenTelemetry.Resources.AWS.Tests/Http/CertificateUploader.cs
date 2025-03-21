@@ -3,11 +3,8 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 
 namespace OpenTelemetry.Resources.AWS.Tests.Http;
 
@@ -24,8 +21,8 @@ internal class CertificateUploader : IDisposable
 
     public string FilePath
     {
-        get { return this.filePath; }
-        set { this.filePath = value; }
+        get => this.filePath;
+        set => this.filePath = value;
     }
 
     public void Create()
@@ -43,9 +40,9 @@ internal class CertificateUploader : IDisposable
         var exportData = certificate.Export(X509ContentType.Cert);
         var crt = Convert.ToBase64String(exportData, Base64FormattingOptions.InsertLineBreaks);
 
-        using (FileStream stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+        using (var stream = new FileStream(this.filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
         {
-            using (StreamWriter sw = new StreamWriter(stream))
+            using (var sw = new StreamWriter(stream))
             {
                 sw.Write(CRTHEADER + crt + CRTFOOTER);
             }
@@ -54,7 +51,7 @@ internal class CertificateUploader : IDisposable
 
     public void Dispose()
     {
-        for (int tries = 0; ; tries++)
+        for (var tries = 0; ; tries++)
         {
             try
             {

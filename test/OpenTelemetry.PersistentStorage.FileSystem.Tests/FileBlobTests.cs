@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.IO;
 using System.Text;
-using System.Threading;
 using OpenTelemetry.PersistentStorage.Abstractions;
 using Xunit;
 
@@ -65,8 +62,8 @@ public class FileBlobTests
     public void FileBlobTests_ReadFailsOnAlreadyLeasedFile()
     {
         var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        FileBlob blob1 = new FileBlob(testFile.FullName);
-        FileBlob blob2 = new FileBlob(testFile.FullName);
+        var blob1 = new FileBlob(testFile.FullName);
+        var blob2 = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
         Assert.True(blob2.TryWrite(data));
@@ -86,8 +83,8 @@ public class FileBlobTests
     public void FileBlobTests_LeaseFailsOnAlreadyLeasedFileByOtherObject()
     {
         var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        FileBlob blob1 = new FileBlob(testFile.FullName);
-        FileBlob blob2 = new FileBlob(testFile.FullName);
+        var blob1 = new FileBlob(testFile.FullName);
+        var blob2 = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
         Assert.True(blob1.TryWrite(data));
@@ -106,7 +103,7 @@ public class FileBlobTests
     public void FileBlobTests_Delete()
     {
         var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        FileBlob blob = new FileBlob(testFile.FullName);
+        var blob = new FileBlob(testFile.FullName);
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
@@ -150,7 +147,7 @@ public class FileBlobTests
     public void FileBlobTests_LeaseTimeIsUpdatedWhenLeasingAlreadyLeasedFile()
     {
         var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-        FileBlob blob = new FileBlob(testFile.FullName);
+        var blob = new FileBlob(testFile.FullName);
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 
         Assert.True(blob.TryWrite(data));
@@ -173,8 +170,8 @@ public class FileBlobTests
     public void FileBlobTests_FailedWrite()
     {
         var nonExistingPath = Path.Combine("FakePath:/", Path.GetRandomFileName());
-        FileBlob blob = new FileBlob(nonExistingPath);
+        var blob = new FileBlob(nonExistingPath);
 
-        Assert.False(blob.TryWrite(Array.Empty<byte>()));
+        Assert.False(blob.TryWrite([]));
     }
 }

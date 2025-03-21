@@ -1,12 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Quartz;
 using Xunit;
@@ -26,8 +21,8 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Create_Activity()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
         using var tel = Sdk.CreateTracerProviderBuilder()
@@ -43,7 +38,7 @@ public class QuartzDiagnosticListenerTests
         scheduler.Context.Put("DATESTAMPS", jobExecTimestamps);
         await scheduler.Start();
 
-        JobDataMap jobDataMap = new JobDataMap { { "A", "B" } };
+        var jobDataMap = new JobDataMap { { "A", "B" } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()
@@ -79,8 +74,8 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Create_Activity_And_Enrich_When_Enrich()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -110,7 +105,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()
@@ -146,8 +141,8 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Record_Exception_When_Record_Exception_Enabled()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -167,7 +162,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -191,17 +186,18 @@ public class QuartzDiagnosticListenerTests
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        Assert.Equal("exception", activity.Events.First().Name);
-        Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
-        Assert.Equal("Catch me if you can!", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusDescriptionKey)).Value);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        var exception = Assert.Single(activity.Events);
+        Assert.Equal("exception", exception.Name);
+        Assert.Equal("Catch me if you can!", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
     }
 
     [Fact]
     public async Task Should_Enrich_Exception_When_Record_Exception_Enabled_And_Enrich()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -234,7 +230,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -258,8 +254,10 @@ public class QuartzDiagnosticListenerTests
         Assert.Single(exportedItems);
         var activity = exportedItems[0];
 
-        Assert.Equal("ERROR", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusCodeKey)).Value);
-        Assert.Equal("Catch me if you can!", activity.Tags.SingleOrDefault(t => t.Key.Equals(SpanAttributeConstants.StatusDescriptionKey)).Value);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        var exception = Assert.Single(activity.Events);
+        Assert.Equal("exception", exception.Name);
+        Assert.Equal("Catch me if you can!", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
         Assert.Equal(testId, activity.Tags.SingleOrDefault(t => t.Key.Equals("test.id")).Value);
     }
 
@@ -267,8 +265,8 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Creates_Activity_Event_On_Job_Execution_Exception()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
         using var tel = Sdk.CreateTracerProviderBuilder()
@@ -296,7 +294,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJobExecutionExceptionJob>()
@@ -328,8 +326,8 @@ public class QuartzDiagnosticListenerTests
     public async Task Should_Not_Record_Activity_When_Trace_Operation_Is_Not_Present()
     {
         // Arrange
-        Barrier barrier = new Barrier(2);
-        List<DateTime> jobExecTimestamps = new List<DateTime>();
+        var barrier = new Barrier(2);
+        List<DateTime> jobExecTimestamps = [];
 
         var exportedItems = new List<Activity>();
 
@@ -337,7 +335,7 @@ public class QuartzDiagnosticListenerTests
             .SetSampler(new AlwaysOnSampler())
             .AddQuartzInstrumentation(q =>
             {
-                q.TracedOperations = new HashSet<string>();
+                q.TracedOperations = [];
             })
             .AddInMemoryExporter(exportedItems)
             .Build();
@@ -351,7 +349,7 @@ public class QuartzDiagnosticListenerTests
         await scheduler.Start();
 
         var testId = Guid.NewGuid().ToString();
-        JobDataMap jobDataMap = new JobDataMap { { "TestId", testId } };
+        var jobDataMap = new JobDataMap { { "TestId", testId } };
 
         var name = Guid.NewGuid().ToString();
         var job = JobBuilder.Create<TestJob>()

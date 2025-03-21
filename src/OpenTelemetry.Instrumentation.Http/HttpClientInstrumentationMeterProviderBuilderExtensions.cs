@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NET8_0_OR_GREATER
+#if !NET
 #if !NETFRAMEWORK
 using OpenTelemetry.Instrumentation.Http;
 #endif
@@ -27,7 +27,7 @@ public static class HttpClientInstrumentationMeterProviderBuilderExtensions
     {
         Guard.ThrowIfNull(builder);
 
-#if NET8_0_OR_GREATER
+#if NET
         return builder
             .AddMeter("System.Net.Http")
             .AddMeter("System.Net.NameResolution");

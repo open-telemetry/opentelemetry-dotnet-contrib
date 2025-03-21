@@ -1,15 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using OpenTelemetry.Internal;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
 
@@ -39,7 +32,7 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
     {
         Guard.ThrowIfNull(handlerFactory);
 
-        this.listenerSubscriptions = new List<IDisposable>();
+        this.listenerSubscriptions = [];
         this.handlerFactory = handlerFactory;
         this.diagnosticSourceFilter = diagnosticSourceFilter;
         this.isEnabledFilter = isEnabledFilter;
@@ -48,10 +41,7 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
 
     public void Subscribe()
     {
-        if (this.allSourcesSubscription == null)
-        {
-            this.allSourcesSubscription = DiagnosticListener.AllListeners.Subscribe(this);
-        }
+        this.allSourcesSubscription ??= DiagnosticListener.AllListeners.Subscribe(this);
     }
 
     public void OnNext(DiagnosticListener value)
@@ -96,15 +86,22 @@ internal sealed class DiagnosticSourceSubscriber : IDisposable, IObserver<Diagno
 
         lock (this.listenerSubscriptions)
         {
-            foreach (var listenerSubscription in this.listenerSubscriptions)
+            if (disposing)
             {
-                listenerSubscription?.Dispose();
+                foreach (var listenerSubscription in this.listenerSubscriptions)
+                {
+                    listenerSubscription?.Dispose();
+                }
             }
 
             this.listenerSubscriptions.Clear();
         }
 
-        this.allSourcesSubscription?.Dispose();
+        if (disposing)
+        {
+            this.allSourcesSubscription?.Dispose();
+        }
+
         this.allSourcesSubscription = null;
     }
 }

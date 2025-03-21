@@ -9,7 +9,7 @@ services:
     ports:
       - "9042:9042"
     healthcheck:
-      test: [ "CMD", "cqlsh", "-u cassandra", "-p cassandra" ,"-e describe keyspaces" ]
+      test: [ "CMD", "cqlsh", "-u cassandra", "-p cassandra", "-e describe keyspaces" ]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -24,5 +24,3 @@ services:
     depends_on:
       cassandra:
         condition: service_healthy
-
-

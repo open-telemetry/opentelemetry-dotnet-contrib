@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -17,17 +15,24 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     private readonly Func<Resource> getResource;
 
-    public OtlpProtobufMetricExporter(Func<Resource> getResource, ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    public OtlpProtobufMetricExporter(
+        Func<Resource> getResource,
+        IMetricDataTransport transport,
+        string? metricsAccount,
+        string? metricsNamespace,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            // Temporary until we add support for user_events.
-            throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
-        }
+        Debug.Assert(getResource != null, "getResource was null");
+        Debug.Assert(transport != null, "transport was null");
 
-        this.getResource = getResource;
+        this.getResource = getResource!;
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(
+            transport!,
+            metricsAccount,
+            metricsNamespace,
+            prepopulatedMetricDimensions,
+            prefixBufferWithUInt32LittleEndianLength: transport is MetricUnixDomainSocketDataTransport);
     }
 
     public ExportResult Export(in Batch<Metric> batch)
@@ -45,5 +50,9 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
     public void Dispose()
     {
+        if (this.otlpProtobufSerializer.MetricDataTransport is MetricUnixDomainSocketDataTransport udsTransport)
+        {
+            udsTransport.Dispose();
+        }
     }
 }

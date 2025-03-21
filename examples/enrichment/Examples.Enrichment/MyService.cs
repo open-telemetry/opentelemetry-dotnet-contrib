@@ -1,19 +1,16 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-
 namespace Examples.Enrichment;
 
 internal sealed class MyService : IMyService
 {
-    private readonly List<string> statuses = new()
-    {
+    private readonly List<string> statuses =
+    [
         "Blocked",
         "No blockers",
-        "Out of office",
-    };
+        "Out of office"
+    ];
 
     /// <summary>
     /// Returns daily status.

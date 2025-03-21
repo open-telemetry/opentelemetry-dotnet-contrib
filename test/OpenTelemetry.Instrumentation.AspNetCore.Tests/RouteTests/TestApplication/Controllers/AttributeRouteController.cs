@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace RouteTests.Controllers;
@@ -16,8 +14,10 @@ public class AttributeRouteController : ControllerBase
     public IActionResult Get() => this.Ok();
 
     [HttpGet("[action]/{id}")]
+#pragma warning disable IDE0060 // Remove unused parameter
     public IActionResult Get(int id) => this.Ok();
 
     [HttpGet("{id}/[action]")]
     public IActionResult GetWithActionNameInDifferentSpotInTemplate(int id) => this.Ok();
+#pragma warning restore IDE0060 // Remove unused parameter
 }

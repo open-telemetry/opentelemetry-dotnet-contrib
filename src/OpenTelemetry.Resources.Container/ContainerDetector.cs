@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Resources.Container.Utils;
 
@@ -59,14 +56,7 @@ internal sealed class ContainerDetector : IResourceDetector
     {
         var containerId = this.ExtractContainerId(path, cgroupVersion);
 
-        if (string.IsNullOrEmpty(containerId))
-        {
-            return Resource.Empty;
-        }
-        else
-        {
-            return new Resource(new List<KeyValuePair<string, object>>(1) { new(ContainerSemanticConventions.AttributeContainerId, containerId!) });
-        }
+        return string.IsNullOrEmpty(containerId) ? Resource.Empty : new Resource([new(ContainerSemanticConventions.AttributeContainerId, containerId!)]);
     }
 
     /// <summary>
@@ -77,24 +67,19 @@ internal sealed class ContainerDetector : IResourceDetector
     private static string? GetIdFromLineV1(string line)
     {
         // This cgroup output line should have the container id in it
-        int lastSlashIndex = line.LastIndexOf('/');
+        var lastSlashIndex = line.LastIndexOf('/');
         if (lastSlashIndex < 0)
         {
             return null;
         }
 
-        string lastSection = line.Substring(lastSlashIndex + 1);
-        int startIndex = lastSection.LastIndexOf('-');
-        int endIndex = lastSection.LastIndexOf('.');
+        var lastSection = line.Substring(lastSlashIndex + 1);
+        var startIndex = lastSection.LastIndexOf('-');
+        var endIndex = lastSection.LastIndexOf('.');
 
-        string containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
+        var containerId = RemovePrefixAndSuffixIfNeeded(lastSection, startIndex, endIndex);
 
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId))
-        {
-            return null;
-        }
-
-        return containerId;
+        return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId) ? null : containerId;
     }
 
     /// <summary>
@@ -111,12 +96,7 @@ internal sealed class ContainerDetector : IResourceDetector
             containerId = match.Groups[1].Value;
         }
 
-        if (string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!))
-        {
-            return null;
-        }
-
-        return containerId;
+        return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!) ? null : containerId;
     }
 
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
@@ -146,7 +126,7 @@ internal sealed class ContainerDetector : IResourceDetector
                 return null;
             }
 
-            foreach (string line in File.ReadLines(path))
+            foreach (var line in File.ReadLines(path))
             {
                 string? containerId = null;
                 if (!string.IsNullOrEmpty(line))
@@ -155,7 +135,11 @@ internal sealed class ContainerDetector : IResourceDetector
                     {
                         containerId = GetIdFromLineV1(line);
                     }
+#if NET
                     else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
+#else
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
+#endif
                     {
                         containerId = GetIdFromLineV2(line);
                     }

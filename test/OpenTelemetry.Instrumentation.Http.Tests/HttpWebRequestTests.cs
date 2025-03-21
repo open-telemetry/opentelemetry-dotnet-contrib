@@ -8,7 +8,9 @@ using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
+#if !NETFRAMEWORK
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
+#endif
 
 namespace OpenTelemetry.Instrumentation.Http.Tests;
 
@@ -24,7 +26,7 @@ public partial class HttpWebRequestTests
     public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
-            (ctx) =>
+            ctx =>
             {
                 ctx.Response.StatusCode = tc.ResponseCode == 0 ? 200 : tc.ResponseCode;
                 ctx.Response.OutputStream.Close();
@@ -32,22 +34,22 @@ public partial class HttpWebRequestTests
             out var host,
             out var port);
 
-        bool enrichWithHttpWebRequestCalled = false;
-        bool enrichWithHttpWebResponseCalled = false;
-        bool enrichWithHttpRequestMessageCalled = false;
-        bool enrichWithHttpResponseMessageCalled = false;
-        bool enrichWithExceptionCalled = false;
+        var enrichWithHttpWebRequestCalled = false;
+        var enrichWithHttpWebResponseCalled = false;
+        var enrichWithHttpRequestMessageCalled = false;
+        var enrichWithHttpResponseMessageCalled = false;
+        var enrichWithExceptionCalled = false;
 
         var exportedItems = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(exportedItems)
             .AddHttpClientInstrumentation(options =>
             {
-                options.EnrichWithHttpWebRequest = (activity, httpWebRequest) => { enrichWithHttpWebRequestCalled = true; };
-                options.EnrichWithHttpWebResponse = (activity, httpWebResponse) => { enrichWithHttpWebResponseCalled = true; };
-                options.EnrichWithHttpRequestMessage = (activity, request) => { enrichWithHttpRequestMessageCalled = true; };
-                options.EnrichWithHttpResponseMessage = (activity, response) => { enrichWithHttpResponseMessageCalled = true; };
-                options.EnrichWithException = (activity, exception) => { enrichWithExceptionCalled = true; };
+                options.EnrichWithHttpWebRequest = (_, _) => { enrichWithHttpWebRequestCalled = true; };
+                options.EnrichWithHttpWebResponse = (_, _) => { enrichWithHttpWebResponseCalled = true; };
+                options.EnrichWithHttpRequestMessage = (_, _) => { enrichWithHttpRequestMessageCalled = true; };
+                options.EnrichWithHttpResponseMessage = (_, _) => { enrichWithHttpResponseMessageCalled = true; };
+                options.EnrichWithException = (_, _) => { enrichWithExceptionCalled = true; };
                 options.RecordException = tc.RecordException ?? false;
             })
             .Build();
@@ -90,19 +92,14 @@ public partial class HttpWebRequestTests
             x => x.Key,
             x =>
             {
-                if (x.Key == "network.protocol.version")
-                {
-                    return "1.1";
-                }
-
-                return HttpTestData.NormalizeValues(x.Value, host, port);
+                return x.Key == "network.protocol.version" ? "1.1" : HttpTestData.NormalizeValues(x.Value, host, port);
             });
 
-        foreach (KeyValuePair<string, object> tag in activity.TagObjects)
+        foreach (var tag in activity.TagObjects)
         {
-            var tagValue = tag.Value.ToString();
+            var tagValue = tag.Value?.ToString();
 
-            if (!tc.SpanAttributes.TryGetValue(tag.Key, out string value))
+            if (!tc.SpanAttributes.TryGetValue(tag.Key, out var value))
             {
                 if (tag.Key == SpanAttributeConstants.StatusCodeKey)
                 {
@@ -124,6 +121,16 @@ public partial class HttpWebRequestTests
 
                 Assert.Fail($"Tag {tag.Key} was not found in test data.");
             }
+
+#if NET9_0_OR_GREATER
+            // TODO: NEED TO REVIEW THE SPEC
+            // NET9 does not record the URL Fragment Identifier.
+            if (value.EndsWith("#fragment", StringComparison.Ordinal))
+            {
+                // remove fragment from expected value
+                value = value.Substring(0, value.Length - "#fragment".Length);
+            }
+#endif
 
             Assert.Equal(value, tagValue);
         }
@@ -148,7 +155,7 @@ public partial class HttpWebRequestTests
 
         if (tc.RecordException.HasValue && tc.RecordException.Value)
         {
-            Assert.Single(activity.Events.Where(evt => evt.Name.Equals("exception")));
+            Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));
             Assert.True(enrichWithExceptionCalled);
         }
     }
@@ -179,6 +186,8 @@ public partial class HttpWebRequestTests
               }
             ",
         JsonSerializerOptions);
+
+        Assert.NotNull(input);
         this.HttpOutCallsAreCollectedSuccessfully(input);
     }
 

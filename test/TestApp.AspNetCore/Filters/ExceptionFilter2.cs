@@ -9,6 +9,6 @@ public class ExceptionFilter2 : IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
-        // test the behaviour when an application has two ExceptionFilters defined
+        // test the behavior when an application has two ExceptionFilters defined
     }
 }

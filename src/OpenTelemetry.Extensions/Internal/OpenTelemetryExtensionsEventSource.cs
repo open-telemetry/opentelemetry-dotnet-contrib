@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
@@ -43,5 +42,17 @@ internal sealed class OpenTelemetryExtensionsEventSource : EventSource
     public void LogRecordFilterException(string? categoryName, string exception)
     {
         this.WriteEvent(2, categoryName, exception);
+    }
+
+    [Event(3, Message = "Baggage key predicate threw exeption when trying to add baggage entry with key '{0}'. Baggage entry will not be added to the activity. Exception: '{1}'", Level = EventLevel.Warning)]
+    public void BaggageKeyActivityPredicateException(string baggageKey, string exception)
+    {
+        this.WriteEvent(3, baggageKey, exception);
+    }
+
+    [Event(4, Message = "Baggage key predicate threw exeption when trying to add baggage entry with key '{0}'. Baggage entry will not be added to the log record. Exception: '{1}'", Level = EventLevel.Warning)]
+    public void BaggageKeyLogRecordPredicateException(string baggageKey, string exception)
+    {
+        this.WriteEvent(4, baggageKey, exception);
     }
 }

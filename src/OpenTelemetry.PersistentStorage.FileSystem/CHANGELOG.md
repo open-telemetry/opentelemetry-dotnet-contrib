@@ -1,9 +1,16 @@
 # Changelog - OpenTelemetry.PersistentStorage.FileSystem
 
-## Unrealeased
+## Unreleased
+
+## 1.0.1
+
+Released 2025-Feb-14
 
 * Fix `System.FormatException` thrown by `PersistentStorageEventSource`.
   [#1613](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1613)
+
+* Switch to deterministic builds.
+  ([#1397](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1397))
 
 ## 1.0.0
 
@@ -21,7 +28,7 @@ Released 2023-Apr-17
 ([#1110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1110))
 
 * Going forward the NuGet package will be
-  [`OpenTelemetry.PersistentStorage.FileSystem`](https://www.nuget.org/packages/OpenTelemetry.Extensions.FileSystem).
+  [`OpenTelemetry.PersistentStorage.FileSystem`](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem).
   Older versions will remain at
   [`OpenTelemetry.Extensions.PersistentStorage`](https://www.nuget.org/packages/OpenTelemetry.Extensions.PersistentStorage)
   [(#1079)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1079)

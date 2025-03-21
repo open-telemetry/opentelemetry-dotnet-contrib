@@ -1,13 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Implementation;
 
@@ -31,7 +27,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
         switch (name)
         {
@@ -46,6 +42,8 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
             case "Quartz.Job.Execute.Exception":
             case "Quartz.Job.Veto.Exception":
                 this.OnException(activity, payload);
+                break;
+            default:
                 break;
         }
     }
@@ -130,8 +128,7 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
     {
         if (activity.IsAllDataRequested)
         {
-            var exc = payload as Exception;
-            if (exc == null)
+            if (payload is not Exception exc)
             {
                 QuartzInstrumentationEventSource.Log.NullPayload(nameof(QuartzDiagnosticListener), nameof(this.OnStopActivity));
                 return;
@@ -139,10 +136,10 @@ internal sealed class QuartzDiagnosticListener : ListenerHandler
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
-            activity.SetStatus(Status.Error.WithDescription(exc.Message));
+            activity.SetStatus(ActivityStatusCode.Error, exc.Message);
 
             try
             {

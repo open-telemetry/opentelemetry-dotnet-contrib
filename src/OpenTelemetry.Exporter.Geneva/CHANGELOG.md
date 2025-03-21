@@ -2,6 +2,84 @@
 
 ## Unreleased
 
+## 1.11.1
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0
+
+Released 2025-Feb-03
+
+* Added support for exporting exception stack traces using
+  `Exception.StackTrace`. This can be enabled via the
+  `ExceptionStackExportMode.ExportAsStackTraceString` enum. Applicable only to
+  the LogExporter.
+  ([#2422](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2422))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0
+
+Released 2024-Nov-18
+
+* Drop support for .NET 6 as this target is no longer supported.
+  ([#2117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2117))
+
+* Added support for exporting metrics on Linux when OTLP protobuf encoding is
+  enabled via the `PrivatePreviewEnableOtlpProtobufEncoding=true` connection
+  string switch. `PrivatePreviewEnableOtlpProtobufEncoding=true` is now
+  supported on both Windows and Linux.
+
+  * `user_events` transport:
+    [#2113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2113).
+
+  * Unix domain socket transport:
+    [#2261](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2261).
+
+  For configuration details see:
+  [OtlpProtobufEncoding](./README.md#otlpprotobufencoding).
+
+* Update OpenTelemetry SDK version to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+## 1.9.0
+
+Released 2024-Jun-21
+
+* Exemplars are now supported as a stable feature. Please note that
+  OpenTelemetry SDK has Exemplars disabled by default. Check [OpenTelemetry
+  Metrics
+  docs](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#exemplars)
+  to learn how to enable them.
+
+## 1.9.0-rc.2
+
+Released 2024-Jun-17
+
+* Update GenevaTraceExporter to export `activity.TraceStateString` as the value
+  for Part B `traceState` field for Spans when the `IncludeTraceStateForSpan`
+  option is set to `true`. This is an opt-in feature and the default value is `false`.
+  Note that this is for Spans only and not for LogRecord.
+  ([#1850](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1850))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
+## 1.9.0-rc.1
+
+Released 2024-Jun-12
+
+* Update OpenTelemetry SDK version to `1.9.0-rc.1`.
+  ([#1869](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1869))
+
+* Added `LoggerProviderBuilder.AddGenevaLogExporter` registration extensions.
+  Added `TracerProviderBuilder.AddGenevaTraceExporter()` registration extension.
+  ([#1880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1880))
+
 ## 1.9.0-alpha.1
 
 Released 2024-May-22
@@ -234,7 +312,9 @@ Released 2023-Mar-13
   ([#935](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/935))
 
 * Update OpenTelemetry SDK version to `1.5.0-alpha.1`.
+
 * Update GenevaMetricExporter to use TLV format serialization.
+
 * Add support for exporting exemplars.
   ([#1069](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1069))
 
@@ -286,11 +366,14 @@ Released 2022-Dec-19
 
 * Update OpenTelemetry to 1.4.0-rc.1
   ([#820](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/820))
+
 * Add support in logs for prefix-based table name mapping configuration.
   [#796](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/796)
+
 * Updated the trace exporter to use the new performance APIs introduced in
   `System.Diagnostics.DiagnosticSource` v7.0.
   [#838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/838)
+
 * Avoid allocation when serializing scopes.
   ([#818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/818))
 
@@ -301,10 +384,13 @@ Released 2022-Dec-09
 * Added support for
   [DateTimeOffset](https://learn.microsoft.com/dotnet/api/system.datetimeoffset).
   ([#797](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/797))
+
 * Fix the overflow bucket value serialization for Histogram.
   ([#805](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/805))
+
 * Fix EventSource logging.
   ([#813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/813))
+
 * Update `MessagePackSerializer` to use
   [BinaryPrimitives](https://learn.microsoft.com/dotnet/api/system.buffers.binary.binaryprimitives)
   to serialize scalar types more efficiently by avoiding repeated bound checks.

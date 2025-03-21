@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.ServiceModel.Channels;
 
@@ -12,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 public class DownstreamInstrumentationChannel : DispatchProxy
 {
     public const string DownstreamInstrumentationSourceName = "DownstreamInstrumentationSource";
-    private static readonly ActivitySource DownstreamInstrumentationSource = new ActivitySource(DownstreamInstrumentationSourceName);
+    private static readonly ActivitySource DownstreamInstrumentationSource = new(DownstreamInstrumentationSourceName);
     private static bool failNextReceive;
 
     private object? Target { get; set; }

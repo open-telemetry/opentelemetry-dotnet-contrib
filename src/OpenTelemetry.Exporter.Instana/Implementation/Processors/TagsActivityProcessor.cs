@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
@@ -11,22 +9,32 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
 {
     public override async Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
     {
+        if (instanaSpan == null)
+        {
+            return;
+        }
+
+        if (activity == null)
+        {
+            return;
+        }
+
         this.PreProcess(activity, instanaSpan);
 
-        string statusCode = string.Empty;
-        string statusDesc = string.Empty;
-        Dictionary<string, string> tags = new Dictionary<string, string>();
+        var statusCode = string.Empty;
+        var statusDesc = string.Empty;
+        var tags = new Dictionary<string, string>();
         foreach (var tag in activity.Tags)
         {
             if (tag.Key == "otel.status_code")
             {
-                statusCode = tag.Value as string;
+                statusCode = tag.Value ?? string.Empty;
                 continue;
             }
 
             if (tag.Key == "otel.status_description")
             {
-                statusDesc = tag.Value as string;
+                statusDesc = tag.Value ?? string.Empty;
                 continue;
             }
 
@@ -36,7 +44,11 @@ internal class TagsActivityProcessor : ActivityProcessorBase, IActivityProcessor
             }
         }
 
-        instanaSpan.Data.Tags = tags;
+        if (instanaSpan.Data != null)
+        {
+            instanaSpan.Data.Tags = tags;
+        }
+
         instanaSpan.TransformInfo.StatusCode = statusCode;
         instanaSpan.TransformInfo.StatusDesc = statusDesc;
 

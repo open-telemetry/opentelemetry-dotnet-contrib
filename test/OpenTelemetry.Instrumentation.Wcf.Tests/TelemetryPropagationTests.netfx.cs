@@ -2,14 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
-using System.Threading.Tasks;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -24,7 +20,7 @@ public class TelemetryPropagationTests : IDisposable
 
     public TelemetryPropagationTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         ServiceHost? createdHost = null;
         while (retryCount > 0)
@@ -82,7 +78,7 @@ public class TelemetryPropagationTests : IDisposable
     [InlineData("rest", false, false)]
     public async Task TelemetryContextPropagatesTest(
         string endpoint,
-        bool suppressDownstreamInstrumenation = true,
+        bool suppressDownstreamInstrumentation = true,
         bool shouldPropagate = true)
     {
         var stoppedActivities = new List<Activity>();
@@ -94,7 +90,7 @@ public class TelemetryPropagationTests : IDisposable
         ActivitySource.AddActivityListener(activityListener);
 
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumenation)
+            .AddWcfInstrumentation(options => options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation)
             .Build();
 
         var serviceBase = endpoint == "tcp" ? this.serviceBaseUriTcp : this.serviceBaseUriHttp;
@@ -105,7 +101,7 @@ public class TelemetryPropagationTests : IDisposable
             "rest" => new WebHttpBinding(),
             _ => throw new ArgumentException("Invalid endpoint type", nameof(endpoint)),
         };
-        ServiceClient client = new ServiceClient(binding, new EndpointAddress(new Uri(serviceBase, $"/{endpoint}")));
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(serviceBase, $"/{endpoint}")));
         try
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());

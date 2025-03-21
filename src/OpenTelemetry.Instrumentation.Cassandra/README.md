@@ -1,5 +1,10 @@
 # Cassandra Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@xsoheilalizadeh](https://github.com/xsoheilalizadeh)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Cassandra)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Cassandra)
@@ -8,6 +13,11 @@ This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [CassandraCSharpDriver](https://github.com/datastax/csharp-driver)
 and collects telemetry about cassandra metrics.
+
+> [!NOTE]
+> This package provides support for metrics only.
+  You can enable tracing using [`Cassandra.OpenTelemetry`](https://docs.datastax.com/en/developer/csharp-driver/3.22/features/opentelemetry/index.html)
+  package.
 
 ## Steps to enable OpenTelemetry.Instrumentation.Cassandra
 
@@ -53,7 +63,7 @@ public class Program
 
 For an ASP.NET Core application, adding instrumentation is typically done in
 the `ConfigureServices` of your `Startup` class. Refer to documentation for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+[OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).
@@ -91,6 +101,6 @@ var cluster = new Builder()
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 
-* [OpenTelemetry semantic conventions for database calls](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md)
+* [OpenTelemetry semantic conventions for Cassandra](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/cassandra.md)
 
 * [Cassandra C# Driver](https://github.com/datastax/csharp-driver)

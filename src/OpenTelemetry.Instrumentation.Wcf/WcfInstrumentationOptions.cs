@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.ServiceModel.Channels;
 
@@ -49,4 +48,16 @@ public class WcfInstrumentationOptions
     /// Gets or sets a value indicating whether or not the SOAP message version should be added as the <see cref="WcfInstrumentationConstants.SoapMessageVersionTag"/> tag. Default value: False.
     /// </summary>
     public bool SetSoapMessageVersion { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether exception will be recorded
+    /// as an <see cref="ActivityEvent"/> or not. Default value: <see
+    /// langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>For specification details see: <see
+    /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"
+    /// />.</para>
+    /// </remarks>
+    public bool RecordException { get; set; }
 }

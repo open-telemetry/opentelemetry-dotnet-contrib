@@ -12,4 +12,5 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.EventCounters\OpenTelemetry.Instrumentation.EventCounters.csproj" />
   </ItemGroup>
+
 </Project>

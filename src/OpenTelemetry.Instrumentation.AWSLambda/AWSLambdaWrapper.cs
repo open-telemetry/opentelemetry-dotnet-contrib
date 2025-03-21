@@ -1,12 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Amazon.Lambda.Core;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -22,10 +19,14 @@ public static class AWSLambdaWrapper
 
     private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, typeof(AWSLambdaWrapper).Assembly.GetPackageVersion());
 
+    private static bool isColdStart = true;
+
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
     /// </summary>
     internal static bool DisableAwsXRayContextExtraction { get; set; }
+
+    internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -164,8 +165,10 @@ public static class AWSLambdaWrapper
             }
         }
 
-        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
-        var httpTags = AWSLambdaHttpUtils.GetHttpTags(input);
+        // No parallel invocation of the same lambda handler expected.
+        var functionTags = new AWSLambdaUtils(AWSSemanticConventions).GetFunctionTags(input, context, isColdStart);
+        isColdStart = false;
+        var httpTags = AWSLambdaHttpUtils.GetHttpTags(AWSSemanticConventions, input);
 
         // We assume that functionTags and httpTags have no intersection.
         var activityName = AWSLambdaUtils.GetFunctionName(context) ?? "AWS Lambda Invoke";
@@ -173,6 +176,9 @@ public static class AWSLambdaWrapper
 
         return activity;
     }
+
+    // Use only for testing.
+    internal static void ResetColdStart() => isColdStart = true;
 
     private static void OnFunctionStop(Activity? activity, TracerProvider? tracerProvider)
     {
@@ -188,8 +194,8 @@ public static class AWSLambdaWrapper
         {
             if (activity.IsAllDataRequested)
             {
-                activity.RecordException(exception);
-                activity.SetStatus(Status.Error.WithDescription(exception.Message));
+                activity.AddException(exception);
+                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
             }
         }
     }
@@ -207,7 +213,7 @@ public static class AWSLambdaWrapper
         try
         {
             var result = handler(input, context);
-            AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, result);
+            AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
         }
         catch (Exception ex)
@@ -235,7 +241,7 @@ public static class AWSLambdaWrapper
         try
         {
             var result = await handlerAsync(input, context).ConfigureAwait(false);
-            AWSLambdaHttpUtils.SetHttpTagsFromResult(activity, result);
+            AWSLambdaHttpUtils.SetHttpTagsFromResult(AWSSemanticConventions, activity, result);
             return result;
         }
         catch (Exception ex)

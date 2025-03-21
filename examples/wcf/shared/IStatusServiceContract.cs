@@ -5,7 +5,6 @@ using System.ServiceModel;
 #if NETFRAMEWORK
 using System.ServiceModel.Web;
 #endif
-using System.Threading.Tasks;
 
 namespace Examples.Wcf;
 

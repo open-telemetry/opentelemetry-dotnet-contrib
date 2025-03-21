@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
@@ -34,11 +31,11 @@ public class HttpInMetricsListenerTests
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
-        string routeTemplate,
-        string enrichMode,
+        string? routeTemplate,
+        string? enrichMode,
         string expectedScheme,
         string? expectedHost,
-        string expectedRoute,
+        string? expectedRoute,
         int? expectedPort,
         int expectedStatus,
         bool enableServerAttributesForRequestDuration = true)
@@ -157,7 +154,7 @@ public class HttpInMetricsListenerTests
         }
 
         Assert.Equal(
-            expected: new List<double> { 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10, double.PositiveInfinity },
+            expected: [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10, double.PositiveInfinity],
             actual: histogramBounds);
 
         void ExpectTag<T>(T? expected, string tagName)

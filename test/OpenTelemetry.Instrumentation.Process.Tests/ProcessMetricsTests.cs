@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -25,7 +21,7 @@ public class ProcessMetricsTests
 
         meterProviderA.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItemsA.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");
         Assert.NotNull(physicalMemoryMetric);
         var virtualMemoryMetric = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.virtual");
@@ -55,8 +51,8 @@ public class ProcessMetricsTests
 
         meterProviderB.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItemsA.Count == 5);
-        Assert.True(exportedItemsB.Count == 5);
+        Assert.Equal(5, exportedItemsA.Count);
+        Assert.Equal(5, exportedItemsB.Count);
     }
 
     [Fact]
@@ -99,7 +95,7 @@ public class ProcessMetricsTests
     }
 
     [Fact]
-    public void ProcessMetricsAreCapturedWhenTasksOverlap()
+    public async Task ProcessMetricsAreCapturedWhenTasksOverlap()
     {
         var exportedItemsA = new List<Metric>();
         var exportedItemsB = new List<Metric>();
@@ -131,7 +127,7 @@ public class ProcessMetricsTests
             }),
         };
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         Assert.Equal(5, exportedItemsA.Count);
         var physicalMemoryMetricA = exportedItemsA.FirstOrDefault(i => i.Name == "process.memory.usage");

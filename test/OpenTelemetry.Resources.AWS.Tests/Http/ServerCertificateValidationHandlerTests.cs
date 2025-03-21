@@ -14,7 +14,7 @@ public class ServerCertificateValidationHandlerTests
     [Fact]
     public void TestValidHandler()
     {
-        using (CertificateUploader certificateUploader = new CertificateUploader())
+        using (var certificateUploader = new CertificateUploader())
         {
             certificateUploader.Create();
 

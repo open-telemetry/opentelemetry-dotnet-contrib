@@ -11,7 +11,7 @@ public class ActivityInstrumentationHelperTest
     [Theory]
     [InlineData("TestActivitySource", null)]
     [InlineData("TestActivitySource", "1.0.0")]
-    public void SetActivitySource(string name, string version)
+    public void SetActivitySource(string name, string? version)
     {
         using var activity = new Activity("Test");
         using var activitySource = new ActivitySource(name, version);

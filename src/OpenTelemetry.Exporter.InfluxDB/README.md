@@ -1,5 +1,10 @@
 # InfluxDB Exporter for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Alpha](../../README.md#alpha)|
+| Code Owners   |  [@havret](https://github.com/havret)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.InfluxDB)](https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.InfluxDB)](https://www.nuget.org/packages/OpenTelemetry.Exporter.InfluxDB)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Exporter.InfluxDB)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Exporter.InfluxDB)
@@ -21,7 +26,7 @@ dotnet add package --prerelease OpenTelemetry.Exporter.InfluxDB
 
 ### Step 2: Configure OpenTelemetry MeterProvider
 
-* When using the [OpenTelemetry.Extensions.Hosting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry.Extensions.Hosting/README.md)
+* When using the [OpenTelemetry.Extensions.Hosting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
 package on .NET 6.0+:
 
 ```csharp

@@ -1,13 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-#if NET6_0_OR_GREATER
-using System.Threading;
-using System.Threading.Tasks;
-#endif
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -39,12 +32,21 @@ public class RuntimeMetricsTests
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
         Assert.True(exportedItems.Count > 1);
 
+#if NET9_0_OR_GREATER
+        var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.assembly.count");
+        Assert.NotNull(assembliesCountMetric);
+
+        var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.exceptions");
+        Assert.NotNull(exceptionsCountMetric);
+        Assert.True(GetValue(exceptionsCountMetric) >= 1);
+#else
         var assembliesCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.assemblies.count");
         Assert.NotNull(assembliesCountMetric);
 
         var exceptionsCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.exceptions.count");
         Assert.NotNull(exceptionsCountMetric);
         Assert.True(GetValue(exceptionsCountMetric) >= 1);
+#endif
     }
 
     [Fact]
@@ -60,13 +62,23 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        // We don't need to test all metrics here as those are tested in the runtime.
+        // This is sufficient to validate that the runtime metrics are enabled.
+        var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.gc.collections");
+        Assert.NotNull(gcCountMetric);
+
+        var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "dotnet.gc.heap.total_allocated");
+        Assert.NotNull(totalObjectsSize);
+#else
         var gcCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.collections.count");
         Assert.NotNull(gcCountMetric);
 
         var totalObjectsSize = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.objects.size");
         Assert.NotNull(totalObjectsSize);
+#endif
 
-#if NET6_0_OR_GREATER
+#if NET8_0
 
         var gcAllocationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.allocations.size");
         Assert.NotNull(gcAllocationSizeMetric);
@@ -77,18 +89,15 @@ public class RuntimeMetricsTests
         var gcHeapSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.size");
         Assert.NotNull(gcHeapSizeMetric);
 
-        if (Environment.Version.Major >= 7)
-        {
-            var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
-            Assert.NotNull(gcHeapFragmentationSizeMetric);
+        var gcHeapFragmentationSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.heap.fragmentation.size");
+        Assert.NotNull(gcHeapFragmentationSizeMetric);
 
-            var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
-            Assert.NotNull(gcDurationMetric);
-        }
+        var gcDurationMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.gc.duration");
+        Assert.NotNull(gcDurationMetric);
 #endif
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Fact]
     public void JitRelatedMetricsTest()
     {
@@ -100,6 +109,16 @@ public class RuntimeMetricsTests
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compiled_il.size");
+        Assert.NotNull(jitCompiledSizeMetric);
+
+        var jitMethodsCompiledCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compiled_methods");
+        Assert.NotNull(jitMethodsCompiledCountMetric);
+
+        var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.jit.compilation.time");
+        Assert.NotNull(jitCompilationTimeMetric);
+#else
         var jitCompiledSizeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.il_compiled.size");
         Assert.NotNull(jitCompiledSizeMetric);
 
@@ -108,10 +127,11 @@ public class RuntimeMetricsTests
 
         var jitCompilationTimeMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.jit.compilation_time");
         Assert.NotNull(jitCompilationTimeMetric);
+#endif
     }
 
     [Fact]
-    public void ThreadingRelatedMetricsTest()
+    public async Task ThreadingRelatedMetricsTest()
     {
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -120,17 +140,26 @@ public class RuntimeMetricsTests
             .Build();
 
         // Bump the count for `thread_pool.completed_items.count` metric
-        int taskCount = 50;
-        List<Task> tasks = new List<Task>();
-        for (int i = 0; i < taskCount; i++)
+        var taskCount = 50;
+        var tasks = new List<Task>();
+        for (var i = 0; i < taskCount; i++)
         {
             tasks.Add(Task.Run(() => { }));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
 
         meterProvider.ForceFlush(MaxTimeToAllowForFlush);
 
+#if NET9_0_OR_GREATER
+        // We don't need to test all metrics here as those are tested in the runtime.
+        // This is sufficient to validate that the runtime metrics are enabled.
+        var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.monitor.lock_contentions");
+        Assert.NotNull(lockContentionCountMetric);
+
+        var threadCountMetric = exportedItems.FirstOrDefault(i => i.Name == "dotnet.thread_pool.thread.count");
+        Assert.NotNull(threadCountMetric);
+#else
         var lockContentionCountMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.monitor.lock_contention.count");
         Assert.NotNull(lockContentionCountMetric);
 
@@ -144,15 +173,19 @@ public class RuntimeMetricsTests
         var queueLengthMetric = exportedItems.FirstOrDefault(i => i.Name == "process.runtime.dotnet.thread_pool.queue.length");
         Assert.NotNull(queueLengthMetric);
 
-        List<Timer> timers = new List<Timer>();
+        var timers = new List<Timer>();
         try
         {
             // Create 10 timers to bump timer.count metrics.
-            int timerCount = 10;
-            TimerCallback timerCallback = _ => { };
-            for (int i = 0; i < timerCount; i++)
+            var timerCount = 10;
+#pragma warning disable SA1313
+            static void TimerCallback(object? _)
             {
-                Timer timer = new Timer(timerCallback, null, 1000, 250);
+            }
+#pragma warning restore SA1313
+            for (var i = 0; i < timerCount; i++)
+            {
+                var timer = new Timer(TimerCallback, null, 1000, 250);
                 timers.Add(timer);
             }
 
@@ -164,11 +197,12 @@ public class RuntimeMetricsTests
         }
         finally
         {
-            for (int i = 0; i < timers.Count; i++)
+            for (var i = 0; i < timers.Count; i++)
             {
                 timers[i].Dispose();
             }
         }
+#endif
     }
 #endif
 

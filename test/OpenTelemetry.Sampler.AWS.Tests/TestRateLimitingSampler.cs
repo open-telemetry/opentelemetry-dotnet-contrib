@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -12,7 +11,7 @@ public class TestRateLimitingSampler
     [Fact]
     public void TestLimitsRate()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
         Trace.Sampler sampler = new RateLimitingSampler(1, clock);
 
         Assert.Equal(SamplingDecision.RecordAndSample, sampler.ShouldSample(Utils.CreateSamplingParameters()).Decision);

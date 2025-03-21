@@ -1,19 +1,19 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET8_0_OR_GREATER
+#if NET
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Builder;
 #endif
 using Microsoft.AspNetCore.Hosting;
-#if NET8_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.Http;
 #endif
 using Microsoft.AspNetCore.Mvc.Testing;
-#if NET8_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.RateLimiting;
 #endif
-#if NET8_0_OR_GREATER
+#if NET
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 #endif
@@ -38,7 +38,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.Throws<ArgumentNullException>(builder!.AddAspNetCoreInstrumentation);
     }
 
-#if NET8_0_OR_GREATER
+#if NET
     [Fact]
     public async Task ValidateNet8MetricsAsync()
     {
@@ -132,7 +132,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         app.UseRateLimiter();
 
-        static string GetTicks() => (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        static string GetTicks()
+        {
+            return (DateTime.Now.Ticks & 0x11111).ToString("00000");
+        }
 
         app.MapGet("/", () => Results.Ok($"Hello {GetTicks()}"))
                                    .RequireRateLimiting("fixed");
@@ -180,7 +183,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     [Theory]
     [InlineData("/api/values/2", "api/Values/{id}", null, 200)]
     [InlineData("/api/Error", "api/Error", "System.Exception", 500)]
-    public async Task RequestMetricIsCaptured(string api, string expectedRoute, string expectedErrorType, int expectedStatusCode)
+    public async Task RequestMetricIsCaptured(string api, string expectedRoute, string? expectedErrorType, int expectedStatusCode)
     {
         var metricItems = new List<Metric>();
 
@@ -226,7 +229,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
 
         AssertMetricPoints(
             metricPoints: metricPoints,
-            expectedRoutes: new List<string> { expectedRoute },
+            expectedRoutes: [expectedRoute],
             expectedErrorType,
             expectedStatusCode,
             expectedTagsCount: expectedErrorType == null ? 5 : 6);
@@ -260,8 +263,10 @@ public class MetricTests(WebApplicationFactory<Program> factory)
             })
             .CreateClient();
 
-        var message = new HttpRequestMessage();
-        message.Method = new HttpMethod(originalMethod);
+        var message = new HttpRequestMessage
+        {
+            Method = new HttpMethod(originalMethod),
+        };
 
         try
         {
@@ -312,7 +317,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     private static List<MetricPoint> GetMetricPoints(Metric metric)
     {
         Assert.NotNull(metric);
-        Assert.True(metric.MetricType == MetricType.Histogram);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
         var metricPoints = new List<MetricPoint>();
         foreach (var p in metric.GetMetricPoints())
         {
@@ -325,7 +330,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
     private static void AssertMetricPoints(
         List<MetricPoint> metricPoints,
         List<string> expectedRoutes,
-        string expectedErrorType,
+        string? expectedErrorType,
         int expectedStatusCode,
         int expectedTagsCount)
     {
@@ -360,7 +365,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         MetricPoint metricPoint,
         int expectedStatusCode,
         string expectedRoute,
-        string expectedErrorType,
+        string? expectedErrorType,
         int expectedTagsCount)
     {
         var count = metricPoint.GetHistogramCount();
@@ -370,7 +375,7 @@ public class MetricTests(WebApplicationFactory<Program> factory)
         Assert.True(sum > 0);
 
         var attributes = new KeyValuePair<string, object?>[metricPoint.Tags.Count];
-        int i = 0;
+        var i = 0;
         foreach (var tag in metricPoint.Tags)
         {
             attributes[i++] = tag;

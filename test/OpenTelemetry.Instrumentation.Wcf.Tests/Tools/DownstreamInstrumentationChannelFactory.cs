@@ -14,11 +14,6 @@ public class DownstreamInstrumentationChannelFactory<TChannel> : DispatchProxy
     protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
     {
         var returnValue = targetMethod!.Invoke(this.Target, args);
-        if (targetMethod.Name == nameof(IChannelFactory<TChannel>.CreateChannel))
-        {
-            return DownstreamInstrumentationChannel.Create((TChannel)returnValue!);
-        }
-
-        return returnValue;
+        return targetMethod.Name == nameof(IChannelFactory<TChannel>.CreateChannel) ? DownstreamInstrumentationChannel.Create((TChannel)returnValue!) : returnValue;
     }
 }

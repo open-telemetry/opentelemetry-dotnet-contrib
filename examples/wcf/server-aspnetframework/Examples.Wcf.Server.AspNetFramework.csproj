@@ -1,7 +1,7 @@
 <Project>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>$(NetFrameworkMinimumSupportedVersion)</TargetFramework>
     <OutputType>Library</OutputType>
     <OutputPath>bin\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

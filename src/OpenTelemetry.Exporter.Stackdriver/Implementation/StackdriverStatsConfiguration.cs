@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using Google.Api;
 using Google.Apis.Auth.OAuth2;
 

@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
+using OpenTelemetry.Exporter.Geneva.Transports;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;

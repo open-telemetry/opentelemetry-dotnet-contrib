@@ -9,7 +9,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 
 internal static class CommonSchemaJsonSerializationHelper
 {
-#if NET6_0_OR_GREATER
+#if NET
     public const int MaximumStackAllocSizeInBytes = 256;
 #endif
 
@@ -101,7 +101,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 writer.WriteStringValue(v);
                 return;
 
-#if NET7_0_OR_GREATER
+#if NET
             case DateOnly v:
                 JsonMetadataServices.DateOnlyConverter.Write(writer, v, null!);
                 return;
@@ -111,7 +111,7 @@ internal static class CommonSchemaJsonSerializationHelper
                 JsonMetadataServices.TimeSpanConverter.Write(writer, v, null!);
                 return;
 
-#if NET7_0_OR_GREATER
+#if NET
             case TimeOnly v:
                 JsonMetadataServices.TimeOnlyConverter.Write(writer, v, null!);
                 return;
@@ -175,7 +175,7 @@ internal static class CommonSchemaJsonSerializationHelper
     {
         writer.WriteStartObject();
 
-        for (int i = 0; i < value.Count; i++)
+        for (var i = 0; i < value.Count; i++)
         {
             var element = value[i];
 
@@ -209,11 +209,11 @@ internal static class CommonSchemaJsonSerializationHelper
 
     private static void SerializeObjectValueToJson(object value, Utf8JsonWriter writer)
     {
-#if NET6_0_OR_GREATER
+#if NET
         if (value is ISpanFormattable spanFormattable)
         {
             Span<char> destination = stackalloc char[MaximumStackAllocSizeInBytes / 2];
-            if (spanFormattable.TryFormat(destination, out int charsWritten, string.Empty, CultureInfo.InvariantCulture))
+            if (spanFormattable.TryFormat(destination, out var charsWritten, string.Empty, CultureInfo.InvariantCulture))
             {
                 writer.WriteStringValue(destination.Slice(0, charsWritten));
                 return;

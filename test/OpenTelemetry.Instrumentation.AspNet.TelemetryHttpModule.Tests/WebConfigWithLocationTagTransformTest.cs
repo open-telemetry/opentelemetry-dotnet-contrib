@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.IO;
 using System.Xml.Linq;
 using Microsoft.Web.XmlTransform;
 using Xunit;
@@ -381,11 +380,6 @@ public class WebConfigWithLocationTagTransformTest
     }
 
     private XDocument ApplyInstallTransformation(string originalConfiguration, string resourceName)
-    {
-        return this.ApplyTransformation(originalConfiguration, resourceName);
-    }
-
-    private XDocument ApplyUninstallTransformation(string originalConfiguration, string resourceName)
     {
         return this.ApplyTransformation(originalConfiguration, resourceName);
     }

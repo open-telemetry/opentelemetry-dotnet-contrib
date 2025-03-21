@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -49,21 +47,15 @@ internal class TestApplicationFactory
     public static WebApplication? CreateApplication(TestApplicationScenario config)
     {
         Debug.Assert(Directory.Exists(ContentRootPath), $"Cannot find ContentRootPath: {ContentRootPath}");
-        switch (config)
+        return config switch
         {
-            case TestApplicationScenario.ConventionalRouting:
-                return CreateConventionalRoutingApplication();
-            case TestApplicationScenario.AttributeRouting:
-                return CreateAttributeRoutingApplication();
-            case TestApplicationScenario.MinimalApi:
-                return CreateMinimalApiApplication();
-            case TestApplicationScenario.RazorPages:
-                return CreateRazorPagesApplication();
-            case TestApplicationScenario.ExceptionMiddleware:
-                return CreateExceptionHandlerApplication();
-            default:
-                throw new ArgumentException($"Invalid {nameof(TestApplicationScenario)}");
-        }
+            TestApplicationScenario.ConventionalRouting => CreateConventionalRoutingApplication(),
+            TestApplicationScenario.AttributeRouting => CreateAttributeRoutingApplication(),
+            TestApplicationScenario.MinimalApi => CreateMinimalApiApplication(),
+            TestApplicationScenario.RazorPages => CreateRazorPagesApplication(),
+            TestApplicationScenario.ExceptionMiddleware => CreateExceptionHandlerApplication(),
+            _ => throw new ArgumentException($"Invalid {nameof(TestApplicationScenario)}"),
+        };
     }
 
     private static WebApplication CreateConventionalRoutingApplication()
@@ -131,7 +123,7 @@ internal class TestApplicationFactory
         app.MapGet("/MinimalApi", () => Results.Ok());
         app.MapGet("/MinimalApi/{id}", (int id) => Results.Ok());
 
-#if NET7_0_OR_GREATER
+#if NET
         var api = app.MapGroup("/MinimalApiUsingMapGroup");
         api.MapGet("/", () => Results.Ok());
         api.MapGet("/{id}", (int id) => Results.Ok());
@@ -188,7 +180,7 @@ internal class TestApplicationFactory
         // This is because ASP.NET Core 8+ has native metric instrumentation.
         // When ASP.NET Core 8.0.2 is released then its behavior will align with .NET 6/7.
         // See: https://github.com/dotnet/aspnetcore/issues/52648#issuecomment-1853432776
-#if !NET8_0_OR_GREATER
+#if !NET
         app.MapGet("/Exception", (ctx) => throw new ApplicationException());
 #else
         app.MapGet("/Exception", () => Results.Content(content: "Error", contentType: null, contentEncoding: null, statusCode: 500));

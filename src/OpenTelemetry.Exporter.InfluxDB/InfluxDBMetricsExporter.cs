@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using InfluxDB.Client;
 using InfluxDB.Client.Writes;
 using OpenTelemetry.Metrics;
@@ -26,6 +25,8 @@ internal sealed class InfluxDBMetricsExporter : BaseExporter<Metric>
             {
                 case WriteErrorEvent writeErrorEvent:
                     InfluxDBEventSource.Log.FailedToExport(writeErrorEvent.Exception.Message);
+                    break;
+                default:
                     break;
             }
         };

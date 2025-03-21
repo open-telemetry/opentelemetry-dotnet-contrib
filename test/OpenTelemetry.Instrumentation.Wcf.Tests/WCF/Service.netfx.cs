@@ -3,7 +3,6 @@
 
 #if NETFRAMEWORK
 using System.ServiceModel;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 
@@ -17,12 +16,12 @@ public class Service : IServiceContract
 {
     public Task ErrorAsync()
     {
-        throw new System.Exception();
+        throw new Exception();
     }
 
     public void ErrorSynchronous()
     {
-        throw new System.Exception();
+        throw new Exception();
     }
 
     public Task<ServiceResponse> ExecuteAsync(ServiceRequest request)

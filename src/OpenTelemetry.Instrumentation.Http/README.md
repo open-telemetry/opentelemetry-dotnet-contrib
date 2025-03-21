@@ -1,5 +1,10 @@
 # HttpClient and HttpWebRequest instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Stable](../../README.md#stable)|
+| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Http.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Http.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Http)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Http)
@@ -35,11 +40,19 @@ HTTP instrumentation must be enabled at application startup.
 
 #### Traces
 
+Starting with .NET 9, trace instrumentation is natively implemented, and the
+HttpClient library emits attributes defined in the
+[OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/http/http-spans.md).
+When running on .NET 9+ this instrumentation library will not add/change/override
+any attributes set by the native instrumentation but it is still required for
+performing context propagation using the OpenTelemetry SDK and supports additional
+features not available in runtime (enrichment, filtering, etc.).
+
 The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `TracerProviderBuilder` to
 a console application. This example also sets up the OpenTelemetry Console
 Exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -84,7 +97,7 @@ The following example demonstrates adding `HttpClient` instrumentation with the
 extension method `.AddHttpClientInstrumentation()` on `MeterProviderBuilder` to
 a console application. This example also sets up the OpenTelemetry Console
 Exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -103,8 +116,8 @@ public class Program
 }
 ```
 
-Refer to this [example](../../examples/AspNetCore/Program.cs) to see how to
-enable this instrumentation in an ASP.NET core application.
+Refer to this [example](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/examples/AspNetCore/Program.cs)
+to see how to enable this instrumentation in an ASP.NET Core application.
 
 Refer to this
 [example](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/src/OpenTelemetry.Instrumentation.AspNet/README.md)
@@ -331,10 +344,48 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor), is the
-general extensibility point to add additional properties to any activity. The
-`Enrich` option is specific to this instrumentation, and is provided to get
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
+is the general extensibility point to add additional properties to any activity.
+The `Enrich` option is specific to this instrumentation, and is provided to get
 access to raw request, response, and exception objects.
+
+When overriding the default settings provided by instrumentation or adding
+additional telemetry, it is important to consider the sequence of callbacks.
+
+It is generally recommended to use `EnrichWithHttpResponseMessage` or
+`EnrichWithHttpWebResponse` for any activity enrichment that does not require
+access to exceptions or request object in case of .NET Framework, as the
+instrumentation library populates all telemetry following the [OTel
+specification](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http)
+before this callback. The following is the sequence in which these callbacks are
+executed:
+
+1) Processor `OnStart`
+2) `EnrichWithHttpRequestMessage` (.NET) / `EnrichWithHttpWebRequest` (.NET Framework)
+3) `EnrichWithException` both
+4) `EnrichWithHttpResponseMessage` (.NET) / `EnrichWithHttpWebResponse` (.NET Framework)
+5) Processor `OnEnd`
+
+As an example, if you need to override the default DisplayName set by the
+library you can do so as follows:
+
+```csharp
+.AddHttpClientInstrumentation(o =>
+{
+  o.EnrichWithHttpResponseMessage = (activity, response) =>
+  {
+      // .NET only, access request object if needed.
+      // response.RequestMessage
+      activity.DisplayName = "CustomDisplayName";
+
+      // Overrides the value
+      activity.SetTag("url.full", "CustomUrl");
+
+      // Removes the tag
+      activity.SetTag("network.protocol.version", null);
+  };
+});
+```
 
 #### RecordException
 
@@ -355,8 +406,8 @@ This component uses an
 [EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
 with the name "OpenTelemetry-Instrumentation-Http" for its internal logging.
 Please refer to [SDK
-troubleshooting](../OpenTelemetry/README.md#troubleshooting) for instructions on
-seeing these internal logs.
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry/README.md#troubleshooting)
+for instructions on seeing these internal logs.
 
 ## References
 

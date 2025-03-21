@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using Xunit;
@@ -56,7 +53,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     {
         this.sampled = sampled;
 
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        using var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddOpenTelemetry(options =>
                 {
@@ -76,10 +73,10 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             });
 
         ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
-        Activity? activity = this.activitySource.StartActivity("Test");
+        var activity = this.activitySource.StartActivity("Test");
         Assert.NotNull(activity);
 
-        using IDisposable? scope = logger.BeginScope("{NodeId}", 99);
+        using var scope = logger.BeginScope("{NodeId}", 99);
 
         logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
@@ -89,7 +86,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             innerActivity = this.activitySource.StartActivity("InnerTest");
             Assert.NotNull(innerActivity);
 
-            using IDisposable? innerScope = logger.BeginScope("{RequestId}", "1234");
+            using var innerScope = logger.BeginScope("{RequestId}", "1234");
 
             logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
 
@@ -105,7 +102,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             Assert.NotNull(logEvent);
             Assert.Equal("log", logEvent.Value.Name);
 
-            Dictionary<string, object?>? tags = logEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+            var tags = logEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
             Assert.NotNull(tags);
 
             Assert.Equal("OpenTelemetry.Extensions.Tests.ActivityEventAttachingLogProcessorTests", tags[nameof(LogRecord.CategoryName)]);
@@ -148,7 +145,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 Assert.NotNull(exLogEvent);
                 Assert.Equal("log", exLogEvent.Value.Name);
 
-                Dictionary<string, object?>? exLogTags = exLogEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+                var exLogTags = exLogEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
                 Assert.NotNull(exLogTags);
 
                 Assert.Equal(99, exLogTags["scope[0].NodeId"]);
@@ -159,7 +156,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
                 Assert.NotNull(exEvent);
                 Assert.Equal("exception", exEvent.Value.Name);
 
-                Dictionary<string, object?>? exTags = exEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
+                var exTags = exEvent.Value.Tags?.ToDictionary(i => i.Key, i => i.Value);
                 Assert.NotNull(exTags);
 
                 Assert.Equal("System.InvalidOperationException", exTags["exception.type"]);
@@ -193,7 +190,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
     {
         this.sampled = sampled;
 
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+        using var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddOpenTelemetry(options =>
                 {
@@ -208,10 +205,10 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             });
 
         ILogger logger = loggerFactory.CreateLogger<ActivityEventAttachingLogProcessorTests>();
-        Activity? activity = this.activitySource.StartActivity("Test");
+        var activity = this.activitySource.StartActivity("Test");
         Assert.NotNull(activity);
 
-        using IDisposable? scope = logger.BeginScope("{NodeId}", 99);
+        using var scope = logger.BeginScope("{NodeId}", 99);
 
         logger.LogInformation(eventId, "Hello OpenTelemetry {UserId}!", 8);
 
@@ -220,7 +217,7 @@ public sealed class ActivityEventAttachingLogProcessorTests : IDisposable
             var innerActivity = this.activitySource.StartActivity("InnerTest");
             Assert.NotNull(innerActivity);
 
-            using IDisposable? innerScope = logger.BeginScope("{RequestId}", "1234");
+            using var innerScope = logger.BeginScope("{RequestId}", "1234");
 
             logger.LogError(new InvalidOperationException("Goodbye OpenTelemetry."), "Exception event.");
 

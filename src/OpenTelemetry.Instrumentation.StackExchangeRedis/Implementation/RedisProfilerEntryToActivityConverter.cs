@@ -3,11 +3,14 @@
 
 using System.Diagnostics;
 using System.Net;
+#if NET8_0_OR_GREATER
+using System.Net.Sockets;
+#endif
 using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
 using StackExchange.Redis.Profiling;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 #endif
@@ -18,8 +21,8 @@ internal static class RedisProfilerEntryToActivityConverter
 {
     private static readonly Lazy<Func<object, (string?, string?)>> MessageDataGetter = new(() =>
     {
-        Type profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
-        Type scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
+        var profiledCommandType = Type.GetType("StackExchange.Redis.Profiling.ProfiledCommand, StackExchange.Redis", throwOnError: true)!;
+        var scriptMessageType = Type.GetType("StackExchange.Redis.RedisDatabase+ScriptEvalMessage, StackExchange.Redis", throwOnError: true)!;
 
         var messageDelegate = CreateFieldGetter<object>(profiledCommandType, "Message", BindingFlags.NonPublic | BindingFlags.Instance);
         var scriptDelegate = CreateFieldGetter<string>(scriptMessageType, "script", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -49,21 +52,16 @@ internal static class RedisProfilerEntryToActivityConverter
                 script = scriptDelegate?.Invoke(message);
             }
 
-            if (GetCommandAndKey(commandAndKeyFetcher, message, out var value))
-            {
-                return (value, script);
-            }
+            return GetCommandAndKey(commandAndKeyFetcher, message, out var value) ? (value, script) : (null, script);
 
-            return (null, script);
-
-#if NET6_0_OR_GREATER
+#if NET
             [DynamicDependency("CommandAndKey", "StackExchange.Redis.Message", "StackExchange.Redis")]
             [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The CommandAndKey property is preserved by the above DynamicDependency")]
 #endif
             static bool GetCommandAndKey(
                 PropertyFetcher<string> commandAndKeyFetcher,
                 object message,
-#if NET6_0_OR_GREATER
+#if NET
                 [NotNullWhen(true)]
 #endif
                 out string? value)
@@ -140,18 +138,23 @@ internal static class RedisProfilerEntryToActivityConverter
             {
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, ipEndPoint.Address.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerName, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, dnsEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
                 }
-                else
+#if NET8_0_OR_GREATER
+                else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributePeerService, command.EndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, unixDomainSocketEndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, unixDomainSocketEndPoint.ToString());
                 }
+#endif
             }
 
             activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
@@ -192,26 +195,23 @@ internal static class RedisProfilerEntryToActivityConverter
     /// represented with classType variable.
     /// </summary>
     private static Func<object, TField?>? CreateFieldGetter<TField>(
-#if NET6_0_OR_GREATER
+#if NET
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.NonPublicFields)]
 #endif
         Type classType,
         string fieldName,
         BindingFlags flags)
     {
-        FieldInfo? field = classType.GetField(fieldName, flags);
+        var field = classType.GetField(fieldName, flags);
         if (field != null)
         {
-#if NET6_0_OR_GREATER
+#if NET
             if (RuntimeFeature.IsDynamicCodeSupported)
 #endif
             {
-                string methodName = classType.FullName + ".get_" + field.Name;
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-                // TODO: Remove the above disable when the AOT analyzer being used has the fix for https://github.com/dotnet/linker/issues/2715.
-                DynamicMethod getterMethod = new DynamicMethod(methodName, typeof(TField), new[] { typeof(object) }, true);
-#pragma warning restore IL3050
-                ILGenerator generator = getterMethod.GetILGenerator();
+                var methodName = classType.FullName + ".get_" + field.Name;
+                var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
+                var generator = getterMethod.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Castclass, classType);
                 generator.Emit(OpCodes.Ldfld, field);
@@ -219,7 +219,7 @@ internal static class RedisProfilerEntryToActivityConverter
 
                 return (Func<object, TField>)getterMethod.CreateDelegate(typeof(Func<object, TField>));
             }
-#if NET6_0_OR_GREATER
+#if NET
             else
             {
                 return obj => (TField?)field.GetValue(obj);

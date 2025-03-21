@@ -21,7 +21,7 @@ internal sealed class ConnectionStringParser
                 continue;
             }
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET || NETSTANDARD2_1_OR_GREATER
             var index = token.IndexOf(EqualSign, StringComparison.Ordinal);
 #else
             var index = token.IndexOf(EqualSign);
@@ -53,7 +53,7 @@ internal sealed class ConnectionStringParser
     {
         get
         {
-            this.ParsedKeyValues.TryGetValue(nameof(this.InstrumentationKey), out string? instrumentationKey);
+            this.ParsedKeyValues.TryGetValue(nameof(this.InstrumentationKey), out var instrumentationKey);
 
             return instrumentationKey;
         }

@@ -2,8 +2,41 @@
 
 ## Unreleased
 
-* Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* `TelemetryHttpModule` will now pass the `url.path` tag (set to
+  [Request.Unvalidated.Path](https://learn.microsoft.com/dotnet/api/system.web.unvalidatedrequestvalues.path))
+  when starting `Activity` instances for incoming requests so that it is
+  available to samplers and may be used to influence the sampling decision made
+  by [custom
+  implementations](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk#sampler).
+  ([#1871](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1871))
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+## 1.9.0-beta.1
+
+Released 2024-Jun-18
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.8.0-beta.1
 
@@ -11,6 +44,7 @@ Released 2024-Apr-05
 
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+
 * Update `OpenTelemetry.Api` to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using OpenTelemetry.Instrumentation.Runtime;
 using OpenTelemetry.Internal;
 
@@ -12,6 +11,9 @@ namespace OpenTelemetry.Metrics;
 /// </summary>
 public static class MeterProviderBuilderExtensions
 {
+    private const string DotNetRuntimeMeterName = "System.Runtime";
+    private static readonly bool Net9OrGreater = Environment.Version.Major >= 9;
+
     /// <summary>
     /// Enables runtime instrumentation.
     /// </summary>
@@ -32,6 +34,11 @@ public static class MeterProviderBuilderExtensions
         Action<RuntimeInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
+
+        if (Net9OrGreater)
+        {
+            return builder.AddMeter(DotNetRuntimeMeterName);
+        }
 
         var options = new RuntimeInstrumentationOptions();
         configure?.Invoke(options);

@@ -1,11 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
@@ -17,21 +16,21 @@ using OtlpCommon = OpenTelemetry.Proto.Common.V1;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-public class OtlpProtobufMetricExporterTests
+public abstract class OtlpProtobufMetricExporterTests
 {
     public TagList TagList;
 
     public TagList TagListWithPrepopulatedDimensions;
 
-    private static readonly Dictionary<string, object> prepopulatedMetricDimensions = new Dictionary<string, object>
+    private static readonly Dictionary<string, object> prepopulatedMetricDimensions = new()
     {
         { "Dim1", 1 },
         { "Dim2", 2 },
         { "Dim3", 3 },
     };
 
-    private static readonly string[] TagKeys = new[]
-    {
+    private static readonly string[] TagKeys =
+    [
         "boolKey",
         "doubleKey",
         "intKey",
@@ -48,32 +47,32 @@ public class OtlpProtobufMetricExporterTests
         "stringValueUnicodeKey",
         "uintKey",
         "ulongKey",
-        "ushortKey",
-    };
+        "ushortKey"
+    ];
 
-    private TagList exemplarTagList;
+    private readonly TagList exemplarTagList;
 
-    public OtlpProtobufMetricExporterTests()
+    protected OtlpProtobufMetricExporterTests()
     {
         this.TagList = default;
 
-        bool boolValue = true;
-        double doubleValue = 23.45;
-        int intValue = 29;
+        var boolValue = true;
+        var doubleValue = 23.45;
+        var intValue = 29;
         long longValue = 345;
-        double negativeDoubleValue = -23.45;
-        int negativeIntValue = -29;
+        var negativeDoubleValue = -23.45;
+        var negativeIntValue = -29;
         long negativeLongValue = -97;
-        sbyte negativeSbyteValue = sbyte.MinValue;
+        var negativeSbyteValue = sbyte.MinValue;
         short negativeShortValue = -12;
-        sbyte sByteValue = sbyte.MaxValue;
-        short shortValue = short.MaxValue;
-        string stringValueAscii = "TestString";
-        string stringValueMixAsciiAndUnicode = "\u0418TestString";
-        string stringValueUnicode = "\u0418";
-        uint uintValue = uint.MaxValue;
+        var sByteValue = sbyte.MaxValue;
+        var shortValue = short.MaxValue;
+        var stringValueAscii = "TestString";
+        var stringValueMixAsciiAndUnicode = "\u0418TestString";
+        var stringValueUnicode = "\u0418";
+        var uintValue = uint.MaxValue;
         ulong ulongValue = 1234;
-        ushort ushortValue = ushort.MaxValue;
+        var ushortValue = ushort.MaxValue;
 
         // Keep the keys in sorted order, Sdk outputs them in sorted order.
         this.TagList.Add(new("boolKey", boolValue));
@@ -97,6 +96,8 @@ public class OtlpProtobufMetricExporterTests
         this.exemplarTagList = this.TagList;
         this.exemplarTagList.Add(new("zfilteredKey1", "zfilteredValue1"));
     }
+
+    protected abstract bool PrefixBufferWithUInt32LittleEndianLength { get; }
 
     [Theory]
     [InlineData("longcounter", 123L, null, true, true, true, true)]
@@ -181,16 +182,16 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -241,17 +242,19 @@ public class OtlpProtobufMetricExporterTests
 
         var testTransport = new TestTransport();
 
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
-
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
+        var request = this.AssertAndConvertExportedBlobToRequest(
+            testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -378,12 +381,12 @@ public class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -393,7 +396,7 @@ public class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateCounter<long>(instrumentName);
 
-            for (int i = 0; i < longValues.Length; i++)
+            for (var i = 0; i < longValues.Length; i++)
             {
                 counter.Add(longValues[i], tags[i]);
             }
@@ -402,7 +405,7 @@ public class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateCounter<double>(instrumentName);
 
-            for (int i = 0; i < doubleValues.Length; i++)
+            for (var i = 0; i < doubleValues.Length; i++)
             {
                 counter.Add(doubleValues[i], tags[i]);
             }
@@ -413,20 +416,25 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
-            var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-            request.MergeFrom(testTransport.ExportedItems[i]);
+            var request = this.AssertAndConvertExportedBlobToRequest(
+                testTransport.ExportedItems[i]);
 
             Assert.Single(request.ResourceMetrics);
 
@@ -499,16 +507,16 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -538,16 +546,20 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
+        var request = this.AssertAndConvertExportedBlobToRequest(
+            testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -624,12 +636,12 @@ public class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -639,7 +651,7 @@ public class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateUpDownCounter<long>(instrumentName);
 
-            for (int i = 0; i < longValues.Length; i++)
+            for (var i = 0; i < longValues.Length; i++)
             {
                 counter.Add(longValues[i], tags[i]);
             }
@@ -648,7 +660,7 @@ public class OtlpProtobufMetricExporterTests
         {
             var counter = meter.CreateUpDownCounter<double>(instrumentName);
 
-            for (int i = 0; i < doubleValues.Length; i++)
+            for (var i = 0; i < doubleValues.Length; i++)
             {
                 counter.Add(doubleValues[i], tags[i]);
             }
@@ -659,20 +671,25 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
-            var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-            request.MergeFrom(testTransport.ExportedItems[i]);
+            var request = this.AssertAndConvertExportedBlobToRequest(
+                testTransport.ExportedItems[i]);
 
             Assert.Single(request.ResourceMetrics);
 
@@ -769,16 +786,16 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -814,16 +831,20 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
+        var request = this.AssertAndConvertExportedBlobToRequest(
+            testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -862,8 +883,8 @@ public class OtlpProtobufMetricExporterTests
         metricPointsEnumerator.MoveNext();
         var metricPoint = metricPointsEnumerator.Current;
 
-        int bucketCountIndex = 0;
-        int explicitBoundCountIndex = 0;
+        var bucketCountIndex = 0;
+        var explicitBoundCountIndex = 0;
 
         foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
         {
@@ -954,7 +975,7 @@ public class OtlpProtobufMetricExporterTests
         };
 
         var resourceBuilder = ResourceBuilder.CreateDefault().Clear()
-            .AddAttributes(new[] { new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue") });
+            .AddAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")]);
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .SetResourceBuilder(resourceBuilder)
             .AddMeter(nameof(this.HistogramSerializationSingleMetricPoint))
@@ -963,19 +984,19 @@ public class OtlpProtobufMetricExporterTests
 
         var histogram = meter.CreateHistogram<double>("TestHistogram");
 
-        int expectedMetricPointCount = doubleValues.Length;
+        var expectedMetricPointCount = doubleValues.Length;
 
-        TagList[] tags = new TagList[expectedMetricPointCount];
+        var tags = new TagList[expectedMetricPointCount];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
         }
 
-        for (int i = 0; i < expectedMetricPointCount; i++)
+        for (var i = 0; i < expectedMetricPointCount; i++)
         {
             histogram.Record(doubleValues[i], tags[i]);
         }
@@ -985,19 +1006,24 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPointCount, testTransport.ExportedItems.Count);
 
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPointCount; i++)
+        for (var i = 0; i < expectedMetricPointCount; i++)
         {
-            var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-            request.MergeFrom(testTransport.ExportedItems[i]);
+            var request = this.AssertAndConvertExportedBlobToRequest(
+                testTransport.ExportedItems[i]);
 
             Assert.NotNull(request.ResourceMetrics[0].Resource);
 
@@ -1032,8 +1058,8 @@ public class OtlpProtobufMetricExporterTests
             metricPointsEnumerator.MoveNext();
             var metricPoint = metricPointsEnumerator.Current;
 
-            int bucketCountIndex = 0;
-            int explicitBoundCountIndex = 0;
+            var bucketCountIndex = 0;
+            var explicitBoundCountIndex = 0;
 
             foreach (var histogramMeasurement in metricPoint.GetHistogramBuckets())
             {
@@ -1089,16 +1115,16 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -1136,16 +1162,20 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
+        var request = this.AssertAndConvertExportedBlobToRequest(
+            testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -1218,12 +1248,12 @@ public class OtlpProtobufMetricExporterTests
             .AddReader(inMemoryReader)
             .Build();
 
-        int expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
-        TagList[] tags = new TagList[expectedMetricPoints];
+        var expectedMetricPoints = longValues != null ? longValues.Length : doubleValues.Length;
+        var tags = new TagList[expectedMetricPoints];
 
-        for (int i = 0; i < tags.Length; i++)
+        for (var i = 0; i < tags.Length; i++)
         {
-            for (int j = 1; j <= (i + 1); j++)
+            for (var j = 1; j <= (i + 1); j++)
             {
                 tags[i].Add(new("tag" + j, "value" + j));
             }
@@ -1237,8 +1267,8 @@ public class OtlpProtobufMetricExporterTests
                 instrumentName,
                 () =>
                 {
-                    List<Measurement<long>> list = new List<Measurement<long>>();
-                    for (int i = 0; i < longValues.Length; i++)
+                    List<Measurement<long>> list = [];
+                    for (var i = 0; i < longValues.Length; i++)
                     {
                         list.Add(new(longValues[i], tags[i]));
                     }
@@ -1252,8 +1282,8 @@ public class OtlpProtobufMetricExporterTests
                instrumentName,
                () =>
                {
-                   List<Measurement<double>> list = new List<Measurement<double>>();
-                   for (int i = 0; i < doubleValues.Length; i++)
+                   List<Measurement<double>> list = [];
+                   for (var i = 0; i < doubleValues.Length; i++)
                    {
                        list.Add(new(doubleValues[i], tags[i]));
                    }
@@ -1267,20 +1297,25 @@ public class OtlpProtobufMetricExporterTests
         var buffer = new byte[65360];
 
         var testTransport = new TestTransport();
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, null, null);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Equal(expectedMetricPoints, testTransport.ExportedItems.Count);
 
         // For asserting time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
 
-        for (int i = 0; i < expectedMetricPoints; i++)
+        for (var i = 0; i < expectedMetricPoints; i++)
         {
-            var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-            request.MergeFrom(testTransport.ExportedItems[i]);
+            var request = this.AssertAndConvertExportedBlobToRequest(
+                testTransport.ExportedItems[i]);
 
             Assert.Single(request.ResourceMetrics);
 
@@ -1373,16 +1408,16 @@ public class OtlpProtobufMetricExporterTests
             TemporalityPreference = MetricReaderTemporalityPreference.Delta,
         };
 
-        Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+        var resourceAttributes = new Dictionary<string, object>
         {
             { "TestResourceKey", "TestResourceValue" },
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, "ResourceAccount" },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, "ResourceNamespace" },
         };
 
-        string expectedAccount = "TestAccount";
-        string expectedNamespace = "TestNameSpace";
-        Dictionary<string, object> accountAndNamespace = new Dictionary<string, object>
+        var expectedAccount = "TestAccount";
+        var expectedNamespace = "TestNameSpace";
+        var accountAndNamespace = new Dictionary<string, object>
         {
             { GenevaMetricExporter.DimensionKeyForCustomMonitoringAccount, expectedAccount },
             { GenevaMetricExporter.DimensionKeyForCustomMetricsNamespace, expectedNamespace },
@@ -1427,16 +1462,19 @@ public class OtlpProtobufMetricExporterTests
 
         var testTransport = new TestTransport();
 
-        ConnectionStringBuilder connectionStringBuilder = new ConnectionStringBuilder($"Account={expectedAccount};Namespace={expectedNamespace}");
-        var otlpProtobufSerializer = new OtlpProtobufSerializer(testTransport, addAccountAndNamespace ? connectionStringBuilder : null, addPrepopulatedDimensions ? prepopulatedMetricDimensions : null);
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            addAccountAndNamespace ? expectedAccount : null,
+            addAccountAndNamespace ? expectedNamespace : null,
+            addPrepopulatedDimensions ? prepopulatedMetricDimensions : null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
 
-        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>(exportedItems.ToArray(), exportedItems.Count));
+        otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
         Assert.Single(testTransport.ExportedItems);
 
-        var request = new OtlpCollector.ExportMetricsServiceRequest();
-
-        request.MergeFrom(testTransport.ExportedItems[0]);
+        var request = this.AssertAndConvertExportedBlobToRequest(
+            testTransport.ExportedItems[0]);
 
         Assert.Single(request.ResourceMetrics);
 
@@ -1497,7 +1535,7 @@ public class OtlpProtobufMetricExporterTests
             Assert.Equal(0, dataPoint.Max);
             Assert.Equal(0, dataPoint.Sum);
             Assert.Null(dataPoint.Negative);
-            Assert.True(dataPoint.Positive.Offset == 0);
+            Assert.Equal(0, dataPoint.Positive.Offset);
             Assert.Empty(dataPoint.Positive.BucketCounts);
         }
 
@@ -1526,9 +1564,9 @@ public class OtlpProtobufMetricExporterTests
 
             var exemplarsEnumerator = exemplars.GetEnumerator();
 
-            double[] exemplarValues = doubleValue.Value > 0 ? new double[] { doubleValue.Value, 0 } : new double[] { 0 };
+            double[] exemplarValues = doubleValue.Value > 0 ? [doubleValue.Value, 0] : [0];
 
-            int exemplarValuesIndex = 0;
+            var exemplarValuesIndex = 0;
 
             foreach (var exemplar in dataPoint.Exemplars)
             {
@@ -1574,8 +1612,8 @@ public class OtlpProtobufMetricExporterTests
         RepeatedField<OtlpCommon.KeyValue> actual)
     {
         var expectedAttributes = expected.ToList();
-        int expectedAttributesCount = expectedAttributes.Count;
-        for (int i = 0; i < expectedAttributesCount; i++)
+        var expectedAttributesCount = expectedAttributes.Count;
+        for (var i = 0; i < expectedAttributesCount; i++)
         {
             var current = expectedAttributes[i].Value;
 
@@ -1626,9 +1664,28 @@ public class OtlpProtobufMetricExporterTests
         }
     }
 
+    private OtlpCollector.ExportMetricsServiceRequest AssertAndConvertExportedBlobToRequest(
+        byte[] blob)
+    {
+        var request = new OtlpCollector.ExportMetricsServiceRequest();
+
+        if (this.PrefixBufferWithUInt32LittleEndianLength)
+        {
+            var content = blob.AsSpan().Slice(4);
+            Assert.Equal((uint)content.Length, BitConverter.ToUInt32(blob, 0));
+            request.MergeFrom(content);
+        }
+        else
+        {
+            request.MergeFrom(blob);
+        }
+
+        return request;
+    }
+
     private class TestTransport : IMetricDataTransport
     {
-        public List<byte[]> ExportedItems = new();
+        public readonly List<byte[]> ExportedItems = [];
 
         public void SendOtlpProtobufEvent(byte[] body, int size)
         {

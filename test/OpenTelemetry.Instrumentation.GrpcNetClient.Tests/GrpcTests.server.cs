@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics;
 using System.Net;
 using Greet;
@@ -13,7 +13,6 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Grpc.Services.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
-using Status = OpenTelemetry.Trace.Status;
 
 namespace OpenTelemetry.Instrumentation.Grpc.Tests;
 
@@ -36,7 +35,7 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributes(string? enableGrpcAspNetCoreSupport)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -83,7 +82,7 @@ public partial class GrpcTests : IDisposable
             Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
         }
 
-        Assert.Equal(Status.Unset, activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         // The following are http.* attributes that are also included on the span for the gRPC invocation.
         Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeServerAddress));
@@ -95,7 +94,7 @@ public partial class GrpcTests : IDisposable
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [Theory(Skip = "Skipping for .NET 6 and higher due to bug #3023")]
 #endif
     [InlineData(null)]
@@ -103,7 +102,7 @@ public partial class GrpcTests : IDisposable
     [InlineData("false")]
     [InlineData("True")]
     [InlineData("False")]
-    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string enableGrpcAspNetCoreSupport)
+    public void GrpcAspNetCoreInstrumentationAddsCorrectAttributesWhenItCreatesNewActivity(string? enableGrpcAspNetCoreSupport)
     {
         try
         {
@@ -160,7 +159,7 @@ public partial class GrpcTests : IDisposable
                 Assert.NotNull(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
             }
 
-            Assert.Equal(Status.Unset, activity.GetStatus());
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
             // The following are http.* attributes that are also included on the span for the gRPC invocation.
             Assert.Equal("localhost", activity.GetTagValue(SemanticConventions.AttributeNetHostName));
@@ -173,11 +172,10 @@ public partial class GrpcTests : IDisposable
         finally
         {
             // Set the SDK to use the default propagator for other unit tests
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-            new TraceContextPropagator(),
-            new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            ]));
         }
     }
 

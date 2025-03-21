@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.Json;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -61,7 +58,7 @@ internal class AWSMessagingUtils
         {
             // SQS subscribed to SNS topic with raw delivery disabled case, i.e. SNS record serialized into SQS body.
             // https://docs.aws.amazon.com/sns/latest/dg/sns-large-payload-raw-message-delivery.html
-            SNSEvent.SNSMessage? snsMessage = GetSnsMessage(sqsMessage);
+            var snsMessage = GetSnsMessage(sqsMessage);
             parentContext = ExtractParentContext(snsMessage);
         }
 
@@ -92,33 +89,22 @@ internal class AWSMessagingUtils
 
     private static IEnumerable<string>? SqsMessageAttributeGetter(IDictionary<string, SQSEvent.MessageAttribute> attributes, string attributeName)
     {
-        if (!attributes.TryGetValue(attributeName, out var attribute))
-        {
-            return null;
-        }
-
-        return attribute?.StringValue != null ?
-            new[] { attribute.StringValue } :
+        return !attributes.TryGetValue(attributeName, out var attribute) ? null :
+            attribute?.StringValue != null ? new[] { attribute.StringValue } :
             attribute?.StringListValues;
     }
 
     private static IEnumerable<string>? SnsMessageAttributeGetter(IDictionary<string, SNSEvent.MessageAttribute> attributes, string attributeName)
     {
-        if (!attributes.TryGetValue(attributeName, out var attribute))
-        {
-            return null;
-        }
-
-        switch (attribute?.Type)
-        {
-            case SnsAttributeTypeString when attribute.Value != null:
-                return new[] { attribute.Value };
-            case SnsAttributeTypeStringArray when attribute.Value != null:
-                // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
-                return attribute.Value.Split(',');
-            default:
-                return null;
-        }
+        return !attributes.TryGetValue(attributeName, out var attribute)
+            ? null
+            : attribute?.Type switch
+            {
+                SnsAttributeTypeString when attribute.Value != null => [attribute.Value],
+                SnsAttributeTypeStringArray when attribute.Value != null =>
+                    attribute.Value.Split(','), // Multiple values are stored as CSV (https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html).
+                _ => null,
+            };
     }
 
     private static SNSEvent.SNSMessage? GetSnsMessage(SQSEvent.SQSMessage sqsMessage)
@@ -127,8 +113,13 @@ internal class AWSMessagingUtils
 
         var body = sqsMessage.Body;
         if (body != null &&
+#if NET
             body.TrimStart().StartsWith('{') &&
             body.Contains(SnsMessageAttributes, StringComparison.Ordinal))
+#else
+            body.TrimStart().StartsWith("{", StringComparison.Ordinal) &&
+            body.Contains(SnsMessageAttributes))
+#endif
         {
             try
             {

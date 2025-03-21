@@ -1,5 +1,10 @@
 # OWIN Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [RC](../../README.md#rc)|
+| Code Owners   |  [@codeblanch](https://github.com/codeblanch)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Owin)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Owin)
@@ -54,6 +59,25 @@ OpenTelemetry instrumentation which listens to the OWIN diagnostic events.
         .Build();
 ```
 
+Following list of attributes are added by default on activity. See
+[http-spans](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md)
+for more details about each individual attribute:
+
+* `http.request.method`
+* `http.request.method_original`
+* `http.response.status_code`
+* `network.protocol.version`
+* `user_agent.original`
+* `server.address`
+* `server.port`
+* `url.path`
+* `url.query` - By default, the values in the query component are replaced with
+  the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
+  `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
+  environment variable
+  `OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION` to `true`.
+* `url.scheme`
+
 #### Configure OpenTelemetry MeterProvider
 
 Call the `AddOwinInstrumentation` `MeterProviderBuilder` extension to register
@@ -71,7 +95,7 @@ even if tracing is disabled.
 ```
 
 The instrumentation is implemented based on [metrics semantic
-conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#metric-httpserverduration).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-metrics.md#metric-httpserverrequestduration).
 Currently, the instrumentation supports the following metric.
 
 | Name  | Instrument Type | Unit | Description |
@@ -83,7 +107,7 @@ Currently, the instrumentation supports the following metric.
 The OpenTelemetry OWIN instrumentation will create spans with very generic names
 based on the http method of the request. For example: `HTTP GET` or `HTTP POST`.
 The reason for this is the [OpenTelemetry Specification http semantic
-conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/http.md#name)
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#name)
 call specifically for low cardinality values and OWIN does not expose any kind
 of route template.
 

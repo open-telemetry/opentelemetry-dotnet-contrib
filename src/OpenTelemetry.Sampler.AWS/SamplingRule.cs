@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Sampler.AWS;
@@ -75,7 +73,7 @@ internal class SamplingRule : IComparable<SamplingRule>
 
     public int CompareTo(SamplingRule? other)
     {
-        int result = this.Priority.CompareTo(other?.Priority);
+        var result = this.Priority.CompareTo(other?.Priority);
         if (result == 0)
         {
             result = string.Compare(this.RuleName, other?.RuleName, StringComparison.Ordinal);

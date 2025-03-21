@@ -7,7 +7,7 @@ on:
 
 jobs:
   assign:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Assign Reviewers
     steps:
       - uses: dyladan/component-owners@main

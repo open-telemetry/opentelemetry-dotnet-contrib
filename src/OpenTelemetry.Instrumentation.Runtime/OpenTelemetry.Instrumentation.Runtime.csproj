@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>net6.0;netstandard2.0;net462</TargetFrameworks>
-    <Description>dotnet runtime instrumentation for OpenTelemetry .NET</Description>
+    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>.NET runtime instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);runtime</PackageTags>
     <MinVerTagPrefix>Instrumentation.Runtime-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.8.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.11.1</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
   </ItemGroup>
+
 </Project>

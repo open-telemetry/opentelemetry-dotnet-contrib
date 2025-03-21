@@ -1,7 +1,7 @@
 #nullable enable
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>
-OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback) -> System.IDisposable?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback, bool includeFailures) -> System.IDisposable?
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.RegisterPayloadTransmittedCallback(OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction! callback) -> System.IDisposable?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions.ConnectionString.get -> string?
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterOptions.ConnectionString.set -> void
@@ -21,11 +21,15 @@ OpenTelemetry.Exporter.OneCollector.OneCollectorExporterTransportOptions.Endpoin
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterTransportOptions.Endpoint.set -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterValidationException
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterValidationException.OneCollectorExporterValidationException() -> void
-OpenTelemetry.Exporter.OneCollector.OneCollectorExporterValidationException.OneCollectorExporterValidationException(string! message) -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorExporterValidationException.OneCollectorExporterValidationException(string! message, System.Exception? innerException) -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorExporterValidationException.OneCollectorExporterValidationException(string! message) -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventName.get -> string!
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventName.set -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventNamespace.get -> string!
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.DefaultEventNamespace.set -> void
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.EventFullNameMappings.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>?
+OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.EventFullNameMappings.set -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.OneCollectorLogExporterOptions() -> void
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterOptions.SerializationOptions.get -> OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions!
 OpenTelemetry.Exporter.OneCollector.OneCollectorLogExporterSerializationOptions
@@ -39,11 +43,21 @@ OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.ConfigureSerializationO
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.ConfigureTransportOptions(System.Action<OpenTelemetry.Exporter.OneCollector.OneCollectorExporterTransportOptions!>! configure) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetConnectionString(string! connectionString) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
 OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetDefaultEventName(string! defaultEventName) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
+OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetDefaultEventNamespace(string! defaultEventNamespace) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
+OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder.SetEventFullNameMappings(System.Collections.Generic.IReadOnlyDictionary<string!, string!>? eventFullNameMappings) -> OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!
+OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions
 OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions
 override sealed OpenTelemetry.Exporter.OneCollector.OneCollectorExporter<T>.Export(in OpenTelemetry.Batch<T!> batch) -> OpenTelemetry.ExportResult
-static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, Microsoft.Extensions.Configuration.IConfiguration! configuration, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, string! connectionString, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, string! connectionString) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, string? name, string? connectionString, Microsoft.Extensions.Configuration.IConfiguration? configuration, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>? configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.OneCollectorLoggerProviderBuilderExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
 static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, Microsoft.Extensions.Configuration.IConfiguration! configuration, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
-static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, string! connectionString) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, string! connectionString, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, string! connectionString) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static OpenTelemetry.Logs.OneCollectorOpenTelemetryLoggerOptionsExtensions.AddOneCollectorExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, System.Action<OpenTelemetry.Logs.OneCollectorLogExportProcessorBuilder!>! configure) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 virtual OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackAction.Invoke(in OpenTelemetry.Exporter.OneCollector.OneCollectorExporterPayloadTransmittedCallbackArguments args) -> void

@@ -1,28 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>OpenTelemetry instrumentation for OWIN</Description>
+    <Description>OpenTelemetry instrumentation for OWIN.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;OWIN</PackageTags>
     <MinVerTagPrefix>Instrumentation.Owin-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Configuration\*.cs" Link="Includes\Configuration\%(Filename).cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\EnvironmentVariables\*.cs" Link="Includes\EnvironmentVariables\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Options\*.cs" Link="Includes\Options\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\RedactionHelper.cs" Link="Includes\RedactionHelper.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\RequestDataHelper.cs" Link="Includes\RequestDataHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
     <Compile Include="$(RepoRoot)\src\Shared\SpanHelper.cs" Link="Includes\SpanHelper.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
     <PackageReference Include="Microsoft.Owin" Version="$(MicrosoftOwinPkgVer)" />
   </ItemGroup>
 

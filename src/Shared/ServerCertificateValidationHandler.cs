@@ -3,9 +3,6 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.Net.Http;
-
 namespace OpenTelemetry.Resources;
 
 internal static class ServerCertificateValidationHandler
@@ -14,7 +11,7 @@ internal static class ServerCertificateValidationHandler
     {
         try
         {
-            ServerCertificateValidationProvider? serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile, log);
+            var serverCertificateValidationProvider = ServerCertificateValidationProvider.FromCertificateFile(certificateFile, log);
 
             if (serverCertificateValidationProvider == null)
             {

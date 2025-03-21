@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using Amazon.Runtime.Internal.Transform;
 
@@ -13,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 
 internal class CustomWebResponse : IWebResponseData
 {
-    private HttpResponseMessageBody response;
+    private readonly HttpResponseMessageBody response;
     private string[]? headerNames;
     private Dictionary<string, string?>? headers;
     private HashSet<string>? headerNamesSet;
@@ -41,10 +37,7 @@ internal class CustomWebResponse : IWebResponseData
 
     public long ContentLength { get; private set; }
 
-    public IHttpResponseBody ResponseBody
-    {
-        get { return this.response; }
-    }
+    public IHttpResponseBody ResponseBody => this.response;
 
     public static IWebResponseData GenerateWebResponse(HttpResponseMessage response)
     {
@@ -53,12 +46,9 @@ internal class CustomWebResponse : IWebResponseData
 
     public string? GetHeaderValue(string headerName)
     {
-        if (this.headers != null && this.headers.TryGetValue(headerName, out var headerValue))
-        {
-            return headerValue;
-        }
-
-        return string.Empty;
+        return this.headers != null && this.headers.TryGetValue(headerName, out var headerValue)
+            ? headerValue
+            : string.Empty;
     }
 
     public bool IsHeaderPresent(string headerName)
@@ -73,10 +63,10 @@ internal class CustomWebResponse : IWebResponseData
 
     private void CopyHeaderValues(HttpResponseMessage response)
     {
-        List<string> headerNames = new List<string>();
+        List<string> headerNames = [];
         this.headers = new Dictionary<string, string?>(10, StringComparer.OrdinalIgnoreCase);
 
-        foreach (KeyValuePair<string, IEnumerable<string>> kvp in response.Headers)
+        foreach (var kvp in response.Headers)
         {
             headerNames.Add(kvp.Key);
             var headerValue = this.GetFirstHeaderValue(response.Headers, kvp.Key);
@@ -96,17 +86,12 @@ internal class CustomWebResponse : IWebResponseData
             }
         }
 
-        this.headerNames = headerNames.ToArray();
+        this.headerNames = [.. headerNames];
         this.headerNamesSet = new HashSet<string>(this.headerNames, StringComparer.OrdinalIgnoreCase);
     }
 
     private string? GetFirstHeaderValue(HttpHeaders headers, string key)
     {
-        if (headers.TryGetValues(key, out var headerValues))
-        {
-            return headerValues.FirstOrDefault();
-        }
-
-        return string.Empty;
+        return headers.TryGetValues(key, out var headerValues) ? headerValues.FirstOrDefault() : string.Empty;
     }
 }

@@ -2,10 +2,73 @@
 
 ## Unreleased
 
-* Update OpenTelemetry SDK version to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Fixed attribute `db.system` for following providers:
+  * `Devart.Data.SQLite.Entity.EFCore`,
+  * `Devart.Data.MySql.Entity.EFCore`,
+  * `Devart.Data.PostgreSql.Entity.EFCore`.
+  ([#2571](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2571))
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Attribute `db.system` reports `oracle` when
+  `Devart.Data.Oracle.Entity.EFCore` is used a provider.
+  ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* The new database semantic conventions can be opted in to by setting
+  the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable. This allows for a
+  transition period for users to experiment with the new semantic conventions
+  and adapt as necessary. The environment variable supports the following
+  values:
+  * `database` - emit the new, frozen (proposed for stable) database
+  attributes, and stop emitting the old experimental database
+  attributes that the instrumentation emitted previously.
+  * `database/dup` - emit both the old and the frozen (proposed for stable) database
+  attributes, allowing for a more seamless transition.
+  * The default behavior (in the absence of one of these values) is to continue
+  emitting the same database semantic conventions that were emitted in
+  the previous version.
+  * Note: this option will be be removed after the new database
+  semantic conventions is marked stable. At which time this
+  instrumentation can receive a stable release, and the old database
+  semantic conventions will no longer be supported. Refer to the
+  specification for more information regarding the new database
+  semantic conventions for
+  [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
+  ([#2130](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2130))
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
+  API instead of the deprecated OpenTelemetry API package extension when setting
+  span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
+
+## 1.0.0-beta.12
+
+Released 2024-Jun-18
+
 * Update `Microsoft.Extensions.Options` to `8.0.0`.
   ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.0.0-beta.11
 
@@ -21,6 +84,7 @@ Released 2024-Feb-07
 * **Breaking Change**: Stop emitting `db.statement_type` attribute.
   This attribute never was part of the [semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/database/database-spans.md#call-level-attributes).
   ([#1559](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1559))
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 

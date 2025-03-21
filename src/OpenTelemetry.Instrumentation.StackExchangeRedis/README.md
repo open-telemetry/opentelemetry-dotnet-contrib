@@ -1,5 +1,10 @@
 # StackExchange.Redis Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@matt-hensley](https://github.com/matt-hensley)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.StackExchangeRedis)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.StackExchangeRedis)
@@ -12,14 +17,13 @@ and collects traces about outgoing calls to Redis.
 
 > [!NOTE]
 > This component is based on the OpenTelemetry semantic conventions for
-[traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/redis.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
 and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
+is released, there can be breaking changes.
 
 ## Steps to enable OpenTelemetry.Instrumentation.StackExchangeRedis
 
@@ -67,7 +71,7 @@ public class Program
 
 For an ASP.NET Core application, adding instrumentation is typically done in
 the `ConfigureServices` of your `Startup` class. Refer to documentation for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+[OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to documentation for [OpenTelemetry.Instrumentation.AspNet](../OpenTelemetry.Instrumentation.AspNet/README.md).

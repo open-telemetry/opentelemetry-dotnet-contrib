@@ -1,11 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Runtime.InteropServices;
 #endif
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -16,9 +15,16 @@ namespace OpenTelemetry.Resources.AWS;
 internal sealed class AWSEBSDetector : IResourceDetector
 {
     private const string AWSEBSMetadataWindowsFilePath = "C:\\Program Files\\Amazon\\XRay\\environment.conf";
-#if NET6_0_OR_GREATER
+#if NET
     private const string AWSEBSMetadataLinuxFilePath = "/var/elasticbeanstalk/xray/environment.conf";
 #endif
+
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEBSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
 
     /// <summary>
     /// Detector the required and optional resource attributes from AWS Elastic Beanstalk.
@@ -29,7 +35,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
         try
         {
             string? filePath;
-#if NET6_0_OR_GREATER
+#if NET
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 filePath = AWSEBSMetadataWindowsFilePath;
@@ -44,7 +50,7 @@ internal sealed class AWSEBSDetector : IResourceDetector
 
             var metadata = GetEBSMetadata(filePath);
 
-            return new Resource(ExtractResourceAttributes(metadata));
+            return new Resource(this.ExtractResourceAttributes(metadata));
         }
         catch (Exception ex)
         {
@@ -54,42 +60,28 @@ internal sealed class AWSEBSDetector : IResourceDetector
         return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
-    {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_elastic_beanstalk"),
-            new(AWSSemanticConventions.AttributeServiceName, "aws_elastic_beanstalk"),
-        };
-
-        if (metadata != null)
-        {
-            if (metadata.EnvironmentName != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceNamespace, metadata.EnvironmentName));
-            }
-
-            if (metadata.DeploymentId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceInstanceID, metadata.DeploymentId));
-            }
-
-            if (metadata.VersionLabel != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeServiceVersion, metadata.VersionLabel));
-            }
-        }
-
-        return resourceAttributes;
-    }
-
     internal static AWSEBSMetadataModel? GetEBSMetadata(string filePath)
     {
-#if NET6_0_OR_GREATER
-        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
-#else
+#if NETFRAMEWORK
         return ResourceDetectorUtils.DeserializeFromFile<AWSEBSMetadataModel>(filePath);
+#else
+        return ResourceDetectorUtils.DeserializeFromFile(filePath, SourceGenerationContext.Default.AWSEBSMetadataModel);
 #endif
+    }
+
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEBSMetadataModel? metadata)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsElasticBeanstalk()
+                .AddAttributeServiceNameIsAwsElasticBeanstalk()
+                .AddAttributeServiceNamespace(metadata?.EnvironmentName)
+                .AddAttributeServiceInstanceID(metadata?.DeploymentId)
+                .AddAttributeServiceVersion(metadata?.VersionLabel)
+                .Build();
+
+        return resourceAttributes;
     }
 }

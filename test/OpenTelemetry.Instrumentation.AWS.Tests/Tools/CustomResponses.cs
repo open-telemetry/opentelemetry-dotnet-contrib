@@ -1,15 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-#if NETFRAMEWORK
-using System.IO;
-#endif
 using System.Net;
-#if !NETFRAMEWORK
-using System.Net.Http;
-#endif
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 #if NETFRAMEWORK
@@ -39,8 +31,7 @@ internal static class CustomResponses
             .GetValue(client, null)
             as RuntimePipeline;
 
-        var requestFactory = new MockHttpRequestFactory();
-        requestFactory.ResponseCreator = responseCreator;
+        var requestFactory = new MockHttpRequestFactory { ResponseCreator = responseCreator };
         var httpHandler = new HttpHandler<Stream>(requestFactory, client);
         pipeline?.ReplaceHandler<HttpHandler<Stream>>(httpHandler);
     }
@@ -52,7 +43,7 @@ internal static class CustomResponses
 
         return (request) =>
         {
-            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.Ordinal);
+            var headers = new Dictionary<string, string>(StringComparer.Ordinal);
             if (!string.IsNullOrEmpty(requestId))
             {
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);
@@ -60,12 +51,7 @@ internal static class CustomResponses
 
             var response = MockWebResponse.Create(status, headers, content);
 
-            if (isOK)
-            {
-                return response;
-            }
-
-            throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
+            return isOK ? response : throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
         };
     }
 #else
@@ -83,8 +69,7 @@ internal static class CustomResponses
                 .GetValue(client, null)
             as RuntimePipeline;
 
-        var requestFactory = new MockHttpRequestFactory();
-        requestFactory.ResponseCreator = responseCreator;
+        var requestFactory = new MockHttpRequestFactory { ResponseCreator = responseCreator };
         var httpHandler = new HttpHandler<HttpContent>(requestFactory, client);
         pipeline?.ReplaceHandler<HttpHandler<HttpContent>>(httpHandler);
     }
@@ -96,7 +81,7 @@ internal static class CustomResponses
 
         return (request) =>
         {
-            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.Ordinal);
+            var headers = new Dictionary<string, string>(StringComparer.Ordinal);
             if (!string.IsNullOrEmpty(requestId))
             {
                 headers.Add(HeaderKeys.RequestIdHeader, requestId);
@@ -104,12 +89,9 @@ internal static class CustomResponses
 
             var response = MockWebResponse.Create(status, headers, content);
 
-            if (isOK)
-            {
-                return response;
-            }
-
-            throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
+            return isOK
+                ? response
+                : throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
         };
     }
 #endif

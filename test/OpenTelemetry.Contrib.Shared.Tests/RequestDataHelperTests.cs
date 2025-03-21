@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace OpenTelemetry.Internal.Tests;
@@ -10,14 +8,13 @@ namespace OpenTelemetry.Internal.Tests;
 public class RequestDataHelperTests : IDisposable
 {
     public static IEnumerable<object[]> MappingVersionProtocolToVersionData =>
-        new List<object[]>
-        {
-            new object[] { new Version(1, 0), "1.0" },
-            new object[] { new Version(1, 1), "1.1" },
-            new object[] { new Version(2, 0), "2" },
-            new object[] { new Version(3, 0), "3" },
-            new object[] { new Version(7, 6, 5), "7.6.5" },
-        };
+        [
+            [new Version(1, 0), "1.0"],
+            [new Version(1, 1), "1.1"],
+            [new Version(2, 0), "2"],
+            [new Version(3, 0), "3"],
+            [new Version(7, 6, 5), "7.6.5"],
+        ];
 
     [Theory]
     [InlineData("GET", "GET")]

@@ -1,10 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Configuration;
 using System.ServiceModel;
-using System.Threading.Tasks;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -42,7 +40,7 @@ internal static class Program
         // Note: Best practice is to re-use your client/channel instances.
         // This code is not meant to illustrate best practices, only the
         // instrumentation.
-        StatusServiceClient client = new StatusServiceClient(name);
+        var client = new StatusServiceClient(name);
         try
         {
             await client.OpenAsync().ConfigureAwait(false);

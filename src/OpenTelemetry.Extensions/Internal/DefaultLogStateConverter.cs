@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace OpenTelemetry.Logs;
@@ -10,11 +9,11 @@ internal static class DefaultLogStateConverter
 {
     public static void ConvertState(ActivityTagsCollection tags, IReadOnlyList<KeyValuePair<string, object?>> state)
     {
-        for (int i = 0; i < state.Count; i++)
+        for (var i = 0; i < state.Count; i++)
         {
-            KeyValuePair<string, object?> stateItem = state[i];
+            var stateItem = state[i];
 
-            object? value = stateItem.Value;
+            var value = stateItem.Value;
             if (value != null)
             {
                 if (string.IsNullOrEmpty(stateItem.Key))
@@ -31,11 +30,11 @@ internal static class DefaultLogStateConverter
 
     public static void ConvertScope(ActivityTagsCollection tags, int depth, LogRecordScope scope)
     {
-        string prefix = $"scope[{depth}]";
+        var prefix = $"scope[{depth}]";
 
-        foreach (KeyValuePair<string, object?> scopeItem in scope)
+        foreach (var scopeItem in scope)
         {
-            object? value = scopeItem.Value;
+            var value = scopeItem.Value;
             if (value != null)
             {
                 if (string.IsNullOrEmpty(scopeItem.Key))

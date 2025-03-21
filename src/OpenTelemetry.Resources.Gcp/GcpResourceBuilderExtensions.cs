@@ -14,8 +14,8 @@ public static class GcpResourceBuilderExtensions
     /// <summary>
     /// Enables Google Cloud Platform resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddGcpDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);

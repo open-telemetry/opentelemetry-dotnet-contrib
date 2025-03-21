@@ -1,11 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
+using Amazon.Runtime.Telemetry;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.AWS.Trace;
 
@@ -28,40 +27,32 @@ internal class AWSPropagatorPipelineHandler : PipelineHandler
         carrier[name] = value;
     };
 
-    /// <summary>
-    /// Rely on the the <see cref="AWSTracingPipelineHandler.Activity"/> for retrieving the current
-    /// context.
-    /// </summary>
-    private readonly AWSTracingPipelineHandler tracingPipelineHandler;
-
-    public AWSPropagatorPipelineHandler(AWSTracingPipelineHandler tracingPipelineHandler)
-    {
-        this.tracingPipelineHandler = tracingPipelineHandler;
-    }
-
     public override void InvokeSync(IExecutionContext executionContext)
     {
-        this.ProcessBeginRequest(executionContext);
+        ProcessBeginRequest(executionContext);
 
         base.InvokeSync(executionContext);
     }
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
-        this.ProcessBeginRequest(executionContext);
+        ProcessBeginRequest(executionContext);
 
         return await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
     }
 
-    private void ProcessBeginRequest(IExecutionContext executionContext)
+    private static void ProcessBeginRequest(IExecutionContext executionContext)
     {
-        if (this.tracingPipelineHandler.Activity == null)
+        var currentActivity = Activity.Current;
+
+        // Propagate the current activity if it was created by the AWS SDK
+        if (currentActivity == null || !currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
         {
             return;
         }
 
         AwsPropagator.Inject(
-            new PropagationContext(this.tracingPipelineHandler.Activity.Context, Baggage.Current),
+            new PropagationContext(currentActivity.Context, Baggage.Current),
             executionContext.RequestContext.Request.Headers,
             Setter);
     }

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel.Channels;
 using OpenTelemetry.Internal;
 
@@ -49,8 +48,7 @@ internal static class TelemetryPropagationWriter
             return;
         }
 
-        object prop;
-        if (!request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out prop))
+        if (!request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var prop))
         {
             prop = HttpRequestMessagePropertyWrapper.CreateNew();
             request.Properties.Add(HttpRequestMessagePropertyWrapper.Name, prop);

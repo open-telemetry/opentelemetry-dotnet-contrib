@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 #if NETFRAMEWORK
 using System.Net.Http;
 #endif
@@ -22,11 +20,12 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 #endif
 
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
-    internal static readonly bool IsNet7OrGreater = InitializeIsNet7OrGreater();
+    internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
+    internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
-    internal static readonly Version Version = AssemblyName.Version;
+    internal static readonly Version Version = AssemblyName.Version!;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Version.ToString());
 
     private const string OnStartEvent = "System.Net.Http.HttpRequestOut.Start";
@@ -37,6 +36,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     private static readonly PropertyFetcher<HttpResponseMessage> StopResponseFetcher = new("Response");
     private static readonly PropertyFetcher<Exception> StopExceptionFetcher = new("Exception");
     private static readonly PropertyFetcher<TaskStatus> StopRequestStatusFetcher = new("RequestTaskStatus");
+
     private readonly HttpClientTraceInstrumentationOptions options;
 
     public HttpHandlerDiagnosticListener(HttpClientTraceInstrumentationOptions options)
@@ -45,32 +45,35 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnEventWritten(string name, object payload)
+    public override void OnEventWritten(string name, object? payload)
     {
+        var activity = Activity.Current!;
         switch (name)
         {
             case OnStartEvent:
                 {
-                    this.OnStartActivity(Activity.Current, payload);
+                    this.OnStartActivity(activity, payload);
                 }
 
                 break;
             case OnStopEvent:
                 {
-                    this.OnStopActivity(Activity.Current, payload);
+                    this.OnStopActivity(activity, payload);
                 }
 
                 break;
             case OnUnhandledExceptionEvent:
                 {
-                    this.OnException(Activity.Current, payload);
+                    this.OnException(activity, payload);
                 }
 
+                break;
+            default:
                 break;
         }
     }
 
-    public void OnStartActivity(Activity activity, object payload)
+    public void OnStartActivity(Activity activity, object? payload)
     {
         // The overall flow of what HttpClient library does is as below:
         // Activity.Start()
@@ -82,7 +85,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
 
-        if (!TryFetchRequest(payload, out HttpRequestMessage request))
+        if (!TryFetchRequest(payload, out var request))
         {
             HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnStartActivity));
             return;
@@ -110,7 +113,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
         {
             try
             {
-                if (this.options.EventFilterHttpRequestMessage(activity.OperationName, request) == false)
+                if (!this.options.EventFilterHttpRequestMessage(activity.OperationName, request))
                 {
                     HttpInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
@@ -134,13 +137,18 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Client);
             }
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
-            HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
+            if (!IsNet9OrGreater)
+            {
+                // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-spans.md
+                HttpTagHelper.RequestDataHelper.SetHttpMethodTag(activity, request.Method.Method);
 
-            activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
-            activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
-
-            activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                if (request.RequestUri != null)
+                {
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, request.RequestUri.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, request.RequestUri.Port);
+                    activity.SetTag(SemanticConventions.AttributeUrlFull, HttpTagHelper.GetUriTagValueFromRequestUri(request.RequestUri, this.options.DisableUrlQueryRedaction));
+                }
+            }
 
             try
             {
@@ -154,34 +162,33 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top-level properties are preserved")]
 #endif
-        static bool TryFetchRequest(object payload, out HttpRequestMessage request)
+        static bool TryFetchRequest(object? payload, [NotNullWhen(true)] out HttpRequestMessage? request)
         {
-            if (!StartRequestFetcher.TryFetch(payload, out request) || request == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StartRequestFetcher.TryFetch(payload, out request) && request != null;
         }
     }
 
-    public void OnStopActivity(Activity activity, object payload)
+    public void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
             var requestTaskStatus = GetRequestStatus(payload);
 
-            ActivityStatusCode currentStatusCode = activity.Status;
+            var currentStatusCode = activity.Status;
             if (requestTaskStatus != TaskStatus.RanToCompletion)
             {
                 if (requestTaskStatus == TaskStatus.Canceled)
                 {
                     if (currentStatusCode == ActivityStatusCode.Unset)
                     {
-                        activity.SetStatus(ActivityStatusCode.Error);
+                        // Task cancellation won't trigger the OnException so set the span error information here
+                        // This can be either TaskCanceled or OperationCanceled but there is no way to figure out which one it is,
+                        // so let's use the most common case as error type
+                        activity.SetStatus(ActivityStatusCode.Error, "Task Canceled");
+                        activity.SetTag(SemanticConventions.AttributeErrorType, typeof(TaskCanceledException).FullName);
                     }
                 }
                 else if (requestTaskStatus != TaskStatus.Faulted)
@@ -194,18 +201,21 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 }
             }
 
-            if (TryFetchResponse(payload, out HttpResponseMessage response))
+            if (TryFetchResponse(payload, out var response))
             {
-                if (currentStatusCode == ActivityStatusCode.Unset)
+                if (!IsNet9OrGreater)
                 {
-                    activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
-                }
+                    if (currentStatusCode == ActivityStatusCode.Unset)
+                    {
+                        activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, (int)response.StatusCode));
+                    }
 
-                activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
-                activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
-                if (activity.Status == ActivityStatusCode.Error)
-                {
-                    activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.Version));
+                    activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                    if (activity.Status == ActivityStatusCode.Error)
+                    {
+                        activity.SetTag(SemanticConventions.AttributeErrorType, TelemetryHelper.GetStatusCodeString(response.StatusCode));
+                    }
                 }
 
                 try
@@ -220,10 +230,10 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
             // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
             // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
             [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top-level properties are preserved")]
 #endif
-            static TaskStatus GetRequestStatus(object payload)
+            static TaskStatus GetRequestStatus(object? payload)
             {
                 // requestTaskStatus (type is TaskStatus) is a non-nullable enum so we don't need to have a null check here.
                 // See: https://github.com/dotnet/runtime/blob/79c021d65c280020246d1035b0e87ae36f2d36a9/src/libraries/System.Net.Http/src/HttpDiagnosticsGuide.md?plain=1#L69
@@ -235,35 +245,35 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top-level properties are preserved")]
 #endif
-        static bool TryFetchResponse(object payload, out HttpResponseMessage response)
+        static bool TryFetchResponse(object? payload, [NotNullWhen(true)] out HttpResponseMessage? response)
         {
-            if (StopResponseFetcher.TryFetch(payload, out response) && response != null)
-            {
-                return true;
-            }
-
-            return false;
+            return StopResponseFetcher.TryFetch(payload, out response) && response != null;
         }
     }
 
-    public void OnException(Activity activity, object payload)
+    public void OnException(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
-            if (!TryFetchException(payload, out Exception exc))
+            if (!TryFetchException(payload, out var exc))
             {
                 HttpInstrumentationEventSource.Log.NullPayload(nameof(HttpHandlerDiagnosticListener), nameof(this.OnException));
                 return;
             }
 
-            activity.SetTag(SemanticConventions.AttributeErrorType, GetErrorType(exc));
+            var errorType = GetErrorType(exc);
+
+            if (!string.IsNullOrEmpty(errorType))
+            {
+                activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
+            }
 
             if (this.options.RecordException)
             {
-                activity.RecordException(exc);
+                activity.AddException(exc);
             }
 
             if (exc is HttpRequestException)
@@ -283,23 +293,18 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
 
         // The AOT-annotation DynamicallyAccessedMembers in System.Net.Http library ensures that top-level properties on the payload object are always preserved.
         // see https://github.com/dotnet/runtime/blob/f9246538e3d49b90b0e9128d7b1defef57cd6911/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L325
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The event source guarantees that top-level properties are preserved")]
 #endif
-        static bool TryFetchException(object payload, out Exception exc)
+        static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
         {
-            if (!StopExceptionFetcher.TryFetch(payload, out exc) || exc == null)
-            {
-                return false;
-            }
-
-            return true;
+            return StopExceptionFetcher.TryFetch(payload, out exc) && exc != null;
         }
     }
 
-    private static string GetErrorType(Exception exc)
+    private static string? GetErrorType(Exception exc)
     {
-#if NET8_0_OR_GREATER
+#if NET
         // For net8.0 and above exception type can be found using HttpRequestError.
         // https://learn.microsoft.com/dotnet/api/system.net.http.httprequesterror?view=net-8.0
         if (exc is HttpRequestException httpRequestException)
@@ -319,22 +324,10 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
                 HttpRequestError.ConfigurationLimitExceeded => "configuration_limit_exceeded",
 
                 // Fall back to the exception type name in case of HttpRequestError.Unknown
-                _ => exc.GetType().FullName,
+                HttpRequestError.Unknown or _ => exc.GetType().FullName,
             };
         }
 #endif
         return exc.GetType().FullName;
-    }
-
-    private static bool InitializeIsNet7OrGreater()
-    {
-        try
-        {
-            return typeof(HttpClient).Assembly.GetName().Version.Major >= 7;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
     }
 }

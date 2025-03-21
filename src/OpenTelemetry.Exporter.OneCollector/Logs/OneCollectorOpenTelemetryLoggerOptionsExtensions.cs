@@ -123,7 +123,7 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
     {
         Guard.ThrowIfNull(options);
 
-        var builder = new OneCollectorLogExportProcessorBuilder(configuration);
+        var builder = new OneCollectorLogExportProcessorBuilder(name: null, services: null, configuration);
 
         if (!string.IsNullOrWhiteSpace(connectionString))
         {
@@ -132,10 +132,7 @@ public static class OneCollectorOpenTelemetryLoggerOptionsExtensions
 
         configure?.Invoke(builder);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-        options.AddProcessor(
-            builder.BuildProcessor());
-#pragma warning restore CA2000 // Dispose objects before losing scope
+        options.AddProcessor(builder.BuildProcessor);
 
         return options;
     }

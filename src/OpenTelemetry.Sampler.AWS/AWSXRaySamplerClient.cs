@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -27,7 +26,7 @@ internal class AWSXRaySamplerClient : IDisposable
 
     public async Task<List<SamplingRule>> GetSamplingRules()
     {
-        List<SamplingRule> samplingRules = new List<SamplingRule>();
+        List<SamplingRule> samplingRules = [];
 
         using (var request = new HttpRequestMessage(HttpMethod.Post, this.getSamplingRulesEndpoint)
         {
@@ -38,8 +37,8 @@ internal class AWSXRaySamplerClient : IDisposable
 
             try
             {
-                GetSamplingRulesResponse? getSamplingRulesResponse = JsonSerializer
-#if NET6_0_OR_GREATER
+                var getSamplingRulesResponse = JsonSerializer
+#if NET
                     .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingRulesResponse);
 #else
                     .Deserialize<GetSamplingRulesResponse>(responseJson);
@@ -73,7 +72,7 @@ internal class AWSXRaySamplerClient : IDisposable
     public async Task<GetSamplingTargetsResponse?> GetSamplingTargets(GetSamplingTargetsRequest getSamplingTargetsRequest)
     {
         var json = JsonSerializer
-#if NET6_0_OR_GREATER
+#if NET
             .Serialize(getSamplingTargetsRequest, SourceGenerationContext.Default.GetSamplingTargetsRequest);
 #else
             .Serialize(getSamplingTargetsRequest);
@@ -90,8 +89,8 @@ internal class AWSXRaySamplerClient : IDisposable
 
         try
         {
-            GetSamplingTargetsResponse? getSamplingTargetsResponse = JsonSerializer
-#if NET6_0_OR_GREATER
+            var getSamplingTargetsResponse = JsonSerializer
+#if NET
                 .Deserialize(responseJson, SourceGenerationContext.Default.GetSamplingTargetsResponse);
 #else
                 .Deserialize<GetSamplingTargetsResponse>(responseJson);

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
@@ -24,10 +23,7 @@ internal class InstrumentedCommunicationObject<T> : ICommunicationObject
 
     event EventHandler ICommunicationObject.Opening { add => this.Inner.Opening += value; remove => this.Inner.Opening -= value; }
 
-    CommunicationState ICommunicationObject.State
-    {
-        get { return this.Inner.State; }
-    }
+    CommunicationState ICommunicationObject.State => this.Inner.State;
 
     protected T Inner { get; }
 

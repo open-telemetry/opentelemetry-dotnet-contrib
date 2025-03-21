@@ -16,6 +16,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText SeverityNumberProperty = JsonEncodedText.Encode("severityNumber");
     private static readonly JsonEncodedText BodyProperty = JsonEncodedText.Encode("body");
     private static readonly JsonEncodedText FormattedMessageProperty = JsonEncodedText.Encode("formattedMessage");
+    private static readonly JsonEncodedText NamespaceProperty = JsonEncodedText.Encode("namespace");
     private static readonly JsonEncodedText DistributedTraceExtensionProperty = JsonEncodedText.Encode("dt");
     private static readonly JsonEncodedText DistributedTraceExtensionTraceIdProperty = JsonEncodedText.Encode("traceId");
     private static readonly JsonEncodedText DistributedTraceExtensionSpanIdProperty = JsonEncodedText.Encode("spanId");
@@ -24,31 +25,31 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
     private static readonly JsonEncodedText ExceptionExtensionMessageProperty = JsonEncodedText.Encode("msg");
     private static readonly JsonEncodedText ExceptionExtensionStackTraceProperty = JsonEncodedText.Encode("stack");
 
-    private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings = new JsonEncodedText[]
-    {
+    private static readonly JsonEncodedText[] LogLevelToSeverityTextMappings =
+    [
         JsonEncodedText.Encode("Trace"),
         JsonEncodedText.Encode("Debug"),
         JsonEncodedText.Encode("Information"),
         JsonEncodedText.Encode("Warning"),
         JsonEncodedText.Encode("Error"),
         JsonEncodedText.Encode("Critical"),
-        JsonEncodedText.Encode("Trace"), // Note: This is the "None" bucket.
-    };
+        JsonEncodedText.Encode("Trace") // Note: This is the "None" bucket.
+    ];
 
-    private static readonly int[] LogLevelToSeverityNumberMappings = new int[]
-    {
-        1, 5, 9, 13, 17, 21, 1,
-    };
+    private static readonly int[] LogLevelToSeverityNumberMappings =
+    [
+        1, 5, 9, 13, 17, 21, 1
+    ];
 
     private static readonly Action<LogRecordScope, CommonSchemaJsonSerializationState> SerializeScopeItemToJson = (scope, serializationState) =>
     {
         var writer = serializationState.Writer;
 
-        foreach (KeyValuePair<string, object?> scopeAttribute in scope)
+        foreach (var scopeAttribute in scope)
         {
             if (scopeAttribute.Key == "{OriginalFormat}")
             {
-                return;
+                continue;
             }
 
             if (AttributeKeyStartWithExtensionPrefix(scopeAttribute.Key))
@@ -88,9 +89,23 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         Debug.Assert(writer != null, "writer was null");
 
-        var eventName = this.eventNameManager.ResolveEventFullName(
-            item.CategoryName,
-            item.EventId.Name);
+        int attributeStartIndex = 0;
+        EventNameManager.ResolvedEventFullName resolvedEventFullName;
+        if (item.Attributes != null
+            && item.Attributes.Count > 0
+            && item.Attributes[0].Key == "{EventFullName}"
+            && item.Attributes[0].Value is string eventFullName
+            && !string.IsNullOrEmpty(eventFullName))
+        {
+            attributeStartIndex++;
+            resolvedEventFullName = this.eventNameManager.ResolveEventFullName(eventFullName);
+        }
+        else
+        {
+            resolvedEventFullName = this.eventNameManager.ResolveEventFullName(
+                item.CategoryName,
+                item.EventId.Name);
+        }
 
         writer!.WriteStartObject();
 
@@ -98,9 +113,9 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
 #if DEBUG
-        writer.WriteRawValue(eventName, skipInputValidation: false);
+        writer.WriteRawValue(resolvedEventFullName.EventFullName, skipInputValidation: false);
 #else
-        writer.WriteRawValue(eventName, skipInputValidation: true);
+        writer.WriteRawValue(resolvedEventFullName.EventFullName, skipInputValidation: true);
 #endif
 
         writer.WriteString(CommonSchemaJsonSerializationHelper.TimeProperty, item.Timestamp);
@@ -114,7 +129,34 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
             writer.WriteNumber(EventIdProperty, item.EventId.Id);
         }
 
+        if (resolvedEventFullName.OriginalEventNamespace != null)
+        {
+            writer.WritePropertyName(NamespaceProperty);
+#if DEBUG
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: false);
+#else
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventNamespace, skipInputValidation: true);
+#endif
+        }
+
+        if (resolvedEventFullName.OriginalEventName != null)
+        {
+            writer.WritePropertyName(CommonSchemaJsonSerializationHelper.NameProperty);
+#if DEBUG
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: false);
+#else
+            writer.WriteRawValue(resolvedEventFullName.OriginalEventName, skipInputValidation: true);
+#endif
+        }
+
+#if EXPOSE_EXPERIMENTAL_FEATURES
+#pragma warning disable CS0618 // Type or member is obsolete
+        // TODO: Update to use LogRecord.Severity
         var logLevel = (int)item.LogLevel;
+#pragma warning restore CS0618 // Type or member is obsolete
+#else
+        var logLevel = (int)item.LogLevel;
+#endif
         writer.WriteString(SeverityTextProperty, LogLevelToSeverityTextMappings[logLevel]);
         writer.WriteNumber(SeverityNumberProperty, LogLevelToSeverityNumberMappings[logLevel]);
 
@@ -122,7 +164,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         if (item.Attributes != null)
         {
-            for (int i = 0; i < item.Attributes.Count; i++)
+            for (int i = attributeStartIndex; i < item.Attributes.Count; i++)
             {
                 var attribute = item.Attributes[i];
 

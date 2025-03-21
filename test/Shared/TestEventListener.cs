@@ -1,14 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.Threading;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Tests;
 
@@ -82,7 +75,7 @@ internal class TestEventListener : EventListener
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
         // Check for null because this method is called by the base class constructor before we can initialize it
-        Action<EventSource>? callback = this.OnOnEventSourceCreated;
+        var callback = this.OnOnEventSourceCreated;
         callback?.Invoke(eventSource);
     }
 }

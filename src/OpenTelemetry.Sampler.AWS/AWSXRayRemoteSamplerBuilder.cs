@@ -1,8 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Sampler.AWS;
 
@@ -15,7 +15,7 @@ public class AWSXRayRemoteSamplerBuilder
 
     private static readonly TimeSpan DefaultPollingInterval = TimeSpan.FromMinutes(5);
 
-    private Resource resource;
+    private readonly Resource resource;
     private TimeSpan pollingInterval;
     private string endpoint;
     private Clock clock;
@@ -67,10 +67,13 @@ public class AWSXRayRemoteSamplerBuilder
     /// <summary>
     /// Returns a <see cref="AWSXRayRemoteSampler"/> with configuration of this builder.
     /// </summary>
-    /// <returns>an instance of <see cref="AWSXRayRemoteSampler"/>.</returns>
-    public AWSXRayRemoteSampler Build()
+    /// <returns>an instance of <see cref="Trace.Sampler"/>.</returns>
+    public Trace.Sampler Build()
     {
-        return new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        var rootSampler = new AWSXRayRemoteSampler(this.resource, this.pollingInterval, this.endpoint, this.clock);
+#pragma warning restore CA2000
+        return new ParentBasedSampler(rootSampler);
     }
 
     // This is intended for testing with a mock clock.

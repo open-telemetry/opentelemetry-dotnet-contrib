@@ -1,170 +1,56 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using Amazon.Util;
+using Amazon.Runtime.Telemetry;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 /// <summary>
-/// Wraps the outgoing AWS SDK Request in a Span and adds additional AWS specific Tags.
-/// Depending on the target AWS Service, additional request specific information may be injected as well.
+/// Adds additional request and response tags depending on the target AWS Service.
 /// <para />
 /// This <see cref="PipelineHandler"/> must execute early in the AWS SDK pipeline
 /// in order to manipulate outgoing requests objects before they are marshalled (ie serialized).
 /// </summary>
 internal sealed class AWSTracingPipelineHandler : PipelineHandler
 {
-    internal const string ActivitySourceName = "Amazon.AWS.AWSClientInstrumentation";
-
-    private static readonly ActivitySource AWSSDKActivitySource = new(ActivitySourceName, typeof(AWSTracingPipelineHandler).Assembly.GetPackageVersion());
-
     private readonly AWSClientInstrumentationOptions options;
+    private readonly AWSSemanticConventions awsSemanticConventions;
+    private readonly AWSServiceHelper awsServiceHelper;
 
     public AWSTracingPipelineHandler(AWSClientInstrumentationOptions options)
     {
         this.options = options;
+        this.awsSemanticConventions = new AWSSemanticConventions(options.SemanticConventionVersion);
+        this.awsServiceHelper = new AWSServiceHelper(this.awsSemanticConventions);
     }
-
-    public Activity? Activity { get; private set; }
 
     public override void InvokeSync(IExecutionContext executionContext)
     {
-        this.Activity = this.ProcessBeginRequest(executionContext);
-        try
-        {
-            base.InvokeSync(executionContext);
-        }
-        catch (Exception ex)
-        {
-            if (this.Activity != null)
-            {
-                ProcessException(this.Activity, ex);
-            }
-
-            throw;
-        }
-        finally
-        {
-            if (this.Activity != null)
-            {
-                ProcessEndRequest(executionContext, this.Activity);
-            }
-        }
+        var activity = this.ProcessBeginRequest(executionContext);
+        base.InvokeSync(executionContext);
+        this.ProcessEndRequest(activity, executionContext);
     }
 
     public override async Task<T> InvokeAsync<T>(IExecutionContext executionContext)
     {
-        T? ret = null;
+        var activity = this.ProcessBeginRequest(executionContext);
+        var ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
 
-        this.Activity = this.ProcessBeginRequest(executionContext);
-        try
-        {
-            ret = await base.InvokeAsync<T>(executionContext).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            if (this.Activity != null)
-            {
-                ProcessException(this.Activity, ex);
-            }
-
-            throw;
-        }
-        finally
-        {
-            if (this.Activity != null)
-            {
-                ProcessEndRequest(executionContext, this.Activity);
-            }
-        }
+        this.ProcessEndRequest(activity, executionContext);
 
         return ret;
     }
 
-    private static void ProcessEndRequest(IExecutionContext executionContext, Activity activity)
+    private static void AddPropagationDataToRequest(Activity activity, IRequestContext requestContext)
     {
-        var responseContext = executionContext.ResponseContext;
-        var requestContext = executionContext.RequestContext;
+        var service = requestContext.ServiceMetaData.ServiceId;
 
-        if (activity.IsAllDataRequested)
-        {
-            if (Utils.GetTagValue(activity, AWSSemanticConventions.AttributeAWSRequestId) == null)
-            {
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, FetchRequestId(requestContext, responseContext));
-            }
-
-            var httpResponse = responseContext.HttpResponse;
-            if (httpResponse != null)
-            {
-                int statusCode = (int)httpResponse.StatusCode;
-
-                AddStatusCodeToActivity(activity, statusCode);
-                activity.SetTag(AWSSemanticConventions.AttributeHttpResponseContentLength, httpResponse.ContentLength);
-            }
-        }
-
-        activity.Stop();
-    }
-
-    private static void ProcessException(Activity activity, Exception ex)
-    {
-        if (activity.IsAllDataRequested)
-        {
-            activity.RecordException(ex);
-
-            activity.SetStatus(Status.Error.WithDescription(ex.Message));
-
-            if (ex is AmazonServiceException amazonServiceException)
-            {
-                AddStatusCodeToActivity(activity, (int)amazonServiceException.StatusCode);
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRequestId, amazonServiceException.RequestId);
-            }
-        }
-    }
-
-#if NET6_0_OR_GREATER
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
-        "Trimming",
-        "IL2075",
-        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
-#endif
-    private static void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext, string service)
-    {
-        if (AWSServiceHelper.ServiceParameterMap.TryGetValue(service, out var parameter))
-        {
-            AmazonWebServiceRequest request = requestContext.OriginalRequest;
-
-            try
-            {
-                var property = request.GetType().GetProperty(parameter);
-                if (property != null)
-                {
-                    if (AWSServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
-                    {
-                        activity.SetTag(attribute, property.GetValue(request));
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Guard against any reflection-related exceptions when running in AoT.
-                // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
-            }
-        }
-
-        if (AWSServiceType.IsDynamoDbService(service))
-        {
-            activity.SetTag(SemanticConventions.AttributeDbSystem, AWSSemanticConventions.AttributeValueDynamoDb);
-        }
-        else if (AWSServiceType.IsSqsService(service))
+        if (AWSServiceType.IsSqsService(service))
         {
             SqsRequestContextHelper.AddAttributes(
                 requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
@@ -176,73 +62,167 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         }
     }
 
-    private static void AddStatusCodeToActivity(Activity activity, int status_code)
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private void AddResponseSpecificInformation(Activity activity, IExecutionContext executionContext)
     {
-        activity.SetTag(AWSSemanticConventions.AttributeHttpStatusCode, status_code);
+        var service = executionContext.RequestContext.ServiceMetaData.ServiceId;
+        var responseContext = executionContext.ResponseContext;
+
+        if (AWSServiceHelper.ServiceResponseParameterMap.TryGetValue(service, out var parameters))
+        {
+            var response = responseContext.Response;
+
+            foreach (var parameter in parameters)
+            {
+                try
+                {
+                    // for bedrock agent, extract attribute from object in response.
+                    if (AWSServiceType.IsBedrockAgentService(service))
+                    {
+                        var operationName = Utils.RemoveSuffix(response.GetType().Name, "Response");
+                        if (AWSServiceHelper.OperationNameToResourceMap()[operationName] == parameter)
+                        {
+                            this.AddBedrockAgentResponseAttribute(activity, response, parameter);
+                        }
+                    }
+
+                    var property = response.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(response));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                }
+            }
+        }
     }
 
-    private static string FetchRequestId(IRequestContext requestContext, IResponseContext responseContext)
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private void AddBedrockAgentResponseAttribute(Activity activity, AmazonWebServiceResponse response, string parameter)
     {
-        string request_id = string.Empty;
-        var response = responseContext.Response;
-        if (response != null)
+        var responseObject = response.GetType().GetProperty(Utils.RemoveSuffix(parameter, "Id"));
+        if (responseObject != null)
         {
-            request_id = response.ResponseMetadata.RequestId;
-        }
-        else
-        {
-            var request_headers = requestContext.Request.Headers;
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amzn-RequestId", out var req_id))
+            var attributeObject = responseObject.GetValue(response);
+            if (attributeObject != null)
             {
-                request_id = req_id;
-            }
-
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-request-id", out req_id))
-            {
-                request_id = req_id;
-            }
-
-            if (string.IsNullOrEmpty(request_id) && request_headers.TryGetValue("x-amz-id-2", out req_id))
-            {
-                request_id = req_id;
+                var property = attributeObject.GetType().GetProperty(parameter);
+                if (property != null)
+                {
+                    if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                    {
+                        activity.SetTag(attribute, property.GetValue(attributeObject));
+                    }
+                }
             }
         }
+    }
 
-        return request_id;
+#if NET
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+#endif
+    private void AddRequestSpecificInformation(Activity activity, IRequestContext requestContext)
+    {
+        var service = requestContext.ServiceMetaData.ServiceId;
+
+        if (AWSServiceHelper.ServiceRequestParameterMap.TryGetValue(service, out var parameters))
+        {
+            var request = requestContext.OriginalRequest;
+
+            foreach (var parameter in parameters)
+            {
+                try
+                {
+                    // for bedrock agent, we only extract one attribute based on the operation.
+                    if (AWSServiceType.IsBedrockAgentService(service))
+                    {
+                        if (AWSServiceHelper.OperationNameToResourceMap()[AWSServiceHelper.GetAWSOperationName(requestContext)] != parameter)
+                        {
+                            continue;
+                        }
+                    }
+
+                    var property = request.GetType().GetProperty(parameter);
+                    if (property != null)
+                    {
+                        if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
+                        {
+                            activity.SetTag(attribute, property.GetValue(request));
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Guard against any reflection-related exceptions when running in AoT.
+                    // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
+                }
+            }
+        }
+
+        if (AWSServiceType.IsDynamoDbService(service))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
+        }
+        else if (AWSServiceType.IsBedrockRuntimeService(service))
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeGenAiSystemToBedrock(activity);
+        }
+    }
+
+    private void ProcessEndRequest(Activity? activity, IExecutionContext executionContext)
+    {
+        if (activity == null || !activity.IsAllDataRequested)
+        {
+            return;
+        }
+
+        this.AddResponseSpecificInformation(activity, executionContext);
     }
 
     private Activity? ProcessBeginRequest(IExecutionContext executionContext)
     {
-        var requestContext = executionContext.RequestContext;
-        var service = AWSServiceHelper.GetAWSServiceName(requestContext);
-        var operation = AWSServiceHelper.GetAWSOperationName(requestContext);
-
-        Activity? activity = AWSSDKActivitySource.StartActivity(service + "." + operation, ActivityKind.Client);
-
-        if (activity == null)
-        {
-            return null;
-        }
-
         if (this.options.SuppressDownstreamInstrumentation)
         {
             SuppressInstrumentationScope.Enter();
         }
 
-        if (activity.IsAllDataRequested)
-        {
-            activity.SetTag(AWSSemanticConventions.AttributeAWSServiceName, service);
-            activity.SetTag(AWSSemanticConventions.AttributeAWSOperationName, operation);
-            var client = executionContext.RequestContext.ClientConfig;
-            if (client != null)
-            {
-                var region = client.RegionEndpoint?.SystemName;
-                activity.SetTag(AWSSemanticConventions.AttributeAWSRegion, region ?? AWSSDKUtils.DetermineRegion(client.ServiceURL));
-            }
+        var currentActivity = Activity.Current;
 
-            AddRequestSpecificInformation(activity, requestContext, service);
+        if (currentActivity == null)
+        {
+            return null;
         }
 
-        return activity;
+        if (currentActivity.IsAllDataRequested
+            && currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
+        {
+            this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
+        }
+
+        // Context propagation should always happen regardless of sampling decision (which affects Activity.IsAllDataRequested and Activity.Source).
+        // Otherwise, downstream services can make inconsistent sampling decisions and create incomplete traces.
+        AddPropagationDataToRequest(currentActivity, executionContext.RequestContext);
+
+        return currentActivity;
     }
 }

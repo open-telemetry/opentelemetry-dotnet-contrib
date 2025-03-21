@@ -1,10 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Threading;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
@@ -32,9 +30,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.Request(message);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
 
@@ -52,9 +50,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.Request(message, timeout);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, telemetryState, ex);
             throw;
         }
 
@@ -88,9 +86,9 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
         {
             reply = this.Inner.EndRequest(asyncResult.Inner);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState);
+            ClientChannelInstrumentation.AfterRequestCompleted(null, asyncResult.TelemetryState, ex);
             throw;
         }
 
@@ -101,14 +99,21 @@ internal sealed class InstrumentedRequestChannel : InstrumentedChannel<IRequestC
     private IAsyncResult InternalBeginRequest(Message message, Func<AsyncCallback, object?, IAsyncResult> beginRequestDelegate, AsyncCallback callback, object? state)
     {
         IAsyncResult? result = null;
-        ContextCallback executeInChildContext = _ =>
+
+        void ExecuteInChildContext(object? unused)
         {
             var telemetryState = ClientChannelInstrumentation.BeforeSendRequest(message, ((IRequestChannel)this).RemoteAddress?.Uri);
             var asyncCallback = AsyncResultWithTelemetryState.GetAsyncCallback(callback, telemetryState);
             result = new AsyncResultWithTelemetryState(beginRequestDelegate(asyncCallback, state), telemetryState);
-        };
+        }
 
-        ExecutionContext.Run(ExecutionContext.Capture(), executeInChildContext, null);
+        var executionContext = ExecutionContext.Capture();
+        if (executionContext == null)
+        {
+            throw new InvalidOperationException("Cannot fetch execution context");
+        }
+
+        ExecutionContext.Run(executionContext, ExecuteInChildContext, null);
         return result!;
     }
 }

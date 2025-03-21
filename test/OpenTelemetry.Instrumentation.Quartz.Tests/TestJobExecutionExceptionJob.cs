@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Threading.Tasks;
 using Quartz;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Tests;
 
-public class TestJobExecutionExceptionJob : IJob
+internal class TestJobExecutionExceptionJob : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {

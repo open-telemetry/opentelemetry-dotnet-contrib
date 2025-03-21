@@ -3,12 +3,7 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -36,7 +31,10 @@ public class AWSECSDetectorTests : IDisposable
     [Fact]
     public void TestNotOnEcs()
     {
-        var ecsResourceDetector = new AWSECSDetector();
+        var ecsResourceDetector = new AWSECSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
+
         var resourceAttributes = ecsResourceDetector.Detect();
 
         Assert.NotNull(resourceAttributes);
@@ -54,14 +52,18 @@ public class AWSECSDetectorTests : IDisposable
     {
         Environment.SetEnvironmentVariable(AWSECSMetadataURLKey, "TestECSURIKey");
 
-        var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+        var ecsResourceDetector = new AWSECSDetector(
+            new OpenTelemetry.AWS.AWSSemanticConventions(
+                SemanticConventionVersion.Latest));
 
-        Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
-        Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+        var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
+        Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Ec2()
+    public async Task TestEcsMetadataV4Ec2()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -69,30 +71,35 @@ public class AWSECSDetectorTests : IDisposable
         await using (var metadataEndpoint = new MockEcsMetadataEndpoint("ecs_metadata/metadatav4-response-container-ec2.json", "ecs_metadata/metadatav4-response-task-ec2.json"))
         {
             Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, metadataEndpoint.Address.ToString());
-            var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
 
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID], "111122223333");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2d");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudRegion], "us-west-2");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudResourceId], "arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsLaunchtype], "ec2");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/158d1c8083dd49d6b527399fd6414f5c");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskFamily], "curltest");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskRevision], "26");
+            var ecsResourceDetector = new AWSECSDetector(
+                new OpenTelemetry.AWS.AWSSemanticConventions(
+                    SemanticConventionVersion.Latest));
+
+            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudAccountID], "111122223333");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2d");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion], "us-west-2");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudResourceId], "arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/0206b271-b33f-47ab-86c6-a0ba208a70a9");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsLaunchtype], "ec2");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/158d1c8083dd49d6b527399fd6414f5c");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskFamily], "curltest");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskRevision], "26");
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/metadata" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/8f03e41243824aea923aca126495f665" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata:log-stream:ecs/curl/8f03e41243824aea923aca126495f665" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/metadata" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/8f03e41243824aea923aca126495f665" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/metadata:log-stream:ecs/curl/8f03e41243824aea923aca126495f665" });
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
         }
     }
 
     [Fact]
-    public async void TestEcsMetadataV4Fargate()
+    public async Task TestEcsMetadataV4Fargate()
     {
         var source = new CancellationTokenSource();
         var token = source.Token;
@@ -101,24 +108,28 @@ public class AWSECSDetectorTests : IDisposable
         {
             Environment.SetEnvironmentVariable(AWSECSMetadataURLV4Key, metadataEndpoint.Address.ToString());
 
-            var resourceAttributes = new AWSECSDetector().Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+            var ecsResourceDetector = new AWSECSDetector(
+                new OpenTelemetry.AWS.AWSSemanticConventions(
+                    SemanticConventionVersion.Latest));
 
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudProvider], "aws");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudPlatform], "aws_ecs");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAccountID], "111122223333");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2a");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudRegion], "us-west-2");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeCloudResourceId], "arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsLaunchtype], "fargate");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/e9028f8d5d8e4f258373e7b93ce9a3c3");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskFamily], "curltest");
-            Assert.Equal(resourceAttributes[AWSSemanticConventions.AttributeEcsTaskRevision], "3");
+            var resourceAttributes = ecsResourceDetector.Detect().Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider], "aws");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudPlatform], "aws_ecs");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudAccountID], "111122223333");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudAvailabilityZone], "us-west-2a");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion], "us-west-2");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeCloudResourceId], "arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsContainerArn], "arn:aws:ecs:us-west-2:111122223333:container/05966557-f16c-49cb-9352-24b3a0dcd0e1");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsLaunchtype], "fargate");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskArn], "arn:aws:ecs:us-west-2:111122223333:task/default/e9028f8d5d8e4f258373e7b93ce9a3c3");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskFamily], "curltest");
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeEcsTaskRevision], "3");
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/containerlogs" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/cd189a933e5849daa93386466019ab50" });
-            Assert.NotStrictEqual(resourceAttributes[AWSSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs:log-stream:ecs/curl/cd189a933e5849daa93386466019ab50" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogGroupNames], new string[] { "/ecs/containerlogs" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogGroupArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamNames], new string[] { "ecs/curl/cd189a933e5849daa93386466019ab50" });
+            Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs:log-stream:ecs/curl/cd189a933e5849daa93386466019ab50" });
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
         }
     }
@@ -178,6 +189,25 @@ public class AWSECSDetectorTests : IDisposable
         {
             await this.server.StopAsync();
         }
+    }
+
+    private static class ExpectedSemanticConventions
+    {
+        public const string AttributeCloudProvider = "cloud.provider";
+        public const string AttributeCloudPlatform = "cloud.platform";
+        public const string AttributeCloudAccountID = "cloud.account.id";
+        public const string AttributeCloudAvailabilityZone = "cloud.availability_zone";
+        public const string AttributeCloudRegion = "cloud.region";
+        public const string AttributeCloudResourceId = "cloud.resource_id";
+        public const string AttributeEcsContainerArn = "aws.ecs.container.arn";
+        public const string AttributeEcsLaunchtype = "aws.ecs.launchtype";
+        public const string AttributeEcsTaskArn = "aws.ecs.task.arn";
+        public const string AttributeEcsTaskFamily = "aws.ecs.task.family";
+        public const string AttributeEcsTaskRevision = "aws.ecs.task.revision";
+        public const string AttributeLogGroupArns = "aws.log.group.arns";
+        public const string AttributeLogGroupNames = "aws.log.group.names";
+        public const string AttributeLogStreamArns = "aws.log.stream.arns";
+        public const string AttributeLogStreamNames = "aws.log.stream.names";
     }
 }
 #endif

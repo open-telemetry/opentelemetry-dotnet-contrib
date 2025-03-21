@@ -1,11 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
-public class TestJob
+internal class TestJob
 {
     public void Execute()
     {

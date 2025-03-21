@@ -15,23 +15,66 @@ projects.
 For information on how to contribute, consult [the contributing
 guidelines](./CONTRIBUTING.md).
 
+## Project status
+
+This repository is a collection of components maintained by different
+authors and groups. As such, components shipped from this repository (via
+[Nuget](https://www.nuget.org/)) may be at different stability/maturity levels.
+The status for each individual component is mentioned in its respective
+`README.md` file and will fall into one of the following categories:
+
+### Development
+
+Component is currently in development and is NOT available on
+[Nuget](https://www.nuget.org/).
+
+### Alpha
+
+The component is ready to be used for limited non-critical workloads and the
+authors of this component would welcome your feedback. Bugs and performance
+problems should be reported, but component owners might not work on them right
+away. Components can go through significant breaking changes and there are no
+backward compatibility guarantees. Package versions in this status have the
+`-alpha` extension (eg: opentelemetry.exporter.abc-1.0.0-alpha.1).
+
+### Beta
+
+Same as Alpha, but comparatively more stable. Package versions in this status
+have the `-beta` extension (eg: opentelemetry.exporter.abc-1.0.0-beta.1).
+
+### Release candidate
+
+Component is close to stability. There may be minimal breaking changes between
+releases. A component at this stage is expected to have had exposure to
+non-critical production workloads already during its **Alpha/Beta** phase(s),
+making it suitable for broader usage. Package versions in this status have the
+`-rc` extension (eg: opentelemetry.exporter.abc-1.0.0-rc.1).
+
+### Stable
+
+The component is ready for general availability. Bugs and performance problems
+should be reported and the component owner(s) SHOULD triage and/or resolve them
+in a timely manner. The package versions MUST follow [SemVer
+V2](https://semver.org/spec/v2.0.0.html).
+
 ## Support
 
 This repository is maintained by [.NET Contrib maintainers](#maintainers) team
 and [.NET Contrib approvers](#approvers) who can help with reviews and code
 approval. However, as individual components are developed by numerous
 contributors, approvers and maintainers are not expected to directly contribute
-to every component. The list of owners for each component can be found
-[here](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/main/.github/component_owners.yml).
+to every component. The list of owners for each component can be found in
+component's `Readme.md` file.
 
 ### Triagers
 
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
 * [Martin Thwaites](https://github.com/martinjt), Honeycomb
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Microsoft
 
 *Find more about the triager role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#triager).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).*
 
 ### Approvers
 
@@ -40,28 +83,29 @@ repository](https://github.com/open-telemetry/community/blob/main/community-memb
 There are no approvers today.
 
 *Find more about the approver role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
 
 ### Maintainers
 
 [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
 * [Alan West](https://github.com/alanwest), New Relic
-* [Cijo Thomas](https://github.com/cijothomas), Microsoft
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
-* [Vishwesh Bankwar](https://github.com/vishweshbankwar), Microsoft
+* [Rajkumar Rangaraj](https://github.com/rajkumar-rangaraj), Microsoft
 
 *Find more about the maintainer role in [community
-repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).*
+repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*
 
 ### Emeritus
 
-[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/community-membership.md#emeritus-maintainerapprovertriager):
+[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
 
+* [Cijo Thomas](https://github.com/cijothomas)
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)
+* [Vishwesh Bankwar](https://github.com/vishweshbankwar)
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership

@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Cassandra;
 using Cassandra.Mapping;
 using Cassandra.Metrics;
@@ -76,8 +72,8 @@ public class CassandraInstrumentationTests
 
         var options = new DriverMetricsOptions();
 
-        options.SetEnabledNodeMetrics(new[] { NodeMetric.Gauges.InFlight });
-        options.SetEnabledSessionMetrics(new List<SessionMetric>());
+        options.SetEnabledNodeMetrics([NodeMetric.Gauges.InFlight]);
+        options.SetEnabledSessionMetrics([]);
 
         var cluster = new Builder()
             .WithConnectionString(this.cassandraConnectionString)
@@ -101,7 +97,7 @@ public class CassandraInstrumentationTests
 
         var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
         Assert.NotNull(inFlightConnection);
-        Assert.True(exportedItems.Count == 1);
+        Assert.Single(exportedItems);
         Assert.NotEmpty(books);
     }
 

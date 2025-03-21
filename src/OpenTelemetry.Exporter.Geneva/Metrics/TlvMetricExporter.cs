@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,24 +12,19 @@ namespace OpenTelemetry.Exporter.Geneva.Metrics;
 internal sealed class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
-
     private readonly int fixedPayloadStartIndex;
-
     private readonly IMetricDataTransport metricDataTransport;
-
-    private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
-
-    private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
-
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsKeys;
+    private readonly List<byte[]>? serializedPrepopulatedDimensionsValues;
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
-
     private readonly string defaultMonitoringAccount;
-
     private readonly string defaultMetricNamespace;
 
     private bool isDisposed;
 
-    internal TlvMetricExporter(ConnectionStringBuilder connectionStringBuilder, IReadOnlyDictionary<string, object> prepopulatedMetricDimensions)
+    internal TlvMetricExporter(
+        ConnectionStringBuilder connectionStringBuilder,
+        IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions)
     {
         this.defaultMonitoringAccount = connectionStringBuilder.Account;
         this.defaultMetricNamespace = connectionStringBuilder.Namespace;
@@ -52,12 +45,12 @@ internal sealed class TlvMetricExporter : IDisposable
                 }
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
+                this.metricDataTransport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.metricDataTransport = MetricEtwDataTransport.Instance;
+                    this.metricDataTransport = MetricWindowsEventTracingDataTransport.Instance;
                     break;
                 }
                 else
@@ -65,8 +58,12 @@ internal sealed class TlvMetricExporter : IDisposable
                     throw new ArgumentException("Endpoint not specified");
                 }
 
+            case TransportProtocol.Etw:
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.EtwTld:
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         unsafe
@@ -75,10 +72,34 @@ internal sealed class TlvMetricExporter : IDisposable
         }
     }
 
+    public void Dispose()
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            // The ETW data transport singleton on Windows should NOT be disposed.
+            // On Linux, Unix Domain Socket is used and should be disposed.
+            if (this.metricDataTransport != MetricWindowsEventTracingDataTransport.Instance)
+            {
+                this.metricDataTransport.Dispose();
+            }
+
+            this.isDisposed = true;
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("TlvMetricExporter Dispose failed.", ex);
+        }
+    }
+
     internal ExportResult Export(in Batch<Metric> batch)
     {
-        string monitoringAccount = this.defaultMonitoringAccount;
-        string metricNamespace = this.defaultMetricNamespace;
+        var monitoringAccount = this.defaultMonitoringAccount;
+        var metricNamespace = this.defaultMetricNamespace;
 
         var result = ExportResult.Success;
         foreach (var metric in batch)
@@ -193,7 +214,7 @@ internal sealed class TlvMetricExporter : IDisposable
                             {
                                 var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
                                 var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-                                if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+                                if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
                                 {
                                     min = 0;
                                     max = 0;
@@ -215,6 +236,11 @@ internal sealed class TlvMetricExporter : IDisposable
                                 this.metricDataTransport.Send(MetricEventType.TLV, this.buffer, bodyLength);
                                 break;
                             }
+
+                        case MetricType.ExponentialHistogram:
+                            break;
+                        default:
+                            break;
                     }
                 }
                 catch (Exception ex)
@@ -226,30 +252,6 @@ internal sealed class TlvMetricExporter : IDisposable
         }
 
         return result;
-    }
-
-    public void Dispose()
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        try
-        {
-            // The ETW data transport singleton on Windows should NOT be disposed.
-            // On Linux, Unix Domain Socket is used and should be disposed.
-            if (this.metricDataTransport != MetricEtwDataTransport.Instance)
-            {
-                this.metricDataTransport.Dispose();
-            }
-
-            this.isDisposed = true;
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("TlvMetricExporter Dispose failed.", ex);
-        }
     }
 
     internal unsafe ushort SerializeMetricWithTLV(
@@ -502,7 +504,7 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)payloadType);
 
         // Get a placeholder to add the payloadType length
-        int payloadTypeStartIndex = bufferIndex;
+        var payloadTypeStartIndex = bufferIndex;
         bufferIndex += 2;
 
         MetricSerializer.SerializeUInt64(buffer, ref bufferIndex, (ulong)timestamp); // timestamp
@@ -526,7 +528,7 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeByte(buffer, ref bufferIndex, (byte)PayloadType.ExternallyAggregatedULongDistributionMetric);
 
         // Get a placeholder to add the payloadType length
-        int payloadTypeStartIndex = bufferIndex;
+        var payloadTypeStartIndex = bufferIndex;
         bufferIndex += 2;
 
         // Serialize sum, count, min, and max
@@ -590,6 +592,21 @@ internal sealed class TlvMetricExporter : IDisposable
         MetricSerializer.SerializeUInt32(buffer, ref bufferIndex, Convert.ToUInt32(bucket.BucketCount));
     }
 
+    private static string? ConvertTagValueToString(object? value)
+    {
+        string? repr;
+        try
+        {
+            repr = Convert.ToString(value, CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            repr = $"ERROR: type {value?.GetType().FullName} is not supported";
+        }
+
+        return repr;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void SerializeDimensionsAndGetCustomAccountNamespace(in ReadOnlyTagCollection tags, byte[] buffer, ref int bufferIndex, out string monitoringAccount, out string metricNamespace)
     {
@@ -611,7 +628,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions keys
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsKeys![i]);
         }
 
         if (this.prepopulatedDimensionsCount > 0)
@@ -619,7 +636,7 @@ internal sealed class TlvMetricExporter : IDisposable
             dimensionsWritten += this.prepopulatedDimensionsCount;
         }
 
-        int reservedTags = 0;
+        var reservedTags = 0;
 
         // Serialize MetricPoint Dimension keys
         foreach (var tag in tags)
@@ -644,7 +661,7 @@ internal sealed class TlvMetricExporter : IDisposable
         // Serialize PrepopulatedDimensions values
         for (ushort i = 0; i < this.prepopulatedDimensionsCount; i++)
         {
-            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues[i]);
+            MetricSerializer.SerializeEncodedString(buffer, ref bufferIndex, this.serializedPrepopulatedDimensionsValues![i]);
         }
 
         // Serialize MetricPoint Dimension values
@@ -670,8 +687,8 @@ internal sealed class TlvMetricExporter : IDisposable
                 continue;
             }
 
-            var dimensionValue = Convert.ToString(tag.Value, CultureInfo.InvariantCulture);
-            if (dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
+            var dimensionValue = ConvertTagValueToString(tag.Value);
+            if (dimensionValue?.Length > GenevaMetricExporter.MaxDimensionValueSize)
             {
                 // TODO: Data Validation
             }
@@ -702,8 +719,11 @@ internal sealed class TlvMetricExporter : IDisposable
         var serializedValues = new List<byte[]>(this.prepopulatedDimensionsCount);
         foreach (var value in values)
         {
-            var valueAsString = Convert.ToString(value, CultureInfo.InvariantCulture);
-            serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            var valueAsString = ConvertTagValueToString(value);
+            if (valueAsString != null)
+            {
+                serializedValues.Add(Encoding.UTF8.GetBytes(valueAsString));
+            }
         }
 
         return serializedValues;

@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+## 0.5.0-beta.7
+
+Released 2024-Sep-25
+
+* Properly dispose of System.Diagnostics.Process class instances
+  ([#2101](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2101))
+
+## 0.5.0-beta.6
+
+Released 2024-Jun-18
+
 * Following changes related to [Semantic Convention v1.25.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.25.0/docs/system/process-metrics.md)
   * `process.cpu.time` metric attribute renamed from `state` to `process.cpu.state`,
   * Metric descriptions fixed for `process.memory.usage` and `process.memory.virtual`,
@@ -9,8 +41,8 @@
     (its unit changed from `{threads}` to `{thread}`).
   ([#1643](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1643))
 
-* Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 0.5.0-beta.5
 
@@ -18,6 +50,7 @@ Released 2024-Apr-05
 
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+
 * Update `OpenTelemetry.Api` to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 

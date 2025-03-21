@@ -1,5 +1,10 @@
 # Elasticsearch Client Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@ejsmith](https://github.com/ejsmith)|
+
 ## NEST/Elasticsearch.Net
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ElasticsearchClient)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ElasticsearchClient)
@@ -11,19 +16,18 @@ Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main
 which instruments [NEST/Elasticsearch.Net](https://www.nuget.org/packages/NEST)
 and collects traces about outgoing requests.
 
-**Note: This component is based on the OpenTelemetry semantic conventions for
-[metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
+> [!NOTE]
+> This component is based on the OpenTelemetry semantic conventions for
+[metrics](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/elasticsearch.md)
 and
-[traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/elasticsearch.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
 and hence, this package is a
 [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be [breaking changes](./CHANGELOG.md). You can track the
-progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).**
+is released, there can be [breaking changes](./CHANGELOG.md).
 
 ## Steps to enable OpenTelemetry.Instrumentation.ElasticsearchClient
 
@@ -65,7 +69,7 @@ public class Program
 
 For an ASP.NET Core application, adding instrumentation is typically done in the
 `ConfigureServices` of your `Startup` class. Refer to documentation for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+[OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to the documentation for

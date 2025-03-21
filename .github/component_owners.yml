@@ -4,18 +4,16 @@
 # Please add the entries in alphabetically sorted order
 components:
   src/OpenTelemetry.Exporter.Geneva/:
-    - cijothomas
     - codeblanch
-    - reyang
-    - utpilla
-    - Yun-Ting
+    - rajkumar-rangaraj
+    - TimothyMothra
+    - xiang17
   src/OpenTelemetry.Exporter.InfluxDB/:
     - havret
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
     - codeblanch
-    - reyang
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -25,16 +23,19 @@ components:
     - srprash
     - ppittle
   src/OpenTelemetry.Extensions.Enrichment/:
-    - xakep139
+    - evgenyfedorov2
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - ppittle
+    - muhammad-othman
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
     - ppittle
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
+  src/OpenTelemetry.Instrumentation.ConfluentKafka/:
+    - g7ed6e
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
   src/OpenTelemetry.Instrumentation.EventCounters/:
@@ -51,24 +52,31 @@ components:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
     - maldago
+  src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
+    - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
     - twenzel
     - xiang17
+  src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
+    - sablancoleis
   src/OpenTelemetry.Instrumentation.Wcf/:
     - codeblanch
   src/OpenTelemetry.PersistentStorage.Abstractions/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
-    - vishweshbankwar
+    - TimothyMothra
   src/OpenTelemetry.Resources.Container/:
     - iskiselev
   src/OpenTelemetry.Resources.Host/:
+    - Kielek
+    - lachmatt
+  src/OpenTelemetry.Resources.OperatingSystem/:
     - Kielek
     - lachmatt
   src/OpenTelemetry.Resources.Process/:
@@ -84,33 +92,28 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
-    - cijothomas
     - codeblanch
-    - reyang
-    - utpilla
-    - Yun-Ting
+    - rajkumar-rangaraj
+    - TimothyMothra
+    - xiang17
   test/OpenTelemetry.Exporter.Geneva.Stress/:
-    - cijothomas
     - codeblanch
-    - reyang
-    - utpilla
-    - Yun-Ting
+    - rajkumar-rangaraj
+    - TimothyMothra
+    - xiang17
   test/OpenTelemetry.Exporter.Geneva.Tests/:
-    - cijothomas
     - codeblanch
-    - reyang
-    - utpilla
-    - Yun-Ting
+    - rajkumar-rangaraj
+    - TimothyMothra
+    - xiang17
   test/OpenTelemetry.Exporter.InfluxDB.Tests/:
     - havret
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
     - codeblanch
-    - reyang
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - codeblanch
-    - reyang
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
@@ -120,16 +123,19 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
-    - xakep139
+    - evgenyfedorov2
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
     - ppittle
+    - muhammad-othman
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
     - ppittle
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
+  test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
+    - g7ed6e
   test/OpenTelemetry.Instrumentation.ElasticsearchClient.Tests/:
     - ejsmith
   test/OpenTelemetry.Instrumentation.EventCounters.Tests/:
@@ -144,19 +150,23 @@ components:
     - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
+  test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
+    - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
     - twenzel
     - xiang17
+  test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
+    - sablancoleis
   test/OpenTelemetry.Instrumentation.Wcf.Tests/:
     - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
-    - vishweshbankwar
+    - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
-    - vishweshbankwar
+    - TimothyMothra
   test/OpenTelemetry.Resources.Container.Tests/:
     - iskiselev
   test/OpenTelemetry.Resources.Host.Tests/:

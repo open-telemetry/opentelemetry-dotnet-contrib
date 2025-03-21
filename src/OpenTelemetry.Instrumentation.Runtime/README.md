@@ -1,5 +1,10 @@
 # Runtime Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Stable](../../README.md#beta)|
+| Code Owners   |  [@twenzel](https://github.com/twenzel), [@xiang17](https://github.com/xiang17)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Runtime)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Runtime)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Runtime)
@@ -42,6 +47,12 @@ HttpListener as well, which requires adding the package
 to the application.
 
 ## Metrics
+
+> [!NOTE]
+> .NET 9 introduced built-in runtime metrics. As such, when applications target
+  .NET 9 or greater this package registers a `Meter` to receive the built-in
+  `System.Runtime` metrics. See the [.NET Runtime metrics documentation](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime)
+  for details of the metric and attribute names for the built-in metrics.
 
 ### GC related metrics
 

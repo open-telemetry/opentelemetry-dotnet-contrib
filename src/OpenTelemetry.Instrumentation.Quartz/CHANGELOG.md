@@ -2,8 +2,38 @@
 
 ## Unreleased
 
-* Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+* Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
+  API instead of the deprecated OpenTelemetry API package extension when setting
+  span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
+
+## 1.0.0-beta.3
+
+Released 2024-Jun-18
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 
 ## 1.0.0-beta.2
 
@@ -11,6 +41,7 @@ Released 2024-Apr-05
 
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
+
 * Update `OpenTelemetry.Api` to `1.8.0`.
   ([#1635](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1635))
 
@@ -21,6 +52,7 @@ Released 2024-Jan-03
 * Fix issue of multiple instances of OpenTelemetry-Instrumentation EventSource
   being created
   ([#1362](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1362))
+
 * Update `OpenTelemetry.Api` to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 
@@ -37,8 +69,10 @@ Released 2023-Feb-27
 
 * Update OpenTelemetry.Api to 1.4.0.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
+
 * Removes .NET Framework 4.7.2. It is distributed as .NET Standard 2.0.
   ([#911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/911))
+
 * Removes `AddQuartzInstrumentation` method with default configure default parameter.
   ([#914](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/914))
 

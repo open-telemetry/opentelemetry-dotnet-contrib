@@ -1,8 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#if NETFRAMEWORK
+using System.Net;
+#endif
 using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Extensions.AWS.Trace;
@@ -16,16 +17,11 @@ public class AWSXRayPropagatorTests
     private const string TraceId = "5759e988bd862e3fe1be46a994272793";
     private const string ParentId = "53995c3f42cd8ad8";
 
-    private static readonly string[] Empty = Array.Empty<string>();
+    private static readonly string[] Empty = [];
 
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
-        if (headers.TryGetValue(name, out var value))
-        {
-            return new[] { value };
-        }
-
-        return Empty;
+        return headers.TryGetValue(name, out var value) ? [value] : Empty;
     };
 
     private static readonly Action<IDictionary<string, string>, string, string> Setter = (carrier, name, value) =>
@@ -33,7 +29,19 @@ public class AWSXRayPropagatorTests
         carrier[name] = value;
     };
 
-    private readonly AWSXRayPropagator awsXRayPropagator = new AWSXRayPropagator();
+#if NETFRAMEWORK
+    private static readonly Action<HttpWebRequest, string, string> HeaderValueSetter = (request, name, value) => request.Headers.Add(name, value);
+#endif
+
+    private readonly AWSXRayPropagator awsXRayPropagator = new();
+
+#if !NETFRAMEWORK
+    private static Action<HttpRequestMessage, string, string> HeaderValueSetter => (request, name, value) =>
+    {
+        request.Headers.Remove(name);
+        request.Headers.Add(name, value);
+    };
+#endif
 
     [Fact]
     public void TestInjectTraceHeader()
@@ -53,6 +61,49 @@ public class AWSXRayPropagatorTests
     public void TestInjectTraceHeaderNotSampled()
     {
         var carrier = new Dictionary<string, string>();
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, Setter);
+
+        Assert.True(carrier.ContainsKey(AWSXRayTraceHeaderKey));
+        Assert.Equal("Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=0", carrier[AWSXRayTraceHeaderKey]);
+    }
+
+    [Fact]
+    public void TestInjectTraceHeaderAlreadyExists()
+    {
+        var traceIdHeader = "Root=1-00000-00000000000000000;Parent=123456789;Sampled=0";
+
+#if !NETFRAMEWORK
+        var carrier = new HttpRequestMessage();
+#else
+        var carrier = (HttpWebRequest)WebRequest.Create(new Uri("http://www.google.com/"));
+#endif
+        carrier.Headers.Add(AWSXRayTraceHeaderKey, traceIdHeader);
+        var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
+        var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
+        var traceFlags = ActivityTraceFlags.None;
+        var activityContext = new ActivityContext(traceId, parentId, traceFlags);
+        this.awsXRayPropagator.Inject(new PropagationContext(activityContext, default), carrier, HeaderValueSetter);
+
+#if !NETFRAMEWORK
+        Assert.True(carrier.Headers.Contains(AWSXRayTraceHeaderKey));
+        Assert.Equal(traceIdHeader, carrier.Headers.GetValues(AWSXRayTraceHeaderKey).FirstOrDefault());
+#else
+        Assert.Equal(traceIdHeader, carrier.Headers.Get(AWSXRayTraceHeaderKey));
+#endif
+    }
+
+    [Fact]
+    public void TestInjectTraceHeaderAlreadyExistsButNotHttpRequestMessage()
+    {
+        var traceIdHeader = "Root=1-00000-00000000000000000;Parent=123456789;Sampled=0";
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, traceIdHeader },
+        };
         var traceId = ActivityTraceId.CreateFromString(TraceId.AsSpan());
         var parentId = ActivitySpanId.CreateFromString(ParentId.AsSpan());
         var traceFlags = ActivityTraceFlags.None;

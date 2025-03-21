@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
@@ -10,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 [EventSource(Name = "OpenTelemetry-Instrumentation-Wcf")]
 internal sealed class WcfInstrumentationEventSource : EventSource
 {
-    public static readonly WcfInstrumentationEventSource Log = new WcfInstrumentationEventSource();
+    public static readonly WcfInstrumentationEventSource Log = new();
 
     [NonEvent]
     public void RequestFilterException(Exception ex)

@@ -1,30 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET</Description>
+    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
-    <MinVerTagPrefix>Instrumentation.AWSLambda-</MinVerTagPrefix>
+    <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
+    <DefineConstants>INSTRUMENTATION_AWSLAMBDA;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
-  <!--Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property.-->
   <PropertyGroup>
-    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+    <PackageValidationBaselineVersion>1.11.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
-    <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
-    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.AWS" Version="1.3.0-beta.1" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
+    <PackageReference Include="Amazon.Lambda.ApplicationLoadBalancerEvents" Version="2.2.0" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
+    <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\AWS\*.cs" Link="Includes\AWS\%(Filename).cs" />
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs"/>
   </ItemGroup>
 
 </Project>

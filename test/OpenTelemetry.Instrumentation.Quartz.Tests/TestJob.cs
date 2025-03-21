@@ -1,22 +1,18 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Quartz;
 
 namespace OpenTelemetry.Instrumentation.Quartz.Tests;
 
-public class TestJob : IJob
+internal class TestJob : IJob
 {
     public Task Execute(IJobExecutionContext context)
     {
         try
         {
-            List<DateTime> jobExecTimestamps = (List<DateTime>)context.Scheduler.Context.Get("DATESTAMPS");
-            Barrier barrier = (Barrier)context.Scheduler.Context.Get("BARRIER");
+            var jobExecTimestamps = (List<DateTime>)context.Scheduler.Context.Get("DATESTAMPS");
+            var barrier = (Barrier)context.Scheduler.Context.Get("BARRIER");
 
             jobExecTimestamps.Add(DateTime.UtcNow);
 

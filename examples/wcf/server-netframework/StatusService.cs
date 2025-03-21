@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel;
-using System.Threading.Tasks;
 
 namespace Examples.Wcf.Server;
 
@@ -13,7 +11,7 @@ namespace Examples.Wcf.Server;
     InstanceContextMode = InstanceContextMode.Single,
     UseSynchronizationContext = false,
     Name = "StatusService")]
-public class StatusService : IStatusServiceContract
+internal class StatusService : IStatusServiceContract
 {
     public Task<StatusResponse> PingAsync(StatusRequest request)
     {

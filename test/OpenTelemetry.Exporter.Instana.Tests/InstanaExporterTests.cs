@@ -12,8 +12,8 @@ public class InstanaExporterTests
     private readonly TestInstanaExporterHelper instanaExporterHelper = new();
     private readonly TestActivityProcessor activityProcessor = new();
     private readonly TestSpanSender spanSender = new();
-    private InstanaSpan instanaSpan;
-    private InstanaExporter instanaExporter;
+    private InstanaSpan? instanaSpan;
+    private InstanaExporter? instanaExporter;
 
     [Fact]
     public void Export()
@@ -32,12 +32,12 @@ public class InstanaExporterTests
             SpanSender = this.spanSender,
         };
 
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.SetStatus(ActivityStatusCode.Error, "TestErrorDesc");
         activity.TraceStateString = "TraceStateString";
 
-        Activity[] activities = new Activity[1] { activity };
-        Batch<Activity> batch = new Batch<Activity>(activities, activities.Length);
+        Activity[] activities = [activity];
+        var batch = new Batch<Activity>(activities, activities.Length);
         var result = this.instanaExporter.Export(in batch);
 
         Assert.Equal(ExportResult.Success, result);
@@ -65,11 +65,11 @@ public class InstanaExporterTests
             SpanSender = this.spanSender,
         };
 
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.SetStatus(ActivityStatusCode.Error, "TestErrorDesc");
 
-        Activity[] activities = new Activity[1] { activity };
-        Batch<Activity> batch = new Batch<Activity>(activities, activities.Length);
+        Activity[] activities = [activity];
+        var batch = new Batch<Activity>(activities, activities.Length);
         var result = this.instanaExporter.Export(in batch);
 
         Assert.Equal(ExportResult.Success, result);
@@ -89,13 +89,13 @@ public class InstanaExporterTests
             SpanSender = this.spanSender,
         };
 
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.SetStatus(ActivityStatusCode.Error, "TestErrorDesc");
 
         this.instanaExporter.Shutdown();
 
-        Activity[] activities = new Activity[1] { activity };
-        Batch<Activity> batch = new Batch<Activity>(activities, activities.Length);
+        Activity[] activities = [activity];
+        var batch = new Batch<Activity>(activities, activities.Length);
         var result = this.instanaExporter.Export(in batch);
 
         Assert.Equal(ExportResult.Failure, result);

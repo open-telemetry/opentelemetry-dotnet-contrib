@@ -1,18 +1,25 @@
 <Project>
+
   <Import Project="..\Directory.Build.targets" Condition="Exists('..\Directory.Build.targets')" />
   <Import Project="$(RepoRoot)\build\Common.targets" />
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 
   <PropertyGroup>
     <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
+
   <ItemGroup>
     <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(PackagePrimaryLicenseFile)"
+          PackagePath="$([System.IO.Path]::GetFileName('$(PackagePrimaryLicenseFile)'))"
+          Pack="true"
+          Visible="false" />
+    <None Include="$(PackageThirdPartyNoticesFile)"
+          PackagePath="$([System.IO.Path]::GetFileName('$(PackageThirdPartyNoticesFile)'))"
+          Pack="true"
+          Visible="false" />
+  </ItemGroup>
+
 </Project>

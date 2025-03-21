@@ -1,19 +1,15 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 
 internal class HttpResponseMessageBody : IHttpResponseBody
 {
-    private HttpClient? httpClient;
-    private HttpResponseMessage response;
-    private bool disposeClient;
+    private readonly HttpClient? httpClient;
+    private readonly HttpResponseMessage response;
+    private readonly bool disposeClient;
     private bool disposed;
 
     public HttpResponseMessageBody(HttpResponseMessage response, HttpClient? httpClient, bool disposeClient)
@@ -31,20 +27,28 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 
     Stream IHttpResponseBody.OpenResponse()
     {
+#if NET
+        ObjectDisposedException.ThrowIf(this.disposed, this);
+#else
         if (this.disposed)
         {
             throw new ObjectDisposedException("HttpWebResponseBody");
         }
+#endif
 
         return this.response.Content.ReadAsStreamAsync().Result;
     }
 
     Task<Stream> IHttpResponseBody.OpenResponseAsync()
     {
+#if NET
+        ObjectDisposedException.ThrowIf(this.disposed, this);
+#else
         if (this.disposed)
         {
             throw new ObjectDisposedException("HttpWebResponseBody");
         }
+#endif
 
         if (this.response.Content != null)
         {
@@ -66,10 +70,7 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 
         if (disposing)
         {
-            if (this.response != null)
-            {
-                this.response.Dispose();
-            }
+            this.response?.Dispose();
 
             if (this.httpClient != null && this.disposeClient)
             {

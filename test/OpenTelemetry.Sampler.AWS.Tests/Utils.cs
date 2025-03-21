@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -12,14 +11,14 @@ internal static class Utils
 {
     internal static SamplingParameters CreateSamplingParameters()
     {
-        return CreateSamplingParametersWithTags(new Dictionary<string, string>());
+        return CreateSamplingParametersWithTags([]);
     }
 
     internal static SamplingParameters CreateSamplingParametersWithTags(Dictionary<string, string> tags)
     {
-        ActivityTraceId traceId = ActivityTraceId.CreateRandom();
-        ActivitySpanId parentSpanId = ActivitySpanId.CreateRandom();
-        ActivityTraceFlags traceFlags = ActivityTraceFlags.None;
+        var traceId = ActivityTraceId.CreateRandom();
+        var parentSpanId = ActivitySpanId.CreateRandom();
+        var traceFlags = ActivityTraceFlags.None;
 
         var parentContext = new ActivityContext(traceId, parentSpanId, traceFlags);
 

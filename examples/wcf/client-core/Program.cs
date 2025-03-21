@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.Wcf;
@@ -18,7 +15,7 @@ internal static class Program
 {
     public static async Task Main()
     {
-        IConfigurationRoot config = new ConfigurationBuilder()
+        var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")
             .Build();
@@ -55,7 +52,7 @@ internal static class Program
         // Note: Best practice is to re-use your client/channel instances.
         // This code is not meant to illustrate best practices, only the
         // instrumentation.
-        StatusServiceClient client = new StatusServiceClient(binding, remoteAddress);
+        var client = new StatusServiceClient(binding, remoteAddress);
         client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
         try
         {

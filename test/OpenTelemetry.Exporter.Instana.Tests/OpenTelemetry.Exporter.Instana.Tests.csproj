@@ -2,13 +2,11 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
-    <Nullable>disable</Nullable>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Condition="'$(TargetFramework)' == 'net462'"/>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'"/>
   </ItemGroup>
 
   <ItemGroup>

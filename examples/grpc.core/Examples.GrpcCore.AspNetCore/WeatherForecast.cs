@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
 namespace Examples.GrpcCore.AspNetCore;
 
 public class WeatherForecast

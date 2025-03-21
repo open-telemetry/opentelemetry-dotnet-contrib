@@ -1,11 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-#if NET8_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.Http.Metadata;
 #endif
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -13,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace RouteTests.TestApplication;
 
-public class RouteInfo
+internal class RouteInfo
 {
     public static RouteInfo Current { get; set; } = new();
 
@@ -40,7 +38,7 @@ public class RouteInfo
         this.Path = $"{context.Request.Path}{context.Request.QueryString}";
         var endpoint = context.GetEndpoint();
         this.RawText = (endpoint as RouteEndpoint)?.RoutePattern.RawText;
-#if NET8_0_OR_GREATER
+#if NET
         this.RouteDiagnosticMetadata = endpoint?.Metadata.GetMetadata<IRouteDiagnosticsMetadata>()?.Route;
 #endif
         this.RouteData = new Dictionary<string, string?>();
@@ -52,9 +50,6 @@ public class RouteInfo
 
     public void SetValues(ActionDescriptor actionDescriptor)
     {
-        if (this.ActionDescriptor == null)
-        {
-            this.ActionDescriptor = new ActionDescriptorInfo(actionDescriptor);
-        }
+        this.ActionDescriptor ??= new ActionDescriptorInfo(actionDescriptor);
     }
 }

@@ -1,16 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-#if !NETFRAMEWORK
-using System.Net.Http;
-#endif
-using System.Threading;
-using System.Threading.Tasks;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Transform;
@@ -66,10 +57,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 
     public IWebResponseData GetResponse()
     {
-        if (this.GetResponseAction != null)
-        {
-            this.GetResponseAction();
-        }
+        this.GetResponseAction?.Invoke();
 
         var response = this.ResponseCreator(this);
         return new HttpWebRequestResponseData(response);
@@ -132,14 +120,9 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         var resourceName = request.RequestUri.Host.Split('.').Last();
         var response = MockWebResponse.CreateFromResource(resourceName);
 
-        if (response?.StatusCode >= HttpStatusCode.OK && response.StatusCode <= (HttpStatusCode)299)
-        {
-            return response;
-        }
-        else
-        {
-            throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
-        }
+        return response?.StatusCode is >= HttpStatusCode.OK and <= (HttpStatusCode)299
+            ? response
+            : throw new HttpErrorResponseException(new HttpWebRequestResponseData(response));
     }
 }
 #else
@@ -243,14 +226,9 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         var resourceName = request.RequestUri.Host.Split('.').Last();
         var response = MockWebResponse.CreateFromResource(resourceName);
 
-        if (response.StatusCode >= HttpStatusCode.OK && response.StatusCode <= (HttpStatusCode)299)
-        {
-            return response;
-        }
-        else
-        {
-            throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
-        }
+        return response.StatusCode is >= HttpStatusCode.OK and <= (HttpStatusCode)299
+            ? response
+            : throw new HttpErrorResponseException(CustomWebResponse.GenerateWebResponse(response));
     }
 }
 #endif

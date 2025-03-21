@@ -30,7 +30,7 @@ public static class HttpClientInstrumentationTracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddHttpClientInstrumentation(
         this TracerProviderBuilder builder,
-        Action<HttpClientTraceInstrumentationOptions> configureHttpClientTraceInstrumentationOptions)
+        Action<HttpClientTraceInstrumentationOptions>? configureHttpClientTraceInstrumentationOptions)
         => AddHttpClientInstrumentation(builder, name: null, configureHttpClientTraceInstrumentationOptions);
 
     /// <summary>
@@ -42,8 +42,8 @@ public static class HttpClientInstrumentationTracerProviderBuilderExtensions
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddHttpClientInstrumentation(
         this TracerProviderBuilder builder,
-        string name,
-        Action<HttpClientTraceInstrumentationOptions> configureHttpClientTraceInstrumentationOptions)
+        string? name,
+        Action<HttpClientTraceInstrumentationOptions>? configureHttpClientTraceInstrumentationOptions)
     {
         Guard.ThrowIfNull(builder);
 

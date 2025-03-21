@@ -1,10 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Data;
 using System.Diagnostics;
-using OpenTelemetry.Trace;
+using Microsoft.Extensions.Configuration;
+using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
@@ -14,12 +14,27 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 public class EntityFrameworkInstrumentationOptions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
+    /// Initializes a new instance of the <see cref="EntityFrameworkInstrumentationOptions"/> class.
+    /// </summary>
+    public EntityFrameworkInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
+    {
+    }
+
+    internal EntityFrameworkInstrumentationOptions(IConfiguration configuration)
+    {
+        var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
+        this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
+        this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="Implementation.EntityFrameworkDiagnosticListener.AttributeDbStatement"/> tag. Default value: True.
     /// </summary>
     public bool SetDbStatementForStoredProcedure { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
+    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="Implementation.EntityFrameworkDiagnosticListener.AttributeDbStatement"/> tag. Default value: False.
     /// </summary>
     public bool SetDbStatementForText { get; set; }
 
@@ -52,4 +67,14 @@ public class EntityFrameworkInstrumentationOptions
     /// </list>
     /// </remarks>
     public Func<string?, IDbCommand, bool>? Filter { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the old database attributes should be emitted.
+    /// </summary>
+    internal bool EmitOldAttributes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the new database attributes should be emitted.
+    /// </summary>
+    internal bool EmitNewAttributes { get; set; }
 }

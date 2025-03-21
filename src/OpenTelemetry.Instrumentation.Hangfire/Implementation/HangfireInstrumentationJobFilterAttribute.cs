@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Hangfire.Client;
 using Hangfire.Common;
 using Hangfire.Server;
@@ -125,7 +122,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
-        return telemetryData.TryGetValue(key, out var value) ? new[] { value } : Enumerable.Empty<string>();
+        return telemetryData.TryGetValue(key, out var value) ? [value] : [];
     }
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)
@@ -134,7 +131,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
         if (this.options.RecordException)
         {
-            activity.RecordException(exception);
+            activity.AddException(exception);
         }
     }
 }

@@ -1,5 +1,10 @@
 # Grpc.Net.Client Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcNetClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcNetClient)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.GrpcNetClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcNetClient)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.GrpcNetClient)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.GrpcNetClient)
@@ -13,11 +18,10 @@ and collects traces about outgoing gRPC requests.
 [traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
-and hence, this package is a [pre-release](../../VERSIONING.md#pre-releases).
+and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes. You can track the progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).
+is released, there can be breaking changes.
 
 ## Supported .NET Versions
 
@@ -45,7 +49,7 @@ The following example demonstrates adding Grpc.Net.Client instrumentation to a
 console application. This example also sets up the OpenTelemetry Console
 exporter and adds instrumentation for HttpClient, which requires adding the
 packages
-[`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 and
 [`OpenTelemetry.Instrumentation.Http`](../OpenTelemetry.Instrumentation.Http/README.md)
 to the application. As Grpc.Net.Client uses HttpClient underneath, it is
@@ -130,7 +134,7 @@ services.AddOpenTelemetry()
         });
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor),
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/trace/extending-the-sdk/README.md#processor),
 is the general extensibility point to add additional properties to any activity.
 The `Enrich` option is specific to this instrumentation, and is provided to
 get access to `HttpRequest` and `HttpResponse`.

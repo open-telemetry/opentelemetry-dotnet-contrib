@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.AWS;
+
 namespace OpenTelemetry.Instrumentation.AWS;
 
 /// <summary>
@@ -9,7 +11,10 @@ namespace OpenTelemetry.Instrumentation.AWS;
 public class AWSClientInstrumentationOptions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether downstream Http instrumentation is suppressed.
+    /// Gets or sets a value indicating whether downstream instrumentation is suppressed.
     /// </summary>
-    public bool SuppressDownstreamInstrumentation { get; set; } = true;
+    public bool SuppressDownstreamInstrumentation { get; set; }
+
+    /// <inheritdoc cref="AWS.SemanticConventionVersion"/>
+    public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }

@@ -2,6 +2,57 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* Drop support for .NET 6 as this target is no longer supported and add .NET 8 target.
+  ([#2165](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2165))
+
+* Added direct reference to `System.Text.Json` for the `net8.0` target with
+  minimum version of `8.0.5` in response to
+  [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
+  ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2198))
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+## 1.0.0-beta.9
+
+Released 2024-Sep-24
+
+* Added support for [Azure Container Apps jobs](https://learn.microsoft.com/en-us/azure/container-apps/jobs?tabs=azure-cli).
+  ([#2064](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2064))
+
+* Added direct reference to `System.Text.Encodings.Web` with minimum version of
+  `4.7.2` in response to [CVE-2021-26701](https://github.com/dotnet/runtime/issues/49377).
+  ([#2056](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2056))
+
+## 1.0.0-beta.8
+
+Released 2024-Jun-18
+
+* **Breaking Change**: Renamed method from `AddAppServiceDetector`
+  to `AddAzureAppServiceDetector`.
+  ([#1883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1883))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.0.0-beta.7
 
 Released 2024-Jun-04
@@ -9,16 +60,20 @@ Released 2024-Jun-04
 * **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Azure`
   to `OpenTelemetry.Resources.Azure`.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+
 * **Breaking Change**: `AppServiceResourceDetector` type is now internal, use `ResourceBuilder`
   extension method `AddAppServiceDetector` to enable the detector.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+
 * **Breaking Change**: `AzureVMResourceDetector` type is now internal, use `ResourceBuilder`
   extension method `AddAzureVMResourceDetector` to enable the detector.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+
 * **Breaking Change**: `AzureContainerAppsResourceDetector` type is now
   internal, use `ResourceBuilder` extension method `AddAzureContainerAppsResourceDetector`
   to enable the detector.
   ([#1840](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1840))
+
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
 
@@ -44,6 +99,7 @@ Released 2024-Jan-03
 
 * Added NET6 target framework to support Trimming.
   ([#1405](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1405))
+
 * Update OpenTelemetry SDK version to `1.7.0`.
   ([#1486](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1486))
 
@@ -55,8 +111,10 @@ Released 2023-Sep-19
   use a `Timeout` to `2` seconds. This is to improve the start-up time of
   applications not running on Azure VMs.
   ([#1358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1358))
+
 * Updates to 1.6.0 of OpenTelemetry SDK.
   ([#1344](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1344))
+
 * Suppress instrumentation for outgoing http call made to metadata service
   during `Detect()`.
   ([#1297](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1297))
@@ -81,6 +139,7 @@ Released 2023-Jul-24
     `azInst_vmScaleSetName` to `azure.vm.scaleset.name`.
   * **Added attributes**: `cloud.provider` and `cloud.platform`.
   * **Removed attributes**: `azInst_resourceGroupName`, `azInst_subscriptionId`.
+
 * For Azure App Service:
  ([#1272](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1272/files))
   * **Updated attributes**: `appSrv_wsHost` to `host.id`, `appSrv_SlotName` to
@@ -88,8 +147,10 @@ Released 2023-Jul-24
   * **Added attributes**: `cloud.resource_id`, `cloud.provider`,
     `cloud.platform`, `cloud.region`.
   * **Removed attribute**: `appSrv_ResourceGroup`.
+
 * Updates to 1.5.0 of OpenTelemetry SDK.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+
 * Added Azure VM resource detector.
   ([#1182](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1182))
 

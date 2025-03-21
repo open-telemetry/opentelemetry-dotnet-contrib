@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Threading.Tasks;
-
 namespace Examples.Wcf.Server.AspNetFramework;
 
 public class StatusService : IStatusServiceContract

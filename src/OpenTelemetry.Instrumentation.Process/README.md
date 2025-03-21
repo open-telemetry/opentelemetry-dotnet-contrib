@@ -1,5 +1,10 @@
 # Process Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@Yun-Ting](https://github.com/Yun-Ting)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Process)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Process)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Process)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Process)
@@ -11,7 +16,7 @@ telemetry about process behavior.
 
 The process metric instruments being implemented are following OpenTelemetry
 [metrics semantic
-conventions](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md#metric-instruments).
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/system/process-metrics.md).
 
 ## Steps to enable OpenTelemetry.Instrumentation.Process
 
@@ -128,7 +133,7 @@ The API used to retrieve the value is
 > This metric is under
 > [discussion](https://github.com/open-telemetry/opentelemetry-specification/issues/3200)
 and not part of the [Process Metrics
-Spec](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/process-metrics.md)
+Spec](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/system/process-metrics.md)
 at this time.
 
 ### process.thread.count

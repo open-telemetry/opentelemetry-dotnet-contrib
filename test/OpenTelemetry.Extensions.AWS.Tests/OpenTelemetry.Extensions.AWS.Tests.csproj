@@ -9,7 +9,7 @@
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.AWS\OpenTelemetry.Extensions.AWS.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != '$(NetFrameworkMinimumSupportedVersion)'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

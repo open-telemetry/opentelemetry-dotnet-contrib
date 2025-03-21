@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -129,8 +130,8 @@ public sealed class BasicTests
 
         if (shouldEnrich)
         {
-            Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enrichedOnStart" && tag.Value == "yes"));
-            Assert.NotEmpty(activity.Tags.Where(tag => tag.Key == "enrichedOnStop" && tag.Value == "yes"));
+            Assert.Contains(activity.Tags, tag => tag.Key == "enrichedOnStart" && tag.Value == "yes");
+            Assert.Contains(activity.Tags, tag => tag.Key == "enrichedOnStop" && tag.Value == "yes");
         }
 
         ValidateAspNetCoreActivity(activity, "/api/values");
@@ -241,11 +242,7 @@ public sealed class BasicTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
         }
     }
 
@@ -299,14 +296,9 @@ public sealed class BasicTests
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .AddAspNetCoreInstrumentation((opt) => opt.Filter = (ctx) =>
                 {
-                    if (ctx.Request.Path == "/api/values/2")
-                    {
-                        throw new Exception("from InstrumentationFilter");
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    return ctx.Request.Path == "/api/values/2"
+                        ? throw new Exception("from InstrumentationFilter")
+                        : true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -330,7 +322,7 @@ public sealed class BasicTests
 
                 response1.EnsureSuccessStatusCode(); // Status Code 200-299
                 response2.EnsureSuccessStatusCode(); // Status Code 200-299
-                Assert.Single(inMemoryEventListener.Events.Where((e) => e.EventId == 3));
+                Assert.Single(inMemoryEventListener.Events, e => e.EventId == 3);
             }
 
             WaitForActivityExport(exportedItems, 1);
@@ -394,11 +386,7 @@ public sealed class BasicTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
         }
     }
 
@@ -415,7 +403,7 @@ public sealed class BasicTests
             Sdk.SetDefaultTextMapPropagator(new ExtractOnlyPropagator(activityContext, expectedBaggage));
 
             // Arrange
-            bool isFilterCalled = false;
+            var isFilterCalled = false;
             using var testFactory = this.factory
                 .WithWebHostBuilder(builder =>
                 {
@@ -466,11 +454,7 @@ public sealed class BasicTests
         }
         finally
         {
-            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-            {
-                new TraceContextPropagator(),
-                new BaggagePropagator(),
-            }));
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
         }
     }
 
@@ -479,7 +463,7 @@ public sealed class BasicTests
     {
         int? baggageCountAfterStart = null;
         int? baggageCountAfterStop = null;
-        using EventWaitHandle stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
+        using var stopSignal = new EventWaitHandle(false, EventResetMode.ManualReset);
 
         void ConfigureTestServices(IServiceCollection services)
         {
@@ -503,6 +487,8 @@ public sealed class BasicTests
                                         stopSignal.Set();
                                     }
 
+                                    break;
+                                default:
                                     break;
                             }
                         },
@@ -542,9 +528,9 @@ public sealed class BasicTests
     [InlineData(SamplingDecision.RecordAndSample, true, true)]
     public async Task FilterAndEnrichAreOnlyCalledWhenSampled(SamplingDecision samplingDecision, bool shouldFilterBeCalled, bool shouldEnrichBeCalled)
     {
-        bool filterCalled = false;
-        bool enrichWithHttpRequestCalled = false;
-        bool enrichWithHttpResponseCalled = false;
+        var filterCalled = false;
+        var enrichWithHttpRequestCalled = false;
+        var enrichWithHttpResponseCalled = false;
         void ConfigureTestServices(IServiceCollection services)
         {
             this.tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -646,7 +632,7 @@ public sealed class BasicTests
     [InlineData("POST", "POST", null, "POST")]
     [InlineData("TRACE", "TRACE", null, "TRACE")]
     [InlineData("CUSTOM", "_OTHER", "CUSTOM", "HTTP")]
-    public async Task HttpRequestMethodAndActivityDisplayIsSetAsPerSpec(string originalMethod, string expectedMethod, string expectedOriginalMethod, string expectedDisplayName)
+    public async Task HttpRequestMethodAndActivityDisplayIsSetAsPerSpec(string originalMethod, string expectedMethod, string? expectedOriginalMethod, string expectedDisplayName)
     {
         var exportedItems = new List<Activity>();
 
@@ -667,9 +653,10 @@ public sealed class BasicTests
             })
             .CreateClient();
 
-        var message = new HttpRequestMessage();
-
-        message.Method = new HttpMethod(originalMethod);
+        var message = new HttpRequestMessage
+        {
+            Method = new HttpMethod(originalMethod),
+        };
 
         try
         {
@@ -738,7 +725,7 @@ public sealed class BasicTests
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", aspnetcoreframeworkactivity.OperationName);
     }
 
-#if NET7_0_OR_GREATER
+#if NET
     [Fact]
     public async Task UserRegisteredActivitySourceIsUsedForActivityCreationByAspNetCore()
     {
@@ -811,8 +798,8 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceCallbacksAreReceivedOnlyForSubscribedEvents()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberofSubscribedEvents = 0;
+        var numberOfUnSubscribedEvents = 0;
+        var numberofSubscribedEvents = 0;
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation(
@@ -866,9 +853,9 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceExceptionCallbackIsReceivedForUnHandledException()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberofSubscribedEvents = 0;
-        int numberOfExceptionCallbacks = 0;
+        var numberOfUnSubscribedEvents = 0;
+        var numberofSubscribedEvents = 0;
+        var numberOfExceptionCallbacks = 0;
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation(
@@ -941,10 +928,10 @@ public sealed class BasicTests
     [Fact]
     public async Task DiagnosticSourceExceptionCallBackIsNotReceivedForExceptionsHandledInMiddleware()
     {
-        int numberOfUnSubscribedEvents = 0;
-        int numberOfSubscribedEvents = 0;
-        int numberOfExceptionCallbacks = 0;
-        bool exceptionHandled = false;
+        var numberOfUnSubscribedEvents = 0;
+        var numberOfSubscribedEvents = 0;
+        var numberOfExceptionCallbacks = 0;
+        var exceptionHandled = false;
 
         // configure SDK
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -1128,6 +1115,104 @@ public sealed class BasicTests
         Assert.Equal(expectedUrlQuery, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
     }
 
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task SignalRActivitesAreListenedTo()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        // Arrange
+        using (var server = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            await using var client = new HubConnectionBuilder()
+                .WithUrl(server.Server.BaseAddress + "testHub", o =>
+                {
+                    o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
+                    o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                }).Build();
+            await client.StartAsync();
+
+            await client.SendAsync("Send", "text");
+
+            await client.StopAsync();
+        }
+
+        WaitForActivityExport(exportedItems, 10);
+
+        var hubActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
+
+        Assert.Equal(3, hubActivity.Count());
+        Assert.Collection(
+            hubActivity,
+            one =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/OnConnectedAsync", one.DisplayName);
+            },
+            two =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/Send", two.DisplayName);
+            },
+            three =>
+            {
+                Assert.Equal("TestApp.AspNetCore.TestHub/OnDisconnectedAsync", three.DisplayName);
+            });
+    }
+
+    [Fact]
+    public async Task SignalRActivitesCanBeDisabled()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation(o => o.EnableAspNetCoreSignalRSupport = false)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        // Arrange
+        using (var server = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            }))
+        {
+            await using var client = new HubConnectionBuilder()
+                .WithUrl(server.Server.BaseAddress + "testHub", o =>
+                {
+                    o.HttpMessageHandlerFactory = _ => server.Server.CreateHandler();
+                    o.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+                }).Build();
+            await client.StartAsync();
+
+            await client.SendAsync("Send", "text");
+
+            await client.StopAsync();
+        }
+
+        WaitForActivityExport(exportedItems, 8);
+
+        var hubActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
+
+        Assert.Empty(hubActivity);
+    }
+#endif
+
     public void Dispose()
     {
         this.tracerProvider?.Dispose();
@@ -1138,19 +1223,21 @@ public sealed class BasicTests
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breezing room for the End callback to complete
-        Assert.True(SpinWait.SpinUntil(
+        Assert.True(
+            SpinWait.SpinUntil(
             () =>
             {
                 Thread.Sleep(10);
                 return exportedItems.Count >= count;
             },
-            TimeSpan.FromSeconds(1)));
+            TimeSpan.FromSeconds(1)),
+            $"Actual: {exportedItems.Count} Expected: {count}");
     }
 
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
         Assert.Equal(ActivityKind.Server, activityToValidate.Kind);
-#if NET7_0_OR_GREATER
+#if NET
         Assert.Equal(HttpInListener.AspNetCoreActivitySourceName, activityToValidate.Source.Name);
         Assert.NotNull(activityToValidate.Source.Version);
         Assert.Empty(activityToValidate.Source.Version);
@@ -1202,7 +1289,7 @@ public sealed class BasicTests
 
         public override ISet<string> Fields => throw new NotImplementedException();
 
-        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>> getter)
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
         {
             return new PropagationContext(this.activityContext, this.baggage);
         }
@@ -1220,12 +1307,7 @@ public sealed class BasicTests
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
-            if (this.attributes != null)
-            {
-                return new SamplingResult(this.samplingDecision, this.attributes);
-            }
-
-            return new SamplingResult(this.samplingDecision);
+            return new SamplingResult(this.samplingDecision, this.attributes);
         }
     }
 

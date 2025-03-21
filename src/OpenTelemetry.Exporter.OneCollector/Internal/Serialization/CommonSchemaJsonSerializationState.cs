@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET6_0_OR_GREATER
+#if NET
 using System.Runtime.InteropServices;
 #endif
 using System.Text.Json;
@@ -16,7 +16,6 @@ internal sealed class CommonSchemaJsonSerializationState
     private readonly Dictionary<string, int> keys = new(4, StringComparer.OrdinalIgnoreCase);
     private readonly List<KeyValuePair<ExtensionFieldInformation, object?>> allValues = new(16);
     private string itemType;
-    private int nextKeysToAllValuesLookupIndex;
     private KeyValueLookup[] keysToAllValuesLookup = new KeyValueLookup[4];
 
     public CommonSchemaJsonSerializationState(string itemType, Utf8JsonWriter writer)
@@ -27,7 +26,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
     public Utf8JsonWriter Writer { get; private set; }
 
-    public int ExtensionPropertyCount => this.nextKeysToAllValuesLookupIndex;
+    public int ExtensionPropertyCount { get; private set; }
 
     public int ExtensionAttributeCount => this.allValues.Count;
 
@@ -46,14 +45,14 @@ internal sealed class CommonSchemaJsonSerializationState
         Debug.Assert(fieldInformation?.FieldName != null, "fieldInformation.FieldName was null");
         Debug.Assert(fieldInformation?.EncodedFieldName.EncodedUtf8Bytes.Length > 0, "fieldInformation.EncodedFieldName was empty");
 
-#if NET6_0_OR_GREATER
+#if NET
         ref var lookupIndex = ref CollectionsMarshal.GetValueRefOrAddDefault(this.keys, fieldInformation.ExtensionName, out var existed);
         if (!existed)
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
         }
 #else
-        if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out int lookupIndex))
+        if (!this.keys.TryGetValue(fieldInformation!.ExtensionName!, out var lookupIndex))
         {
             this.AssignNewExtensionToLookupIndex(ref lookupIndex);
             this.keys[fieldInformation.ExtensionName!] = lookupIndex;
@@ -66,7 +65,7 @@ internal sealed class CommonSchemaJsonSerializationState
             return;
         }
 
-        ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
+        ref var keyLookup = ref this.keysToAllValuesLookup[lookupIndex];
 
         if (keyLookup.Count >= MaxNumberOfExtensionValuesPerKey)
         {
@@ -74,7 +73,7 @@ internal sealed class CommonSchemaJsonSerializationState
             return;
         }
 
-        int index = this.allValues.Count;
+        var index = this.allValues.Count;
         this.allValues.Add(new KeyValuePair<ExtensionFieldInformation, object?>(fieldInformation, attribute.Value));
 
         unsafe
@@ -92,7 +91,7 @@ internal sealed class CommonSchemaJsonSerializationState
             writer.WriteStartObject(CommonSchemaJsonSerializationHelper.ExtensionsProperty);
         }
 
-#if NET6_0_OR_GREATER
+#if NET
         var allValues = CollectionsMarshal.AsSpan(this.allValues);
 #else
         var allValues = this.allValues;
@@ -102,13 +101,13 @@ internal sealed class CommonSchemaJsonSerializationState
         {
             var wroteStartObject = false;
 
-            ref KeyValueLookup keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
+            ref var keyLookup = ref this.keysToAllValuesLookup[extensionPropertyKey.Value];
 
-            for (int i = 0; i < keyLookup.Count; i++)
+            for (var i = 0; i < keyLookup.Count; i++)
             {
                 unsafe
                 {
-#if NET6_0_OR_GREATER
+#if NET
                     ref var attribute = ref allValues[keyLookup.ValueIndicies[i]];
 #else
                     var attribute = allValues[keyLookup.ValueIndicies[i]];
@@ -142,14 +141,22 @@ internal sealed class CommonSchemaJsonSerializationState
     {
         this.itemType = itemType;
         this.Writer = writer;
+    }
 
-        for (int i = 0; i < this.nextKeysToAllValuesLookupIndex; i++)
+    public void BeginItem()
+    {
+        if (this.allValues.Count <= 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < this.ExtensionPropertyCount; i++)
         {
             ref var lookup = ref this.keysToAllValuesLookup[i];
             lookup.Count = 0;
         }
 
-        this.nextKeysToAllValuesLookupIndex = 0;
+        this.ExtensionPropertyCount = 0;
 
         this.keys.Clear();
 
@@ -158,7 +165,7 @@ internal sealed class CommonSchemaJsonSerializationState
 
     private void AssignNewExtensionToLookupIndex(ref int lookupIndex)
     {
-        lookupIndex = this.nextKeysToAllValuesLookupIndex;
+        lookupIndex = this.ExtensionPropertyCount;
 
         if (lookupIndex >= this.keysToAllValuesLookup.Length)
         {
@@ -173,7 +180,7 @@ internal sealed class CommonSchemaJsonSerializationState
             this.keysToAllValuesLookup = newKeysToAllValuesLookup;
         }
 
-        this.nextKeysToAllValuesLookupIndex++;
+        this.ExtensionPropertyCount++;
     }
 
     private unsafe struct KeyValueLookup

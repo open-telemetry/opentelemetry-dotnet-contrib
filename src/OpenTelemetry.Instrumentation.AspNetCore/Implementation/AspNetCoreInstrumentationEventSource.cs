@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Diagnostics.Tracing;
@@ -57,7 +57,7 @@ internal sealed class AspNetCoreInstrumentationEventSource : EventSource, IConfi
         this.WriteEvent(2, handlerName, eventName, operationName);
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe.")]
 #endif
     [Event(3, Message = "Filter threw exception, request will not be collected. HandlerName: '{0}', EventName: '{1}', OperationName: '{2}', Exception: {3}.", Level = EventLevel.Error)]
@@ -66,7 +66,7 @@ internal sealed class AspNetCoreInstrumentationEventSource : EventSource, IConfi
         this.WriteEvent(3, handlerName, eventName, operationName, exception);
     }
 
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "Parameters to this method are primitive and are trimmer safe.")]
 #endif
     [Event(4, Message = "Enrich threw exception. HandlerName: '{0}', EventName: '{1}', OperationName: '{2}', Exception: {3}.", Level = EventLevel.Warning)]

@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
-using System.Linq;
-
 namespace OpenTelemetry.Resources.Container.Utils;
 
 internal class EncodingUtils
@@ -15,9 +12,6 @@ internal class EncodingUtils
     /// <returns>true if valid else false.</returns>
     public static bool IsValidHexString(IEnumerable<char> hexString)
     {
-        return hexString.All(currentCharacter =>
-            (currentCharacter >= '0' && currentCharacter <= '9') ||
-            (currentCharacter >= 'a' && currentCharacter <= 'f') ||
-            (currentCharacter >= 'A' && currentCharacter <= 'F'));
+        return hexString.All(currentCharacter => currentCharacter is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F'));
     }
 }

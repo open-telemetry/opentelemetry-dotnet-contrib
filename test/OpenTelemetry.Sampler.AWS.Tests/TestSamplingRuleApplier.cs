@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -25,13 +23,13 @@ public class TestSamplingRuleApplier
             serviceType: "AWS::Lambda::Function",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
-            { "http.method", "GET" },
-            { "http.url", @"http://127.0.0.1:5000/helloworld" },
+            { "http.request.method", "GET" },
+            { "url.full", @"http://127.0.0.1:5000/helloworld" },
             { "faas.id", "arn:aws:lambda:us-west-2:123456789012:function:my-function" },
         };
 
@@ -54,13 +52,13 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
             { "http.host", "localhost" },
-            { "http.method", "GET" },
-            { "http.url", @"http://127.0.0.1:5000/helloworld" },
+            { "http.request.method", "GET" },
+            { "url.full", @"http://127.0.0.1:5000/helloworld" },
         };
 
         var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
@@ -82,7 +80,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/helloworld",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>();
 
@@ -105,7 +103,7 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "*",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>();
 
@@ -128,11 +126,11 @@ public class TestSamplingRuleApplier
             serviceType: "*",
             urlPath: "/hello*",
             version: 1,
-            attributes: new Dictionary<string, string>());
+            attributes: []);
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
         };
 
         var applier = new SamplingRuleApplier("clientId", new TestClock(), rule, new Statistics());
@@ -164,7 +162,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
             { "dog", "bark" },
             { "cat", "meow" },
         };
@@ -198,7 +196,7 @@ public class TestSamplingRuleApplier
 
         var activityTags = new Dictionary<string, string>
         {
-            { "http.target", "/helloworld" },
+            { "url.path", "/helloworld" },
             { "dog", "bark" },
         };
 
@@ -210,8 +208,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestFixedRateAlwaysSample()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
             "rule1",
             1,
             1.0, // fixed rate
@@ -223,7 +221,7 @@ public class TestSamplingRuleApplier
             "*",
             "*",
             1,
-            new Dictionary<string, string>());
+            []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -249,8 +247,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestFixedRateNeverSample()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
             "rule1",
             1,
             0.0, // fixed rate
@@ -262,7 +260,7 @@ public class TestSamplingRuleApplier
             "*",
             "*",
             1,
-            new Dictionary<string, string>());
+            []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -281,8 +279,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestBorrowFromReservoir()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -294,7 +292,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -317,8 +315,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestWithTarget()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -330,7 +328,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -342,7 +340,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(SamplingDecision.Drop, applier.ShouldSample(default).Decision);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument
+        var target = new SamplingTargetDocument
         {
             FixedRate = 0.0,
             Interval = 10,
@@ -362,8 +360,8 @@ public class TestSamplingRuleApplier
     [Fact]
     public void TestWithTargetWithoutQuota()
     {
-        TestClock clock = new TestClock();
-        SamplingRule rule = new SamplingRule(
+        var clock = new TestClock();
+        var rule = new SamplingRule(
            "rule1",
            1,
            0.0, // fixed rate
@@ -375,7 +373,7 @@ public class TestSamplingRuleApplier
            "*",
            "*",
            1,
-           new Dictionary<string, string>());
+           []);
 
         var applier = new SamplingRuleApplier("clientId", clock, rule, new Statistics());
 
@@ -392,7 +390,7 @@ public class TestSamplingRuleApplier
         Assert.Equal(2, statistics.BorrowCount);
 
         // get the target
-        SamplingTargetDocument target = new SamplingTargetDocument
+        var target = new SamplingTargetDocument
         {
             FixedRate = 1.0,
             Interval = 10,

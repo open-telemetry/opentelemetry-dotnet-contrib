@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using InfluxDB.Client;
 using OpenTelemetry.Exporter.InfluxDB;
 using OpenTelemetry.Trace;
@@ -62,6 +61,8 @@ public static class InfluxDBExporterExtensions
         return metricsSchema switch
         {
             MetricsSchema.TelegrafPrometheusV2 => new TelegrafPrometheusWriterV2(),
+            MetricsSchema.TelegrafPrometheusV1 => new TelegrafPrometheusWriterV1(),
+            MetricsSchema.None => new TelegrafPrometheusWriterV1(),
             _ => new TelegrafPrometheusWriterV1(),
         };
     }

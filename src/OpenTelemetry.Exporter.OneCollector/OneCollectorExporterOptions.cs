@@ -51,7 +51,7 @@ public abstract class OneCollectorExporterOptions
             throw new OneCollectorExporterValidationException("Instrumentation key was not specified on connection string.");
         }
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET || NETSTANDARD2_1_OR_GREATER
         var positionOfFirstDash = this.InstrumentationKey.IndexOf('-', StringComparison.OrdinalIgnoreCase);
 #else
         var positionOfFirstDash = this.InstrumentationKey!.IndexOf('-');

@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
@@ -11,7 +9,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 internal class TestActivityProcessor : IActivityProcessor
 {
-    public IActivityProcessor NextProcessor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public IActivityProcessor? NextProcessor { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public Task ProcessAsync(Activity activity, InstanaSpan instanaSpan)
     {

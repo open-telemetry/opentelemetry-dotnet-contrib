@@ -1,12 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
+#if !NETFRAMEWORK
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 using Microsoft.Win32;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Resources.Host;
 
@@ -17,7 +18,9 @@ internal sealed class HostDetector : IResourceDetector
 {
     private const string ETCMACHINEID = "/etc/machine-id";
     private const string ETCVARDBUSMACHINEID = "/var/lib/dbus/machine-id";
-    private readonly PlatformID platformId;
+#if !NETFRAMEWORK
+    private readonly Func<OSPlatform, bool> isOsPlatform;
+#endif
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
@@ -27,26 +30,50 @@ internal sealed class HostDetector : IResourceDetector
     /// </summary>
     public HostDetector()
         : this(
-        Environment.OSVersion.Platform,
+#if !NETFRAMEWORK
+        RuntimeInformation.IsOSPlatform,
+#endif
         GetFilePaths,
         GetMachineIdMacOs,
         GetMachineIdWindows)
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HostDetector"/> class for testing.
-    /// </summary>
-    /// <param name="platformId">Target platform ID.</param>
-    /// <param name="getFilePaths">Function to get Linux file paths to probe.</param>
-    /// <param name="getMacOsMachineId">Function to get MacOS machine ID.</param>
-    /// <param name="getWindowsMachineId">Function to get Windows machine ID.</param>
-    internal HostDetector(PlatformID platformId, Func<IEnumerable<string>> getFilePaths, Func<string?> getMacOsMachineId, Func<string?> getWindowsMachineId)
+#if !NETFRAMEWORK
+    public HostDetector(
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
+        : this(
+            RuntimeInformation.IsOSPlatform,
+            getFilePaths,
+            getMacOsMachineId,
+            getWindowsMachineId)
     {
-        this.platformId = platformId;
-        this.getFilePaths = getFilePaths ?? throw new ArgumentNullException(nameof(getFilePaths));
-        this.getMacOsMachineId = getMacOsMachineId ?? throw new ArgumentNullException(nameof(getMacOsMachineId));
-        this.getWindowsMachineId = getWindowsMachineId ?? throw new ArgumentNullException(nameof(getWindowsMachineId));
+    }
+#endif
+
+    internal HostDetector(
+#if !NETFRAMEWORK
+        Func<OSPlatform, bool> isOsPlatform,
+#endif
+        Func<IEnumerable<string>> getFilePaths,
+        Func<string?> getMacOsMachineId,
+        Func<string?> getWindowsMachineId)
+    {
+#if !NETFRAMEWORK
+        Guard.ThrowIfNull(isOsPlatform);
+#endif
+        Guard.ThrowIfNull(getFilePaths);
+        Guard.ThrowIfNull(getMacOsMachineId);
+        Guard.ThrowIfNull(getWindowsMachineId);
+
+#if !NETFRAMEWORK
+        this.isOsPlatform = isOsPlatform;
+#endif
+        this.getFilePaths = getFilePaths;
+        this.getMacOsMachineId = getMacOsMachineId;
+        this.getWindowsMachineId = getWindowsMachineId;
     }
 
     /// <summary>
@@ -86,14 +113,14 @@ internal sealed class HostDetector : IResourceDetector
             return null;
         }
 
-        var lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+        var lines = output.Split([Environment.NewLine], StringSplitOptions.None);
 
         foreach (var line in lines)
         {
-#if NETFRAMEWORK
-            if (line.IndexOf("IOPlatformUUID", StringComparison.OrdinalIgnoreCase) >= 0)
-#else
+#if NET
             if (line.Contains("IOPlatformUUID", StringComparison.OrdinalIgnoreCase))
+#else
+            if (line.IndexOf("IOPlatformUUID", StringComparison.OrdinalIgnoreCase) >= 0)
 #endif
             {
                 var parts = line.Split('"');
@@ -121,17 +148,40 @@ internal sealed class HostDetector : IResourceDetector
             var startInfo = new ProcessStartInfo
             {
                 FileName = "sh",
-                Arguments = "ioreg -rd1 -c IOPlatformExpertDevice",
+                Arguments = "-c \"ioreg -rd1 -c IOPlatformExpertDevice\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
             };
 
             var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
-            process?.WaitForExit();
-            sb.Append(process?.StandardOutput.ReadToEnd());
-            return sb.ToString();
+            if (process != null)
+            {
+                var isExited = process.WaitForExit(5000);
+                if (isExited)
+                {
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), error);
+                        return null;
+                    }
+
+                    sb.Append(output);
+                    return sb.ToString();
+                }
+                else
+                {
+                    HostResourceEventSource.Log.ProcessTimeout("Process did not exit within the given timeout");
+                    return null;
+                }
+            }
+
+            return null;
         }
         catch (Exception ex)
         {
@@ -162,13 +212,14 @@ internal sealed class HostDetector : IResourceDetector
 
     private string? GetMachineId()
     {
-        return this.platformId switch
-        {
-            PlatformID.Unix => this.GetMachineIdLinux(),
-            PlatformID.MacOSX => ParseMacOsOutput(this.getMacOsMachineId()),
-            PlatformID.Win32NT => this.getWindowsMachineId(),
-            _ => null,
-        };
+#if NETFRAMEWORK
+        return this.getWindowsMachineId();
+#else
+        return this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
+            this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
+            this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
+
+#endif
     }
 
     private string? GetMachineIdLinux()

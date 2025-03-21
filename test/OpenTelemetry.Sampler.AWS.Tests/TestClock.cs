@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-
 namespace OpenTelemetry.Sampler.AWS.Tests;
 
 internal class TestClock : Clock
@@ -37,8 +35,8 @@ internal class TestClock : Clock
 
     public override double ToDouble(DateTimeOffset dateTime)
     {
-        TimeSpan current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
-        double timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
+        var current = new TimeSpan(dateTime.ToUniversalTime().Ticks - EpochStart.Ticks);
+        var timestamp = Math.Round(current.TotalMilliseconds, 0) / 1000.0;
         return timestamp;
     }
 

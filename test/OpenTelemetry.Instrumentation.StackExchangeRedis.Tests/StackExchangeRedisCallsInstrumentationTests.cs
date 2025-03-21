@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using OpenTelemetry.Tests;
@@ -39,7 +36,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -60,7 +57,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             Assert.False(redisValue.HasValue);
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -85,14 +82,15 @@ public class StackExchangeRedisCallsInstrumentationTests
 
     [Trait("CategoryName", "RedisIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
-    [InlineData("value1")]
-    public void SuccessfulCommandTest(string value)
+    [InlineData("value1", null)]
+    [InlineData("value1", "serviceKey")]
+    public void SuccessfulCommandTest(string value, string? serviceKey)
     {
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         ConnectionMultiplexer? connection = null;
         var exportedItems = new List<Activity>();
@@ -100,21 +98,31 @@ public class StackExchangeRedisCallsInstrumentationTests
         using (Sdk.CreateTracerProviderBuilder()
             .ConfigureServices(services =>
             {
-                services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                if (serviceKey is null)
                 {
-                    return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                });
+                    services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
+                else
+                {
+                    services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
             })
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.SetVerboseDatabaseStatements = false)
+            .AddRedisInstrumentation(null, null, serviceKey, c => c.SetVerboseDatabaseStatements = false)
             .Build())
         {
             Assert.NotNull(connection);
 
             var db = connection.GetDatabase();
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -134,7 +142,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Fact]
-    public async void ProfilerSessionUsesTheSameDefault()
+    public async Task ProfilerSessionUsesTheSameDefault()
     {
         var connectionOptions = new ConfigurationOptions
         {
@@ -165,7 +173,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         {
             AbortOnConnectFail = true,
         };
-        connectionOptions.EndPoints.Add(RedisEndPoint);
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
 
         var exportedItems = new List<Activity>();
@@ -191,7 +199,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
             var db = connection.GetDatabase();
 
-            bool set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
             Assert.True(set);
 
@@ -224,7 +232,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
-        using Activity rootActivity = new Activity("Parent")
+        using var rootActivity = new Activity("Parent")
             .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
             .Start();
 
@@ -232,7 +240,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession? profiler0 = profilerFactory();
+        var profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
         using (Activity.Current = new Activity("Child-Span-1").SetParentId(rootActivity.Id).Start())
@@ -263,7 +271,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         var profilerFactory = instrumentation.GetProfilerSessionsFactory();
 
         // start a root level activity
-        using Activity rootActivity = new Activity("Parent")
+        using var rootActivity = new Activity("Parent")
             .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
             .Start();
 
@@ -271,7 +279,7 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         // get an initial profiler from root activity
         Activity.Current = rootActivity;
-        ProfilingSession? profiler0 = profilerFactory();
+        var profiler0 = profilerFactory();
 
         // expect different result from synchronous child activity
         ProfilingSession? profiler1;
@@ -287,9 +295,9 @@ public class StackExchangeRedisCallsInstrumentationTests
         using (Activity.Current = new Activity("Child-Span-2").SetParentId(rootActivity.Id).Start())
         {
             // lose async context on purpose
-            await Task.Delay(100).ConfigureAwait(false);
+            await Task.Delay(100);
 
-            ProfilingSession? profiler2 = profilerFactory();
+            var profiler2 = profilerFactory();
             Assert.NotSame(profiler0, profiler2);
             Assert.NotSame(profiler1, profiler2);
         }
@@ -297,15 +305,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         Activity.Current = rootActivity;
 
         // ensure same result back in root activity
-        ProfilingSession? profiles3 = profilerFactory();
+        var profiles3 = profilerFactory();
         Assert.Same(profiler0, profiles3);
     }
 
     [Fact]
     public void StackExchangeRedis_DependencyInjection_Success()
     {
-        bool connectionMultiplexerPickedFromDI = false;
-        bool optionsPickedFromDI = false;
+        var connectionMultiplexerPickedFromDI = false;
+        var optionsPickedFromDI = false;
 
         var connectionOptions = new ConfigurationOptions
         {
@@ -403,23 +411,25 @@ public class StackExchangeRedisCallsInstrumentationTests
             }
         }
 
-        Assert.Equal(Status.Unset, activity.GetStatus());
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal(0, activity.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName));
 
         if (endPoint is IPEndPoint ipEndPoint)
         {
-            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeNetPeerIp));
-            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
         else if (endPoint is DnsEndPoint dnsEndPoint)
         {
-            Assert.Equal(dnsEndPoint.Host, activity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-            Assert.Equal(dnsEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+            Assert.Equal(dnsEndPoint.Host, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+            Assert.Equal(dnsEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
         }
         else
         {
-            Assert.Equal(endPoint.ToString(), activity.GetTagValue(SemanticConventions.AttributePeerService));
+            var tags = activity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            Assert.DoesNotContain(SemanticConventions.AttributeServerAddress, tags.Keys);
+            Assert.DoesNotContain(SemanticConventions.AttributeServerPort, tags.Keys);
         }
     }
 

@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
@@ -51,7 +48,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
         var textMapPropagator = Propagators.DefaultTextMapPropagator;
         var ctx = textMapPropagator.Extract(default, request, WcfInstrumentationActivitySource.MessageHeaderValuesGetter);
 
-        Activity? activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
+        var activity = WcfInstrumentationActivitySource.ActivitySource.StartActivity(
             WcfInstrumentationActivitySource.IncomingRequestActivityName,
             ActivityKind.Server,
             ctx.ActivityContext);
@@ -73,7 +70,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 activity.SetTag(WcfInstrumentationConstants.RpcSystemTag, WcfInstrumentationConstants.WcfSystemValue);
 
-                if (!this.actionMappings.TryGetValue(action, out ActionMetadata actionMetadata))
+                if (!this.actionMappings.TryGetValue(action, out var actionMetadata))
                 {
                     actionMetadata = new ActionMetadata(
                         contractName: null,
@@ -107,7 +104,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
                 }
             }
 
-            if (!(textMapPropagator is TraceContextPropagator))
+            if (textMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = ctx.Baggage;
             }
@@ -125,7 +122,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
             {
                 if (reply.IsFault)
                 {
-                    activity.SetStatus(Status.Error);
+                    activity.SetStatus(ActivityStatusCode.Error);
                 }
 
                 activity.SetTag(WcfInstrumentationConstants.SoapReplyActionTag, reply.Headers.Action);
@@ -141,7 +138,7 @@ internal class TelemetryDispatchMessageInspector : IDispatchMessageInspector
 
             activity.Stop();
 
-            if (!(Propagators.DefaultTextMapPropagator is TraceContextPropagator))
+            if (Propagators.DefaultTextMapPropagator is not TraceContextPropagator)
             {
                 Baggage.Current = default;
             }

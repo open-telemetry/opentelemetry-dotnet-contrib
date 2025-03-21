@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -9,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace RouteTests.TestApplication;
 
-public class ActionDescriptorInfo
+internal class ActionDescriptorInfo
 {
     public ActionDescriptorInfo()
     {
@@ -19,7 +18,7 @@ public class ActionDescriptorInfo
     {
         this.AttributeRouteInfo = actionDescriptor.AttributeRouteInfo?.Template;
 
-        this.ActionParameters = new List<string>();
+        this.ActionParameters = [];
         foreach (var item in actionDescriptor.Parameters)
         {
             this.ActionParameters.Add(item.Name);

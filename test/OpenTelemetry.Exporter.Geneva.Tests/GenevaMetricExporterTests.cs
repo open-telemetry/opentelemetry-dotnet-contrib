@@ -1,21 +1,19 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Kaitai;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 using static OpenTelemetry.Exporter.Geneva.Tests.MetricsContract;
@@ -48,7 +46,7 @@ public class GenevaMetricExporterTests
     [Fact]
     public void ParseConnectionStringCorrectly()
     {
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -113,153 +111,147 @@ public class GenevaMetricExporterTests
         Assert.Throws<ArgumentException>(() => { exporterOptions.PrepopulatedMetricDimensions = prepopulatedMetricDimensions; });
     }
 
-    [Fact]
-    public void SuccessfulExportOnLinux()
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
+    public async Task SuccessfulExportOnLinux()
     {
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        var path = GenerateTempFilePath();
+        var exportedItems = new List<Metric>();
+
+        using var meter = new Meter("SuccessfulExportOnLinux", "0.0.1");
+        var counter = meter.CreateCounter<long>("counter");
+
+        using var inMemoryMeter = new Meter("InMemoryExportOnLinux", "0.0.1");
+        var inMemoryCounter = inMemoryMeter.CreateCounter<long>("counter");
+
+        try
         {
-            string path = GenerateTempFilePath();
-            var exportedItems = new List<Metric>();
+            var endpoint = new UnixDomainSocketEndPoint(path);
+            using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+            server.Bind(endpoint);
+            server.Listen(1);
 
-            using var meter = new Meter("SuccessfulExportOnLinux", "0.0.1");
-            var counter = meter.CreateCounter<long>("counter");
+            using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+            {
+                TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+            };
 
-            using var inMemoryMeter = new Meter("InMemoryExportOnLinux", "0.0.1");
-            var inMemoryCounter = inMemoryMeter.CreateCounter<long>("counter");
+            // Set up two different providers as only one Metric Processor is allowed.
+            // TODO: Simplify the setup when multiple Metric processors are allowed.
+            using var meterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("SuccessfulExportOnLinux")
+                .AddGenevaMetricExporter(options =>
+                {
+                    options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
+                    options.MetricExportIntervalMilliseconds = 5000;
+                })
+                .Build();
 
+            using var inMemoryMeterProvider = Sdk.CreateMeterProviderBuilder()
+                .AddMeter("InMemoryExportOnLinux")
+                .AddReader(inMemoryReader)
+                .Build();
+
+            using var serverSocket = server.Accept();
+            serverSocket.ReceiveTimeout = 15000;
+
+            // Create a test exporter to get byte data for validation of the data received via Socket.
+            var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
+            using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
+
+            // Emit a metric and grab a copy of internal buffer for validation.
+            counter.Add(
+                123,
+                new KeyValuePair<string, object>("tag1", "value1"),
+                new KeyValuePair<string, object>("tag2", "value2"));
+
+            inMemoryCounter.Add(
+                123,
+                new KeyValuePair<string, object>("tag1", "value1"),
+                new KeyValuePair<string, object>("tag2", "value2"));
+
+            // exportedItems list should have a single entry after the MetricReader.Collect call
+            inMemoryReader.Collect();
+
+            Assert.Single(exportedItems);
+
+            var metric = exportedItems[0];
+            var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
+            metricPointsEnumerator.MoveNext();
+            var metricPoint = metricPointsEnumerator.Current;
+            var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
+            var metricData = new MetricData { UInt64Value = metricDataValue };
+
+            metricPoint.TryGetExemplars(out var exemplars);
+            var bodyLength = exporter.SerializeMetricWithTLV(
+                MetricEventType.ULongMetric,
+                metric.Name,
+                metricPoint.EndTime.ToFileTime(),
+                metricPoint.Tags,
+                metricData,
+                MetricType.LongSum,
+                exemplars,
+                out _,
+                out _);
+
+            // Wait a little more than the ExportInterval for the exporter to export the data.
+            await Task.Delay(5500);
+
+            // Read the data sent via socket.
+            var receivedData = new byte[1024];
+            var receivedDataSize = serverSocket.Receive(receivedData);
+
+            var fixedPayloadLength = (int)typeof(TlvMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
+
+            // The whole payload is sent to the Unix Domain Socket
+            // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
+            Assert.Equal(bodyLength + fixedPayloadLength, receivedDataSize);
+
+            var stream = new KaitaiStream(receivedData);
+            var data = new MetricsContract(stream);
+            var userData = data.Body as UserdataV2;
+            var fields = userData.Fields;
+
+            Assert.Contains(fields, field => field.Type == PayloadTypes.MetricName && (field.Value as WrappedString).Value == metric.Name);
+            Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == "OTelMonitoringAccount");
+            Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == "OTelMetricNamespace");
+
+            var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.SingleUint64Value).Value as SingleUint64ValueV2;
+            Assert.Equal(metricDataValue, valueSection.Value);
+
+            var dimensions = fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
+            Assert.Equal(2, dimensions.NumDimensions);
+
+            var i = 0;
+            foreach (var tag in metricPoint.Tags)
+            {
+                Assert.Equal(tag.Key, dimensions.DimensionsNames[i].Value);
+                Assert.Equal(tag.Value, dimensions.DimensionsValues[i].Value);
+                i++;
+            }
+
+            Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
+            Assert.Equal(bodyLength, data.LenBody);
+        }
+        finally
+        {
             try
             {
-                var endpoint = new UnixDomainSocketEndPoint(path);
-                using var server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
-                server.Bind(endpoint);
-                server.Listen(1);
-
-                using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
-                {
-                    TemporalityPreference = MetricReaderTemporalityPreference.Delta,
-                };
-
-                // Set up two different providers as only one Metric Processor is allowed.
-                // TODO: Simplify the setup when multiple Metric processors are allowed.
-                using var meterProvider = Sdk.CreateMeterProviderBuilder()
-                    .AddMeter("SuccessfulExportOnLinux")
-                    .AddGenevaMetricExporter(options =>
-                    {
-                        options.ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace";
-                        options.MetricExportIntervalMilliseconds = 5000;
-                    })
-                    .Build();
-
-                using var inMemoryMeterProvider = Sdk.CreateMeterProviderBuilder()
-                    .AddMeter("InMemoryExportOnLinux")
-                    .AddReader(inMemoryReader)
-                    .Build();
-
-                using var serverSocket = server.Accept();
-                serverSocket.ReceiveTimeout = 15000;
-
-                // Create a test exporter to get byte data for validation of the data received via Socket.
-                var exporterOptions = new GenevaMetricExporterOptions() { ConnectionString = $"Endpoint=unix:{path};Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace" };
-                using var exporter = new TlvMetricExporter(new ConnectionStringBuilder(exporterOptions.ConnectionString), exporterOptions.PrepopulatedMetricDimensions);
-
-                // Emit a metric and grab a copy of internal buffer for validation.
-                counter.Add(
-                    123,
-                    new KeyValuePair<string, object>("tag1", "value1"),
-                    new KeyValuePair<string, object>("tag2", "value2"));
-
-                inMemoryCounter.Add(
-                    123,
-                    new KeyValuePair<string, object>("tag1", "value1"),
-                    new KeyValuePair<string, object>("tag2", "value2"));
-
-                // exportedItems list should have a single entry after the MetricReader.Collect call
-                inMemoryReader.Collect();
-
-                Assert.Single(exportedItems);
-
-                var metric = exportedItems[0];
-                var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
-                metricPointsEnumerator.MoveNext();
-                var metricPoint = metricPointsEnumerator.Current;
-                var metricDataValue = Convert.ToUInt64(metricPoint.GetSumLong());
-                var metricData = new MetricData { UInt64Value = metricDataValue };
-
-                metricPoint.TryGetExemplars(out var exemplars);
-                var bodyLength = exporter.SerializeMetricWithTLV(
-                    MetricEventType.ULongMetric,
-                    metric.Name,
-                    metricPoint.EndTime.ToFileTime(),
-                    metricPoint.Tags,
-                    metricData,
-                    MetricType.LongSum,
-                    exemplars,
-                    out _,
-                    out _);
-
-                // Wait a little more than the ExportInterval for the exporter to export the data.
-                Task.Delay(5500).Wait();
-
-                // Read the data sent via socket.
-                var receivedData = new byte[1024];
-                int receivedDataSize = serverSocket.Receive(receivedData);
-
-                var fixedPayloadLength = (int)typeof(TlvMetricExporter).GetField("fixedPayloadStartIndex", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(exporter);
-
-                // The whole payload is sent to the Unix Domain Socket
-                // BinaryHeader (fixed payload) + variable payload which starts with MetricPayload
-                Assert.Equal(bodyLength + fixedPayloadLength, receivedDataSize);
-
-                var stream = new KaitaiStream(receivedData);
-                var data = new MetricsContract(stream);
-                var userData = data.Body as UserdataV2;
-                var fields = userData.Fields;
-
-                Assert.Contains(fields, field => field.Type == PayloadTypes.MetricName && (field.Value as WrappedString).Value == metric.Name);
-                Assert.Contains(fields, field => field.Type == PayloadTypes.AccountName && (field.Value as WrappedString).Value == "OTelMonitoringAccount");
-                Assert.Contains(fields, field => field.Type == PayloadTypes.NamespaceName && (field.Value as WrappedString).Value == "OTelMetricNamespace");
-
-                var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.SingleUint64Value).Value as SingleUint64ValueV2;
-                Assert.Equal(metricDataValue, valueSection.Value);
-
-                var dimensions = fields.FirstOrDefault(field => field.Type == PayloadTypes.Dimensions).Value as Dimensions;
-                Assert.Equal(2, dimensions.NumDimensions);
-
-                int i = 0;
-                foreach (var tag in metricPoint.Tags)
-                {
-                    Assert.Equal(tag.Key, dimensions.DimensionsNames[i].Value);
-                    Assert.Equal(tag.Value, dimensions.DimensionsValues[i].Value);
-                    i++;
-                }
-
-                Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
-                Assert.Equal(bodyLength, data.LenBody);
+                File.Delete(path);
             }
-            finally
+            catch
             {
-                try
-                {
-                    File.Delete(path);
-                }
-                catch
-                {
-                }
             }
         }
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void MultipleCallsOnWindowsReusesSingletonEtwDataTransport()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            var singleton = MetricEtwDataTransport.Instance;
-            this.EmitMetrics("one");
-            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
-            this.EmitMetrics("two");
-            Assert.Equal(singleton, MetricEtwDataTransport.Instance);
-        }
+        var singleton = MetricWindowsEventTracingDataTransport.Instance;
+        this.EmitMetrics("one");
+        Assert.Equal(singleton, MetricWindowsEventTracingDataTransport.Instance);
+        this.EmitMetrics("two");
+        Assert.Equal(singleton, MetricWindowsEventTracingDataTransport.Instance);
     }
 
     private void EmitMetrics(string attempt)
@@ -386,13 +378,13 @@ public class GenevaMetricExporterTests
 
         if (hasFilteredTagsForExemplars)
         {
-            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = new string[] { "tag1", "tag2" } });
+            meterProviderBuilder.AddView("*", new MetricStreamConfiguration { TagKeys = ["tag1", "tag2"] });
         }
 
         using var meterProvider = meterProviderBuilder.Build();
 
         long longValue = 123;
-        double doubleValue = 123.45;
+        var doubleValue = 123.45;
 
         if (testMaxLimits)
         {
@@ -496,7 +488,7 @@ public class GenevaMetricExporterTests
             histogram.Record(2500, new("tag1", "value1"), new("tag2", "value2"), new("filteredTag1", "filteredValue1"));
         }
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -595,23 +587,18 @@ public class GenevaMetricExporterTests
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddMeter("SuccessfulSerializationWithViews")
             .AddView("longCounter", "renamedLongCounter")
-            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = new string[] { "tag1" } })
+            .AddView("doubleCounter", new MetricStreamConfiguration { TagKeys = ["tag1"] })
             .AddView(
                 "histogramWithCustomBounds",
                 new ExplicitBucketHistogramConfiguration
                 {
                     Name = "renamedhistogramWithCustomBounds",
                     Description = "modifiedDescription",
-                    Boundaries = new double[] { 500, 1000, 10000 },
+                    Boundaries = [500, 1000, 10000],
                 })
             .AddView(instrument =>
             {
-                if (instrument.Name == "histogramWithNoBounds")
-                {
-                    return new ExplicitBucketHistogramConfiguration { Boundaries = Array.Empty<double>() };
-                }
-
-                return null;
+                return instrument.Name == "histogramWithNoBounds" ? new ExplicitBucketHistogramConfiguration { Boundaries = [] } : null;
             })
             .AddView(
                 "histogramWithNoMinMax",
@@ -620,29 +607,18 @@ public class GenevaMetricExporterTests
                     RecordMinMax = false,
                 })
             .AddView("observableLongCounter", MetricStreamConfiguration.Drop)
-            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = Array.Empty<string>() })
+            .AddView("observableDoubleCounter", new MetricStreamConfiguration { TagKeys = [] })
+            .AddView(instrument => instrument.Name == "observableLongGauge"
+                ? new MetricStreamConfiguration
+                {
+                    Name = "renamedobservableLongGauge",
+                    Description = "modifiedDescription",
+                    TagKeys = ["tag1"],
+                }
+                : null)
             .AddView(instrument =>
             {
-                if (instrument.Name == "observableLongGauge")
-                {
-                    return new MetricStreamConfiguration
-                    {
-                        Name = "renamedobservableLongGauge",
-                        Description = "modifiedDescription",
-                        TagKeys = new string[] { "tag1" },
-                    };
-                }
-
-                return null;
-            })
-            .AddView(instrument =>
-            {
-                if (instrument.Name == "observableDoubleGauge")
-                {
-                    return MetricStreamConfiguration.Drop;
-                }
-
-                return null;
+                return instrument.Name == "observableDoubleGauge" ? MetricStreamConfiguration.Drop : null;
             })
             .AddReader(inMemoryReader)
             .Build();
@@ -718,7 +694,7 @@ public class GenevaMetricExporterTests
         histogramWithNoMinMax.Record(750, new("tag1", "value1"), new("tag2", "value2"));
         histogramWithNoMinMax.Record(2500, new("tag1", "value1"), new("tag2", "value2"));
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -751,7 +727,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(7, exportedItems.Count);
 
             // observableLongCounter and observableDoubleGauge are dropped
-            Assert.Empty(exportedItems.Where(item => item.Name == "observableLongCounter" || item.Name == "observableDoubleGauge"));
+            Assert.DoesNotContain(exportedItems, item => item.Name is "observableLongCounter" or "observableDoubleGauge");
 
             // check serialization for longCounter
             CheckSerializationWithTLVForSingleMetricPoint(exportedItems[0], exporter, exporterOptions);
@@ -803,7 +779,7 @@ public class GenevaMetricExporterTests
             .Build();
 
         long longValue = 123;
-        double doubleValue = 123.45;
+        var doubleValue = 123.45;
 
         longCounter.Add(
             longValue, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForLongCounter"));
@@ -836,7 +812,7 @@ public class GenevaMetricExporterTests
         histogram.Record(750, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
         histogram.Record(2500, new("tag1", "value1"), new("tag2", "value2"), new("_microsoft_metrics_account", "AccountForHistogram"), new("_microsoft_metrics_namespace", "NamespaceForHistogram"));
 
-        string path = string.Empty;
+        var path = string.Empty;
         Socket server = null;
         try
         {
@@ -948,7 +924,7 @@ public class GenevaMetricExporterTests
     {
         while (true)
         {
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (!File.Exists(path))
             {
                 return path;
@@ -1036,7 +1012,7 @@ public class GenevaMetricExporterTests
             Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
         }
-        else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
+        else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
@@ -1065,7 +1041,7 @@ public class GenevaMetricExporterTests
             Assert.Equal((ushort)MetricEventType.TLV, data.EventId);
             Assert.Equal(bodyLength, data.LenBody);
         }
-        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
             var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
                 Convert.ToDouble(metricPoint.GetSumLong()) :
@@ -1098,7 +1074,7 @@ public class GenevaMetricExporterTests
         {
             var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
             {
                 min = 0;
                 max = 0;
@@ -1127,8 +1103,8 @@ public class GenevaMetricExporterTests
             var valueSection = fields.FirstOrDefault(field => field.Type == PayloadTypes.ExtAggregatedUint64Value).Value as ExtAggregatedUint64ValueV2;
             var valueCountPairs = fields.FirstOrDefault(field => field.Type == PayloadTypes.HistogramUint64ValueCountPairs).Value as HistogramValueCountPairs;
 
-            int listIterator = 0;
-            int bucketsWithPositiveCount = 0;
+            var listIterator = 0;
+            var bucketsWithPositiveCount = 0;
             double lastExplicitBound = default;
             foreach (var bucket in metricPoint.GetHistogramBuckets())
             {
@@ -1153,7 +1129,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(bodyLength, data.LenBody);
         }
 
-        List<Exemplar> validExemplars = new List<Exemplar>();
+        List<Exemplar> validExemplars = [];
 
         foreach (var exemplar in exemplars)
         {
@@ -1171,7 +1147,7 @@ public class GenevaMetricExporterTests
             Assert.Equal(validExemplars.Count, exemplarsPayload.NumberOfExemplars.Value);
             Assert.Equal(validExemplars.Count, singleExemplarList.Count);
 
-            for (int i = 0; i < validExemplars.Count; i++)
+            for (var i = 0; i < validExemplars.Count; i++)
             {
                 var expectedExemplar = validExemplars[i];
                 var serializedExemplar = singleExemplarList[i];
@@ -1183,8 +1159,8 @@ public class GenevaMetricExporterTests
         // Check metric name, account, and namespace
         var connectionStringBuilder = new ConnectionStringBuilder(exporterOptions.ConnectionString);
 
-        string monitoringAccount = connectionStringBuilder.Account;
-        string metricNamespace = connectionStringBuilder.Namespace;
+        var monitoringAccount = connectionStringBuilder.Account;
+        var metricNamespace = connectionStringBuilder.Namespace;
 
         foreach (var tag in metricPoint.Tags)
         {
@@ -1223,7 +1199,7 @@ public class GenevaMetricExporterTests
         }
 
         // Check metric dimensions
-        int index = 0;
+        var index = 0;
         foreach (var item in exporterOptions.PrepopulatedMetricDimensions)
         {
             Assert.Equal(item.Key, dimensions.DimensionsNames[index].Value);
@@ -1231,7 +1207,7 @@ public class GenevaMetricExporterTests
             index++;
         }
 
-        int reservedTags = 0;
+        var reservedTags = 0;
         foreach (var tag in metricPoint.Tags)
         {
             if (tag.Key.Equals("_microsoft_metrics_account", StringComparison.OrdinalIgnoreCase) ||
@@ -1290,8 +1266,8 @@ public class GenevaMetricExporterTests
         }
 
         int filteredTagsActualCount = serializedExemplarBody.NumberOfLabels;
-        int filteredTagsExpectedCount = 0;
-        int filteredTagsActualIndex = 0;
+        var filteredTagsExpectedCount = 0;
+        var filteredTagsActualIndex = 0;
 
         foreach (var tag in expectedExemplar.FilteredTags)
         {
@@ -1359,7 +1335,7 @@ public class GenevaMetricExporterTests
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
         }
-        else if (metricType == MetricType.DoubleSum || metricType == MetricType.DoubleGauge)
+        else if (metricType is MetricType.DoubleSum or MetricType.DoubleGauge)
         {
             var metricDataValue = metricType == MetricType.DoubleSum ?
                 metricPoint.GetSumDouble() :
@@ -1381,7 +1357,7 @@ public class GenevaMetricExporterTests
             var data = new MetricsContract(stream);
             result = data.Body as UserdataV2;
         }
-        else if (metricType == MetricType.LongSumNonMonotonic || metricType == MetricType.DoubleSumNonMonotonic)
+        else if (metricType is MetricType.LongSumNonMonotonic or MetricType.DoubleSumNonMonotonic)
         {
             var metricDataValue = metricType == MetricType.LongSumNonMonotonic ?
                 Convert.ToDouble(metricPoint.GetSumLong()) :
@@ -1407,7 +1383,7 @@ public class GenevaMetricExporterTests
         {
             var sum = Convert.ToUInt64(metricPoint.GetHistogramSum());
             var count = Convert.ToUInt32(metricPoint.GetHistogramCount());
-            if (!metricPoint.TryGetHistogramMinMaxValues(out double min, out double max))
+            if (!metricPoint.TryGetHistogramMinMaxValues(out var min, out var max))
             {
                 min = 0;
                 max = 0;

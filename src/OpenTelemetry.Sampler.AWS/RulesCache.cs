@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -15,6 +11,7 @@ internal class RulesCache : IDisposable
     private const int CacheTTL = 60 * 60; // cache expires 1 hour after the refresh (in sec)
 
     private readonly ReaderWriterLockSlim rwLock;
+    private bool isFallBackEventToWriteSwitch = true;
 
     public RulesCache(Clock clock, string clientId, Resource resource, Trace.Sampler fallbackSampler)
     {
@@ -23,7 +20,7 @@ internal class RulesCache : IDisposable
         this.ClientId = clientId;
         this.Resource = resource;
         this.FallbackSampler = fallbackSampler;
-        this.RuleAppliers = new List<SamplingRuleApplier>();
+        this.RuleAppliers = [];
         this.UpdatedAt = this.Clock.Now();
     }
 
@@ -57,14 +54,17 @@ internal class RulesCache : IDisposable
         // sort the new rules
         newRules.Sort((x, y) => x.CompareTo(y));
 
-        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        List<SamplingRuleApplier> newRuleAppliers = [];
         foreach (var rule in newRules)
         {
-            var currentStatistics = this.RuleAppliers
-                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName)
-                ?.Statistics ?? new Statistics();
+            // If the ruleApplier already exists in the current list of appliers, then we reuse it.
+            var ruleApplier = this.RuleAppliers
+                .FirstOrDefault(currentApplier => currentApplier.RuleName == rule.RuleName) ??
+                new SamplingRuleApplier(this.ClientId, this.Clock, rule, new Statistics());
 
-            var ruleApplier = new SamplingRuleApplier(this.ClientId, this.Clock, rule, currentStatistics);
+            // update the rule in the applier in case rule attributes have changed
+            ruleApplier.Rule = rule;
+
             newRuleAppliers.Add(ruleApplier);
         }
 
@@ -86,19 +86,25 @@ internal class RulesCache : IDisposable
         {
             if (ruleApplier.Matches(samplingParameters, this.Resource))
             {
+                this.isFallBackEventToWriteSwitch = true;
                 return ruleApplier.ShouldSample(in samplingParameters);
             }
         }
 
         // ideally the default rule should have matched.
         // if we are here then likely due to a bug.
-        AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+        if (this.isFallBackEventToWriteSwitch)
+        {
+            this.isFallBackEventToWriteSwitch = false;
+            AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+        }
+
         return this.FallbackSampler.ShouldSample(in samplingParameters);
     }
 
     public List<SamplingStatisticsDocument> Snapshot(DateTimeOffset now)
     {
-        List<SamplingStatisticsDocument> snapshots = new List<SamplingStatisticsDocument>();
+        List<SamplingStatisticsDocument> snapshots = [];
         foreach (var ruleApplier in this.RuleAppliers)
         {
             snapshots.Add(ruleApplier.Snapshot(now));
@@ -109,10 +115,10 @@ internal class RulesCache : IDisposable
 
     public void UpdateTargets(Dictionary<string, SamplingTargetDocument> targets)
     {
-        List<SamplingRuleApplier> newRuleAppliers = new List<SamplingRuleApplier>();
+        List<SamplingRuleApplier> newRuleAppliers = [];
         foreach (var ruleApplier in this.RuleAppliers)
         {
-            targets.TryGetValue(ruleApplier.RuleName, out SamplingTargetDocument? target);
+            targets.TryGetValue(ruleApplier.RuleName, out var target);
             if (target != null)
             {
                 newRuleAppliers.Add(ruleApplier.WithTarget(target, this.Clock.Now()));
@@ -148,12 +154,7 @@ internal class RulesCache : IDisposable
             .Select(r => r.NextSnapshotTime)
             .Min();
 
-        if (minPollingTime < this.Clock.Now())
-        {
-            return defaultPollingTime;
-        }
-
-        return minPollingTime;
+        return minPollingTime < this.Clock.Now() ? defaultPollingTime : minPollingTime;
     }
 
     public void Dispose()

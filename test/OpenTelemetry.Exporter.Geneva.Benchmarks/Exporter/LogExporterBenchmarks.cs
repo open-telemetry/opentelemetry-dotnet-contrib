@@ -1,9 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 
 /*
@@ -102,8 +102,8 @@ public class LogExporterBenchmarks
             eventId: default,
             state: new List<KeyValuePair<string, object>>()
             {
-                new KeyValuePair<string, object>("food", food),
-                new KeyValuePair<string, object>("price", price),
+                new("food", food),
+                new("price", price),
             },
             exception: null,
             formatter: (state, ex) => $"Hello from {food} {price}.");

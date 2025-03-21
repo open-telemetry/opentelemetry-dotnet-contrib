@@ -2,19 +2,54 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
+## 1.10.0-beta.1
+
+Released 2024-Dec-09
+
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET 8/.NET Standard 2.0 targets.
+  ([#2166](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2166))
+
+* Updated OpenTelemetry core component version(s) to `1.10.0`.
+  ([#2317](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2317))
+
+## 1.0.0-beta.9
+
+Released 2024-Jun-18
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
 ## 1.0.0-beta.8
 
 Released 2024-Jun-04
 
 * Update OpenTelemetry SDK version to `1.8.1`.
   ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
 * **Breaking Change**: Renamed package from `OpenTelemetry.ResourceDetectors.Container`
   to `OpenTelemetry.Resources.Container`.
   ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+
 * **Breaking Change**: `ContainerResourceDetector` type is now internal,
 use `ResourceBuilder` extension method `AddContainerDetector`
 to enable the detector.
   ([#1849](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1849))
+
 * **Breaking Change**: Renamed EventSource
 from `OpenTelemetry-ResourceDetectors-Container`
 to `OpenTelemetry-Resources-Container`.
@@ -66,6 +101,7 @@ Released 2023-Apr-7
     OpenTelemetry.ResourceDetectors.Container`)
     and the class name (`DockerResourceDetector` to `ContainerResourceDetector`).
   ([#1123](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1123))
+
 * Updates to 1.4.0 of OpenTelemetry SDK.
   ([#1038](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1038))
 

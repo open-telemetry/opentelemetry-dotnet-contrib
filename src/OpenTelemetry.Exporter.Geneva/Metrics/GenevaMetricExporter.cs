@@ -1,8 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Exporter.Geneva.Metrics;
 using OpenTelemetry.Internal;
@@ -30,20 +30,19 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
 
     private readonly IDisposable exporter;
 
-    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
-
     private readonly ExportMetricsFunc exportMetrics;
 
     private bool isDisposed;
 
-    private Resource resource;
+    private Resource? resource;
 
-    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaMetricExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaMetricExporterOptions"/>.</param>
     public GenevaMetricExporter(GenevaMetricExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
 
@@ -52,16 +51,51 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             DisableOpenTelemetrySdkMetricNameValidation();
         }
 
-        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding != null && connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        if (connectionStringBuilder.PrivatePreviewEnableOtlpProtobufEncoding)
         {
+            IMetricDataTransport transport;
+
+            if (connectionStringBuilder.Protocol == TransportProtocol.Unix)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new ArgumentException("Unix domain socket should not be used on Windows.");
+                }
+
+                var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
+
+                transport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
+            }
+            else
+            {
+#if NET6_0_OR_GREATER
+                transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? MetricUnixUserEventsDataTransport.Instance
+                    : MetricWindowsEventTracingDataTransport.Instance;
+#else
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    throw new NotSupportedException("Exporting data in protobuf format is not supported on Linux.");
+                }
+
+                transport = MetricWindowsEventTracingDataTransport.Instance;
+#endif
+            }
+
+            connectionStringBuilder.TryGetMetricsAccountAndNamespace(
+                out var metricsAccount,
+                out var metricsNamespace);
+
             var otlpProtobufExporter = new OtlpProtobufMetricExporter(
                 () => { return this.Resource; },
-                connectionStringBuilder,
+                transport,
+                metricsAccount,
+                metricsNamespace,
                 options.PrepopulatedMetricDimensions);
 
-            this.exporter = otlpProtobufExporter;
-
             this.exportMetrics = otlpProtobufExporter.Export;
+
+            this.exporter = otlpProtobufExporter;
         }
         else
         {
@@ -73,25 +107,14 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         }
     }
 
+    private delegate ExportResult ExportMetricsFunc(in Batch<Metric> batch);
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
+
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Metric> batch)
     {
         return this.exportMetrics(batch);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            this.exporter.Dispose();
-        }
-
-        this.isDisposed = true;
-        base.Dispose(disposing);
     }
 
     internal static PropertyInfo GetOpenTelemetryInstrumentNameRegexProperty()
@@ -110,7 +133,24 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
         GetOpenTelemetryInstrumentNameRegexProperty().SetValue(null, GetDisableRegexPattern());
     }
 
-#if NET7_0_OR_GREATER
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            this.exporter.Dispose();
+        }
+
+        this.isDisposed = true;
+        base.Dispose(disposing);
+    }
+
+#if NET
     [GeneratedRegex(DisableRegexPattern)]
     private static partial Regex GetDisableRegexPattern();
 #else

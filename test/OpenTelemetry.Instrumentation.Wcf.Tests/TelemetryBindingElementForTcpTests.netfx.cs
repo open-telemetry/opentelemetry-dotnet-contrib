@@ -2,18 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using System.ServiceModel.Security;
-using System.Threading.Tasks;
 using OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -58,7 +52,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         bool enrichmentException = false,
         bool emptyOrNullAction = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -70,9 +64,9 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, message) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -82,23 +76,20 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                                     case WcfEnrichEventNames.AfterReceiveReply:
                                         activity.SetTag("client.afterreceivereply", WcfEnrichEventNames.AfterReceiveReply);
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, message) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
-                    options.OutgoingRequestFilter = (Message m) => !filter;
+                    options.OutgoingRequestFilter = _ => !filter;
                     options.SuppressDownstreamInstrumentation = suppressDownstreamInstrumentation;
                     options.SetSoapMessageVersion = includeVersion;
                 })
                 .AddDownstreamInstrumentation();
         }
 
-        TracerProvider? tracerProvider = builder.Build();
+        var tracerProvider = builder.Build();
 
         var client = new ServiceClient(
             new NetTcpBinding(SecurityMode.None),
@@ -112,15 +103,13 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             {
                 await client.ExecuteWithEmptyActionNameAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
             else
             {
                 await client.ExecuteAsync(
                     new ServiceRequest(
-                        payload: "Hello Open Telemetry!"))
-                    .ConfigureAwait(false);
+                        payload: "Hello Open Telemetry!"));
             }
         }
         finally
@@ -164,7 +153,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                     Assert.NotEmpty(stoppedActivities);
                     Assert.Single(stoppedActivities);
 
-                    Activity activity = stoppedActivities[0];
+                    var activity = stoppedActivities[0];
 
                     if (emptyOrNullAction)
                     {
@@ -209,7 +198,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ActivitiesHaveCorrectParentTest()
+    public async Task ActivitiesHaveCorrectParentTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -227,14 +216,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         {
             client.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
-                await firstAsyncCall;
-            }
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            client.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            var firstAsyncCall = client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await client.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!"));
+            await firstAsyncCall;
         }
         finally
         {
@@ -262,7 +249,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void ErrorsAreHandledProperlyTest()
+    public async Task ErrorsAreHandledProperlyTest()
     {
         var testSource = new ActivitySource("TestSource");
 
@@ -284,21 +271,19 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             clientBadUrl.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
             clientBadUrl2.Endpoint.EndpointBehaviors.Add(new TelemetryEndpointBehavior());
 
-            using (var parentActivity = testSource.StartActivity("ParentActivity"))
-            {
-                Assert.ThrowsAny<Exception>(() => client.ErrorSynchronous());
+            using var parentActivity = testSource.StartActivity("ParentActivity");
+            Assert.ThrowsAny<Exception>(client.ErrorSynchronous);
 
-                // weird corner case: if an async call is made as the first hit (before the client is opened) the
-                // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first
-                client2.Open();
-                await Assert.ThrowsAnyAsync<Exception>(client2.ErrorAsync);
-                Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
-                await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
-            }
+            // weird corner case: if an async call is made as the first hit (before the client is opened) the
+            // async execution context gets lost somewhere in WCF internals, so we'll explicitly open it first
+            client2.Open();
+            await Assert.ThrowsAnyAsync<Exception>(client2.ErrorAsync);
+            Assert.ThrowsAny<Exception>(() => clientBadUrl.ExecuteSynchronous(new ServiceRequest(payload: "Hello Open Telemetry!")));
+            await Assert.ThrowsAnyAsync<Exception>(() => clientBadUrl2.ExecuteAsync(new ServiceRequest(payload: "Hello Open Telemetry!")));
         }
         finally
         {
-            Action<ServiceClient> closeClient = client =>
+            static void CloseClient(ServiceClient client)
             {
                 if (client.State == CommunicationState.Faulted)
                 {
@@ -308,11 +293,12 @@ public class TelemetryBindingElementForTcpTests : IDisposable
                 {
                     client.Close();
                 }
-            };
-            closeClient(client);
-            closeClient(client2);
-            closeClient(clientBadUrl);
-            closeClient(clientBadUrl2);
+            }
+
+            CloseClient(client);
+            CloseClient(client2);
+            CloseClient(clientBadUrl);
+            CloseClient(clientBadUrl2);
 
             tracerProvider?.Shutdown();
             tracerProvider?.Dispose();
@@ -329,7 +315,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void OrphanedTelemetryTimesOut()
+    public async Task OrphanedTelemetryTimesOut()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -337,8 +323,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.None);
-        binding.SendTimeout = TimeSpan.FromMilliseconds(1000);
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromMilliseconds(1000),
+        };
         var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
@@ -377,7 +365,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     }
 
     [Fact]
-    public async void DynamicTimeoutValuesAreRespected()
+    public async Task DynamicTimeoutValuesAreRespected()
     {
         var stoppedActivities = new List<Activity>();
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -385,8 +373,10 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.None);
-        binding.SendTimeout = TimeSpan.FromMilliseconds(15000);
+        var binding = new NetTcpBinding(SecurityMode.None)
+        {
+            SendTimeout = TimeSpan.FromMilliseconds(15000),
+        };
         var client = new ServiceClient(binding, new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
         try
         {
@@ -433,18 +423,20 @@ public class TelemetryBindingElementForTcpTests : IDisposable
         // this config combination is unique because it uses an IRequestSessionChannel,
         // where other NetTcp configs use IDuplexChannel
 
-        List<Activity> stoppedActivities = new List<Activity>();
+        List<Activity> stoppedActivities = [];
         var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities)
             .AddWcfInstrumentation()
             .Build();
 
-        var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential);
-        binding.TransferMode = TransferMode.Streamed;
+        var binding = new NetTcpBinding(SecurityMode.TransportWithMessageCredential)
+        {
+            TransferMode = TransferMode.Streamed,
+        };
         binding.Security.Transport.ProtectionLevel = ProtectionLevel.EncryptAndSign;
         binding.Security.Message.ClientCredentialType = MessageCredentialType.Windows;
         var host = this.CreateServiceHost(binding, LoadCertificate());
-        ServiceClient client = new ServiceClient(binding, new EndpointAddress(new Uri(host.BaseAddresses[0], "/Service")));
+        var client = new ServiceClient(binding, new EndpointAddress(new Uri(host.BaseAddresses[0], "/Service")));
         try
         {
             client.ClientCredentials.ClientCertificate.Certificate = LoadCertificate();
@@ -496,7 +488,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
     private ServiceHost CreateServiceHost(NetTcpBinding binding, X509Certificate2? cert)
     {
         ServiceHost? serviceHost = null;
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         while (retryCount > 0)
         {
@@ -534,12 +526,7 @@ public class TelemetryBindingElementForTcpTests : IDisposable
             }
         }
 
-        if (serviceHost == null)
-        {
-            throw new InvalidOperationException("ServiceHost could not be started.");
-        }
-
-        return serviceHost;
+        return serviceHost ?? throw new InvalidOperationException("ServiceHost could not be started.");
     }
 }
 #endif

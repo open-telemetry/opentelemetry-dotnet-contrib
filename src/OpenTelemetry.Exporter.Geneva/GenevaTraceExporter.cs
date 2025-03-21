@@ -1,30 +1,33 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// An exporter for Geneva traces.
+/// </summary>
 public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 {
     internal readonly bool IsUsingUnixDomainSocket;
 
-    private bool isDisposed;
-
-    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch);
-
     private readonly ExportActivityFunc exportActivity;
-
     private readonly IDisposable exporter;
 
+    private bool isDisposed;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="GenevaTraceExporter"/> class.
+    /// </summary>
+    /// <param name="options"><see cref="GenevaExporterOptions"/>.</param>
     public GenevaTraceExporter(GenevaExporterOptions options)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNullOrWhitespace(options.ConnectionString);
 
         bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
@@ -56,32 +59,38 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
                 useMsgPackExporter = false;
                 break;
-
+            case TransportProtocol.Tcp:
+            case TransportProtocol.Udp:
+            case TransportProtocol.Unspecified:
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         if (useMsgPackExporter)
         {
             var msgPackTraceExporter = new MsgPackTraceExporter(options);
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
-            this.exportActivity = (in Batch<Activity> batch) => msgPackTraceExporter.Export(in batch);
+            this.exportActivity = msgPackTraceExporter.Export;
             this.exporter = msgPackTraceExporter;
         }
         else
         {
             var tldTraceExporter = new TldTraceExporter(options);
             this.IsUsingUnixDomainSocket = false;
-            this.exportActivity = (in Batch<Activity> batch) => tldTraceExporter.Export(in batch);
+            this.exportActivity = tldTraceExporter.Export;
             this.exporter = tldTraceExporter;
         }
     }
 
+    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch);
+
+    /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
         return this.exportActivity(in batch);
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (this.isDisposed)

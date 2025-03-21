@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
-
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
@@ -20,7 +18,7 @@ internal sealed class RouteInfoDiagnosticObserver : IDisposable, IObserver<Diagn
     internal const string OnStopEvent = "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop";
     internal const string OnMvcBeforeActionEvent = "Microsoft.AspNetCore.Mvc.BeforeAction";
 
-    private readonly List<IDisposable> listenerSubscriptions = new();
+    private readonly List<IDisposable> listenerSubscriptions = [];
     private IDisposable? allSourcesSubscription;
     private long disposed;
 
@@ -96,15 +94,22 @@ internal sealed class RouteInfoDiagnosticObserver : IDisposable, IObserver<Diagn
 
         lock (this.listenerSubscriptions)
         {
-            foreach (var listenerSubscription in this.listenerSubscriptions)
+            if (disposing)
             {
-                listenerSubscription?.Dispose();
+                foreach (var listenerSubscription in this.listenerSubscriptions)
+                {
+                    listenerSubscription?.Dispose();
+                }
             }
 
             this.listenerSubscriptions.Clear();
         }
 
-        this.allSourcesSubscription?.Dispose();
+        if (disposing)
+        {
+            this.allSourcesSubscription?.Dispose();
+        }
+
         this.allSourcesSubscription = null;
     }
 }

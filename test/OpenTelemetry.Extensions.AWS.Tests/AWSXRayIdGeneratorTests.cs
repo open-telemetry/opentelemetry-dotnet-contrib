@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -80,7 +79,7 @@ public class AWSXRayIdGeneratorTests
             {
                 using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
                 {
-                    Assert.True(activity?.ActivityTraceFlags == ActivityTraceFlags.Recorded);
+                    Assert.Equal(ActivityTraceFlags.Recorded, activity?.ActivityTraceFlags);
                 }
             }
         }
@@ -101,7 +100,7 @@ public class AWSXRayIdGeneratorTests
             {
                 using (var activity = activitySource.StartActivity("RootActivity", ActivityKind.Internal))
                 {
-                    Assert.True(activity?.ActivityTraceFlags == ActivityTraceFlags.None);
+                    Assert.Equal(ActivityTraceFlags.None, activity?.ActivityTraceFlags);
                 }
             }
         }

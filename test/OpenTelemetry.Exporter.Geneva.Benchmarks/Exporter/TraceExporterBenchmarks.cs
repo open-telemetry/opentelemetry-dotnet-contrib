@@ -1,9 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Trace;
 
 /*
@@ -30,7 +30,7 @@ public class TraceExporterBenchmarks
     private readonly Batch<Activity> batch;
     private readonly MsgPackTraceExporter exporter;
     private readonly TracerProvider tracerProvider;
-    private readonly ActivitySource activitySource = new ActivitySource("OpenTelemetry.Exporter.Geneva.Benchmark");
+    private readonly ActivitySource activitySource = new("OpenTelemetry.Exporter.Geneva.Benchmark");
 
     public TraceExporterBenchmarks()
     {
@@ -51,10 +51,10 @@ public class TraceExporterBenchmarks
 
         using (var testActivity = this.activitySource.StartActivity("Benchmark"))
         {
-            this.activity = testActivity;
+            this.activity = testActivity!;
             this.activity.SetTag("tagString", "value");
             this.activity.SetTag("tagInt", 100);
-            this.activity.SetStatus(Status.Error);
+            this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
         activityListener.Dispose();
@@ -125,11 +125,11 @@ public class TraceExporterBenchmarks
             .AddProcessor(new SimpleActivityExportProcessor(batchGeneratorExporter))
             .Build();
 
-        using (var activity = this.activitySource.StartActivity("Benchmark"))
+        using (var activity = this.activitySource.StartActivity("Benchmark")!)
         {
             activity.SetTag("tagString", "value");
             activity.SetTag("tagInt", 100);
-            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         return batchGeneratorExporter.Batch;

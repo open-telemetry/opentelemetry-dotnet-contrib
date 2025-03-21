@@ -1,12 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable disable
-
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
 using System.Diagnostics;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Instrumentation;
 
@@ -17,13 +12,23 @@ internal static class ActivityInstrumentationHelper
 
     private static Action<Activity, ActivitySource> CreateActivitySourceSetter()
     {
-        return (Action<Activity, ActivitySource>)typeof(Activity).GetProperty("Source")
-            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivitySource>));
+#if NET
+        return typeof(Activity).GetProperty("Source")!
+            .SetMethod!.CreateDelegate<Action<Activity, ActivitySource>>();
+#else
+        return (Action<Activity, ActivitySource>)typeof(Activity).GetProperty("Source")!
+            .SetMethod!.CreateDelegate(typeof(Action<Activity, ActivitySource>));
+#endif
     }
 
     private static Action<Activity, ActivityKind> CreateActivityKindSetter()
     {
-        return (Action<Activity, ActivityKind>)typeof(Activity).GetProperty("Kind")
-            .SetMethod.CreateDelegate(typeof(Action<Activity, ActivityKind>));
+#if NET
+        return typeof(Activity).GetProperty("Kind")!
+            .SetMethod!.CreateDelegate<Action<Activity, ActivityKind>>();
+#else
+        return (Action<Activity, ActivityKind>)typeof(Activity).GetProperty("Kind")!
+            .SetMethod!.CreateDelegate(typeof(Action<Activity, ActivityKind>));
+#endif
     }
 }

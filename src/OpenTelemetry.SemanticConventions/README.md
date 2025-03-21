@@ -11,8 +11,8 @@ dotnet add package OpenTelemetry.SemanticConventions --prerelease
 
 ## Generating the files
 
-This project uses the
-[Semantic Convention Generator](https://github.com/open-telemetry/build-tools/blob/main/semantic-conventions/README.md).
+This project uses
+[Weaver](https://github.com/open-telemetry/weaver).
 The folder `scripts` at the top level of the project contains the template
 and the script files used in the process.
 
@@ -31,4 +31,5 @@ Or, with PowerShell:
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
-* [Build tools](https://github.com/open-telemetry/build-tools)
+* [Semantic Conventions](https://github.com/open-telemetry/semantic-conventions)
+* [Weaver](https://github.com/open-telemetry/weaver)

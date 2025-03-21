@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.ServiceModel;
-using System.Threading.Tasks;
 
 namespace Examples.Wcf.Client;
 
-public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
+internal class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
 {
     public StatusServiceClient(string name)
         : base(name)

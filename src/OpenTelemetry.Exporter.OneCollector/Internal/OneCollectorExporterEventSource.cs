@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET6_0_OR_GREATER
+#if NET
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Diagnostics.Tracing;
@@ -24,15 +24,6 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
             this.ExportExceptionThrown(itemType, exception.ToInvariantString());
-        }
-    }
-
-    [NonEvent]
-    public void WriteTransportDataSentEventIfEnabled(string itemType, int? numberOfRecords, string transportDescription)
-    {
-        if (this.IsInformationalLoggingEnabled())
-        {
-            this.TransportDataSent(itemType, numberOfRecords ?? -1, transportDescription);
         }
     }
 
@@ -79,7 +70,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [Event(2, Message = "Sent '{0}' batch of {1} item(s) to '{2}' transport.", Level = EventLevel.Informational)]
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
 #endif
     public void TransportDataSent(string itemType, int numberOfRecords, string transportDescription)
@@ -88,7 +79,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [Event(3, Message = "Wrote '{0}' batch of {1} item(s) to '{2}' sink.", Level = EventLevel.Informational)]
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
 #endif
     public void SinkDataWritten(string itemType, int numberOfRecords, string sinkDescription)
@@ -96,10 +87,13 @@ internal sealed class OneCollectorExporterEventSource : EventSource
         this.WriteEvent(3, itemType, numberOfRecords, sinkDescription);
     }
 
-    [Event(4, Message = "Dropped {1} '{0}' item(s).", Level = EventLevel.Warning)]
-    public void DataDropped(string itemType, int numberOfRecords)
+    [Event(4, Message = "Dropped {1} '{0}' item(s). {2} item(s) dropped during serialization. {3} item(s) dropped due to transmission failure.", Level = EventLevel.Warning)]
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
+#endif
+    public void DataDropped(string itemType, int numberOfRecords, int numberOfRecordsDroppedDuringSerialization, int numberOfRecordsDroppedDuringTransmission)
     {
-        this.WriteEvent(4, itemType, numberOfRecords);
+        this.WriteEvent(4, itemType, numberOfRecords, numberOfRecordsDroppedDuringSerialization, numberOfRecordsDroppedDuringTransmission);
     }
 
     [Event(5, Message = "Exception thrown by '{0}' transport: {1}", Level = EventLevel.Error)]
@@ -109,7 +103,7 @@ internal sealed class OneCollectorExporterEventSource : EventSource
     }
 
     [Event(6, Message = "Error response received by '{0}' transport. StatusCode: {1}, ErrorMessage: '{2}', ErrorDetails: '{3}'", Level = EventLevel.Error)]
-#if NET6_0_OR_GREATER
+#if NET
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Parameters passed to WriteEvent are all primitive values.")]
 #endif
     public void HttpTransportErrorResponseReceived(string transportType, int statusCode, string errorMessage, string errorDetails)

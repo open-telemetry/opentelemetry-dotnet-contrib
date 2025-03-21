@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Description>Unit test project for OpenTelemetry Elasticsearch client instrumentation</Description>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Nullable>disable</Nullable>
+    <Description>Unit test project for OpenTelemetry Elasticsearch client instrumentation.</Description>
   </PropertyGroup>
 
   <ItemGroup>

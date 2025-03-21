@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
@@ -65,7 +64,6 @@ internal sealed class HttpInListener : IDisposable
             }
 
             var request = context.Request;
-            var requestValues = request.Unvalidated;
 
             // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
             var originalHttpMethod = request.HttpMethod;
@@ -83,8 +81,6 @@ internal sealed class HttpInListener : IDisposable
             {
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
-
-            activity.SetTag(SemanticConventions.AttributeUrlPath, requestValues.Path);
 
             // TODO url.query should be sanitized
             var query = url.Query;
@@ -150,7 +146,7 @@ internal sealed class HttpInListener : IDisposable
         {
             if (this.options.RecordException)
             {
-                activity.RecordException(exception);
+                activity.AddException(exception);
             }
 
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);

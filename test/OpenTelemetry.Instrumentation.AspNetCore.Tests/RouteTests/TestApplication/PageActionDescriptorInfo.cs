@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#nullable enable
 using System.Text.Json.Serialization;
 
 namespace RouteTests.TestApplication;
 
-public class PageActionDescriptorInfo
+internal class PageActionDescriptorInfo
 {
     public PageActionDescriptorInfo()
     {

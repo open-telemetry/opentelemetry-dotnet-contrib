@@ -1,11 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.External;
-using OpenTelemetry.Exporter.Geneva.TldExporter;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Exporter.Geneva.Tld;
 
 /*
 BenchmarkDotNet v0.13.10, Windows 11 (10.0.23424.1000)

@@ -16,7 +16,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void EmptyLogRecordJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) => { });
+        var json = GetLogRecordJson(1, (index, logRecord) => { });
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n",
@@ -26,7 +26,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void MultipleEmptyLogRecordJsonTest()
     {
-        string json = GetLogRecordJson(2, (index, logRecord) => { });
+        var json = GetLogRecordJson(2, (index, logRecord) => { });
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1}}""" + "\n"
@@ -44,9 +44,12 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [InlineData(LogLevel.None, "Trace", 1)]
     public void LogRecordLogLevelJsonTest(LogLevel logLevel, string severityText, int severityNumber)
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
+#pragma warning disable CS0618 // Type or member is obsolete
+            // TODO: Update to use LogRecord.Severity
             logRecord.LogLevel = logLevel;
+#pragma warning restore CS0618 // Type or member is obsolete
         });
 
         Assert.Equal(
@@ -59,7 +62,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [InlineData("MyClass.Company", "MyEvent")]
     public void LogRecordCategoryNameAndEventNameJsonTest(string categoryName, string? eventName)
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.CategoryName = categoryName;
             logRecord.EventId = new(0, eventName);
@@ -70,10 +73,41 @@ public class LogRecordCommonSchemaJsonSerializerTests
             json);
     }
 
+    [Theory]
+    [InlineData("MyClass.Company", null, "MyNewEvent")]
+    [InlineData("MyClass.Company", "MyEvent", "MyNewEvent")]
+    [InlineData("MyClass.OtherCompany", "MyEvent", "MyDefaultEvent")]
+    [InlineData("NotMapped", null, "Namespace.Name")]
+    public void EventFullNameMappedJsonTest(string categoryName, string? eventName, string expectedEventFullName)
+    {
+        var eventFullNameMappings = new Dictionary<string, EventFullName>
+        {
+            { "MyClass.Company", EventFullName.Create("MyNewEvent") },
+            { "MyClass", EventFullName.Create("MyDefaultEvent") },
+        };
+
+        var json = GetLogRecordJson(
+            1,
+            (index, logRecord) =>
+            {
+                logRecord.CategoryName = categoryName;
+                logRecord.EventId = new(0, eventName);
+            },
+            eventFullNameMappings: eventFullNameMappings);
+
+        var expectedName = eventName == null
+            ? string.Empty
+            : $"\"name\":\"{eventName}\",";
+
+        Assert.Equal(
+            $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"namespace":"{{{categoryName}}}",{{{expectedName}}}"severityText":"Trace","severityNumber":1}}""" + "\n",
+            json);
+    }
+
     [Fact]
     public void LogRecordEventIdJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.EventId = new(18);
         });
@@ -86,7 +120,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordTimestampJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.Timestamp = DateTime.SpecifyKind(new DateTime(2023, 1, 18, 10, 18, 0), DateTimeKind.Utc);
         });
@@ -99,9 +133,9 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordOriginalFormatBodyJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("{OriginalFormat}", "hello world") };
+            logRecord.Attributes = [new KeyValuePair<string, object?>("{OriginalFormat}", "hello world")];
             logRecord.FormattedMessage = "goodbye world";
         });
 
@@ -113,7 +147,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordBodyJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.Body = "hello world";
             logRecord.FormattedMessage = "goodbye world";
@@ -127,7 +161,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [Fact]
     public void LogRecordFormattedMessageBodyJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.FormattedMessage = "goodbye world";
         });
@@ -148,7 +182,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
             })
             .Build();
 
-        string json = GetLogRecordJson(1, (index, logRecord) => { }, resource);
+        var json = GetLogRecordJson(1, (index, logRecord) => { }, resource);
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"resourceKey1":"resourceValue1","resourceKey2":"resourceValue2"}}""" + "\n",
@@ -159,10 +193,13 @@ public class LogRecordCommonSchemaJsonSerializerTests
     public void LogRecordScopesJsonTest()
     {
         var scopeProvider = new ScopeProvider(
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"), new KeyValuePair<string, object?>("scope1Key2", "scope1Value2") },
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("scope2Key1", "scope2Value1") });
+            [
+                new KeyValuePair<string, object?>("scope1Key1", "scope1Value1"),
+                new KeyValuePair<string, object?>("scope1Key2", "scope1Value2")
+            ],
+            [new KeyValuePair<string, object?>("scope2Key1", "scope2Value1")]);
 
-        string json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider);
+        var json = GetLogRecordJson(1, (index, logRecord) => { }, scopeProvider: scopeProvider);
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"scope1Key1":"scope1Value1","scope1Key2":"scope1Value2","scope2Key1":"scope2Value1"}}""" + "\n",
@@ -170,15 +207,37 @@ public class LogRecordCommonSchemaJsonSerializerTests
     }
 
     [Fact]
-    public void LogRecordStateValuesJsonTest()
+    public void LogRecordAttributesJsonTest()
     {
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
-            logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("stateKey1", "stateValue1"), new KeyValuePair<string, object?>("stateKey2", "stateValue2") };
+            logRecord.Attributes =
+            [
+                new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
+                new KeyValuePair<string, object?>("stateKey2", "stateValue2")
+            ];
         });
 
         Assert.Equal(
             """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
+            json);
+    }
+
+    [Fact]
+    public void LogRecordAttributesWithEventFullNameJsonTest()
+    {
+        string json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.Attributes = new List<KeyValuePair<string, object?>>
+            {
+                new KeyValuePair<string, object?>("{EventFullName}", "company_Product_EventName"),
+                new KeyValuePair<string, object?>("stateKey1", "stateValue1"),
+                new KeyValuePair<string, object?>("stateKey2", "stateValue2"),
+            };
+        });
+
+        Assert.Equal(
+            """{"ver":"4.0","name":"Company_Product_EventName","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1,"stateKey1":"stateValue1","stateKey2":"stateValue2"}}""" + "\n",
             json);
     }
 
@@ -188,7 +247,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
         var traceId = ActivityTraceId.CreateRandom();
         var spanId = ActivitySpanId.CreateRandom();
 
-        string json = GetLogRecordJson(1, (index, logRecord) =>
+        var json = GetLogRecordJson(1, (index, logRecord) =>
         {
             logRecord.TraceId = traceId;
             logRecord.SpanId = spanId;
@@ -207,7 +266,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     [InlineData(false)]
     public void LogRecordExceptionJsonTest(bool includeStackTraceAsString)
     {
-        string json = GetLogRecordJson(
+        var json = GetLogRecordJson(
             1,
             (index, logRecord) =>
             {
@@ -230,7 +289,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
     public void LogRecordExtensionsJsonTest()
     {
         var scopeProvider = new ScopeProvider(
-            new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1") });
+            [new KeyValuePair<string, object?>("ext.scope.field", "scopeValue1")]);
 
         var resource = ResourceBuilder.CreateEmpty()
             .AddAttributes(new Dictionary<string, object>
@@ -239,17 +298,18 @@ public class LogRecordCommonSchemaJsonSerializerTests
             })
             .Build();
 
-        string json = GetLogRecordJson(
-            1,
+        var json = GetLogRecordJson(
+            2,
             (index, logRecord) =>
             {
-                logRecord.Attributes = new List<KeyValuePair<string, object?>> { new KeyValuePair<string, object?>("ext.state.field", "stateValue1") };
+                logRecord.Attributes = [new KeyValuePair<string, object?>("ext.state.field", "stateValue1")];
             },
             resource,
             scopeProvider);
 
         Assert.Equal(
-            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n",
+            """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n"
+            + """{"ver":"4.0","name":"Namespace.Name","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"severityText":"Trace","severityNumber":1},"ext":{"state":{"field":"stateValue1"},"resource":{"field":"resourceValue1"},"scope":{"field":"scopeValue1"}}}""" + "\n",
             json);
     }
 
@@ -258,10 +318,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Action<int, LogRecord> writeLogRecordCallback,
         Resource? resource = null,
         ScopeProvider? scopeProvider = null,
-        bool includeStackTraceAsString = false)
+        bool includeStackTraceAsString = false,
+        IReadOnlyDictionary<string, EventFullName>? eventFullNameMappings = null)
     {
         var serializer = new LogRecordCommonSchemaJsonSerializer(
-            new("Namespace", "Name"),
+            new EventNameManager("Namespace", "Name", eventFullNameMappings),
             "tenant-token",
             exceptionStackTraceHandling: includeStackTraceAsString ? OneCollectorExporterSerializationExceptionStackTraceHandlingType.IncludeAsString : OneCollectorExporterSerializationExceptionStackTraceHandlingType.Ignore);
 
@@ -269,7 +330,7 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         var logRecords = new LogRecord[numberOfLogRecords];
 
-        for (int i = 0; i < numberOfLogRecords; i++)
+        for (var i = 0; i < numberOfLogRecords; i++)
         {
             var logRecord = (LogRecord)Activator.CreateInstance(typeof(LogRecord), nonPublic: true)!;
 
@@ -299,9 +360,11 @@ public class LogRecordCommonSchemaJsonSerializerTests
 
         var batch = new Batch<LogRecord>(logRecords, numberOfLogRecords);
 
+        var state = new BatchSerializationState<LogRecord>(in batch);
+
         serializer.SerializeBatchOfItemsToStream(
             resource ?? Resource.Empty,
-            in batch,
+            ref state,
             stream,
             initialSizeOfPayloadInBytes: 0,
             out var result);

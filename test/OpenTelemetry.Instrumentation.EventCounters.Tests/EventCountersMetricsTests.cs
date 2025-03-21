@@ -1,12 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -18,7 +13,7 @@ public class EventCountersMetricsTests
     public void EventCounter()
     {
         // Arrange
-        List<Metric> metricItems = new();
+        List<Metric> metricItems = [];
         using EventSource source = new("a");
         using EventCounter counter = new("c", source);
 
@@ -44,7 +39,7 @@ public class EventCountersMetricsTests
     public void IncrementingEventCounter()
     {
         // Arrange
-        List<Metric> metricItems = new();
+        List<Metric> metricItems = [];
         using EventSource source = new("b");
         using IncrementingEventCounter incCounter = new("inc-c", source);
 
@@ -72,8 +67,8 @@ public class EventCountersMetricsTests
     public void PollingCounter()
     {
         // Arrange
-        int i = 0;
-        List<Metric> metricItems = new();
+        var i = 0;
+        List<Metric> metricItems = [];
         using EventSource source = new("c");
         using PollingCounter pollCounter = new("poll-c", source, () => ++i * 10);
 
@@ -98,8 +93,8 @@ public class EventCountersMetricsTests
     public void IncrementingPollingCounter()
     {
         // Arrange
-        int i = 1;
-        List<Metric> metricItems = new();
+        var i = 1;
+        List<Metric> metricItems = [];
         using EventSource source = new("d");
         using IncrementingPollingCounter incPollCounter = new("inc-poll-c", source, () => i++);
 
@@ -147,7 +142,7 @@ public class EventCountersMetricsTests
     public void EventSourceNameShortening(string sourceName, string eventName, string expectedInstrumentName)
     {
         // Arrange
-        List<Metric> metricItems = new();
+        List<Metric> metricItems = [];
         using EventSource source = new(sourceName);
         using IncrementingEventCounter connections = new(eventName, source);
 
@@ -169,14 +164,14 @@ public class EventCountersMetricsTests
     }
 
     [Fact(Skip = "This test should properly validate no metrics are exported from event counters with invalid names (too long)")]
-    public void InstrumentNameTooLong()
+    public async Task InstrumentNameTooLong()
     {
         // Arrange
-        List<Metric> metricItems = new();
+        List<Metric> metricItems = [];
         using EventSource source = new("source");
 
         // ec.s. + event name is 63;
-        string veryLongEventName = new string('e', 100);
+        var veryLongEventName = new string('e', 100);
         using IncrementingEventCounter connections = new(veryLongEventName, source);
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -190,7 +185,7 @@ public class EventCountersMetricsTests
         // Act
         connections.Increment(1);
 
-        Task.Delay(1800).Wait();
+        await Task.Delay(1800);
         meterProvider.ForceFlush();
 
         // Assert

@@ -1,12 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -90,6 +87,40 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Fact]
+    public void EntityFrameworkEnrichDisplayNameWithEnrichWithIDbCommand_New()
+    {
+        var exportedItems = new List<Activity>();
+        var expectedDisplayName = "Text main";
+        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddEntityFrameworkCoreInstrumentation(options =>
+            {
+                options.EnrichWithIDbCommand = (activity1, command) =>
+                {
+                    var stateDisplayName = $"{command.CommandType} main";
+                    activity1.DisplayName = stateDisplayName;
+                    activity1.SetTag("db.namespace", stateDisplayName);
+                };
+                options.EmitNewAttributes = true;
+            }).Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+
+            Assert.Equal(3, items.Count);
+            Assert.Equal("ItemOne", items[0].Name);
+            Assert.Equal("ItemThree", items[1].Name);
+            Assert.Equal("ItemTwo", items[2].Name);
+        }
+
+        Assert.Single(exportedItems);
+        var activity = exportedItems[0];
+
+        VerifyActivityData(activity, altDisplayName: $"{expectedDisplayName}", emitNewAttributes: true);
+    }
+
+    [Fact]
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
         var exportedItems = new List<Activity>();
@@ -161,14 +192,14 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Theory]
     [InlineData("Microsoft.EntityFrameworkCore.SqlServer")]
     [InlineData("Microsoft.EntityFrameworkCore.Cosmos")]
-    [InlineData("Devart.Data.SQLite.EFCore")]
+    [InlineData("Devart.Data.SQLite.Entity.EFCore")]
     [InlineData("MySql.Data.EntityFrameworkCore")]
     [InlineData("Pomelo.EntityFrameworkCore.MySql")]
-    [InlineData("Devart.Data.MySql.EFCore")]
+    [InlineData("Devart.Data.MySql.Entity.EFCore")]
     [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL")]
-    [InlineData("Devart.Data.PostgreSql.EFCore")]
+    [InlineData("Devart.Data.PostgreSql.Entity.EFCore")]
     [InlineData("Oracle.EntityFrameworkCore")]
-    [InlineData("Devart.Data.Oracle.EFCore")]
+    [InlineData("Devart.Data.Oracle.Entity.EFCore")]
     [InlineData("Microsoft.EntityFrameworkCore.InMemory")]
     [InlineData("FirebirdSql.EntityFrameworkCore.Firebird")]
     [InlineData("FileContextCore")]
@@ -230,7 +261,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return connection;
     }
 
-    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null)
+    private static void VerifyActivityData(Activity activity, bool isError = false, string? altDisplayName = null, bool emitNewAttributes = false)
     {
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
@@ -240,18 +271,24 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
         Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
 
-        Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        if (!emitNewAttributes)
+        {
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
+        }
 
         if (!isError)
         {
-            Assert.Equal(Status.Unset, activity.GetStatus());
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         }
         else
         {
-            Status status = activity.GetStatus();
-            Assert.Equal(StatusCode.Error, status.StatusCode);
-            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", status.Description);
-            Assert.Contains(activity.Tags, t => t.Key == SpanAttributeConstants.StatusDescriptionKey);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
         }
     }
 

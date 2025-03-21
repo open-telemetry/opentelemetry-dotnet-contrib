@@ -17,6 +17,8 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
+        state.BeginItem();
+
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field1", 1));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field2", 2));
         state.AddExtensionAttribute(new KeyValuePair<string, object?>("ext.something.field3", 3));
@@ -42,7 +44,10 @@ public class CommonSchemaJsonSerializationStateTests
 
         stream.SetLength(0);
         writer.Reset(stream);
+
         state.Reset("Test", writer);
+
+        state.BeginItem();
 
         Assert.Equal(0, state.ExtensionPropertyCount);
         Assert.Equal(0, state.ExtensionAttributeCount);
@@ -101,7 +106,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
-        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
+        for (var i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionKeys + 10; i++)
         {
             state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something{i}.field1", 1));
         }
@@ -118,7 +123,7 @@ public class CommonSchemaJsonSerializationStateTests
 
         var state = new CommonSchemaJsonSerializationState("Test", writer);
 
-        for (int i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
+        for (var i = 0; i < CommonSchemaJsonSerializationState.MaxNumberOfExtensionValuesPerKey + 10; i++)
         {
             state.AddExtensionAttribute(new KeyValuePair<string, object?>($"ext.something.field{i}", i));
         }

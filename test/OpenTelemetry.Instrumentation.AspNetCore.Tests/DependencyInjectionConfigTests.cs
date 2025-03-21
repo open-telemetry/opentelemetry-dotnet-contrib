@@ -24,11 +24,11 @@ public class DependencyInjectionConfigTests
     [Theory]
     [InlineData(null)]
     [InlineData("CustomName")]
-    public void TestTracingOptionsDIConfig(string name)
+    public void TestTracingOptionsDIConfig(string? name)
     {
         name ??= Options.DefaultName;
 
-        bool optionsPickedFromDI = false;
+        var optionsPickedFromDI = false;
         void ConfigureTestServices(IServiceCollection services)
         {
             services.AddOpenTelemetry()

@@ -6,12 +6,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Internal;
-
-#if NET6_0_OR_GREATER
+#if NET
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Routing;
 #endif
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
@@ -34,7 +33,11 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     private static readonly PropertyFetcher<HttpContext> HttpContextPropertyFetcher = new("HttpContext");
     private static readonly object ErrorTypeHttpContextItemsKey = new();
 
-    private static readonly Histogram<double> HttpServerRequestDuration = Meter.CreateHistogram<double>(HttpServerRequestDurationMetricName, "s", "Duration of HTTP server requests.");
+    private static readonly Histogram<double> HttpServerRequestDuration = Meter.CreateHistogram(
+        HttpServerRequestDurationMetricName,
+        unit: "s",
+        description: " Duration of HTTP server requests.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
     internal HttpInMetricsListener(string name)
         : base(name)
@@ -44,7 +47,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
     public static void OnExceptionEventWritten(string name, object? payload)
     {
         // We need to use reflection here as the payload type is not a defined public type.
-        if (!TryFetchException(payload, out Exception? exc) || !TryFetchHttpContext(payload, out HttpContext? ctx))
+        if (!TryFetchException(payload, out var exc) || !TryFetchHttpContext(payload, out var ctx))
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnExceptionEventWritten), HttpServerRequestDurationMetricName);
             return;
@@ -55,22 +58,25 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         // See https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Hosting/Hosting/src/Internal/HostingApplicationDiagnostics.cs#L252
         // and https://github.com/dotnet/aspnetcore/blob/690d78279e940d267669f825aa6627b0d731f64c/src/Middleware/Diagnostics/src/DeveloperExceptionPage/DeveloperExceptionPageMiddlewareImpl.cs#L174
         // this makes sure that top-level properties on the payload object are always preserved.
-#if NET6_0_OR_GREATER
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchException(object? payload, [NotNullWhen(true)] out Exception? exc)
-            => ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
-#if NET6_0_OR_GREATER
+        {
+            return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
+        }
+#if NET
         [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
 #endif
         static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? ctx)
-            => HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        {
+            return HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
+        }
     }
 
     public static void OnStopEventWritten(string name, object? payload)
     {
-        var context = payload as HttpContext;
-        if (context == null)
+        if (payload is not HttpContext context)
         {
             AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnStopEventWritten), HttpServerRequestDurationMetricName);
             return;
@@ -86,7 +92,7 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         var httpMethod = TelemetryHelper.RequestDataHelper.GetNormalizedHttpMethod(context.Request.Method);
         tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRequestMethod, httpMethod));
 
-#if NET6_0_OR_GREATER
+#if NET
         // Check the exception handler feature first in case the endpoint was overwritten
         var route = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
                      context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
@@ -122,6 +128,8 @@ internal sealed class HttpInMetricsListener : ListenerHandler
                     OnStopEventWritten(name, payload);
                 }
 
+                break;
+            default:
                 break;
         }
     }

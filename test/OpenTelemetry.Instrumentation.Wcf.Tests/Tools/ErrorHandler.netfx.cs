@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #if NETFRAMEWORK
-using System;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Dispatcher;
-using System.Threading;
 
 namespace OpenTelemetry.Instrumentation.Wcf.Tests.Tools;
 

@@ -3,9 +3,6 @@
 
 #if !NETFRAMEWORK
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 
@@ -80,8 +77,7 @@ internal class ServerCertificateValidationProvider
 
     private bool ValidateCertificate(X509Certificate2? cert, X509Chain? chain, SslPolicyErrors errors)
     {
-        var isSslPolicyPassed = errors == SslPolicyErrors.None ||
-                                errors == SslPolicyErrors.RemoteCertificateChainErrors;
+        var isSslPolicyPassed = errors is SslPolicyErrors.None or SslPolicyErrors.RemoteCertificateChainErrors;
         if (!isSslPolicyPassed)
         {
             if ((errors | SslPolicyErrors.RemoteCertificateNotAvailable) == errors)

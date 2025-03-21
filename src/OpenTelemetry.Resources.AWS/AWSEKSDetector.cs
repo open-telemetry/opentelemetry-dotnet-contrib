@@ -1,11 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
+#if NET
 using System.Text;
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -21,6 +19,13 @@ internal sealed class AWSEKSDetector : IResourceDetector
     private const string AWSClusterInfoUrl = "https://kubernetes.default.svc/api/v1/namespaces/amazon-cloudwatch/configmaps/cluster-info";
     private const string AWSAuthUrl = "https://kubernetes.default.svc/api/v1/namespaces/kube-system/configmaps/aws-auth";
 
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEKSDetector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
+
     /// <summary>
     /// Detector the required and optional resource attributes from AWS EKS.
     /// </summary>
@@ -30,42 +35,18 @@ internal sealed class AWSEKSDetector : IResourceDetector
         var credentials = GetEKSCredentials(AWSEKSCredentialPath);
         using var httpClientHandler = ServerCertificateValidationHandler.Create(AWSEKSCertificatePath, AWSResourcesEventSource.Log);
 
-        if (credentials == null || !IsEKSProcess(credentials, httpClientHandler))
-        {
-            return Resource.Empty;
-        }
-
-        return new Resource(ExtractResourceAttributes(
-            GetEKSClusterName(credentials, httpClientHandler),
-            GetEKSContainerId(AWSEKSMetadataFilePath)));
-    }
-
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
-    {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudPlatform, "aws_eks"),
-        };
-
-        if (!string.IsNullOrEmpty(clusterName))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeK8SClusterName, clusterName!));
-        }
-
-        if (!string.IsNullOrEmpty(containerId))
-        {
-            resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeContainerID, containerId!));
-        }
-
-        return resourceAttributes;
+        return credentials == null || !IsEKSProcess(credentials, httpClientHandler)
+            ? Resource.Empty
+            : new Resource(this.ExtractResourceAttributes(
+                GetEKSClusterName(credentials, httpClientHandler),
+                GetEKSContainerId(AWSEKSMetadataFilePath)));
     }
 
     internal static string? GetEKSCredentials(string path)
     {
         try
         {
-            var stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder("Bearer ");
 
             using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
             {
@@ -74,8 +55,6 @@ internal sealed class AWSEKSDetector : IResourceDetector
                     stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
-
-            stringBuilder.Insert(0, "Bearer ");
 
             return stringBuilder.ToString();
         }
@@ -91,15 +70,13 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         try
         {
-            using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
+            using var streamReader = ResourceDetectorUtils.GetStreamReader(path);
+            while (!streamReader.EndOfStream)
             {
-                while (!streamReader.EndOfStream)
+                var trimmedLine = streamReader.ReadLine()?.Trim();
+                if (trimmedLine?.Length > 64)
                 {
-                    var trimmedLine = streamReader.ReadLine()?.Trim();
-                    if (trimmedLine?.Length > 64)
-                    {
-                        return trimmedLine.Substring(trimmedLine.Length - 64);
-                    }
+                    return trimmedLine.Substring(trimmedLine.Length - 64);
                 }
             }
         }
@@ -113,11 +90,25 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     internal static AWSEKSClusterInformationModel? DeserializeResponse(string response)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEKSClusterInformationModel);
 #else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
 #endif
+    }
+
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(string? clusterName, string? containerId)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEks()
+                .AddAttributeK8SClusterName(clusterName)
+                .AddAttributeContainerId(containerId)
+                .Build();
+
+        return resourceAttributes;
     }
 
     private static string? GetEKSClusterName(string credentials, HttpClientHandler? httpClientHandler)
@@ -140,7 +131,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
         string? awsAuth = null;
         try
         {
-            awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+            awsAuth = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSAuthUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
         }
         catch (Exception ex)
         {
@@ -152,7 +143,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     private static string GetEKSClusterInfo(string credentials, HttpClientHandler? httpClientHandler)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSClusterInfoUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
     }
 }
 #endif

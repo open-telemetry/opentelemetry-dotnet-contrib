@@ -1,12 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
@@ -20,9 +18,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
     internal const string AttributePeerService = "peer.service";
+    internal const string AttributeServerAddress = "server.address";
     internal const string AttributeDbSystem = "db.system";
     internal const string AttributeDbName = "db.name";
+    internal const string AttributeDbNamespace = "db.namespace";
     internal const string AttributeDbStatement = "db.statement";
+    internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name;
@@ -52,7 +53,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        Activity? activity = Activity.Current;
+        var activity = Activity.Current;
 
         switch (name)
         {
@@ -92,20 +93,20 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "cosmosdb");
                                 break;
                             case "Microsoft.EntityFrameworkCore.Sqlite":
-                            case "Devart.Data.SQLite.EFCore":
+                            case "Devart.Data.SQLite.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "sqlite");
                                 break;
                             case "MySql.Data.EntityFrameworkCore":
                             case "Pomelo.EntityFrameworkCore.MySql":
-                            case "Devart.Data.MySql.EFCore":
+                            case "Devart.Data.MySql.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
-                            case "Devart.Data.PostgreSql.EFCore":
+                            case "Devart.Data.PostgreSql.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
-                            case "Devart.Data.Oracle.EFCore":
+                            case "Devart.Data.Oracle.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":
@@ -140,10 +141,19 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         }
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        activity.AddTag(AttributeDbName, database);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            activity.AddTag(AttributePeerService, dataSource);
+                            activity.AddTag(AttributeServerAddress, dataSource);
+                        }
+
+                        if (this.options.EmitOldAttributes)
+                        {
+                            activity.AddTag(AttributeDbName, database);
+                        }
+
+                        if (this.options.EmitNewAttributes)
+                        {
+                            activity.AddTag(AttributeDbNamespace, database);
                         }
                     }
                 }
@@ -197,7 +207,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.StoredProcedure:
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
-                                        activity.AddTag(AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
@@ -205,12 +223,22 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        activity.AddTag(AttributeDbStatement, commandText);
+                                        if (this.options.EmitOldAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbStatement, commandText);
+                                        }
+
+                                        if (this.options.EmitNewAttributes)
+                                        {
+                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                        }
                                     }
 
                                     break;
 
                                 case CommandType.TableDirect:
+                                    break;
+                                default:
                                     break;
                             }
                         }
@@ -268,7 +296,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         {
                             if (this.exceptionFetcher.Fetch(payload) is Exception exception)
                             {
-                                activity.SetStatus(Status.Error.WithDescription(exception.Message));
+                                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
                             }
                             else
                             {
@@ -282,6 +310,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     }
                 }
 
+                break;
+            default:
                 break;
         }
     }

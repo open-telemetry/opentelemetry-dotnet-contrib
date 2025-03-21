@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace OpenTelemetry.Exporter.Instana.Implementation.Processors;
 
@@ -15,7 +13,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
 
         foreach (var activityEvent in activity.Events)
         {
-            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD)
+            if (activityEvent.Name == InstanaExporterConstants.EXCEPTION_FIELD && instanaSpan.TransformInfo != null)
             {
                 instanaSpan.TransformInfo.HasExceptionEvent = true;
             }
@@ -24,7 +22,7 @@ internal class EventsActivityProcessor : ActivityProcessorBase, IActivityProcess
             {
                 Name = activityEvent.Name,
                 Ts = activityEvent.Timestamp.Ticks,
-                Tags = new Dictionary<string, string>(),
+                Tags = [],
             };
 
             foreach (var eventTag in activityEvent.Tags)

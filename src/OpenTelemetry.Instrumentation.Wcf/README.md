@@ -1,5 +1,10 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [RC](../../README.md#rc)|
+| Code Owners   |  [@codeblanch](https://github.com/codeblanch)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Wcf)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Wcf)
@@ -218,6 +223,18 @@ on the service contracts you want to instrument:
         Task<StatusResponse> PingAsync(StatusRequest request);
     }
 ```
+
+## Advanced configuration
+
+This instrumentation can be configured to change the default behavior by using
+`WcfInstrumentationOptions`.
+
+### RecordException
+
+This instrumentation automatically sets Activity Status to Error if an unhandled
+exception is thrown. Additionally, `RecordException` feature may be turned on,
+to store the exception to the Activity itself as ActivityEvent. `RecordException`
+is available only on the client side.
 
 ## References
 

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.ServiceModel;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
@@ -19,7 +18,7 @@ internal static class Program
             .AddZipkinExporter()
             .Build();
 
-        ServiceHost serviceHost = new ServiceHost(typeof(StatusService));
+        var serviceHost = new ServiceHost(typeof(StatusService));
         serviceHost.Open();
 
         Console.WriteLine("Service listening. Press enter to exit.");

@@ -1,5 +1,10 @@
 # EntityFrameworkCore Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   ||
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EntityFrameworkCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.EntityFrameworkCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.EntityFrameworkCore)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.EntityFrameworkCore)
@@ -11,18 +16,16 @@ which instruments
 and collects traces about outgoing requests.
 
 **Note: This component is based on the OpenTelemetry semantic conventions for
-[metrics](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/metrics/semantic_conventions)
+[metrics](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-metrics.md)
 and
-[traces](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions).
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md).
 These conventions are
 [Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
 and hence, this package is a
 [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be [breaking changes](./CHANGELOG.md). You can track the
-progress from
-[milestones](https://github.com/open-telemetry/opentelemetry-dotnet/milestone/23).**
+is released, there can be [breaking changes](./CHANGELOG.md).**
 
 ## Steps to enable OpenTelemetry.Instrumentation.EntityFrameworkCore
 
@@ -63,7 +66,7 @@ public class Program
 
 For an ASP.NET Core application, adding instrumentation is typically done in
 the `ConfigureServices` of your `Startup` class. Refer to documentation for
-[OpenTelemetry.Instrumentation.AspNetCore](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Instrumentation.AspNetCore/README.md).
+[OpenTelemetry.Instrumentation.AspNetCore](../OpenTelemetry.Instrumentation.AspNetCore/README.md).
 
 For an ASP.NET application, adding instrumentation is typically done in the
 `Global.asax.cs`. Refer to the documentation for

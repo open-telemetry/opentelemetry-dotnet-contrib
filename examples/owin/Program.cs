@@ -1,11 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Diagnostics;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.Owin.Hosting;
 using OpenTelemetry;
@@ -27,7 +24,7 @@ internal static class Program
                 // the request as soon as possible.
                 appBuilder.UseOpenTelemetry();
 
-                HttpConfiguration config = new HttpConfiguration();
+                var config = new HttpConfiguration();
 
                 config.MessageHandlers.Add(new ActivityDisplayNameRouteEnrichingHandler());
 

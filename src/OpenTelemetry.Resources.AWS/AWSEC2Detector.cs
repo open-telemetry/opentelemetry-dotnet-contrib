@@ -1,8 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
+using OpenTelemetry.AWS;
 using OpenTelemetry.Resources.AWS.Models;
 
 namespace OpenTelemetry.Resources.AWS;
@@ -18,6 +20,13 @@ internal sealed class AWSEC2Detector : IResourceDetector
     private const string AWSEC2HostNameUrl = "http://169.254.169.254/latest/meta-data/hostname";
     private const string AWSEC2IdentityDocumentUrl = "http://169.254.169.254/latest/dynamic/instance-identity/document";
 
+    private readonly AWSSemanticConventions semanticConventionBuilder;
+
+    public AWSEC2Detector(AWSSemanticConventions semanticConventionBuilder)
+    {
+        this.semanticConventionBuilder = semanticConventionBuilder;
+    }
+
     /// <summary>
     /// Detector the required and optional resource attributes from AWS EC2.
     /// </summary>
@@ -30,7 +39,7 @@ internal sealed class AWSEC2Detector : IResourceDetector
             var identity = GetAWSEC2Identity(token);
             var hostName = GetAWSEC2HostName(token);
 
-            return new Resource(ExtractResourceAttributes(identity, hostName));
+            return new Resource(this.ExtractResourceAttributes(identity, hostName));
         }
         catch (Exception ex)
         {
@@ -40,58 +49,36 @@ internal sealed class AWSEC2Detector : IResourceDetector
         return Resource.Empty;
     }
 
-    internal static List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
+    internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
     {
-        var resourceAttributes = new List<KeyValuePair<string, object>>()
-        {
-            new(AWSSemanticConventions.AttributeCloudProvider, "aws"),
-            new(AWSSemanticConventions.AttributeCloudPlatform, "aws_ec2"),
-            new(AWSSemanticConventions.AttributeHostName, hostName),
-        };
+#if NETFRAMEWORK
+        return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
+#else
+        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
+#endif
+    }
 
-        if (identity != null)
-        {
-            if (identity.AccountId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAccountID, identity.AccountId));
-            }
-
-            if (identity.AvailabilityZone != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudAvailabilityZone, identity.AvailabilityZone));
-            }
-
-            if (identity.InstanceId != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostID, identity.InstanceId));
-            }
-
-            if (identity.InstanceType != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeHostType, identity.InstanceType));
-            }
-
-            if (identity.Region != null)
-            {
-                resourceAttributes.Add(new KeyValuePair<string, object>(AWSSemanticConventions.AttributeCloudRegion, identity.Region));
-            }
-        }
+    internal List<KeyValuePair<string, object>> ExtractResourceAttributes(AWSEC2IdentityDocumentModel? identity, string hostName)
+    {
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudPlatformIsAwsEc2()
+                .AddAttributeHostName(hostName)
+                .AddAttributeCloudAccountID(identity?.AccountId)
+                .AddAttributeCloudAvailabilityZone(identity?.AvailabilityZone)
+                .AddAttributeHostID(identity?.InstanceId)
+                .AddAttributeHostType(identity?.InstanceType)
+                .AddAttributeCloudRegion(identity?.Region)
+                .Build();
 
         return resourceAttributes;
     }
 
-    internal static AWSEC2IdentityDocumentModel? DeserializeResponse(string response)
-    {
-#if NET6_0_OR_GREATER
-        return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEC2IdentityDocumentModel);
-#else
-        return ResourceDetectorUtils.DeserializeFromString<AWSEC2IdentityDocumentModel>(response);
-#endif
-    }
-
     private static string GetAWSEC2Token()
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2MetadataTokenUrl, "PUT", new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2MetadataTokenUrl, HttpMethod.Put, new KeyValuePair<string, string>(AWSEC2MetadataTokenTTLHeader, "60")));
     }
 
     private static AWSEC2IdentityDocumentModel? GetAWSEC2Identity(string token)
@@ -104,11 +91,11 @@ internal sealed class AWSEC2Detector : IResourceDetector
 
     private static string GetIdentityResponse(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2IdentityDocumentUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2IdentityDocumentUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)));
     }
 
     private static string GetAWSEC2HostName(string token)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSEC2HostNameUrl, "GET", new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSEC2HostNameUrl, HttpMethod.Get, new KeyValuePair<string, string>(AWSEC2MetadataTokenHeader, token)));
     }
 }

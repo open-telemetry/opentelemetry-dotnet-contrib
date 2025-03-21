@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Timers;
 using OpenTelemetry.Internal;
 using OpenTelemetry.PersistentStorage.Abstractions;
@@ -27,7 +23,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
     private readonly DirectorySizeTracker directorySizeTracker;
     private readonly long retentionPeriodInMilliseconds;
     private readonly int writeTimeoutInMilliseconds;
-    private readonly Timer maintenanceTimer;
+    private readonly System.Timers.Timer maintenanceTimer;
     private bool disposedValue;
 
     /// <summary>
@@ -64,7 +60,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
     /// path exceeds system defined maximum length.
     /// </exception>
     /// <exception cref="UnauthorizedAccessException">
-    /// insufficient priviledges for provided path.
+    /// insufficient privileges for provided path.
     /// </exception>
     /// <exception cref="NotSupportedException">
     /// path contains a colon character (:) that is not part of a drive label ("C:\").
@@ -90,7 +86,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         this.retentionPeriodInMilliseconds = retentionPeriodInMilliseconds;
         this.writeTimeoutInMilliseconds = writeTimeoutInMilliseconds;
 
-        this.maintenanceTimer = new Timer(maintenancePeriodInMilliseconds);
+        this.maintenanceTimer = new System.Timers.Timer(maintenancePeriodInMilliseconds);
         this.maintenanceTimer.Elapsed += this.OnMaintenanceEvent;
         this.maintenanceTimer.AutoReset = true;
         this.maintenanceTimer.Enabled = true;
@@ -125,7 +121,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
         foreach (var file in Directory.EnumerateFiles(this.DirectoryPath, "*.blob", SearchOption.TopDirectoryOnly).OrderByDescending(f => f))
         {
-            DateTime fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
+            var fileDateTime = PersistentStorageHelper.GetDateTimeFromBlobName(file);
             if (fileDateTime > retentionDeadline)
             {
                 yield return new FileBlob(file, this.directorySizeTracker);
@@ -177,7 +173,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
 
     private bool CheckStorageSize()
     {
-        if (!this.directorySizeTracker.IsSpaceAvailable(out long size))
+        if (!this.directorySizeTracker.IsSpaceAvailable(out var size))
         {
             // TODO: check accuracy of size reporting.
             PersistentStorageEventSource.Log.PersistentStorageWarning(
@@ -201,14 +197,7 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
             var blobFilePath = Path.Combine(this.DirectoryPath, PersistentStorageHelper.GetUniqueFileName(".blob"));
             var blob = new FileBlob(blobFilePath, this.directorySizeTracker);
 
-            if (blob.TryWrite(buffer, leasePeriodMilliseconds))
-            {
-                return blob;
-            }
-            else
-            {
-                return null;
-            }
+            return blob.TryWrite(buffer, leasePeriodMilliseconds) ? blob : null;
         }
         catch (Exception ex)
         {

@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
@@ -30,14 +27,11 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingRules()
+    public async Task TestGetSamplingRules()
     {
         this.CreateResponse("/GetSamplingRules", "Data/GetSamplingRulesResponse.json");
 
-        var responseTask = this.client.GetSamplingRules();
-        responseTask.Wait();
-
-        List<SamplingRule> rules = responseTask.Result;
+        var rules = await this.client.GetSamplingRules();
 
         Assert.Equal(3, rules.Count);
 
@@ -81,30 +75,27 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingRulesMalformed()
+    public async Task TestGetSamplingRulesMalformed()
     {
         this.mockServer
             .Given(Request.Create().WithPath("/GetSamplingRules").UsingPost())
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var responseTask = this.client.GetSamplingRules();
-        responseTask.Wait();
-
-        List<SamplingRule> rules = responseTask.Result;
+        var rules = await this.client.GetSamplingRules();
 
         Assert.Empty(rules);
     }
 
     [Fact]
-    public void TestGetSamplingTargets()
+    public async Task TestGetSamplingTargets()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
 
         this.CreateResponse("/SamplingTargets", "Data/GetSamplingTargetsResponse.json");
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -126,12 +117,10 @@ public class TestAWSXRaySamplerClient : IDisposable
                 10,
                 2,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
-        var responseTask = this.client.GetSamplingTargets(request);
-        responseTask.Wait();
-
-        GetSamplingTargetsResponse targetsResponse = responseTask.Result!;
+        var targetsResponse = await this.client.GetSamplingTargets(request);
+        Assert.NotNull(targetsResponse);
 
         Assert.Equal(2, targetsResponse.SamplingTargetDocuments.Count);
         Assert.Single(targetsResponse.UnprocessedStatistics);
@@ -154,16 +143,16 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
     [Fact]
-    public void TestGetSamplingTargetsWithMalformed()
+    public async Task TestGetSamplingTargetsWithMalformed()
     {
-        TestClock clock = new TestClock();
+        var clock = new TestClock();
         this.mockServer
             .Given(Request.Create().WithPath("/SamplingTargets").UsingPost())
             .RespondWith(
                 Response.Create().WithStatusCode(200).WithHeader("Content-Type", "application/json").WithBody("notJson"));
 
-        var request = new GetSamplingTargetsRequest(new List<SamplingStatisticsDocument>
-        {
+        var request = new GetSamplingTargetsRequest(
+        [
             new(
                 "clientId",
                 "rule1",
@@ -171,19 +160,16 @@ public class TestAWSXRaySamplerClient : IDisposable
                 50,
                 10,
                 clock.ToDouble(clock.Now())),
-        });
+        ]);
 
-        var responseTask = this.client.GetSamplingTargets(request);
-        responseTask.Wait();
-
-        GetSamplingTargetsResponse? targetsResponse = responseTask.Result;
+        var targetsResponse = await this.client.GetSamplingTargets(request);
 
         Assert.Null(targetsResponse);
     }
 
     private void CreateResponse(string endpoint, string filePath)
     {
-        string mockResponse = File.ReadAllText(filePath);
+        var mockResponse = File.ReadAllText(filePath);
         this.mockServer
             .Given(Request.Create().WithPath(endpoint).UsingPost())
             .RespondWith(

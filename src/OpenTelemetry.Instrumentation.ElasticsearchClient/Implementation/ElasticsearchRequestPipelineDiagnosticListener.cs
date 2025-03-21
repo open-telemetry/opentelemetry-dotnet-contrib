@@ -1,12 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
@@ -28,17 +27,17 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
     internal static readonly string ActivitySourceName = AssemblyName.Name;
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
-    private static readonly Regex ParseRequest = new Regex(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
-    private static readonly ConcurrentDictionary<object, string> MethodNameCache = new ConcurrentDictionary<object, string>();
+    private static readonly Regex ParseRequest = new(@"\n# Request:\r?\n(\{.*)\n# Response", RegexOptions.Compiled | RegexOptions.Singleline);
+    private static readonly ConcurrentDictionary<object, string> MethodNameCache = new();
 
     private readonly ElasticsearchClientInstrumentationOptions options;
-    private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new MultiTypePropertyFetcher<Uri>("Uri");
-    private readonly MultiTypePropertyFetcher<object> methodFetcher = new MultiTypePropertyFetcher<object>("Method");
-    private readonly MultiTypePropertyFetcher<string> debugInformationFetcher = new MultiTypePropertyFetcher<string>("DebugInformation");
-    private readonly MultiTypePropertyFetcher<int?> httpStatusFetcher = new MultiTypePropertyFetcher<int?>("HttpStatusCode");
-    private readonly MultiTypePropertyFetcher<Exception> originalExceptionFetcher = new MultiTypePropertyFetcher<Exception>("OriginalException");
-    private readonly MultiTypePropertyFetcher<object> failureReasonFetcher = new MultiTypePropertyFetcher<object>("FailureReason");
-    private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new MultiTypePropertyFetcher<byte[]>("ResponseBodyInBytes");
+    private readonly MultiTypePropertyFetcher<Uri> uriFetcher = new("Uri");
+    private readonly MultiTypePropertyFetcher<object> methodFetcher = new("Method");
+    private readonly MultiTypePropertyFetcher<string> debugInformationFetcher = new("DebugInformation");
+    private readonly MultiTypePropertyFetcher<int?> httpStatusFetcher = new("HttpStatusCode");
+    private readonly MultiTypePropertyFetcher<Exception> originalExceptionFetcher = new("OriginalException");
+    private readonly MultiTypePropertyFetcher<object> failureReasonFetcher = new("FailureReason");
+    private readonly MultiTypePropertyFetcher<byte[]> responseBodyFetcher = new("ResponseBodyInBytes");
 
     public ElasticsearchRequestPipelineDiagnosticListener(ElasticsearchClientInstrumentationOptions options)
         : base("Elasticsearch.Net.RequestPipeline")
@@ -46,7 +45,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         this.options = options;
     }
 
-    public override void OnEventWritten(string name, object payload)
+    public override void OnEventWritten(string name, object? payload)
     {
         var activity = Activity.Current;
         Guard.ThrowIfNull(activity);
@@ -58,10 +57,12 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch.Stop":
                 this.OnStopActivity(activity, payload);
                 break;
+            default:
+                break;
         }
     }
 
-    private static string GetDisplayName(Activity activity, object method, string elasticType = null)
+    private static string GetDisplayName(Activity activity, object? method, string? elasticType = null)
     {
         switch (activity.OperationName)
         {
@@ -70,12 +71,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             case "CallElasticsearch" when method != null:
                 {
                     var methodName = MethodNameCache.GetOrAdd(method, $"Elasticsearch {method}");
-                    if (elasticType == null)
-                    {
-                        return methodName;
-                    }
-
-                    return $"{methodName} {elasticType}";
+                    return elasticType == null ? methodName : $"{methodName} {elasticType}";
                 }
 
             default:
@@ -83,7 +79,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private static string GetElasticIndex(Uri uri)
+    private static string? GetElasticIndex(Uri uri)
     {
         // first segment is always /
         if (uri.Segments.Length < 2)
@@ -91,7 +87,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             return null;
         }
 
-        // operations starting with _ are not indices (_cat, _search, etc)
+        // operations starting with _ are not indices (_cat, _search, etc.)
         if (uri.Segments[1].StartsWith("_", StringComparison.Ordinal))
         {
             return null;
@@ -123,7 +119,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         var request = ParseRequest.Match(debugInformation);
         if (request.Success)
         {
-            string body = request.Groups[1]?.Value?.Trim();
+            var body = request.Groups[1]?.Value?.Trim();
             if (body == null)
             {
                 return debugInformation;
@@ -150,7 +146,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         return debugInformation;
     }
 
-    private void OnStartActivity(Activity activity, object payload)
+    private void OnStartActivity(Activity activity, object? payload)
     {
         // By this time, samplers have already run and
         // activity.IsAllDataRequested populated accordingly.
@@ -194,7 +190,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
             }
 
             var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType == UriHostNameType.IPv4 || uriHostNameType == UriHostNameType.IPv6)
+            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
             {
                 activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
             }
@@ -226,7 +222,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
         }
     }
 
-    private void OnStopActivity(Activity activity, object payload)
+    private void OnStopActivity(Activity activity, object? payload)
     {
         if (activity.IsAllDataRequested)
         {
@@ -258,31 +254,27 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                 var failureReason = this.failureReasonFetcher.Fetch(originalException);
                 if (failureReason != null)
                 {
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}");
                 }
 
                 var responseBody = this.responseBodyFetcher.Fetch(payload);
                 if (responseBody != null && responseBody.Length > 0)
                 {
                     var response = Encoding.UTF8.GetString(responseBody);
-                    activity.SetStatus(Status.Error.WithDescription($"{failureReason} {originalException.Message}\r\n{response}"));
+                    activity.SetStatus(ActivityStatusCode.Error, description: $"{failureReason} {originalException.Message}\r\n{response}");
                 }
 
                 if (originalException is HttpRequestException)
                 {
-                    if (originalException.InnerException is SocketException exception)
+                    if (originalException.InnerException is SocketException { SocketErrorCode: SocketError.HostNotFound })
                     {
-                        switch (exception.SocketErrorCode)
-                        {
-                            case SocketError.HostNotFound:
-                                activity.SetStatus(Status.Error.WithDescription(originalException.Message));
-                                return;
-                        }
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
+                        return;
                     }
 
                     if (originalException.InnerException != null)
                     {
-                        activity.SetStatus(Status.Error.WithDescription(originalException.Message));
+                        activity.SetStatus(ActivityStatusCode.Error, description: originalException.Message);
                     }
                 }
             }

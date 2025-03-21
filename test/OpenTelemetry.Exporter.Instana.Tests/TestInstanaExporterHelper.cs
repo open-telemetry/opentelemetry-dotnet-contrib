@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using OpenTelemetry.Resources;
 
@@ -9,7 +8,7 @@ namespace OpenTelemetry.Exporter.Instana.Tests;
 
 internal class TestInstanaExporterHelper : IInstanaExporterHelper
 {
-    public Dictionary<string, object> Attributes { get; } = new();
+    public Dictionary<string, object> Attributes { get; } = [];
 
     public Resource GetParentProviderResource(BaseExporter<Activity> otelExporter)
     {

@@ -1,17 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-      <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
-      <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net462</TargetFrameworks>
-    </PropertyGroup>
-
+  <PropertyGroup>
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="$(MicrosoftExtensionsHostingPkgVer)" />
   </ItemGroup>
-
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" Link="Implementation\SkipUnlessEnvVarFoundFactAttribute.cs" />
@@ -20,4 +18,5 @@
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Cassandra\OpenTelemetry.Instrumentation.Cassandra.csproj" />
   </ItemGroup>
+
 </Project>

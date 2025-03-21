@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Threading.Tasks;
 using OpenTelemetry.Exporter.Instana.Implementation;
 using OpenTelemetry.Exporter.Instana.Implementation.Processors;
 using Xunit;
@@ -11,17 +10,17 @@ namespace OpenTelemetry.Exporter.Instana.Tests.Processors;
 
 public class TagsActivityProcessorTests
 {
-    private TagsActivityProcessor tagsActivityProcessor = new TagsActivityProcessor();
+    private readonly TagsActivityProcessor tagsActivityProcessor = new();
 
     [Fact]
     public async Task ProcessAsync_StatusTagsExist()
     {
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.AddTag("otel.status_code", "testStatusCode");
         activity.AddTag("otel.status_description", "testStatusDescription");
         activity.AddTag("otel.testTag", "testTag");
 
-        InstanaSpan instanaSpan = new InstanaSpan();
+        var instanaSpan = new InstanaSpan();
         await this.tagsActivityProcessor.ProcessAsync(activity, instanaSpan);
 
         Assert.NotNull(instanaSpan.Data);
@@ -34,10 +33,10 @@ public class TagsActivityProcessorTests
     [Fact]
     public async Task ProcessAsync_StatusTagsDoNotExist()
     {
-        Activity activity = new Activity("testOperationName");
+        var activity = new Activity("testOperationName");
         activity.AddTag("otel.testTag", "testTag");
 
-        InstanaSpan instanaSpan = new InstanaSpan();
+        var instanaSpan = new InstanaSpan();
         await this.tagsActivityProcessor.ProcessAsync(activity, instanaSpan);
 
         Assert.NotNull(instanaSpan.Data);

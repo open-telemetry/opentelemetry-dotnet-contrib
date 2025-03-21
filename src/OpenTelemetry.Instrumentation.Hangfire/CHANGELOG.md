@@ -2,13 +2,25 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.9.0-beta.1
+
+Released 2024-Oct-02
+
 * `ActivitySource.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
-* Update `OpenTelemetry.Api.ProviderBuilderExtensions` to `1.8.1`.
-  * Update `OpenTelemetry.Api` to `1.8.1`.
-  ([#1668](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1668))
+
 * Update `Microsoft.Extensions.Options` to `8.0.0`.
   ([#1830](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1830))
+
+* Updated OpenTelemetry core component version(s) to `1.9.0`.
+  ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
+* Added direct reference to `Newtonsoft.Json` with minimum version of
+  `13.0.1` in response to [CVE-2024-21907](https://github.com/advisories/GHSA-5crp-9r3c-p9vr).
+  ([#2057](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2057))
 
 ## 1.6.0-beta.1
 
@@ -32,8 +44,10 @@ Released 2023-Jun-23
 
 * Update OTel API version to `1.5.0`.
   ([#1220](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1220))
+
 * Removes `AddHangfireInstrumentation` method with default configure default parameter.
   ([#1129](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1129))
+
 * Support Hangfire `1.8`.
   ([#1202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1202))
 

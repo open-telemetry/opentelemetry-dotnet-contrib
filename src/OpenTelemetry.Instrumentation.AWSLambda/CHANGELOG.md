@@ -2,6 +2,69 @@
 
 ## Unreleased
 
+## 1.11.2
+
+Released 2025-Mar-18
+
+* Set itinital capacity for AWS Semantic Convention Attribute Builder
+  ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
+
+## 1.11.1
+
+Released 2025-Mar-05
+
+## 1.11.0
+
+Released 2025-Jan-29
+
+## 1.10.0-rc.2
+
+Released 2025-Jan-15
+
+* Trace instrumentation will not fail with an exception
+  if empty `LambdaContext` instance is passed.
+  ([#2457](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2457))
+
+## 1.10.0-rc.1
+
+Released 2025-Jan-06
+
+* BREAKING: Change default Semantic Convention to 1.28
+* BREAKING: Remove option to use Legacy semantic conventions (the old default)
+
+## 1.10.0-beta.3
+
+Released 2024-Dec-20
+
+* Introduce `AWSClientInstrumentationOptions.SemanticConventionVersion` which
+  provides a mechanism for developers to opt-in to newer versions of the
+  of the Open Telemetry Semantic Conventions.
+  ([#2367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2367))
+
+## 1.10.0-beta.2
+
+Released 2024-Dec-12
+
+* Trace instrumentation will now call the [Activity.SetStatus](https://learn.microsoft.com/dotnet/api/system.diagnostics.activity.setstatus)
+  API instead of the deprecated OpenTelemetry API package extension when setting
+  span status. For details see: [Setting Status](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Api/README.md#setting-status).
+  ([#2358](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2358))
+
+## 1.10.0-beta.1
+
+Released 2024-Nov-23
+
+* Add detection of Lambda cold start and set `faas.coldstart` Activity tag.
+  ([#2037](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2037))
+* Add HTTP server span attributes for Application Loadbalancer triggers
+  ([#2033](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2033))
+* Drop support for .NET 6 as this target is no longer supported
+  and add .NET 8/.NET Standard 2.0 targets.
+  ([#2140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2140))
+* Add a direct reference to `System.Text.Json` at `6.0.10` for the
+  `netstandard2.0` target and at `8.0.5` for the `net8.0` target.
+  ([#2203](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2203))
+
 ## 1.3.0-beta.1
 
 Released 2024-Jan-26

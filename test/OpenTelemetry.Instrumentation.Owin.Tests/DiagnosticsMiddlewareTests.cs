@@ -1,14 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 using OpenTelemetry.Instrumentation.Owin.Implementation;
@@ -27,7 +24,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     public DiagnosticsMiddlewareTests()
     {
-        Random random = new Random();
+        var random = new Random();
         var retryCount = 5;
         do
         {
@@ -63,7 +60,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                             return next();
                         });
 
-                        HttpConfiguration config = new HttpConfiguration();
+                        var config = new HttpConfiguration();
                         config.Routes.MapHttpRoute(
                             name: "DefaultApi",
                             routeTemplate: "api/{controller}/{id}",
@@ -123,8 +120,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
         bool generateRemoteException = false,
         bool recordException = false)
     {
-        List<Activity> stoppedActivities = new List<Activity>();
-        List<Metric> exportedMetrics = new List<Metric>();
+        List<Activity> stoppedActivities = [];
+        List<Metric> exportedMetrics = [];
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(stoppedActivities);
@@ -138,9 +135,9 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 {
                     if (enrich)
                     {
-                        if (!enrichmentException)
-                        {
-                            options.Enrich = (activity, eventName, context, exception) =>
+                        options.Enrich = enrichmentException
+                            ? (_, _, _, _) => throw new Exception("Error while enriching activity")
+                            : (activity, eventName, _, _) =>
                             {
                                 switch (eventName)
                                 {
@@ -150,13 +147,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
                                     case OwinEnrichEventType.EndRequest:
                                         activity.SetTag("client.endrequest", nameof(OwinEnrichEventType.EndRequest));
                                         break;
+                                    default:
+                                        break;
                                 }
                             };
-                        }
-                        else
-                        {
-                            options.Enrich = (activity, eventName, context, exception) => throw new Exception("Error while enriching activity");
-                        }
                     }
 
                     options.Filter = _ => !filter;
@@ -169,18 +163,18 @@ public class DiagnosticsMiddlewareTests : IDisposable
             meterBuilder.AddOwinInstrumentation();
         }
 
-        using TracerProvider tracerProvider = builder.Build();
-        using MeterProvider meterProvider = meterBuilder.Build();
+        using var tracerProvider = builder.Build();
+        using var meterProvider = meterBuilder.Build();
 
-        using HttpClient client = new HttpClient();
+        using var client = new HttpClient();
 
-        Uri requestUri = generateRemoteException
+        var requestUri = generateRemoteException
             ? new Uri($"{this.serviceBaseUri}exception")
             : new Uri($"{this.serviceBaseUri}api/test");
 
         this.requestCompleteHandle.Reset();
 
-        using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+        using var response = await client.GetAsync(requestUri);
 
         /* Note: This code will continue executing as soon as the response
         is available but Owin could still be working. We need to wait until
@@ -195,18 +189,18 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Assert.NotEmpty(stoppedActivities);
                 Assert.Single(stoppedActivities);
 
-                Activity activity = stoppedActivities[0];
+                var activity = stoppedActivities[0];
                 Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-                Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-                Assert.Equal(requestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+                Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+                Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
+                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
 
-                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpStatusCode).Value);
                 if (generateRemoteException)
                 {
-                    Assert.Equal(Status.Error, activity.GetStatus());
+                    Assert.Equal(ActivityStatusCode.Error, activity.Status);
 
                     if (recordException)
                     {
@@ -215,7 +209,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 }
                 else
                 {
-                    Assert.Equal(Status.Unset, activity.GetStatus());
+                    Assert.Equal(ActivityStatusCode.Unset, activity.Status);
                 }
 
                 if (enrich && !enrichmentException)
@@ -251,14 +245,16 @@ public class DiagnosticsMiddlewareTests : IDisposable
             {
                 switch (tag.Key)
                 {
-                    case SemanticConventions.AttributeHttpMethod:
+                    case SemanticConventions.AttributeHttpRequestMethod:
                         Assert.Equal("GET", tag.Value);
                         break;
                     case SemanticConventions.AttributeHttpScheme:
                         Assert.Equal(requestUri.Scheme, tag.Value);
                         break;
-                    case SemanticConventions.AttributeHttpStatusCode:
+                    case SemanticConventions.AttributeHttpResponseStatusCode:
                         Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
+                        break;
+                    default:
                         break;
                 }
             }
@@ -282,34 +278,53 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false)]
-    [InlineData("path?a=b&c=d", "path?a=b&c=d", true)]
-    public async Task QueryParametersAreRedacted(string actualPath, string expectedPath, bool disableQueryRedaction)
+    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", true, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", false, true)]
+    public async Task QueryParametersAreRedacted(
+        string actualPath,
+        string expectedPath,
+        bool disableQueryRedactionUsingEnvVar,
+        bool disableQueryRedactionUsingConfiguration)
     {
         try
         {
-            if (disableQueryRedaction)
+            if (disableQueryRedactionUsingEnvVar)
             {
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
             }
 
-            List<Activity> stoppedActivities = new List<Activity>();
+            List<Activity> stoppedActivities = [];
 
             var builder = Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices(services =>
+                {
+                    if (disableQueryRedactionUsingConfiguration)
+                    {
+                        var config = new ConfigurationBuilder()
+                            .AddInMemoryCollection(new Dictionary<string, string?>()
+                            {
+                                ["OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION"] = "true",
+                            })
+                            .Build();
+
+                        services.AddSingleton<IConfiguration>(config);
+                    }
+                })
                 .AddInMemoryExporter(stoppedActivities)
                 .AddOwinInstrumentation()
                 .Build();
 
-            using HttpClient client = new HttpClient();
+            using var client = new HttpClient();
 
-            Uri requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
-            Uri expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
+            var requestUri = new Uri($"{this.serviceBaseUri}{actualPath}");
+            var expectedRequestUri = new Uri($"{this.serviceBaseUri}{expectedPath}");
 
             this.requestCompleteHandle.Reset();
 
             try
             {
-                using var response = await client.GetAsync(requestUri).ConfigureAwait(false);
+                using var response = await client.GetAsync(requestUri);
             }
             catch
             {
@@ -324,13 +339,13 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.NotEmpty(stoppedActivities);
             Assert.Single(stoppedActivities);
 
-            Activity activity = stoppedActivities[0];
+            var activity = stoppedActivities[0];
             Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-            Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-            Assert.Equal(expectedRequestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+            Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+            Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
         }
         finally
         {
@@ -340,7 +355,7 @@ public class DiagnosticsMiddlewareTests : IDisposable
 
     private List<MetricPoint> GetMetricPoints(Metric metric)
     {
-        List<MetricPoint> metricPoints = new();
+        List<MetricPoint> metricPoints = [];
 
         foreach (var metricPoint in metric.GetMetricPoints())
         {

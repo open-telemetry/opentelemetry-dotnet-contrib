@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Threading;
-
 namespace OpenTelemetry.Instrumentation.Wcf.Implementation;
 
 internal sealed class AsyncResultWithTelemetryState : IAsyncResult
@@ -18,7 +15,7 @@ internal sealed class AsyncResultWithTelemetryState : IAsyncResult
 
     public RequestTelemetryState TelemetryState { get; }
 
-    object IAsyncResult.AsyncState => this.Inner.AsyncState;
+    object? IAsyncResult.AsyncState => this.Inner.AsyncState;
 
     WaitHandle IAsyncResult.AsyncWaitHandle => this.Inner.AsyncWaitHandle;
 

@@ -1,5 +1,10 @@
 # ASP.NET Core Instrumentation for OpenTelemetry .NET
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Stable](../../README.md#stable)|
+| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNetCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNetCore)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNetCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNetCore)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.AspNetCore)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.AspNetCore)
@@ -36,7 +41,7 @@ ASP.NET Core instrumentation must be enabled at application startup. This is
 typically done in the `ConfigureServices` of your `Startup` class. Both examples
 below enables OpenTelemetry by calling `AddOpenTelemetry()` on `IServiceCollection`.
  This extension method requires adding the package
-[`OpenTelemetry.Extensions.Hosting`](../OpenTelemetry.Extensions.Hosting/README.md)
+[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md)
 to the application. This ensures instrumentations are disposed when the host
 is shutdown.
 
@@ -46,7 +51,7 @@ The following example demonstrates adding ASP.NET Core instrumentation with the
 extension method `WithTracing()` on `OpenTelemetryBuilder`.
 then extension method `AddAspNetCoreInstrumentation()` on `TracerProviderBuilder`
 to the application. This example also sets up the Console Exporter,
-which requires adding the package [`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -92,7 +97,7 @@ The following example demonstrates adding ASP.NET Core instrumentation with the
 extension method `WithMetrics()` on `OpenTelemetryBuilder`
 then extension method `AddAspNetCoreInstrumentation()` on `MeterProviderBuilder`
 to the application. This example also sets up the Console Exporter,
-which requires adding the package [`OpenTelemetry.Exporter.Console`](../OpenTelemetry.Exporter.Console/README.md)
+which requires adding the package [`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -180,7 +185,7 @@ This instrumentation can be configured to change the default behavior by using
 
 // TODO: This section could be refined.
 When used with
-[`OpenTelemetry.Extensions.Hosting`](../OpenTelemetry.Extensions.Hosting/README.md),
+[`OpenTelemetry.Extensions.Hosting`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Extensions.Hosting/README.md),
 all configurations to `AspNetCoreTraceInstrumentationOptions` can be done in the
 `ConfigureServices`
 method of you applications `Startup` class as shown below.
@@ -265,10 +270,46 @@ services.AddOpenTelemetry()
         }));
 ```
 
-[Processor](../../docs/trace/extending-the-sdk/README.md#processor),
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
 is the general extensibility point to add additional properties to any activity.
 The `Enrich` option is specific to this instrumentation, and is provided to
 get access to `HttpRequest` and `HttpResponse`.
+
+When overriding the default settings provided by instrumentation or adding
+additional telemetry, it is important to consider the sequence of callbacks.
+Generally, it is recommended to use `EnrichWithHttpResponse` for any activity
+enrichment that does not need access to exceptions, as the instrumentation
+library populates all telemetry following the [OTel
+specification](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http)
+before this callback. The following is the sequence in which these callbacks are
+executed:
+
+1) Processor `OnStart`
+2) `EnrichWithHttpRequest`
+3) `EnrichWithException`
+4) `EnrichWithHttpResponse`
+5) Processor `OnEnd`
+
+As an example, if you need to override the default DisplayName or tags set by
+the library you can do so as follows:
+
+```csharp
+.AddAspNetCoreInstrumentation(o =>
+{
+  o.EnrichWithHttpResponse = (activity, response) =>
+  {
+      // Access request object if needed
+      // response.HttpContext.Request
+      activity.DisplayName = "CustomDisplayName";
+
+      // Overrides the value
+      activity.SetTag("http.route", "CustomRoute");
+
+      // Removes the tag
+      activity.SetTag("network.protocol.version", null);
+  };
+});
+```
 
 #### RecordException
 
@@ -324,8 +365,8 @@ This component uses an
 [EventSource](https://docs.microsoft.com/dotnet/api/system.diagnostics.tracing.eventsource)
 with the name "OpenTelemetry-Instrumentation-AspNetCore" for its internal
 logging. Please refer to [SDK
-troubleshooting](../OpenTelemetry/README.md#troubleshooting) for instructions on
-seeing these internal logs.
+troubleshooting](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/src/OpenTelemetry/README.md#troubleshooting)
+for instructions on seeing these internal logs.
 
 ## References
 

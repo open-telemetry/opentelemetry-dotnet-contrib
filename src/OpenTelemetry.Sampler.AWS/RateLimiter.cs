@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Threading;
-
 namespace OpenTelemetry.Sampler.AWS;
 
 internal sealed class RateLimiter
@@ -22,7 +20,7 @@ internal sealed class RateLimiter
 
     public bool TrySpend(double itemCost)
     {
-        long cost = (long)(itemCost / this.creditsPerMillisecond);
+        var cost = (long)(itemCost / this.creditsPerMillisecond);
         long currentMillis;
         long currentBalanceMillis;
         long availableBalanceAfterWithdrawal;
@@ -31,7 +29,7 @@ internal sealed class RateLimiter
         {
             currentBalanceMillis = Interlocked.Read(ref this.currentBalance);
             currentMillis = this.clock.NowInMilliSeconds();
-            long currentAvailableBalance = currentMillis - currentBalanceMillis;
+            var currentAvailableBalance = currentMillis - currentBalanceMillis;
             if (currentAvailableBalance > this.maxBalance)
             {
                 currentAvailableBalance = this.maxBalance;

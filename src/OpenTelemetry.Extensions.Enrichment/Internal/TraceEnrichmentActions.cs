@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace OpenTelemetry.Extensions.Enrichment;
 
 #pragma warning disable CA1812 // Class is instantiated through dependency injection
@@ -20,7 +16,7 @@ internal sealed class TraceEnrichmentActions : TraceEnricher
 
     public override void Enrich(in TraceEnrichmentBag bag)
     {
-        for (int i = 0; i < this.actions.Length; i++)
+        for (var i = 0; i < this.actions.Length; i++)
         {
             this.actions[i].Invoke(bag);
         }
