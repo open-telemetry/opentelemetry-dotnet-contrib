@@ -19,6 +19,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     internal const string AttributePeerService = "peer.service";
     internal const string AttributeServerAddress = "server.address";
+    internal const string AttributeServerPort = "server.port";
     internal const string AttributeDbSystem = "db.system";
     internal const string AttributeDbName = "db.name";
     internal const string AttributeDbNamespace = "db.namespace";
@@ -40,6 +41,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<CommandType> commandTypeFetcher = new("CommandType");
     private readonly PropertyFetcher<string> commandTextFetcher = new("CommandText");
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
+    private readonly PropertyFetcher<string> hostFetcher = new("Host");
+    private readonly PropertyFetcher<int> portFetcher = new("Port");
 
     private readonly EntityFrameworkInstrumentationOptions options;
 
@@ -140,10 +143,22 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                         }
 
-                        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        if (!string.IsNullOrEmpty(dataSource))
+                        if (this.hostFetcher.TryFetch(connection, out var host) && !string.IsNullOrEmpty(host))
                         {
-                            activity.AddTag(AttributeServerAddress, dataSource);
+                            activity.AddTag(AttributeServerAddress, host);
+                        }
+                        else
+                        {
+                            var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+                            if (!string.IsNullOrEmpty(dataSource))
+                            {
+                                activity.AddTag(AttributeServerAddress, dataSource);
+                            }
+                        }
+
+                        if (this.portFetcher.TryFetch(connection, out var port))
+                        {
+                            activity.AddTag(AttributeServerPort, port);
                         }
 
                         if (this.options.EmitOldAttributes)
