@@ -53,18 +53,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly AsyncLocal<long> beginTimestamp = new();
 
-    private readonly EntityFrameworkInstrumentationOptions options;
-
-    public EntityFrameworkDiagnosticListener(string sourceName, EntityFrameworkInstrumentationOptions? options)
+    public EntityFrameworkDiagnosticListener(string sourceName)
         : base(sourceName)
     {
-        this.options = options ?? new EntityFrameworkInstrumentationOptions();
     }
 
     public override bool SupportsNullActivity => true;
 
     public override void OnEventWritten(string name, object? payload)
     {
+        var options = EntityFrameworkInstrumentation.TracingOptions;
         var activity = Activity.Current;
 
         switch (name)

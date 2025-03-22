@@ -7,14 +7,17 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 internal class EntityFrameworkInstrumentation : IDisposable
 {
-    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+    public static readonly EntityFrameworkInstrumentation Instance = new EntityFrameworkInstrumentation();
     internal static int MetricHandles;
     internal static int TracingHandles;
 
-    public EntityFrameworkInstrumentation(EntityFrameworkInstrumentationOptions? options)
+    private readonly EntityFrameworkInstrumentationOptions options;
+    private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
+
+    public EntityFrameworkInstrumentation()
     {
         this.diagnosticSourceSubscriber = new DiagnosticSourceSubscriber(
-            name => new EntityFrameworkDiagnosticListener(name, options),
+            name => new EntityFrameworkDiagnosticListener(name),
             listener => listener.Name == EntityFrameworkDiagnosticListener.DiagnosticSourceName,
             null,
             EntityFrameworkInstrumentationEventSource.Log.UnknownErrorProcessingEvent);
