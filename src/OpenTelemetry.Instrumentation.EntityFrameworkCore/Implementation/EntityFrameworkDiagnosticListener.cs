@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
@@ -31,7 +32,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     internal static readonly string ActivitySourceName = AssemblyName.Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     internal static readonly string MeterName = AssemblyName.Name!;
     internal static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
@@ -40,6 +41,14 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         unit: "s",
         description: "Duration of database client operations.",
         advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] });
+
+    private static readonly string[] SharedTagNames =
+    [
+        SemanticConventions.AttributeDbSystem,
+        SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbResponseStatusCode,
+    ];
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -60,8 +69,89 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
+    private static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    {
+        end ??= Stopwatch.GetTimestamp();
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
+    }
+
+    private static string GetDbSystemFromProviderName(string? providerName)
+    {
+        return providerName switch
+        {
+            "Microsoft.EntityFrameworkCore.SqlServer" => "mssql",
+            "Microsoft.EntityFrameworkCore.Cosmos" => "cosmosdb",
+            "Microsoft.EntityFrameworkCore.Sqlite" or "Devart.Data.SQLite.Entity.EFCore" => "sqlite",
+            "MySql.Data.EntityFrameworkCore" or "Pomelo.EntityFrameworkCore.MySql" or "Devart.Data.MySql.Entity.EFCore" => "mysql",
+            "Npgsql.EntityFrameworkCore.PostgreSQL" or "Devart.Data.PostgreSql.Entity.EFCore" => "postgresql",
+            "Oracle.EntityFrameworkCore" or "Devart.Data.Oracle.Entity.EFCore" => "oracle",
+            "Microsoft.EntityFrameworkCore.InMemory" => "efcoreinmemory",
+            "FirebirdSql.EntityFrameworkCore.Firebird" => "firebird",
+            "FileContextCore" => "filecontextcore",
+            "EntityFrameworkCore.SqlServerCompact35" or "EntityFrameworkCore.SqlServerCompact40" => "mssqlcompact",
+            "EntityFrameworkCore.OpenEdge" => "openedge",
+            "EntityFrameworkCore.Jet" => "jet",
+            "Google.Cloud.EntityFrameworkCore.Spanner" => "spanner",
+            "Teradata.EntityFrameworkCore" => "teradata",
+            _ => "other_sql",
+        };
+    }
+
+    private TagList CreateTagsFromConnectionInfo(object? payload, object? command, EntityFrameworkInstrumentationOptions options, out string activityName)
+    {
+        activityName = ActivityName;
+        var tags = default(TagList);
+
+        if (payload == null || command == null)
+        {
+            return tags;
+        }
+
+        var connection = this.connectionFetcher.Fetch(command);
+        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+        var database = (string)this.databaseFetcher.Fetch(connection);
+        activityName = database;
+
+        var dbContext = this.dbContextFetcher.Fetch(payload);
+        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+
+        var dbSystem = GetDbSystemFromProviderName(providerName);
+        tags.Add(SemanticConventions.AttributeDbSystem, dbSystem);
+        if (dbSystem == "other_sql" && providerName != null)
+        {
+            tags.Add("ef.provider", providerName);
+        }
+
+        if (!string.IsNullOrEmpty(dataSource))
+        {
+            tags.Add(SemanticConventions.AttributeServerAddress, dataSource);
+        }
+
+        if (options.EmitOldAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbName, database);
+        }
+
+        if (options.EmitNewAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbNamespace, database);
+        }
+
+        return tags;
+    }
+
     public override void OnEventWritten(string name, object? payload)
     {
+        if (EntityFrameworkInstrumentation.TracingHandles == 0 && EntityFrameworkInstrumentation.MetricHandles == 0)
+        {
+            return;
+        }
+
         var options = EntityFrameworkInstrumentation.TracingOptions;
         var activity = Activity.Current;
 
@@ -69,102 +159,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         {
             case EntityFrameworkCoreCommandCreated:
                 {
-                    activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
-                    if (activity == null)
-                    {
-                        // There is no listener or it decided not to sample the current request.
-                        return;
-                    }
-
                     var command = this.commandFetcher.Fetch(payload);
                     if (command == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullPayload(nameof(EntityFrameworkDiagnosticListener), name);
-                        activity.Stop();
                         return;
                     }
 
-                    var connection = this.connectionFetcher.Fetch(command);
-                    var database = (string)this.databaseFetcher.Fetch(connection);
-                    activity.DisplayName = database;
+                    var startTags = this.CreateTagsFromConnectionInfo(payload, command, options, out var activityName);
+                    activity = EntityFrameworkActivitySource.StartActivity(
+                        activityName,
+                        ActivityKind.Client,
+                        default(ActivityContext),
+                        startTags);
 
-                    if (activity.IsAllDataRequested)
+                    if (activity == null)
                     {
-                        var dbContext = this.dbContextFetcher.Fetch(payload);
-                        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
-
-                        switch (providerName)
-                        {
-                            case "Microsoft.EntityFrameworkCore.SqlServer":
-                                activity.AddTag(AttributeDbSystem, "mssql");
-                                break;
-                            case "Microsoft.EntityFrameworkCore.Cosmos":
-                                activity.AddTag(AttributeDbSystem, "cosmosdb");
-                                break;
-                            case "Microsoft.EntityFrameworkCore.Sqlite":
-                            case "Devart.Data.SQLite.Entity.EFCore":
-                                activity.AddTag(AttributeDbSystem, "sqlite");
-                                break;
-                            case "MySql.Data.EntityFrameworkCore":
-                            case "Pomelo.EntityFrameworkCore.MySql":
-                            case "Devart.Data.MySql.Entity.EFCore":
-                                activity.AddTag(AttributeDbSystem, "mysql");
-                                break;
-                            case "Npgsql.EntityFrameworkCore.PostgreSQL":
-                            case "Devart.Data.PostgreSql.Entity.EFCore":
-                                activity.AddTag(AttributeDbSystem, "postgresql");
-                                break;
-                            case "Oracle.EntityFrameworkCore":
-                            case "Devart.Data.Oracle.Entity.EFCore":
-                                activity.AddTag(AttributeDbSystem, "oracle");
-                                break;
-                            case "Microsoft.EntityFrameworkCore.InMemory":
-                                activity.AddTag(AttributeDbSystem, "efcoreinmemory");
-                                break;
-                            case "FirebirdSql.EntityFrameworkCore.Firebird":
-                                activity.AddTag(AttributeDbSystem, "firebird");
-                                break;
-                            case "FileContextCore":
-                                activity.AddTag(AttributeDbSystem, "filecontextcore");
-                                break;
-                            case "EntityFrameworkCore.SqlServerCompact35":
-                            case "EntityFrameworkCore.SqlServerCompact40":
-                                activity.AddTag(AttributeDbSystem, "mssqlcompact");
-                                break;
-                            case "EntityFrameworkCore.OpenEdge":
-                                activity.AddTag(AttributeDbSystem, "openedge");
-                                break;
-                            case "EntityFrameworkCore.Jet":
-                                activity.AddTag(AttributeDbSystem, "jet");
-                                break;
-                            case "Google.Cloud.EntityFrameworkCore.Spanner":
-                                activity.AddTag(AttributeDbSystem, "spanner");
-                                break;
-                            case "Teradata.EntityFrameworkCore":
-                                activity.AddTag(AttributeDbSystem, "teradata");
-                                break;
-                            default:
-                                activity.AddTag(AttributeDbSystem, "other_sql");
-                                activity.AddTag("ef.provider", providerName);
-                                break;
-                        }
-
-                        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        if (!string.IsNullOrEmpty(dataSource))
-                        {
-                            activity.AddTag(AttributeServerAddress, dataSource);
-                        }
-
-                        if (this.options.EmitOldAttributes)
-                        {
-                            activity.AddTag(AttributeDbName, database);
-                        }
-
-                        if (this.options.EmitNewAttributes)
-                        {
-                            activity.AddTag(AttributeDbNamespace, database);
-                        }
+                        this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+                        return;
                     }
                 }
 
@@ -178,7 +190,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
@@ -193,7 +205,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
                             var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
 
-                            if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
+                            if (command is IDbCommand typedCommand && options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
                                 EntityFrameworkInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
                                 activity.IsAllDataRequested = false;
@@ -215,32 +227,32 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.SetDbStatementForStoredProcedure)
+                                    if (options.SetDbStatementForStoredProcedure)
                                     {
-                                        if (this.options.EmitOldAttributes)
+                                        if (options.EmitOldAttributes)
                                         {
-                                            activity.AddTag(AttributeDbStatement, commandText);
+                                            activity.AddTag(SemanticConventions.AttributeDbStatement, commandText);
                                         }
 
-                                        if (this.options.EmitNewAttributes)
+                                        if (options.EmitNewAttributes)
                                         {
-                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                            activity.AddTag(SemanticConventions.AttributeDbQueryText, commandText);
                                         }
                                     }
 
                                     break;
 
                                 case CommandType.Text:
-                                    if (this.options.SetDbStatementForText)
+                                    if (options.SetDbStatementForText)
                                     {
-                                        if (this.options.EmitOldAttributes)
+                                        if (options.EmitOldAttributes)
                                         {
-                                            activity.AddTag(AttributeDbStatement, commandText);
+                                            activity.AddTag(SemanticConventions.AttributeDbStatement, commandText);
                                         }
 
-                                        if (this.options.EmitNewAttributes)
+                                        if (options.EmitNewAttributes)
                                         {
-                                            activity.AddTag(AttributeDbQueryText, commandText);
+                                            activity.AddTag(SemanticConventions.AttributeDbQueryText, commandText);
                                         }
                                     }
 
@@ -257,7 +269,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         {
                             if (command is IDbCommand typedCommand)
                             {
-                                this.options.EnrichWithIDbCommand?.Invoke(activity, typedCommand);
+                                options.EnrichWithIDbCommand?.Invoke(activity, typedCommand);
                             }
                         }
                         catch (Exception ex)
@@ -277,7 +289,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
@@ -295,8 +307,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
+                        this.RecordDuration(null, payload, true);
                         return;
                     }
 
@@ -306,6 +319,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         {
                             if (this.exceptionFetcher.Fetch(payload) is Exception exception)
                             {
+                                activity.AddTag(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
                             }
                             else
@@ -317,6 +331,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     finally
                     {
                         activity.Stop();
+                        this.RecordDuration(activity, payload, hasError: true);
                     }
                 }
 
@@ -324,5 +339,49 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             default:
                 break;
         }
+    }
+
+    private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
+    {
+        if (EntityFrameworkInstrumentation.MetricHandles == 0)
+        {
+            return;
+        }
+
+        var tags = default(TagList);
+
+        if (activity != null && activity.IsAllDataRequested)
+        {
+            foreach (var tag in SharedTagNames)
+            {
+                var value = activity.GetTagItem(tag);
+                if (value != null)
+                {
+                    tags.Add(tag, value);
+                }
+            }
+        }
+        else if (payload != null)
+        {
+            var command = this.commandFetcher.Fetch(payload);
+            var startTags = this.CreateTagsFromConnectionInfo(payload, command, EntityFrameworkInstrumentation.TracingOptions);
+
+            foreach (var tag in startTags)
+            {
+                tags.Add(tag.Key, tag.Value);
+            }
+
+            if (hasError)
+            {
+                if (this.exceptionFetcher.Fetch(payload) is Exception exception)
+                {
+                    tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+                }
+            }
+        }
+
+        var duration = activity?.Duration.TotalSeconds
+            ?? CalculateDurationFromTimestamp(this.beginTimestamp.Value);
+        DbClientOperationDuration.Record(duration, tags);
     }
 }
