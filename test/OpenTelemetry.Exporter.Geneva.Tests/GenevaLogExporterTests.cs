@@ -107,6 +107,17 @@ public class GenevaLogExporterTests
         Assert.Equal("Unix domain socket should not be used on Windows.", exception.Message);
     }
 
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
+    public void IncompatibleConnectionString_Windows_UserEvents()
+    {
+        var exporterOptions = new GenevaExporterOptions() { ConnectionString = "PrivatePreviewEnableUserEvents=true" };
+        var exception = Assert.Throws<ArgumentException>(() =>
+        {
+            using var exporter = new GenevaLogExporter(exporterOptions);
+        });
+        Assert.Equal("Exporting data in user_events is only supported for .NET 8 or later on Linux.", exception.Message);
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void IncompatibleConnectionString_Linux()
     {
@@ -1419,6 +1430,47 @@ public class GenevaLogExporterTests
 
             Assert.Equal(100, scheduledDelayMilliseconds);
         }
+    }
+
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
+    public void SuccessfulUserEventsExport_Linux()
+    {
+#if NET
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = "PrivatePreviewEnableUserEvents=true";
+                        options.PrepopulatedFields = new Dictionary<string, object>
+                        {
+                            ["cloud.role"] = "BusyWorker",
+                            ["cloud.roleInstance"] = "CY1SCH030021417",
+                            ["cloud.roleVer"] = "9.0.15289.2",
+                        };
+                    });
+                    options.AddInMemoryExporter(logRecordList);
+                }));
+
+            // Uncomment this if testing manually with the perf tool.
+            // Console.WriteLine("------------- ready to write events -------------");
+            // Thread.Sleep(5000);
+
+            // Emit a LogRecord and grab a copy of internal buffer for validation.
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
+
+            // logRecordList should have a singleLogRecord entry after the logger.LogInformation call
+            Assert.Single(logRecordList);
+        }
+        finally
+        {
+        }
+#endif
     }
 
     private static string GenerateTempFilePath()

@@ -9,7 +9,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal sealed class TldTraceExporter : TldExporter, IDisposable
+internal sealed class TldTraceExporter : IDisposable
 {
     // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
@@ -99,9 +99,9 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
+                TldExporter.V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                Serialize(eb, keyToSerialize, value);
+                TldExporter.Serialize(eb, keyToSerialize, value);
 
                 this.repeatedPartAFields = eb.GetRawFields();
             }
@@ -246,7 +246,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
-                Serialize(eb, replacementKey, entry.Value);
+                TldExporter.Serialize(eb, replacementKey, entry.Value);
                 partBFieldsCount++;
                 continue;
             }
@@ -324,7 +324,7 @@ internal sealed class TldTraceExporter : TldExporter, IDisposable
 
             for (var i = 0; i < partCFieldsCountFromTags; i++)
             {
-                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+                TldExporter.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
 
             if (hasEnvProperties == 1)
