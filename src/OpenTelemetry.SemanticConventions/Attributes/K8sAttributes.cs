@@ -94,6 +94,16 @@ public static class K8sAttributes
     public const string AttributeK8sDeploymentUid = "k8s.deployment.uid";
 
     /// <summary>
+    /// The name of the horizontal pod autoscaler.
+    /// </summary>
+    public const string AttributeK8sHpaName = "k8s.hpa.name";
+
+    /// <summary>
+    /// The UID of the horizontal pod autoscaler.
+    /// </summary>
+    public const string AttributeK8sHpaUid = "k8s.hpa.uid";
+
+    /// <summary>
     /// The name of the Job.
     /// </summary>
     public const string AttributeK8sJobName = "k8s.job.name";
@@ -162,6 +172,26 @@ public static class K8sAttributes
     /// The UID of the ReplicaSet.
     /// </summary>
     public const string AttributeK8sReplicasetUid = "k8s.replicaset.uid";
+
+    /// <summary>
+    /// The name of the replication controller.
+    /// </summary>
+    public const string AttributeK8sReplicationcontrollerName = "k8s.replicationcontroller.name";
+
+    /// <summary>
+    /// The UID of the replication controller.
+    /// </summary>
+    public const string AttributeK8sReplicationcontrollerUid = "k8s.replicationcontroller.uid";
+
+    /// <summary>
+    /// The name of the resource quota.
+    /// </summary>
+    public const string AttributeK8sResourcequotaName = "k8s.resourcequota.name";
+
+    /// <summary>
+    /// The UID of the resource quota.
+    /// </summary>
+    public const string AttributeK8sResourcequotaUid = "k8s.resourcequota.uid";
 
     /// <summary>
     /// The name of the StatefulSet.

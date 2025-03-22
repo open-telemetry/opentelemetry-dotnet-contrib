@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Fixed attribute `db.system` for following providers:
+  * `Devart.Data.SQLite.Entity.EFCore`,
+  * `Devart.Data.MySql.Entity.EFCore`,
+  * `Devart.Data.PostgreSql.Entity.EFCore`.
+  ([#2571](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2571))
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
 ## 1.11.0-beta.1
 
 Released 2025-Jan-27

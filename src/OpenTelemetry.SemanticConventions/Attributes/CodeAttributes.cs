@@ -33,6 +33,7 @@ public static class CodeAttributes
     /// <summary>
     /// Deprecated, use <c>code.file.path</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>code.file.path</c>.")]
     public const string AttributeCodeFilepath = "code.filepath";
 
     /// <summary>
@@ -42,8 +43,26 @@ public static class CodeAttributes
     public const string AttributeCodeFunction = "code.function";
 
     /// <summary>
-    /// The method or function name, or equivalent (usually rightmost part of the code unit's name).
+    /// The method or function fully-qualified name without arguments. The value should fit the natural representation of the language runtime, which is also likely the same used within <c>code.stacktrace</c> attribute value.
     /// </summary>
+    /// <remarks>
+    /// Values and format depends on each language runtime, thus it is impossible to provide an exhaustive list of examples.
+    /// The values are usually the same (or prefixes of) the ones found in native stack trace representation stored in
+    /// <c>code.stacktrace</c> without information on arguments.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>Java method: <c>com.example.MyHttpService.serveRequest</c></li>
+    ///   <li>Java anonymous class method: <c>com.mycompany.Main$1.myMethod</c></li>
+    ///   <li>Java lambda method: <c>com.mycompany.Main$$Lambda/0x0000748ae4149c00.myMethod</c></li>
+    ///   <li>PHP function: `GuzzleHttp\Client::transfer</li>
+    ///   <li>Go function: <c>github.com/my/repo/pkg.foo.func5</c></li>
+    ///   <li>Elixir: <c>OpenTelemetry.Ctx.new</c></li>
+    ///   <li>Erlang: <c>opentelemetry_ctx:new</c></li>
+    ///   <li>Rust: <c>playground::my_module::my_cool_func</c></li>
+    ///   <li>C function: <c>fopen</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeCodeFunctionName = "code.function.name";
 
     /// <summary>
@@ -58,12 +77,13 @@ public static class CodeAttributes
     public const string AttributeCodeLineno = "code.lineno";
 
     /// <summary>
-    /// The "namespace" within which <c>code.function.name</c> is defined. Usually the qualified class or module name, such that <c>code.namespace</c> + some separator + <c>code.function.name</c> form a unique identifier for the code unit.
+    /// Deprecated, namespace is now included into <c>code.function.name</c>.
     /// </summary>
+    [Obsolete("Value should be included in <c>code.function.name</c> which is expected to be a fully-qualified name.")]
     public const string AttributeCodeNamespace = "code.namespace";
 
     /// <summary>
-    /// A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.
+    /// A stacktrace as a string in the natural representation for the language runtime. The representation is identical to <a href="/docs/exceptions/exceptions-spans.md#stacktrace-representation"><c>exception.stacktrace</c></a>.
     /// </summary>
     public const string AttributeCodeStacktrace = "code.stacktrace";
 }
