@@ -82,13 +82,14 @@ public static class DbAttributes
     /// The name of a collection (table, container) within the database.
     /// </summary>
     /// <remarks>
-    /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
     /// <p>
     /// The collection name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// unless the query format is known to only ever have a single collection name present.
+    /// when the database system supports cross-table queries in non-batch operations.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same collection name
-    /// then that collection name SHOULD be used.
+    /// For batch operations, if the individual operations are known to have the same
+    /// collection name then that collection name SHOULD be used.
     /// </remarks>
     public const string AttributeDbCollectionName = "db.collection.name";
 
@@ -238,7 +239,7 @@ public static class DbAttributes
     /// without attempting to do any case normalization.
     /// <p>
     /// The operation name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// unless the query format is known to only ever have a single operation name present.
+    /// when the database system supports cross-table queries in non-batch operations.
     /// <p>
     /// For batch operations, if the individual operations are known to have the same operation name
     /// then that operation name SHOULD be used prepended by <c>BATCH </c>,
@@ -267,7 +268,7 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// <c>db.query.summary</c> provides static summary of the query text. It describes a class of database queries and is useful as a grouping key, especially when analyzing telemetry for database calls involving complex queries.
-    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../../docs/database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
+    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
     /// </remarks>
     public const string AttributeDbQuerySummary = "db.query.summary";
 
@@ -275,7 +276,7 @@ public static class DbAttributes
     /// The database query being executed.
     /// </summary>
     /// <remarks>
-    /// For sanitization see <a href="../../docs/database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
+    /// For sanitization see <a href="../database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
     /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
     /// Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
     /// </remarks>

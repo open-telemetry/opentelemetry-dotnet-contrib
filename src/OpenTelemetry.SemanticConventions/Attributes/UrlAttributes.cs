@@ -114,7 +114,7 @@ public static class UrlAttributes
     /// The highest registered url domain, stripped of the subdomain.
     /// </summary>
     /// <remarks>
-    /// This value can be determined precisely with the <a href="http://publicsuffix.org">public suffix list</a>. For example, the registered domain for <c>foo.example.com</c> is <c>example.com</c>. Trying to approximate this by simply taking the last two labels will not work well for TLDs such as <c>co.uk</c>.
+    /// This value can be determined precisely with the <a href="https://publicsuffix.org/">public suffix list</a>. For example, the registered domain for <c>foo.example.com</c> is <c>example.com</c>. Trying to approximate this by simply taking the last two labels will not work well for TLDs such as <c>co.uk</c>.
     /// </remarks>
     public const string AttributeUrlRegisteredDomain = "url.registered_domain";
 
@@ -140,7 +140,7 @@ public static class UrlAttributes
     /// The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is <c>com</c>.
     /// </summary>
     /// <remarks>
-    /// This value can be determined precisely with the <a href="http://publicsuffix.org">public suffix list</a>.
+    /// This value can be determined precisely with the <a href="https://publicsuffix.org/">public suffix list</a>.
     /// </remarks>
     public const string AttributeUrlTopLevelDomain = "url.top_level_domain";
 }

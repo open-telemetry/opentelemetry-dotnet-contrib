@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* `System.Reflection.Emit.Lightweight` is referenced only by `netstandard2.0`.
+  ([#2667](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2667))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05
