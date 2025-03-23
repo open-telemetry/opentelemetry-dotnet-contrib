@@ -10,8 +10,7 @@ public class OpenTelemetrySerilogSinkOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether or not rendered log message
-    /// should be included on generated <see cref="LogRecord"/>s. Default
-    /// value: <see langword="false"/>.
+    /// should be included in the log state. Default value: <see langword="false"/>.
     /// </summary>
     public bool IncludeRenderedMessage { get; set; }
 }

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 using Serilog.Configuration;
@@ -19,7 +20,7 @@ public static class OpenTelemetrySerilogExtensions
     /// <param name="loggerConfiguration"><see
     /// cref="LoggerSinkConfiguration"/>.</param>
     /// <param name="loggerProvider"><see
-    /// cref="OpenTelemetryLoggerProvider"/>.</param>
+    /// cref="ILoggerProvider"/>.</param>
     /// <param name="options"><see cref="OpenTelemetrySerilogSinkOptions"/>.</param>
     /// <param name="disposeProvider">Controls whether or not the supplied
     /// <paramref name="loggerProvider"/> will be disposed when
@@ -28,7 +29,7 @@ public static class OpenTelemetrySerilogExtensions
     /// <returns>Supplied <see cref="LoggerConfiguration"/> for chaining calls.</returns>
     public static LoggerConfiguration OpenTelemetry(
         this LoggerSinkConfiguration loggerConfiguration,
-        LoggerProvider loggerProvider,
+        ILoggerProvider loggerProvider,
         OpenTelemetrySerilogSinkOptions? options = null,
         bool disposeProvider = false)
     {

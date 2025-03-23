@@ -1,14 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
-#pragma warning disable OTEL1001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 using System.Diagnostics;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Trace;
+using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Events;
 using Xunit;
-using ILogger = Serilog.ILogger;
+using SerilogILogger = Serilog.ILogger;
 
 namespace OpenTelemetry.Appenders.Serilog.Tests;
 
@@ -19,22 +16,15 @@ public class OpenTelemetrySerilogSinkTests
     [InlineData(false)]
     public void SerilogDisposesProviderTests(bool dispose)
     {
-        var disposeTrackingProcessor = new DisposeTrackingProcessor();
+        var testLoggerProvider = new TestLoggerProvider();
 
-        using (var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddProcessor(disposeTrackingProcessor)
-            .Build())
-        {
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: dispose)
-                .CreateLogger();
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: dispose)
+            .CreateLogger();
 
-            Log.CloseAndFlush();
+        Log.CloseAndFlush();
 
-            Assert.Equal(dispose, disposeTrackingProcessor.Disposed);
-        }
-
-        Assert.True(disposeTrackingProcessor.Disposed);
+        Assert.Equal(dispose, testLoggerProvider.IsDisposed);
     }
 
     [Theory]
@@ -42,15 +32,11 @@ public class OpenTelemetrySerilogSinkTests
     [InlineData(false)]
     public void SerilogBasicLogTests(bool includeRenderedMessage)
     {
-        List<LogRecord> exportedItems = new();
-
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var testLoggerProvider = new TestLoggerProvider();
 
         Log.Logger = new LoggerConfiguration()
             .WriteTo.OpenTelemetry(
-                loggerProvider,
+                testLoggerProvider,
                 options: new() { IncludeRenderedMessage = includeRenderedMessage },
                 disposeProvider: true)
             .CreateLogger();
@@ -59,37 +45,27 @@ public class OpenTelemetrySerilogSinkTests
 
         Log.CloseAndFlush();
 
-        Assert.Single(exportedItems);
+        Assert.Single(testLoggerProvider.Logger.LogEntries);
 
-        LogRecord logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
 
-        Assert.Equal("Hello {greeting}", logRecord.Body);
+        Assert.Equal(LogLevel.Information, logEntry.LogLevel);
+        Assert.Equal("Hello {greeting}", logEntry.Message);
 
-        Assert.Null(logRecord.FormattedMessage);
+        Assert.NotNull(logEntry.State);
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "greeting" && (string)kvp.Value == "World");
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "{OriginalFormat}" && (string)kvp.Value == "Hello {greeting}");
 
-        Assert.NotNull(logRecord.Attributes);
-
-        if (!includeRenderedMessage)
+        if (includeRenderedMessage)
         {
-            Assert.Single(logRecord.Attributes);
+            Assert.Contains(logEntry.State, kvp => kvp.Key == "serilog.rendered_message" && (string)kvp.Value == "Hello \"World\"");
         }
         else
         {
-            Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "serilog.rendered_message" && (string?)kvp.Value == "Hello \"World\"");
+            Assert.DoesNotContain(logEntry.State, kvp => kvp.Key == "serilog.rendered_message");
         }
 
-        Assert.NotEqual(DateTime.MinValue, logRecord.Timestamp);
-        Assert.Equal(DateTimeKind.Utc, logRecord.Timestamp.Kind);
-        Assert.Equal(LogRecordSeverity.Info, logRecord.Severity);
-        Assert.Equal(nameof(LogEventLevel.Information), logRecord.SeverityText);
-        Assert.Equal("OpenTelemetry.Appenders.Serilog", logRecord.CategoryName);
-
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "greeting" && (string?)kvp.Value == "World");
-
-        Assert.Equal(default, logRecord.TraceId);
-        Assert.Equal(default, logRecord.SpanId);
-        Assert.Null(logRecord.TraceState);
-        Assert.Equal(ActivityTraceFlags.None, logRecord.TraceFlags);
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "Timestamp" && kvp.Value is DateTime);
     }
 
     [Fact]
@@ -98,77 +74,59 @@ public class OpenTelemetrySerilogSinkTests
         using var activity = new Activity("Test");
         activity.Start();
 
-        List<LogRecord> exportedItems = new();
-
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var testLoggerProvider = new TestLoggerProvider();
 
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true)
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: true)
             .CreateLogger();
 
         Log.Logger.Information("Hello {greeting}", "World");
 
         Log.CloseAndFlush();
 
-        Assert.Single(exportedItems);
+        Assert.Single(testLoggerProvider.Logger.LogEntries);
 
-        var logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
 
-        Assert.NotEqual(default, logRecord.TraceId);
-
-        Assert.Equal(activity.TraceId, logRecord.TraceId);
-        Assert.Equal(activity.SpanId, logRecord.SpanId);
-        Assert.Equal(activity.TraceStateString, logRecord.TraceState);
-        Assert.Equal(activity.ActivityTraceFlags, logRecord.TraceFlags);
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "SpanId" && (string)kvp.Value == activity.SpanId.ToHexString());
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "TraceId" && (string)kvp.Value == activity.TraceId.ToHexString());
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "TraceFlags" && (string)kvp.Value == activity.ActivityTraceFlags.ToString());
     }
 
     [Fact]
     public void SerilogCategoryNameTest()
     {
-        List<LogRecord> exportedItems = new();
-
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var testLoggerProvider = new TestLoggerProvider();
 
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true)
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: true)
             .CreateLogger();
 
         // Note: Serilog ForContext API is used to set "CategoryName" on log messages
-        ILogger logger = Log.Logger.ForContext<OpenTelemetrySerilogSinkTests>();
+        SerilogILogger logger = Log.Logger.ForContext<OpenTelemetrySerilogSinkTests>();
 
         logger.Information("Hello {greeting}", "World");
 
         Log.CloseAndFlush();
 
-        Assert.Single(exportedItems);
+        Assert.Single(testLoggerProvider.Logger.LogEntries);
 
-        LogRecord logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
 
-        Assert.Equal("OpenTelemetry.Appenders.Serilog", logRecord.CategoryName);
-
-        Assert.NotNull(logRecord.Attributes);
-
+        // The new implementation adds the source context as a property
         Assert.Contains(
-            logRecord.Attributes,
+            logEntry.State,
             kvp => kvp.Key == "serilog.source_context"
-                && (string?)kvp.Value == "OpenTelemetry.Appenders.Serilog.Tests.OpenTelemetrySerilogSinkTests");
+                && (string)kvp.Value == "OpenTelemetry.Appenders.Serilog.Tests.OpenTelemetrySerilogSinkTests");
     }
 
     [Fact]
     public void SerilogComplexMessageTemplateTest()
     {
-        List<LogRecord> exportedItems = new();
-
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var testLoggerProvider = new TestLoggerProvider();
 
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true)
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: true)
             .CreateLogger();
 
         ComplexType complexType = new();
@@ -177,28 +135,22 @@ public class OpenTelemetrySerilogSinkTests
 
         Log.CloseAndFlush();
 
-        Assert.Single(exportedItems);
+        Assert.Single(testLoggerProvider.Logger.LogEntries);
 
-        LogRecord logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
 
-        Assert.NotNull(logRecord.Attributes);
-        Assert.Equal(3, logRecord.Attributes!.Count); // Note: complexObj is currently not supported/ignored.
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "greeting" && (string?)kvp.Value == "World");
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "id" && (int?)kvp.Value == 18);
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "complexStr" && (string?)kvp.Value == "ComplexTypeToString");
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "greeting" && (string)kvp.Value == "World");
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "id" && (int)kvp.Value == 18);
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "complexStr" && (string)kvp.Value == "ComplexTypeToString");
     }
 
     [Fact]
     public void SerilogArrayMessageTemplateTest()
     {
-        List<LogRecord> exportedItems = new();
-
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
+        var testLoggerProvider = new TestLoggerProvider();
 
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true)
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: true)
             .CreateLogger();
 
         ComplexType complexType = new();
@@ -211,64 +163,113 @@ public class OpenTelemetrySerilogSinkTests
 
         Log.CloseAndFlush();
 
-        Assert.Equal(2, exportedItems.Count);
+        Assert.Equal(2, testLoggerProvider.Logger.LogEntries.Count);
 
-        LogRecord logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "data" && kvp.Value is object[] arrayVal && arrayVal.Length == intArray.Length);
 
-        Assert.NotNull(logRecord.Attributes);
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "data" && kvp.Value is int[] typedArray && intArray.SequenceEqual(typedArray));
-
-        logRecord = exportedItems[1];
-        Assert.NotNull(logRecord.Attributes);
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == "data" && kvp.Value is object?[] typedArray && mixedArray.SequenceEqual(typedArray));
+        logEntry = testLoggerProvider.Logger.LogEntries[1];
+        Assert.Contains(logEntry.State, kvp => kvp.Key == "data" && kvp.Value is object[] arrayVal);
     }
 
     [Fact]
     public void SerilogExceptionTest()
     {
-        List<LogRecord> exportedItems = new();
+        var testLoggerProvider = new TestLoggerProvider();
 
         InvalidOperationException ex = new();
 
-        var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true)
+            .WriteTo.OpenTelemetry(testLoggerProvider, disposeProvider: true)
             .CreateLogger();
 
         Log.Logger.Information(ex, "Exception");
 
         Log.CloseAndFlush();
 
-        Assert.Single(exportedItems);
+        Assert.Single(testLoggerProvider.Logger.LogEntries);
 
-        LogRecord logRecord = exportedItems[0];
+        var logEntry = testLoggerProvider.Logger.LogEntries[0];
 
-        Assert.Null(logRecord.Exception);
-
-        Assert.NotNull(logRecord.Attributes);
-
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == SemanticConventions.AttributeExceptionType && (string?)kvp.Value == ex.GetType().Name);
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == SemanticConventions.AttributeExceptionMessage && (string?)kvp.Value == ex.Message);
-        Assert.Contains(logRecord.Attributes, kvp => kvp.Key == SemanticConventions.AttributeExceptionStacktrace && (string?)kvp.Value == ex.ToString());
+        Assert.Equal(ex, logEntry.Exception);
     }
 
-    private sealed class DisposeTrackingProcessor : BaseProcessor<LogRecord>
+    private sealed class TestLoggerProvider : ILoggerProvider, IDisposable
     {
-        public bool Disposed { get; private set; }
+        public TestLogger Logger { get; } = new();
 
-        protected override void Dispose(bool disposing)
+        public bool IsDisposed { get; private set; }
+
+        public Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
         {
-            this.Disposed = true;
-
-            base.Dispose(disposing);
+            return this.Logger;
         }
+
+        public void Dispose()
+        {
+            this.IsDisposed = true;
+        }
+    }
+
+    private sealed class TestLogger : Microsoft.Extensions.Logging.ILogger
+    {
+        public List<LogEntry> LogEntries { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            string message = formatter(state, exception);
+            List<KeyValuePair<string, object>> stateList = new();
+
+            if (state is IEnumerable<KeyValuePair<string, object>> stateEnumerable)
+            {
+                stateList.AddRange(stateEnumerable);
+            }
+
+            this.LogEntries.Add(new LogEntry
+            {
+                LogLevel = logLevel,
+                EventId = eventId,
+                State = stateList,
+                Exception = exception,
+                Message = message,
+            });
+        }
+    }
+
+    private sealed class LogEntry
+    {
+        public LogLevel LogLevel { get; set; }
+
+        public EventId EventId { get; set; }
+
+        public List<KeyValuePair<string, object>> State { get; set; } = new();
+
+        public Exception? Exception { get; set; }
+
+        public string Message { get; set; } = string.Empty;
     }
 
     private sealed class ComplexType
     {
-        public override string ToString() => "ComplexTypeToString";
+        public override string ToString()
+        {
+            return "ComplexTypeToString";
+        }
     }
 }

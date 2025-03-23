@@ -9,9 +9,7 @@
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Appenders.Serilog)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Appenders.Serilog)
 
 > [!IMPORTANT]
-> This package is in the [Alpha](../../README.md#alpha) state. The main goal
-  of this package is to stabilize [OpenTelemetry Logs (Bridge) API](https://github.com/open-telemetry/opentelemetry-dotnet/issues/4433).
-  There is no plan to go beyond Alpha until API reach stability.
+> This package is in the [Alpha](../../README.md#alpha) state.
 
 This project contains a [Serilog](https://github.com/serilog/)
 [sink](https://github.com/serilog/serilog/wiki/Configuration-Basics#sinks) for
@@ -22,7 +20,7 @@ for adding OpenTelemetry trace details to log messages.
 ## Installation
 
 ```shell
-dotnet add package OpenTelemetry.Appenders.Serilog --prerelease
+dotnet add package OpenTelemetry.Appenders.Serilog  --prerelease
 ```
 
 ## Usage Examples
@@ -35,15 +33,25 @@ Specification. Log messages will flow through the OpenTelemetry pipeline to any
 registered processors/exporters.
 
 ```csharp
-// Step 1: Configure OpenTelemetryLoggerProvider...
-var loggerProvider = Sdk.CreateLoggerProviderBuilder()
-    .ConfigureResource(builder => builder.AddService("MyService"))
-    .AddConsoleExporter()
-    .Build();
+// Step 1: Configure an OpenTelemetryLoggerProvider...
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+
+var serviceProvider = new ServiceCollection()
+    .AddLogging(builder => builder
+        .AddConsole()
+        .AddOpenTelemetry(options => 
+        {
+            options.AddConsoleExporter();
+            options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MyService"));
+        }))
+    .BuildServiceProvider();
+
+var loggerProvider = serviceProvider.GetRequiredService<OpenTelemetryLoggerProvider>();
 
 // Step 2: Register OpenTelemetry sink with Serilog...
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.OpenTelemetry(openTelemetryLoggerProvider, disposeProvider: true) // <-- Register sink
+    .WriteTo.OpenTelemetry(loggerProvider, disposeProvider: true) // <-- Register sink
     .CreateLogger();
 
 // Step 3: When application is shutdown flush all log messages and dispose provider...
@@ -80,20 +88,14 @@ The example above will output this JSON:
 
 ```json
 {
-    "Timestamp": "2022-09-26T02:45:07.1008180-04:00",
-    "Level": "Information",
-    "MessageTemplate": "Application starting",
-    "RenderedMessage": "Application starting",
-    "Properties": {
-        "SpanId": "9250f033e82cc807",
-        "TraceId": "a1c08f86409507de8bf6e38416c8f3de",
-        "TraceFlags": "None"
-    }
+  "@t": "2024-03-23T13:33:57.5057358Z",
+  "@m": "Starting application",
+  "@i": "ab9cc38b",
+  "TraceId": "a6d6d0bf7c1f87496cbe1e7f10880477",
+  "SpanId": "b49eb1336be3152e",
+  "ParentSpanId": "0000000000000000"
 }
 ```
-
-Note: In cases where you have a nested activity the property `ParentSpanId` will
-also be included.
 
 ## References
 
