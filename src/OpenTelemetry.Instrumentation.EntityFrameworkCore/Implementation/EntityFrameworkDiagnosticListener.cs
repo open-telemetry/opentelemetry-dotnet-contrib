@@ -46,8 +46,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     [
         SemanticConventions.AttributeDbSystem,
         SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbName,
         SemanticConventions.AttributeDbNamespace,
         SemanticConventions.AttributeDbResponseStatusCode,
+        SemanticConventions.AttributeServerAddress,
     ];
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
@@ -286,15 +288,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     if (activity.Source != EntityFrameworkActivitySource)
                     {
+                        this.RecordDuration(null, payload);
                         return;
                     }
 
                     activity.Stop();
+                    this.RecordDuration(activity, payload);
                 }
 
                 break;
@@ -304,12 +309,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         EntityFrameworkInstrumentationEventSource.Log.NullActivity(name);
+                        this.RecordDuration(null, payload, hasError: true);
                         return;
                     }
 
                     if (activity.Source != EntityFrameworkActivitySource)
                     {
-                        this.RecordDuration(null, payload, true);
+                        this.RecordDuration(null, payload, hasError: true);
                         return;
                     }
 
@@ -364,7 +370,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         else if (payload != null)
         {
             var command = this.commandFetcher.Fetch(payload);
-            var startTags = this.CreateTagsFromConnectionInfo(payload, command, EntityFrameworkInstrumentation.TracingOptions);
+            var startTags = this.CreateTagsFromConnectionInfo(
+                payload,
+                command,
+                EntityFrameworkInstrumentation.TracingOptions,
+                out _);
 
             foreach (var tag in startTags)
             {

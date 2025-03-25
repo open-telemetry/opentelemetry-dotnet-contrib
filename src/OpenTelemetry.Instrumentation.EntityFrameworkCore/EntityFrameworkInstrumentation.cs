@@ -7,11 +7,10 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 
 internal class EntityFrameworkInstrumentation : IDisposable
 {
-    public static readonly EntityFrameworkInstrumentation Instance = new EntityFrameworkInstrumentation();
+    public static readonly EntityFrameworkInstrumentation Instance = new();
     internal static int MetricHandles;
     internal static int TracingHandles;
 
-    private readonly EntityFrameworkInstrumentationOptions options;
     private readonly DiagnosticSourceSubscriber diagnosticSourceSubscriber;
 
     public EntityFrameworkInstrumentation()
