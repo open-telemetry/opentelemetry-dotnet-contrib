@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class RpcAttributes
 {
     /// <summary>
-    /// The <a href="https://connect.build/docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
     /// </summary>
     public const string AttributeRpcConnectRpcErrorCode = "rpc.connect_rpc.error_code";
 
@@ -121,7 +121,7 @@ public static class RpcAttributes
     public const string AttributeRpcSystem = "rpc.system";
 
     /// <summary>
-    /// The <a href="https://connect.build/docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
     /// </summary>
     public static class RpcConnectRpcErrorCodeValues
     {

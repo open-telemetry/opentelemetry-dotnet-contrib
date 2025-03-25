@@ -15,10 +15,26 @@ namespace OpenTelemetry.SemanticConventions;
 public static class EnduserAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>user.id</c> instead.
+    /// Unique identifier of an end user in the system. It maybe a username, email address, or other identifier.
     /// </summary>
-    [Obsolete("Replaced by <c>user.id</c> attribute.")]
+    /// <remarks>
+    /// Unique identifier of an end user in the system.
+    /// <blockquote>
+    /// [!Warning]
+    /// This field contains sensitive (PII) information.</blockquote>
+    /// </remarks>
     public const string AttributeEnduserId = "enduser.id";
+
+    /// <summary>
+    /// Pseudonymous identifier of an end user. This identifier should be a random value that is not directly linked or associated with the end user's actual identity.
+    /// </summary>
+    /// <remarks>
+    /// Pseudonymous identifier of an end user.
+    /// <blockquote>
+    /// [!Warning]
+    /// This field contains sensitive (linkable PII) information.</blockquote>
+    /// </remarks>
+    public const string AttributeEnduserPseudoId = "enduser.pseudo.id";
 
     /// <summary>
     /// Deprecated, use <c>user.roles</c> instead.
