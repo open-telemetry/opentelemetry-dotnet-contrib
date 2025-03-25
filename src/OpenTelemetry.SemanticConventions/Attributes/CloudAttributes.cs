@@ -49,7 +49,7 @@ public static class CloudAttributes
     public const string AttributeCloudRegion = "cloud.region";
 
     /// <summary>
-    /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://cloud.google.com/apis/design/resource_names#full_resource_name">full resource name</a> on GCP).
+    /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://google.aip.dev/122#full-resource-names">full resource name</a> on GCP).
     /// </summary>
     /// <remarks>
     /// On some cloud providers, it may not be possible to determine the full ID at startup,
