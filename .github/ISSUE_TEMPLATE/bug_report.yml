@@ -17,6 +17,7 @@ body:
       description: Which component does this bug report concern?
       multiple: false
       options:
+        - OpenTelemetry.Appenders.Serilog
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana
