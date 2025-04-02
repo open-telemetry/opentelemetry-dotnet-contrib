@@ -548,6 +548,7 @@ jobs:
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
+      pack: false # No packages produced
       run-tests: false # Note: No test project
 
   build-test-contrib-shared-tests:
@@ -560,6 +561,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Contrib.Shared.Tests
       code-cov-name: Contrib.Shared.Tests
+      pack: false # No packages produced
 
   verify-aot-compat:
     needs: detect-changes
