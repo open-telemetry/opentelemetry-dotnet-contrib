@@ -2,6 +2,7 @@ name: Lint - YAML
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   run-yamllint:
