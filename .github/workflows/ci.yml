@@ -560,6 +560,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Contrib.Shared.Tests
       code-cov-name: Contrib.Shared.Tests
+      pack: false # No packages produced
 
   verify-aot-compat:
     needs: detect-changes
