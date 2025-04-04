@@ -548,7 +548,6 @@ jobs:
     with:
       project-name: OpenTelemetry.SemanticConventions
       code-cov-name: SemanticConventions
-      pack: false # No packages produced
       run-tests: false # Note: No test project
 
   build-test-contrib-shared-tests:
