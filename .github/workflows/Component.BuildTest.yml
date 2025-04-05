@@ -143,7 +143,8 @@ jobs:
 
     - name: Publish NuGet packages to Artifacts
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os == 'windows-latest' && inputs.pack }}
+      # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
+      if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
       with:
         name: ${{ inputs.project-name }}-${{ matrix.version }}-packages
         path: '.\src\**\*.*nupkg'
