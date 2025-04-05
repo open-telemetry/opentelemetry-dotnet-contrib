@@ -83,7 +83,7 @@ jobs:
 
         echo "title=$title" >> $env:GITHUB_OUTPUT
         echo "project=$project" >> $env:GITHUB_OUTPUT
-        echo "component=$component" >> $env:GITHUB_OUTPUT
+        echo "name=$($component ?? $title)" >> $env:GITHUB_OUTPUT
 
         # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
         # used if $project ends up Component.proj.
@@ -142,11 +142,11 @@ jobs:
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
 
-    - name: Publish NuGet packages to Artifacts
+    - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
       if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
       with:
-        name: ${{ steps.resolve-project.outputs.component }}-packages
+        name: ${{ steps.resolve-project.outputs.name }}-packages
         path: '.\src\**\*.*nupkg'
         if-no-files-found: error
