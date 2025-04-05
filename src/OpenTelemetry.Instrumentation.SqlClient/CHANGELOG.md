@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix data source regex to support IPv6 literal addresses
+  ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05
