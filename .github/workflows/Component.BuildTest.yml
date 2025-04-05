@@ -140,3 +140,11 @@ jobs:
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
+
+    - name: Publish NuGet packages to Artifacts
+      uses: actions/upload-artifact@v4
+      if: ${{ matrix.os == 'windows-latest' && inputs.pack }}
+      with:
+        name: ${{ inputs.project-name }}-${{ matrix.version }}-packages
+        path: '.\src\**\*.*nupkg'
+        if-no-files-found: error
