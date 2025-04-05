@@ -142,7 +142,7 @@ jobs:
         codecov_yml_path: .github/codecov.yml
 
     - name: Publish NuGet packages to Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
       if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
       with:
