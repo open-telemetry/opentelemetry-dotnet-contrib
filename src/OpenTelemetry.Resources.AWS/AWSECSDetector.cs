@@ -122,7 +122,6 @@ internal sealed class AWSECSDetector : IResourceDetector
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
             var baseArn = containerArn.Substring(containerArn.LastIndexOf(':'));
-#pragma warning restore CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
         }
 
         resourceAttributes
