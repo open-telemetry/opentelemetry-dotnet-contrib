@@ -11,7 +11,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// <summary>
 /// Resource detector for application running in AWS ECS.
 /// </summary>
-internal sealed class AWSECSDetector : IResourceDetector
+internal sealed partial class AWSECSDetector : IResourceDetector
 {
     private const string AWSECSMetadataPath = "/proc/self/cgroup";
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
@@ -182,8 +182,7 @@ internal sealed class AWSECSDetector : IResourceDetector
         {
             if (containerResponse.RootElement.TryGetProperty("LogOptions", out var logOptionsElement))
             {
-                var regex = new Regex(@"arn:aws:ecs:([^:]+):([^:]+):.*");
-                var match = regex.Match(containerArn);
+                var match = ArnRegex().Match(containerArn);
 
                 if (!match.Success)
                 {
@@ -209,5 +208,8 @@ internal sealed class AWSECSDetector : IResourceDetector
             }
         }
     }
+
+    [GeneratedRegex(@"arn:aws:ecs:([^:]+):([^:]+):.*")]
+    private static partial Regex ArnRegex();
 }
 #endif
