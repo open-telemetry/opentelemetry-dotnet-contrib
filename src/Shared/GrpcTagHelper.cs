@@ -7,7 +7,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation;
 
-internal static class GrpcTagHelper
+internal static partial class GrpcTagHelper
 {
     public const string RpcSystemGrpc = "grpc";
 
@@ -15,8 +15,6 @@ internal static class GrpcTagHelper
     // These tags are used to source the tags added by the OpenTelemetry instrumentation.
     public const string GrpcMethodTagName = "grpc.method";
     public const string GrpcStatusCodeTagName = "grpc.status_code";
-
-    private static readonly Regex GrpcMethodRegex = new(@"^/?(?<service>.*)/(?<method>.*)$", RegexOptions.Compiled);
 
     public static string? GetGrpcMethodFromActivity(Activity activity)
     {
@@ -32,7 +30,7 @@ internal static class GrpcTagHelper
 
     public static bool TryParseRpcServiceAndRpcMethod(string grpcMethod, out string rpcService, out string rpcMethod)
     {
-        var match = GrpcMethodRegex.Match(grpcMethod);
+        var match = GrpcMethodRegex().Match(grpcMethod);
         if (match.Success)
         {
             rpcService = match.Groups["service"].Value;
@@ -84,4 +82,16 @@ internal static class GrpcTagHelper
 
         return status;
     }
+
+#if NET
+    [GeneratedRegex(@"^/?(?<service>.*)/(?<method>.*)$")]
+    private static partial Regex GrpcMethodRegex();
+#else
+#pragma warning disable SA1201 // A field should not follow a method
+    private static readonly Regex GrpcMethodRegexField = new(@"^/?(?<service>.*)/(?<method>.*)$", RegexOptions.Compiled);
+#pragma warning restore SA1201 // A field should not follow a method
+
+    private static Regex GrpcMethodRegex() => GrpcMethodRegexField;
+#endif
+
 }
