@@ -7,14 +7,11 @@ using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Exporter.OneCollector;
 
-internal sealed class EventNameManager
+internal sealed partial class EventNameManager
 {
     // Note: OneCollector will silently drop events which have a name less than 4 characters.
     internal const int MinimumEventFullNameLength = 4;
     internal const int MaximumEventFullNameLength = 100;
-
-    private static readonly Regex EventNamespaceValidationRegex = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
-    private static readonly Regex EventNameValidationRegex = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
     private readonly string defaultEventNamespace;
     private readonly string defaultEventName;
@@ -50,10 +47,10 @@ internal sealed class EventNameManager
     internal Hashtable EventFullNameCache => this.eventFullNameCache;
 
     public static bool IsEventNamespaceValid(string eventNamespace)
-        => EventNamespaceValidationRegex.IsMatch(eventNamespace);
+        => EventNamespaceValidationRegex().IsMatch(eventNamespace);
 
     public static bool IsEventNameValid(string eventName)
-        => EventNameValidationRegex.IsMatch(eventName);
+        => EventNameValidationRegex().IsMatch(eventName);
 
     public ResolvedEventFullName ResolveEventFullName(
         string eventFullName)
@@ -140,6 +137,25 @@ internal sealed class EventNameManager
 
         return resolvedEventFullName;
     }
+
+#if NET
+    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled)]
+    private static partial Regex EventNamespaceValidationRegex();
+
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled)]
+
+    private static partial Regex EventNameValidationRegex();
+#else
+
+#pragma warning disable SA1201 // A field should not follow a method
+    private static readonly Regex EventNamespaceValidationRegexField = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
+    private static readonly Regex EventNameValidationRegexField = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
+#pragma warning restore SA1201 // A field should not follow a method
+
+    private static Regex EventNamespaceValidationRegex() => EventNamespaceValidationRegexField;
+
+    private static Regex EventNameValidationRegex() => EventNameValidationRegexField;
+#endif
 
     private static byte[] BuildEventFullName(string eventNamespace, string eventName)
     {
