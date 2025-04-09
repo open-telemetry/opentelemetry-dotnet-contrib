@@ -15,6 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CpuAttributes
 {
     /// <summary>
+    /// The logical CPU number [0..n-1].
+    /// </summary>
+    public const string AttributeCpuLogicalNumber = "cpu.logical_number";
+
+    /// <summary>
     /// The mode of the CPU.
     /// </summary>
     public const string AttributeCpuMode = "cpu.mode";

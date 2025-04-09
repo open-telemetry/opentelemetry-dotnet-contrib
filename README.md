@@ -92,6 +92,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 * [Alan West](https://github.com/alanwest), New Relic
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
+* [Rajkumar Rangaraj](https://github.com/rajkumar-rangaraj), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*

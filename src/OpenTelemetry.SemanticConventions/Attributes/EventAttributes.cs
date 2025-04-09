@@ -17,8 +17,6 @@ public static class EventAttributes
     /// <summary>
     /// Identifies the class / type of event.
     /// </summary>
-    /// <remarks>
-    /// Event names are subject to the same rules as <a href="/docs/general/attribute-naming.md">attribute names</a>. Notably, event names are namespaced to avoid collisions and provide a clean separation of semantics for events in separate domains like browser, mobile, and kubernetes.
-    /// </remarks>
+    [Obsolete("Replaced by EventName top-level field on the LogRecord.")]
     public const string AttributeEventName = "event.name";
 }

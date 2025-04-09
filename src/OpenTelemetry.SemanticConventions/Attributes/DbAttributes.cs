@@ -15,33 +15,39 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DbAttributes
 {
     /// <summary>
-    /// The consistency level of the query. Based on consistency values from <a href="https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html">CQL</a>.
+    /// Deprecated, use <c>cassandra.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
     public const string AttributeDbCassandraConsistencyLevel = "db.cassandra.consistency_level";
 
     /// <summary>
-    /// The data center of the coordinating node for a query.
+    /// Deprecated, use <c>cassandra.coordinator.dc</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.coordinator.dc</c>.")]
     public const string AttributeDbCassandraCoordinatorDc = "db.cassandra.coordinator.dc";
 
     /// <summary>
-    /// The ID of the coordinating node for a query.
+    /// Deprecated, use <c>cassandra.coordinator.id</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.coordinator.id</c>.")]
     public const string AttributeDbCassandraCoordinatorId = "db.cassandra.coordinator.id";
 
     /// <summary>
-    /// Whether or not the query is idempotent.
+    /// Deprecated, use <c>cassandra.query.idempotent</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.query.idempotent</c>.")]
     public const string AttributeDbCassandraIdempotence = "db.cassandra.idempotence";
 
     /// <summary>
-    /// The fetch size used for paging, i.e. how many rows will be returned at once.
+    /// Deprecated, use <c>cassandra.page.size</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.page.size</c>.")]
     public const string AttributeDbCassandraPageSize = "db.cassandra.page_size";
 
     /// <summary>
-    /// The number of times a query was speculatively executed. Not set or <c>0</c> if the query was not executed speculatively.
+    /// Deprecated, use <c>cassandra.speculative_execution.count</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.speculative_execution.count</c>.")]
     public const string AttributeDbCassandraSpeculativeExecutionCount = "db.cassandra.speculative_execution_count";
 
     /// <summary>
@@ -76,15 +82,14 @@ public static class DbAttributes
     /// The name of a collection (table, container) within the database.
     /// </summary>
     /// <remarks>
-    /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
     /// <p>
     /// The collection name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// unless the query format is known to only ever have a single collection name present.
+    /// when the database system supports cross-table queries in non-batch operations.
     /// <p>
-    /// For batch operations, if the individual operations are known to have the same collection name
-    /// then that collection name SHOULD be used.
-    /// <p>
-    /// This attribute has stability level RELEASE CANDIDATE.
+    /// For batch operations, if the individual operations are known to have the same
+    /// collection name then that collection name SHOULD be used.
     /// </remarks>
     public const string AttributeDbCollectionName = "db.collection.name";
 
@@ -95,18 +100,21 @@ public static class DbAttributes
     public const string AttributeDbConnectionString = "db.connection_string";
 
     /// <summary>
-    /// Unique Cosmos client instance id.
+    /// Deprecated, use <c>azure.client.id</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.client.id</c>.")]
     public const string AttributeDbCosmosdbClientId = "db.cosmosdb.client_id";
 
     /// <summary>
-    /// Cosmos client connection mode.
+    /// Deprecated, use <c>azure.cosmosdb.connection.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
     public const string AttributeDbCosmosdbConnectionMode = "db.cosmosdb.connection_mode";
 
     /// <summary>
-    /// Account or request <a href="https://learn.microsoft.com/azure/cosmos-db/consistency-levels">consistency level</a>.
+    /// Deprecated, use <c>cosmosdb.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
     public const string AttributeDbCosmosdbConsistencyLevel = "db.cosmosdb.consistency_level";
 
     /// <summary>
@@ -122,21 +130,21 @@ public static class DbAttributes
     public const string AttributeDbCosmosdbOperationType = "db.cosmosdb.operation_type";
 
     /// <summary>
-    /// List of regions contacted during operation in the order that they were contacted. If there is more than one region listed, it indicates that the operation was performed on multiple regions i.e. cross-regional call.
+    /// Deprecated, use <c>azure.cosmosdb.operation.contacted_regions</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Region name matches the format of <c>displayName</c> in <a href="https://learn.microsoft.com/rest/api/subscription/subscriptions/list-locations?view=rest-subscription-2021-10-01&tabs=HTTP#location">Azure Location API</a>.
-    /// </remarks>
+    [Obsolete("Replaced by <c>azure.cosmosdb.operation.contacted_regions</c>.")]
     public const string AttributeDbCosmosdbRegionsContacted = "db.cosmosdb.regions_contacted";
 
     /// <summary>
-    /// Request units consumed for the operation.
+    /// Deprecated, use <c>azure.cosmosdb.operation.request_charge</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.operation.request_charge</c>.")]
     public const string AttributeDbCosmosdbRequestCharge = "db.cosmosdb.request_charge";
 
     /// <summary>
-    /// Request payload size in bytes.
+    /// Deprecated, use <c>azure.cosmosdb.request.body.size</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.request.body.size</c>.")]
     public const string AttributeDbCosmosdbRequestContentLength = "db.cosmosdb.request_content_length";
 
     /// <summary>
@@ -146,8 +154,9 @@ public static class DbAttributes
     public const string AttributeDbCosmosdbStatusCode = "db.cosmosdb.status_code";
 
     /// <summary>
-    /// Cosmos DB sub status code.
+    /// Deprecated, use <c>azure.cosmosdb.response.sub_status_code</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.response.sub_status_code</c>.")]
     public const string AttributeDbCosmosdbSubStatusCode = "db.cosmosdb.sub_status_code";
 
     /// <summary>
@@ -157,16 +166,15 @@ public static class DbAttributes
     public const string AttributeDbElasticsearchClusterName = "db.elasticsearch.cluster.name";
 
     /// <summary>
-    /// Represents the human-readable identifier of the node/instance to which a request was routed.
+    /// Deprecated, use <c>elasticsearch.node.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>elasticsearch.node.name</c>.")]
     public const string AttributeDbElasticsearchNodeName = "db.elasticsearch.node.name";
 
     /// <summary>
-    /// A dynamic value in the url path.
+    /// Deprecated, use <c>db.operation.parameter</c> instead.
     /// </summary>
-    /// <remarks>
-    /// Many Elasticsearch url paths allow dynamic values. These SHOULD be recorded in span attributes in the format <c>db.elasticsearch.path_parts.<key></c>, where <c><key></c> is the url path part name. The implementation SHOULD reference the <a href="https://raw.githubusercontent.com/elastic/elasticsearch-specification/main/output/schema/schema.json">elasticsearch schema</a> in order to map the path part values to their names.
-    /// </remarks>
+    [Obsolete("Replaced by <c>db.operation.parameter</c>.")]
     public const string AttributeDbElasticsearchPathPartsTemplate = "db.elasticsearch.path_parts";
 
     /// <summary>
@@ -206,7 +214,6 @@ public static class DbAttributes
     /// If a database system has multiple namespace components, they SHOULD be concatenated (potentially using database system specific conventions) from most general to most specific namespace component, and more specific namespaces SHOULD NOT be captured without the more general namespaces, to ensure that "startswith" queries for the more general namespaces will be valid.
     /// Semantic conventions for individual database systems SHOULD document what <c>db.namespace</c> means in the context of that system.
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbNamespace = "db.namespace";
 
@@ -221,7 +228,6 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// Operations are only considered batches when they contain two or more operations, and so <c>db.operation.batch.size</c> SHOULD never be <c>1</c>.
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
 
@@ -233,14 +239,12 @@ public static class DbAttributes
     /// without attempting to do any case normalization.
     /// <p>
     /// The operation name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// unless the query format is known to only ever have a single operation name present.
+    /// when the database system supports cross-table queries in non-batch operations.
     /// <p>
     /// For batch operations, if the individual operations are known to have the same operation name
     /// then that operation name SHOULD be used prepended by <c>BATCH </c>,
     /// otherwise <c>db.operation.name</c> SHOULD be <c>BATCH</c> or some other database
     /// system specific term if more applicable.
-    /// <p>
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationName = "db.operation.name";
 
@@ -250,7 +254,6 @@ public static class DbAttributes
     /// <remarks>
     /// If a parameter has no name and instead is referenced only by index, then <c><key></c> SHOULD be the 0-based index.
     /// If <c>db.query.text</c> is also captured, then <c>db.operation.parameter.<key></c> SHOULD match up with the parameterized placeholders present in <c>db.query.text</c>.
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbOperationParameterTemplate = "db.operation.parameter";
 
@@ -265,8 +268,7 @@ public static class DbAttributes
     /// </summary>
     /// <remarks>
     /// <c>db.query.summary</c> provides static summary of the query text. It describes a class of database queries and is useful as a grouping key, especially when analyzing telemetry for database calls involving complex queries.
-    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../../docs/database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
-    /// This attribute has stability level RELEASE CANDIDATE.
+    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
     /// </remarks>
     public const string AttributeDbQuerySummary = "db.query.summary";
 
@@ -274,10 +276,9 @@ public static class DbAttributes
     /// The database query being executed.
     /// </summary>
     /// <remarks>
-    /// For sanitization see <a href="../../docs/database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
+    /// For sanitization see <a href="../database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
     /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
     /// Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbQueryText = "db.query.text";
 
@@ -298,7 +299,6 @@ public static class DbAttributes
     /// <remarks>
     /// The status code returned by the database. Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
     /// Semantic conventions for individual database systems SHOULD document what <c>db.response.status_code</c> means in the context of that system.
-    /// This attribute has stability level RELEASE CANDIDATE.
     /// </remarks>
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
 
@@ -315,13 +315,18 @@ public static class DbAttributes
     public const string AttributeDbStatement = "db.statement";
 
     /// <summary>
+    /// Deprecated, use <c>db.system.name</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>db.system.name</c>.")]
+    public const string AttributeDbSystem = "db.system";
+
+    /// <summary>
     /// The database management system (DBMS) product as identified by the client instrumentation.
     /// </summary>
     /// <remarks>
-    /// The actual DBMS may differ from the one identified by the client. For example, when using PostgreSQL client libraries to connect to a CockroachDB, the <c>db.system</c> is set to <c>postgresql</c> based on the instrumentation's best knowledge.
-    /// This attribute has stability level RELEASE CANDIDATE.
+    /// The actual DBMS may differ from the one identified by the client. For example, when using PostgreSQL client libraries to connect to a CockroachDB, the <c>db.system.name</c> is set to <c>postgresql</c> based on the instrumentation's best knowledge.
     /// </remarks>
-    public const string AttributeDbSystem = "db.system";
+    public const string AttributeDbSystemName = "db.system.name";
 
     /// <summary>
     /// Deprecated, no replacement at this time.
@@ -330,63 +335,74 @@ public static class DbAttributes
     public const string AttributeDbUser = "db.user";
 
     /// <summary>
-    /// The consistency level of the query. Based on consistency values from <a href="https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html">CQL</a>.
+    /// Deprecated, use <c>cassandra.consistency.level</c> instead.
     /// </summary>
     public static class DbCassandraConsistencyLevelValues
     {
         /// <summary>
         /// all.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string All = "all";
 
         /// <summary>
         /// each_quorum.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string EachQuorum = "each_quorum";
 
         /// <summary>
         /// quorum.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Quorum = "quorum";
 
         /// <summary>
         /// local_quorum.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalQuorum = "local_quorum";
 
         /// <summary>
         /// one.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string One = "one";
 
         /// <summary>
         /// two.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Two = "two";
 
         /// <summary>
         /// three.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Three = "three";
 
         /// <summary>
         /// local_one.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalOne = "local_one";
 
         /// <summary>
         /// any.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Any = "any";
 
         /// <summary>
         /// serial.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string Serial = "serial";
 
         /// <summary>
         /// local_serial.
         /// </summary>
+        [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
         public const string LocalSerial = "local_serial";
     }
 
@@ -425,49 +441,56 @@ public static class DbAttributes
     }
 
     /// <summary>
-    /// Cosmos client connection mode.
+    /// Deprecated, use <c>azure.cosmosdb.connection.mode</c> instead.
     /// </summary>
     public static class DbCosmosdbConnectionModeValues
     {
         /// <summary>
         /// Gateway (HTTP) connection.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
         public const string Gateway = "gateway";
 
         /// <summary>
         /// Direct connection.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
         public const string Direct = "direct";
     }
 
     /// <summary>
-    /// Account or request <a href="https://learn.microsoft.com/azure/cosmos-db/consistency-levels">consistency level</a>.
+    /// Deprecated, use <c>cosmosdb.consistency.level</c> instead.
     /// </summary>
     public static class DbCosmosdbConsistencyLevelValues
     {
         /// <summary>
         /// strong.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Strong = "Strong";
 
         /// <summary>
         /// bounded_staleness.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string BoundedStaleness = "BoundedStaleness";
 
         /// <summary>
         /// session.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Session = "Session";
 
         /// <summary>
         /// eventual.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string Eventual = "Eventual";
 
         /// <summary>
         /// consistent_prefix.
         /// </summary>
+        [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
         public const string ConsistentPrefix = "ConsistentPrefix";
     }
 
@@ -568,278 +591,543 @@ public static class DbAttributes
     }
 
     /// <summary>
-    /// The database management system (DBMS) product as identified by the client instrumentation.
+    /// Deprecated, use <c>db.system.name</c> instead.
     /// </summary>
     public static class DbSystemValues
     {
         /// <summary>
         /// Some other SQL database. Fallback only. See notes.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string OtherSql = "other_sql";
 
         /// <summary>
         /// Adabas (Adaptable Database System).
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Adabas = "adabas";
 
         /// <summary>
         /// Deprecated, use <c>intersystems_cache</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cache = "cache";
 
         /// <summary>
         /// InterSystems Caché.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string IntersystemsCache = "intersystems_cache";
 
         /// <summary>
         /// Apache Cassandra.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cassandra = "cassandra";
 
         /// <summary>
         /// ClickHouse.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Clickhouse = "clickhouse";
 
         /// <summary>
         /// Deprecated, use <c>other_sql</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cloudscape = "cloudscape";
 
         /// <summary>
         /// CockroachDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cockroachdb = "cockroachdb";
 
         /// <summary>
         /// Deprecated, no replacement at this time.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Coldfusion = "coldfusion";
 
         /// <summary>
         /// Microsoft Azure Cosmos DB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Cosmosdb = "cosmosdb";
 
         /// <summary>
         /// Couchbase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Couchbase = "couchbase";
 
         /// <summary>
         /// CouchDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Couchdb = "couchdb";
 
         /// <summary>
         /// IBM Db2.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Db2 = "db2";
 
         /// <summary>
         /// Apache Derby.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Derby = "derby";
 
         /// <summary>
         /// Amazon DynamoDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Dynamodb = "dynamodb";
 
         /// <summary>
         /// EnterpriseDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Edb = "edb";
 
         /// <summary>
         /// Elasticsearch.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Elasticsearch = "elasticsearch";
 
         /// <summary>
         /// FileMaker.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Filemaker = "filemaker";
 
         /// <summary>
         /// Firebird.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Firebird = "firebird";
 
         /// <summary>
         /// Deprecated, use <c>other_sql</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Firstsql = "firstsql";
 
         /// <summary>
         /// Apache Geode.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Geode = "geode";
 
         /// <summary>
         /// H2.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string H2 = "h2";
 
         /// <summary>
         /// SAP HANA.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hanadb = "hanadb";
 
         /// <summary>
         /// Apache HBase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hbase = "hbase";
 
         /// <summary>
         /// Apache Hive.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hive = "hive";
 
         /// <summary>
         /// HyperSQL DataBase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Hsqldb = "hsqldb";
 
         /// <summary>
         /// InfluxDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Influxdb = "influxdb";
 
         /// <summary>
         /// Informix.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Informix = "informix";
 
         /// <summary>
         /// Ingres.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Ingres = "ingres";
 
         /// <summary>
         /// InstantDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Instantdb = "instantdb";
 
         /// <summary>
         /// InterBase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Interbase = "interbase";
 
         /// <summary>
         /// MariaDB (This value has stability level RELEASE CANDIDATE).
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mariadb = "mariadb";
 
         /// <summary>
         /// SAP MaxDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Maxdb = "maxdb";
 
         /// <summary>
         /// Memcached.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Memcached = "memcached";
 
         /// <summary>
         /// MongoDB.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mongodb = "mongodb";
 
         /// <summary>
         /// Microsoft SQL Server (This value has stability level RELEASE CANDIDATE).
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mssql = "mssql";
 
         /// <summary>
         /// Deprecated, Microsoft SQL Server Compact is discontinued.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mssqlcompact = "mssqlcompact";
 
         /// <summary>
         /// MySQL (This value has stability level RELEASE CANDIDATE).
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mysql = "mysql";
 
         /// <summary>
         /// Neo4j.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Neo4j = "neo4j";
 
         /// <summary>
         /// Netezza.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Netezza = "netezza";
 
         /// <summary>
         /// OpenSearch.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Opensearch = "opensearch";
 
         /// <summary>
         /// Oracle Database.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Oracle = "oracle";
 
         /// <summary>
         /// Pervasive PSQL.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Pervasive = "pervasive";
 
         /// <summary>
         /// PointBase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Pointbase = "pointbase";
 
         /// <summary>
         /// PostgreSQL (This value has stability level RELEASE CANDIDATE).
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Postgresql = "postgresql";
 
         /// <summary>
         /// Progress Database.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Progress = "progress";
 
         /// <summary>
         /// Redis.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Redis = "redis";
 
         /// <summary>
         /// Amazon Redshift.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Redshift = "redshift";
 
         /// <summary>
         /// Cloud Spanner.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Spanner = "spanner";
 
         /// <summary>
         /// SQLite.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Sqlite = "sqlite";
 
         /// <summary>
         /// Sybase.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Sybase = "sybase";
 
         /// <summary>
         /// Teradata.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Teradata = "teradata";
 
         /// <summary>
         /// Trino.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Trino = "trino";
 
         /// <summary>
         /// Vertica.
         /// </summary>
+        [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Vertica = "vertica";
+    }
+
+    /// <summary>
+    /// The database management system (DBMS) product as identified by the client instrumentation.
+    /// </summary>
+    public static class DbSystemNameValues
+    {
+        /// <summary>
+        /// Some other SQL database. Fallback only.
+        /// </summary>
+        public const string OtherSql = "other_sql";
+
+        /// <summary>
+        /// <a href="https://documentation.softwareag.com/?pf=adabas">Adabas (Adaptable Database System)</a>.
+        /// </summary>
+        public const string SoftwareagAdabas = "softwareag.adabas";
+
+        /// <summary>
+        /// <a href="https://www.actian.com/databases/ingres/">Actian Ingres</a>.
+        /// </summary>
+        public const string ActianIngres = "actian.ingres";
+
+        /// <summary>
+        /// <a href="https://aws.amazon.com/pm/dynamodb/">Amazon DynamoDB</a>.
+        /// </summary>
+        public const string AwsDynamodb = "aws.dynamodb";
+
+        /// <summary>
+        /// <a href="https://aws.amazon.com/redshift/">Amazon Redshift</a>.
+        /// </summary>
+        public const string AwsRedshift = "aws.redshift";
+
+        /// <summary>
+        /// <a href="https://learn.microsoft.com/azure/cosmos-db">Azure Cosmos DB</a>.
+        /// </summary>
+        public const string AzureCosmosdb = "azure.cosmosdb";
+
+        /// <summary>
+        /// <a href="https://www.intersystems.com/products/cache/">InterSystems Caché</a>.
+        /// </summary>
+        public const string IntersystemsCache = "intersystems.cache";
+
+        /// <summary>
+        /// <a href="https://cassandra.apache.org/">Apache Cassandra</a>.
+        /// </summary>
+        public const string Cassandra = "cassandra";
+
+        /// <summary>
+        /// <a href="https://clickhouse.com/">ClickHouse</a>.
+        /// </summary>
+        public const string Clickhouse = "clickhouse";
+
+        /// <summary>
+        /// <a href="https://www.cockroachlabs.com/">CockroachDB</a>.
+        /// </summary>
+        public const string Cockroachdb = "cockroachdb";
+
+        /// <summary>
+        /// <a href="https://www.couchbase.com/">Couchbase</a>.
+        /// </summary>
+        public const string Couchbase = "couchbase";
+
+        /// <summary>
+        /// <a href="https://couchdb.apache.org/">Apache CouchDB</a>.
+        /// </summary>
+        public const string Couchdb = "couchdb";
+
+        /// <summary>
+        /// <a href="https://db.apache.org/derby/">Apache Derby</a>.
+        /// </summary>
+        public const string Derby = "derby";
+
+        /// <summary>
+        /// <a href="https://www.elastic.co/elasticsearch">Elasticsearch</a>.
+        /// </summary>
+        public const string Elasticsearch = "elasticsearch";
+
+        /// <summary>
+        /// <a href="https://www.firebirdsql.org/">Firebird</a>.
+        /// </summary>
+        public const string Firebirdsql = "firebirdsql";
+
+        /// <summary>
+        /// <a href="https://cloud.google.com/spanner">Google Cloud Spanner</a>.
+        /// </summary>
+        public const string GcpSpanner = "gcp.spanner";
+
+        /// <summary>
+        /// <a href="https://geode.apache.org/">Apache Geode</a>.
+        /// </summary>
+        public const string Geode = "geode";
+
+        /// <summary>
+        /// <a href="https://h2database.com/">H2 Database</a>.
+        /// </summary>
+        public const string H2database = "h2database";
+
+        /// <summary>
+        /// <a href="https://hbase.apache.org/">Apache HBase</a>.
+        /// </summary>
+        public const string Hbase = "hbase";
+
+        /// <summary>
+        /// <a href="https://hive.apache.org/">Apache Hive</a>.
+        /// </summary>
+        public const string Hive = "hive";
+
+        /// <summary>
+        /// <a href="https://hsqldb.org/">HyperSQL Database</a>.
+        /// </summary>
+        public const string Hsqldb = "hsqldb";
+
+        /// <summary>
+        /// <a href="https://www.ibm.com/db2">IBM Db2</a>.
+        /// </summary>
+        public const string IbmDb2 = "ibm.db2";
+
+        /// <summary>
+        /// <a href="https://www.ibm.com/products/informix">IBM Informix</a>.
+        /// </summary>
+        public const string IbmInformix = "ibm.informix";
+
+        /// <summary>
+        /// <a href="https://www.ibm.com/products/netezza">IBM Netezza</a>.
+        /// </summary>
+        public const string IbmNetezza = "ibm.netezza";
+
+        /// <summary>
+        /// <a href="https://www.influxdata.com/">InfluxDB</a>.
+        /// </summary>
+        public const string Influxdb = "influxdb";
+
+        /// <summary>
+        /// <a href="https://www.instantdb.com/">Instant</a>.
+        /// </summary>
+        public const string Instantdb = "instantdb";
+
+        /// <summary>
+        /// <a href="https://mariadb.org/">MariaDB</a>.
+        /// </summary>
+        public const string Mariadb = "mariadb";
+
+        /// <summary>
+        /// <a href="https://memcached.org/">Memcached</a>.
+        /// </summary>
+        public const string Memcached = "memcached";
+
+        /// <summary>
+        /// <a href="https://www.mongodb.com/">MongoDB</a>.
+        /// </summary>
+        public const string Mongodb = "mongodb";
+
+        /// <summary>
+        /// <a href="https://www.microsoft.com/sql-server">Microsoft SQL Server</a>.
+        /// </summary>
+        public const string MicrosoftSqlServer = "microsoft.sql_server";
+
+        /// <summary>
+        /// <a href="https://www.mysql.com/">MySQL</a>.
+        /// </summary>
+        public const string Mysql = "mysql";
+
+        /// <summary>
+        /// <a href="https://neo4j.com/">Neo4j</a>.
+        /// </summary>
+        public const string Neo4j = "neo4j";
+
+        /// <summary>
+        /// <a href="https://opensearch.org/">OpenSearch</a>.
+        /// </summary>
+        public const string Opensearch = "opensearch";
+
+        /// <summary>
+        /// <a href="https://www.oracle.com/database/">Oracle Database</a>.
+        /// </summary>
+        public const string OracleDb = "oracle.db";
+
+        /// <summary>
+        /// <a href="https://www.postgresql.org/">PostgreSQL</a>.
+        /// </summary>
+        public const string Postgresql = "postgresql";
+
+        /// <summary>
+        /// <a href="https://redis.io/">Redis</a>.
+        /// </summary>
+        public const string Redis = "redis";
+
+        /// <summary>
+        /// <a href="https://www.sap.com/products/technology-platform/hana/what-is-sap-hana.html">SAP HANA</a>.
+        /// </summary>
+        public const string SapHana = "sap.hana";
+
+        /// <summary>
+        /// <a href="https://maxdb.sap.com/">SAP MaxDB</a>.
+        /// </summary>
+        public const string SapMaxdb = "sap.maxdb";
+
+        /// <summary>
+        /// <a href="https://www.sqlite.org/">SQLite</a>.
+        /// </summary>
+        public const string Sqlite = "sqlite";
+
+        /// <summary>
+        /// <a href="https://www.teradata.com/">Teradata</a>.
+        /// </summary>
+        public const string Teradata = "teradata";
+
+        /// <summary>
+        /// <a href="https://trino.io/">Trino</a>.
+        /// </summary>
+        public const string Trino = "trino";
     }
 }

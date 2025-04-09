@@ -15,7 +15,7 @@ namespace OpenTelemetry.SemanticConventions;
 public static class RpcAttributes
 {
     /// <summary>
-    /// The <a href="https://connect.build/docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
     /// </summary>
     public const string AttributeRpcConnectRpcErrorCode = "rpc.connect_rpc.error_code";
 
@@ -103,7 +103,7 @@ public static class RpcAttributes
     /// The name of the (logical) method being called, must be equal to the $method part in the span name.
     /// </summary>
     /// <remarks>
-    /// This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The <c>code.function</c> attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
+    /// This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The <c>code.function.name</c> attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
     /// </remarks>
     public const string AttributeRpcMethod = "rpc.method";
 
@@ -121,7 +121,7 @@ public static class RpcAttributes
     public const string AttributeRpcSystem = "rpc.system";
 
     /// <summary>
-    /// The <a href="https://connect.build/docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
+    /// The <a href="https://connectrpc.com//docs/protocol/#error-codes">error codes</a> of the Connect request. Error codes are always string values.
     /// </summary>
     public static class RpcConnectRpcErrorCodeValues
     {

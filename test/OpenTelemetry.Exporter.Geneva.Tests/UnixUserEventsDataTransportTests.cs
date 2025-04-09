@@ -3,16 +3,16 @@
 
 #if NET6_0_OR_GREATER
 
-using System.Diagnostics;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using Microsoft.LinuxTracepoints.Provider;
+using OpenTelemetry.Exporter.Geneva.Transports;
+using OpenTelemetry.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-[Trait("CategoryName", "Geneva:user_events:metrics")]
+[Trait("CategoryName", "Geneva:user_events")]
 public class UnixUserEventsDataTransportTests
 {
     /*
@@ -26,7 +26,7 @@ public class UnixUserEventsDataTransportTests
      *     these tests do).
      *
      *  Command:
-     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events:metrics
+     *    sudo dotnet test --configuration Debug --framework net8.0 --filter CategoryName=Geneva:user_events
      *
      * How these tests work:
      *
@@ -49,7 +49,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -113,7 +113,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now.")]
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -143,6 +143,99 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
+    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
+    public void UserEvents_Logs_Success_Linux()
+    {
+        var listener = new PerfTracepointListener(
+            "MicrosoftOpenTelemetryLogs_L4K1",
+            MetricUnixUserEventsDataTransport.MetricsTracepointNameArgs);
+
+        var logsTracepoint = UnixUserEventsDataTransport.Instance.RegisterUserEventProviderForLogs();
+
+        try
+        {
+            listener.Enable();
+
+            Console.WriteLine("------------- ready to write events -------------");
+            Thread.Sleep(5000);
+
+            if (logsTracepoint.IsEnabled)
+            {
+                var eventBuilder = CreateEventHeaderDynamicBuilder();
+
+                Console.WriteLine("About to write tracepoint:");
+                eventBuilder.Write(logsTracepoint);
+                Console.WriteLine("Written tracepoint.");
+            }
+
+            Thread.Sleep(5000);
+
+            this.testOutputHelper.WriteLine("Writing events from listener:");
+            Console.WriteLine("Writing events from listener:");
+            foreach (var e in listener.Events)
+            {
+                this.testOutputHelper.WriteLine(string.Join(", ", e.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+                Console.WriteLine(string.Join(", ", e.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+            }
+
+            this.testOutputHelper.WriteLine("Total events: " + listener.Events.Count);
+            Console.WriteLine("Total events: " + listener.Events.Count);
+        }
+        finally
+        {
+            try
+            {
+                listener.Disable();
+            }
+            catch
+            {
+            }
+
+            listener.Dispose();
+        }
+    }
+
+    private static EventHeaderDynamicBuilder CreateEventHeaderDynamicBuilder()
+    {
+        var eb = new EventHeaderDynamicBuilder();
+        eb.Reset("_");
+        eb.AddUInt16("__csver__", 1024, Microsoft.LinuxTracepoints.EventHeaderFieldFormat.HexInt);
+
+        eb.AddStructWithMetadataPosition("partA", out var partAFieldsCountMetadataPosition);
+
+        string rfc3339String = DateTime.UtcNow.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
+        eb.AddString16("time", rfc3339String);
+
+        byte partAFieldsCount = 1;
+
+        eb.SetStructFieldCount(partAFieldsCountMetadataPosition, partAFieldsCount);
+
+        // Part B
+
+        byte partBFieldsCount = 4; // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
+        eb.AddStructWithMetadataPosition("PartB", out var partBFieldsCountMetadataPosition);
+        eb.AddString16("_typeName", "Log");
+        eb.AddUInt8("severityNumber", 21);
+
+        eb.AddString16("severityText", "Critical");
+        eb.AddString16("name", "CheckoutFailed");
+
+        eb.SetStructFieldCount(partBFieldsCountMetadataPosition, partBFieldsCount);
+
+        // Part C
+
+        byte partCFieldsCount = 0;
+        eb.AddStructWithMetadataPosition("PartC", out var partCFieldsCountMetadataPosition);
+
+        eb.AddString16("book_id", "12345");
+        eb.AddString16("book_name", "The Hitchhiker's Guide to the Galaxy");
+        partCFieldsCount += 2;
+
+        eb.SetStructFieldCount(partCFieldsCountMetadataPosition, partCFieldsCount);
+
+        return eb;
+    }
+
     private static void EnsureUserEventsEnabled()
     {
         var errors = ConsoleCommand.Run("cat", "/sys/kernel/tracing/user_events_status");
@@ -150,224 +243,6 @@ public class UnixUserEventsDataTransportTests
         if (errors.Any())
         {
             throw new NotSupportedException("Kernel does not support user_events. Verify your distribution/kernel supports user_events: https://docs.kernel.org/trace/user_events.html.");
-        }
-    }
-
-    private sealed class ConsoleCommand : IDisposable
-    {
-        private readonly Process process;
-        private readonly List<string> output = [];
-        private readonly List<string> errors = [];
-
-        private ConsoleCommand(
-            string command,
-            string arguments,
-            Action<string>? onOutputReceived,
-            Action<string>? onErrorReceived)
-        {
-            Console.WriteLine($"{command} {arguments}");
-
-            var process = new Process
-            {
-                StartInfo = new()
-                {
-                    FileName = command,
-                    Arguments = arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = false,
-                },
-            };
-
-            process.OutputDataReceived += (sender, args) =>
-            {
-                if (!string.IsNullOrEmpty(args.Data))
-                {
-                    this.output.Add(args.Data);
-                    Console.WriteLine($"[OUT] {args.Data}");
-
-                    onOutputReceived?.Invoke(args.Data);
-                }
-            };
-
-            process.ErrorDataReceived += (sender, args) =>
-            {
-                if (!string.IsNullOrEmpty(args.Data))
-                {
-                    this.errors.Add(args.Data);
-                    Console.WriteLine($"[ERR] {args.Data}");
-
-                    onErrorReceived?.Invoke(args.Data);
-                }
-            };
-
-            process.Start();
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            this.process = process;
-        }
-
-        public IEnumerable<string> Output => this.output;
-
-        public IEnumerable<string> Errors => this.errors;
-
-        public static IEnumerable<string> Run(
-            string command,
-            string arguments)
-        {
-            Run(command, arguments, out _, out var errors);
-
-            return errors;
-        }
-
-        public static void Run(
-            string command,
-            string arguments,
-            out IEnumerable<string> output,
-            out IEnumerable<string> errors)
-        {
-            var consoleCommand = new ConsoleCommand(command, arguments, onOutputReceived: null, onErrorReceived: null);
-            consoleCommand.Dispose();
-
-            output = consoleCommand.Output;
-            errors = consoleCommand.Errors;
-        }
-
-        public static ConsoleCommand Start(
-            string command,
-            string arguments,
-            Action<string>? onOutputReceived = null,
-            Action<string>? onErrorReceived = null)
-            => new(command, arguments, onOutputReceived, onErrorReceived);
-
-        public void Kill()
-        {
-            this.process.Kill();
-        }
-
-        public void Dispose()
-        {
-            this.process.WaitForExit();
-
-            this.process.CancelOutputRead();
-            this.process.CancelErrorRead();
-
-            this.process.Dispose();
-        }
-    }
-
-    // Warning: Do NOT use this class/design to listen/read user_events in prod.
-    // It is a hack to workaround lack of decent bits for listening. Hopefully
-    // this can be removed if/when
-    // https://github.com/microsoft/LinuxTracepoints-Net/ has listening bits or
-    // dotnet/runtime supports user_events (both reading & writing) directly.
-    private sealed class PerfTracepointListener : IDisposable
-    {
-        private readonly string name;
-        private readonly PerfTracepoint tracepoint;
-        private readonly ConsoleCommand catCommand;
-        private readonly Regex eventRegex = new("(\\w+?)=([\\w\\(\\) .,-]*)( |$)", RegexOptions.Compiled);
-
-        public PerfTracepointListener(string name, string nameArgs)
-        {
-            this.name = name;
-
-            this.tracepoint = new PerfTracepoint(nameArgs);
-            if (this.tracepoint.RegisterResult != 0)
-            {
-                throw new NotSupportedException($"Tracepoint could not be registered: '{this.tracepoint.RegisterResult}'");
-            }
-
-            this.catCommand = ConsoleCommand.Start("cat", "/sys/kernel/debug/tracing/trace_pipe", onOutputReceived: this.OnCatOutputReceived);
-            if (this.catCommand.Errors.Any())
-            {
-                throw new InvalidOperationException($"Could not read '{name}' tracepoints");
-            }
-        }
-
-        public List<Dictionary<string, string>> Events { get; } = [];
-
-        public bool IsEnabled()
-        {
-            ConsoleCommand.Run(
-                "cat",
-                $"/sys/kernel/tracing/events/user_events/{this.name}/enable",
-                out var output,
-                out var errors);
-
-            return errors.Any() || output.Count() != 1
-                ? throw new InvalidOperationException($"Could not determine if '{this.name}' tracepoint is enabled")
-                : output.First() != "0";
-        }
-
-        public void Enable()
-        {
-            var errors = ConsoleCommand.Run("sh", @$"-c ""echo '1' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
-
-            if (errors.Any())
-            {
-                throw new InvalidOperationException($"Could not enable '{this.name}' tracepoint");
-            }
-        }
-
-        public void Disable()
-        {
-            var errors = ConsoleCommand.Run("sh", @$"-c ""echo '0' > /sys/kernel/tracing/events/user_events/{this.name}/enable""");
-
-            if (errors.Any())
-            {
-                throw new InvalidOperationException($"Could not disable '{this.name}' tracepoint");
-            }
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (this.catCommand != null)
-                {
-                    if (this.catCommand.Errors.Any())
-                    {
-                        throw new InvalidOperationException($"Could not read '{this.name}' tracepoints");
-                    }
-
-                    this.catCommand.Kill();
-                    this.catCommand.Dispose();
-                }
-            }
-            finally
-            {
-                this.tracepoint.Dispose();
-            }
-        }
-
-        private void OnCatOutputReceived(string output)
-        {
-            var name = $": {this.name}:";
-
-            var startingPosition = output.IndexOf(name, StringComparison.Ordinal);
-            if (startingPosition < 0)
-            {
-                return;
-            }
-
-            startingPosition += name.Length;
-
-            var matches = this.eventRegex.Matches(output, startingPosition);
-
-            if (matches.Count > 0)
-            {
-                Dictionary<string, string> eventData = new(matches.Count);
-
-                foreach (Match match in matches)
-                {
-                    eventData[match.Groups[1].Value] = match.Groups[2].Value;
-                }
-
-                this.Events.Add(eventData);
-            }
         }
     }
 }

@@ -2,10 +2,30 @@
 
 ## Unreleased
 
+## 1.11.1
+
+Released 2025-Mar-05
+
+* Added support for listening to ASP.NET Core SignalR activities.
+  Configurable with the
+  `AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport`
+  option which defaults to `true`. Only applies to .NET 9.0 or greater.
+  ([#2539](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2539))
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0
+
+Released 2025-Jan-27
+
 * The `http.server.request.duration` histogram (measured in seconds) produced by
   the metrics instrumentation in this package now uses the [Advice API](https://github.com/open-telemetry/opentelemetry-dotnet/blob/core-1.10.0/docs/metrics/customizing-the-sdk/README.md#explicit-bucket-histogram-aggregation)
   to set default explicit buckets following the [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/http/http-metrics.md).
   ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
 ## 1.10.1
 

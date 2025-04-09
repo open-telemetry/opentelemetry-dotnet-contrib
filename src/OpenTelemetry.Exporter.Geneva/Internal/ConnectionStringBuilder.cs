@@ -75,6 +75,9 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableOtlpProtobufEncoding => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
 
+    public bool PrivatePreviewEnableUserEvents => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableUserEvents), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
     public string Endpoint
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));

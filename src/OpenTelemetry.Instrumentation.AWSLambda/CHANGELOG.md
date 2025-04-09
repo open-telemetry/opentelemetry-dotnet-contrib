@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 1.11.2
+
+Released 2025-Mar-18
+
+* Set itinital capacity for AWS Semantic Convention Attribute Builder
+  ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
+
+## 1.11.1
+
+Released 2025-Mar-05
+
+## 1.11.0
+
+Released 2025-Jan-29
+
+## 1.10.0-rc.2
+
+Released 2025-Jan-15
+
+* Trace instrumentation will not fail with an exception
+  if empty `LambdaContext` instance is passed.
+  ([#2457](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2457))
+
 ## 1.10.0-rc.1
 
 Released 2025-Jan-06

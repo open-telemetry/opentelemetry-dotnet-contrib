@@ -14,4 +14,3 @@ override OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.OnTryCreate
 override OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.OnTryCreateBlob(byte[]! buffer, out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
 override OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.OnTryGetBlob(out OpenTelemetry.PersistentStorage.Abstractions.PersistentBlob? blob) -> bool
 virtual OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.Dispose(bool disposing) -> void
-

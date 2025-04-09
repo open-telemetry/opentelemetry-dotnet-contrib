@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Fixed attribute `db.system` for following providers:
+  * `Devart.Data.SQLite.Entity.EFCore`,
+  * `Devart.Data.MySql.Entity.EFCore`,
+  * `Devart.Data.PostgreSql.Entity.EFCore`.
+  ([#2571](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2571))
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
+* Attribute `db.system` reports `oracle` when
+  `Devart.Data.Oracle.Entity.EFCore` is used a provider.
+  ([#2465](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2465))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
 ## 1.10.0-beta.1
 
 Released 2024-Dec-09

@@ -75,7 +75,7 @@ public static class ProcessAttributes
     public const string AttributeProcessExecutableBuildIdProfiling = "process.executable.build_id.profiling";
 
     /// <summary>
-    /// The name of the process executable. On Linux based systems, can be set to the <c>Name</c> in <c>proc/[pid]/status</c>. On Windows, can be set to the base name of <c>GetProcessImageFileNameW</c>.
+    /// The name of the process executable. On Linux based systems, this SHOULD be set to the base name of the target of <c>/proc/[pid]/exe</c>. On Windows, this SHOULD be set to the base name of <c>GetProcessImageFileNameW</c>.
     /// </summary>
     public const string AttributeProcessExecutableName = "process.executable.name";
 
@@ -108,7 +108,7 @@ public static class ProcessAttributes
     /// The control group associated with the process.
     /// </summary>
     /// <remarks>
-    /// Control groups (cgroups) are a kernel feature used to organize and manage process resources. This attribute provides the path(s) to the cgroup(s) associated with the process, which should match the contents of the <a href="https://man7.org/linux/man-pages/man7/cgroups.7.html">/proc/<PID>/cgroup</a> file.
+    /// Control groups (cgroups) are a kernel feature used to organize and manage process resources. This attribute provides the path(s) to the cgroup(s) associated with the process, which should match the contents of the <a href="https://man7.org/linux/man-pages/man7/cgroups.7.html">/proc/[PID]/cgroup</a> file.
     /// </remarks>
     public const string AttributeProcessLinuxCgroup = "process.linux.cgroup";
 

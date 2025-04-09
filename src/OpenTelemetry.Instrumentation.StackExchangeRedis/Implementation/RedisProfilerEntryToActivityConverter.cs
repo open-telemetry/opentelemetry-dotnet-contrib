@@ -3,6 +3,9 @@
 
 using System.Diagnostics;
 using System.Net;
+#if NET8_0_OR_GREATER
+using System.Net.Sockets;
+#endif
 using System.Reflection;
 using System.Reflection.Emit;
 using OpenTelemetry.Trace;
@@ -135,18 +138,23 @@ internal static class RedisProfilerEntryToActivityConverter
             {
                 if (command.EndPoint is IPEndPoint ipEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerIp, ipEndPoint.Address.ToString());
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerPort, ipEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, ipEndPoint.Address.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, ipEndPoint.Port);
                 }
                 else if (command.EndPoint is DnsEndPoint dnsEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributeNetPeerName, dnsEndPoint.Host);
-                    activity.SetTag(SemanticConventions.AttributeNetPeerPort, dnsEndPoint.Port);
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
+                    activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
                 }
-                else
+#if NET8_0_OR_GREATER
+                else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
                 {
-                    activity.SetTag(SemanticConventions.AttributePeerService, command.EndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeServerAddress, unixDomainSocketEndPoint.ToString());
+                    activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, unixDomainSocketEndPoint.ToString());
                 }
+#endif
             }
 
             activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
@@ -202,10 +210,7 @@ internal static class RedisProfilerEntryToActivityConverter
 #endif
             {
                 var methodName = classType.FullName + ".get_" + field.Name;
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-                // TODO: Remove the above disable when the AOT analyzer being used has the fix for https://github.com/dotnet/linker/issues/2715.
                 var getterMethod = new DynamicMethod(methodName, typeof(TField), [typeof(object)], true);
-#pragma warning restore IL3050
                 var generator = getterMethod.GetILGenerator();
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Castclass, classType);

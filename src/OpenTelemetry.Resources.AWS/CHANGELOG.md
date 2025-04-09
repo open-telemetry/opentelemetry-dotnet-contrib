@@ -2,11 +2,29 @@
 
 ## Unreleased
 
+* Set itinital capacity for AWS Semantic Convention Attribute Builder
+  ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
+
+## 1.11.1
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0
+
+Released 2025-Jan-29
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
+
 ## 1.10.0-rc.1
 
 Released 2025-Jan-06
 
 * BREAKING: Change default Semantic Convention to 1.28
+
 * BREAKING: Remove option to use Legacy semantic conventions (the old default)
 
 ## 1.10.0-beta.1

@@ -170,14 +170,19 @@ internal class AWSLambdaUtils
         return items.Length >= 5 ? items[4] : null;
     }
 
-    private static string GetFaasId(string functionArn)
+    private static string? GetFaasId(string? functionArn)
     {
+        if (string.IsNullOrEmpty(functionArn))
+        {
+            return null;
+        }
+
         var faasId = functionArn;
 
         // According to faas.id description https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/instrumentation/aws-lambda.md#all-triggers
         // the 8th part of arn (function version or alias, see https://docs.aws.amazon.com/lambda/latest/dg/lambda-api-permissions-ref.html)
         // should not be included into faas.id
-        var items = functionArn.Split(':');
+        var items = functionArn!.Split(':');
         if (items.Length >= 8)
         {
             faasId = string.Join(":", items.Take(7));

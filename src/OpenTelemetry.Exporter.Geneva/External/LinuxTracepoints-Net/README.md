@@ -6,7 +6,12 @@ The code in this folder came from the
 974c475](https://github.com/microsoft/LinuxTracepoints-Net/blob/974c47522d053c915009ef5112840026eaf22adb)).
 
 Only the files required to build
-`Microsoft.LinuxTracepoints.Provider.PerfTracepoint` were included.
+basic Tracepoint (`Microsoft.LinuxTracepoints.Provider.PerfTracepoint`) and
+[EventHeader-encoded
+events](https://github.com/microsoft/LinuxTracepoints-Net/tree/974c47522d053c915009ef5112840026eaf22adb/Provider#usage-for-eventheader-encoded-events)
+(`Microsoft.LinuxTracepoints.Provider.EventHeaderDynamicProvider` and
+`Microsoft.LinuxTracepoints.Provider.EventHeaderDynamicTracepoint`) were
+included.
 
 The following changes were made:
 

@@ -89,9 +89,23 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         Debug.Assert(writer != null, "writer was null");
 
-        var resolvedEventFullName = this.eventNameManager.ResolveEventFullName(
-            item.CategoryName,
-            item.EventId.Name);
+        int attributeStartIndex = 0;
+        EventNameManager.ResolvedEventFullName resolvedEventFullName;
+        if (item.Attributes != null
+            && item.Attributes.Count > 0
+            && item.Attributes[0].Key == "{EventFullName}"
+            && item.Attributes[0].Value is string eventFullName
+            && !string.IsNullOrEmpty(eventFullName))
+        {
+            attributeStartIndex++;
+            resolvedEventFullName = this.eventNameManager.ResolveEventFullName(eventFullName);
+        }
+        else
+        {
+            resolvedEventFullName = this.eventNameManager.ResolveEventFullName(
+                item.CategoryName,
+                item.EventId.Name);
+        }
 
         writer!.WriteStartObject();
 
@@ -150,7 +164,7 @@ internal sealed class LogRecordCommonSchemaJsonSerializer : CommonSchemaJsonSeri
 
         if (item.Attributes != null)
         {
-            for (var i = 0; i < item.Attributes.Count; i++)
+            for (int i = attributeStartIndex; i < item.Attributes.Count; i++)
             {
                 var attribute = item.Attributes[i];
 

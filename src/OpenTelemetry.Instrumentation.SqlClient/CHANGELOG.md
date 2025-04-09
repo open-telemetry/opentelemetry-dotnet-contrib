@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.11.0-beta.2
+
+Released 2025-Mar-05
+
+* Updated OpenTelemetry core component version(s) to `1.11.2`.
+  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+
+## 1.11.0-beta.1
+
+Released 2025-Jan-27
+
 * **Breaking change** The `EnableConnectionLevelAttributes` option has been removed.
   ([#2414](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2414))
 
@@ -14,6 +25,9 @@
   The query is now sanitized. Literal values in the query text are replaced
   by a `?` character.
   ([#2446](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2446))
+
+* Updated OpenTelemetry core component version(s) to `1.11.1`.
+  ([#2477](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2477))
 
 ## 1.10.0-beta.1
 

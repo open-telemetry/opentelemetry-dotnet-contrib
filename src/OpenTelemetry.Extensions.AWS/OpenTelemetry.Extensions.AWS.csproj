@@ -8,10 +8,8 @@
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
-    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+    <PackageValidationBaselineVersion>1.11.2</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

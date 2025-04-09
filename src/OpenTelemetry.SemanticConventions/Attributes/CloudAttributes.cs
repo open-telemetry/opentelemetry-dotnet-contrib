@@ -49,7 +49,7 @@ public static class CloudAttributes
     public const string AttributeCloudRegion = "cloud.region";
 
     /// <summary>
-    /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://cloud.google.com/apis/design/resource_names#full_resource_name">full resource name</a> on GCP).
+    /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://google.aip.dev/122#full-resource-names">full resource name</a> on GCP).
     /// </summary>
     /// <remarks>
     /// On some cloud providers, it may not be possible to determine the full ID at startup,
@@ -204,6 +204,16 @@ public static class CloudAttributes
         public const string IbmCloudOpenshift = "ibm_cloud_openshift";
 
         /// <summary>
+        /// Compute on Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloudCompute = "oracle_cloud_compute";
+
+        /// <summary>
+        /// Kubernetes Engine (OKE) on Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloudOke = "oracle_cloud_oke";
+
+        /// <summary>
         /// Tencent Cloud Cloud Virtual Machine (CVM).
         /// </summary>
         public const string TencentCloudCvm = "tencent_cloud_cvm";
@@ -253,6 +263,11 @@ public static class CloudAttributes
         /// IBM Cloud.
         /// </summary>
         public const string IbmCloud = "ibm_cloud";
+
+        /// <summary>
+        /// Oracle Cloud Infrastructure (OCI).
+        /// </summary>
+        public const string OracleCloud = "oracle_cloud";
 
         /// <summary>
         /// Tencent Cloud.
