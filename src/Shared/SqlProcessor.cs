@@ -20,11 +20,7 @@ internal static class SqlProcessor
 
         if (Cache[sql] is not SqlStatementInfo sqlStatementInfo)
         {
-            var state = SanitizeSql(sql);
-
-            sqlStatementInfo = new SqlStatementInfo(
-                state.SanitizedSql.ToString(),
-                state.SummaryText.ToString());
+            sqlStatementInfo = SanitizeSql(sql);
 
             if (Cache.Count == CacheCapacity)
             {
@@ -46,7 +42,7 @@ internal static class SqlProcessor
         return sqlStatementInfo;
     }
 
-    private static SqlProcessorState SanitizeSql(string sql)
+    private static SqlStatementInfo SanitizeSql(string sql)
     {
         var state = new SqlProcessorState();
 
@@ -68,7 +64,9 @@ internal static class SqlProcessor
             WriteToken(sql, ref i, state);
         }
 
-        return state;
+        return new SqlStatementInfo(
+            state.SanitizedSql.ToString(),
+            state.SummaryText.ToString());
     }
 
     private static bool SkipComment(string sql, ref int index)
