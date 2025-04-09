@@ -80,7 +80,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
 
-There are no approvers today.
+* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
@@ -90,7 +90,6 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
 * [Alan West](https://github.com/alanwest), New Relic
-* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Rajkumar Rangaraj](https://github.com/rajkumar-rangaraj), Microsoft
 
