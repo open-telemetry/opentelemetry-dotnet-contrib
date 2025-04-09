@@ -5,19 +5,13 @@ namespace OpenTelemetry.Instrumentation;
 
 internal struct SqlStatementInfo
 {
-    public SqlStatementInfo(string sanitizedSql, string dbQuerySummaryText, string? dbOperationName, string? dbCollectionName)
+    public SqlStatementInfo(string sanitizedSql, string dbQuerySummaryText)
     {
         this.SanitizedSql = sanitizedSql;
         this.DbQuerySummary = dbQuerySummaryText;
-        this.DbOperationName = dbOperationName;
-        this.DbCollectionName = dbCollectionName;
     }
 
     public string SanitizedSql { get; }
 
     public string DbQuerySummary { get; }
-
-    public string? DbOperationName { get; }
-
-    public string? DbCollectionName { get; }
 }

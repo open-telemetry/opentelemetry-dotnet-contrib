@@ -40,10 +40,6 @@ public static class SqlProcessorTestCases
 
         public string? Summary { get; set; }
 
-        public string? Operation { get; set; }
-
-        public string? Collection { get; set; }
-
         public IEnumerable<string> Dialects { get; set; } = [];
 
         public override string ToString()

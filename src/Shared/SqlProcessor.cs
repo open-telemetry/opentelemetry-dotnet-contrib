@@ -24,9 +24,7 @@ internal static class SqlProcessor
 
             sqlStatementInfo = new SqlStatementInfo(
                 state.SanitizedSql.ToString(),
-                state.SummaryText.ToString(),
-                state.Operation,
-                state.Collection);
+                state.SummaryText.ToString());
 
             if (Cache.Count == CacheCapacity)
             {
@@ -276,18 +274,7 @@ internal static class SqlProcessor
             {
                 state.CaptureCollection = false;
                 var collection = sql.Substring(index, i - index);
-
-                if (!state.CollectionSet)
-                {
-                    state.SummaryText.Append(' ').Append(collection);
-                    state.Collection = collection;
-                    state.CollectionSet = true;
-                }
-                else
-                {
-                    state.SummaryText.Append(' ').Append(collection);
-                    state.Collection = null;
-                }
+                state.SummaryText.Append(' ').Append(collection);
             }
 
             i -= 1;
@@ -320,8 +307,6 @@ internal static class SqlProcessor
                 state.CaptureCollection = true;
             }
 
-            state.Operation = sql.Substring(initialIndex, index - initialIndex);
-
             for (var i = initialIndex; i < index; ++i)
             {
                 state.SummaryText.Append(sql[i]);
@@ -353,26 +338,23 @@ internal static class SqlProcessor
 
         if (isOperation)
         {
-            if (!state.OperationSet)
+            if (state.SummaryText.Length > 0)
             {
-                state.OperationSet = true;
-                state.Operation = sql.Substring(index, compare.Length);
-            }
-            else
-            {
-                state.Operation = null;
                 state.SummaryText.Append(' ');
             }
 
             for (var k = index; k < i; ++k)
             {
                 state.SummaryText.Append(sql[k]);
+                state.SanitizedSql.Append(sql[k]);
             }
         }
-
-        for (var k = index; k < i; ++k)
+        else
         {
-            state.SanitizedSql.Append(sql[k]);
+            for (var k = index; k < i; ++k)
+            {
+                state.SanitizedSql.Append(sql[k]);
+            }
         }
 
         index = i;
@@ -387,13 +369,5 @@ internal static class SqlProcessor
         public StringBuilder SummaryText { get; set; } = new StringBuilder();
 
         public bool CaptureCollection { get; set; }
-
-        public bool OperationSet { get; set; }
-
-        public bool CollectionSet { get; set; }
-
-        public string? Operation { get; set; }
-
-        public string? Collection { get; set; }
     }
 }

@@ -16,7 +16,5 @@ public class SqlProcessorTests
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Sql);
         Assert.Equal(test.Sanitized, sqlStatementInfo.SanitizedSql);
         Assert.Equal(test.Summary, sqlStatementInfo.DbQuerySummary);
-        Assert.Equal(test.Operation, sqlStatementInfo.DbOperationName);
-        Assert.Equal(test.Collection, sqlStatementInfo.DbCollectionName);
     }
 }
