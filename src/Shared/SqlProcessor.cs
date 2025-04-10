@@ -66,7 +66,7 @@ internal static class SqlProcessor
 
         return new SqlStatementInfo(
             state.SanitizedSql.ToString(),
-            state.SummaryText.ToString());
+            state.DbQuerySummary.ToString());
     }
 
     private static bool SkipComment(string sql, ref int index)
@@ -268,11 +268,11 @@ internal static class SqlProcessor
                 break;
             }
 
-            if (state.CaptureCollection)
+            if (state.CaptureNextTokenAsTarget)
             {
-                state.CaptureCollection = false;
+                state.CaptureNextTokenAsTarget = false;
                 var collection = sql.Substring(index, i - index);
-                state.SummaryText.Append(' ').Append(collection);
+                state.DbQuerySummary.Append(' ').Append(collection);
             }
 
             i -= 1;
@@ -302,12 +302,12 @@ internal static class SqlProcessor
                 LookAhead("VIEW", sql, ref index, state, false, false) ||
                 LookAhead("DATABASE", sql, ref index, state, false, false))
             {
-                state.CaptureCollection = true;
+                state.CaptureNextTokenAsTarget = true;
             }
 
             for (var i = initialIndex; i < index; ++i)
             {
-                state.SummaryText.Append(sql[i]);
+                state.DbQuerySummary.Append(sql[i]);
             }
 
             return true;
@@ -316,7 +316,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    private static bool LookAhead(string compare, string sql, ref int index, SqlProcessorState state, bool isOperation = true, bool captureCollection = false)
+    private static bool LookAhead(string compare, string sql, ref int index, SqlProcessorState state, bool isOperation = true, bool captureNextTokenAsTarget = false)
     {
         int i = index;
 
@@ -336,14 +336,14 @@ internal static class SqlProcessor
 
         if (isOperation)
         {
-            if (state.SummaryText.Length > 0)
+            if (state.DbQuerySummary.Length > 0)
             {
-                state.SummaryText.Append(' ');
+                state.DbQuerySummary.Append(' ');
             }
 
             for (var k = index; k < i; ++k)
             {
-                state.SummaryText.Append(sql[k]);
+                state.DbQuerySummary.Append(sql[k]);
                 state.SanitizedSql.Append(sql[k]);
             }
         }
@@ -356,7 +356,7 @@ internal static class SqlProcessor
         }
 
         index = i;
-        state.CaptureCollection = captureCollection;
+        state.CaptureNextTokenAsTarget = captureNextTokenAsTarget;
         return true;
     }
 
@@ -364,8 +364,8 @@ internal static class SqlProcessor
     {
         public StringBuilder SanitizedSql { get; set; } = new StringBuilder();
 
-        public StringBuilder SummaryText { get; set; } = new StringBuilder();
+        public StringBuilder DbQuerySummary { get; set; } = new StringBuilder();
 
-        public bool CaptureCollection { get; set; }
+        public bool CaptureNextTokenAsTarget { get; set; }
     }
 }
