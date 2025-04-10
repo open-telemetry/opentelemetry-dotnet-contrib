@@ -28,7 +28,7 @@ internal sealed class SqlConnectionDetails
      *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
      *  is used to extract instanceName
      */
-    private static readonly Regex DataSourceRegex = new("^(.*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
+    private static readonly Regex DataSourceRegex = new("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
 
     /// <summary>
     /// In a Data Source string like "np:\\serverName\pipe\MSSQL$instanceName\pipeName" match the
