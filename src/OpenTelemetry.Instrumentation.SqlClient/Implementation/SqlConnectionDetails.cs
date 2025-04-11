@@ -118,11 +118,11 @@ internal sealed partial class SqlConnectionDetails
      *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
      *  is used to extract instanceName
      */
-    [GeneratedRegex("^(.*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$")]
+    [GeneratedRegex("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$")]
     private static partial Regex DataSourceRegex();
 #else
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex DataSourceRegexField = new("^(.*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
+    private static readonly Regex DataSourceRegexField = new("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
 #pragma warning restore SA1201 // A field should not follow a method
 
     private static Regex DataSourceRegex() => DataSourceRegexField;

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fix issue where IPv6 addresses were improperly parsed from the the
+  connection's `DataSource` when used to populate the `server.address`
+  attribute.
+  ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05
