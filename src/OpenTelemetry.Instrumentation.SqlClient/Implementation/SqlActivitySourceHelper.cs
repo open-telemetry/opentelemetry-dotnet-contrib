@@ -34,10 +34,9 @@ internal sealed class SqlActivitySourceHelper
     internal static readonly string[] SharedTagNames =
     [
         SemanticConventions.AttributeDbSystem,
-        SemanticConventions.AttributeDbCollectionName,
         SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbStoredProcedureName,
         SemanticConventions.AttributeDbResponseStatusCode,
-        SemanticConventions.AttributeDbOperationName,
         SemanticConventions.AttributeErrorType,
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
