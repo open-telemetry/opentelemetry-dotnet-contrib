@@ -12,8 +12,8 @@ components:
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -103,11 +103,11 @@ components:
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
