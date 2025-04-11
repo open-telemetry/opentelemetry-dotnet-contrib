@@ -38,6 +38,8 @@ public static class SqlProcessorTestCases
 
         public string Sanitized { get; set; } = string.Empty;
 
+        public string? Summary { get; set; }
+
         public IEnumerable<string> Dialects { get; set; } = [];
 
         public override string ToString()
