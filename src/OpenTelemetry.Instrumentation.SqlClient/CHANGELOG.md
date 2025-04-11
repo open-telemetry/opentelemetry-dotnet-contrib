@@ -11,7 +11,7 @@
   When `CommandType` is `StoredProcedure`, the `db.stored_procedure.name` has
   been added and the `db.query.text`, `db.operation.name`, and
   `db.collection.name` attributes have been removed.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#2693](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2693))
 
 ## 1.11.0-beta.2
 
