@@ -6,6 +6,12 @@
   connection's `DataSource` when used to populate the `server.address`
   attribute.
   ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+* Updates have been made to adhere to recent changes in the new semantic
+  conventions. These affect you if you have opted in to the new conventions.
+  When `CommandType` is `StoredProcedure`, the `db.stored_procedure.name` has
+  been added and the `db.query.text`, `db.operation.name`, and
+  `db.collection.name` attributes have been removed.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
 
 ## 1.11.0-beta.2
 
