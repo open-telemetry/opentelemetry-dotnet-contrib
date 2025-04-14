@@ -4,6 +4,7 @@
 # Please add the entries in alphabetically sorted order
 components:
   src/OpenTelemetry.Exporter.Geneva/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -64,6 +65,7 @@ components:
     - srprash
     - ppittle
   src/OpenTelemetry.Resources.Azure/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   src/OpenTelemetry.Resources.Container/:
@@ -87,14 +89,17 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Stress/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Tests/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -154,6 +159,7 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Resources.Azure.Tests/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   test/OpenTelemetry.Resources.Container.Tests/:
