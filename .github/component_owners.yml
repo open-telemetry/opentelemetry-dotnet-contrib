@@ -4,6 +4,7 @@
 # Please add the entries in alphabetically sorted order
 components:
   src/OpenTelemetry.Exporter.Geneva/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -12,6 +13,7 @@ components:
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   src/OpenTelemetry.Exporter.Stackdriver/:
@@ -52,18 +54,22 @@ components:
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
+    - harsimar
     - twenzel
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
   src/OpenTelemetry.PersistentStorage.Abstractions/:
+    - harsimar
     - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
+    - harsimar
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
   src/OpenTelemetry.Resources.Azure/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   src/OpenTelemetry.Resources.Container/:
@@ -87,14 +93,17 @@ components:
     - srprash
     - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Stress/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Tests/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -103,9 +112,11 @@ components:
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
@@ -144,16 +155,19 @@ components:
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - harsimar
     - twenzel
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
+    - harsimar
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
   test/OpenTelemetry.Resources.Azure.Tests/:
+    - harsimar
     - rajkumar-rangaraj
     - TimothyMothra
   test/OpenTelemetry.Resources.Container.Tests/:
