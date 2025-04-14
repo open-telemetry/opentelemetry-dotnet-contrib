@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Added support for enriching logs with `AFDCorrelationId` when present in
+  `RuntimeContext`. This can be enabled via the
+  `PrivatePreviewEnableAFDCorrelationIdEnrichment=true` connection string
+  parameter.
+
 ## 1.11.1
 
 Released 2025-Mar-05
