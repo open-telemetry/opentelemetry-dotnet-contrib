@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Context;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Tests;
@@ -1432,6 +1433,94 @@ public class GenevaLogExporterTests
         }
     }
 
+    [Fact]
+    public void GenevaExporter_WithAFDCorrelationId_IncludesCorrelationId()
+    {
+        var path = string.Empty;
+        Socket senderSocket = null;
+        Socket receiverSocket = null;
+
+        OpenTelemetryContext.SetAFDCorrelationId("TestId");
+
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableAFDCorrelationIdEnrichment=true";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path + ";PrivatePreviewEnableAFDCorrelationIdEnrichment=true";
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                senderSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                senderSocket.Bind(endpoint);
+                senderSocket.Listen(1);
+            }
+
+            var exportedItems = new List<LogRecord>();
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options =>
+                {
+                    options.IncludeScopes = true;
+                    options.AddInMemoryExporter(exportedItems);
+                    options.AddGenevaLogExporter(options =>
+                    {
+                        options.ConnectionString = exporterOptions.ConnectionString;
+                        options.CustomFields = exporterOptions.CustomFields;
+                    });
+                }));
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                receiverSocket = senderSocket.Accept();
+                receiverSocket.ReceiveTimeout = 10000;
+            }
+
+            // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
+            using var exporter = new GenevaLogExporter(exporterOptions);
+
+            // Emit a LogRecord and grab a copy of internal buffer for validation.
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+            logger.LogInformation("Hello from {Food} {Price}.", "artichoke", 3.99);
+
+            byte[] serializedData;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                serializedData = MsgPackLogExporter.Buffer.Value;
+            }
+            else
+            {
+                // Read the data sent via socket.
+                serializedData = new byte[65360];
+                _ = receiverSocket.Receive(serializedData);
+            }
+
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(serializedData, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+            var correlationId = mapping["AFDCorrelationId"] as string;
+            Assert.Equal("TestID", correlationId);
+        }
+        finally
+        {
+            senderSocket?.Dispose();
+            receiverSocket?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void SuccessfulUserEventsExport_Linux()
     {
@@ -1655,6 +1744,20 @@ public class GenevaLogExporterTests
 
         // Epilouge
         Assert.Equal("DateTime", timeFormat["TimeFormat"]);
+    }
+
+    private static class OpenTelemetryContext
+    {
+        private const string AFDCorrelationId = "AFDCorrelationId";
+        private static readonly RuntimeContextSlot<string> AFDCorrelationContextSlot = RuntimeContext.RegisterSlot<string>(AFDCorrelationId);
+
+        internal static void SetAFDCorrelationId(string correlationId)
+        {
+            if (!string.IsNullOrEmpty(correlationId))
+            {
+                AFDCorrelationContextSlot.Set(correlationId);
+            }
+        }
     }
 
     // A custom exception class with non-ASCII character in the type name
