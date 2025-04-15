@@ -22,14 +22,14 @@ internal class AFDCorrelationIdLogProcessor : BaseProcessor<LogRecord>
             return;
         }
 
-        string? afdCorrelationIdValue = GetRuntimeContextValue();
+        var afdCorrelationIdValue = GetRuntimeContextValue();
         if (string.IsNullOrEmpty(afdCorrelationIdValue))
         {
             base.OnEnd(data);
             return;
         }
 
-        int capacity = data.Attributes?.Count + 1 ?? 1;
+        var capacity = data.Attributes?.Count + 1 ?? 1;
         var attributes = new List<KeyValuePair<string, object?>>(capacity);
 
         if (data.Attributes != null)
