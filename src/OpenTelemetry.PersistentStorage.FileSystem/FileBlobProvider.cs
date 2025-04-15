@@ -98,23 +98,6 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         GC.SuppressFinalize(this);
     }
 
-#if BUILDING_INTERNAL_PERSISTENT_STORAGE
-    private void Dispose(bool disposing)
-#else
-    protected virtual void Dispose(bool disposing)
-#endif
-    {
-        if (!this.disposedValue)
-        {
-            if (disposing)
-            {
-                this.maintenanceTimer.Dispose();
-            }
-
-            this.disposedValue = true;
-        }
-    }
-
     protected override IEnumerable<PersistentBlob> OnGetBlobs()
     {
         var retentionDeadline = DateTime.UtcNow - TimeSpan.FromMilliseconds(this.retentionPeriodInMilliseconds);
@@ -148,6 +131,23 @@ public class FileBlobProvider : PersistentBlobProvider, IDisposable
         blob = this.OnGetBlobs().FirstOrDefault();
 
         return blob != null;
+    }
+
+#if BUILDING_INTERNAL_PERSISTENT_STORAGE
+    private void Dispose(bool disposing)
+#else
+    protected virtual void Dispose(bool disposing)
+#endif
+    {
+        if (!this.disposedValue)
+        {
+            if (disposing)
+            {
+                this.maintenanceTimer.Dispose();
+            }
+
+            this.disposedValue = true;
+        }
     }
 
     private void OnMaintenanceEvent(object? source, ElapsedEventArgs e)

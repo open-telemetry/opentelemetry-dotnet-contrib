@@ -6,39 +6,8 @@ using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 
-internal sealed class SqlConnectionDetails
+internal sealed partial class SqlConnectionDetails
 {
-    /*
-     * Match...
-     *  protocol[ ]:[ ]serverName
-     *  serverName
-     *  serverName[ ]\[ ]instanceName
-     *  serverName[ ],[ ]port
-     *  serverName[ ]\[ ]instanceName[ ],[ ]port
-     *
-     * [ ] can be any number of white-space, SQL allows it for some reason.
-     *
-     * Optional "protocol" can be "tcp", "lpc" (shared memory), or "np" (named pipes). See:
-     *  https://docs.microsoft.com/troubleshoot/sql/connect/use-server-name-parameter-connection-string, and
-     *  https://docs.microsoft.com/dotnet/api/system.data.sqlclient.sqlconnection.connectionstring?view=dotnet-plat-ext-5.0
-     *
-     * In case of named pipes the Data Source string can take form of:
-     *  np:serverName\instanceName, or
-     *  np:\\serverName\pipe\pipeName, or
-     *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
-     *  is used to extract instanceName
-     */
-    private static readonly Regex DataSourceRegex = new("^(.*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
-
-    /// <summary>
-    /// In a Data Source string like "np:\\serverName\pipe\MSSQL$instanceName\pipeName" match the
-    /// "pipe\MSSQL$instanceName" segment to extract instanceName if it is available.
-    /// </summary>
-    /// <see>
-    /// <a href="https://docs.microsoft.com/previous-versions/sql/sql-server-2016/ms189307(v=sql.130)"/>
-    /// </see>
-    private static readonly Regex NamedPipeRegex = new("pipe\\\\MSSQL\\$(.*?)\\\\", RegexOptions.Compiled);
-
     private static readonly ConcurrentDictionary<string, SqlConnectionDetails> ConnectionDetailCache = new(StringComparer.OrdinalIgnoreCase);
 
     private SqlConnectionDetails()
@@ -60,7 +29,7 @@ internal sealed class SqlConnectionDetails
             return connectionDetails;
         }
 
-        var match = DataSourceRegex.Match(dataSource);
+        var match = DataSourceRegex().Match(dataSource);
 
         var serverHostName = match.Groups[2].Value;
         string? serverIpAddress = null;
@@ -83,7 +52,7 @@ internal sealed class SqlConnectionDetails
             var pipeName = match.Groups[3].Value;
             if (pipeName.Length > 0)
             {
-                var namedInstancePipeMatch = NamedPipeRegex.Match(pipeName);
+                var namedInstancePipeMatch = NamedPipeRegex().Match(pipeName);
                 if (namedInstancePipeMatch.Success)
                 {
                     instanceName = namedInstancePipeMatch.Groups[1].Value;
@@ -127,4 +96,52 @@ internal sealed class SqlConnectionDetails
         ConnectionDetailCache.TryAdd(dataSource, connectionDetails);
         return connectionDetails;
     }
+
+#if NET
+    /*
+     * Match...
+     *  protocol[ ]:[ ]serverName
+     *  serverName
+     *  serverName[ ]\[ ]instanceName
+     *  serverName[ ],[ ]port
+     *  serverName[ ]\[ ]instanceName[ ],[ ]port
+     *
+     * [ ] can be any number of white-space, SQL allows it for some reason.
+     *
+     * Optional "protocol" can be "tcp", "lpc" (shared memory), or "np" (named pipes). See:
+     *  https://docs.microsoft.com/troubleshoot/sql/connect/use-server-name-parameter-connection-string, and
+     *  https://docs.microsoft.com/dotnet/api/system.data.sqlclient.sqlconnection.connectionstring?view=dotnet-plat-ext-5.0
+     *
+     * In case of named pipes the Data Source string can take form of:
+     *  np:serverName\instanceName, or
+     *  np:\\serverName\pipe\pipeName, or
+     *  np:\\serverName\pipe\MSSQL$instanceName\pipeName - in this case a separate regex (see NamedPipeRegex below)
+     *  is used to extract instanceName
+     */
+    [GeneratedRegex("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$")]
+    private static partial Regex DataSourceRegex();
+#else
+#pragma warning disable SA1201 // A field should not follow a method
+    private static readonly Regex DataSourceRegexField = new("^([^[]*\\s*:\\s*\\\\{0,2})?(.*?)\\s*(?:[\\\\,]|$)\\s*(.*?)\\s*(?:,|$)\\s*(.*)$", RegexOptions.Compiled);
+#pragma warning restore SA1201 // A field should not follow a method
+
+    private static Regex DataSourceRegex() => DataSourceRegexField;
+#endif
+
+#if NET
+    /*
+     * In a Data Source string like "np:\\serverName\pipe\MSSQL$instanceName\pipeName" match the
+     * "pipe\MSSQL$instanceName" segment to extract instanceName if it is available.
+     * https://docs.microsoft.com/previous-versions/sql/sql-server-2016/ms189307(v=sql.130)
+     */
+
+    [GeneratedRegex("pipe\\\\MSSQL\\$(.*?)\\\\")]
+    private static partial Regex NamedPipeRegex();
+#else
+#pragma warning disable SA1201 // A field should not follow a method
+    private static readonly Regex NamedPipeRegexField = new("pipe\\\\MSSQL\\$(.*?)\\\\", RegexOptions.Compiled);
+#pragma warning restore SA1201 // A field should not follow a method
+
+    private static Regex NamedPipeRegex() => NamedPipeRegexField;
+#endif
 }

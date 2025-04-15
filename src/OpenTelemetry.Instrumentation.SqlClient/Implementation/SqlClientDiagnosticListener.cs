@@ -125,15 +125,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (options.SetDbStatementForText)
                                     {
-                                        var sanitizedSql = SqlProcessor.GetSanitizedSql(commandText);
+                                        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
                                         if (options.EmitOldAttributes)
                                         {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, sanitizedSql);
+                                            activity.SetTag(SemanticConventions.AttributeDbStatement, sqlStatementInfo.SanitizedSql);
                                         }
 
                                         if (options.EmitNewAttributes)
                                         {
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, sanitizedSql);
+                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
                                         }
                                     }
 
