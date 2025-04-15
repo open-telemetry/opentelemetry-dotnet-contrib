@@ -6,6 +6,7 @@
   `RuntimeContext`. This can be enabled via the
   `PrivatePreviewEnableAFDCorrelationIdEnrichment=true` connection string
   parameter.
+  ([#2698](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2698))
 
 ## 1.11.1
 
