@@ -52,14 +52,17 @@ components:
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
+    - TimothyMothra
     - twenzel
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
   src/OpenTelemetry.PersistentStorage.Abstractions/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
@@ -144,12 +147,14 @@ components:
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - TimothyMothra
     - twenzel
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
