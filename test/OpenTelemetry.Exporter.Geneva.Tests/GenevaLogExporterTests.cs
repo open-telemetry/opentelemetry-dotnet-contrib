@@ -1505,7 +1505,7 @@ public class GenevaLogExporterTests
             var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
 
             var correlationId = mapping["AFDCorrelationId"] as string;
-            Assert.Equal("TestID", correlationId);
+            Assert.Equal("TestId", correlationId);
         }
         finally
         {
