@@ -62,6 +62,26 @@ have default logging settings. Please review them to make sure
 `OpenTelemetryLoggingProvider` is configured to receive Logs of appropriate
 levels and category.
 
+#### AFD CorrelationId Enrichment
+
+An experimental feature flag is available to opt-into enriching logs with Azure
+Front Door (AFD) Correlation IDs when present in the `RuntimeContext`. This
+helps track requests as they flow through Azure Front Door services, making it
+easier to correlate logs across different components.
+
+To enable this feature, add
+`PrivatePreviewEnableAFDCorrelationIdEnrichment=true` to your connection string:
+
+```csharp
+options.AddGenevaLogExporter(exporterOptions =>
+{
+    exporterOptions.ConnectionString = "PrivatePreviewEnableAFDCorrelationIdEnrichment=true";
+});
+```
+
+When enabled, the exporter automatically adds an `AFDCorrelationId` attribute to
+each log record if the value is present in `RuntimeContext`.
+
 ### Enable Traces
 
 This snippet shows how to configure the Geneva Exporter for Traces
