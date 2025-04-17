@@ -54,6 +54,8 @@ internal sealed class AutoFlushActivityProcessor : BaseProcessor<Activity>
     /// <inheritdoc/>
     public override void OnEnd(Activity data)
     {
+        // TODO
+        Console.WriteLine("###Test###");
         if (!this.canForceFlush)
         {
             return;
