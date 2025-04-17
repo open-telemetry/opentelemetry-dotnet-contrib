@@ -1,5 +1,9 @@
 #nullable enable
 Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions
+OpenTelemetry.Extensions.Trace.PartialActivityProcessor
+OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ActiveActivities.get -> System.Collections.Generic.IReadOnlyDictionary<System.Diagnostics.ActivitySpanId, System.Diagnostics.Activity!>!
+OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EndedActivities.get -> System.Collections.Generic.IReadOnlyCollection<System.Collections.Generic.KeyValuePair<System.Diagnostics.ActivitySpanId, System.Diagnostics.Activity!>>!
+OpenTelemetry.Extensions.Trace.PartialActivityProcessor.PartialActivityProcessor(OpenTelemetry.BaseExporter<OpenTelemetry.Logs.LogRecord!>! logExporter, int scheduledDelayMilliseconds = 5000) -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void
@@ -12,6 +16,10 @@ OpenTelemetry.RateLimitingSampler
 OpenTelemetry.RateLimitingSampler.RateLimitingSampler(int maxTracesPerSecond) -> void
 OpenTelemetry.Trace.BaggageActivityProcessor
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
+override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Dispose(bool disposing) -> void
+override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.OnEnd(System.Diagnostics.Activity! data) -> void
+override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.OnShutdown(int timeoutMilliseconds) -> bool
+override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
 override OpenTelemetry.RateLimitingSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
 override OpenTelemetry.Trace.BaggageActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
