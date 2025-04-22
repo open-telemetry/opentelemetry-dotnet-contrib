@@ -77,8 +77,9 @@ internal class AFDCorrelationIdLogProcessor : BaseProcessor<LogRecord>
         {
             return RuntimeContext.GetValue<string>(AFDCorrelationId);
         }
-        catch
+        catch (Exception ex)
         {
+            ExporterEventSource.Log.FailedToGetAFDCorrelationId(ex);
             GenevaAfdCorrelationIdStateTracker.Set(true);
             return null;
         }
