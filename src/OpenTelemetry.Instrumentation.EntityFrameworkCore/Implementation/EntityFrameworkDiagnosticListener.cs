@@ -49,6 +49,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         SemanticConventions.AttributeDbName,
         SemanticConventions.AttributeDbNamespace,
         SemanticConventions.AttributeDbResponseStatusCode,
+        SemanticConventions.AttributeErrorType,
         SemanticConventions.AttributeServerAddress,
     ];
 
