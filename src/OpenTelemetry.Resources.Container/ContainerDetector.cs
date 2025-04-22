@@ -9,7 +9,7 @@ namespace OpenTelemetry.Resources.Container;
 /// <summary>
 /// Resource detector for application running in Container environment.
 /// </summary>
-internal sealed class ContainerDetector : IResourceDetector
+internal sealed partial class ContainerDetector : IResourceDetector
 {
     private const string Filepath = "/proc/self/cgroup";
     private const string FilepathV2 = "/proc/self/mountinfo";
@@ -90,7 +90,7 @@ internal sealed class ContainerDetector : IResourceDetector
     private static string? GetIdFromLineV2(string line)
     {
         string? containerId = null;
-        var match = Regex.Match(line, @".*/.+/([\w+-.]{64})/.*$");
+        var match = IdFromLineV2Regex().Match(line);
         if (match.Success)
         {
             containerId = match.Groups[1].Value;
@@ -98,6 +98,17 @@ internal sealed class ContainerDetector : IResourceDetector
 
         return string.IsNullOrEmpty(containerId) || !EncodingUtils.IsValidHexString(containerId!) ? null : containerId;
     }
+
+#if NET
+    [GeneratedRegex(@".*/.+/([\w+-.]{64})/.*$")]
+    private static partial Regex IdFromLineV2Regex();
+#else
+#pragma warning disable SA1201 // A field should not follow a method
+    private static readonly Regex IdFromLineV2RegexField = new(@".*/.+/([\w+-.]{64})/.*$");
+#pragma warning restore SA1201 // A field should not follow a method
+
+    private static Regex IdFromLineV2Regex() => IdFromLineV2RegexField;
+#endif
 
     private static string RemovePrefixAndSuffixIfNeeded(string input, int startIndex, int endIndex)
     {

@@ -221,4 +221,23 @@ public class ConnectionStringBuilderTests
         Assert.Throws<ArgumentException>(() => builder.Account);
         Assert.Equal(TransportProtocol.Unspecified, builder.Protocol);
     }
+
+    [Fact]
+    public void ConnectionStringBuilder_PrivatePreviewEnableUserEvents_No_Default_Value()
+    {
+        var builder = new ConnectionStringBuilder("key1=value1");
+        Assert.False(builder.PrivatePreviewEnableUserEvents);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUserEvents=true");
+        Assert.True(builder.PrivatePreviewEnableUserEvents);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUserEvents=tRue");
+        Assert.True(builder.PrivatePreviewEnableUserEvents);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableUserEvents=false");
+        Assert.False(builder.PrivatePreviewEnableUserEvents);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=true");
+        Assert.True(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=tRue");
+        Assert.True(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=false");
+        Assert.False(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
+    }
 }

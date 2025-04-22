@@ -4,7 +4,6 @@
 # Please add the entries in alphabetically sorted order
 components:
   src/OpenTelemetry.Exporter.Geneva/:
-    - codeblanch
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -13,11 +12,11 @@ components:
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
-    - codeblanch
+    - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
-    - codeblanch
     - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
@@ -46,8 +45,6 @@ components:
     - pcwiese
   src/OpenTelemetry.Instrumentation.Hangfire/:
     - fred2u
-  src/OpenTelemetry.Instrumentation.Owin/:
-    - codeblanch
   src/OpenTelemetry.Instrumentation.Process/:
     - Yun-Ting
   src/OpenTelemetry.Instrumentation.Quartz/:
@@ -55,16 +52,17 @@ components:
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
+    - TimothyMothra
     - twenzel
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
-  src/OpenTelemetry.Instrumentation.Wcf/:
-    - codeblanch
   src/OpenTelemetry.PersistentStorage.Abstractions/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
@@ -87,22 +85,18 @@ components:
     - lachmatt
   src/OpenTelemetry.Resources.Gcp/:
     - matt-hensley
-    - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - ppittle
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
-    - codeblanch
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Stress/:
-    - codeblanch
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
   test/OpenTelemetry.Exporter.Geneva.Tests/:
-    - codeblanch
     - rajkumar-rangaraj
     - TimothyMothra
     - xiang17
@@ -111,13 +105,14 @@ components:
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
-    - codeblanch
+    - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
-    - codeblanch
+    - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
-    - codeblanch
     - mikegoldsmith
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
@@ -146,21 +141,19 @@ components:
     - pcwiese
   test/OpenTelemetry.Instrumentation.Hangfire.Tests/:
     - fred2u
-  test/OpenTelemetry.Instrumentation.Owin.Tests/:
-    - codeblanch
   test/OpenTelemetry.Instrumentation.Quartz.Tests/:
     - maldago
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - TimothyMothra
     - twenzel
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
-  test/OpenTelemetry.Instrumentation.Wcf.Tests/:
-    - codeblanch
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
@@ -180,7 +173,6 @@ components:
     - lachmatt
   test/OpenTelemetry.Resources.Gcp.Tests/:
     - matt-hensley
-    - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - ppittle

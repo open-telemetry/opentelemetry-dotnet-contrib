@@ -2,6 +2,7 @@ name: Lint - YAML
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   run-yamllint:
@@ -9,10 +10,10 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
     - name: install yamllint
-      run: pip install yamllint
+      run: pip install -r ./build/yamllint-requirements.txt --require-hashes
 
     - name: run yamllint
       run: yamllint --no-warnings .

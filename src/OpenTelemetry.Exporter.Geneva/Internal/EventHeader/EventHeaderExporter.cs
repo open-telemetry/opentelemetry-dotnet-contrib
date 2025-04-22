@@ -1,47 +1,28 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text;
-using OpenTelemetry.Exporter.Geneva.External;
+using Microsoft.LinuxTracepoints;
+using Microsoft.LinuxTracepoints.Provider;
 
-namespace OpenTelemetry.Exporter.Geneva.Tld;
+namespace OpenTelemetry.Exporter.Geneva.EventHeader;
 
-internal static class TldExporter
+internal static class EventHeaderExporter
 {
-    internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
-    internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
-    {
-        // Part A
-        [Schema.V40.PartA.IKey] = "iKey",
-        [Schema.V40.PartA.Name] = "name",
-        [Schema.V40.PartA.Time] = "time",
-
-        // Part A Application Extension
-        [Schema.V40.PartA.Extensions.App.Id] = "ext_app_id",
-        [Schema.V40.PartA.Extensions.App.Ver] = "ext_app_ver",
-
-        // Part A Cloud Extension
-        [Schema.V40.PartA.Extensions.Cloud.Role] = "ext_cloud_role",
-        [Schema.V40.PartA.Extensions.Cloud.RoleInstance] = "ext_cloud_roleInstance",
-        [Schema.V40.PartA.Extensions.Cloud.RoleVer] = "ext_cloud_roleVer",
-
-        // Part A Os extension
-        [Schema.V40.PartA.Extensions.Os.Name] = "ext_os_name",
-        [Schema.V40.PartA.Extensions.Os.Ver] = "ext_os_ver",
-    };
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Serialize(EventBuilder eb, string key, object value)
+    public static void Serialize(EventHeaderDynamicBuilder eb, string key, object value)
     {
         Debug.Assert(value != null, "value was null");
 
         switch (value)
         {
+            // TODO: what are all types that needs to be supported?
             case bool vb:
-                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventOutType.Boolean);
+                eb.AddUInt8(key, (byte)(vb ? 1 : 0), EventHeaderFieldFormat.Boolean);
                 break;
             case byte vui8:
                 eb.AddUInt8(key, vui8);
@@ -73,15 +54,15 @@ internal static class TldExporter
             case double vd:
                 eb.AddFloat64(key, vd);
                 break;
-            case string vs:
-                eb.AddCountedAnsiString(key, vs, Encoding.UTF8, 0, Math.Min(vs.Length, StringLengthLimit));
+            case string vs: // TODO: which type to use? does StringLimit also apply like TldExporter.StringLengthLimit?
+                eb.AddString16(key, vs);
                 break;
             case DateTime vdt:
-                eb.AddFileTime(key, vdt.ToUniversalTime());
+                // TODO: what format to use? an integer or a string?
+                string rfc3339String = vdt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
+                eb.AddString16(key, rfc3339String);
                 break;
 
-            // TODO: case bool[]
-            // TODO: case obj[]
             case byte[] vui8array:
                 eb.AddUInt8Array(key, vui8array);
                 break;
@@ -113,16 +94,19 @@ internal static class TldExporter
                 eb.AddFloat64Array(key, vdarray);
                 break;
             case string[] vsarray:
-                eb.AddCountedStringArray(key, vsarray);
+                eb.AddString16Array(key, vsarray);
                 break;
             case DateTime[] vdtarray:
-                for (var i = 0; i < vdtarray.Length; i++)
+                // TODO: is this ever called?
+                string[] rfc3339Strings = new string[vdtarray.Length];
+                for (var i = 0; i < vdtarray.Length; ++i)
                 {
-                    vdtarray[i] = vdtarray[i].ToUniversalTime();
+                    rfc3339Strings[i] = vdtarray[i].ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.FFFFFFZ", CultureInfo.InvariantCulture);
                 }
 
-                eb.AddFileTimeArray(key, vdtarray);
+                eb.AddString16Array(key, rfc3339Strings);
                 break;
+
             default:
                 string repr;
                 try
@@ -134,8 +118,10 @@ internal static class TldExporter
                     repr = $"ERROR: type {value!.GetType().FullName} is not supported";
                 }
 
-                eb.AddCountedAnsiString(key, repr, Encoding.UTF8, 0, Math.Min(repr.Length, StringLengthLimit));
+                eb.AddString16(key, repr);
                 break;
         }
     }
 }
+
+#endif

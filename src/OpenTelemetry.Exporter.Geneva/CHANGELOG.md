@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## 1.11.3
+
+Released 2025-Apr-22
+
+* Fixed an issue where accessing an unset `AFDCorrelationId` in `RuntimeContext`
+  would throw unhandled exceptions.
+  ([#2708](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2708))
+
+## 1.11.2
+
+Released 2025-Apr-16
+
+* Added support for enriching logs with `AFDCorrelationId` when present in
+  `RuntimeContext`. This can be enabled via the
+  `PrivatePreviewEnableAFDCorrelationIdEnrichment=true` connection string
+  parameter.
+  ([#2698](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2698))
+
 ## 1.11.1
 
 Released 2025-Mar-05
