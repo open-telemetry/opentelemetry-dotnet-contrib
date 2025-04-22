@@ -13,6 +13,14 @@ namespace OpenTelemetry.Exporter.Geneva;
 internal class AFDCorrelationIdLogProcessor : BaseProcessor<LogRecord>
 {
     private const string AFDCorrelationId = "AFDCorrelationId";
+    private const string AFDSlotAccessTrackerId = "GenevaAfdCorrelationIdStateTracker";
+    private static readonly RuntimeContextSlot<bool> GenevaAfdCorrelationIdStateTracker = RuntimeContext.RegisterSlot<bool>(AFDSlotAccessTrackerId);
+    private bool disposed;
+
+    public AFDCorrelationIdLogProcessor()
+    {
+        GenevaAfdCorrelationIdStateTracker.Set(false);
+    }
 
     /// <inheritdoc/>
     public override void OnEnd(LogRecord data)
@@ -42,6 +50,37 @@ internal class AFDCorrelationIdLogProcessor : BaseProcessor<LogRecord>
         base.OnEnd(data);
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (!this.disposed)
+        {
+            if (disposing)
+            {
+                GenevaAfdCorrelationIdStateTracker.Dispose();
+            }
+
+            this.disposed = true;
+        }
+
+        base.Dispose(disposing);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string? GetRuntimeContextValue() => RuntimeContext.GetValue<string>(AFDCorrelationId);
+    private static string? GetRuntimeContextValue()
+    {
+        if (GenevaAfdCorrelationIdStateTracker.Get() == true)
+        {
+            return null;
+        }
+
+        try
+        {
+            return RuntimeContext.GetValue<string>(AFDCorrelationId);
+        }
+        catch
+        {
+            GenevaAfdCorrelationIdStateTracker.Set(true);
+            return null;
+        }
+    }
 }
