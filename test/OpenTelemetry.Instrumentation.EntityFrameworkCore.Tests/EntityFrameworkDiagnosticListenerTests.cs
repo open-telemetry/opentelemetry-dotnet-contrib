@@ -362,7 +362,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             .Where(metric => metric.Name == DbClientOperationDurationName)
             .ToArray();
         var metric = Assert.Single(dbClientOperationDurationMetrics);
-        VerifyDurationMetricData(metric, null);
+        VerifyDurationMetricData(metric);
     }
 
     [Fact]
@@ -459,21 +459,21 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             tags[tag.Key] = tag.Value;
         }
 
-        Assert.Contains(tags, t => t.Key == SemanticConventions.AttributeDbSystem);
+        Assert.Contains(SemanticConventions.AttributeDbSystem, tags.Keys);
         Assert.Equal("sqlite", tags[SemanticConventions.AttributeDbSystem]);
 
         if (!emitNewAttributes)
         {
-            Assert.Contains(tags, t => t.Key == SemanticConventions.AttributeDbName);
+            Assert.Contains(SemanticConventions.AttributeDbName, tags.Keys);
         }
         else if (emitNewAttributes)
         {
-            Assert.Contains(tags, t => t.Key == SemanticConventions.AttributeDbNamespace);
+            Assert.Contains(SemanticConventions.AttributeDbNamespace, tags.Keys);
         }
 
         if (hasError)
         {
-            Assert.Contains(tags, t => t.Key == SemanticConventions.AttributeErrorType);
+            Assert.Contains(SemanticConventions.AttributeErrorType, tags.Keys);
             Assert.Equal(typeof(SqliteException).FullName, tags[SemanticConventions.AttributeErrorType]);
         }
     }
