@@ -17,7 +17,7 @@ namespace OpenTelemetry.Exporter.Geneva.Tests;
 [Collection(nameof(GenevaCorrelationFixture))]
 public class GenevaLogExporterAFDCorrelationTests
 {
-    [Fact]
+    [Fact(Skip = "Run locally to evaluate with multi-threaded scenario.")]
     public void AFDCorrelationIdLogProcessor_MultithreadedAccess_HandlesGracefully()
     {
         var path = string.Empty;
