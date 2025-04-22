@@ -28,7 +28,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
-    public static readonly AssemblyName AssemblyName = Assembly.GetName();
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
 
     internal static readonly string ActivitySourceName = AssemblyName.Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
@@ -70,82 +70,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     }
 
     public override bool SupportsNullActivity => true;
-
-    private static double CalculateDurationFromTimestamp(long begin, long? end = null)
-    {
-        end ??= Stopwatch.GetTimestamp();
-        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-        var delta = end - begin;
-        var ticks = (long)(timestampToTicks * delta);
-        var duration = new TimeSpan(ticks);
-        return duration.TotalSeconds;
-    }
-
-    private static string GetDbSystemFromProviderName(string? providerName)
-    {
-        return providerName switch
-        {
-            "Microsoft.EntityFrameworkCore.SqlServer" => "mssql",
-            "Microsoft.EntityFrameworkCore.Cosmos" => "cosmosdb",
-            "Microsoft.EntityFrameworkCore.Sqlite" or "Devart.Data.SQLite.Entity.EFCore" => "sqlite",
-            "MySql.Data.EntityFrameworkCore" or "Pomelo.EntityFrameworkCore.MySql" or "Devart.Data.MySql.Entity.EFCore" => "mysql",
-            "Npgsql.EntityFrameworkCore.PostgreSQL" or "Devart.Data.PostgreSql.Entity.EFCore" => "postgresql",
-            "Oracle.EntityFrameworkCore" or "Devart.Data.Oracle.Entity.EFCore" => "oracle",
-            "Microsoft.EntityFrameworkCore.InMemory" => "efcoreinmemory",
-            "FirebirdSql.EntityFrameworkCore.Firebird" => "firebird",
-            "FileContextCore" => "filecontextcore",
-            "EntityFrameworkCore.SqlServerCompact35" or "EntityFrameworkCore.SqlServerCompact40" => "mssqlcompact",
-            "EntityFrameworkCore.OpenEdge" => "openedge",
-            "EntityFrameworkCore.Jet" => "jet",
-            "Google.Cloud.EntityFrameworkCore.Spanner" => "spanner",
-            "Teradata.EntityFrameworkCore" => "teradata",
-            _ => "other_sql",
-        };
-    }
-
-    private TagList CreateTagsFromConnectionInfo(object? payload, object? command, EntityFrameworkInstrumentationOptions options, out string activityName)
-    {
-        activityName = ActivityName;
-        var tags = default(TagList);
-
-        if (payload == null || command == null)
-        {
-            return tags;
-        }
-
-        var connection = this.connectionFetcher.Fetch(command);
-        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-        var database = (string)this.databaseFetcher.Fetch(connection);
-        activityName = database;
-
-        var dbContext = this.dbContextFetcher.Fetch(payload);
-        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
-
-        var dbSystem = GetDbSystemFromProviderName(providerName);
-        tags.Add(SemanticConventions.AttributeDbSystem, dbSystem);
-        if (dbSystem == "other_sql" && providerName != null)
-        {
-            tags.Add("ef.provider", providerName);
-        }
-
-        if (!string.IsNullOrEmpty(dataSource))
-        {
-            tags.Add(SemanticConventions.AttributeServerAddress, dataSource);
-        }
-
-        if (options.EmitOldAttributes)
-        {
-            tags.Add(SemanticConventions.AttributeDbName, database);
-        }
-
-        if (options.EmitNewAttributes)
-        {
-            tags.Add(SemanticConventions.AttributeDbNamespace, database);
-        }
-
-        return tags;
-    }
 
     public override void OnEventWritten(string name, object? payload)
     {
@@ -347,6 +271,38 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
     }
 
+    private static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    {
+        end ??= Stopwatch.GetTimestamp();
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
+    }
+
+    private static string GetDbSystemFromProviderName(string? providerName)
+    {
+        return providerName switch
+        {
+            "Microsoft.EntityFrameworkCore.SqlServer" => "mssql",
+            "Microsoft.EntityFrameworkCore.Cosmos" => "cosmosdb",
+            "Microsoft.EntityFrameworkCore.Sqlite" or "Devart.Data.SQLite.Entity.EFCore" => "sqlite",
+            "MySql.Data.EntityFrameworkCore" or "Pomelo.EntityFrameworkCore.MySql" or "Devart.Data.MySql.Entity.EFCore" => "mysql",
+            "Npgsql.EntityFrameworkCore.PostgreSQL" or "Devart.Data.PostgreSql.Entity.EFCore" => "postgresql",
+            "Oracle.EntityFrameworkCore" or "Devart.Data.Oracle.Entity.EFCore" => "oracle",
+            "Microsoft.EntityFrameworkCore.InMemory" => "efcoreinmemory",
+            "FirebirdSql.EntityFrameworkCore.Firebird" => "firebird",
+            "FileContextCore" => "filecontextcore",
+            "EntityFrameworkCore.SqlServerCompact35" or "EntityFrameworkCore.SqlServerCompact40" => "mssqlcompact",
+            "EntityFrameworkCore.OpenEdge" => "openedge",
+            "EntityFrameworkCore.Jet" => "jet",
+            "Google.Cloud.EntityFrameworkCore.Spanner" => "spanner",
+            "Teradata.EntityFrameworkCore" => "teradata",
+            _ => "other_sql",
+        };
+    }
+
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
         if (EntityFrameworkInstrumentation.MetricHandles == 0)
@@ -393,5 +349,49 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         var duration = activity?.Duration.TotalSeconds
             ?? CalculateDurationFromTimestamp(this.beginTimestamp.Value);
         DbClientOperationDuration.Record(duration, tags);
+    }
+
+    private TagList CreateTagsFromConnectionInfo(object? payload, object? command, EntityFrameworkInstrumentationOptions options, out string activityName)
+    {
+        activityName = ActivityName;
+        var tags = default(TagList);
+
+        if (payload == null || command == null)
+        {
+            return tags;
+        }
+
+        var connection = this.connectionFetcher.Fetch(command);
+        var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
+        var database = (string)this.databaseFetcher.Fetch(connection);
+        activityName = database;
+
+        var dbContext = this.dbContextFetcher.Fetch(payload);
+        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+
+        var dbSystem = GetDbSystemFromProviderName(providerName);
+        tags.Add(SemanticConventions.AttributeDbSystem, dbSystem);
+        if (dbSystem == "other_sql" && providerName != null)
+        {
+            tags.Add("ef.provider", providerName);
+        }
+
+        if (!string.IsNullOrEmpty(dataSource))
+        {
+            tags.Add(SemanticConventions.AttributeServerAddress, dataSource);
+        }
+
+        if (options.EmitOldAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbName, database);
+        }
+
+        if (options.EmitNewAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbNamespace, database);
+        }
+
+        return tags;
     }
 }
