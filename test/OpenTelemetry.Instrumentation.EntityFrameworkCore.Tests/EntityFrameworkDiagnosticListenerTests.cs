@@ -263,54 +263,74 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
-    [Fact]
-    public void EntityFrameworkMetricsAreCollectedSuccessfully()
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ShouldConditionallyCollectTelemetry(bool enableTracing, bool enableMetrics)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        var traceProvider = Sdk.CreateTracerProviderBuilder()
-            .AddEntityFrameworkCoreInstrumentation()
-            .AddInMemoryExporter(activities)
-            .Build();
-        var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddEntityFrameworkCoreInstrumentation()
-            .AddInMemoryExporter(metrics)
-            .Build();
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (enableTracing)
+        {
+            traceProviderBuilder.AddEntityFrameworkCoreInstrumentation();
+            traceProviderBuilder.AddInMemoryExporter(activities);
+        }
+
+        if (enableMetrics)
+        {
+            meterProviderBuilder.AddEntityFrameworkCoreInstrumentation();
+            meterProviderBuilder.AddInMemoryExporter(metrics);
+        }
+
+        var traceProvider = traceProviderBuilder.Build();
+        var meterProvider = meterProviderBuilder.Build();
 
         try
         {
-            using (var context = new ItemsContext(this.contextOptions))
-            {
-                var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
-                Assert.Equal(3, items.Count);
-
-                //items = context.Set<Item>().Where(i => i.Name.StartsWith("Item")).ToList();
-                //Assert.Equal(3, items.Count);
-
-                //// Execute a query that will fail
-                //try
-                //{
-                //    context.Database.ExecuteSqlRaw("select * from no_table");
-                //}
-                //catch
-                //{
-                //    // Expected exception
-                //}
-            }
+            using var context = new ItemsContext(this.contextOptions);
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            Assert.Equal(3, items.Count);
         }
         finally
         {
-            traceProvider.Dispose();
-            meterProvider.Dispose();
+            traceProvider?.Dispose();
+            meterProvider?.Dispose();
         }
 
-        var activity = Assert.Single(activities);
+        Activity? activity = null;
+
+        if (enableTracing)
+        {
+            activity = Assert.Single(activities);
+            VerifyActivityData(activity, isError: false);
+        }
+        else
+        {
+            Assert.Empty(activities);
+        }
+
         var dbClientOperationDurationMetrics = metrics
             .Where(metric => metric.Name == EntityFrameworkDiagnosticListener.DbClientOperationDuration.Name)
             .ToArray();
-        var metric = Assert.Single(dbClientOperationDurationMetrics);
-        VerifyDurationMetricData(metric, activity, hasError: false);
+
+        if (enableMetrics)
+        {
+            Assert.Contains(
+                metrics,
+                m => m.Name.StartsWith("db.", StringComparison.InvariantCulture));
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            VerifyDurationMetricData(metric, activity, hasError: false);
+        }
+        else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
+        }
     }
 
     [Fact]
