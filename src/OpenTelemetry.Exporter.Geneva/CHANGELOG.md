@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Added ContextPropagationLevel option to propagate trace context to SQL Server database.
+  ([#2709](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2709))
+
+  Valid options:
+  * `trace`: Propagate traceparent info to SQL Server database (see [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16))
+  * `disabled`: Default value
+
 ## 1.11.2
 
 Released 2025-Apr-16
