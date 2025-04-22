@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.3
+
+Released 2025-Apr-22
+
 * Fixed an issue where accessing an unset `AFDCorrelationId` in `RuntimeContext`
   would throw unhandled exceptions.
   ([#2708](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2708))
