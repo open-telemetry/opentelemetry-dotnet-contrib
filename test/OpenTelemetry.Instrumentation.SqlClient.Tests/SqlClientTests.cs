@@ -315,8 +315,8 @@ public class SqlClientTests : IDisposable
         Assert.Equal(2, activities.Count);
         if (shouldEnrich)
         {
-            Assert.Contains(activities[0].Tags, tag => tag.Key == "enriched");
-            Assert.Contains(activities[1].Tags, tag => tag.Key == "enriched");
+            Assert.Contains("enriched", activities[0].Tags.Select(x => x.Key));
+            Assert.Contains("enriched", activities[1].Tags.Select(x => x.Key));
             Assert.Equal("yes", activities[0].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
             Assert.Equal("yes", activities[1].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
         }
