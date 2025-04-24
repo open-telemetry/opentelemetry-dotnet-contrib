@@ -70,19 +70,14 @@ public class SqlClientTests : IDisposable
     [MemberData(nameof(SqlTestData.SqlClientCallsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
     public void SqlClientCallsAreCollectedSuccessfully(
         string beforeCommand,
-        string afterCommand,
         CommandType commandType,
         string commandText,
         bool captureTextCommandContent,
-        bool shouldEnrich = true,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false,
         bool tracingEnabled = true,
         bool metricsEnabled = true)
     {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
@@ -94,11 +89,6 @@ public class SqlClientTests : IDisposable
             (opt) =>
             {
                 opt.SetDbStatementForText = captureTextCommandContent;
-                if (shouldEnrich)
-                {
-                    opt.Enrich = ActivityEnrichment;
-                }
-
                 opt.EmitOldAttributes = emitOldAttributes;
                 opt.EmitNewAttributes = emitNewAttributes;
             });
@@ -118,33 +108,7 @@ public class SqlClientTests : IDisposable
 
         try
         {
-            var operationId = Guid.NewGuid();
-            sqlCommand.CommandType = commandType;
-#pragma warning disable CA2100
-            sqlCommand.CommandText = commandText;
-#pragma warning restore CA2100
-
-            var beforeExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = (long?)1000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                beforeCommand,
-                beforeExecuteEventData);
-
-            var afterExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                afterCommand,
-                afterExecuteEventData);
+            this.ExecuteCommand(commandType, commandText, false, beforeCommand);
         }
         finally
         {
@@ -158,12 +122,12 @@ public class SqlClientTests : IDisposable
         {
             activity = Assert.Single(activities);
             VerifyActivityData(
-                sqlCommand.CommandType,
-                sqlCommand.CommandText,
+                commandType,
+                commandText,
                 captureTextCommandContent,
                 false,
                 false,
-                shouldEnrich,
+                false,
                 activity,
                 emitOldAttributes,
                 emitNewAttributes);
@@ -236,15 +200,10 @@ public class SqlClientTests : IDisposable
     [MemberData(nameof(SqlTestData.SqlClientErrorsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
     public void SqlClientErrorsAreCollectedSuccessfully(
         string beforeCommand,
-        string errorCommand,
-        bool shouldEnrich = true,
         bool recordException = false,
         bool tracingEnabled = true,
         bool metricsEnabled = true)
     {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
         var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
@@ -254,10 +213,6 @@ public class SqlClientTests : IDisposable
             traceProviderBuilder.AddSqlClientInstrumentation(options =>
             {
                 options.RecordException = recordException;
-                if (shouldEnrich)
-                {
-                    options.Enrich = ActivityEnrichment;
-                }
             })
             .AddInMemoryExporter(activities);
         }
@@ -277,32 +232,7 @@ public class SqlClientTests : IDisposable
 
         try
         {
-            var operationId = Guid.NewGuid();
-            sqlCommand.CommandText = "SP_GetOrders";
-            sqlCommand.CommandType = CommandType.StoredProcedure;
-
-            var beforeExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = (long?)1000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                beforeCommand,
-                beforeExecuteEventData);
-
-            var commandErrorEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Exception = new Exception("Boom!"),
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                errorCommand,
-                commandErrorEventData);
+            this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, beforeCommand);
         }
         finally
         {
@@ -316,12 +246,12 @@ public class SqlClientTests : IDisposable
         {
             activity = Assert.Single(activities);
             VerifyActivityData(
-                sqlCommand.CommandType,
-                sqlCommand.CommandText,
+                CommandType.StoredProcedure,
+                "SP_GetOrders",
                 false,
                 true,
                 recordException,
-                shouldEnrich,
+                false,
                 activity);
         }
         else
@@ -356,6 +286,45 @@ public class SqlClientTests : IDisposable
     public void MicrosoftDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
         this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void ShouldEnrichWhenEnabled(bool shouldEnrich, bool error)
+    {
+        var activities = new List<Activity>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(
+            (opt) =>
+            {
+                if (shouldEnrich)
+                {
+                    opt.Enrich = ActivityEnrichment;
+                }
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        Assert.Equal(2, activities.Count);
+        if (shouldEnrich)
+        {
+            Assert.Contains(activities[0].Tags, tag => tag.Key == "enriched");
+            Assert.Contains(activities[1].Tags, tag => tag.Key == "enriched");
+            Assert.Equal("yes", activities[0].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
+            Assert.Equal("yes", activities[1].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
+        }
+        else
+        {
+            Assert.DoesNotContain(activities[0].Tags, tag => tag.Key == "enriched");
+            Assert.DoesNotContain(activities[1].Tags, tag => tag.Key == "enriched");
+        }
     }
 
     [Fact]
@@ -690,6 +659,65 @@ public class SqlClientTests : IDisposable
         }
 
         return [.. activities];
+    }
+
+    private void ExecuteCommand(CommandType commandType, string commandText, bool error, string beforeCommand)
+    {
+        var afterCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        var errorCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            ? SqlClientDiagnosticListener.SqlDataWriteCommandError
+            : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError;
+
+        using var sqlConnection = new SqlConnection(TestConnectionString);
+        using var sqlCommand = sqlConnection.CreateCommand();
+
+        var operationId = Guid.NewGuid();
+        sqlCommand.CommandType = commandType;
+#pragma warning disable CA2100
+        sqlCommand.CommandText = commandText;
+#pragma warning restore CA2100
+
+        var beforeExecuteEventData = new
+        {
+            OperationId = operationId,
+            Command = sqlCommand,
+            Timestamp = (long?)1000000L,
+        };
+
+        this.fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            beforeExecuteEventData);
+
+        if (error)
+        {
+            var commandErrorEventData = new
+            {
+                OperationId = operationId,
+                Command = sqlCommand,
+                Exception = new Exception("Boom!"),
+                Timestamp = 2000000L,
+            };
+
+            this.fakeSqlClientDiagnosticSource.Write(
+                errorCommand,
+                commandErrorEventData);
+        }
+        else
+        {
+            var afterExecuteEventData = new
+            {
+                OperationId = operationId,
+                Command = sqlCommand,
+                Timestamp = 2000000L,
+            };
+
+            this.fakeSqlClientDiagnosticSource.Write(
+                afterCommand,
+                afterExecuteEventData);
+        }
     }
 #endif
 
