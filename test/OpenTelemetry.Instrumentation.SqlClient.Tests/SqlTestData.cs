@@ -19,8 +19,6 @@ internal class SqlTestData
                from captureTextCommandContent in bools
                from emitOldAttributes in bools
                from emitNewAttributes in bools
-               from tracingEnabled in bools
-               from metricsEnabled in bools
                where emitOldAttributes && emitNewAttributes
                let commandText = commandType == CommandType.Text
                    ? "select * from sys.databases"
@@ -33,8 +31,6 @@ internal class SqlTestData
                     captureTextCommandContent,
                     emitOldAttributes,
                     emitNewAttributes,
-                    tracingEnabled,
-                    metricsEnabled,
                };
     }
 
@@ -44,14 +40,10 @@ internal class SqlTestData
         return from beforeCommand in new[] { SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand }
                from shouldEnrich in bools
                from recordException in bools
-               from tracingEnabled in bools
-               from metricsEnabled in bools
                select new object[]
                {
                     beforeCommand,
                     recordException,
-                    tracingEnabled,
-                    metricsEnabled,
                };
     }
 #endif
