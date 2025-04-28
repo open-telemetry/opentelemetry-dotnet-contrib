@@ -71,8 +71,6 @@ public class SqlClientTests : IDisposable
     public void SqlClientCallsAreCollectedSuccessfully(
         string beforeCommand,
         CommandType commandType,
-        string commandText,
-        bool captureTextCommandContent,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
     {
@@ -82,7 +80,7 @@ public class SqlClientTests : IDisposable
         using var traceProvider = Sdk.CreateTracerProviderBuilder()
             .AddSqlClientInstrumentation(options =>
             {
-                options.SetDbStatementForText = captureTextCommandContent;
+                options.SetDbStatementForText = true;
                 options.EmitOldAttributes = emitOldAttributes;
                 options.EmitNewAttributes = emitNewAttributes;
             })
@@ -93,6 +91,10 @@ public class SqlClientTests : IDisposable
             .AddSqlClientInstrumentation()
             .AddInMemoryExporter(metrics)
             .Build();
+
+        var commandText = commandType == CommandType.Text
+            ? "select * from sys.databases"
+            : "SP_GetOrders";
 
         this.ExecuteCommand(commandType, commandText, false, beforeCommand);
 
@@ -105,7 +107,7 @@ public class SqlClientTests : IDisposable
         VerifyActivityData(
             commandType,
             commandText,
-            captureTextCommandContent,
+            true,
             false,
             false,
             false,
@@ -228,6 +230,46 @@ public class SqlClientTests : IDisposable
     public void MicrosoftDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
         this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DbQueryTextCollectedWhenEnabled(bool captureTextCommandContent)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = captureTextCommandContent;
+                options.EmitOldAttributes = true;
+                options.EmitNewAttributes = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var commandText = "select * from sys.databases";
+        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        tracerProvider.ForceFlush();
+        Assert.Equal(2, activities.Count);
+
+        if (captureTextCommandContent)
+        {
+            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+        else
+        {
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
     }
 
     [Theory]
