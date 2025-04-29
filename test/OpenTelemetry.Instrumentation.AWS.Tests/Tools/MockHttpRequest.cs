@@ -18,6 +18,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         this.RequestUri = requestUri;
         this.GetResponseAction = action;
         this.ResponseCreator = responseCreator ?? this.CreateResponse;
+        this.HttpProtocolVersion = HttpVersion.Version11;
     }
 
     public bool IsDisposed { get; set; }
@@ -137,6 +138,7 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
         this.RequestUri = requestUri;
         this.GetResponseAction = action;
         this.ResponseCreator = responseCreator ?? this.CreateResponse;
+        this.HttpProtocolVersion = HttpVersion.Version11;
     }
 
     public bool IsDisposed { get; set; }
