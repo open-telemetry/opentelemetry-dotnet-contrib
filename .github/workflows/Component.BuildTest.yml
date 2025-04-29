@@ -154,7 +154,7 @@ jobs:
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./TestResults/junit.xml') != '' }}
+      if: ${{ !cancelled() && inputs.run-tests }}
       uses: codecov/test-results-action@f2dba722c67b86c6caa034178c6e4d35335f6706 # v1.1.0
       with:
         files: ./TestResults/junit.xml
