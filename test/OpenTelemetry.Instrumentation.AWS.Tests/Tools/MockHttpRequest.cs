@@ -39,7 +39,7 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 
     public Func<MockHttpRequest, HttpWebResponse?> ResponseCreator { get; set; }
 
-    public Version HttpProtocolVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Version HttpProtocolVersion { get; set; }
 
     public void ConfigureRequest(IRequestContext requestContext)
     {
