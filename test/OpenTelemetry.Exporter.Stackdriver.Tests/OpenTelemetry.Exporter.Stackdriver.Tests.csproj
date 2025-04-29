@@ -12,11 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
-    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
 
     <!-- See note below for details. -->

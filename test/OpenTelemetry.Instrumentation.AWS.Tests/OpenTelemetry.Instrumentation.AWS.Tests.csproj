@@ -14,8 +14,6 @@
     <PackageReference Include="AWSSDK.BedrockAgent" Version="3.7.400" />
     <PackageReference Include="AWSSDK.BedrockAgentRuntime" Version="3.7.400" />
     <PackageReference Include="AWSSDK.BedrockRuntime" Version="3.7.400" />
-    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
-    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 

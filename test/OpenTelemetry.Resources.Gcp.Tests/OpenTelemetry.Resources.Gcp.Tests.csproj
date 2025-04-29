@@ -8,9 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
-    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
   </ItemGroup>
 
   <ItemGroup>
