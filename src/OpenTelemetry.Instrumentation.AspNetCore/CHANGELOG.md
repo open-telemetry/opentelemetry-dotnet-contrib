@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Fixed issue
+  [#5019](https://github.com/open-telemetry/opentelemetry-dotnet/issues/5019)
+  where metrics and traces were not exported for incoming requests when using
+  ASP.NET Core 2.x.
+  ([#2724](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2724))
+
 ## 1.11.1
 
 Released 2025-Mar-05
