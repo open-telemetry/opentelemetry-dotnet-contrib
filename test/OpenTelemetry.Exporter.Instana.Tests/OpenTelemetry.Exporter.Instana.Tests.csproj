@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
+    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'"/>
   </ItemGroup>
 

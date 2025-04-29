@@ -11,10 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageReference Include="Google.Protobuf" Version="[3.22.5,4.0)" />
     <PackageReference Include="Grpc.AspNetCore.Server" Version="[2.59.0, 3.0)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
     <PackageReference Include="Grpc.Net.Client" Version="[2.52.0,3.0)" />
     <PackageReference Include="Grpc.Tools" Version="[2.67.0,3.0)" PrivateAssets="All" />
+    <PackageReference Include="JunitXml.TestLogger" Version="6.1.0" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
     <PackageReference Include="OpenTelemetry.Extensions.Propagators" Version="$(OpenTelemetryCoreLatestVersion)" />
