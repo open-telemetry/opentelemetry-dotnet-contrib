@@ -120,7 +120,7 @@ jobs:
         --no-build
         --logger:"console;verbosity=detailed"
         --logger:"GitHubActions;report-warnings=false"
-        --logger:"junit;LogFilePath=./TestResults/junit.xml"
+        --logger:"junit;LogFilePath=junit.xml"
         --filter "${{ inputs.test-case-filter }}"
         -- RunConfiguration.DisableAppDomain=true
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
@@ -154,10 +154,9 @@ jobs:
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-      if: ${{ !cancelled() && inputs.run-tests }}
+      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./**/TestResults/junit.xml') != '' }}
       uses: codecov/test-results-action@f2dba722c67b86c6caa034178c6e4d35335f6706 # v1.1.0
       with:
-        files: ./TestResults/junit.xml
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
