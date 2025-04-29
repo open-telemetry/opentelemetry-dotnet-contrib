@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Update AWSSDK dependencies to v4.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.11.2
 
 Released 2025-Mar-18

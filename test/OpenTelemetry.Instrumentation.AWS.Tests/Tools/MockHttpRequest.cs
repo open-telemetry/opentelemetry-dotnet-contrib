@@ -38,6 +38,8 @@ internal class MockHttpRequest : IHttpRequest<Stream>
 
     public Func<MockHttpRequest, HttpWebResponse?> ResponseCreator { get; set; }
 
+    public Version HttpProtocolVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public void ConfigureRequest(IRequestContext requestContext)
     {
         this.IsConfigureRequestCalled = true;
@@ -115,6 +117,8 @@ internal class MockHttpRequest : IHttpRequest<Stream>
         throw new NotImplementedException();
     }
 
+    public IHttpRequestStreamHandle SetupHttpRequestStreamPublisher(IDictionary<string, string> contentHeaders, IHttpRequestStreamPublisher publisher) => throw new NotImplementedException();
+
     private HttpWebResponse CreateResponse(MockHttpRequest request)
     {
         var resourceName = request.RequestUri.Host.Split('.').Last();
@@ -152,6 +156,8 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
     public Action? GetResponseAction { get; set; }
 
     public Func<MockHttpRequest, HttpResponseMessage> ResponseCreator { get; set; }
+
+    public Version HttpProtocolVersion { get; set; }
 
     public void Abort()
     {
@@ -205,6 +211,8 @@ internal class MockHttpRequest : IHttpRequest<HttpContent>
     {
         this.IsSetRequestHeadersCalled = true;
     }
+
+    public IHttpRequestStreamHandle SetupHttpRequestStreamPublisher(IDictionary<string, string> contentHeaders, IHttpRequestStreamPublisher publisher) => throw new NotImplementedException();
 
     public Stream SetupProgressListeners(Stream originalStream, long progressUpdateInterval, object sender, EventHandler<StreamTransferProgressArgs> callback)
     {

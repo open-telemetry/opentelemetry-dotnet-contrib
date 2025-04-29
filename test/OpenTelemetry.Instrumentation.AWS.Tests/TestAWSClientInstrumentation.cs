@@ -46,8 +46,8 @@ public class TestAWSClientInstrumentation
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, null, requestId, true);
+            var ddb = new AmazonDynamoDBClient(GetFakeAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(ddb, "{}", requestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -94,8 +94,8 @@ public class TestAWSClientInstrumentation
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, null, requestId, true);
+            var ddb = new TestAmazonDynamoDBClient(GetFakeAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(ddb, "{}", requestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -142,7 +142,7 @@ public class TestAWSClientInstrumentation
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
-            var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var ddb = new AmazonDynamoDBClient(GetFakeAWSCredentials(), RegionEndpoint.USEast1);
             var amazonServiceException = new AmazonServiceException
             {
                 StatusCode = System.Net.HttpStatusCode.NotFound,
@@ -214,6 +214,7 @@ public class TestAWSClientInstrumentation
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
+                MessageAttributes = [],
             };
             send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
@@ -273,6 +274,7 @@ public class TestAWSClientInstrumentation
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
+                MessageAttributes = [],
             };
             send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
@@ -606,6 +608,9 @@ public class TestAWSClientInstrumentation
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
     }
+
+    // Workaround for https://github.com/aws/aws-sdk-net/issues/3776
+    private static BasicAWSCredentials GetFakeAWSCredentials() => new("access-key", "secret-key");
 
     private void ValidateAWSActivity(Activity aws_activity, Activity parent)
     {
