@@ -1,4 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- AWSSDK v4 does not support .NET Framework 4.6.2 -->
+  <PropertyGroup>
+    <NetFrameworkMinimumSupportedVersion>net472</NetFrameworkMinimumSupportedVersion>
+  </PropertyGroup>
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
