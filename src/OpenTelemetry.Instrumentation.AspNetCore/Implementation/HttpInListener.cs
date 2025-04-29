@@ -47,6 +47,7 @@ internal class HttpInListener : ListenerHandler
     };
 
     private static readonly PropertyFetcher<Exception> ExceptionPropertyFetcher = new("Exception");
+    private static readonly PropertyFetcher<HttpContext> HttpContextPropertyFetcher = new("HttpContext");
 
     private readonly AspNetCoreTraceInstrumentationOptions options;
 
@@ -102,8 +103,15 @@ internal class HttpInListener : ListenerHandler
 
         if (payload is not HttpContext context)
         {
-            AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
-            return;
+            if (TryFetchHttpContext(payload, out var innerContext))
+            {
+                context = innerContext;
+            }
+            else
+            {
+                AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStartActivity), activity.OperationName);
+                return;
+            }
         }
 
         // Ensure context extraction irrespective of sampling decision
@@ -237,8 +245,15 @@ internal class HttpInListener : ListenerHandler
         {
             if (payload is not HttpContext context)
             {
-                AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName);
-                return;
+                if (TryFetchHttpContext(payload, out var innerContext))
+                {
+                    context = innerContext;
+                }
+                else
+                {
+                    AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInListener), nameof(this.OnStopActivity), activity.OperationName);
+                    return;
+                }
             }
 
             var response = context.Response;
@@ -346,6 +361,12 @@ internal class HttpInListener : ListenerHandler
             return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
         }
     }
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
+#endif
+    private static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? context)
+        => HttpContextPropertyFetcher.TryFetch(payload, out context) && context is not null;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryGetGrpcMethod(Activity activity, [NotNullWhen(true)] out string? grpcMethod)
