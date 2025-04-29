@@ -436,6 +436,5 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# codecov.io test rsults
-junit.xml
+# Test results
 TestResults/
