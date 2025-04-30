@@ -84,6 +84,16 @@ jobs:
         echo "title=$title" >> $env:GITHUB_OUTPUT
         echo "project=$project" >> $env:GITHUB_OUTPUT
 
+        $artifactName = $component
+        if ([string]::IsNullOrEmpty($artifactName)) {
+          $artifactName = $title
+          if ($artifactName.EndsWith(".proj")) {
+            $artifactName = $artifactName.Substring(0, $artifactName.Length - 5)
+          }
+        }
+
+        echo "name=$artifactName" >> $env:GITHUB_OUTPUT
+
         # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
         # used if $project ends up Component.proj.
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
@@ -127,7 +137,7 @@ jobs:
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
+      uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5.4.2
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
@@ -140,3 +150,12 @@ jobs:
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
+
+    - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
+      if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
+      with:
+        name: ${{ steps.resolve-project.outputs.name }}-packages
+        path: '.\src\**\*.*nupkg'
+        if-no-files-found: error

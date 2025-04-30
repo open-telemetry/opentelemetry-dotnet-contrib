@@ -78,6 +78,9 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableUserEvents => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableUserEvents), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
 
+    public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
     public string Endpoint
     {
         get => this.ThrowIfNotExists<string>(nameof(this.Endpoint));

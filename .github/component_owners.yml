@@ -12,8 +12,8 @@ components:
   src/OpenTelemetry.Exporter.Instana/:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Exporter.Stackdriver/:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
@@ -52,14 +52,17 @@ components:
   src/OpenTelemetry.Instrumentation.StackExchangeRedis/:
     - matt-hensley
   src/OpenTelemetry.Instrumentation.Runtime/:
+    - TimothyMothra
     - twenzel
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
   src/OpenTelemetry.PersistentStorage.Abstractions/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - rajkumar-rangaraj
+    - TimothyMothra
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
@@ -82,7 +85,6 @@ components:
     - lachmatt
   src/OpenTelemetry.Resources.Gcp/:
     - matt-hensley
-    - pyohannes
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - ppittle
@@ -103,11 +105,11 @@ components:
   test/OpenTelemetry.Exporter.Instana.Tests/:
     - zivaninstana
   test/OpenTelemetry.Exporter.OneCollector.Benchmarks/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
-    - codeblanch
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Exporter.Stackdriver.Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
@@ -144,12 +146,14 @@ components:
   test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests/:
     - matt-hensley
   test/OpenTelemetry.Instrumentation.Runtime.Tests/:
+    - TimothyMothra
     - twenzel
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
+    - TimothyMothra
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - ppittle
@@ -169,7 +173,6 @@ components:
     - lachmatt
   test/OpenTelemetry.Resources.Gcp.Tests/:
     - matt-hensley
-    - pyohannes
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - ppittle

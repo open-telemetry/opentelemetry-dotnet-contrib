@@ -233,5 +233,11 @@ public class ConnectionStringBuilderTests
         Assert.True(builder.PrivatePreviewEnableUserEvents);
         builder = new ConnectionStringBuilder("PrivatePreviewEnableUserEvents=false");
         Assert.False(builder.PrivatePreviewEnableUserEvents);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=true");
+        Assert.True(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=tRue");
+        Assert.True(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
+        builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=false");
+        Assert.False(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
     }
 }
