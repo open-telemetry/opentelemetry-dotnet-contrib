@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.11.3
+
+Released 2025-May-01
+
 * Update package references to AWS SDK to indicate that this library is not
   compatible with AWS SDK v4.
    ([#2726](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2726))
