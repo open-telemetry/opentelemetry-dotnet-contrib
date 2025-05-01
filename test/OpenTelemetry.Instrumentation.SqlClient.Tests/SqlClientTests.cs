@@ -556,7 +556,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
     internal static void VerifySamplingParameters(SqlClientTestCase testCase, Activity activity, SamplingParameters samplingParameters)
