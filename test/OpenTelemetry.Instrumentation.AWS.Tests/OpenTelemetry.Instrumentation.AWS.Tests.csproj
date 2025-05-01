@@ -9,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.0" />
-    <PackageReference Include="AWSSDK.S3" Version="4.0.0" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.0.2" />
     <PackageReference Include="AWSSDK.Bedrock" Version="4.0.0" />
     <PackageReference Include="AWSSDK.BedrockAgent" Version="4.0.0" />
     <PackageReference Include="AWSSDK.BedrockAgentRuntime" Version="4.0.0" />
     <PackageReference Include="AWSSDK.BedrockRuntime" Version="4.0.0" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryCoreLatestVersion)" />
   </ItemGroup>
 
