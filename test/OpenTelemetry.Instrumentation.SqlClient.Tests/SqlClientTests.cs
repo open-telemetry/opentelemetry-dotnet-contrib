@@ -172,53 +172,6 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [MemberData(nameof(SqlTestData.SqlClientErrorsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
-    public void SqlClientErrorsAreCollectedSuccessfully(
-        string beforeCommand,
-        bool recordException = false)
-    {
-        var activities = new List<Activity>();
-        var metrics = new List<Metric>();
-
-        using var traceProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.RecordException = recordException;
-            })
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(metrics)
-            .Build();
-
-        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, beforeCommand);
-
-        traceProvider.ForceFlush();
-        meterProvider.ForceFlush();
-
-        Activity? activity = null;
-
-        activity = Assert.Single(activities);
-        VerifyActivityData(
-            CommandType.StoredProcedure,
-            "SP_GetOrders",
-            false,
-            true,
-            recordException,
-            false,
-            activity);
-
-        var dbClientOperationDurationMetrics = metrics
-            .Where(metric => metric.Name == "db.client.operation.duration")
-            .ToArray();
-
-        var metric = Assert.Single(dbClientOperationDurationMetrics);
-        VerifyDurationMetricData(metric, activity);
-    }
-
-    [Theory]
     [ClassData(typeof(SqlClientTestCase))]
     public void SqlDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
@@ -269,6 +222,49 @@ public class SqlClientTests : IDisposable
             Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
             Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
             Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ExceptionCapturedWhenRecordExceptionEnabled(bool recordException)
+    {
+        var activities = new List<Activity>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordException = recordException;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        traceProvider.ForceFlush();
+
+        Assert.Equal(2, activities.Count);
+
+        Assert.Equal(ActivityStatusCode.Error, activities[0].Status);
+        Assert.Equal(ActivityStatusCode.Error, activities[1].Status);
+        Assert.NotNull(activities[0].StatusDescription);
+        Assert.NotNull(activities[1].StatusDescription);
+
+        if (recordException)
+        {
+            var events0 = activities[0].Events.ToList();
+            var events1 = activities[1].Events.ToList();
+            Assert.Single(events0);
+            Assert.Single(events1);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events0[0].Name);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events1[0].Name);
+        }
+        else
+        {
+            Assert.Empty(activities[0].Events);
+            Assert.Empty(activities[1].Events);
         }
     }
 

@@ -27,18 +27,5 @@ internal class SqlTestData
                     emitNewAttributes,
                };
     }
-
-    public static IEnumerable<object[]> SqlClientErrorsAreCollectedSuccessfullyCases()
-    {
-        var bools = new[] { true, false };
-        return from beforeCommand in new[] { SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand }
-               from shouldEnrich in bools
-               from recordException in bools
-               select new object[]
-               {
-                    beforeCommand,
-                    recordException,
-               };
-    }
 #endif
 }
