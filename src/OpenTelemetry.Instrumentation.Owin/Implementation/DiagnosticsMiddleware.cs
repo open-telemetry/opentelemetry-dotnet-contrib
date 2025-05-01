@@ -94,13 +94,17 @@ internal sealed class DiagnosticsMiddleware : OwinMiddleware
 
             if (activity.IsAllDataRequested)
             {
+                var queryString = OwinInstrumentationActivitySource.Options.DisableUrlQueryRedaction
+                    ? request.QueryString.Value
+                    : RedactionHelper.GetRedactedQueryString(request.QueryString.Value);
+
                 RequestDataHelper.SetHttpMethodTag(activity, request.Method);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, request.Uri.Host);
                 activity.SetTag(SemanticConventions.AttributeServerPort, request.Uri.Port);
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, request.Protocol);
 
                 activity.SetTag(SemanticConventions.AttributeUrlPath, request.Uri.AbsolutePath);
-                activity.SetTag(SemanticConventions.AttributeUrlQuery, request.Query);
+                activity.SetTag(SemanticConventions.AttributeUrlQuery, queryString);
                 activity.SetTag(SemanticConventions.AttributeUrlScheme, owinContext.Request.Scheme);
 
                 if (request.Headers.TryGetValue("User-Agent", out var userAgent) && userAgent.Length > 0)
