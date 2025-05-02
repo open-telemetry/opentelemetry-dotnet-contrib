@@ -253,7 +253,17 @@ internal sealed class SqlEventSourceListener : EventListener
         }
         else
         {
-            tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+            var options = SqlClientInstrumentation.TracingOptions;
+
+            if (options.EmitOldAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
+            }
+
+            if (options.EmitNewAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbSystemName, SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+            }
 
             var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
 
