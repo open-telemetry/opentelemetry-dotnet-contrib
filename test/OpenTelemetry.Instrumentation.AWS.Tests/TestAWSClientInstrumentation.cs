@@ -47,7 +47,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new AmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, null, requestId, true);
+            CustomResponses.SetResponse(ddb, "{}", requestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -95,7 +95,7 @@ public class TestAWSClientInstrumentation
                    .Build())
         {
             var ddb = new TestAmazonDynamoDBClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
-            CustomResponses.SetResponse(ddb, null, requestId, true);
+            CustomResponses.SetResponse(ddb, "{}", requestId, true);
             var scan_request = new ScanRequest
             {
                 TableName = "SampleProduct",
@@ -214,6 +214,7 @@ public class TestAWSClientInstrumentation
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
+                MessageAttributes = [],
             };
             send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
@@ -273,6 +274,7 @@ public class TestAWSClientInstrumentation
             {
                 QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
                 MessageBody = "Hello from OT",
+                MessageAttributes = [],
             };
             send_msg_req.MessageAttributes.Add("Custom", new MessageAttributeValue { StringValue = "Value", DataType = "String" });
 #if NETFRAMEWORK
