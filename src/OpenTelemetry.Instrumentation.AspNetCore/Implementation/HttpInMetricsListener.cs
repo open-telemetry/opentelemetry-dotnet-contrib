@@ -65,21 +65,21 @@ internal sealed class HttpInMetricsListener : ListenerHandler
         {
             return ExceptionPropertyFetcher.TryFetch(payload, out exc) && exc != null;
         }
-#if NET
-        [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
-#endif
-        static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? ctx)
-        {
-            return HttpContextPropertyFetcher.TryFetch(payload, out ctx) && ctx != null;
-        }
     }
 
     public static void OnStopEventWritten(string name, object? payload)
     {
         if (payload is not HttpContext context)
         {
-            AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnStopEventWritten), HttpServerRequestDurationMetricName);
-            return;
+            if (TryFetchHttpContext(payload, out var innerContext))
+            {
+                context = innerContext;
+            }
+            else
+            {
+                AspNetCoreInstrumentationEventSource.Log.NullPayload(nameof(HttpInMetricsListener), nameof(OnStopEventWritten), HttpServerRequestDurationMetricName);
+                return;
+            }
         }
 
         TagList tags = default;
@@ -133,4 +133,10 @@ internal sealed class HttpInMetricsListener : ListenerHandler
                 break;
         }
     }
+
+#if NET
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The ASP.NET Core framework guarantees that top level properties are preserved")]
+#endif
+    private static bool TryFetchHttpContext(object? payload, [NotNullWhen(true)] out HttpContext? context)
+        => HttpContextPropertyFetcher.TryFetch(payload, out context) && context is not null;
 }
