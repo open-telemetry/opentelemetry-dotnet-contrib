@@ -1,9 +1,7 @@
 #nullable enable
 Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions
 OpenTelemetry.Extensions.Trace.PartialActivityProcessor
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ActiveActivities.get -> System.Collections.Generic.IReadOnlyDictionary<System.Diagnostics.ActivitySpanId, System.Diagnostics.Activity!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EndedActivities.get -> System.Collections.Generic.IReadOnlyCollection<System.Collections.Generic.KeyValuePair<System.Diagnostics.ActivitySpanId, System.Diagnostics.Activity!>>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.PartialActivityProcessor(OpenTelemetry.BaseExporter<OpenTelemetry.Logs.LogRecord!>! logExporter, int scheduledDelayMilliseconds = 5000) -> void
+OpenTelemetry.Extensions.Trace.PartialActivityProcessor.PartialActivityProcessor(OpenTelemetry.BaseExporter<OpenTelemetry.Logs.LogRecord!>! logExporter) -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void
