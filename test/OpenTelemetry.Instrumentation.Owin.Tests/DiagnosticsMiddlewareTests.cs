@@ -345,7 +345,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
             Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
             Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
-            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
+            Assert.Equal(expectedRequestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
+            Assert.Equal(expectedRequestUri.Query.TrimStart('?'), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlQuery).Value);
         }
         finally
         {
