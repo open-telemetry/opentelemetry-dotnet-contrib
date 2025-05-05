@@ -332,7 +332,7 @@ internal static class SqlProcessor
 
         if (i >= sqlLength)
         {
-            // when the sql ends with the beginnig of the compare string
+            // when the sql ends with the beginning of the compare string
             return false;
         }
 
