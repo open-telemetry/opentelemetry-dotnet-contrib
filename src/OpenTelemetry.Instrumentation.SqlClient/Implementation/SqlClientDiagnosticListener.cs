@@ -115,9 +115,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                     if (options.EmitNewAttributes)
                                     {
-                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                                        activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
-                                        activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                                        activity.SetTag(SemanticConventions.AttributeDbStoredProcedureName, commandText);
                                     }
 
                                     break;
@@ -278,8 +276,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 {
                     if (this.commandTextFetcher.TryFetch(command, out var commandText))
                     {
-                        tags.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                        tags.Add(SemanticConventions.AttributeDbCollectionName, commandText);
+                        tags.Add(SemanticConventions.AttributeDbStoredProcedureName, commandText);
                     }
                 }
             }

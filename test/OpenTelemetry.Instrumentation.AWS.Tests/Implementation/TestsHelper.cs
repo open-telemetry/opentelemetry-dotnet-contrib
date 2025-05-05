@@ -31,8 +31,14 @@ internal static class TestsHelper
     internal static AmazonWebServiceRequest CreateOriginalRequest(string serviceType, int attributesCount)
     {
         AmazonWebServiceRequest resultRequest;
-        var sendRequest = new SQS::SendMessageRequest();
-        var publishRequest = new SNS::PublishRequest();
+        var sendRequest = new SQS::SendMessageRequest()
+        {
+            MessageAttributes = [],
+        };
+        var publishRequest = new SNS::PublishRequest()
+        {
+            MessageAttributes = [],
+        };
         Action<int> addAttribute;
 
         switch (serviceType)
@@ -101,6 +107,7 @@ internal static class TestsHelper
     {
         foreach (var kvp in expectedParameters)
         {
+            Assert.NotNull(request.MessageAttributes);
             Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
 
             Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
@@ -111,6 +118,7 @@ internal static class TestsHelper
     {
         foreach (var kvp in expectedParameters)
         {
+            Assert.NotNull(request.MessageAttributes);
             Assert.True(request.MessageAttributes.ContainsKey(kvp.Key));
 
             Assert.Equal(kvp.Value, request.MessageAttributes[kvp.Key].StringValue);
