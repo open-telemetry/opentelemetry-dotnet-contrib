@@ -22,9 +22,11 @@
   <PropertyGroup Label="Package versions used in by test projects">
     <!--
       Please sort alphabetically.
-      Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
+      Refer to https://docs.microsoft.com/nuget/concepts/package-versioning for semver syntax.
     -->
     <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
+    <GitHubActionsTestLoggerPkgVer>2.4.1</GitHubActionsTestLoggerPkgVer>
+    <JunitXmlTestLoggerPkgVer>6.1.0</JunitXmlTestLoggerPkgVer>
     <MicrosoftExtensionsConfigurationJsonPkgVer>8.0.1</MicrosoftExtensionsConfigurationJsonPkgVer>
     <MicrosoftExtensionsHostingPkgVer>8.0.1</MicrosoftExtensionsHostingPkgVer>
     <MicrosoftNETTestSdkPkgVer>[17.12.0,18.0)</MicrosoftNETTestSdkPkgVer>
@@ -37,6 +39,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="GitHubActionsTestLogger" Version="$(GitHubActionsTestLoggerPkgVer)" />
+    <PackageReference Include="JunitXml.TestLogger" Version="$(JunitXmlTestLoggerPkgVer)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
     <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
