@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Extensions.Trace;
@@ -110,9 +111,7 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
         logRecord.SpanId = data.SpanId;
         logRecord.TraceFlags = ActivityTraceFlags.None;
         logRecord.Body = Convert.ToBase64String(buffer, 0, writePosition);
-
-        // Severity = LogRecordSeverity.Info,
-        // SeverityText = "Info",
+        logRecord.LogLevel = LogLevel.Information;
 
         var logRecordAttributes = GetLogRecordAttributes();
         logRecordAttributes.AddRange(logRecordAttributesToBeAdded);
