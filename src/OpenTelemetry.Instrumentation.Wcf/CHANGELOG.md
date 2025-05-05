@@ -5,6 +5,9 @@
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
+* Preservers `IsReadOnly` state of instrumented HTTP Headers.
+  ([#2716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2716))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05
