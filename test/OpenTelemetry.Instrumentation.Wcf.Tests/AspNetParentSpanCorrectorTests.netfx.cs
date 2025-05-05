@@ -14,8 +14,10 @@ namespace OpenTelemetry.Instrumentation.Wcf.Tests;
 [Collection("WCF")]
 public class AspNetParentSpanCorrectorTests
 {
-    [Fact]
-    public void IncomingRequestHeadersAreOverwrittenWithAspNetParent()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void IncomingRequestHeadersAreOverwrittenWithAspNetParent(bool headersAreReadOnly)
     {
         var testSource = new ActivitySource("TestSource");
         using var provider = Sdk.CreateTracerProviderBuilder()
@@ -30,12 +32,16 @@ public class AspNetParentSpanCorrectorTests
         {
             var context = new FakeHttpContext();
 
+            var isReadOnlyProperty = context.Request.Headers.GetType().GetProperty("IsReadOnly", BindingFlags.NonPublic | BindingFlags.Instance);
+            isReadOnlyProperty.SetValue(context.Request.Headers, headersAreReadOnly);
+
             var method = typeof(AspNetParentSpanCorrector).GetMethod("OnRequestStarted", BindingFlags.Static | BindingFlags.NonPublic);
             method.Invoke(null, [aspNetActivity, context]);
 
             var headerVal = context.Request.Headers["traceparent"];
             Assert.Contains(aspNetActivity.TraceId.ToString(), headerVal);
             Assert.Contains(aspNetActivity.SpanId.ToString(), headerVal);
+            Assert.Equal(headersAreReadOnly, isReadOnlyProperty.GetValue(context.Request.Headers));
         }
 
         WcfInstrumentationActivitySource.Options = null;

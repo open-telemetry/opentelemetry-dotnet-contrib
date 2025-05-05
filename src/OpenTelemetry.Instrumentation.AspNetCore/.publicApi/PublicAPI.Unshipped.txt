@@ -1,2 +1,0 @@
-OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport.get -> bool
-OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport.set -> void

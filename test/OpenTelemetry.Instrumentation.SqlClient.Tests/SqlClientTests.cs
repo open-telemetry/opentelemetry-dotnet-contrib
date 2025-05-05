@@ -70,118 +70,57 @@ public class SqlClientTests : IDisposable
     [MemberData(nameof(SqlTestData.SqlClientCallsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
     public void SqlClientCallsAreCollectedSuccessfully(
         string beforeCommand,
-        string afterCommand,
         CommandType commandType,
-        string commandText,
-        bool captureTextCommandContent,
-        bool shouldEnrich = true,
         bool emitOldAttributes = true,
-        bool emitNewAttributes = false,
-        bool tracingEnabled = true,
-        bool metricsEnabled = true)
+        bool emitNewAttributes = false)
     {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
-
-        if (tracingEnabled)
-        {
-            traceProviderBuilder.AddSqlClientInstrumentation(
-            (opt) =>
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
             {
-                opt.SetDbStatementForText = captureTextCommandContent;
-                if (shouldEnrich)
-                {
-                    opt.Enrich = ActivityEnrichment;
-                }
+                options.SetDbStatementForText = true;
+                options.EmitOldAttributes = emitOldAttributes;
+                options.EmitNewAttributes = emitNewAttributes;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
 
-                opt.EmitOldAttributes = emitOldAttributes;
-                opt.EmitNewAttributes = emitNewAttributes;
-            });
-            traceProviderBuilder.AddInMemoryExporter(activities);
-        }
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
 
-        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+        var commandText = commandType == CommandType.Text
+            ? "select * from sys.databases"
+            : "SP_GetOrders";
 
-        if (metricsEnabled)
-        {
-            meterProviderBuilder.AddSqlClientInstrumentation();
-            meterProviderBuilder.AddInMemoryExporter(metrics);
-        }
+        this.ExecuteCommand(commandType, commandText, false, beforeCommand);
 
-        var traceProvider = traceProviderBuilder.Build();
-        var meterProvider = meterProviderBuilder.Build();
-
-        try
-        {
-            var operationId = Guid.NewGuid();
-            sqlCommand.CommandType = commandType;
-#pragma warning disable CA2100
-            sqlCommand.CommandText = commandText;
-#pragma warning restore CA2100
-
-            var beforeExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = (long?)1000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                beforeCommand,
-                beforeExecuteEventData);
-
-            var afterExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                afterCommand,
-                afterExecuteEventData);
-        }
-        finally
-        {
-            traceProvider.Dispose();
-            meterProvider.Dispose();
-        }
+        traceProvider.ForceFlush();
+        meterProvider.ForceFlush();
 
         Activity? activity = null;
 
-        if (tracingEnabled)
-        {
-            activity = Assert.Single(activities);
-            VerifyActivityData(
-                sqlCommand.CommandType,
-                sqlCommand.CommandText,
-                captureTextCommandContent,
-                false,
-                false,
-                shouldEnrich,
-                activity,
-                emitOldAttributes,
-                emitNewAttributes);
-        }
+        activity = Assert.Single(activities);
+        VerifyActivityData(
+            commandType,
+            commandText,
+            true,
+            false,
+            false,
+            false,
+            activity,
+            emitOldAttributes,
+            emitNewAttributes);
 
         var dbClientOperationDurationMetrics = metrics
             .Where(metric => metric.Name == "db.client.operation.duration")
             .ToArray();
 
-        if (metricsEnabled)
-        {
-            var metric = Assert.Single(dbClientOperationDurationMetrics);
-            VerifyDurationMetricData(metric, activity);
-        }
-        else
-        {
-            Assert.Empty(dbClientOperationDurationMetrics);
-        }
+        var metric = Assert.Single(dbClientOperationDurationMetrics);
+        VerifyDurationMetricData(metric, activity);
     }
 
     [Theory]
@@ -233,118 +172,6 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [MemberData(nameof(SqlTestData.SqlClientErrorsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
-    public void SqlClientErrorsAreCollectedSuccessfully(
-        string beforeCommand,
-        string errorCommand,
-        bool shouldEnrich = true,
-        bool recordException = false,
-        bool tracingEnabled = true,
-        bool metricsEnabled = true)
-    {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
-        var activities = new List<Activity>();
-        var metrics = new List<Metric>();
-        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
-
-        if (tracingEnabled)
-        {
-            traceProviderBuilder.AddSqlClientInstrumentation(options =>
-            {
-                options.RecordException = recordException;
-                if (shouldEnrich)
-                {
-                    options.Enrich = ActivityEnrichment;
-                }
-            })
-            .AddInMemoryExporter(activities);
-        }
-
-        var traceProvider = traceProviderBuilder.Build();
-
-        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
-
-        if (metricsEnabled)
-        {
-            meterProviderBuilder
-                .AddSqlClientInstrumentation()
-                .AddInMemoryExporter(metrics);
-        }
-
-        var meterProvider = meterProviderBuilder.Build();
-
-        try
-        {
-            var operationId = Guid.NewGuid();
-            sqlCommand.CommandText = "SP_GetOrders";
-            sqlCommand.CommandType = CommandType.StoredProcedure;
-
-            var beforeExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = (long?)1000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                beforeCommand,
-                beforeExecuteEventData);
-
-            var commandErrorEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Exception = new Exception("Boom!"),
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                errorCommand,
-                commandErrorEventData);
-        }
-        finally
-        {
-            traceProvider.Dispose();
-            meterProvider.Dispose();
-        }
-
-        Activity? activity = null;
-
-        if (tracingEnabled)
-        {
-            activity = Assert.Single(activities);
-            VerifyActivityData(
-                sqlCommand.CommandType,
-                sqlCommand.CommandText,
-                false,
-                true,
-                recordException,
-                shouldEnrich,
-                activity);
-        }
-        else
-        {
-            Assert.Empty(activities);
-        }
-
-        var dbClientOperationDurationMetrics = metrics
-            .Where(metric => metric.Name == "db.client.operation.duration")
-            .ToArray();
-
-        if (metricsEnabled)
-        {
-            var metric = Assert.Single(dbClientOperationDurationMetrics);
-            VerifyDurationMetricData(metric, activity);
-        }
-        else
-        {
-            Assert.Empty(dbClientOperationDurationMetrics);
-        }
-    }
-
-    [Theory]
     [ClassData(typeof(SqlClientTestCase))]
     public void SqlDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
@@ -356,6 +183,188 @@ public class SqlClientTests : IDisposable
     public void MicrosoftDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
     {
         this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void DbQueryTextCollectedWhenEnabled(bool captureTextCommandContent)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = captureTextCommandContent;
+                options.EmitOldAttributes = true;
+                options.EmitNewAttributes = true;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var commandText = "select * from sys.databases";
+        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        tracerProvider.ForceFlush();
+        Assert.Equal(2, activities.Count);
+
+        if (captureTextCommandContent)
+        {
+            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+        else
+        {
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ExceptionCapturedWhenRecordExceptionEnabled(bool recordException)
+    {
+        var activities = new List<Activity>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.RecordException = recordException;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        traceProvider.ForceFlush();
+
+        Assert.Equal(2, activities.Count);
+
+        Assert.Equal(ActivityStatusCode.Error, activities[0].Status);
+        Assert.Equal(ActivityStatusCode.Error, activities[1].Status);
+        Assert.NotNull(activities[0].StatusDescription);
+        Assert.NotNull(activities[1].StatusDescription);
+
+        if (recordException)
+        {
+            var events0 = activities[0].Events.ToList();
+            var events1 = activities[1].Events.ToList();
+            Assert.Single(events0);
+            Assert.Single(events1);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events0[0].Name);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events1[0].Name);
+        }
+        else
+        {
+            Assert.Empty(activities[0].Events);
+            Assert.Empty(activities[1].Events);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void SpansAndMetricsGeneratedOnlyWhenEnabled(bool tracesEnabled, bool metricsEnabled)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
+        if (tracesEnabled)
+        {
+            tracerProviderBuilder
+                .AddSqlClientInstrumentation(options =>
+                {
+                    options.SetDbStatementForText = true;
+                    options.RecordException = true;
+                })
+                .AddInMemoryExporter(activities);
+        }
+
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+        if (metricsEnabled)
+        {
+            meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
+                .AddSqlClientInstrumentation()
+                .AddInMemoryExporter(metrics);
+        }
+
+        using var tracerProvider = tracerProviderBuilder.Build();
+        using var meterProvider = meterProviderBuilder.Build();
+
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        tracerProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        Assert.Equal(tracesEnabled ? 2 : 0, activities.Count);
+
+        if (metricsEnabled)
+        {
+            var metric = Assert.Single(metrics, m => m.Name == "db.client.operation.duration");
+            var metricPoints = new List<MetricPoint>();
+            foreach (var p in metric.GetMetricPoints())
+            {
+                metricPoints.Add(p);
+            }
+
+            var metricPoint = Assert.Single(metricPoints);
+            var measurementCount = metricPoint.GetHistogramCount();
+            Assert.Equal(2, measurementCount);
+        }
+        else
+        {
+            Assert.Empty(metrics);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void ShouldEnrichWhenEnabled(bool shouldEnrich, bool error)
+    {
+        var activities = new List<Activity>();
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSqlClientInstrumentation(
+            (opt) =>
+            {
+                if (shouldEnrich)
+                {
+                    opt.Enrich = ActivityEnrichment;
+                }
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+
+        Assert.Equal(2, activities.Count);
+        if (shouldEnrich)
+        {
+            Assert.Contains("enriched", activities[0].Tags.Select(x => x.Key));
+            Assert.Contains("enriched", activities[1].Tags.Select(x => x.Key));
+            Assert.Equal("yes", activities[0].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
+            Assert.Equal("yes", activities[1].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
+        }
+        else
+        {
+            Assert.DoesNotContain(activities[0].Tags, tag => tag.Key == "enriched");
+            Assert.DoesNotContain(activities[1].Tags, tag => tag.Key == "enriched");
+        }
     }
 
     [Fact]
@@ -460,15 +469,15 @@ public class SqlClientTests : IDisposable
             Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
         }
 
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-
         if (emitOldAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
             Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
         }
 
         if (emitNewAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
             Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
@@ -482,9 +491,7 @@ public class SqlClientTests : IDisposable
 
                 if (emitNewAttributes)
                 {
-                    Assert.Equal("EXECUTE", activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
                 }
 
                 break;
@@ -547,7 +554,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
     internal static void VerifySamplingParameters(SqlClientTestCase testCase, Activity activity, SamplingParameters samplingParameters)
@@ -555,7 +562,7 @@ public class SqlClientTests : IDisposable
         Assert.NotNull(samplingParameters.Tags);
 
         Assert.Equal(testCase.ExpectedActivityName, activity.DisplayName);
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
         Assert.Equal(testCase.ExpectedDbNamespace, activity.GetTagItem(SemanticConventions.AttributeDbName));
         Assert.Equal(testCase.ExpectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
         Assert.Equal(testCase.ExpectedPort, activity.GetTagItem(SemanticConventions.AttributeServerPort));
@@ -565,7 +572,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
 
         if (testCase.ExpectedDbNamespace != null)
         {
@@ -690,6 +697,65 @@ public class SqlClientTests : IDisposable
         }
 
         return [.. activities];
+    }
+
+    private void ExecuteCommand(CommandType commandType, string commandText, bool error, string beforeCommand)
+    {
+        var afterCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
+            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
+
+        var errorCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
+            ? SqlClientDiagnosticListener.SqlDataWriteCommandError
+            : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError;
+
+        using var sqlConnection = new SqlConnection(TestConnectionString);
+        using var sqlCommand = sqlConnection.CreateCommand();
+
+        var operationId = Guid.NewGuid();
+        sqlCommand.CommandType = commandType;
+#pragma warning disable CA2100
+        sqlCommand.CommandText = commandText;
+#pragma warning restore CA2100
+
+        var beforeExecuteEventData = new
+        {
+            OperationId = operationId,
+            Command = sqlCommand,
+            Timestamp = (long?)1000000L,
+        };
+
+        this.fakeSqlClientDiagnosticSource.Write(
+            beforeCommand,
+            beforeExecuteEventData);
+
+        if (error)
+        {
+            var commandErrorEventData = new
+            {
+                OperationId = operationId,
+                Command = sqlCommand,
+                Exception = new Exception("Boom!"),
+                Timestamp = 2000000L,
+            };
+
+            this.fakeSqlClientDiagnosticSource.Write(
+                errorCommand,
+                commandErrorEventData);
+        }
+        else
+        {
+            var afterExecuteEventData = new
+            {
+                OperationId = operationId,
+                Command = sqlCommand,
+                Timestamp = 2000000L,
+            };
+
+            this.fakeSqlClientDiagnosticSource.Write(
+                afterCommand,
+                afterExecuteEventData);
+        }
     }
 #endif
 

@@ -11,8 +11,8 @@
   * Google.Cloud.Trace.V2 3.3.0 -> 3.5.0
   ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
 
-* Updated OpenTelemetry core component version(s) to `1.11.2`.
-  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
 ## 1.0.0-beta.6
 
