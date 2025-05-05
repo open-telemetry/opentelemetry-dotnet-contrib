@@ -142,13 +142,12 @@ internal static class SemanticConventions
     // New database conventions:
     // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database
     public const string AttributeDbSystemName = "db.system.name";
-    public const string AttributeDbCollectionName = "db.collection.name";
     public const string AttributeDbNamespace = "db.namespace";
-    public const string AttributeDbOperationName = "db.operation.name";
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
     public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
     public const string AttributeDbQuerySummary = "db.query.summary";
     public const string AttributeDbQueryText = "db.query.text";
+    public const string AttributeDbStoredProcedureName = "db.stored_procedure.name";
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
