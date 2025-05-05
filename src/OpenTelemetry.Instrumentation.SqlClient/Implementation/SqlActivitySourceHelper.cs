@@ -15,7 +15,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 /// </summary>
 internal sealed class SqlActivitySourceHelper
 {
-    public const string MicrosoftSqlServerDatabaseSystemName = "mssql";
+    public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
+    public const string MicrosoftSqlServerDbSystem = "mssql";
 
     public static readonly Assembly Assembly = typeof(SqlActivitySourceHelper).Assembly;
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -34,6 +35,7 @@ internal sealed class SqlActivitySourceHelper
     internal static readonly string[] SharedTagNames =
     [
         SemanticConventions.AttributeDbSystem,
+        SemanticConventions.AttributeDbSystemName,
         SemanticConventions.AttributeDbNamespace,
         SemanticConventions.AttributeDbStoredProcedureName,
         SemanticConventions.AttributeDbResponseStatusCode,
@@ -44,12 +46,21 @@ internal sealed class SqlActivitySourceHelper
 
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
     {
-        activityName = MicrosoftSqlServerDatabaseSystemName;
+        activityName = options.EmitNewAttributes
+            ? MicrosoftSqlServerDbSystemName
+            : MicrosoftSqlServerDbSystem;
 
-        var tags = new TagList
+        var tags = new TagList { };
+
+        if (options.EmitOldAttributes)
         {
-            { SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName },
-        };
+            tags.Add(SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDbSystem);
+        }
+
+        if (options.EmitNewAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbSystemName, MicrosoftSqlServerDbSystemName);
+        }
 
         if (dataSource != null)
         {
@@ -79,7 +90,7 @@ internal sealed class SqlActivitySourceHelper
                     tags.Add(SemanticConventions.AttributeServerPort, connectionDetails.Port);
                 }
 
-                if (activityName == MicrosoftSqlServerDatabaseSystemName)
+                if (activityName == MicrosoftSqlServerDbSystem || activityName == MicrosoftSqlServerDbSystemName)
                 {
                     activityName = connectionDetails.Port.HasValue
                         ? $"{serverAddress}:{connectionDetails.Port}" // TODO: Another opportunity to refactor SqlConnectionDetails
