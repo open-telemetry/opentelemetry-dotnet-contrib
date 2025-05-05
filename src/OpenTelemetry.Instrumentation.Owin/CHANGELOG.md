@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fixed `url.query` value that was incorrectly always set to `Microsoft.Owin.ReadableStringCollection`.
+  ([#2732](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2732))
+
 ## 1.11.0-beta.1
 
 Released 2025-Mar-05
