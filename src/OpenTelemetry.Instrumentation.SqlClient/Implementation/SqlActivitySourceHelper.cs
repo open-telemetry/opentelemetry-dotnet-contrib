@@ -36,10 +36,9 @@ internal sealed class SqlActivitySourceHelper
     [
         SemanticConventions.AttributeDbSystem,
         SemanticConventions.AttributeDbSystemName,
-        SemanticConventions.AttributeDbCollectionName,
         SemanticConventions.AttributeDbNamespace,
+        SemanticConventions.AttributeDbStoredProcedureName,
         SemanticConventions.AttributeDbResponseStatusCode,
-        SemanticConventions.AttributeDbOperationName,
         SemanticConventions.AttributeErrorType,
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
