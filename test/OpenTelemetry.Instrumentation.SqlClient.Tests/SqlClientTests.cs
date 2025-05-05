@@ -469,15 +469,15 @@ public class SqlClientTests : IDisposable
             Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
         }
 
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-
         if (emitOldAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
             Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
         }
 
         if (emitNewAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
             Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
@@ -491,9 +491,7 @@ public class SqlClientTests : IDisposable
 
                 if (emitNewAttributes)
                 {
-                    Assert.Equal("EXECUTE", activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
                 }
 
                 break;
@@ -556,7 +554,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
     internal static void VerifySamplingParameters(SqlClientTestCase testCase, Activity activity, SamplingParameters samplingParameters)
@@ -564,7 +562,7 @@ public class SqlClientTests : IDisposable
         Assert.NotNull(samplingParameters.Tags);
 
         Assert.Equal(testCase.ExpectedActivityName, activity.DisplayName);
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
         Assert.Equal(testCase.ExpectedDbNamespace, activity.GetTagItem(SemanticConventions.AttributeDbName));
         Assert.Equal(testCase.ExpectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
         Assert.Equal(testCase.ExpectedPort, activity.GetTagItem(SemanticConventions.AttributeServerPort));
@@ -574,7 +572,7 @@ public class SqlClientTests : IDisposable
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
 
         if (testCase.ExpectedDbNamespace != null)
         {
