@@ -1,6 +1,5 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Logs;
@@ -15,45 +14,19 @@ namespace OpenTelemetry.Extensions.Trace;
 /// </remarks>
 public class PartialActivityProcessor : BaseProcessor<Activity>
 {
-    private const int DefaultScheduledDelayMilliseconds = 5000;
     private static MethodInfo writeTraceDataMethod = null!;
     private static ConstructorInfo logRecordConstructor = null!;
     private static object sdkLimitOptions = null!;
-    private readonly Thread exporterThread;
     private readonly ManualResetEvent shutdownTrigger;
-    private readonly int scheduledDelayMilliseconds;
     private readonly BaseExporter<LogRecord> logExporter;
-
-    private readonly ConcurrentDictionary<ActivitySpanId, Activity> activeActivities;
-    private readonly ConcurrentQueue<KeyValuePair<ActivitySpanId, Activity>> endedActivities;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PartialActivityProcessor"/> class.
     /// </summary>
     /// <param name="logExporter">Log exporter to be used.</param>
-    /// <param name="scheduledDelayMilliseconds">Heartbeat value.</param>
-    public PartialActivityProcessor(
-        BaseExporter<LogRecord> logExporter,
-        int scheduledDelayMilliseconds = DefaultScheduledDelayMilliseconds)
+    public PartialActivityProcessor(BaseExporter<LogRecord> logExporter)
     {
-        if (this.logExporter == null)
-        {
-            throw new ArgumentNullException(nameof(logExporter));
-        }
-
-        this.logExporter = logExporter;
-
-        if (this.scheduledDelayMilliseconds < 1)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(this.scheduledDelayMilliseconds),
-                "Value must be greater than or equal to 1.");
-        }
-
-        this.scheduledDelayMilliseconds = scheduledDelayMilliseconds;
-
-        this.activeActivities = new ConcurrentDictionary<ActivitySpanId, Activity>();
-        this.endedActivities = new ConcurrentQueue<KeyValuePair<ActivitySpanId, Activity>>();
+        this.logExporter = logExporter ?? throw new ArgumentNullException(nameof(logExporter));
 
         this.shutdownTrigger = new ManualResetEvent(false);
 
@@ -62,24 +35,7 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
             out writeTraceDataMethod,
             out logRecordConstructor,
             out sdkLimitOptions);
-
-        this.exporterThread = new Thread(this.ExporterProc)
-        {
-            IsBackground = true, Name = $"OpenTelemetry-{nameof(PartialActivityProcessor)}",
-        };
-        this.exporterThread.Start();
     }
-
-    /// <summary>
-    /// Gets for testing purposes.
-    /// </summary>
-    public IReadOnlyDictionary<ActivitySpanId, Activity> ActiveActivities => this.activeActivities;
-
-    /// <summary>
-    /// Gets for testing purposes.
-    /// </summary>
-    public IReadOnlyCollection<KeyValuePair<ActivitySpanId, Activity>> EndedActivities =>
-        this.endedActivities;
 
     /// <inheritdoc />
     public override void OnStart(Activity data)
@@ -89,9 +45,8 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
             return;
         }
 
-        var logRecord = GetLogRecord(data, this.GetHeartbeatLogRecordAttributes());
+        var logRecord = GetLogRecord(data, GetStartLogRecordAttributes());
         this.logExporter.Export(new Batch<LogRecord>(logRecord));
-        this.activeActivities[data.SpanId] = data;
     }
 
     /// <inheritdoc />
@@ -102,9 +57,8 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
             return;
         }
 
-        var logRecord = GetLogRecord(data, GetStopLogRecordAttributes());
+        var logRecord = GetLogRecord(data, GetEndLogRecordAttributes());
         this.logExporter.Export(new Batch<LogRecord>(logRecord));
-        this.endedActivities.Enqueue(new KeyValuePair<ActivitySpanId, Activity>(data.SpanId, data));
     }
 
     /// <inheritdoc />
@@ -122,14 +76,12 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
         switch (timeoutMilliseconds)
         {
             case Timeout.Infinite:
-                this.exporterThread.Join();
                 return this.logExporter.Shutdown();
             case 0:
                 return this.logExporter.Shutdown(0);
         }
 
         var sw = Stopwatch.StartNew();
-        this.exporterThread.Join(timeoutMilliseconds);
         var timeout = timeoutMilliseconds - sw.ElapsedMilliseconds;
         return this.logExporter.Shutdown((int)Math.Max(timeout, 0));
     }
@@ -225,49 +177,13 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
         new("telemetry.logs.project", "span"),
     ];
 
-    private static List<KeyValuePair<string, object?>> GetStopLogRecordAttributes() =>
+    private static List<KeyValuePair<string, object?>> GetEndLogRecordAttributes() =>
     [
-        new("partial.event", "stop"),
+        new("span.state", "ended")
     ];
 
-    private void ExporterProc()
-    {
-        var triggers = new WaitHandle[] { this.shutdownTrigger };
-
-        while (true)
-        {
-            try
-            {
-                WaitHandle.WaitAny(triggers, this.scheduledDelayMilliseconds);
-                this.Heartbeat();
-            }
-            catch (ObjectDisposedException)
-            {
-                // the exporter is somehow disposed before the worker thread could finish its job
-                return;
-            }
-        }
-    }
-
-    private void Heartbeat()
-    {
-        // remove ended activities from active activities
-        while (this.endedActivities.TryDequeue(out var activity))
-        {
-            this.activeActivities.TryRemove(activity.Key, out _);
-        }
-
-        foreach (var keyValuePair in this.activeActivities)
-        {
-            var logRecord =
-                GetLogRecord(keyValuePair.Value, this.GetHeartbeatLogRecordAttributes());
-            this.logExporter.Export(new Batch<LogRecord>(logRecord));
-        }
-    }
-
-    private List<KeyValuePair<string, object?>> GetHeartbeatLogRecordAttributes() =>
+    private static List<KeyValuePair<string, object?>> GetStartLogRecordAttributes() =>
     [
-        new("partial.event", "heartbeat"),
-        new("partial.frequency", this.scheduledDelayMilliseconds + "ms")
+        new("span.state", "started")
     ];
 }
