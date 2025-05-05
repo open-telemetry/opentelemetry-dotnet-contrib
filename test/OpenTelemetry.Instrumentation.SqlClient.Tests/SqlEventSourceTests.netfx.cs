@@ -317,7 +317,6 @@ public class SqlEventSourceTests
         }
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
 
         var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
@@ -346,11 +345,13 @@ public class SqlEventSourceTests
 
         if (emitOldAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
             Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
         }
 
         if (emitNewAttributes)
         {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
             Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
