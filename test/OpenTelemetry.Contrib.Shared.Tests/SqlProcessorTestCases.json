@@ -239,7 +239,7 @@
     ]
   },
   {
-    "name": "select_ending_with_beginning_of_keyword2",
+    "name": "select_ending_with_beginning_of_keyword3",
     "sql": "SELECT U.Id, U.Name FROM [Update]",
     "sanitized": "SELECT U.Id, U.Name FROM [Update]",
     "summary": "SELECT Update",
