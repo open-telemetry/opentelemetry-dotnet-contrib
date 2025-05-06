@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.1
+
+Released 2025-May-06
+
 * Fix issue where IPv6 addresses were improperly parsed from the the
   connection's `DataSource` when used to populate the `server.address`
   attribute.
