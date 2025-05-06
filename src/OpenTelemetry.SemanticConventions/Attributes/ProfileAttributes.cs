@@ -40,7 +40,7 @@ public static class ProfileAttributes
         public const string Kernel = "kernel";
 
         /// <summary>
-        /// <a href="https://wikipedia.org/wiki/C_(programming_language)">C</a>, <a href="https://wikipedia.org/wiki/C%2B%2B">C++</a>, <a href="https://wikipedia.org/wiki/Go_(programming_language)">Go</a>, <a href="https://wikipedia.org/wiki/Rust_(programming_language)">Rust</a>.
+        /// Can be one of but not limited to <a href="https://wikipedia.org/wiki/C_(programming_language)">C</a>, <a href="https://wikipedia.org/wiki/C%2B%2B">C++</a>, <a href="https://wikipedia.org/wiki/Go_(programming_language)">Go</a> or <a href="https://wikipedia.org/wiki/Rust_(programming_language)">Rust</a>. If possible, a more precise value MUST be used.
         /// </summary>
         public const string Native = "native";
 
@@ -73,5 +73,15 @@ public static class ProfileAttributes
         /// <a href="https://en.wikipedia.org/wiki/BEAM_(Erlang_virtual_machine)">Erlang</a>.
         /// </summary>
         public const string Beam = "beam";
+
+        /// <summary>
+        /// <a href="https://wikipedia.org/wiki/Go_(programming_language)">Go</a>,.
+        /// </summary>
+        public const string Go = "go";
+
+        /// <summary>
+        /// <a href="https://wikipedia.org/wiki/Rust_(programming_language)">Rust</a>.
+        /// </summary>
+        public const string Rust = "rust";
     }
 }

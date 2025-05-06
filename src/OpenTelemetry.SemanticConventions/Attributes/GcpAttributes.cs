@@ -15,6 +15,63 @@ namespace OpenTelemetry.SemanticConventions;
 public static class GcpAttributes
 {
     /// <summary>
+    /// The container within GCP where the AppHub application is defined.
+    /// </summary>
+    public const string AttributeGcpApphubApplicationContainer = "gcp.apphub.application.container";
+
+    /// <summary>
+    /// The name of the application as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubApplicationId = "gcp.apphub.application.id";
+
+    /// <summary>
+    /// The GCP zone or region where the application is defined.
+    /// </summary>
+    public const string AttributeGcpApphubApplicationLocation = "gcp.apphub.application.location";
+
+    /// <summary>
+    /// Criticality of a service indicates its importance to the business.
+    /// </summary>
+    /// <remarks>
+    /// <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">See AppHub type enum</a>.
+    /// </remarks>
+    public const string AttributeGcpApphubServiceCriticalityType = "gcp.apphub.service.criticality_type";
+
+    /// <summary>
+    /// Environment of a service is the stage of a software lifecycle.
+    /// </summary>
+    /// <remarks>
+    /// <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">See AppHub environment type</a>.
+    /// </remarks>
+    public const string AttributeGcpApphubServiceEnvironmentType = "gcp.apphub.service.environment_type";
+
+    /// <summary>
+    /// The name of the service as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubServiceId = "gcp.apphub.service.id";
+
+    /// <summary>
+    /// Criticality of a workload indicates its importance to the business.
+    /// </summary>
+    /// <remarks>
+    /// <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">See AppHub type enum</a>.
+    /// </remarks>
+    public const string AttributeGcpApphubWorkloadCriticalityType = "gcp.apphub.workload.criticality_type";
+
+    /// <summary>
+    /// Environment of a workload is the stage of a software lifecycle.
+    /// </summary>
+    /// <remarks>
+    /// <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">See AppHub environment type</a>.
+    /// </remarks>
+    public const string AttributeGcpApphubWorkloadEnvironmentType = "gcp.apphub.workload.environment_type";
+
+    /// <summary>
+    /// The name of the workload as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubWorkloadId = "gcp.apphub.workload.id";
+
+    /// <summary>
     /// Identifies the Google Cloud service for which the official client library is intended.
     /// </summary>
     /// <remarks>
@@ -41,4 +98,108 @@ public static class GcpAttributes
     /// The instance name of a GCE instance. This is the value provided by <c>host.name</c>, the visible name of the instance in the Cloud Console UI, and the prefix for the default hostname of the instance as defined by the <a href="https://cloud.google.com/compute/docs/internal-dns#instance-fully-qualified-domain-names">default internal DNS name</a>.
     /// </summary>
     public const string AttributeGcpGceInstanceName = "gcp.gce.instance.name";
+
+    /// <summary>
+    /// Criticality of a service indicates its importance to the business.
+    /// </summary>
+    public static class GcpApphubServiceCriticalityTypeValues
+    {
+        /// <summary>
+        /// Mission critical service.
+        /// </summary>
+        public const string MissionCritical = "MISSION_CRITICAL";
+
+        /// <summary>
+        /// High impact.
+        /// </summary>
+        public const string High = "HIGH";
+
+        /// <summary>
+        /// Medium impact.
+        /// </summary>
+        public const string Medium = "MEDIUM";
+
+        /// <summary>
+        /// Low impact.
+        /// </summary>
+        public const string Low = "LOW";
+    }
+
+    /// <summary>
+    /// Environment of a service is the stage of a software lifecycle.
+    /// </summary>
+    public static class GcpApphubServiceEnvironmentTypeValues
+    {
+        /// <summary>
+        /// Production environment.
+        /// </summary>
+        public const string Production = "PRODUCTION";
+
+        /// <summary>
+        /// Staging environment.
+        /// </summary>
+        public const string Staging = "STAGING";
+
+        /// <summary>
+        /// Test environment.
+        /// </summary>
+        public const string Test = "TEST";
+
+        /// <summary>
+        /// Development environment.
+        /// </summary>
+        public const string Development = "DEVELOPMENT";
+    }
+
+    /// <summary>
+    /// Criticality of a workload indicates its importance to the business.
+    /// </summary>
+    public static class GcpApphubWorkloadCriticalityTypeValues
+    {
+        /// <summary>
+        /// Mission critical service.
+        /// </summary>
+        public const string MissionCritical = "MISSION_CRITICAL";
+
+        /// <summary>
+        /// High impact.
+        /// </summary>
+        public const string High = "HIGH";
+
+        /// <summary>
+        /// Medium impact.
+        /// </summary>
+        public const string Medium = "MEDIUM";
+
+        /// <summary>
+        /// Low impact.
+        /// </summary>
+        public const string Low = "LOW";
+    }
+
+    /// <summary>
+    /// Environment of a workload is the stage of a software lifecycle.
+    /// </summary>
+    public static class GcpApphubWorkloadEnvironmentTypeValues
+    {
+        /// <summary>
+        /// Production environment.
+        /// </summary>
+        public const string Production = "PRODUCTION";
+
+        /// <summary>
+        /// Staging environment.
+        /// </summary>
+        public const string Staging = "STAGING";
+
+        /// <summary>
+        /// Test environment.
+        /// </summary>
+        public const string Test = "TEST";
+
+        /// <summary>
+        /// Development environment.
+        /// </summary>
+        public const string Development = "DEVELOPMENT";
+    }
 }

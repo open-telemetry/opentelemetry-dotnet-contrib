@@ -90,6 +90,9 @@ public static class ContainerAttributes
     /// <summary>
     /// Container labels, <c><key></c> being the label name, the value being the label value.
     /// </summary>
+    /// <remarks>
+    /// For example, a docker container label <c>app</c> with value <c>nginx</c> SHOULD be recorded as the <c>container.label.app</c> attribute with value <c>"nginx"</c>.
+    /// </remarks>
     public const string AttributeContainerLabelTemplate = "container.label";
 
     /// <summary>

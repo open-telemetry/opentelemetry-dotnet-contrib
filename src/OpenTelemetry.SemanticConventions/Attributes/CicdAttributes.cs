@@ -15,6 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class CicdAttributes
 {
     /// <summary>
+    /// The kind of action a pipeline run is performing.
+    /// </summary>
+    public const string AttributeCicdPipelineActionName = "cicd.pipeline.action.name";
+
+    /// <summary>
     /// The human readable name of the pipeline within a CI/CD system.
     /// </summary>
     public const string AttributeCicdPipelineName = "cicd.pipeline.name";
@@ -50,6 +55,11 @@ public static class CicdAttributes
     public const string AttributeCicdPipelineTaskRunId = "cicd.pipeline.task.run.id";
 
     /// <summary>
+    /// The result of a task run.
+    /// </summary>
+    public const string AttributeCicdPipelineTaskRunResult = "cicd.pipeline.task.run.result";
+
+    /// <summary>
     /// The <a href="https://wikipedia.org/wiki/URL">URL</a> of the pipeline task run, providing the complete address in order to locate and identify the pipeline task run.
     /// </summary>
     public const string AttributeCicdPipelineTaskRunUrlFull = "cicd.pipeline.task.run.url.full";
@@ -65,9 +75,45 @@ public static class CicdAttributes
     public const string AttributeCicdSystemComponent = "cicd.system.component";
 
     /// <summary>
+    /// The unique identifier of a worker within a CICD system.
+    /// </summary>
+    public const string AttributeCicdWorkerId = "cicd.worker.id";
+
+    /// <summary>
+    /// The name of a worker within a CICD system.
+    /// </summary>
+    public const string AttributeCicdWorkerName = "cicd.worker.name";
+
+    /// <summary>
     /// The state of a CICD worker / agent.
     /// </summary>
     public const string AttributeCicdWorkerState = "cicd.worker.state";
+
+    /// <summary>
+    /// The <a href="https://wikipedia.org/wiki/URL">URL</a> of the worker, providing the complete address in order to locate and identify the worker.
+    /// </summary>
+    public const string AttributeCicdWorkerUrlFull = "cicd.worker.url.full";
+
+    /// <summary>
+    /// The kind of action a pipeline run is performing.
+    /// </summary>
+    public static class CicdPipelineActionNameValues
+    {
+        /// <summary>
+        /// The pipeline run is executing a build.
+        /// </summary>
+        public const string Build = "BUILD";
+
+        /// <summary>
+        /// The pipeline run is executing.
+        /// </summary>
+        public const string Run = "RUN";
+
+        /// <summary>
+        /// The pipeline run is executing a sync.
+        /// </summary>
+        public const string Sync = "SYNC";
+    }
 
     /// <summary>
     /// The result of a pipeline run.
@@ -124,6 +170,42 @@ public static class CicdAttributes
         /// The finalizing state spans from when the run has finished executing (eg. cleanup of run resources).
         /// </summary>
         public const string Finalizing = "finalizing";
+    }
+
+    /// <summary>
+    /// The result of a task run.
+    /// </summary>
+    public static class CicdPipelineTaskRunResultValues
+    {
+        /// <summary>
+        /// The task run finished successfully.
+        /// </summary>
+        public const string Success = "success";
+
+        /// <summary>
+        /// The task run did not finish successfully, eg. due to a compile error or a failing test. Such failures are usually detected by non-zero exit codes of the tools executed in the task run.
+        /// </summary>
+        public const string Failure = "failure";
+
+        /// <summary>
+        /// The task run failed due to an error in the CICD system, eg. due to the worker being killed.
+        /// </summary>
+        public const string Error = "error";
+
+        /// <summary>
+        /// A timeout caused the task run to be interrupted.
+        /// </summary>
+        public const string Timeout = "timeout";
+
+        /// <summary>
+        /// The task run was cancelled, eg. by a user manually cancelling the task run.
+        /// </summary>
+        public const string Cancellation = "cancellation";
+
+        /// <summary>
+        /// The task run was skipped, eg. due to a precondition not being met.
+        /// </summary>
+        public const string Skip = "skip";
     }
 
     /// <summary>

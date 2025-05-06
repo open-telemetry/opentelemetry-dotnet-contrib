@@ -74,14 +74,24 @@ public static class OtelAttributes
     public static class OtelComponentTypeValues
     {
         /// <summary>
-        /// The builtin SDK Batching Span Processor.
+        /// The builtin SDK batching span processor.
         /// </summary>
         public const string BatchingSpanProcessor = "batching_span_processor";
 
         /// <summary>
-        /// The builtin SDK Simple Span Processor.
+        /// The builtin SDK simple span processor.
         /// </summary>
         public const string SimpleSpanProcessor = "simple_span_processor";
+
+        /// <summary>
+        /// The builtin SDK batching log record processor.
+        /// </summary>
+        public const string BatchingLogProcessor = "batching_log_processor";
+
+        /// <summary>
+        /// The builtin SDK simple log record processor.
+        /// </summary>
+        public const string SimpleLogProcessor = "simple_log_processor";
 
         /// <summary>
         /// OTLP span exporter over gRPC with protobuf serialization.
@@ -97,6 +107,41 @@ public static class OtelAttributes
         /// OTLP span exporter over HTTP with JSON serialization.
         /// </summary>
         public const string OtlpHttpJsonSpanExporter = "otlp_http_json_span_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over gRPC with protobuf serialization.
+        /// </summary>
+        public const string OtlpGrpcLogExporter = "otlp_grpc_log_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over HTTP with protobuf serialization.
+        /// </summary>
+        public const string OtlpHttpLogExporter = "otlp_http_log_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over HTTP with JSON serialization.
+        /// </summary>
+        public const string OtlpHttpJsonLogExporter = "otlp_http_json_log_exporter";
+
+        /// <summary>
+        /// The builtin SDK periodically exporting metric reader.
+        /// </summary>
+        public const string PeriodicMetricReader = "periodic_metric_reader";
+
+        /// <summary>
+        /// OTLP metric exporter over gRPC with protobuf serialization.
+        /// </summary>
+        public const string OtlpGrpcMetricExporter = "otlp_grpc_metric_exporter";
+
+        /// <summary>
+        /// OTLP metric exporter over HTTP with protobuf serialization.
+        /// </summary>
+        public const string OtlpHttpMetricExporter = "otlp_http_metric_exporter";
+
+        /// <summary>
+        /// OTLP metric exporter over HTTP with JSON serialization.
+        /// </summary>
+        public const string OtlpHttpJsonMetricExporter = "otlp_http_json_metric_exporter";
     }
 
     /// <summary>

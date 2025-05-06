@@ -64,6 +64,34 @@ public static class K8sAttributes
     public const string AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason";
 
     /// <summary>
+    /// The cronjob annotation placed on the CronJob, the <c><key></c> being the annotation name, the value being the annotation value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>retries</c> with value <c>4</c> SHOULD be recorded as the
+    /// <c>k8s.cronjob.annotation.retries</c> attribute with value <c>"4"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.cronjob.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sCronjobAnnotationTemplate = "k8s.cronjob.annotation";
+
+    /// <summary>
+    /// The label placed on the CronJob, the <c><key></c> being the label name, the value being the label value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>type</c> with value <c>weekly</c> SHOULD be recorded as the
+    /// <c>k8s.cronjob.label.type</c> attribute with value <c>"weekly"</c>.</li>
+    ///   <li>A label <c>automated</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.cronjob.label.automated</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sCronjobLabelTemplate = "k8s.cronjob.label";
+
+    /// <summary>
     /// The name of the CronJob.
     /// </summary>
     public const string AttributeK8sCronjobName = "k8s.cronjob.name";
@@ -74,6 +102,22 @@ public static class K8sAttributes
     public const string AttributeK8sCronjobUid = "k8s.cronjob.uid";
 
     /// <summary>
+    /// The annotation key-value pairs placed on the DaemonSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sDaemonsetAnnotationTemplate = "k8s.daemonset.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the DaemonSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sDaemonsetLabelTemplate = "k8s.daemonset.label";
+
+    /// <summary>
     /// The name of the DaemonSet.
     /// </summary>
     public const string AttributeK8sDaemonsetName = "k8s.daemonset.name";
@@ -82,6 +126,22 @@ public static class K8sAttributes
     /// The UID of the DaemonSet.
     /// </summary>
     public const string AttributeK8sDaemonsetUid = "k8s.daemonset.uid";
+
+    /// <summary>
+    /// The annotation key-value pairs placed on the Deployment.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sDeploymentAnnotationTemplate = "k8s.deployment.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the Deployment.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sDeploymentLabelTemplate = "k8s.deployment.label";
 
     /// <summary>
     /// The name of the Deployment.
@@ -104,6 +164,22 @@ public static class K8sAttributes
     public const string AttributeK8sHpaUid = "k8s.hpa.uid";
 
     /// <summary>
+    /// The annotation key-value pairs placed on the Job.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sJobAnnotationTemplate = "k8s.job.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the Job.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sJobLabelTemplate = "k8s.job.label";
+
+    /// <summary>
     /// The name of the Job.
     /// </summary>
     public const string AttributeK8sJobName = "k8s.job.name";
@@ -112,6 +188,22 @@ public static class K8sAttributes
     /// The UID of the Job.
     /// </summary>
     public const string AttributeK8sJobUid = "k8s.job.uid";
+
+    /// <summary>
+    /// The annotation key-value pairs placed on the Namespace.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sNamespaceAnnotationTemplate = "k8s.namespace.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the Namespace.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sNamespaceLabelTemplate = "k8s.namespace.label";
 
     /// <summary>
     /// The name of the namespace that the pod is running in.
@@ -128,6 +220,34 @@ public static class K8sAttributes
     public const string AttributeK8sNamespacePhase = "k8s.namespace.phase";
 
     /// <summary>
+    /// The annotation placed on the Node, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>node.alpha.kubernetes.io/ttl</c> with value <c>0</c> SHOULD be recorded as
+    /// the <c>k8s.node.annotation.node.alpha.kubernetes.io/ttl</c> attribute with value <c>"0"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.node.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNodeAnnotationTemplate = "k8s.node.annotation";
+
+    /// <summary>
+    /// The label placed on the Node, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>kubernetes.io/arch</c> with value <c>arm64</c> SHOULD be recorded
+    /// as the <c>k8s.node.label.kubernetes.io/arch</c> attribute with value <c>"arm64"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.node.label.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNodeLabelTemplate = "k8s.node.label";
+
+    /// <summary>
     /// The name of the Node.
     /// </summary>
     public const string AttributeK8sNodeName = "k8s.node.name";
@@ -138,13 +258,35 @@ public static class K8sAttributes
     public const string AttributeK8sNodeUid = "k8s.node.uid";
 
     /// <summary>
-    /// The annotation key-value pairs placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value.
+    /// The annotation placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value.
     /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>kubernetes.io/enforce-mountable-secrets</c> with value <c>true</c> SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets</c> attribute with value <c>"true"</c>.</li>
+    ///   <li>An annotation <c>mycompany.io/arch</c> with value <c>x64</c> SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.mycompany.io/arch</c> attribute with value <c>"x64"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeK8sPodAnnotationTemplate = "k8s.pod.annotation";
 
     /// <summary>
-    /// The label key-value pairs placed on the Pod, the <c><key></c> being the label name, the value being the label value.
+    /// The label placed on the Pod, the <c><key></c> being the label name, the value being the label value.
     /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>app</c> with value <c>my-app</c> SHOULD be recorded as
+    /// the <c>k8s.pod.label.app</c> attribute with value <c>"my-app"</c>.</li>
+    ///   <li>A label <c>mycompany.io/arch</c> with value <c>x64</c> SHOULD be recorded as
+    /// the <c>k8s.pod.label.mycompany.io/arch</c> attribute with value <c>"x64"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.pod.label.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeK8sPodLabelTemplate = "k8s.pod.label";
 
     /// <summary>
@@ -162,6 +304,22 @@ public static class K8sAttributes
     /// The UID of the Pod.
     /// </summary>
     public const string AttributeK8sPodUid = "k8s.pod.uid";
+
+    /// <summary>
+    /// The annotation key-value pairs placed on the ReplicaSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sReplicasetAnnotationTemplate = "k8s.replicaset.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the ReplicaSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sReplicasetLabelTemplate = "k8s.replicaset.label";
 
     /// <summary>
     /// The name of the ReplicaSet.
@@ -192,6 +350,22 @@ public static class K8sAttributes
     /// The UID of the resource quota.
     /// </summary>
     public const string AttributeK8sResourcequotaUid = "k8s.resourcequota.uid";
+
+    /// <summary>
+    /// The annotation key-value pairs placed on the StatefulSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sStatefulsetAnnotationTemplate = "k8s.statefulset.annotation";
+
+    /// <summary>
+    /// The label key-value pairs placed on the StatefulSet.
+    /// </summary>
+    /// <remarks>
+    /// The <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </remarks>
+    public const string AttributeK8sStatefulsetLabelTemplate = "k8s.statefulset.label";
 
     /// <summary>
     /// The name of the StatefulSet.
