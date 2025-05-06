@@ -4,7 +4,7 @@
 
 ## 1.12.0
 
-Released 2025-May-05
+Released 2025-May-06
 
 * BREAKING: Update AWSSDK dependencies to v4.
   ([#2720](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2720))
