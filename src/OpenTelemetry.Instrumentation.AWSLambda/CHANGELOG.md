@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0
+
+Released 2025-May-06
+
 ## 1.11.3
 
 Released 2025-May-01
