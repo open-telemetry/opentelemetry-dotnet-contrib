@@ -21,12 +21,12 @@ public static class CodeAttributes
     public const string AttributeCodeColumn = "code.column";
 
     /// <summary>
-    /// The column number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>.
+    /// The column number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>. This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Line'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     public const string AttributeCodeColumnNumber = "code.column.number";
 
     /// <summary>
-    /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path).
+    /// The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path). This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Function'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     public const string AttributeCodeFilePath = "code.file.path";
 
@@ -43,7 +43,7 @@ public static class CodeAttributes
     public const string AttributeCodeFunction = "code.function";
 
     /// <summary>
-    /// The method or function fully-qualified name without arguments. The value should fit the natural representation of the language runtime, which is also likely the same used within <c>code.stacktrace</c> attribute value.
+    /// The method or function fully-qualified name without arguments. The value should fit the natural representation of the language runtime, which is also likely the same used within <c>code.stacktrace</c> attribute value. This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Function'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     /// <remarks>
     /// Values and format depends on each language runtime, thus it is impossible to provide an exhaustive list of examples.
@@ -55,7 +55,7 @@ public static class CodeAttributes
     ///   <li>Java method: <c>com.example.MyHttpService.serveRequest</c></li>
     ///   <li>Java anonymous class method: <c>com.mycompany.Main$1.myMethod</c></li>
     ///   <li>Java lambda method: <c>com.mycompany.Main$$Lambda/0x0000748ae4149c00.myMethod</c></li>
-    ///   <li>PHP function: `GuzzleHttp\Client::transfer</li>
+    ///   <li>PHP function: <c>GuzzleHttp\Client::transfer</c></li>
     ///   <li>Go function: <c>github.com/my/repo/pkg.foo.func5</c></li>
     ///   <li>Elixir: <c>OpenTelemetry.Ctx.new</c></li>
     ///   <li>Erlang: <c>opentelemetry_ctx:new</c></li>
@@ -66,7 +66,7 @@ public static class CodeAttributes
     public const string AttributeCodeFunctionName = "code.function.name";
 
     /// <summary>
-    /// The line number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>.
+    /// The line number in <c>code.file.path</c> best representing the operation. It SHOULD point within the code unit named in <c>code.function.name</c>. This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Line'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     public const string AttributeCodeLineNumber = "code.line.number";
 
@@ -83,7 +83,7 @@ public static class CodeAttributes
     public const string AttributeCodeNamespace = "code.namespace";
 
     /// <summary>
-    /// A stacktrace as a string in the natural representation for the language runtime. The representation is identical to <a href="/docs/exceptions/exceptions-spans.md#stacktrace-representation"><c>exception.stacktrace</c></a>.
+    /// A stacktrace as a string in the natural representation for the language runtime. The representation is identical to <a href="/docs/exceptions/exceptions-spans.md#stacktrace-representation"><c>exception.stacktrace</c></a>. This attribute MUST NOT be used on the Profile signal since the data is already captured in 'message Location'. This constraint is imposed to prevent redundancy and maintain data integrity.
     /// </summary>
     public const string AttributeCodeStacktrace = "code.stacktrace";
 }

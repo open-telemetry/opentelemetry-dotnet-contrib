@@ -54,6 +54,21 @@ public static class ProcessAttributes
     public const string AttributeProcessCreationTime = "process.creation.time";
 
     /// <summary>
+    /// Process environment variables, <key> being the environment variable name, the value being the environment variable value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>an environment variable <c>USER</c> with value <c>"ubuntu"</c> SHOULD be recorded
+    /// as the <c>process.environment_variable.USER</c> attribute with value <c>"ubuntu"</c>.</li>
+    ///   <li>an environment variable <c>PATH</c> with value <c>"/usr/local/bin:/usr/bin"</c>
+    /// SHOULD be recorded as the <c>process.environment_variable.PATH</c> attribute
+    /// with value <c>"/usr/local/bin:/usr/bin"</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeProcessEnvironmentVariableTemplate = "process.environment_variable";
+
+    /// <summary>
     /// The GNU build ID as found in the <c>.note.gnu.build-id</c> ELF section (hex string).
     /// </summary>
     public const string AttributeProcessExecutableBuildIdGnu = "process.executable.build_id.gnu";

@@ -35,6 +35,16 @@ public static class VcsAttributes
     public const string AttributeVcsLineChangeType = "vcs.line_change.type";
 
     /// <summary>
+    /// The group owner within the version control system.
+    /// </summary>
+    public const string AttributeVcsOwnerName = "vcs.owner.name";
+
+    /// <summary>
+    /// The name of the version control system provider.
+    /// </summary>
+    public const string AttributeVcsProviderName = "vcs.provider.name";
+
+    /// <summary>
     /// The name of the <a href="https://git-scm.com/docs/gitglossary#def_ref">reference</a> such as <strong>branch</strong> or <strong>tag</strong> in the repository.
     /// </summary>
     /// <remarks>
@@ -209,6 +219,37 @@ public static class VcsAttributes
         /// How many lines were removed.
         /// </summary>
         public const string Removed = "removed";
+    }
+
+    /// <summary>
+    /// The name of the version control system provider.
+    /// </summary>
+    public static class VcsProviderNameValues
+    {
+        /// <summary>
+        /// <a href="https://github.com">GitHub</a>.
+        /// </summary>
+        public const string Github = "github";
+
+        /// <summary>
+        /// <a href="https://gitlab.com">GitLab</a>.
+        /// </summary>
+        public const string Gitlab = "gitlab";
+
+        /// <summary>
+        /// Deprecated, use <c>gitea</c> instead.
+        /// </summary>
+        public const string Gittea = "gittea";
+
+        /// <summary>
+        /// <a href="https://gitea.io">Gitea</a>.
+        /// </summary>
+        public const string Gitea = "gitea";
+
+        /// <summary>
+        /// <a href="https://bitbucket.org">Bitbucket</a>.
+        /// </summary>
+        public const string Bitbucket = "bitbucket";
     }
 
     /// <summary>
