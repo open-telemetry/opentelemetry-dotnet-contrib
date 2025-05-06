@@ -319,13 +319,21 @@ internal static class SqlProcessor
     private static bool LookAhead(string compare, string sql, ref int index, SqlProcessorState state, bool isOperation = true, bool captureNextTokenAsTarget = false)
     {
         int i = index;
+        var sqlLength = sql.Length;
+        var compareLength = compare.Length;
 
-        for (var j = 0; i < sql.Length && j < compare.Length; ++i, ++j)
+        for (var j = 0; i < sqlLength && j < compareLength; ++i, ++j)
         {
             if (char.ToUpperInvariant(sql[i]) != compare[j])
             {
                 return false;
             }
+        }
+
+        if (i >= sqlLength)
+        {
+            // when the sql ends with the beginning of the compare string
+            return false;
         }
 
         var ch = sql[i];
