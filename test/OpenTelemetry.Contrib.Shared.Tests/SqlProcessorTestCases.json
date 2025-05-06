@@ -1,223 +1,250 @@
 [
   {
-      "name": "numeric_literal_integers",
-      "sql": "SELECT 12, -12, +12",
-      "sanitized": "SELECT ?, ?, ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "numeric_literal_integers",
+    "sql": "SELECT 12, -12, +12",
+    "sanitized": "SELECT ?, ?, ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "numeric_literal_with_decimal_point",
-      "sql": "SELECT 12.34, -12.34, +12.34, .01, -.01",
-      "sanitized": "SELECT ?, ?, ?, ?, ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "numeric_literal_with_decimal_point",
+    "sql": "SELECT 12.34, -12.34, +12.34, .01, -.01",
+    "sanitized": "SELECT ?, ?, ?, ?, ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "numeric_literal_exponential",
-      "sql": "SELECT 12.34e56, -12.34e56, +12.34e56",
-      "sanitized": "SELECT ?, ?, ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "numeric_literal_exponential",
+    "sql": "SELECT 12.34e56, -12.34e56, +12.34e56",
+    "sanitized": "SELECT ?, ?, ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "numeric_literal_negative_exponential",
-      "sql": "SELECT 12.34e-56, -12.34e-56, +12.34e-56",
-      "sanitized": "SELECT ?, ?, ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "numeric_literal_negative_exponential",
+    "sql": "SELECT 12.34e-56, -12.34e-56, +12.34e-56",
+    "sanitized": "SELECT ?, ?, ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "hex_literal",
-      "sql": "SELECT 0xDEADBEEF, 0XdeadBEEF",
-      "sanitized": "SELECT ?, ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "hex_literal",
+    "sql": "SELECT 0xDEADBEEF, 0XdeadBEEF",
+    "sanitized": "SELECT ?, ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "string_literal",
-      "sql": "SELECT 'hello'",
-      "sanitized": "SELECT ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "string_literal",
+    "sql": "SELECT 'hello'",
+    "sanitized": "SELECT ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "string_literal_escaped_single_quote",
-      "sql": "SELECT 'My name''s not important'",
-      "sanitized": "SELECT ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "string_literal_escaped_single_quote",
+    "sql": "SELECT 'My name''s not important'",
+    "sanitized": "SELECT ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "string_with_embedded_newline",
-      "sql": "SELECT 'My name is \n not important'",
-      "sanitized": "SELECT ?",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "string_with_embedded_newline",
+    "sql": "SELECT 'My name is \n not important'",
+    "sanitized": "SELECT ?",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "numbers_in_identifiers",
-      "sql": "SELECT c3po, r2d2 FROM covid19 WHERE n1h1=1234",
-      "sanitized": "SELECT c3po, r2d2 FROM covid19 WHERE n1h1=?",
-      "summary": "SELECT covid19",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "numbers_in_identifiers",
+    "sql": "SELECT c3po, r2d2 FROM covid19 WHERE n1h1=1234",
+    "sanitized": "SELECT c3po, r2d2 FROM covid19 WHERE n1h1=?",
+    "summary": "SELECT covid19",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "periods_in_identifiers",
-      "sql": "SELECT a FROM dbo.Table JOIN dbo.AnotherTable",
-      "sanitized": "SELECT a FROM dbo.Table JOIN dbo.AnotherTable",
-      "summary": "SELECT dbo.Table dbo.AnotherTable",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "periods_in_identifiers",
+    "sql": "SELECT a FROM dbo.Table JOIN dbo.AnotherTable",
+    "sanitized": "SELECT a FROM dbo.Table JOIN dbo.AnotherTable",
+    "summary": "SELECT dbo.Table dbo.AnotherTable",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "insert_into",
-      "sql": "INSERT INTO X VALUES(1, 23456, 123.456, 99+100)",
-      "sanitized": "INSERT INTO X VALUES(?, ?, ?, ??)",
-      "summary": "INSERT X",
-      "dialects": [
-          "mssql"
-      ],
-      "comments": [
-          "The following may also be acceptable but would require",
-          "recognizing expressions",
-          "INSERT INTO X VALUES(?, ?, ?, ?+?)"
-      ]
+    "name": "insert_into",
+    "sql": "INSERT INTO X VALUES(1, 23456, 123.456, 99+100)",
+    "sanitized": "INSERT INTO X VALUES(?, ?, ?, ??)",
+    "summary": "INSERT X",
+    "dialects": [
+      "mssql"
+    ],
+    "comments": [
+      "The following may also be acceptable but would require",
+      "recognizing expressions",
+      "INSERT INTO X VALUES(?, ?, ?, ?+?)"
+    ]
   },
   {
-      "name": "uuid",
-      "sql": "SELECT { guid  '01234567-89ab-cdef-0123-456789abcdef' }",
-      "sanitized": "SELECT { guid  ? }",
-      "summary": "SELECT",
-      "dialects": [
-          "mssql"
-      ],
-      "comments": [
-          "The following may be preferable",
-          "SELECT ?"
-      ]
+    "name": "uuid",
+    "sql": "SELECT { guid  '01234567-89ab-cdef-0123-456789abcdef' }",
+    "sanitized": "SELECT { guid  ? }",
+    "summary": "SELECT",
+    "dialects": [
+      "mssql"
+    ],
+    "comments": [
+      "The following may be preferable",
+      "SELECT ?"
+    ]
   },
   {
-      "name": "in_clause",
-      "sql": "SELECT * FROM table WHERE value IN (123, 456, 'abc')",
-      "sanitized": "SELECT * FROM table WHERE value IN (?, ?, ?)",
-      "summary": "SELECT table",
-      "dialects": [
-          "mssql"
-      ],
-      "comments": [
-          "The following is allowed by the spec",
-          "but not required",
-          "SELECT * FROM table WHERE value IN (?)"
-      ]
+    "name": "in_clause",
+    "sql": "SELECT * FROM table WHERE value IN (123, 456, 'abc')",
+    "sanitized": "SELECT * FROM table WHERE value IN (?, ?, ?)",
+    "summary": "SELECT table",
+    "dialects": [
+      "mssql"
+    ],
+    "comments": [
+      "The following is allowed by the spec",
+      "but not required",
+      "SELECT * FROM table WHERE value IN (?)"
+    ]
   },
   {
-      "name": "comments",
-      "sql": "SELECT column -- end of line comment\nFROM /* block \n comment */ table",
-      "sanitized": "SELECT column \nFROM  table",
-      "summary": "SELECT table",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "comments",
+    "sql": "SELECT column -- end of line comment\nFROM /* block \n comment */ table",
+    "sanitized": "SELECT column \nFROM  table",
+    "summary": "SELECT table",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "insert_into_select",
-      "sql": "INSERT INTO shipping_details\n(order_id,\naddress)\nSELECT order_id,\naddress\nFROM   orders\nWHERE  order_id = 1",
-      "sanitized": "INSERT INTO shipping_details\n(order_id,\naddress)\nSELECT order_id,\naddress\nFROM   orders\nWHERE  order_id = ?",
-      "summary": "INSERT shipping_details SELECT orders",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "insert_into_select",
+    "sql": "INSERT INTO shipping_details\n(order_id,\naddress)\nSELECT order_id,\naddress\nFROM   orders\nWHERE  order_id = 1",
+    "sanitized": "INSERT INTO shipping_details\n(order_id,\naddress)\nSELECT order_id,\naddress\nFROM   orders\nWHERE  order_id = ?",
+    "summary": "INSERT shipping_details SELECT orders",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "select_nested_query",
-      "sql": "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
-      "sanitized": "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
-      "summary": "SELECT SELECT orders customers",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "select_nested_query",
+    "sql": "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
+    "sanitized": "SELECT order_date\nFROM   (SELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
+    "summary": "SELECT SELECT orders customers",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "select_nested_query_case_preserved",
-      "sql": "SELEcT order_date\nFROM   (sELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
-      "sanitized": "SELEcT order_date\nFROM   (sELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
-      "summary": "SELEcT sELECT orders customers",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "select_nested_query_case_preserved",
+    "sql": "SELEcT order_date\nFROM   (sELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
+    "sanitized": "SELEcT order_date\nFROM   (sELECT *\nFROM   orders o\nJOIN customers c\nON o.customer_id = c.customer_id)",
+    "summary": "SELEcT sELECT orders customers",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "case_preserved",
-      "sql": "SELEcT order_date\nFROM ORders",
-      "sanitized": "SELEcT order_date\nFROM ORders",
-      "summary": "SELEcT ORders",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "case_preserved",
+    "sql": "SELEcT order_date\nFROM ORders",
+    "sanitized": "SELEcT order_date\nFROM ORders",
+    "summary": "SELEcT ORders",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "cross_join",
-      "sql": "SELECT *\nFROM Orders o CROSS JOIN OrderDetails od",
-      "sanitized": "SELECT *\nFROM Orders o CROSS JOIN OrderDetails od",
-      "summary": "SELECT Orders OrderDetails",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "cross_join",
+    "sql": "SELECT *\nFROM Orders o CROSS JOIN OrderDetails od",
+    "sanitized": "SELECT *\nFROM Orders o CROSS JOIN OrderDetails od",
+    "summary": "SELECT Orders OrderDetails",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "cross_join_comma_separated_syntax",
-      "sql": "SELECT *\nFROM Orders o, OrderDetails od",
-      "sanitized": "SELECT *\nFROM Orders o, OrderDetails od",
-      "summary": "SELECT Orders",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "cross_join_comma_separated_syntax",
+    "sql": "SELECT *\nFROM Orders o, OrderDetails od",
+    "sanitized": "SELECT *\nFROM Orders o, OrderDetails od",
+    "summary": "SELECT Orders",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "create_table",
-      "sql": "CREATE  TABLE MyTable (\n    ID NOT NULL IDENTITY(1,1) PRIMARY KEY\n)",
-      "sanitized": "CREATE  TABLE MyTable (\n    ID NOT NULL IDENTITY(?,?) PRIMARY KEY\n)",
-      "summary": "CREATE  TABLE MyTable",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "create_table",
+    "sql": "CREATE  TABLE MyTable (\n    ID NOT NULL IDENTITY(1,1) PRIMARY KEY\n)",
+    "sanitized": "CREATE  TABLE MyTable (\n    ID NOT NULL IDENTITY(?,?) PRIMARY KEY\n)",
+    "summary": "CREATE  TABLE MyTable",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "alter_table",
-      "sql": "ALTER  TABLE MyTable ADD Name varchar(255)",
-      "sanitized": "ALTER  TABLE MyTable ADD Name varchar(?)",
-      "summary": "ALTER  TABLE MyTable",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "alter_table",
+    "sql": "ALTER  TABLE MyTable ADD Name varchar(255)",
+    "sanitized": "ALTER  TABLE MyTable ADD Name varchar(?)",
+    "summary": "ALTER  TABLE MyTable",
+    "dialects": [
+      "mssql"
+    ]
   },
   {
-      "name": "drop_table",
-      "sql": "DROP  TABLE MyTable",
-      "sanitized": "DROP  TABLE MyTable",
-      "summary": "DROP  TABLE MyTable",
-      "dialects": [
-          "mssql"
-      ]
+    "name": "drop_table",
+    "sql": "DROP  TABLE MyTable",
+    "sanitized": "DROP  TABLE MyTable",
+    "summary": "DROP  TABLE MyTable",
+    "dialects": [
+      "mssql"
+    ]
+  },
+  {
+    "name": "select_ending_with_beginning_of_keyword",
+    "sql": "SELECT U.Id, U.Name FROM Users U",
+    "sanitized": "SELECT U.Id, U.Name FROM Users U",
+    "summary": "SELECT Users",
+    "dialects": [
+      "mssql"
+    ]
+  },
+  {
+    "name": "select_ending_with_beginning_of_keyword2",
+    "sql": "SELECT U.Id, U.Name FROM Updates UPDAT",
+    "sanitized": "SELECT U.Id, U.Name FROM Updates UPDAT",
+    "summary": "SELECT Updates",
+    "dialects": [
+      "mssql"
+    ]
+  },
+  {
+    "name": "select_ending_with_beginning_of_keyword3",
+    "sql": "SELECT U.Id, U.Name FROM [Update]",
+    "sanitized": "SELECT U.Id, U.Name FROM [Update]",
+    "summary": "SELECT Update",
+    "dialects": [
+      "mssql"
+    ]
   }
 ]
