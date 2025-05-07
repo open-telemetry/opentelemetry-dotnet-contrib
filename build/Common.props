@@ -42,7 +42,7 @@
     <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
     <MicrosoftPublicApiAnalyzersPkgVer>[3.11.0-beta1.23525.2]</MicrosoftPublicApiAnalyzersPkgVer>
     <MicrosoftSourceLinkGitHubPkgVer>[8.0.0,9.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <OpenTelemetryCoreUnstableLatestVersion>[1.11.2-beta.1]</OpenTelemetryCoreUnstableLatestVersion>
+    <OpenTelemetryCoreUnstableLatestVersion>[1.12.0-beta.1]</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestVersion>[1.12.0,2.0)</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>[1.11.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
     <StackExchangeRedisPkgVer>[2.6.122,3.0)</StackExchangeRedisPkgVer>
