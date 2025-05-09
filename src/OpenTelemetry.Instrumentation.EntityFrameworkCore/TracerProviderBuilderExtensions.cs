@@ -58,7 +58,8 @@ public static class TracerProviderBuilderExtensions
         builder.AddInstrumentation(sp =>
         {
             var options = sp.GetRequiredService<IOptionsMonitor<EntityFrameworkInstrumentationOptions>>().Get(name);
-            return new EntityFrameworkInstrumentation(options);
+            EntityFrameworkInstrumentation.TracingOptions = options;
+            return EntityFrameworkInstrumentation.AddTracingHandle();
         });
 
         builder.AddSource(EntityFrameworkDiagnosticListener.ActivitySourceName);
