@@ -22,10 +22,10 @@ public class PartialActivityProcessorTests
     }
 
     [Fact]
-    public void Constructor_ShouldInitializeFields() => Assert.NotNull(this.processor);
+    private void Constructor_ShouldInitializeFields() => Assert.NotNull(this.processor);
 
     [Fact]
-    public void OnStart_ShouldExportStartLog()
+    private void OnStart_ShouldExportStartLog()
     {
         var activity = new Activity("TestActivity");
 
@@ -35,7 +35,7 @@ public class PartialActivityProcessorTests
     }
 
     [Fact]
-    public void OnEnd_ShouldExportEndLog()
+    private void OnEnd_ShouldExportEndLog()
     {
         var activity = new Activity("TestActivity");
 
