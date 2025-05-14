@@ -76,7 +76,7 @@ public class GcpResourceDetectorTests
             projectId: "projectId",
             instanceId: "test-instance-id",
             zoneName: "us-central1-a");
-        var attrs = MockExtractCloudRunResourceAttributes(platform, gceDetails).ToDictionary(x => x.Key, x => x.Value);
+        var attrs = CreateSampleCloudRunResourceAttributes(platform, gceDetails).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
         Assert.Equal(8, attrs.Count);
         Assert.Equal("test-instance-id", attrs[ResourceSemanticConventions.AttributeFaasInstance]);
@@ -117,8 +117,8 @@ public class GcpResourceDetectorTests
         Assert.Equal("instanceId", attrs[ResourceSemanticConventions.AttributeHostId]);
     }
 
-    // Mock method to test the instance ID addition logic without requiring a Platform constructor that takes multiple details
-    private static List<KeyValuePair<string, object>> MockExtractCloudRunResourceAttributes(Platform platform, GcePlatformDetails gceDetails)
+    // Test method to extract Cloud Run resource attributes with sample GCE details
+    private static List<KeyValuePair<string, object>> CreateSampleCloudRunResourceAttributes(Platform platform, GcePlatformDetails gceDetails)
     {
         var attributeList = new List<KeyValuePair<string, object>>
         {
