@@ -104,9 +104,9 @@ public class PartialActivityProcessor : BaseProcessor<Activity>
         }
 
         var sw = Stopwatch.StartNew();
-        var timeout = timeoutMilliseconds - sw.ElapsedMilliseconds;
-        return this.logExporter.Shutdown((int)Math.Max(timeout, 0)) &&
-               this.logProcessor.Shutdown((int)Math.Max(timeout, 0));
+        var timeout = (int)Math.Max(timeoutMilliseconds - sw.ElapsedMilliseconds, 0);
+        return this.logExporter.Shutdown(timeout) &&
+               this.logProcessor.Shutdown(timeout);
     }
 
     /// <inheritdoc />
