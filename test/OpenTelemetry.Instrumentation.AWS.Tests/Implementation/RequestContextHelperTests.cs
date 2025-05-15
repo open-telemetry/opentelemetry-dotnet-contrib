@@ -52,7 +52,10 @@ public class RequestContextHelperTests
             new("tracestate", "trace-state"),
         };
 
-        var originalRequest = new SQS.SendMessageRequest();
+        var originalRequest = new SQS.SendMessageRequest()
+        {
+            MessageAttributes = [],
+        };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
 
@@ -70,7 +73,10 @@ public class RequestContextHelperTests
             new("tracestate", "trace-state"),
         };
 
-        var originalRequest = new SNS.PublishRequest();
+        var originalRequest = new SNS.PublishRequest()
+        {
+            MessageAttributes = [],
+        };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
 
@@ -91,7 +97,10 @@ public class RequestContextHelperTests
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
         };
 
-        var originalRequest = new SQS.SendMessageRequest();
+        var originalRequest = new SQS.SendMessageRequest()
+        {
+            MessageAttributes = [],
+        };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
 
@@ -112,7 +121,10 @@ public class RequestContextHelperTests
             new("traceparent", $"00-{TraceId}-{ParentId}-00"),
         };
 
-        var originalRequest = new SNS.PublishRequest();
+        var originalRequest = new SNS.PublishRequest()
+        {
+            MessageAttributes = [],
+        };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
 

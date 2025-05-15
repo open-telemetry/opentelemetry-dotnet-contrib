@@ -15,6 +15,18 @@ namespace OpenTelemetry.SemanticConventions;
 public static class ErrorAttributes
 {
     /// <summary>
+    /// A message providing more detail about an error in human-readable form.
+    /// </summary>
+    /// <remarks>
+    /// <c>error.message</c> should provide additional context and detail about an error.
+    /// It is NOT RECOMMENDED to duplicate the value of <c>error.type</c> in <c>error.message</c>.
+    /// It is also NOT RECOMMENDED to duplicate the value of <c>exception.message</c> in <c>error.message</c>.
+    /// <p>
+    /// <c>error.message</c> is NOT RECOMMENDED for metrics or spans due to its unbounded cardinality and overlap with span status.
+    /// </remarks>
+    public const string AttributeErrorMessage = "error.message";
+
+    /// <summary>
     /// Describes a class of error the operation ended with.
     /// </summary>
     /// <remarks>

@@ -52,9 +52,23 @@ public static class HttpAttributes
     /// HTTP request headers, <c><key></c> being the normalized HTTP Header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured. Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// The <c>User-Agent</c> header is already captured in the <c>user_agent.original</c> attribute. Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
-    /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// The <c>User-Agent</c> header is already captured in the <c>user_agent.original</c> attribute.
+    /// Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of strings
+    /// or a single-item array containing a possibly comma-concatenated string, depending on the way
+    /// the HTTP library provides access to headers.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>A header <c>Content-Type: application/json</c> SHOULD be recorded as the <c>http.request.header.content-type</c>
+    /// attribute with value <c>["application/json"]</c>.</li>
+    ///   <li>A header <c>X-Forwarded-For: 1.2.3.4, 1.2.3.5</c> SHOULD be recorded as the <c>http.request.header.x-forwarded-for</c>
+    /// attribute with value <c>["1.2.3.4", "1.2.3.5"]</c> or <c>["1.2.3.4, 1.2.3.5"]</c> depending on the HTTP library.</li>
+    /// </ul>
     /// </remarks>
     public const string AttributeHttpRequestHeaderTemplate = "http.request.header";
 
@@ -118,9 +132,22 @@ public static class HttpAttributes
     /// HTTP response headers, <c><key></c> being the normalized HTTP Header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured. Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
     /// Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
-    /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of strings
+    /// or a single-item array containing a possibly comma-concatenated string, depending on the way
+    /// the HTTP library provides access to headers.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>A header <c>Content-Type: application/json</c> header SHOULD be recorded as the <c>http.request.response.content-type</c>
+    /// attribute with value <c>["application/json"]</c>.</li>
+    ///   <li>A header <c>My-custom-header: abc, def</c> header SHOULD be recorded as the <c>http.response.header.my-custom-header</c>
+    /// attribute with value <c>["abc", "def"]</c> or <c>["abc, def"]</c> depending on the HTTP library.</li>
+    /// </ul>
     /// </remarks>
     public const string AttributeHttpResponseHeaderTemplate = "http.response.header";
 

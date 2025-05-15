@@ -8,6 +8,13 @@
   ASP.NET Core 2.x.
   ([#2724](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2724))
 
+## 1.12.0
+
+Released 2025-May-05
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
 ## 1.11.1
 
 Released 2025-Mar-05

@@ -45,7 +45,13 @@ internal static class AspNetParentSpanCorrector
         var request = RequestFetcher.Fetch(context);
         var headers = HeadersFetcher.Fetch(request);
 
-        ReflectedValues!.SetHeadersReadOnly(headers, false);
+        var headersWereOriginallyReadOnly = ReflectedValues!.GetHeadersReadOnly(headers);
+
+        if (headersWereOriginallyReadOnly)
+        {
+            ReflectedValues!.SetHeadersReadOnly(headers, false);
+        }
+
         try
         {
             ReflectedValues.GetTelemetryHttpModulePropagator().Inject(
@@ -55,7 +61,10 @@ internal static class AspNetParentSpanCorrector
         }
         finally
         {
-            ReflectedValues.SetHeadersReadOnly(headers, true);
+            if (headersWereOriginallyReadOnly)
+            {
+                ReflectedValues.SetHeadersReadOnly(headers, true);
+            }
         }
     }
 
@@ -66,8 +75,9 @@ internal static class AspNetParentSpanCorrector
             var isReadOnlyProp = typeof(NameValueCollection).GetProperty("IsReadOnly", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy) ?? throw new NotSupportedException("NameValueCollection.IsReadOnly property not found");
 
             var setHeadersReadOnly = (Action<NameValueCollection, bool>)isReadOnlyProp.SetMethod.CreateDelegate(typeof(Action<NameValueCollection, bool>));
+            var getHeadersReadOnly = (Func<NameValueCollection, bool>)isReadOnlyProp.GetMethod.CreateDelegate(typeof(Func<NameValueCollection, bool>));
 
-            return new ReflectedInfo(setHeadersReadOnly, GenerateGetPropagatorLambda(), GenerateSubscribeLambda());
+            return new ReflectedInfo(setHeadersReadOnly, getHeadersReadOnly, GenerateGetPropagatorLambda(), GenerateSubscribeLambda());
         }
         catch (Exception ex)
         {
@@ -116,15 +126,18 @@ internal static class AspNetParentSpanCorrector
     private sealed class ReflectedInfo
     {
         public readonly Action<NameValueCollection, bool> SetHeadersReadOnly;
+        public readonly Func<NameValueCollection, bool> GetHeadersReadOnly;
         public readonly Func<TextMapPropagator> GetTelemetryHttpModulePropagator;
         public readonly Func<object> SubscribeToOnRequestStartedCallback;
 
         public ReflectedInfo(
             Action<NameValueCollection, bool> setHeadersReadOnly,
+            Func<NameValueCollection, bool> getHeadersReadOnly,
             Func<TextMapPropagator> getTelemetryHttpModulePropagator,
             Func<object> subscribeToOnRequestStartedCallback)
         {
             this.SetHeadersReadOnly = setHeadersReadOnly;
+            this.GetHeadersReadOnly = getHeadersReadOnly;
             this.GetTelemetryHttpModulePropagator = getTelemetryHttpModulePropagator;
             this.SubscribeToOnRequestStartedCallback = subscribeToOnRequestStartedCallback;
         }

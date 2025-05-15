@@ -2,11 +2,19 @@
 
 ## Unreleased
 
+## 1.12.0
+
+Released 2025-May-06
+
+## 1.11.3
+
+Released 2025-May-01
+
 ## 1.11.2
 
 Released 2025-Mar-18
 
-* Set itinital capacity for AWS Semantic Convention Attribute Builder
+* Set initial capacity for AWS Semantic Convention Attribute Builder
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
 
 ## 1.11.1

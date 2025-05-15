@@ -23,7 +23,11 @@ public static class RpcAttributes
     /// Connect request metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// the <c>rpc.connect_rpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
     /// </remarks>
     public const string AttributeRpcConnectRpcRequestMetadataTemplate = "rpc.connect_rpc.request.metadata";
 
@@ -31,7 +35,11 @@ public static class RpcAttributes
     /// Connect response metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>"attribute_value"</c> SHOULD be recorded as
+    /// the <c>rpc.connect_rpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
     /// </remarks>
     public const string AttributeRpcConnectRpcResponseMetadataTemplate = "rpc.connect_rpc.response.metadata";
 
@@ -39,7 +47,11 @@ public static class RpcAttributes
     /// gRPC request metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// <c>rpc.grpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
     /// </remarks>
     public const string AttributeRpcGrpcRequestMetadataTemplate = "rpc.grpc.request.metadata";
 
@@ -47,7 +59,11 @@ public static class RpcAttributes
     /// gRPC response metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
+    /// the <c>rpc.grpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
     /// </remarks>
     public const string AttributeRpcGrpcResponseMetadataTemplate = "rpc.grpc.response.metadata";
 

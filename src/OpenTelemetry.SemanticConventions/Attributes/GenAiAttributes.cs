@@ -188,6 +188,11 @@ public static class GenAiAttributes
     public const string AttributeGenAiToolCallId = "gen_ai.tool.call.id";
 
     /// <summary>
+    /// The tool description.
+    /// </summary>
+    public const string AttributeGenAiToolDescription = "gen_ai.tool.description";
+
+    /// <summary>
     /// Name of the tool utilized by the agent.
     /// </summary>
     public const string AttributeGenAiToolName = "gen_ai.tool.name";
@@ -277,6 +282,11 @@ public static class GenAiAttributes
         public const string Chat = "chat";
 
         /// <summary>
+        /// Multimodal content generation operation such as <a href="https://ai.google.dev/api/generate-content">Gemini Generate Content</a>.
+        /// </summary>
+        public const string GenerateContent = "generate_content";
+
+        /// <summary>
         /// Text completions operation such as <a href="https://platform.openai.com/docs/api-reference/completions">OpenAI Completions API (Legacy)</a>.
         /// </summary>
         public const string TextCompletion = "text_completion";
@@ -290,6 +300,11 @@ public static class GenAiAttributes
         /// Create GenAI agent.
         /// </summary>
         public const string CreateAgent = "create_agent";
+
+        /// <summary>
+        /// Invoke GenAI agent.
+        /// </summary>
+        public const string InvokeAgent = "invoke_agent";
 
         /// <summary>
         /// Execute a tool.
@@ -332,6 +347,21 @@ public static class GenAiAttributes
         /// OpenAI.
         /// </summary>
         public const string Openai = "openai";
+
+        /// <summary>
+        /// Any Google generative AI endpoint.
+        /// </summary>
+        public const string GcpGenAi = "gcp.gen_ai";
+
+        /// <summary>
+        /// Vertex AI.
+        /// </summary>
+        public const string GcpVertexAi = "gcp.vertex_ai";
+
+        /// <summary>
+        /// Gemini.
+        /// </summary>
+        public const string GcpGemini = "gcp.gemini";
 
         /// <summary>
         /// Vertex AI.

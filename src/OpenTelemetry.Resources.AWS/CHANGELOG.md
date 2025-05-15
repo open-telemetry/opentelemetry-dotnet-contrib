@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-* Set itinital capacity for AWS Semantic Convention Attribute Builder
+* Set initial capacity for AWS Semantic Convention Attribute Builder
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
 ## 1.11.1
 

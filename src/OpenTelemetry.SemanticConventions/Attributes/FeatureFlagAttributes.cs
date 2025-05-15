@@ -20,13 +20,15 @@ public static class FeatureFlagAttributes
     public const string AttributeFeatureFlagContextId = "feature_flag.context.id";
 
     /// <summary>
-    /// A message explaining the nature of an error occurring during flag evaluation.
+    /// Deprecated, use <c>error.message</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>error.message</c>.")]
     public const string AttributeFeatureFlagEvaluationErrorMessage = "feature_flag.evaluation.error.message";
 
     /// <summary>
-    /// The reason code which shows how a feature flag value was determined.
+    /// Deprecated, use <c>feature_flag.result.reason</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
     public const string AttributeFeatureFlagEvaluationReason = "feature_flag.evaluation.reason";
 
     /// <summary>
@@ -37,12 +39,12 @@ public static class FeatureFlagAttributes
     /// <summary>
     /// Identifies the feature flag provider.
     /// </summary>
-    public const string AttributeFeatureFlagProviderName = "feature_flag.provider_name";
+    public const string AttributeFeatureFlagProviderName = "feature_flag.provider.name";
 
     /// <summary>
-    /// The identifier of the <a href="https://openfeature.dev/specification/glossary/#flag-set">flag set</a> to which the feature flag belongs.
+    /// The reason code which shows how a feature flag value was determined.
     /// </summary>
-    public const string AttributeFeatureFlagSetId = "feature_flag.set.id";
+    public const string AttributeFeatureFlagResultReason = "feature_flag.result.reason";
 
     /// <summary>
     /// A semantic identifier for an evaluated flag value.
@@ -53,6 +55,17 @@ public static class FeatureFlagAttributes
     /// provide additional context for understanding the meaning behind a value.
     /// For example, the variant <c>red</c> maybe be used for the value <c>#c05543</c>.
     /// </remarks>
+    public const string AttributeFeatureFlagResultVariant = "feature_flag.result.variant";
+
+    /// <summary>
+    /// The identifier of the <a href="https://openfeature.dev/specification/glossary/#flag-set">flag set</a> to which the feature flag belongs.
+    /// </summary>
+    public const string AttributeFeatureFlagSetId = "feature_flag.set.id";
+
+    /// <summary>
+    /// Deprecated, use <c>feature_flag.result.variant</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>feature_flag.result.variant</c>.")]
     public const string AttributeFeatureFlagVariant = "feature_flag.variant";
 
     /// <summary>
@@ -61,9 +74,69 @@ public static class FeatureFlagAttributes
     public const string AttributeFeatureFlagVersion = "feature_flag.version";
 
     /// <summary>
-    /// The reason code which shows how a feature flag value was determined.
+    /// Deprecated, use <c>feature_flag.result.reason</c> instead.
     /// </summary>
     public static class FeatureFlagEvaluationReasonValues
+    {
+        /// <summary>
+        /// The resolved value is static (no dynamic evaluation).
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Static = "static";
+
+        /// <summary>
+        /// The resolved value fell back to a pre-configured value (no dynamic evaluation occurred or dynamic evaluation yielded no result).
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Default = "default";
+
+        /// <summary>
+        /// The resolved value was the result of a dynamic evaluation, such as a rule or specific user-targeting.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string TargetingMatch = "targeting_match";
+
+        /// <summary>
+        /// The resolved value was the result of pseudorandom assignment.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Split = "split";
+
+        /// <summary>
+        /// The resolved value was retrieved from cache.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Cached = "cached";
+
+        /// <summary>
+        /// The resolved value was the result of the flag being disabled in the management system.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Disabled = "disabled";
+
+        /// <summary>
+        /// The reason for the resolved value could not be determined.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Unknown = "unknown";
+
+        /// <summary>
+        /// The resolved value is non-authoritative or possibly out of date.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Stale = "stale";
+
+        /// <summary>
+        /// The resolved value was the result of an error.
+        /// </summary>
+        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
+        public const string Error = "error";
+    }
+
+    /// <summary>
+    /// The reason code which shows how a feature flag value was determined.
+    /// </summary>
+    public static class FeatureFlagResultReasonValues
     {
         /// <summary>
         /// The resolved value is static (no dynamic evaluation).
