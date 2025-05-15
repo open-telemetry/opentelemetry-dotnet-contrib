@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -15,6 +16,7 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
 public class EntityFrameworkDiagnosticListenerTests : IDisposable
 {
+    private static readonly string DbClientOperationDurationName = EntityFrameworkDiagnosticListener.DbClientOperationDuration.Name;
     private readonly DbContextOptions<ItemsContext> contextOptions;
     private readonly DbConnection connection;
 
@@ -123,9 +125,14 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [Fact]
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
-        var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddEntityFrameworkCoreInstrumentation()
+            .Build();
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
             .AddEntityFrameworkCoreInstrumentation()
             .Build();
 
@@ -141,10 +148,16 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             }
         }
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        tracerProvider?.Dispose();
+        meterProvider?.Dispose();
 
+        var activity = Assert.Single(activities);
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == DbClientOperationDurationName)
+            .ToArray();
+        var metric = Assert.Single(dbClientOperationDurationMetrics);
         VerifyActivityData(activity, isError: true);
+        VerifyDurationMetricData(metric, activity, hasError: true);
     }
 
     [Fact]
@@ -250,6 +263,130 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void ShouldConditionallyCollectTelemetry(bool enableTracing, bool enableMetrics)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        var traceProviderBuilder = Sdk.CreateTracerProviderBuilder();
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+
+        if (enableTracing)
+        {
+            traceProviderBuilder.AddEntityFrameworkCoreInstrumentation();
+            traceProviderBuilder.AddInMemoryExporter(activities);
+        }
+
+        if (enableMetrics)
+        {
+            meterProviderBuilder.AddEntityFrameworkCoreInstrumentation();
+            meterProviderBuilder.AddInMemoryExporter(metrics);
+        }
+
+        var traceProvider = traceProviderBuilder.Build();
+        var meterProvider = meterProviderBuilder.Build();
+
+        try
+        {
+            using var context = new ItemsContext(this.contextOptions);
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            Assert.Equal(3, items.Count);
+        }
+        finally
+        {
+            traceProvider?.Dispose();
+            meterProvider?.Dispose();
+        }
+
+        Activity? activity = null;
+
+        if (enableTracing)
+        {
+            activity = Assert.Single(activities);
+            VerifyActivityData(activity, isError: false);
+        }
+        else
+        {
+            Assert.Empty(activities);
+        }
+
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == EntityFrameworkDiagnosticListener.DbClientOperationDuration.Name)
+            .ToArray();
+
+        if (enableMetrics)
+        {
+            Assert.Contains(
+                metrics,
+                m => m.Name.StartsWith("db.", StringComparison.InvariantCulture));
+            var metric = Assert.Single(dbClientOperationDurationMetrics);
+            VerifyDurationMetricData(metric, activity, hasError: false);
+        }
+        else
+        {
+            Assert.Empty(dbClientOperationDurationMetrics);
+        }
+    }
+
+    [Fact]
+    public void ShouldCollectMetrics()
+    {
+        var metrics = new List<Metric>();
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        try
+        {
+            using (var context = new ItemsContext(this.contextOptions))
+            {
+                var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+                Assert.Equal(3, items.Count);
+            }
+        }
+        finally
+        {
+            meterProvider.Dispose();
+        }
+
+        Assert.Contains(
+            metrics,
+            m => m.Name.StartsWith("db.", StringComparison.InvariantCulture));
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == DbClientOperationDurationName)
+            .ToArray();
+        var metric = Assert.Single(dbClientOperationDurationMetrics);
+        VerifyDurationMetricData(metric);
+    }
+
+    [Fact]
+    public void ShouldNotCollectMetrics()
+    {
+        var metrics = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        using (var context = new ItemsContext(this.contextOptions))
+        {
+            var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
+            Assert.Equal(3, items.Count);
+        }
+
+        meterProvider.ForceFlush();
+
+        // Verify no db.* metrics were collected
+        Assert.DoesNotContain(
+            metrics,
+            m => m.Name.StartsWith("db.", StringComparison.InvariantCulture));
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     private static SqliteConnection CreateInMemoryDatabase()
@@ -289,6 +426,55 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
             Assert.Equal("SQLite Error 1: 'no such table: no_table'.", activity.StatusDescription);
+        }
+    }
+
+    private static void VerifyDurationMetricData(
+        Metric metric,
+        Activity? activity = null,
+        bool hasError = false,
+        bool emitNewAttributes = false)
+    {
+        Assert.Equal(DbClientOperationDurationName, metric.Name);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
+        Assert.Equal("s", metric.Unit);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var point in metric.GetMetricPoints())
+        {
+            metricPoints.Add(point);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.True(metricPoint.GetHistogramSum() > 0);
+        if (activity != null)
+        {
+            Assert.Equal(activity.Duration.TotalSeconds, metricPoint.GetHistogramSum());
+        }
+
+        var tags = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            tags[tag.Key] = tag.Value;
+        }
+
+        Assert.Contains(SemanticConventions.AttributeDbSystem, tags.Keys);
+        Assert.Equal("sqlite", tags[SemanticConventions.AttributeDbSystem]);
+
+        if (!emitNewAttributes)
+        {
+            Assert.Contains(SemanticConventions.AttributeDbName, tags.Keys);
+        }
+        else if (emitNewAttributes)
+        {
+            Assert.Contains(SemanticConventions.AttributeDbNamespace, tags.Keys);
+        }
+
+        if (hasError)
+        {
+            Assert.Contains(SemanticConventions.AttributeErrorType, tags.Keys);
+            Assert.Equal(typeof(SqliteException).FullName, tags[SemanticConventions.AttributeErrorType]);
         }
     }
 
