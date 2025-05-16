@@ -3,7 +3,7 @@
 | Status        |           |
 | ------------- |-----------|
 | Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/), [@TimothyMothra](https://github.com/TimothyMothra)|
+| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.FileSystem)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.FileSystem)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.FileSystem)
