@@ -12,14 +12,14 @@ public class SqlClientTestCase
 {
     public string Name { get; set; } = string.Empty;
 
-    public TestCaseInput Input { get; set; } = new();
+    public SqlClientTestCaseInput Input { get; set; } = new();
 
-    public TestCaseOutput Expected { get; set; } = new();
+    public SqlClientTestCaseExpected Expected { get; set; } = new();
 
-    public OldConventions ExpectedOldConventions { get; set; } = new();
+    public SqlClientTestCaseOldConventions ExpectedOldConventions { get; set; } = new();
 }
 
-public class TestCaseInput
+public class SqlClientTestCaseInput
 {
     public string ConnectionString { get; set; } = string.Empty;
 
@@ -28,7 +28,7 @@ public class TestCaseInput
     public string CommandText { get; set; } = string.Empty;
 }
 
-public class TestCaseOutput
+public class SqlClientTestCaseExpected
 {
     [JsonPropertyName("db.collection.name")]
     public string DbCollectionName { get; set; } = string.Empty;
@@ -36,17 +36,17 @@ public class TestCaseOutput
     [JsonPropertyName("db.namespace")]
     public string DbNamespace { get; set; } = string.Empty;
 
-    [JsonPropertyName("db.query.text")]
-    public string? DbQueryText { get; set; }
+    [JsonPropertyName("db.operation.batch.size")]
+    public int? DbOperationBatchSize { get; set; }
 
     [JsonPropertyName("db.operation.name")]
     public string? DbOperationName { get; set; }
 
-    [JsonPropertyName("db.operation.batch.size")]
-    public int? DbOperationBatchSize { get; set; }
-
     [JsonPropertyName("db.query.summary")]
     public string? DbQuerySummary { get; set; }
+
+    [JsonPropertyName("db.query.text")]
+    public string? DbQueryText { get; set; }
 
     [JsonPropertyName("db.response.status_code")]
     public string? DbResponseStatusCode { get; set; }
@@ -68,7 +68,7 @@ public class TestCaseOutput
     public string SpanName { get; set; } = string.Empty;
 }
 
-public class OldConventions
+public class SqlClientTestCaseOldConventions
 {
     [JsonPropertyName("db.mssql.instance_name")]
     public string? DbMsSqlInstanceName { get; set; }
