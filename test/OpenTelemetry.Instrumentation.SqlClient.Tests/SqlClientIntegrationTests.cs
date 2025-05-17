@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Data.SqlClient;
+using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Testcontainers.MsSql;
@@ -85,8 +86,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-        SqlClientTests.VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
-        SqlClientTests.VerifySamplingParameters(sampler.LatestSamplingParameters);
+        VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
+        VerifySamplingParameters(sampler.LatestSamplingParameters);
 
         if (isFailure)
         {
@@ -102,6 +103,126 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
 #endif
         }
+    }
+
+    private static void VerifyActivityData(
+        CommandType commandType,
+        string? commandText,
+        bool captureTextCommandContent,
+        bool isFailure,
+        bool recordException,
+        bool shouldEnrich,
+        Activity activity,
+        bool emitOldAttributes = true,
+        bool emitNewAttributes = false)
+    {
+        if (emitNewAttributes)
+        {
+            Assert.Equal("MSSQLLocalDB.master", activity.DisplayName);
+        }
+        else
+        {
+            Assert.Equal("master", activity.DisplayName);
+        }
+
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+
+        if (!isFailure)
+        {
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+        else
+        {
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.NotNull(activity.StatusDescription);
+
+            if (recordException)
+            {
+                var events = activity.Events.ToList();
+                Assert.Single(events);
+
+                Assert.Equal(SemanticConventions.AttributeExceptionEventName, events[0].Name);
+            }
+            else
+            {
+                Assert.Empty(activity.Events);
+            }
+        }
+
+        if (shouldEnrich)
+        {
+            Assert.Contains(activity.Tags, tag => tag.Key == "enriched");
+            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
+        }
+        else
+        {
+            Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
+        }
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+            Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        }
+
+        switch (commandType)
+        {
+            case CommandType.StoredProcedure:
+                if (emitOldAttributes)
+                {
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                }
+
+                if (emitNewAttributes)
+                {
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
+                }
+
+                break;
+
+            case CommandType.Text:
+                if (captureTextCommandContent)
+                {
+                    if (emitOldAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    }
+
+                    if (emitNewAttributes)
+                    {
+                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    }
+                }
+                else
+                {
+                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                }
+
+                break;
+            case CommandType.TableDirect:
+                Assert.Fail("Not supported command type: CommandType.TableDirect");
+                break;
+            default:
+                Assert.Fail($"Not supported command type: {commandType}");
+                break;
+        }
+    }
+
+    private static void VerifySamplingParameters(SamplingParameters samplingParameters)
+    {
+        Assert.NotNull(samplingParameters.Tags);
+        Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+                   && kvp.Value != null
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
     private string GetConnectionString()
