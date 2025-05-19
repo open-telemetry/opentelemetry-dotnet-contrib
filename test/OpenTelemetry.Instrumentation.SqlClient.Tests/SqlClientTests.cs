@@ -426,16 +426,16 @@ public class SqlClientTests : IDisposable
         Assert.Equal(testCase.Expected.ServerAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(testCase.Expected.ServerPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
 
-        Assert.Equal(testCase.Expected.DbCollectionName, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbCollectionName));
-        Assert.Equal(testCase.Expected.DbNamespace, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbNamespace));
-        Assert.Equal(testCase.Expected.DbOperationName, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbOperationName));
-        Assert.Equal(testCase.Expected.DbQuerySummary, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbQuerySummary));
-        Assert.Equal(testCase.Expected.DbResponseStatusCode, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbResponseStatusCode));
-        Assert.Equal(testCase.Expected.DbStoredProcedureName, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbStoredProcedureName));
-        Assert.Equal(testCase.Expected.DbSystemName, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbSystemName));
-        Assert.Equal(testCase.Expected.ErrorType, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeErrorType));
-        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeServerPort));
+        Assert.Equal(testCase.Expected.DbCollectionName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbCollectionName, out var value) ? value : null);
+        Assert.Equal(testCase.Expected.DbNamespace, metricAttributes.TryGetValue(SemanticConventions.AttributeDbNamespace, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbOperationName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbOperationName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbQuerySummary, metricAttributes.TryGetValue(SemanticConventions.AttributeDbQuerySummary, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbResponseStatusCode, metricAttributes.TryGetValue(SemanticConventions.AttributeDbResponseStatusCode, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbStoredProcedureName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbStoredProcedureName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbSystemName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbSystemName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ErrorType, metricAttributes.TryGetValue(SemanticConventions.AttributeErrorType, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.TryGetValue(SemanticConventions.AttributeServerAddress, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
     }
 
     private static void VerifyOldAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
@@ -453,9 +453,9 @@ public class SqlClientTests : IDisposable
         Assert.Equal(testCase.Expected.ServerAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
         Assert.Equal(testCase.Expected.ServerPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
 
-        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.GetValueOrDefault(SemanticConventions.AttributeServerPort));
+        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, metricAttributes.TryGetValue(SemanticConventions.AttributeDbSystem, out var value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.TryGetValue(SemanticConventions.AttributeServerAddress, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
     }
 
     private static void VerifySamplingParameters(SqlClientTestCase testCase, SamplingParameters samplingParameters)
