@@ -141,6 +141,8 @@ internal static class SemanticConventions
 
     // New database conventions:
     // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database
+    public const string AttributeDbCollectionName = "db.collection.name";
+    public const string AttributeDbOperationName = "db.operation.name";
     public const string AttributeDbSystemName = "db.system.name";
     public const string AttributeDbNamespace = "db.namespace";
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
