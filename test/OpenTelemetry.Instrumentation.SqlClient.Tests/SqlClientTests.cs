@@ -539,6 +539,7 @@ public class SqlClientTests : IDisposable
         }
     }
 
+#if !NETFRAMEWORK
     private void RunSqlClientTestCase(SqlClientTestCase testCase, string beforeCommand, bool emitOldAttributes = false, bool emitNewAttributes = true)
     {
         var activities = new List<Activity>();
@@ -623,7 +624,6 @@ public class SqlClientTests : IDisposable
         }
     }
 
-#if !NETFRAMEWORK
     private Activity[] RunCommandWithFilter(
         Action<SqlCommand> sqlCommandSetup,
         Func<object, bool> filter)
