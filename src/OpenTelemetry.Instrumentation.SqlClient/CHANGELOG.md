@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Add the `db.operation.name` attribute when `CommandType` is
+  `StoredProcedure` to conform to the new semantic conventions.
+  This affects you if you have opted into the new conventions.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
