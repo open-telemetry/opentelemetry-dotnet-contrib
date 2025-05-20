@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NETFRAMEWORK
 using System.Data;
+#endif
 using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,8 @@ public class SqlClientTests : IDisposable
     {
         this.fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
     }
+
+    public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
     public void Dispose()
     {
@@ -67,60 +71,45 @@ public class SqlClientTests : IDisposable
     // DiagnosticListener-based instrumentation is only available on .NET Core
 #if !NETFRAMEWORK
     [Theory]
-    [MemberData(nameof(SqlTestData.SqlClientCallsAreCollectedSuccessfullyCases), MemberType = typeof(SqlTestData))]
-    public void SqlClientCallsAreCollectedSuccessfully(
-        string beforeCommand,
-        CommandType commandType,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
+    [MemberData(nameof(TestData))]
+    public void TestSqlMicrosoftBeforeExecuteCommand(SqlClientTestCase testCase)
     {
-        var activities = new List<Activity>();
-        var metrics = new List<Metric>();
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+    }
 
-        using var traceProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = true;
-                options.EmitOldAttributes = emitOldAttributes;
-                options.EmitNewAttributes = emitNewAttributes;
-            })
-            .AddInMemoryExporter(activities)
-            .Build();
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void TestSqlDataBeforeExecuteCommand(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+    }
 
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddSqlClientInstrumentation()
-            .AddInMemoryExporter(metrics)
-            .Build();
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void TestSqlMicrosoftBeforeExecuteCommandOldConventions(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: false);
+    }
 
-        var commandText = commandType == CommandType.Text
-            ? "select * from sys.databases"
-            : "SP_GetOrders";
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void TestSqlMicrosoftBeforeExecuteCommandOldAndNewConventions(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: true);
+    }
 
-        this.ExecuteCommand(commandType, commandText, false, beforeCommand);
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void TestSqlDataBeforeExecuteCommandOldConventions(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: false);
+    }
 
-        traceProvider.ForceFlush();
-        meterProvider.ForceFlush();
-
-        Activity? activity = null;
-
-        activity = Assert.Single(activities);
-        VerifyActivityData(
-            commandType,
-            commandText,
-            true,
-            false,
-            false,
-            false,
-            activity,
-            emitOldAttributes,
-            emitNewAttributes);
-
-        var dbClientOperationDurationMetrics = metrics
-            .Where(metric => metric.Name == "db.client.operation.duration")
-            .ToArray();
-
-        var metric = Assert.Single(dbClientOperationDurationMetrics);
-        VerifyDurationMetricData(metric, activity);
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public void TestSqlDataBeforeExecuteCommandOldAndNewConventions(SqlClientTestCase testCase)
+    {
+        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: true);
     }
 
     [Theory]
@@ -172,20 +161,6 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [ClassData(typeof(SqlClientTestCase))]
-    public void SqlDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, SqlClientDiagnosticListener.SqlDataAfterExecuteCommand);
-    }
-
-    [Theory]
-    [ClassData(typeof(SqlClientTestCase))]
-    public void MicrosoftDataStartsActivityWithExpectedAttributes(SqlClientTestCase testCase)
-    {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand, SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand);
-    }
-
-    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public void DbQueryTextCollectedWhenEnabled(bool captureTextCommandContent)
@@ -203,8 +178,8 @@ public class SqlClientTests : IDisposable
             .Build();
 
         var commandText = "select * from sys.databases";
-        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
 
         tracerProvider.ForceFlush();
         Assert.Equal(2, activities.Count);
@@ -240,8 +215,8 @@ public class SqlClientTests : IDisposable
             .AddInMemoryExporter(activities)
             .Build();
 
-        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
 
         traceProvider.ForceFlush();
 
@@ -301,8 +276,8 @@ public class SqlClientTests : IDisposable
         using var tracerProvider = tracerProviderBuilder.Build();
         using var meterProvider = meterProviderBuilder.Build();
 
-        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
@@ -349,8 +324,8 @@ public class SqlClientTests : IDisposable
             .AddInMemoryExporter(activities)
             .Build();
 
-        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
 
         Assert.Equal(2, activities.Count);
         if (shouldEnrich)
@@ -415,202 +390,6 @@ public class SqlClientTests : IDisposable
     }
 #endif
 
-    internal static void VerifyActivityData(
-        CommandType commandType,
-        string? commandText,
-        bool captureTextCommandContent,
-        bool isFailure,
-        bool recordException,
-        bool shouldEnrich,
-        Activity activity,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false)
-    {
-        if (emitNewAttributes)
-        {
-            Assert.Equal("MSSQLLocalDB.master", activity.DisplayName);
-        }
-        else
-        {
-            Assert.Equal("master", activity.DisplayName);
-        }
-
-        Assert.Equal(ActivityKind.Client, activity.Kind);
-
-        if (!isFailure)
-        {
-            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
-        }
-        else
-        {
-            Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.NotNull(activity.StatusDescription);
-
-            if (recordException)
-            {
-                var events = activity.Events.ToList();
-                Assert.Single(events);
-
-                Assert.Equal(SemanticConventions.AttributeExceptionEventName, events[0].Name);
-            }
-            else
-            {
-                Assert.Empty(activity.Events);
-            }
-        }
-
-        if (shouldEnrich)
-        {
-            Assert.Contains(activity.Tags, tag => tag.Key == "enriched");
-            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
-        }
-        else
-        {
-            Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
-        }
-
-        if (emitOldAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-            Assert.Equal("master", activity.GetTagValue(SemanticConventions.AttributeDbName));
-        }
-
-        if (emitNewAttributes)
-        {
-            Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
-            Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
-        }
-
-        switch (commandType)
-        {
-            case CommandType.StoredProcedure:
-                if (emitOldAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                }
-
-                if (emitNewAttributes)
-                {
-                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
-                }
-
-                break;
-
-            case CommandType.Text:
-                if (captureTextCommandContent)
-                {
-                    if (emitOldAttributes)
-                    {
-                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                    }
-
-                    if (emitNewAttributes)
-                    {
-                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-                    }
-                }
-                else
-                {
-                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-                }
-
-                break;
-            case CommandType.TableDirect:
-                Assert.Fail("Not supported command type: CommandType.TableDirect");
-                break;
-            default:
-                Assert.Fail($"Not supported command type: {commandType}");
-                break;
-        }
-    }
-
-    internal static void VerifyDurationMetricData(Metric metric, Activity? activity)
-    {
-        Assert.NotNull(metric);
-        Assert.Equal("s", metric.Unit);
-        Assert.Equal(MetricType.Histogram, metric.MetricType);
-
-        var metricPoints = new List<MetricPoint>();
-        foreach (var p in metric.GetMetricPoints())
-        {
-            metricPoints.Add(p);
-        }
-
-        var metricPoint = Assert.Single(metricPoints);
-
-        if (activity != null)
-        {
-            _ = metricPoint.GetHistogramCount();
-            var sum = metricPoint.GetHistogramSum();
-            Assert.Equal(activity.Duration.TotalSeconds, sum);
-        }
-    }
-
-    internal static void VerifySamplingParameters(SamplingParameters samplingParameters)
-    {
-        Assert.NotNull(samplingParameters.Tags);
-        Assert.Contains(
-            samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
-                   && kvp.Value != null
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
-    }
-
-    internal static void VerifySamplingParameters(SqlClientTestCase testCase, Activity activity, SamplingParameters samplingParameters)
-    {
-        Assert.NotNull(samplingParameters.Tags);
-
-        Assert.Equal(testCase.ExpectedActivityName, activity.DisplayName);
-        Assert.Equal(SqlActivitySourceHelper.MicrosoftSqlServerDbSystem, activity.GetTagItem(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(testCase.ExpectedDbNamespace, activity.GetTagItem(SemanticConventions.AttributeDbName));
-        Assert.Equal(testCase.ExpectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(testCase.ExpectedPort, activity.GetTagItem(SemanticConventions.AttributeServerPort));
-        Assert.Equal(testCase.ExpectedInstanceName, activity.GetTagItem(SemanticConventions.AttributeDbMsSqlInstanceName));
-
-        Assert.Contains(
-            samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
-                   && kvp.Value is string
-                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
-
-        if (testCase.ExpectedDbNamespace != null)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeDbName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.ExpectedDbNamespace);
-        }
-
-        if (testCase.ExpectedServerAddress != null)
-        {
-            Assert.Contains(
-            samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeServerAddress
-                   && kvp.Value is string
-                   && (string)kvp.Value == testCase.ExpectedServerAddress);
-        }
-
-        if (testCase.ExpectedPort.HasValue)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeServerPort
-                       && kvp.Value is int
-                       && (int)kvp.Value == testCase.ExpectedPort);
-        }
-
-        if (testCase.ExpectedInstanceName != null)
-        {
-            Assert.Contains(
-                samplingParameters.Tags,
-                kvp => kvp.Key == SemanticConventions.AttributeDbMsSqlInstanceName
-                       && kvp.Value is string
-                       && (string)kvp.Value == testCase.ExpectedInstanceName);
-        }
-    }
-
     internal static void ActivityEnrichment(Activity activity, string method, object obj)
     {
         activity.SetTag("enriched", "yes");
@@ -626,31 +405,225 @@ public class SqlClientTests : IDisposable
         }
     }
 
-#if !NETFRAMEWORK
-    private void RunSqlClientTestCase(SqlClientTestCase testCase, string beforeCommand, string afterCommand)
+    private static void VerifyAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
     {
-        using var sqlConnection = new SqlConnection(testCase.ConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
+        var metricAttributes = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            metricAttributes[tag.Key] = tag.Value;
+        }
 
-        var exportedItems = new List<Activity>();
+        Assert.Equal(testCase.Expected.DbCollectionName, activity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        Assert.Equal(testCase.Expected.DbNamespace, activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.Equal(testCase.Expected.DbOperationBatchSize, activity.GetTagValue(SemanticConventions.AttributeDbOperationBatchSize));
+        Assert.Equal(testCase.Expected.DbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
+        Assert.Equal(testCase.Expected.DbQuerySummary, activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+        Assert.Equal(testCase.Expected.DbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+        Assert.Equal(testCase.Expected.DbResponseStatusCode, activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
+        Assert.Equal(testCase.Expected.DbStoredProcedureName, activity.GetTagValue(SemanticConventions.AttributeDbStoredProcedureName));
+        Assert.Equal(testCase.Expected.DbSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal(testCase.Expected.ErrorType, activity.GetTagValue(SemanticConventions.AttributeErrorType));
+        Assert.Equal(testCase.Expected.ServerAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(testCase.Expected.ServerPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+
+        Assert.Equal(testCase.Expected.DbCollectionName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbCollectionName, out var value) ? value : null);
+        Assert.Equal(testCase.Expected.DbNamespace, metricAttributes.TryGetValue(SemanticConventions.AttributeDbNamespace, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbOperationName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbOperationName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbQuerySummary, metricAttributes.TryGetValue(SemanticConventions.AttributeDbQuerySummary, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbResponseStatusCode, metricAttributes.TryGetValue(SemanticConventions.AttributeDbResponseStatusCode, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbStoredProcedureName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbStoredProcedureName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.DbSystemName, metricAttributes.TryGetValue(SemanticConventions.AttributeDbSystemName, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ErrorType, metricAttributes.TryGetValue(SemanticConventions.AttributeErrorType, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.TryGetValue(SemanticConventions.AttributeServerAddress, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
+    }
+
+    private static void VerifyOldAttributes(SqlClientTestCase testCase, Activity activity, MetricPoint metricPoint)
+    {
+        var metricAttributes = new Dictionary<string, object?>();
+        foreach (var tag in metricPoint.Tags)
+        {
+            metricAttributes[tag.Key] = tag.Value;
+        }
+
+        Assert.Equal(testCase.ExpectedOldConventions.DbMsSqlInstanceName, activity.GetTagValue(SemanticConventions.AttributeDbMsSqlInstanceName));
+        Assert.Equal(testCase.ExpectedOldConventions.DbName, activity.GetTagValue(SemanticConventions.AttributeDbName));
+        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(testCase.ExpectedOldConventions.DbStatement, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal(testCase.Expected.ServerAddress, activity.GetTagValue(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(testCase.Expected.ServerPort, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+
+        Assert.Equal(testCase.ExpectedOldConventions.DbSystem, metricAttributes.TryGetValue(SemanticConventions.AttributeDbSystem, out var value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerAddress, metricAttributes.TryGetValue(SemanticConventions.AttributeServerAddress, out value) ? value : null);
+        Assert.Equal(testCase.Expected.ServerPort, metricAttributes.TryGetValue(SemanticConventions.AttributeServerPort, out value) ? value : null);
+    }
+
+    private static void VerifySamplingParameters(SqlClientTestCase testCase, SamplingParameters samplingParameters)
+    {
+        Assert.NotNull(samplingParameters.Tags);
+        Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
+                   && kvp.Value is string
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+
+        if (testCase.Expected.DbNamespace != null)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbNamespace
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.Expected.DbNamespace);
+        }
+
+        if (testCase.Expected.ServerAddress != null)
+        {
+            Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeServerAddress
+                   && kvp.Value is string
+                   && (string)kvp.Value == testCase.Expected.ServerAddress);
+        }
+
+        if (testCase.Expected.ServerPort.HasValue)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeServerPort
+                       && kvp.Value is int
+                       && (int)kvp.Value == testCase.Expected.ServerPort);
+        }
+    }
+
+    private static void VerifySamplingParametersOldConventions(SqlClientTestCase testCase, SamplingParameters samplingParameters)
+    {
+        Assert.NotNull(samplingParameters.Tags);
+        Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+                   && kvp.Value is string
+                   && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
+
+        if (testCase.ExpectedOldConventions.DbName != null)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.ExpectedOldConventions.DbName);
+        }
+
+        if (testCase.Expected.ServerAddress != null)
+        {
+            Assert.Contains(
+            samplingParameters.Tags,
+            kvp => kvp.Key == SemanticConventions.AttributeServerAddress
+                   && kvp.Value is string
+                   && (string)kvp.Value == testCase.Expected.ServerAddress);
+        }
+
+        if (testCase.Expected.ServerPort.HasValue)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeServerPort
+                       && kvp.Value is int
+                       && (int)kvp.Value == testCase.Expected.ServerPort);
+        }
+
+        if (testCase.ExpectedOldConventions.DbMsSqlInstanceName != null)
+        {
+            Assert.Contains(
+                samplingParameters.Tags,
+                kvp => kvp.Key == SemanticConventions.AttributeDbMsSqlInstanceName
+                       && kvp.Value is string
+                       && (string)kvp.Value == testCase.ExpectedOldConventions.DbMsSqlInstanceName);
+        }
+    }
+
+#if !NETFRAMEWORK
+    private void RunSqlClientTestCase(SqlClientTestCase testCase, string beforeCommand, bool emitOldAttributes = false, bool emitNewAttributes = true)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
 
         var sampler = new TestSampler
         {
             SamplingAction = _ => new SamplingResult(SamplingDecision.RecordAndSample),
         };
 
-        using (Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation()
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
-            .AddInMemoryExporter(exportedItems)
-            .Build())
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = true;
+                options.RecordException = true;
+                options.EmitOldAttributes = emitOldAttributes;
+                options.EmitNewAttributes = emitNewAttributes;
+            })
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        this.ExecuteCommand(testCase.Input.ConnectionString, testCase.Input.CommandType, testCase.Input.CommandText, testCase.Expected.ErrorType != null, beforeCommand);
+
+        traceProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        Activity? activity = null;
+
+        activity = Assert.Single(activities);
+
+        Assert.Equal(emitNewAttributes ? testCase.Expected.SpanName : testCase.ExpectedOldConventions.SpanName, activity.DisplayName);
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        if (testCase.Expected.ErrorType == null)
         {
-            this.fakeSqlClientDiagnosticSource.Write(beforeCommand, new { Command = sqlCommand });
-            this.fakeSqlClientDiagnosticSource.Write(afterCommand, new { Command = sqlCommand });
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+        else
+        {
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+            Assert.NotNull(activity.StatusDescription);
+            var events = activity.Events.ToList();
+            Assert.Single(events);
+            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events[0].Name);
         }
 
-        Assert.Single(exportedItems);
-        VerifySamplingParameters(testCase, exportedItems.First(), sampler.LatestSamplingParameters);
+        var dbClientOperationDurationMetrics = metrics
+            .Where(metric => metric.Name == "db.client.operation.duration")
+            .ToArray();
+
+        var metric = Assert.Single(dbClientOperationDurationMetrics);
+
+        Assert.NotNull(metric);
+        Assert.Equal("s", metric.Unit);
+        Assert.Equal(MetricType.Histogram, metric.MetricType);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in metric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+        var sum = metricPoint.GetHistogramSum();
+        Assert.Equal(activity.Duration.TotalSeconds, sum);
+
+        if (emitNewAttributes)
+        {
+            VerifySamplingParameters(testCase, sampler.LatestSamplingParameters);
+            VerifyAttributes(testCase, activity, metricPoint);
+        }
+
+        if (emitOldAttributes)
+        {
+            VerifySamplingParametersOldConventions(testCase, sampler.LatestSamplingParameters);
+            VerifyOldAttributes(testCase, activity, metricPoint);
+        }
     }
 
     private Activity[] RunCommandWithFilter(
@@ -699,7 +672,7 @@ public class SqlClientTests : IDisposable
         return [.. activities];
     }
 
-    private void ExecuteCommand(CommandType commandType, string commandText, bool error, string beforeCommand)
+    private void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, string beforeCommand)
     {
         var afterCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
             ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
@@ -709,7 +682,7 @@ public class SqlClientTests : IDisposable
             ? SqlClientDiagnosticListener.SqlDataWriteCommandError
             : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError;
 
-        using var sqlConnection = new SqlConnection(TestConnectionString);
+        using var sqlConnection = new SqlConnection(connectionString);
         using var sqlCommand = sqlConnection.CreateCommand();
 
         var operationId = Guid.NewGuid();
