@@ -80,7 +80,7 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
 
 * [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
-* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Microsoft
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra)
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
