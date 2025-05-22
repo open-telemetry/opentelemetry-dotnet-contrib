@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Amazon;
 using Amazon.Runtime.Internal;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
