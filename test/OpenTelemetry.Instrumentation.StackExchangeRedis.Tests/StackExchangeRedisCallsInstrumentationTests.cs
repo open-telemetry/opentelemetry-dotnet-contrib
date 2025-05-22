@@ -412,7 +412,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         }
 
         Assert.Single(exportedItems);
-        Assert.Equal("SETEX", exportedItems[0].DisplayName);
+        Assert.Equal("SET", exportedItems[0].DisplayName);
     }
 
     private static void VerifyActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
