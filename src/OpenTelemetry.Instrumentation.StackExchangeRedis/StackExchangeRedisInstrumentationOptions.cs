@@ -23,12 +23,15 @@ public class StackExchangeRedisInstrumentationOptions
     public bool SetVerboseDatabaseStatements { get; set; }
 
     /// <summary>
-    /// Gets or sets a filter function that determines whether or not to collect telemetry on a per command basis.
+    /// Gets or sets the callback method allowing to filter out particular <see cref="IProfiledCommand"/>.
     /// </summary>
     /// <remarks>
-    /// The return value for the filter function is interpreted as follows:
-    /// - If filter returns `true`, the command is collected.
-    /// - If filter returns `false` or throws an exception the command is NOT collected.
+    /// The filter callback receives the <see cref="IProfiledCommand"/> for the
+    /// processed profiled command and should return a boolean.
+    /// <list type="bullet">
+    /// <item>If filter returns <see langword="true"/> the event is collected.</item>
+    /// <item>If filter returns <see langword="false"/> or throws an exception the event is filtered out (NOT collected).</item>
+    /// </list>
     /// </remarks>
     public Func<IProfiledCommand, bool>? Filter { get; set; }
 
