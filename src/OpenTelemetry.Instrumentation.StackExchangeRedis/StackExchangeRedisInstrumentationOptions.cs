@@ -23,6 +23,16 @@ public class StackExchangeRedisInstrumentationOptions
     public bool SetVerboseDatabaseStatements { get; set; }
 
     /// <summary>
+    /// Gets or sets a filter function that determines whether or not to collect telemetry on a per command basis.
+    /// </summary>
+    /// <remarks>
+    /// The return value for the filter function is interpreted as follows:
+    /// - If filter returns `true`, the command is collected.
+    /// - If filter returns `false` or throws an exception the command is NOT collected.
+    /// </remarks>
+    public Func<IProfiledCommand, bool>? Filter { get; set; }
+
+    /// <summary>
     /// Gets or sets an action to enrich an Activity.
     /// </summary>
     /// <remarks>

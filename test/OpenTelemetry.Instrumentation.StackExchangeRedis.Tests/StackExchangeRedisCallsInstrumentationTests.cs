@@ -384,6 +384,37 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Empty(instrumentation.InstrumentedConnections);
     }
 
+    [Fact]
+    public void FilterOption_FiltersOutSpecifiedCommands()
+    {
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = false,
+        };
+        connectionOptions.EndPoints.Add("localhost");
+
+        using var connection = ConnectionMultiplexer.Connect(connectionOptions);
+        var db = connection.GetDatabase();
+        db.KeyDelete("key1");
+
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddRedisInstrumentation(connection, options =>
+            {
+                options.Filter = command => !string.Equals(command.Command, "GET", StringComparison.OrdinalIgnoreCase);
+            })
+            .Build())
+        {
+            db.StringSet("key1", "value1");
+            db.StringGet("key1");
+        }
+
+        Assert.Single(exportedItems);
+        Assert.Equal("SETEX", exportedItems[0].DisplayName);
+    }
+
     private static void VerifyActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
     {
         if (isSet)
