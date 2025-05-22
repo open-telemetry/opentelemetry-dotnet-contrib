@@ -159,6 +159,16 @@ dotnet_diagnostic.IDE0005.severity = warning
 # RS0041: Public members should not use oblivious types
 dotnet_diagnostic.RS0041.severity = suggestion
 
+# RS0016:
+# dotnet_diagnostic.RS0016.severity = suggestion
+
+# CS1591
+# dotnet_diagnostic.CS1591.severity = suggestion
+
+# CA1848-CA2254: Needs to be suppressed because interpolated messages cannot be used.
+dotnet_diagnostic.CA1848.severity = suggestion
+dotnet_diagnostic.CA2254.severity = suggestion
+
 [**/obj/**.cs]
 generated_code = true
 
