@@ -110,6 +110,50 @@ public class RequestContextHelperTests
     }
 
     [Fact]
+    public void SQS_AddAttributes_NullMessageAttributes_InitializedAndTraceDataInjected()
+    {
+        var expectedParameters = new List<KeyValuePair<string, string>>
+        {
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("tracestate", "trace-state"),
+        };
+
+        var originalRequest = new SQS.SendMessageRequest()
+        {
+            MessageAttributes = null // explicitly null
+        };
+
+        var context = new TestRequestContext(originalRequest, new TestRequest());
+
+        SqsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+
+        Assert.NotNull(originalRequest.MessageAttributes);
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
+    }
+
+    [Fact]
+    public void SNS_AddAttributes_NullMessageAttributes_InitializedAndTraceDataInjected()
+    {
+        var expectedParameters = new List<KeyValuePair<string, string>>
+        {
+            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("tracestate", "trace-state"),
+        };
+
+        var originalRequest = new SNS.PublishRequest()
+        {
+            MessageAttributes = null // explicitly null
+        };
+
+        var context = new TestRequestContext(originalRequest, new TestRequest());
+
+        SnsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
+
+        Assert.NotNull(originalRequest.MessageAttributes);
+        TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
+    }
+
+    [Fact]
     public void SNS_AddAttributes_MessageAttributesWithTraceParent_TraceStateNotInjected()
     {
         // This test just checks the common implementation logic:

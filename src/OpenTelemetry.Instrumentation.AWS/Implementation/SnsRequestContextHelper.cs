@@ -16,10 +16,14 @@ internal class SnsRequestContextHelper
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
         var originalRequest = context.OriginalRequest as PublishRequest;
-        if (originalRequest?.MessageAttributes == null)
+
+        if (originalRequest == null)
         {
             return;
         }
+
+        // Initialize MessageAttributes if null
+        originalRequest.MessageAttributes ??= new Dictionary<string, MessageAttributeValue>();
 
         if (attributes.Keys.Any(originalRequest.MessageAttributes.ContainsKey))
         {
