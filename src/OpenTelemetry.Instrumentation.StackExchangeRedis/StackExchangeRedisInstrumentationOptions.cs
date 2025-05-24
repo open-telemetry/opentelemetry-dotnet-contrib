@@ -23,6 +23,19 @@ public class StackExchangeRedisInstrumentationOptions
     public bool SetVerboseDatabaseStatements { get; set; }
 
     /// <summary>
+    /// Gets or sets a callback method allowing to filter out particular <see cref="IProfiledCommand"/> instances.
+    /// </summary>
+    /// <remarks>
+    /// The filter callback receives the <see cref="IProfiledCommand"/> for the
+    /// processed profiled command and returns a boolean indicating whether it should be filtered out.
+    /// <list type="bullet">
+    /// <item>If filter returns <see langword="true"/> the event is collected.</item>
+    /// <item>If filter returns <see langword="false"/> or throws an exception the event is filtered out (NOT collected).</item>
+    /// </list>
+    /// </remarks>
+    public Func<IProfiledCommand, bool>? Filter { get; set; }
+
+    /// <summary>
     /// Gets or sets an action to enrich an Activity.
     /// </summary>
     /// <remarks>

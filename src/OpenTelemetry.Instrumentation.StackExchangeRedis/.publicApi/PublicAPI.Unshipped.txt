@@ -7,6 +7,8 @@ OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentati
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.EnrichActivityWithTimingEvents.get -> bool
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.EnrichActivityWithTimingEvents.set -> void
+OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.Filter.get -> System.Func<StackExchange.Redis.Profiling.IProfiledCommand!, bool>?
+OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.FlushInterval.get -> System.TimeSpan
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.FlushInterval.set -> void
 OpenTelemetry.Instrumentation.StackExchangeRedis.StackExchangeRedisInstrumentationOptions.SetVerboseDatabaseStatements.get -> bool
