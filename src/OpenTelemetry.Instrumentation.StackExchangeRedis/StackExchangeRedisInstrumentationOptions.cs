@@ -23,7 +23,7 @@ public class StackExchangeRedisInstrumentationOptions
     public bool SetVerboseDatabaseStatements { get; set; }
 
     /// <summary>
-    /// Gets or sets the callback method allowing to filter out particular <see cref="IProfiledCommand"/>.
+    /// Gets or sets a callback method allowing to filter out particular <see cref="IProfiledCommand"/> instances.
     /// </summary>
     /// <remarks>
     /// The filter callback receives the <see cref="IProfiledCommand"/> for the
