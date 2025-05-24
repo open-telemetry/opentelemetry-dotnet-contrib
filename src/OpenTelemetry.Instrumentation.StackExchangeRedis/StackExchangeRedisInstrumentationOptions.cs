@@ -27,7 +27,7 @@ public class StackExchangeRedisInstrumentationOptions
     /// </summary>
     /// <remarks>
     /// The filter callback receives the <see cref="IProfiledCommand"/> for the
-    /// processed profiled command and should return a boolean.
+    /// processed profiled command and returns a boolean indicating whether it should be filtered out.
     /// <list type="bullet">
     /// <item>If filter returns <see langword="true"/> the event is collected.</item>
     /// <item>If filter returns <see langword="false"/> or throws an exception the event is filtered out (NOT collected).</item>
