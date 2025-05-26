@@ -3,7 +3,7 @@
 | Status        |           |
 | ------------- |-----------|
 | Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/), [@TimothyMothra](https://github.com/TimothyMothra)|
+| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.OneCollector)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.OneCollector)](https://www.nuget.org/packages/OpenTelemetry.Exporter.OneCollector)
