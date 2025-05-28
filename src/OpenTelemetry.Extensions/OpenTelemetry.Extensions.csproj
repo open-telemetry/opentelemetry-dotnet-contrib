@@ -25,8 +25,4 @@
     <PackageReference Include="System.Text.Json" Version="9.0.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="nupkgs\OpenTelemetry.Extensions.1.11.0-beta.1.67.snupkg" />
-  </ItemGroup>
-
 </Project>
