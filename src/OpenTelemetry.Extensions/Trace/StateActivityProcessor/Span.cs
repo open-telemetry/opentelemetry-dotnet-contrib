@@ -36,12 +36,12 @@ public class Span
 
         this.Kind = activity.Kind switch
         {
-            ActivityKind.Internal => SpanKind.SpanKindInternal,
-            ActivityKind.Client => SpanKind.SpanKindClient,
-            ActivityKind.Server => SpanKind.SpanKindServer,
-            ActivityKind.Producer => SpanKind.SpanKindProducer,
-            ActivityKind.Consumer => SpanKind.SpanKindConsumer,
-            _ => SpanKind.SpanKindUnspecified,
+            ActivityKind.Internal => SpanKind.Internal,
+            ActivityKind.Client => SpanKind.Client,
+            ActivityKind.Server => SpanKind.Server,
+            ActivityKind.Producer => SpanKind.Producer,
+            ActivityKind.Consumer => SpanKind.Consumer,
+            _ => SpanKind.Unspecified,
         };
 
         this.StartTimeUnixNano = SpecHelper.ToUnixTimeNanoseconds(activity.StartTimeUtc);

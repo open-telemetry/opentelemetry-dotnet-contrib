@@ -25,12 +25,8 @@ public class StateActivityProcessor : BaseProcessor<Activity>
 #if NET
         ArgumentNullException.ThrowIfNull(logger);
 #else
-        if (logger == null)
-        {
-            throw new ArgumentOutOfRangeException(nameof(logger));
-        }
 #endif
-        this.logger = logger;
+        this.logger = logger ?? throw new ArgumentOutOfRangeException(nameof(logger));
     }
 
     /// <inheritdoc />

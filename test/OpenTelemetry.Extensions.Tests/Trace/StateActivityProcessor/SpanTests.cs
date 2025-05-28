@@ -25,7 +25,7 @@ public class SpanTests
         Assert.Equal(activity.ParentSpanId.ToHexString(), span.ParentSpanId);
         Assert.Equal((uint)activity.ActivityTraceFlags, span.Flags);
         Assert.Equal(activity.DisplayName, span.Name);
-        Assert.Equal(SpanKind.SpanKindInternal, span.Kind);
+        Assert.Equal(SpanKind.Internal, span.Kind);
         Assert.Equal(
             SpecHelper.ToUnixTimeNanoseconds(activity.StartTimeUtc),
             span.StartTimeUnixNano);
