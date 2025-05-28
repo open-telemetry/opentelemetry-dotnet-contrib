@@ -65,6 +65,16 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper.SpecHelper() -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.StateActivityProcessor
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.StateActivityProcessor.StateActivityProcessor(Microsoft.Extensions.Logging.ILogger! logger) -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.Code.get -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.Code.set -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.Message.get -> string?
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.Message.set -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.Status(System.Diagnostics.ActivityStatusCode activityStatus, string? activityStatusDescription) -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Error = 2 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Ok = 1 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Unset = 0 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void

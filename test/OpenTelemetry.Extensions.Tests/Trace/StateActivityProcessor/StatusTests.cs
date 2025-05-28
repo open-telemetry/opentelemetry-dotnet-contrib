@@ -14,7 +14,7 @@ public class StatusTests
     {
         var status = new Status(ActivityStatusCode.Unset, "Unset status");
 
-        Assert.Equal(Status.StatusCode.StatusCodeUnset, status.Code);
+        Assert.Equal(Status.StatusCode.Unset, status.Code);
         Assert.Equal("Unset status", status.Message);
     }
 
@@ -23,7 +23,7 @@ public class StatusTests
     {
         var status = new Status(ActivityStatusCode.Ok, "Operation successful");
 
-        Assert.Equal(Status.StatusCode.StatusCodeOk, status.Code);
+        Assert.Equal(Status.StatusCode.Ok, status.Code);
         Assert.Equal("Operation successful", status.Message);
     }
 
@@ -32,7 +32,7 @@ public class StatusTests
     {
         var status = new Status(ActivityStatusCode.Error, "An error occurred");
 
-        Assert.Equal(Status.StatusCode.StatusCodeError, status.Code);
+        Assert.Equal(Status.StatusCode.Error, status.Code);
         Assert.Equal("An error occurred", status.Message);
     }
 
@@ -41,7 +41,7 @@ public class StatusTests
     {
         var status = new Status((ActivityStatusCode)999, "Invalid status");
 
-        Assert.Equal(Status.StatusCode.StatusCodeUnset, status.Code);
+        Assert.Equal(Status.StatusCode.Unset, status.Code);
         Assert.Equal("Invalid status", status.Message);
     }
 }
