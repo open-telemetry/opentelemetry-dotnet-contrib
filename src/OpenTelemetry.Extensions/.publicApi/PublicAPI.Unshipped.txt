@@ -4,9 +4,6 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.AnyValue(string? stringValue) -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.StringValue.get -> string?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.StringValue.set -> void
-OpenTelemetry.Extensions.Trace.StateActivityProcessor.Event
-OpenTelemetry.Extensions.Trace.StateActivityProcessor.Event.Event(System.Diagnostics.ActivityEvent activityEvent) -> void
-OpenTelemetry.Extensions.Trace.StateActivityProcessor.Event.TimeUnixNano.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.EventPerSpec(System.Diagnostics.ActivityEvent activityEvent) -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.InstrumentationScope
@@ -64,6 +61,8 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceId.get -> string
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceId.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceState.get -> string?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceState.set -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper.SpecHelper() -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.StateActivityProcessor
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.StateActivityProcessor.StateActivityProcessor(Microsoft.Extensions.Logging.ILogger! logger) -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
@@ -87,6 +86,8 @@ static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggagePro
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AttachLogsToActivityEvent(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Action<OpenTelemetry.Logs.LogToActivityEventConversionOptions!>? configure = null) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
+static OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper.Json(OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData! tracesData) -> string!
+static OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper.ToUnixTimeNanoseconds(System.DateTime dateTime) -> ulong
 static OpenTelemetry.Trace.BaggageActivityProcessor.AllowAllBaggageKeys.get -> System.Predicate<string!>!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAutoFlushActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Func<System.Diagnostics.Activity!, bool>! predicate, int timeoutMilliseconds = 10000) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddBaggageActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Trace.TracerProviderBuilder!

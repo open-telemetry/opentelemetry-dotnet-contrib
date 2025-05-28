@@ -1,23 +1,35 @@
-// Copyright The OpenTelemetry Authors
-// SPDX-License-Identifier: Apache-2.0
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
 
-public class SpecHelper
+/// <summary>
+/// Helper class for specification-related operations.
+/// </summary>
+public abstract class SpecHelper
 {
-    public static string Json(TracesData tracesData) =>
-        JsonSerializer.Serialize(tracesData, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            WriteIndented = false, // For pretty printing
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // To allow special characters
-            DefaultIgnoreCondition =
-                System.Text.Json.Serialization.JsonIgnoreCondition
-                    .WhenWritingNull
-        });
+    private static readonly JsonSerializerOptions CachedJsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        WriteIndented = false, // For pretty printing
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // To allow special characters
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
+    /// <summary>
+    /// Serializes the <see cref="TracesData"/> to a JSON string per specification.
+    /// </summary>
+    /// <param name="tracesData">TracesData per spec.</param>
+    /// <returns>TracesData in JSON format.</returns>
+    public static string Json(TracesData tracesData) =>
+        JsonSerializer.Serialize(tracesData, CachedJsonSerializerOptions);
+
+    /// <summary>
+    /// Converts a <see cref="DateTime"/> to Unix time in nanoseconds.
+    /// </summary>
+    /// <param name="dateTime">DateTime.</param>
+    /// <returns>Unix time representation in nanoseconds.</returns>
     public static ulong ToUnixTimeNanoseconds(DateTime dateTime)
     {
         dateTime = dateTime.ToUniversalTime();
