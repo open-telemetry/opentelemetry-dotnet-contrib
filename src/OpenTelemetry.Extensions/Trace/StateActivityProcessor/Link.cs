@@ -56,6 +56,9 @@ public class Link
     /// </summary>
     public string? TraceState { get; set; }
 
+    /// <summary>
+    /// Gets the attributes of the link.
+    /// </summary>
     public Collection<KeyValue> Attributes { get; } = [];
 
     /// <summary>

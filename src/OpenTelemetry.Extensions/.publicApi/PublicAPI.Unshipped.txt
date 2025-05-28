@@ -5,7 +5,12 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.AnyValue(string? 
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.StringValue.get -> string?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue.StringValue.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.EventPerSpec(System.Diagnostics.ActivityEvent activityEvent) -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.Name.get -> string?
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.Name.set -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.TimeUnixNano.get -> ulong?
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.EventPerSpec.TimeUnixNano.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.InstrumentationScope
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.InstrumentationScope.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.InstrumentationScope.InstrumentationScope(System.Diagnostics.Activity! activity) -> void
@@ -20,6 +25,7 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue.KeyValue() -> voi
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue.Value.get -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.AnyValue?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue.Value.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Link
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.Link.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Link.Flags.get -> uint?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Link.Flags.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Link.Link(System.Diagnostics.ActivityLink activityLink) -> void
@@ -33,9 +39,10 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.ResourceSpans
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.ResourceSpans.ResourceSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal signal) -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.ResourceSpans.ScopeSpans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans.Scope.get -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.InstrumentationScope?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans.Scope.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans.ScopeSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal signal) -> void
-OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans.Spans.get -> System.Collections.ObjectModel.Collection<Span!>!
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.ScopeSpans.Spans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.KeyValue!>!
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.EndTimeUnixNano.get -> ulong?
@@ -61,6 +68,13 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceId.get -> string
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceId.set -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceState.get -> string?
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Span.TraceState.set -> void
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Client = 3 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Consumer = 5 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Internal = 1 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Producer = 4 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Server = 2 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind.Unspecified = 0 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpanKind
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.SpecHelper.SpecHelper() -> void
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.StateActivityProcessor
@@ -75,6 +89,12 @@ OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Error = 2 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Ok = 1 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
 OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode.Unset = 0 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.ResourceSpans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.StateActivityProcessor.ResourceSpans!>!
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal.Start = 0 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal.Stop = 1 -> OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.TracesData(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.StateActivityProcessor.TracesData.Signal signal) -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void
