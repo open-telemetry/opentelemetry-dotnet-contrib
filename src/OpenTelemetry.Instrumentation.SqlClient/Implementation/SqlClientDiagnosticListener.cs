@@ -115,6 +115,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                     if (options.EmitNewAttributes)
                                     {
+                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
                                         activity.SetTag(SemanticConventions.AttributeDbStoredProcedureName, commandText);
                                     }
 

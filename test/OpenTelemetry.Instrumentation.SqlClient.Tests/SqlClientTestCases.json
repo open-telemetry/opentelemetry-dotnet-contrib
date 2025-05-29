@@ -38,7 +38,7 @@
       "db.collection.name": null,
       "db.namespace": "MSSQLLocalDB.master",
       "db.operation.batch.size": null,
-      "db.operation.name": null,
+      "db.operation.name": "EXECUTE",
       "db.query.summary": null,
       "db.query.text": null,
       "db.response.status_code": null,
