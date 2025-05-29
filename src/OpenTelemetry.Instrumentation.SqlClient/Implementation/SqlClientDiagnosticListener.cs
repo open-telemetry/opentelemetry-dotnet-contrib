@@ -117,7 +117,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                     {
                                         activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
                                         activity.SetTag(SemanticConventions.AttributeDbStoredProcedureName, commandText);
-                                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, $"EXECUTE {commandText}");
+                                        var dbQuerySummary = $"EXECUTE {commandText}";
+                                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, dbQuerySummary);
+                                        activity.DisplayName = dbQuerySummary;
                                     }
 
                                     break;
@@ -135,6 +137,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
                                             activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                                            activity.DisplayName = sqlStatementInfo.DbQuerySummary;
                                         }
                                     }
 

@@ -167,6 +167,7 @@ internal sealed class SqlEventSourceListener : EventListener
                 {
                     activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
                     activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                    activity.DisplayName = sqlStatementInfo.DbQuerySummary;
                 }
             }
         }
