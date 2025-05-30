@@ -136,8 +136,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                         if (options.EmitNewAttributes)
                                         {
                                             activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
-                                            activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
-                                            activity.DisplayName = sqlStatementInfo.DbQuerySummary;
+                                            if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
+                                            {
+                                                activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                                                activity.DisplayName = sqlStatementInfo.DbQuerySummary;
+                                            }
                                         }
                                     }
 
