@@ -11,14 +11,14 @@
       "db.namespace": "MSSQLLocalDB.master",
       "db.operation.batch.size": null,
       "db.operation.name": null,
-      "db.query.summary": null,
+      "db.query.summary": "select sys.databases",
       "db.query.text": "select * from sys.databases",
       "db.response.status_code": null,
       "db.stored_procedure.name": null,
       "error.type": null,
       "server.address": "(localdb)",
       "server.port": null,
-      "spanName": "MSSQLLocalDB.master"
+      "spanName": "select sys.databases"
     },
     "expectedOldConventions": {
       "db.mssql.instance_name": "MSSQLLocalDB",
@@ -39,14 +39,14 @@
       "db.namespace": "MSSQLLocalDB.master",
       "db.operation.batch.size": null,
       "db.operation.name": "EXECUTE",
-      "db.query.summary": null,
+      "db.query.summary": "EXECUTE SP_GetOrders",
       "db.query.text": null,
       "db.response.status_code": null,
       "db.stored_procedure.name": "SP_GetOrders",
       "error.type": null,
       "server.address": "(localdb)",
       "server.port": null,
-      "spanName": "MSSQLLocalDB.master"
+      "spanName": "EXECUTE SP_GetOrders"
     },
     "expectedOldConventions": {
       "db.mssql.instance_name": "MSSQLLocalDB",
@@ -67,14 +67,14 @@
       "db.namespace": "MSSQLLocalDB.master",
       "db.operation.batch.size": null,
       "db.operation.name": null,
-      "db.query.summary": null,
+      "db.query.summary": "select sys.databases",
       "db.query.text": "select * from sys.databases",
       "db.response.status_code": null,
       "db.stored_procedure.name": null,
       "error.type": null,
       "server.address": "(localdb)",
       "server.port": 1434,
-      "spanName": "MSSQLLocalDB.master"
+      "spanName": "select sys.databases"
     },
     "expectedOldConventions": {
       "db.mssql.instance_name": "MSSQLLocalDB",
