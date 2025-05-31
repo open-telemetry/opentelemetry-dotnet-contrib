@@ -43,8 +43,10 @@ public class RequestContextHelperTests
         Assert.Equal(30, parameters.Count);
     }
 
-    [Fact]
-    public void SQS_AddAttributes_MessageAttributes_TraceDataInjected()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SQS_AddAttributes_MessageAttributes_TraceDataInjected(bool initializeMessageAttributes)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
@@ -54,7 +56,8 @@ public class RequestContextHelperTests
 
         var originalRequest = new SQS.SendMessageRequest()
         {
-            MessageAttributes = [],
+            // The test parameter is used to simulate the AWS SDK's AWSConfigs.InitializeCollections setting.
+            MessageAttributes = initializeMessageAttributes ? [] : null,
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
@@ -64,8 +67,10 @@ public class RequestContextHelperTests
         TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
     }
 
-    [Fact]
-    public void SNS_AddAttributes_MessageAttributes_TraceDataInjected()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SNS_AddAttributes_MessageAttributes_TraceDataInjected(bool initializeMessageAttributes)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
@@ -75,7 +80,8 @@ public class RequestContextHelperTests
 
         var originalRequest = new SNS.PublishRequest()
         {
-            MessageAttributes = [],
+            // The test parameter is used to simulate the AWS SDK's AWSConfigs.InitializeCollections setting.
+            MessageAttributes = initializeMessageAttributes ? [] : null,
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
