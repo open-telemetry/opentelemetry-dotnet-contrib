@@ -158,14 +158,20 @@ internal sealed class SqlEventSourceListener : EventListener
             var commandText = (string)eventData.Payload[3];
             if (!string.IsNullOrEmpty(commandText) && options.SetDbStatementForText)
             {
+                var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
                 if (options.EmitOldAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, sqlStatementInfo.SanitizedSql);
                 }
 
                 if (options.EmitNewAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
+                    if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
+                    {
+                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                        activity.DisplayName = sqlStatementInfo.DbQuerySummary;
+                    }
                 }
             }
         }
