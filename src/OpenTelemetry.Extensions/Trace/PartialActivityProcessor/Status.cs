@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// Status per spec.

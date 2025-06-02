@@ -5,7 +5,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// Helper class for specification-related operations.

@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// Span per spec.

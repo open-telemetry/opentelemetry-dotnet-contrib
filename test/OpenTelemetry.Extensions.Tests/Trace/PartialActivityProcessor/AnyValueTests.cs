@@ -1,10 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 using Xunit;
 
-namespace OpenTelemetry.Extensions.Tests.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;
 
 public class AnyValueTests
 {

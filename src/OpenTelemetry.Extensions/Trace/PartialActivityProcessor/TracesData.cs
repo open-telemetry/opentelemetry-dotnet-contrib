@@ -4,7 +4,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// TracesData per spec.
