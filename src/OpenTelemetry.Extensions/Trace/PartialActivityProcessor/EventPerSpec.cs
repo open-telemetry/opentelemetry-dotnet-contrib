@@ -18,7 +18,7 @@ public class EventPerSpec
     public EventPerSpec(ActivityEvent activityEvent)
     {
         this.TimeUnixNano =
-            SpecHelper.ToUnixTimeNanoseconds(activityEvent.Timestamp.DateTime.ToUniversalTime());
+            SpecHelper.ToUnixTimeNanoseconds(activityEvent.Timestamp);
         this.Name = activityEvent.Name;
         foreach (var activityEventTag in activityEvent.Tags)
         {

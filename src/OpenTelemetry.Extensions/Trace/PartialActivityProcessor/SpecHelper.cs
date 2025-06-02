@@ -35,12 +35,26 @@ public abstract class SpecHelper
     /// <returns>Unix time representation in nanoseconds.</returns>
     public static ulong ToUnixTimeNanoseconds(DateTime dateTime)
     {
-        dateTime = dateTime.ToUniversalTime();
-
         DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         // Ticks since epoch (1 tick = 100ns)
         long ticksSinceEpoch = dateTime.Ticks - epoch.Ticks;
+
+        // Convert to nanoseconds (multiply by 100)
+        return (ulong)(ticksSinceEpoch * 100);
+    }
+
+    /// <summary>
+    /// Converts a <see cref="DateTimeOffset"/> to Unix time in nanoseconds.
+    /// </summary>
+    /// <param name="dateTimeOffset">DateTimeOffset.</param>
+    /// <returns>Unix time representation in nanoseconds.</returns>
+    public static ulong ToUnixTimeNanoseconds(DateTimeOffset dateTimeOffset)
+    {
+        DateTimeOffset epoch = new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        // Ticks since epoch (1 tick = 100ns)
+        long ticksSinceEpoch = dateTimeOffset.UtcTicks - epoch.UtcTicks;
 
         // Convert to nanoseconds (multiply by 100)
         return (ulong)(ticksSinceEpoch * 100);
