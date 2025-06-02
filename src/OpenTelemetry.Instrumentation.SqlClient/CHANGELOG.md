@@ -6,6 +6,9 @@
   `StoredProcedure` to conform to the new semantic conventions.
   This affects you if you have opted into the new conventions.
   ([#2800](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2800))
+* Add the `db.query.summary` attribute. This affects you if you have opted into
+  the new conventions.
+  ([#2811](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2811))
 
 ## 1.12.0-beta.1
 
