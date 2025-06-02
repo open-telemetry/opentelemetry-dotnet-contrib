@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// KeyValue per spec.

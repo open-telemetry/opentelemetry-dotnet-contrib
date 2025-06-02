@@ -4,7 +4,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
 /// Activity processor that exports LogRecord on Activity start, during it's lifetime as a heartbeat and on end.

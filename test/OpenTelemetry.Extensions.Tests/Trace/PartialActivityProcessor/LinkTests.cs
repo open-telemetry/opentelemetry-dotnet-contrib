@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Extensions.Trace.StateActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 using Xunit;
 
-namespace OpenTelemetry.Extensions.Tests.Trace.StateActivityProcessor;
+namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;
 
 public class LinkTests
 {
@@ -16,8 +16,7 @@ public class LinkTests
             ActivityTraceId.CreateRandom(),
             ActivitySpanId.CreateRandom(),
             ActivityTraceFlags.Recorded,
-            "trace-state"
-        );
+            "trace-state");
 
         var activityLink = new ActivityLink(activityContext);
 
@@ -35,9 +34,7 @@ public class LinkTests
         var activityContext = new ActivityContext(
             ActivityTraceId.CreateRandom(),
             ActivitySpanId.CreateRandom(),
-            ActivityTraceFlags.None
-        );
-
+            ActivityTraceFlags.None);
 
         var tags = new List<KeyValuePair<string, object?>>
         {
@@ -65,8 +62,7 @@ public class LinkTests
         var activityContext = new ActivityContext(
             ActivityTraceId.CreateRandom(),
             ActivitySpanId.CreateRandom(),
-            ActivityTraceFlags.None
-        );
+            ActivityTraceFlags.None);
 
         var activityLink = new ActivityLink(activityContext);
 
