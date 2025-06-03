@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
@@ -80,6 +81,9 @@ internal sealed class ConnectionStringBuilder
 
     public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+    public int PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount => this.parts.TryGetValue(nameof(this.PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount), out var value)
+                && int.TryParse(value, out var intValue) ? intValue : MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT;
 
     public string Endpoint
     {

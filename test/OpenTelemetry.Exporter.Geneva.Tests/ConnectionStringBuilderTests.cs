@@ -240,4 +240,15 @@ public class ConnectionStringBuilderTests
         builder = new ConnectionStringBuilder("PrivatePreviewEnableAFDCorrelationIdEnrichment=false");
         Assert.False(builder.PrivatePreviewEnableAFDCorrelationIdEnrichment);
     }
+
+    [Fact]
+    public void ConnectionStringBuilder_PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount_No_Default_Value()
+    {
+        var builder = new ConnectionStringBuilder("key1=value1");
+        Assert.Equal(16383, builder.PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount);
+        builder = new ConnectionStringBuilder("PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=1024");
+        Assert.Equal(1024, builder.PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount);
+        builder = new ConnectionStringBuilder("PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=32767");
+        Assert.Equal(32767, builder.PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount);
+    }
 }

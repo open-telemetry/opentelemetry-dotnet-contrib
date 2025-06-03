@@ -32,15 +32,16 @@ public class MessagePackSerializerTests
         this.AssertBytes(MessagePack.MessagePackSerializer.Serialize(value), buffer, length);
     }
 
-    private void MessagePackSerializer_TestASCIIStringSerialization(string input)
+    private void MessagePackSerializer_TestASCIIStringSerialization(string input, int sizeLimit = (1 << 14) - 1)
     {
-        var sizeLimit = (1 << 14) - 1; // // Max length of string allowed
+        // sizeLimit is the max length of string allowed
         var buffer = new byte[64 * 1024];
+        MessagePackSerializer.StringSizeLimitCharCount = sizeLimit;
         var length = MessagePackSerializer.SerializeAsciiString(buffer, 0, input);
         var deserializedString = MessagePack.MessagePackSerializer.Deserialize<string>(buffer);
         if (!string.IsNullOrEmpty(input) && input.Length > sizeLimit)
         {
-            // We truncate the string using `.` in the last three characters which takes 3 bytes of memort
+            // We truncate the string using `.` in the last three characters which takes 3 bytes of memory
 #pragma warning disable CA1846 // Prefer 'AsSpan' over 'Substring'
             var byteCount = Encoding.ASCII.GetByteCount(input.Substring(0, sizeLimit - 3)) + 3;
 #pragma warning restore CA1846 // Prefer 'AsSpan' over 'Substring'
@@ -88,10 +89,12 @@ public class MessagePackSerializerTests
         }
     }
 
-    private void MessagePackSerializer_TestUnicodeStringSerialization(string input)
+    private void MessagePackSerializer_TestUnicodeStringSerialization(string input, int sizeLimit = (1 << 14) - 1)
     {
-        var sizeLimit = (1 << 14) - 1; // // Max length of string allowed
+        // sizeLimit is the max length of string allowed
+        // var sizeLimit = (1 << 14) - 1; // // Max length of string allowed
         var buffer = new byte[64 * 1024];
+        MessagePackSerializer.StringSizeLimitCharCount = sizeLimit;
         var length = MessagePackSerializer.SerializeUnicodeString(buffer, 0, input);
 
         var deserializedString = MessagePack.MessagePackSerializer.Deserialize<string>(buffer);
@@ -292,6 +295,9 @@ public class MessagePackSerializerTests
         this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', (1 << 14) - 1));
         this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', 1 << 14));
 
+        this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', (1 << 15) - 1));
+        this.MessagePackSerializer_TestASCIIStringSerialization(new string('Z', 1 << 15));
+
         // Unicode special characters
         // SerializeAsciiString will encode non-ASCII characters with '?'
         Assert.Throws<EqualException>(() => this.MessagePackSerializer_TestASCIIStringSerialization("\u0418"));
@@ -327,6 +333,9 @@ public class MessagePackSerializerTests
         this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 10));
         this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 14) - 1));
         this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 14));
+
+        this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', (1 << 15) - 1));
+        this.MessagePackSerializer_TestUnicodeStringSerialization(new string('\u0418', 1 << 15));
 
         // Unicode regular and special characters
         this.MessagePackSerializer_TestUnicodeStringSerialization("\u0418TestString");

@@ -130,6 +130,33 @@ public class GenevaTraceExporterTests
         });
     }
 
+    [Fact]
+    public void ConnectionString_CustomStringSizeLimit()
+    {
+        var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };
+        using var exporter1 = new GenevaTraceExporter(exporterOptions);
+        var defaultStringSizeLimit = (1 << 14) - 1;
+        Assert.Equal(defaultStringSizeLimit, MessagePackSerializer.StringSizeLimitCharCount);
+
+        var exporterOptions2 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=65360" };
+        using var exporter2 = new GenevaTraceExporter(exporterOptions2);
+        Assert.Equal(65360, MessagePackSerializer.StringSizeLimitCharCount);
+
+        var exporterOptions3 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=-1" };
+        var exception3 = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            using var exporter3 = new GenevaTraceExporter(exporterOptions3);
+        });
+        Assert.StartsWith("String size limit must be between 0 and 65360 characters.", exception3.Message);
+
+        var exporterOptions4 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=65365" };
+        var exception4 = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            using var exporter4 = new GenevaTraceExporter(exporterOptions4);
+        });
+        Assert.StartsWith("String size limit must be between 0 and 65360 characters.", exception4.Message);
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void GenevaTraceExporter_Success_Windows()
     {

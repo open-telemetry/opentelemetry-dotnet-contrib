@@ -43,16 +43,34 @@ internal static class MessagePackSerializer
     public const byte MAP32 = 0xDF;
     public const byte EXT_DATE_TIME = 0xFF;
 
+    internal const int DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
+
     private const int LIMIT_MIN_FIX_NEGATIVE_INT = -32;
     private const int LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES = 31;
     private const int LIMIT_MAX_STR8_LENGTH_IN_BYTES = (1 << 8) - 1; // str8 stores 2^8 - 1 bytes
     private const int LIMIT_MAX_FIX_MAP_COUNT = 15;
     private const int LIMIT_MAX_FIX_ARRAY_LENGTH = 15;
-    private const int STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
 #if NET
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
+
+    private const int MAX_ETW_PAYLOAD = 65360; // the maximum ETW payload (inclusive)
+    private static int sStringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT; // custom size limit for strings
+
+    internal static int StringSizeLimitCharCount
+    {
+        get => sStringSizeLimitCharCount;
+        set
+        {
+            if (value < 0 || value > MAX_ETW_PAYLOAD)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), $"String size limit must be between 0 and {MAX_ETW_PAYLOAD} characters.");
+            }
+
+            sStringSizeLimitCharCount = value;
+        }
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeNull(byte[] buffer, int cursor)
@@ -375,14 +393,14 @@ internal static class MessagePackSerializer
         }
 
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= sStringSizeLimitCharCount)
         {
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.ASCII.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
+            cb = Encoding.ASCII.GetBytes(value, 0, sStringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 
@@ -413,14 +431,14 @@ internal static class MessagePackSerializer
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= sStringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value.Slice(0, cch), buffer.AsSpan(cursor));
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value.Slice(0, STRING_SIZE_LIMIT_CHAR_COUNT - 3), buffer.AsSpan(cursor));
+            cb = Encoding.UTF8.GetBytes(value.Slice(0, sStringSizeLimitCharCount - 3), buffer.AsSpan(cursor));
             cursor += cb;
             cb += 3;
 
@@ -450,14 +468,14 @@ internal static class MessagePackSerializer
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= sStringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
+            cb = Encoding.UTF8.GetBytes(value, 0, sStringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 
