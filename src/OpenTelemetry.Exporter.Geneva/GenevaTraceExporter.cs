@@ -68,7 +68,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
         if (useMsgPackExporter)
         {
-            MessagePackSerializer.StringSizeLimitCharCount = connectionStringBuilder.PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount;
+            MessagePackSerializer.StringSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
             var msgPackTraceExporter = new MsgPackTraceExporter(options);
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
