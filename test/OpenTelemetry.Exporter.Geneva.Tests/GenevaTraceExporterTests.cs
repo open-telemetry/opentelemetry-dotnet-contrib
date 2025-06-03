@@ -130,7 +130,7 @@ public class GenevaTraceExporterTests
         });
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void ConnectionString_CustomStringSizeLimit()
     {
         var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };

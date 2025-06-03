@@ -129,7 +129,7 @@ public class GenevaLogExporterTests
         Assert.Equal("ETW cannot be used on non-Windows operating systems.", exception.Message);
     }
 
-    [Fact]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
     public void ConnectionString_CustomStringSizeLimit()
     {
         var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };
