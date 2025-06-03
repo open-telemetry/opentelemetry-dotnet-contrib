@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* **Experimental**: Adds support for configuring a custom string size limit in
+* **Experimental**: Added an option for configuring a custom string size limit in
   the MessagePack serializer to improve ETW buffer space efficiency. The maximum
   string length, in characters, can be set using the
   `PrivatePreviewCustomMessagePackStringSizeLimitCharacterCount=<CharCount>`
