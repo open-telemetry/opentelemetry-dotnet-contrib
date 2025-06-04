@@ -248,9 +248,11 @@ public class ConnectionStringBuilderTests
         Assert.Equal(16383, builder.PrivatePreviewLogMessagePackStringSizeLimit);
         builder = new ConnectionStringBuilder("PrivatePreviewLogMessagePackStringSizeLimit=1024");
         Assert.Equal(1024, builder.PrivatePreviewLogMessagePackStringSizeLimit);
-        builder = new ConnectionStringBuilder("PrivatePreviewLogMessagePackStringSizeLimit=32767");
-        Assert.Equal(32767, builder.PrivatePreviewLogMessagePackStringSizeLimit);
+        builder = new ConnectionStringBuilder("PrivatePreviewLogMessagePackStringSizeLimit=65360");
+        Assert.Equal(65360, builder.PrivatePreviewLogMessagePackStringSizeLimit);
         builder = new ConnectionStringBuilder("PrivatePreviewLogMessagePackStringSizeLimit=-1");
+        Assert.Throws<ArgumentOutOfRangeException>(() => builder.PrivatePreviewLogMessagePackStringSizeLimit);
+        builder = new ConnectionStringBuilder("PrivatePreviewLogMessagePackStringSizeLimit=65361");
         Assert.Throws<ArgumentOutOfRangeException>(() => builder.PrivatePreviewLogMessagePackStringSizeLimit);
     }
 }

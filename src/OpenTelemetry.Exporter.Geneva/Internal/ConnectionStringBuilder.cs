@@ -91,21 +91,21 @@ internal sealed class ConnectionStringBuilder
                 return MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT;
             }
 
-            try
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sizeLimit))
             {
-                var sizeLimit = int.Parse(value, CultureInfo.InvariantCulture);
-                return sizeLimit <= 0
-                    ? throw new ArgumentOutOfRangeException($"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero.", nameof(this.PrivatePreviewLogMessagePackStringSizeLimit))
-                    : sizeLimit;
+                throw new ArgumentException(
+                    $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.",
+                    nameof(this.PrivatePreviewLogMessagePackStringSizeLimit));
             }
-            catch (ArgumentException)
+
+            if (sizeLimit <= 0 || sizeLimit > MsgPackLogExporter.BUFFER_SIZE)
             {
-                throw;
+                throw new ArgumentOutOfRangeException(
+                    nameof(this.PrivatePreviewLogMessagePackStringSizeLimit),
+                    $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero and less than or equal to {MsgPackLogExporter.BUFFER_SIZE} characters.");
             }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.", nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), ex);
-            }
+
+            return sizeLimit;
         }
     }
 

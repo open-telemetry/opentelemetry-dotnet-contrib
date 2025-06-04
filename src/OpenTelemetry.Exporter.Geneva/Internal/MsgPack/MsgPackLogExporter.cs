@@ -17,9 +17,9 @@ namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 {
-    internal static readonly ThreadLocal<byte[]> Buffer = new();
+    public const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
 
-    private const int BUFFER_SIZE = 65360; // the maximum ETW payload (inclusive)
+    internal static readonly ThreadLocal<byte[]> Buffer = new();
 
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
     private static readonly Action<LogRecordScope, MsgPackLogExporter> ProcessScopeForEnvPropertiesAction = OnProcessScopeForEnvProperties;
@@ -88,11 +88,6 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         this.stringFieldSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
-        if (this.stringFieldSizeLimitCharCount > BUFFER_SIZE)
-        {
-            throw new ArgumentOutOfRangeException($"The string size limit for MessagePack strings cannot exceed {BUFFER_SIZE} characters. The provided limit is {this.stringFieldSizeLimitCharCount} characters.");
-        }
-
         if (options.PrepopulatedFields != null)
         {
             this.prepopulatedFieldKeys = [];

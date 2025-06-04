@@ -91,7 +91,6 @@ public class MessagePackSerializerTests
     private void MessagePackSerializer_TestUnicodeStringSerialization(string input, int sizeLimit = (1 << 14) - 1)
     {
         // sizeLimit is the max length of string allowed
-        // var sizeLimit = (1 << 14) - 1; // // Max length of string allowed
         var buffer = new byte[64 * 1024];
         var length = MessagePackSerializer.SerializeUnicodeString(buffer, 0, input, sizeLimit);
 

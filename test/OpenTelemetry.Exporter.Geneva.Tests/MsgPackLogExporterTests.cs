@@ -34,7 +34,9 @@ public class MsgPackLogExporterTests
         }
     }
 
-    internal void Dispose()
+#pragma warning disable xUnit1013 // Public method should be marked as test. This is a common use case: https://xunit.net/docs/shared-context
+    public void Dispose()
+#pragma warning restore xUnit1013 // Public method should be marked as test
     {
         this.server?.Dispose();
         try
@@ -64,34 +66,6 @@ public class MsgPackLogExporterTests
             ConnectionString = this.connectionString + ";PrivatePreviewLogMessagePackStringSizeLimit=65360",
         };
         using var exporter = new MsgPackLogExporter(exporterOptions);
-    }
-
-    [Fact]
-    public void StringSizeLimit_Negative_Success()
-    {
-        var exporterOptions = new GenevaExporterOptions
-        {
-            ConnectionString = this.connectionString + ";PrivatePreviewLogMessagePackStringSizeLimit=-1",
-        };
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            using var exporter = new MsgPackLogExporter(exporterOptions);
-        });
-        Assert.Contains("PrivatePreviewLogMessagePackStringSizeLimit should be greater than zero.", exception.Message);
-    }
-
-    [Fact]
-    public void StringSizeLimit_ExceedsLimit()
-    {
-        var exporterOptions = new GenevaExporterOptions
-        {
-            ConnectionString = this.connectionString + ";PrivatePreviewLogMessagePackStringSizeLimit=65365",
-        };
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            using var exporter = new MsgPackLogExporter(exporterOptions);
-        });
-        Assert.Contains("The string size limit for MessagePack strings cannot exceed 65360 characters. The provided limit is 65365 characters.", exception.Message);
     }
 
     private static string GenerateTempFilePath()
