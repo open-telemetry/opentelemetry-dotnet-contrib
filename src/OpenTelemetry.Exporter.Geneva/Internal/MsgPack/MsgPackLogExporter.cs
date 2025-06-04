@@ -43,6 +43,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     private readonly List<string>? prepopulatedFieldKeys;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
+    private readonly int stringFieldSizeLimitCharCount; // the maximum string size limit for MsgPack strings
 
     // This is used for Scopes
     private readonly ThreadLocal<SerializationDataForScopes> serializationData = new();
@@ -84,6 +85,12 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             case TransportProtocol.Unspecified:
             default:
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
+        }
+
+        this.stringFieldSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
+        if (this.stringFieldSizeLimitCharCount > BUFFER_SIZE)
+        {
+            throw new ArgumentOutOfRangeException($"The string size limit for MessagePack strings cannot exceed {BUFFER_SIZE} characters. The provided limit is {this.stringFieldSizeLimitCharCount} characters.");
         }
 
         if (options.PrepopulatedFields != null)
@@ -302,7 +309,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             if (entry.Key == "{OriginalFormat}")
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture));
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage ?? Convert.ToString(entry.Value, CultureInfo.InvariantCulture), this.stringFieldSizeLimitCharCount);
                 cntFields += 1;
                 bodyPopulated = true;
                 continue;
@@ -324,7 +331,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                         namePopulated = true;
                     }
 
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     cntFields += 1;
                 }
@@ -339,14 +346,14 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         if (!namePopulated)
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, categoryName, this.stringFieldSizeLimitCharCount);
             cntFields += 1;
         }
 
         if (!bodyPopulated && logRecord.FormattedMessage != null)
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "body");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.FormattedMessage, this.stringFieldSizeLimitCharCount);
             cntFields += 1;
         }
 
@@ -381,7 +388,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 }
                 else
                 {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
                     envPropertiesCount += 1;
                 }
@@ -412,11 +419,11 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         if (logRecord.Exception != null)
         {
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_type");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.GetType().FullName);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.GetType().FullName, this.stringFieldSizeLimitCharCount);
             cntFields += 1;
 
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_msg");
-            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message);
+            cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, logRecord.Exception.Message, this.stringFieldSizeLimitCharCount);
             cntFields += 1;
 
             // The current approach relies on the existing trim
@@ -430,7 +437,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
             {
                 var exceptionStack = logRecord.Exception.ToInvariantString();
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack, this.stringFieldSizeLimitCharCount);
                 cntFields += 1;
             }
             else if (this.exportExceptionStack == ExceptionStackExportMode.ExportAsStackTraceString)
@@ -439,7 +446,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 if (exceptionStack != null)
                 {
                     cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_ex_stack");
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack);
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, exceptionStack, this.stringFieldSizeLimitCharCount);
                     cntFields += 1;
                 }
             }

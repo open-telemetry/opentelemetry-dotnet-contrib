@@ -129,33 +129,6 @@ public class GenevaLogExporterTests
         Assert.Equal("ETW cannot be used on non-Windows operating systems.", exception.Message);
     }
 
-    [SkipUnlessPlatformMatchesFact(TestPlatform.Windows)]
-    public void ConnectionString_CustomStringSizeLimit()
-    {
-        var exporterOptions = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry" };
-        using var exporter1 = new GenevaLogExporter(exporterOptions);
-        var defaultStringSizeLimit = (1 << 14) - 1;
-        Assert.Equal(defaultStringSizeLimit, MessagePackSerializer.StringSizeLimitCharCount);
-
-        var exporterOptions2 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewLogMessagePackStringSizeLimit=65360" };
-        using var exporter2 = new GenevaLogExporter(exporterOptions2);
-        Assert.Equal(65360, MessagePackSerializer.StringSizeLimitCharCount);
-
-        var exporterOptions3 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewLogMessagePackStringSizeLimit=-1" };
-        var exception3 = Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            using var exporter3 = new GenevaLogExporter(exporterOptions3);
-        });
-        Assert.StartsWith("String size limit must be between 0 and 65360 characters.", exception3.Message);
-
-        var exporterOptions4 = new GenevaExporterOptions() { ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewLogMessagePackStringSizeLimit=65365" };
-        var exception4 = Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            using var exporter4 = new GenevaLogExporter(exporterOptions4);
-        });
-        Assert.StartsWith("String size limit must be between 0 and 65360 characters.", exception4.Message);
-    }
-
     [Theory]
     [InlineData("categoryA", "TableA")]
     [InlineData("categoryB", "TableB")]

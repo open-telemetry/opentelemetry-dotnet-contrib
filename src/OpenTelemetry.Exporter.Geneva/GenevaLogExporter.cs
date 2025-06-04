@@ -90,7 +90,6 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         if (useMsgPackExporter)
         {
-            MessagePackSerializer.StringSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
             var msgPackLogExporter = new MsgPackLogExporter(options);
             this.IsUsingUnixDomainSocket = msgPackLogExporter.IsUsingUnixDomainSocket;
             this.exportLogRecord = msgPackLogExporter.Export;

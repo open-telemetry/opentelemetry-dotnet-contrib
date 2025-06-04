@@ -82,8 +82,32 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
 
-    public int PrivatePreviewLogMessagePackStringSizeLimit => this.parts.TryGetValue(nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), out var value)
-                && int.TryParse(value, out var intValue) ? intValue : MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT;
+    public int PrivatePreviewLogMessagePackStringSizeLimit
+    {
+        get
+        {
+            if (!this.parts.TryGetValue(nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), out var value))
+            {
+                return MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT;
+            }
+
+            try
+            {
+                var sizeLimit = int.Parse(value, CultureInfo.InvariantCulture);
+                return sizeLimit <= 0
+                    ? throw new ArgumentOutOfRangeException($"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero.", nameof(this.PrivatePreviewLogMessagePackStringSizeLimit))
+                    : sizeLimit;
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.", nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), ex);
+            }
+        }
+    }
 
     public string Endpoint
     {

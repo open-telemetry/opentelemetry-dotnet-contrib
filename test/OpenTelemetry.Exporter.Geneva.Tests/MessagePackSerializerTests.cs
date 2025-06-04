@@ -36,8 +36,7 @@ public class MessagePackSerializerTests
     {
         // sizeLimit is the max length of string allowed
         var buffer = new byte[64 * 1024];
-        MessagePackSerializer.StringSizeLimitCharCount = sizeLimit;
-        var length = MessagePackSerializer.SerializeAsciiString(buffer, 0, input);
+        var length = MessagePackSerializer.SerializeAsciiString(buffer, 0, input, sizeLimit);
         var deserializedString = MessagePack.MessagePackSerializer.Deserialize<string>(buffer);
         if (!string.IsNullOrEmpty(input) && input.Length > sizeLimit)
         {
@@ -94,8 +93,7 @@ public class MessagePackSerializerTests
         // sizeLimit is the max length of string allowed
         // var sizeLimit = (1 << 14) - 1; // // Max length of string allowed
         var buffer = new byte[64 * 1024];
-        MessagePackSerializer.StringSizeLimitCharCount = sizeLimit;
-        var length = MessagePackSerializer.SerializeUnicodeString(buffer, 0, input);
+        var length = MessagePackSerializer.SerializeUnicodeString(buffer, 0, input, sizeLimit);
 
         var deserializedString = MessagePack.MessagePackSerializer.Deserialize<string>(buffer);
         if (!string.IsNullOrEmpty(input) && input.Length > sizeLimit)

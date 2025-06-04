@@ -55,23 +55,6 @@ internal static class MessagePackSerializer
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
 #endif
 
-    private const int MAX_ETW_PAYLOAD = 65360; // the maximum ETW payload (inclusive)
-    private static int sStringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT; // custom size limit for strings
-
-    internal static int StringSizeLimitCharCount
-    {
-        get => sStringSizeLimitCharCount;
-        set
-        {
-            if (value < 0 || value > MAX_ETW_PAYLOAD)
-            {
-                throw new ArgumentOutOfRangeException(nameof(value), $"String size limit must be between 0 and {MAX_ETW_PAYLOAD} characters.");
-            }
-
-            sStringSizeLimitCharCount = value;
-        }
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SerializeNull(byte[] buffer, int cursor)
     {
@@ -349,7 +332,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value)
+    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         if (value == null)
         {
@@ -393,14 +376,14 @@ internal static class MessagePackSerializer
         }
 
         cursor += 3;
-        if (cch <= sStringSizeLimitCharCount)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.ASCII.GetBytes(value, 0, sStringSizeLimitCharCount - 3, buffer, cursor);
+            cb = Encoding.ASCII.GetBytes(value, 0, stringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 
@@ -419,26 +402,26 @@ internal static class MessagePackSerializer
 #if NET
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
-        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan());
+        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         var start = cursor;
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= sStringSizeLimitCharCount)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value.Slice(0, cch), buffer.AsSpan(cursor));
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value.Slice(0, sStringSizeLimitCharCount - 3), buffer.AsSpan(cursor));
+            cb = Encoding.UTF8.GetBytes(value.Slice(0, stringSizeLimitCharCount - 3), buffer.AsSpan(cursor));
             cursor += cb;
             cb += 3;
 
@@ -457,7 +440,7 @@ internal static class MessagePackSerializer
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         if (value == null)
         {
@@ -468,14 +451,14 @@ internal static class MessagePackSerializer
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= sStringSizeLimitCharCount)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value, 0, sStringSizeLimitCharCount - 3, buffer, cursor);
+            cb = Encoding.UTF8.GetBytes(value, 0, stringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 
