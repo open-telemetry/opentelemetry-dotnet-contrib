@@ -16,22 +16,29 @@ internal class SqsRequestContextHelper
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
         var originalRequest = context.OriginalRequest as SendMessageRequest;
-        if (originalRequest?.MessageAttributes == null)
+        if (originalRequest == null)
         {
             return;
         }
 
-        if (attributes.Keys.Any(originalRequest.MessageAttributes.ContainsKey))
+        if (originalRequest.MessageAttributes == null)
         {
-            // If at least one attribute is already present in the request then we skip the injection.
-            return;
+            originalRequest.MessageAttributes = new Dictionary<string, MessageAttributeValue>(attributes.Count);
         }
-
-        var attributesCount = originalRequest.MessageAttributes.Count;
-        if (attributes.Count + attributesCount > MaxMessageAttributes)
+        else
         {
-            // TODO: add logging (event source).
-            return;
+            if (attributes.Keys.Any(originalRequest.MessageAttributes.ContainsKey))
+            {
+                // If at least one attribute is already present in the request then we skip the injection.
+                return;
+            }
+
+            var attributesCount = originalRequest.MessageAttributes.Count;
+            if (attributes.Count + attributesCount > MaxMessageAttributes)
+            {
+                // TODO: add logging (event source).
+                return;
+            }
         }
 
         foreach (var param in attributes)

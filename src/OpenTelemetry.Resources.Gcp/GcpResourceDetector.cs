@@ -59,8 +59,17 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeCloudAccount, platform.ProjectId),
             new(ResourceSemanticConventions.AttributeCloudAvailabilityZone, platform.CloudRunDetails.Zone),
             new(ResourceSemanticConventions.AttributeCloudPlatform, ResourceAttributeConstants.GcpCloudRunPlatformValue),
-            new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region)
+            new(ResourceSemanticConventions.AttributeCloudRegion, platform.CloudRunDetails.Region),
+            new(ResourceSemanticConventions.AttributeFaasName, platform.CloudRunDetails.ServiceName),
+            new(ResourceSemanticConventions.AttributeFaasVersion, platform.CloudRunDetails.RevisionName)
         ];
+
+        // For faas.instance, use the GCE instance ID from the metadata service
+        // This is the unique ID of the compute instance that the Cloud Run service is running on
+        if (platform.GceDetails != null && !string.IsNullOrEmpty(platform.GceDetails.InstanceId))
+        {
+            attributeList.Add(new(ResourceSemanticConventions.AttributeFaasInstance, platform.GceDetails.InstanceId));
+        }
 
         return attributeList;
     }

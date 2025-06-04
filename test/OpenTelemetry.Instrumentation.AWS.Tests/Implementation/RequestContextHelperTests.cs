@@ -43,8 +43,10 @@ public class RequestContextHelperTests
         Assert.Equal(30, parameters.Count);
     }
 
-    [Fact]
-    public void SQS_AddAttributes_MessageAttributes_TraceDataInjected()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SQS_AddAttributes_MessageAttributes_TraceDataInjected(bool initializeMessageAttributes)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
@@ -54,7 +56,8 @@ public class RequestContextHelperTests
 
         var originalRequest = new SQS.SendMessageRequest()
         {
-            MessageAttributes = [],
+            // The test parameter is used to simulate the AWS SDK's AWSConfigs.InitializeCollections setting.
+            MessageAttributes = initializeMessageAttributes ? [] : null,
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
@@ -64,8 +67,10 @@ public class RequestContextHelperTests
         TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
     }
 
-    [Fact]
-    public void SNS_AddAttributes_MessageAttributes_TraceDataInjected()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SNS_AddAttributes_MessageAttributes_TraceDataInjected(bool initializeMessageAttributes)
     {
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
@@ -75,7 +80,8 @@ public class RequestContextHelperTests
 
         var originalRequest = new SNS.PublishRequest()
         {
-            MessageAttributes = [],
+            // The test parameter is used to simulate the AWS SDK's AWSConfigs.InitializeCollections setting.
+            MessageAttributes = initializeMessageAttributes ? [] : null,
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
@@ -92,14 +98,25 @@ public class RequestContextHelperTests
         // if at least one attribute is already present the whole injection is skipped.
         // We just use default trace propagator as an example which injects only traceparent and tracestate.
 
+        string traceParentValue = $"00-{TraceId}-{ParentId}-00";
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
-            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("traceparent", traceParentValue),
         };
 
         var originalRequest = new SQS.SendMessageRequest()
         {
-            MessageAttributes = [],
+            MessageAttributes = new Dictionary<string, SQS.MessageAttributeValue>
+            {
+                {
+                    "traceparent",
+                    new SQS.MessageAttributeValue
+                    {
+                        DataType = "String",
+                        StringValue = traceParentValue,
+                    }
+                },
+            },
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
@@ -107,6 +124,7 @@ public class RequestContextHelperTests
         SqsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
+        Assert.DoesNotContain("tracestate", originalRequest.MessageAttributes);
     }
 
     [Fact]
@@ -116,14 +134,25 @@ public class RequestContextHelperTests
         // if at least one attribute is already present the whole injection is skipped.
         // We just use default trace propagator as an example which injects only traceparent and tracestate.
 
+        string traceParentValue = $"00-{TraceId}-{ParentId}-00";
         var expectedParameters = new List<KeyValuePair<string, string>>
         {
-            new("traceparent", $"00-{TraceId}-{ParentId}-00"),
+            new("traceparent", traceParentValue),
         };
 
         var originalRequest = new SNS.PublishRequest()
         {
-            MessageAttributes = [],
+            MessageAttributes = new Dictionary<string, SNS.MessageAttributeValue>
+            {
+                {
+                    "traceparent",
+                    new SNS.MessageAttributeValue
+                    {
+                        DataType = "String",
+                        StringValue = traceParentValue,
+                    }
+                },
+            },
         };
 
         var context = new TestRequestContext(originalRequest, new TestRequest());
@@ -131,6 +160,7 @@ public class RequestContextHelperTests
         SnsRequestContextHelper.AddAttributes(context, AWSMessagingUtils.InjectIntoDictionary(CreatePropagationContext()));
 
         TestsHelper.AssertMessageParameters(expectedParameters, originalRequest);
+        Assert.DoesNotContain("tracestate", originalRequest.MessageAttributes);
     }
 
     private static PropagationContext CreatePropagationContext()
