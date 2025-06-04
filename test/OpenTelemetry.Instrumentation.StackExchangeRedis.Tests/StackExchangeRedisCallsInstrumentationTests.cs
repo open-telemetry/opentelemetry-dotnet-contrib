@@ -384,14 +384,15 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Empty(instrumentation.InstrumentedConnections);
     }
 
-    [Fact]
-    public void FilterOption_FiltersOutSpecifiedCommands()
+    [InlineData("value1")]
+    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
+    public void FilterOption_FiltersOutSpecifiedCommands(string value)
     {
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
         };
-        connectionOptions.EndPoints.Add("localhost");
+        connectionOptions.EndPoints.Add(RedisEndPoint!);
 
         using var connection = ConnectionMultiplexer.Connect(connectionOptions);
         var db = connection.GetDatabase();
@@ -407,7 +408,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             })
             .Build())
         {
-            db.StringSet("key1", "value1");
+            db.StringSet("key1", value);
             db.StringGet("key1");
         }
 
