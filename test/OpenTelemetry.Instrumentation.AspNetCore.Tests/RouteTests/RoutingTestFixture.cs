@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using RouteTests.TestApplication;
@@ -90,8 +91,14 @@ public class RoutingTestFixture : IAsyncLifetime
             sb.AppendLine("```");
         }
 
+        string routeTestsPath =
+            typeof(TestApplicationFactory).Assembly
+            .GetCustomAttributes()
+            .OfType<AssemblyMetadataAttribute>()
+            .FirstOrDefault((p) => p.Key is "RouteTestsPath")?.Value ?? ".";
+
         var readmeFileName = $"README.net{Environment.Version.Major}.0.md";
-        File.WriteAllText(Path.Combine("..", "..", "..", "RouteTests", readmeFileName), sb.ToString());
+        File.WriteAllText(Path.Combine(routeTestsPath, readmeFileName), sb.ToString());
 
         // Generates a link fragment that should comply with markdownlint rule MD051
         // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md
@@ -101,8 +108,7 @@ public class RoutingTestFixture : IAsyncLifetime
                 .Where(c => (!char.IsPunctuation(c) && c != '`') || c == '-')
                 .Select(c => c switch
                 {
-                    '-' => '-',
-                    ' ' => '-',
+                    '-' or ' ' => '-',
                     _ => char.ToLower(c, CultureInfo.InvariantCulture),
                 })
                 .ToArray();
