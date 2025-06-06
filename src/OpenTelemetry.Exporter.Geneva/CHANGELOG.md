@@ -8,6 +8,7 @@
   connection string parameter.
   ([#2813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2813))
 * Add httpUrl for HTTP server spans mapped from multiple attributes.
+  ([#2818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2818))
 
 ## 1.12.0
 
