@@ -296,8 +296,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             var host = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.name"]
             var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.port"]
             port = port != null ? $":{port}" : string.Empty;
-            var target = httpUrlParts[3]?.ToString();  // 3 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.target"]
-            target = target != null ? $"?{target}" : string.Empty;
+            var target = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.target"]
 
             var length = scheme.Length + Uri.SchemeDelimiter.Length + host.Length + port.Length + target.Length;
 
