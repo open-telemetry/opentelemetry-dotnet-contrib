@@ -336,6 +336,89 @@ public class GenevaTraceExporterTests
         }
     }
 
+    [Fact]
+    public void GenevaTraceExporter_ServerSpan_HttpUrl_Success()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var invocationCount = 0;
+            var exporterOptions = new GenevaExporterOptions();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions);
+
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.AssertHttpUrlForActivity(exporterOptions, fluentdData, activity);
+                invocationCount++;
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            var source = new ActivitySource(sourceName);
+
+            // HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query
+            // attributes for HTTP server spans.
+            using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
+            {
+                parent.SetTag("http.request.method", "GET");
+                parent.SetTag("url.scheme", "https");
+                parent.SetTag("server.address", "localhost");
+                parent.SetTag("server.port", 443);
+                parent.SetTag("url.path", "/wiki/Rabbit");
+
+                // HTTP semconv: url.full attribute for HTTP client spans.
+                using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
+                {
+                    child.SetTag("http.request.method", "GET");
+                    child.SetTag("url.full", "https://www.wikipedia.org/wiki/Rabbit?id=7");
+                    child.SetTag("http.status_code", 404);
+                }
+
+                parent?.SetTag("http.response.status_code", 200);
+            }
+
+            Assert.Equal(2, invocationCount);
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Constructor_Missing_Agent_Linux()
     {
@@ -777,5 +860,71 @@ public class GenevaTraceExporterTests
         Assert.Equal("DateTime", timeFormat["TimeFormat"]);
 
         customChecksForActivity?.Invoke(mapping);
+    }
+
+    private void AssertHttpUrlForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity)
+    {
+        /* Fluentd Forward Mode:
+        [
+            "Span",
+            [
+                [ <timestamp>, { "env_ver": "4.0", ... } ]
+            ],
+            { "TimeFormat": "DateTime" }
+        ]
+        */
+
+        var signal = (fluentdData as object[])[0] as string;
+        var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+        var timeStamp = (DateTime)(TimeStampAndMappings as object[])[0];
+        var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+
+        Assert.Equal((byte)activity.Kind, mapping["kind"]);
+        var tags = activity.TagObjects.ToDictionary(tag => tag.Key, tag => tag.Value);
+
+        if (activity.Kind == ActivityKind.Server)
+        {
+            // For HTTP server spans, they might contain these attributes for URL:
+            // Unstable HTTP semconv: Combination of http.scheme, net.host.name, net.host.port, and http.target attributes.
+            // Stable HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query attributes.
+            // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
+            Assert.DoesNotContain("http.scheme", mapping.Keys);
+            Assert.DoesNotContain("net.host.name", mapping.Keys);
+            Assert.DoesNotContain("net.host.port", mapping.Keys);
+            Assert.DoesNotContain("http.target", mapping.Keys);
+            Assert.DoesNotContain("url.scheme", mapping.Keys);
+            Assert.DoesNotContain("server.address", mapping.Keys);
+            Assert.DoesNotContain("server.port", mapping.Keys);
+            Assert.DoesNotContain("url.path", mapping.Keys);
+            Assert.DoesNotContain("url.query", mapping.Keys);
+
+            Assert.Equal("GET", mapping["httpMethod"]);
+            Assert.Equal("https://localhost:443/wiki/Rabbit", mapping["httpUrl"]);
+
+            Assert.DoesNotContain("http.status_code", mapping.Keys);
+            Assert.DoesNotContain("http.response.status_code", mapping.Keys);
+            Assert.Equal(200, Convert.ToInt32(mapping["httpStatusCode"]));
+        }
+        else if (activity.Kind == ActivityKind.Client)
+        {
+            // For HTTP client spans, they might contain this attribute for URL:
+            // Unstable HTTP semconv: http.url attribute.
+            // Stable HTTP semconv: url.full attribute.
+            // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
+            Assert.DoesNotContain("http.url", mapping.Keys);
+            Assert.DoesNotContain("url.full", mapping.Keys);
+
+            Assert.Equal("GET", mapping["httpMethod"]);
+
+            Assert.Equal(tags["url.full"], mapping["httpUrl"]);
+
+            Assert.DoesNotContain("http.status_code", mapping.Keys);
+            Assert.DoesNotContain("http.response.status_code", mapping.Keys);
+            Assert.Equal(404, Convert.ToInt32(mapping["httpStatusCode"]));
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unexpected ActivityKind: {activity.Kind}. Expected either Server or Client.");
+        }
     }
 }
