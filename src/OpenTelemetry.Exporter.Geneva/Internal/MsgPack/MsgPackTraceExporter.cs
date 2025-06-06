@@ -37,12 +37,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     {
         // Mapping from HTTP semconv to httpUrl
         // Combination of url.scheme, server.address, server.port, url.path and url.query attributes for HTTP server spans
-        ["http.request.method"] = 0,
-        ["url.scheme"] = 1,
-        ["server.address"] = 2,
-        ["server.port"] = 3,
-        ["url.path"] = 4,
-        ["url.query"] = 5,
+        ["url.scheme"] = 0,
+        ["server.address"] = 1,
+        ["server.port"] = 2,
+        ["url.path"] = 3,
+        ["url.query"] = 4,
     };
 
 #if NET
@@ -286,33 +285,31 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal static string? GetHttpUrl(object?[] httpUrlParts)
     {
-        if (httpUrlParts[0] != null)
-        {
-            // OpenTelemetry Stable Semantic Convention
-            var scheme = httpUrlParts[1]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.scheme"]
-            var address = httpUrlParts[2]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING["server.address"]
-            var port = httpUrlParts[3]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING["server.port"]
-            port = port != null ? $":{port}" : string.Empty;
-            var path = httpUrlParts[4]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
-            var query = httpUrlParts[5]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
-            query = query != null ? $"?{query}" : string.Empty;
+        // OpenTelemetry Semantic Convention: https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/http/http-spans.md#http-server-semantic-conventions
+        var scheme = httpUrlParts[0]?.ToString() ?? string.Empty;  // 0 => CS40_PART_B_HTTPURL_MAPPING["url.scheme"]
+        var address = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING["server.address"]
+        var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING["server.port"]
+        port = port != null ? $":{port}" : string.Empty;
+        var path = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
+        var query = httpUrlParts[4]?.ToString();  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
+        query = query != null ? $"?{query}" : string.Empty;
 
-            var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
+        var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
 
-            var urlStringBuilder = new StringBuilder(length)
-                .Append(scheme)
-                .Append(Uri.SchemeDelimiter)
-                .Append(address)
-                .Append(port)
-                .Append(path)
-                .Append(query);
-
-            return urlStringBuilder.ToString();
-        }
-        else
+        if (length == Uri.SchemeDelimiter.Length) // No URL elements found, i.e. no address, no port, no path, no query
         {
             return null;
         }
+
+        var urlStringBuilder = new StringBuilder(length)
+            .Append(scheme)
+            .Append(Uri.SchemeDelimiter)
+            .Append(address)
+            .Append(port)
+            .Append(path)
+            .Append(query);
+
+        return urlStringBuilder.ToString();
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)
@@ -448,10 +445,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             if (isServerActivity && CacheIfPartOfHttpUrl(entry, httpUrlParts))
             {
-                if (entry.Key != "http.request.method")
-                {
-                    continue; // Skip this entry, since it is part of httpUrl.
-                }
+                continue; // Skip this entry, since it is part of httpUrl.
             }
 
             // TODO: check name collision
