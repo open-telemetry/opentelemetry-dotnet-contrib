@@ -73,6 +73,18 @@ internal static class RedisProfilerEntryToActivityConverter
 
     public static Activity? ProfilerCommandToActivity(Activity? parentActivity, IProfiledCommand command, StackExchangeRedisInstrumentationOptions options)
     {
+        try
+        {
+            if (options.Filter != null && !options.Filter(command))
+            {
+                return null;
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
         var name = command.Command; // Example: SET;
         if (string.IsNullOrEmpty(name))
         {

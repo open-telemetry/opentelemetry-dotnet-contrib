@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for early filtering of telemetry collection via a `Filter` option
+  ([#2804](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2804))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
