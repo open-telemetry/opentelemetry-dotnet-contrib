@@ -61,6 +61,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal readonly ThreadLocal<byte[]> Buffer = new();
 
+    internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
+
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
 
@@ -264,6 +266,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             (this.dataTransport as IDisposable)?.Dispose();
             this.Buffer.Dispose();
+            this.HttpUrlParts.Dispose();
         }
         catch (Exception ex)
         {
@@ -454,7 +457,19 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         string? statusDescription = null;
 
         var isServerActivity = activity.Kind == ActivityKind.Server;
-        var httpUrlParts = isServerActivity ? new object?[CS40_PART_B_HTTPURL_MAPPING_LIST.Count] : [];
+        var httpUrlParts = this.HttpUrlParts.Value ?? new object?[CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        if (isServerActivity)
+        {
+            if (this.HttpUrlParts.Value == null)
+            {
+                this.HttpUrlParts.Value = httpUrlParts;
+            }
+            else
+            {
+                Array.Clear(httpUrlParts, 0, httpUrlParts.Length);
+            }
+        }
+
         string? httpMethodString = null;  // Used to determine which HTTP version to use for httpUrl.
 
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
