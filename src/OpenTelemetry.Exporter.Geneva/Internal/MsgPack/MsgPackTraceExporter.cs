@@ -7,6 +7,7 @@ using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
@@ -14,14 +15,16 @@ namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
+    internal const string HTTP_METHOD_V1 = "http.method";
+    internal const string HTTP_METHOD_V2 = "http.request.method";
     internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
         ["db.statement"] = "dbStatement",
 
-        ["http.method"] = "httpMethod",
-        ["http.request.method"] = "httpMethod",
+        [HTTP_METHOD_V1] = "httpMethod",
+        [HTTP_METHOD_V2] = "httpMethod",
         ["http.url"] = "httpUrl",
         ["url.full"] = "httpUrl",
         ["http.status_code"] = "httpStatusCode",
@@ -30,6 +33,24 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.system"] = "messagingSystem",
         ["messaging.destination"] = "messagingDestination",
         ["messaging.url"] = "messagingUrl",
+    };
+
+    internal static readonly Dictionary<string, int> CS40_PART_B_HTTPURL_MAPPING_LIST = new()
+    {
+        // Mapping from unstable HTTP semconv to httpUrl
+        // Combination of http.scheme, net.host.name, net.host.port, and http.target attributes for HTTP server spans
+        ["http.scheme"] = 0,
+        ["net.host.name"] = 1,
+        ["net.host.port"] = 2,
+        ["http.target"] = 3,
+
+        // Mapping from stable HTTP semconv to httpUrl
+        // Combination of url.scheme, server.address, server.port, url.path and url.query attributes for HTTP server spans
+        ["url.scheme"] = 4,
+        ["server.address"] = 5,
+        ["server.port"] = 6,
+        ["url.path"] = 7,
+        ["url.query"] = 8,
     };
 
 #if NET
@@ -252,6 +273,72 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
+    internal static bool CacheIfPartOfHttpUrl(KeyValuePair<string, object?> entry, object?[] httpUrlParts)
+    {
+        if (CS40_PART_B_HTTPURL_MAPPING_LIST.TryGetValue(entry.Key, out var index))
+        {
+            if (index < httpUrlParts.Length)
+            {
+                httpUrlParts[index] = entry.Value;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    internal static string? GetHttpUrl(string httpMethod, object?[] httpUrlParts)
+    {
+        if (httpMethod == HTTP_METHOD_V1)
+        {
+            // OpenTelemetry Unstable Semantic Convention
+            var scheme = httpUrlParts[0]?.ToString() ?? string.Empty;  // 0 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.scheme"]
+            var host = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.name"]
+            var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.port"]
+            port = port != null ? $":{port}" : string.Empty;
+            var target = httpUrlParts[3]?.ToString();  // 3 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.target"]
+            target = target != null ? $"?{target}" : string.Empty;
+
+            var length = scheme.Length + Uri.SchemeDelimiter.Length + host.Length + port.Length + target.Length;
+
+            var urlStringBuilder = new StringBuilder(length)
+                .Append(scheme)
+                .Append(Uri.SchemeDelimiter)
+                .Append(host)
+                .Append(port)
+                .Append(target);
+
+            return urlStringBuilder.ToString();
+        }
+        else if (httpMethod == HTTP_METHOD_V2)
+        {
+            // OpenTelemetry Stable Semantic Convention
+            var scheme = httpUrlParts[4]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.scheme"]
+            var address = httpUrlParts[5]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING_LIST["server.address"]
+            var port = httpUrlParts[6]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING_LIST["server.port"]
+            port = port != null ? $":{port}" : string.Empty;
+            var path = httpUrlParts[7]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.path"]
+            var query = httpUrlParts[8]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.query"]
+            query = query != null ? $"?{query}" : string.Empty;
+
+            var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
+
+            var urlStringBuilder = new StringBuilder(length)
+                .Append(scheme)
+                .Append(Uri.SchemeDelimiter)
+                .Append(address)
+                .Append(port)
+                .Append(path)
+                .Append(query);
+
+            return urlStringBuilder.ToString();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
@@ -367,12 +454,26 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var isStatusSuccess = true;
         string? statusDescription = null;
 
+        var isServerActivity = activity.Kind == ActivityKind.Server;
+        var httpUrlParts = isServerActivity ? new object?[CS40_PART_B_HTTPURL_MAPPING_LIST.Count] : [];
+        string? httpMethodString = null;  // Used to determine which HTTP version to use for httpUrl.
+
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
+            if (isServerActivity && CacheIfPartOfHttpUrl(entry, httpUrlParts))
+            {
+                continue; // Skip this entry, since it is part of httpUrl.
+            }
+
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+
+                if (isServerActivity && replacementKey == "httpMethod")
+                {
+                    httpMethodString = entry.Key;
+                }
             }
             else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
             {
@@ -391,6 +492,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
             cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
             cntFields += 1;
+        }
+
+        if (isServerActivity && httpMethodString != null)
+        {
+            var httpUrl = GetHttpUrl(httpMethodString, httpUrlParts);
+            if (httpUrl != null)
+            {
+                // If the activity is a server activity and has http.url, we need to add it as a dedicated field.
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "httpUrl");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, httpUrl);
+                cntFields += 1;
+            }
         }
 
         if (hasEnvProperties)
