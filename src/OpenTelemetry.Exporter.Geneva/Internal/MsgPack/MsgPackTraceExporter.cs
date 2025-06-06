@@ -296,7 +296,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
 
-        if (length == Uri.SchemeDelimiter.Length) // No URL elements found, i.e. no address, no port, no path, no query
+        // No URL elements found, i.e. no scheme, no address, no port, no path, no query
+        if (length == Uri.SchemeDelimiter.Length)
         {
             return null;
         }
