@@ -12,7 +12,7 @@ public class MsgPackTraceExporterTests
     public void CacheIfPartOfHttpUrl_KeyPresent_IndexInRange_SetsValueAndReturnsTrue()
     {
         var entry = new KeyValuePair<string, object?>("http.scheme", "https");
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
         var result = MsgPackTraceExporter.CacheIfPartOfHttpUrl(entry, arr);
         Assert.True(result);
         Assert.Equal("https", arr[0]);
@@ -31,7 +31,7 @@ public class MsgPackTraceExporterTests
     public void CacheIfPartOfHttpUrl_KeyNotPresent_ReturnsFalse()
     {
         var entry = new KeyValuePair<string, object?>("not.a.key", "value");
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
         var result = MsgPackTraceExporter.CacheIfPartOfHttpUrl(entry, arr);
         Assert.False(result);
     }
@@ -40,7 +40,7 @@ public class MsgPackTraceExporterTests
     public void CacheIfPartOfHttpUrl_NullValue_SetsNull()
     {
         var entry = new KeyValuePair<string, object?>("http.scheme", null);
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
         var result = MsgPackTraceExporter.CacheIfPartOfHttpUrl(entry, arr);
         Assert.True(result);
         Assert.Null(arr[0]);
@@ -60,7 +60,7 @@ public class MsgPackTraceExporterTests
     [InlineData(MsgPackTraceExporter.HTTP_METHOD_V2, "http", "host", "", "/x?y=1", "http://host/x?y=1")]
     public void GetHttpUrl_ReturnsExpectedUrl(string method, string scheme, string hostOrAddress, string port, string pathOrTarget, string expected)
     {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_MAPPING_DICTIONARY.Count];
         if (method == MsgPackTraceExporter.HTTP_METHOD_V1)
         {
             arr[0] = scheme;
@@ -92,7 +92,7 @@ public class MsgPackTraceExporterTests
     [Fact]
     public void GetHttpUrl_UnknownMethod_ReturnsNull()
     {
-        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var arr = new object?[MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.Count];
         var url = MsgPackTraceExporter.GetHttpUrl("not.a.method", arr);
         Assert.Null(url);
     }

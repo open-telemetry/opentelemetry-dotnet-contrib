@@ -35,7 +35,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         ["messaging.url"] = "messagingUrl",
     };
 
-    internal static readonly Dictionary<string, int> CS40_PART_B_HTTPURL_MAPPING_LIST = new()
+    internal static readonly Dictionary<string, int> CS40_PART_B_HTTPURL_MAPPING_DICTIONARY = new()
     {
         // Mapping from unstable HTTP semconv to httpUrl
         // Combination of http.scheme, net.host.name, net.host.port, and http.target attributes for HTTP server spans
@@ -55,8 +55,10 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
 #if NET
     internal static readonly FrozenDictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY.ToFrozenDictionary();
+    internal static readonly FrozenDictionary<string, int> CS40_PART_B_HTTPURL_MAPPING = CS40_PART_B_HTTPURL_MAPPING_DICTIONARY.ToFrozenDictionary();
 #else
     internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING = CS40_PART_B_MAPPING_DICTIONARY;
+    internal static readonly Dictionary<string, int> CS40_PART_B_HTTPURL_MAPPING = CS40_PART_B_HTTPURL_MAPPING_DICTIONARY;
 #endif
 
     internal readonly ThreadLocal<byte[]> Buffer = new();
@@ -278,7 +280,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal static bool CacheIfPartOfHttpUrl(KeyValuePair<string, object?> entry, object?[] httpUrlParts)
     {
-        if (CS40_PART_B_HTTPURL_MAPPING_LIST.TryGetValue(entry.Key, out var index))
+        if (CS40_PART_B_HTTPURL_MAPPING.TryGetValue(entry.Key, out var index))
         {
             if (index < httpUrlParts.Length)
             {
@@ -295,11 +297,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         if (httpMethod == HTTP_METHOD_V1)
         {
             // OpenTelemetry Unstable Semantic Convention
-            var scheme = httpUrlParts[0]?.ToString() ?? string.Empty;  // 0 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.scheme"]
-            var host = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.name"]
-            var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING_LIST["net.host.port"]
+            var scheme = httpUrlParts[0]?.ToString() ?? string.Empty;  // 0 => CS40_PART_B_HTTPURL_MAPPING["http.scheme"]
+            var host = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING["net.host.name"]
+            var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING["net.host.port"]
             port = port != null ? $":{port}" : string.Empty;
-            var target = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING_LIST["http.target"]
+            var target = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING["http.target"]
 
             var length = scheme.Length + Uri.SchemeDelimiter.Length + host.Length + port.Length + target.Length;
 
@@ -315,12 +317,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         else if (httpMethod == HTTP_METHOD_V2)
         {
             // OpenTelemetry Stable Semantic Convention
-            var scheme = httpUrlParts[4]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.scheme"]
-            var address = httpUrlParts[5]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING_LIST["server.address"]
-            var port = httpUrlParts[6]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING_LIST["server.port"]
+            var scheme = httpUrlParts[4]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.scheme"]
+            var address = httpUrlParts[5]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING["server.address"]
+            var port = httpUrlParts[6]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING["server.port"]
             port = port != null ? $":{port}" : string.Empty;
-            var path = httpUrlParts[7]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.path"]
-            var query = httpUrlParts[8]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING_LIST["url.query"]
+            var path = httpUrlParts[7]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
+            var query = httpUrlParts[8]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
             query = query != null ? $"?{query}" : string.Empty;
 
             var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
@@ -457,7 +459,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         string? statusDescription = null;
 
         var isServerActivity = activity.Kind == ActivityKind.Server;
-        var httpUrlParts = this.HttpUrlParts.Value ?? new object?[CS40_PART_B_HTTPURL_MAPPING_LIST.Count];
+        var httpUrlParts = this.HttpUrlParts.Value ?? new object?[CS40_PART_B_HTTPURL_MAPPING.Count];
         if (isServerActivity)
         {
             if (this.HttpUrlParts.Value == null)
