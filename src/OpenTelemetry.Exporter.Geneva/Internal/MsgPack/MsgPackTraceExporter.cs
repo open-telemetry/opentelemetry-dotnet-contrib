@@ -15,16 +15,14 @@ namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
 internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 {
-    internal const string HTTP_METHOD_V1 = "http.method";
-    internal const string HTTP_METHOD_V2 = "http.request.method";
     internal static readonly Dictionary<string, string> CS40_PART_B_MAPPING_DICTIONARY = new()
     {
         ["db.system"] = "dbSystem",
         ["db.name"] = "dbName",
         ["db.statement"] = "dbStatement",
 
-        [HTTP_METHOD_V1] = "httpMethod",
-        [HTTP_METHOD_V2] = "httpMethod",
+        ["http.method"] = "httpMethod",
+        ["http.request.method"] = "httpMethod",
         ["http.url"] = "httpUrl",
         ["url.full"] = "httpUrl",
         ["http.status_code"] = "httpStatusCode",
@@ -37,20 +35,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal static readonly Dictionary<string, int> CS40_PART_B_HTTPURL_MAPPING_DICTIONARY = new()
     {
-        // Mapping from unstable HTTP semconv to httpUrl
-        // Combination of http.scheme, net.host.name, net.host.port, and http.target attributes for HTTP server spans
-        ["http.scheme"] = 0,
-        ["net.host.name"] = 1,
-        ["net.host.port"] = 2,
-        ["http.target"] = 3,
-
-        // Mapping from stable HTTP semconv to httpUrl
+        // Mapping from HTTP semconv to httpUrl
         // Combination of url.scheme, server.address, server.port, url.path and url.query attributes for HTTP server spans
-        ["url.scheme"] = 4,
-        ["server.address"] = 5,
-        ["server.port"] = 6,
-        ["url.path"] = 7,
-        ["url.query"] = 8,
+        ["http.request.method"] = 0,
+        ["url.scheme"] = 1,
+        ["server.address"] = 2,
+        ["server.port"] = 3,
+        ["url.path"] = 4,
+        ["url.query"] = 5,
     };
 
 #if NET
@@ -292,37 +284,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return false;
     }
 
-    internal static string? GetHttpUrl(string httpMethod, object?[] httpUrlParts)
+    internal static string? GetHttpUrl(object?[] httpUrlParts)
     {
-        if (httpMethod == HTTP_METHOD_V1)
-        {
-            // OpenTelemetry Unstable Semantic Convention
-            var scheme = httpUrlParts[0]?.ToString() ?? string.Empty;  // 0 => CS40_PART_B_HTTPURL_MAPPING["http.scheme"]
-            var host = httpUrlParts[1]?.ToString() ?? string.Empty;  // 1 => CS40_PART_B_HTTPURL_MAPPING["net.host.name"]
-            var port = httpUrlParts[2]?.ToString();  // 2 => CS40_PART_B_HTTPURL_MAPPING["net.host.port"]
-            port = port != null ? $":{port}" : string.Empty;
-            var target = httpUrlParts[3]?.ToString() ?? string.Empty;  // 3 => CS40_PART_B_HTTPURL_MAPPING["http.target"]
-
-            var length = scheme.Length + Uri.SchemeDelimiter.Length + host.Length + port.Length + target.Length;
-
-            var urlStringBuilder = new StringBuilder(length)
-                .Append(scheme)
-                .Append(Uri.SchemeDelimiter)
-                .Append(host)
-                .Append(port)
-                .Append(target);
-
-            return urlStringBuilder.ToString();
-        }
-        else if (httpMethod == HTTP_METHOD_V2)
+        if (httpUrlParts[0] != null)
         {
             // OpenTelemetry Stable Semantic Convention
-            var scheme = httpUrlParts[4]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.scheme"]
-            var address = httpUrlParts[5]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING["server.address"]
-            var port = httpUrlParts[6]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING["server.port"]
+            var scheme = httpUrlParts[1]?.ToString() ?? string.Empty;  // 4 => CS40_PART_B_HTTPURL_MAPPING["url.scheme"]
+            var address = httpUrlParts[2]?.ToString() ?? string.Empty;  // 5 => CS40_PART_B_HTTPURL_MAPPING["server.address"]
+            var port = httpUrlParts[3]?.ToString();  // 6 => CS40_PART_B_HTTPURL_MAPPING["server.port"]
             port = port != null ? $":{port}" : string.Empty;
-            var path = httpUrlParts[7]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
-            var query = httpUrlParts[8]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
+            var path = httpUrlParts[4]?.ToString() ?? string.Empty;  // 7 => CS40_PART_B_HTTPURL_MAPPING["url.path"]
+            var query = httpUrlParts[5]?.ToString();  // 8 => CS40_PART_B_HTTPURL_MAPPING["url.query"]
             query = query != null ? $"?{query}" : string.Empty;
 
             var length = scheme.Length + Uri.SchemeDelimiter.Length + address.Length + port.Length + path.Length + query.Length;
@@ -472,24 +444,20 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        string? httpMethodString = null;  // Used to determine which HTTP version to use for httpUrl.
-
         foreach (ref readonly var entry in activity.EnumerateTagObjects())
         {
             if (isServerActivity && CacheIfPartOfHttpUrl(entry, httpUrlParts))
             {
-                continue; // Skip this entry, since it is part of httpUrl.
+                if (entry.Key != "http.request.method")
+                {
+                    continue; // Skip this entry, since it is part of httpUrl.
+                }
             }
 
             // TODO: check name collision
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
-
-                if (isServerActivity && replacementKey == "httpMethod")
-                {
-                    httpMethodString = entry.Key;
-                }
             }
             else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
             {
@@ -510,9 +478,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
-        if (isServerActivity && httpMethodString != null)
+        if (isServerActivity)
         {
-            var httpUrl = GetHttpUrl(httpMethodString, httpUrlParts);
+            var httpUrl = GetHttpUrl(httpUrlParts);
             if (httpUrl != null)
             {
                 // If the activity is a server activity and has http.url, we need to add it as a dedicated field.

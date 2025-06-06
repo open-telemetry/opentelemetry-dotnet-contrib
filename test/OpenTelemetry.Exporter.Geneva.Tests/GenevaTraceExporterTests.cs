@@ -383,28 +383,7 @@ public class GenevaTraceExporterTests
 
             var source = new ActivitySource(sourceName);
 
-            // Unstable HTTP semconv: Combination of http.scheme, net.host.name, net.host.port, and http.target
-            // attributes for HTTP server spans.
-            using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
-            {
-                // https://localhost:443/wiki/Rabbit
-                parent.SetTag("http.method", "GET");
-                parent.SetTag("http.scheme", "https");
-                parent.SetTag("net.host.name", "localhost");
-                parent.SetTag("net.host.port", 443);
-                parent.SetTag("http.target", "/wiki/Rabbit");
-                using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
-                {
-                    // Unstable HTTP semconv: http.url attribute for HTTP client spans.
-                    child.SetTag("http.method", "GET");
-                    child.SetTag("http.url", "https://www.wikipedia.org/wiki/Rabbit?semver=unstable");
-                    child.SetTag("http.status_code", 404);
-                }
-
-                parent?.SetTag("http.status_code", 200);
-            }
-
-            // Stable HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query
+            // HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query
             // attributes for HTTP server spans.
             using (var parent = source.StartActivity("HttpIn", ActivityKind.Server))
             {
@@ -414,18 +393,18 @@ public class GenevaTraceExporterTests
                 parent.SetTag("server.port", 443);
                 parent.SetTag("url.path", "/wiki/Rabbit");
 
-                // Stable HTTP semconv: url.full attribute for HTTP client spans.
+                // HTTP semconv: url.full attribute for HTTP client spans.
                 using (var child = source.StartActivity("HttpOut", ActivityKind.Client))
                 {
                     child.SetTag("http.request.method", "GET");
-                    child.SetTag("url.full", "https://www.wikipedia.org/wiki/Rabbit?semver=stable");
+                    child.SetTag("url.full", "https://www.wikipedia.org/wiki/Rabbit?id=7");
                     child.SetTag("http.status_code", 404);
                 }
 
                 parent?.SetTag("http.response.status_code", 200);
             }
 
-            Assert.Equal(4, invocationCount);
+            Assert.Equal(2, invocationCount);
         }
         finally
         {
@@ -919,10 +898,7 @@ public class GenevaTraceExporterTests
             Assert.DoesNotContain("url.path", mapping.Keys);
             Assert.DoesNotContain("url.query", mapping.Keys);
 
-            Assert.Contains("httpUrl", mapping.Keys);
-
             Assert.Equal("GET", mapping["httpMethod"]);
-            Assert.Contains("httpUrl", mapping.Keys);
             Assert.Equal("https://localhost:443/wiki/Rabbit", mapping["httpUrl"]);
 
             Assert.DoesNotContain("http.status_code", mapping.Keys);
@@ -938,18 +914,9 @@ public class GenevaTraceExporterTests
             Assert.DoesNotContain("http.url", mapping.Keys);
             Assert.DoesNotContain("url.full", mapping.Keys);
 
-            Assert.Contains("httpUrl", mapping.Keys);
-
             Assert.Equal("GET", mapping["httpMethod"]);
 
-            if (tags.ContainsKey(MsgPackTraceExporter.HTTP_METHOD_V1))
-            {
-                Assert.Equal(tags["http.url"], mapping["httpUrl"]);
-            }
-            else if (tags.ContainsKey(MsgPackTraceExporter.HTTP_METHOD_V2))
-            {
-                Assert.Equal(tags["url.full"], mapping["httpUrl"]);
-            }
+            Assert.Equal(tags["url.full"], mapping["httpUrl"]);
 
             Assert.DoesNotContain("http.status_code", mapping.Keys);
             Assert.DoesNotContain("http.response.status_code", mapping.Keys);
