@@ -13,7 +13,7 @@ public class ResourceSpansTests
     public void Constructor_ShouldInitializeScopeSpans()
     {
         var activity = new Activity("TestActivity");
-        var signal = TracesData.Signal.Start;
+        var signal = TracesData.Signal.Heartbeat;
 
         var resourceSpans = new ResourceSpans(activity, signal);
 

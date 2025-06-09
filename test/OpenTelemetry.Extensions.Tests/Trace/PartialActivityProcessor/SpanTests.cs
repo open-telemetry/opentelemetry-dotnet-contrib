@@ -17,7 +17,7 @@ public class SpanTests
         activity.Start();
         activity.Stop();
 
-        var span = new Span(activity, TracesData.Signal.Stop);
+        var span = new Span(activity, TracesData.Signal.Ended);
 
         Assert.Equal(activity.TraceId.ToHexString(), span.TraceId);
         Assert.Equal(activity.SpanId.ToHexString(), span.SpanId);
@@ -43,7 +43,7 @@ public class SpanTests
         activity.Start();
         activity.Stop();
 
-        var span = new Span(activity, TracesData.Signal.Stop);
+        var span = new Span(activity, TracesData.Signal.Ended);
 
         Assert.NotNull(span.Attributes);
         Assert.Equal(2, span.Attributes.Count);

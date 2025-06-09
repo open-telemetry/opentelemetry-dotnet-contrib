@@ -33,7 +33,7 @@ public class SpecHelperTests
     [Fact]
     public void Json_ShouldContainExpectedKeys()
     {
-        var tracesData = new TracesData(new Activity("TestActivity"), TracesData.Signal.Start);
+        var tracesData = new TracesData(new Activity("TestActivity"), TracesData.Signal.Heartbeat);
 
         var json = SpecHelper.Json(tracesData);
         using var document = JsonDocument.Parse(json);

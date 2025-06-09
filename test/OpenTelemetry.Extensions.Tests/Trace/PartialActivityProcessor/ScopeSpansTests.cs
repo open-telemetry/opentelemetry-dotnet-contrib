@@ -13,7 +13,7 @@ public class ScopeSpansTests
     public void Constructor_ShouldInitializeScopeAndSpans()
     {
         var activity = new Activity("TestActivity");
-        var signal = TracesData.Signal.Start;
+        var signal = TracesData.Signal.Heartbeat;
 
         var scopeSpans = new ScopeSpans(activity, signal);
 
@@ -26,7 +26,7 @@ public class ScopeSpansTests
     public void Scope_ShouldBeSettable()
     {
         var activity = new Activity("TestActivity");
-        var signal = TracesData.Signal.Start;
+        var signal = TracesData.Signal.Heartbeat;
         var scopeSpans = new ScopeSpans(activity, signal);
         var newScope = new InstrumentationScope(activity);
 

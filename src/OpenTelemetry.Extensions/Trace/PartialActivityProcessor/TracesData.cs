@@ -29,12 +29,12 @@ public class TracesData
         /// <summary>
         /// Signal indicating the start of an activity.
         /// </summary>
-        Start,
+        Heartbeat,
 
         /// <summary>
         /// Signal indicating the stop of an activity.
         /// </summary>
-        Stop,
+        Ended,
     }
 
     /// <summary>
