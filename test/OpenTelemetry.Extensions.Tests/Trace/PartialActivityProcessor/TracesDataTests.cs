@@ -16,7 +16,7 @@ public class TracesDataTests
         activity.Start();
         activity.Stop();
 
-        var tracesData = new TracesData(activity, TracesData.Signal.Stop);
+        var tracesData = new TracesData(activity, TracesData.Signal.Ended);
         var json = SpecHelper.Json(tracesData);
 
         Assert.Contains("\"resource_spans\":[", json);

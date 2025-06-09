@@ -46,7 +46,7 @@ public class Span
 
         this.StartTimeUnixNano = SpecHelper.ToUnixTimeNanoseconds(activity.StartTimeUtc);
 
-        this.EndTimeUnixNano = signal == TracesData.Signal.Start
+        this.EndTimeUnixNano = signal == TracesData.Signal.Heartbeat
             ? null
             : SpecHelper.ToUnixTimeNanoseconds(activity.StartTimeUtc.Add(activity.Duration));
 
