@@ -39,7 +39,7 @@ public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
         // a new version (>3.10.0) of Testcontainers.MsSql released. See:
         // https://github.com/testcontainers/testcontainers-dotnet/pull/1265
         return new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
+            .WithImage("mcr.microsoft.com/mssql/server:2022-CU19-ubuntu-22.04")
             .Build();
     }
 }
