@@ -108,7 +108,7 @@ public class TelemetryPropagationTests
 
                 try
                 {
-                    this.serviceBaseUriTcp = new Uri($"net.tcp://{random.Next(2000, 5000)}/");
+                    this.serviceBaseUriTcp = new Uri($"net.tcp://localhost:{random.Next(2000, 5000)}/");
                     this.serviceBaseUriHttp = new Uri($"http://localhost:{random.Next(2000, 5000)}/");
                     createdHost = new ServiceHost(new Service(), this.serviceBaseUriTcp, this.serviceBaseUriHttp);
                     var tcpEndpoint = createdHost.AddServiceEndpoint(typeof(IServiceContract), new NetTcpBinding(), "/tcp");
