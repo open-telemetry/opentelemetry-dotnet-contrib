@@ -29,7 +29,13 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, false, false)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true, false)]
+#if NETFRAMEWORK
+    [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
+    [InlineData(CommandType.StoredProcedure, "sp_who", true, "sp_who")]
+#else
     [InlineData(CommandType.StoredProcedure, "sp_who", false, "sp_who")]
+    [InlineData(CommandType.StoredProcedure, "sp_who", true, "sp_who")]
+#endif
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
