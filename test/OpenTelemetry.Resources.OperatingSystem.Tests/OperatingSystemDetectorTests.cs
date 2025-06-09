@@ -30,7 +30,11 @@ public class OperatingSystemDetectorTests
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             expectedPlatform = OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin;
+#if NET10_0_OR_GREATER
+            expectedDescription = "macOS";
+#else
             expectedDescription = "Darwin";
+#endif
         }
         else
         {
