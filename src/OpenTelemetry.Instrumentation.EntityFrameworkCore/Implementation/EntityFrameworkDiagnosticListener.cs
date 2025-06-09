@@ -272,9 +272,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         activity.Stop();
                     }
 
-                    // From some reason this EF event comes before SQLClient SqlMicrosoftAfterExecuteCommand event
-                    // EF span should not be parrent of any other span except SQLClient, because of that it can be closed safetly
-                    // Can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSources it is true
+                    // For some reason this EF event comes before the SQLClient SqlMicrosoftAfterExecuteCommand event.
+                    // EF span should not be parent of any other span except SQLClient, because of that it can be closed safely.
+                    // Can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSource's it is true.
                     if (activity.Parent?.Source == EntityFrameworkActivitySource)
                     {
                         activity.Parent.Stop();
