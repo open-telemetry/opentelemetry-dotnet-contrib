@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- System.Private.Uri is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-5f2m-466j-3848 -->
-    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
   </ItemGroup>
 
   <ItemGroup>
