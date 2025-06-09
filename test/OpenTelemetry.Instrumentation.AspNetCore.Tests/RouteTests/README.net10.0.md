@@ -1,4 +1,4 @@
-# Test results for ASP.NET Core 6
+# Test results for ASP.NET Core 10
 
 | http.route | App | Test Name |
 | - | - | - |
@@ -22,6 +22,8 @@
 | :green_heart: | RazorPages | [Static content](#razorpages-static-content) |
 | :green_heart: | MinimalApi | [Action without parameter](#minimalapi-action-without-parameter) |
 | :green_heart: | MinimalApi | [Action with parameter](#minimalapi-action-with-parameter) |
+| :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#minimalapi-action-without-parameter-mapgroup) |
+| :green_heart: | MinimalApi | [Action with parameter (MapGroup)](#minimalapi-action-with-parameter-mapgroup) |
 | :green_heart: | ExceptionMiddleware | [Exception Handled by Exception Handler Middleware](#exceptionmiddleware-exception-handled-by-exception-handler-middleware) |
 
 ## ConventionalRouting: Root path
@@ -36,7 +38,7 @@
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "Default"
@@ -66,7 +68,7 @@
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -100,7 +102,7 @@
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "RoutePattern.RawText": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter"
@@ -152,7 +154,7 @@
     "HttpMethod": "GET",
     "Path": "/SomePath/SomeString/2",
     "RoutePattern.RawText": "SomePath/{id}/{num:int}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "SomePath/{id}/{num:int}",
     "HttpContext.GetRouteData()": {
       "controller": "ConventionalRoute",
       "action": "ActionWithStringParameter",
@@ -206,7 +208,7 @@
     "HttpMethod": "GET",
     "Path": "/MyArea",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "action": "Default",
@@ -237,7 +239,7 @@
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
     "RoutePattern.RawText": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
     "HttpContext.GetRouteData()": {
       "controller": "ControllerForMyArea",
       "area": "MyArea",
@@ -268,7 +270,7 @@
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
     "RoutePattern.RawText": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
     "HttpContext.GetRouteData()": {
       "area": "AnotherArea",
       "controller": "AnotherArea",
@@ -299,7 +301,7 @@
     "HttpMethod": "GET",
     "Path": "/AttributeRoute",
     "RoutePattern.RawText": "AttributeRoute",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "AttributeRoute",
     "HttpContext.GetRouteData()": {
       "action": "Get",
       "controller": "AttributeRoute"
@@ -329,7 +331,7 @@
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get",
     "RoutePattern.RawText": "AttributeRoute/Get",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "AttributeRoute/Get",
     "HttpContext.GetRouteData()": {
       "action": "Get",
       "controller": "AttributeRoute"
@@ -359,7 +361,7 @@
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get/12",
     "RoutePattern.RawText": "AttributeRoute/Get/{id}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "AttributeRoute/Get/{id}",
     "HttpContext.GetRouteData()": {
       "action": "Get",
       "controller": "AttributeRoute",
@@ -392,7 +394,7 @@
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/12/GetWithActionNameInDifferentSpotInTemplate",
     "RoutePattern.RawText": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
     "HttpContext.GetRouteData()": {
       "action": "GetWithActionNameInDifferentSpotInTemplate",
       "controller": "AttributeRoute",
@@ -425,7 +427,7 @@
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/NotAnInt/GetWithActionNameInDifferentSpotInTemplate",
     "RoutePattern.RawText": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
     "HttpContext.GetRouteData()": {
       "action": "GetWithActionNameInDifferentSpotInTemplate",
       "controller": "AttributeRoute",
@@ -458,7 +460,7 @@
     "HttpMethod": "GET",
     "Path": "/",
     "RoutePattern.RawText": "",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },
@@ -487,7 +489,7 @@
     "HttpMethod": "GET",
     "Path": "/Index",
     "RoutePattern.RawText": "Index",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "Index",
     "HttpContext.GetRouteData()": {
       "page": "/Index"
     },
@@ -516,7 +518,7 @@
     "HttpMethod": "GET",
     "Path": "/PageThatThrowsException",
     "RoutePattern.RawText": "PageThatThrowsException",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "PageThatThrowsException",
     "HttpContext.GetRouteData()": {
       "page": "/PageThatThrowsException"
     },
@@ -564,7 +566,7 @@
     "HttpMethod": "GET",
     "Path": "/MinimalApi",
     "RoutePattern.RawText": "/MinimalApi",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "/MinimalApi",
     "HttpContext.GetRouteData()": {},
     "ActionDescriptor": null
   }
@@ -583,7 +585,47 @@
     "HttpMethod": "GET",
     "Path": "/MinimalApi/123",
     "RoutePattern.RawText": "/MinimalApi/{id}",
-    "IRouteDiagnosticsMetadata.Route": null,
+    "IRouteDiagnosticsMetadata.Route": "/MinimalApi/{id}",
+    "HttpContext.GetRouteData()": {
+      "id": "123"
+    },
+    "ActionDescriptor": null
+  }
+}
+```
+
+## MinimalApi: Action without parameter (MapGroup)
+
+```json
+{
+  "IdealHttpRoute": "/MinimalApiUsingMapGroup/",
+  "ActivityDisplayName": "GET /MinimalApiUsingMapGroup/",
+  "ActivityHttpRoute": "/MinimalApiUsingMapGroup/",
+  "MetricHttpRoute": "/MinimalApiUsingMapGroup/",
+  "RouteInfo": {
+    "HttpMethod": "GET",
+    "Path": "/MinimalApiUsingMapGroup",
+    "RoutePattern.RawText": "/MinimalApiUsingMapGroup/",
+    "IRouteDiagnosticsMetadata.Route": "/MinimalApiUsingMapGroup/",
+    "HttpContext.GetRouteData()": {},
+    "ActionDescriptor": null
+  }
+}
+```
+
+## MinimalApi: Action with parameter (MapGroup)
+
+```json
+{
+  "IdealHttpRoute": "/MinimalApiUsingMapGroup/{id}",
+  "ActivityDisplayName": "GET /MinimalApiUsingMapGroup/{id}",
+  "ActivityHttpRoute": "/MinimalApiUsingMapGroup/{id}",
+  "MetricHttpRoute": "/MinimalApiUsingMapGroup/{id}",
+  "RouteInfo": {
+    "HttpMethod": "GET",
+    "Path": "/MinimalApiUsingMapGroup/123",
+    "RoutePattern.RawText": "/MinimalApiUsingMapGroup/{id}",
+    "IRouteDiagnosticsMetadata.Route": "/MinimalApiUsingMapGroup/{id}",
     "HttpContext.GetRouteData()": {
       "id": "123"
     },
@@ -603,8 +645,8 @@
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/Exception",
-    "RoutePattern.RawText": null,
-    "IRouteDiagnosticsMetadata.Route": null,
+    "RoutePattern.RawText": "/Exception",
+    "IRouteDiagnosticsMetadata.Route": "/Exception",
     "HttpContext.GetRouteData()": {},
     "ActionDescriptor": null
   }
