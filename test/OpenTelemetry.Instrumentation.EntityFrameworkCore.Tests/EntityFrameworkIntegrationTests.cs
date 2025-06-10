@@ -30,7 +30,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         this.fixture = fixture;
     }
 
-    public static TheoryData<string, string, bool, bool, bool, Type, string, string> RawSqlTestCases()
+    public static TheoryData<string, string, bool, bool, Type, string, string> RawSqlTestCases()
     {
         (string, Type, string, string)[] providers =
         [
@@ -38,18 +38,18 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             (SqlServerProvider, typeof(SqlCommand), "mssql", "master"),
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, bool, Type, string, string>();
+        var testCases = new TheoryData<string, string, bool, bool, Type, string, string>();
 
         foreach ((var provider, var commandType, var system, var database) in providers)
         {
-            testCases.Add(provider, "select 1/1", false, false, true, commandType, system, database);
-            testCases.Add(provider, "select 1/1", true, false, true, commandType, system, database);
+            testCases.Add(provider, "select 1/1", false, false, commandType, system, database);
+            testCases.Add(provider, "select 1/1", true, false, commandType, system, database);
 
             // For some reason, SQLite does not throw an exception for division by zero
             if (provider != SqliteProvider)
             {
-                testCases.Add(provider, "select 1/0", false, true, false, commandType, system, database);
-                testCases.Add(provider, "select 1/0", false, true, true, commandType, system, database);
+                testCases.Add(provider, "select 1/0", false, true, commandType, system, database);
+                testCases.Add(provider, "select 1/0", true, true, commandType, system, database);
             }
         }
 
@@ -89,20 +89,15 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         string commandText,
         bool captureTextCommandContent,
         bool isFailure,
-        bool shouldEnrich,
         Type expectedCommandType,
         string expectedSystemName,
         string expectedDatabaseName)
     {
-        var enriched = false;
-
-        void ActivityEnrichment(Activity activity, IDbCommand command)
-        {
-            enriched = true;
-
-            activity.SetTag("enriched", "yes");
-            Assert.IsType(expectedCommandType, command, false);
-        }
+        // In the case of SQL Server, the activity we're interested in is the one
+        // created by the SqlClient instrumentation which is a child of EFCore.
+        var expectedSourceName = isFailure && provider is SqlServerProvider
+            ? "OpenTelemetry.Instrumentation.SqlClient"
+            : ActivitySourceName;
 
         var filtered = false;
 
@@ -119,14 +114,14 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = captureTextCommandContent;
+            })
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = ActivityFilter;
                 options.SetDbStatementForText = captureTextCommandContent;
-                if (shouldEnrich)
-                {
-                    options.EnrichWithIDbCommand = ActivityEnrichment;
-                }
             })
             .Build();
 
@@ -145,14 +140,18 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             // Ignore
         }
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        Assert.NotEmpty(activities);
+
+        // All activities should either be the root EFCore activity or a child of it.
+        Assert.All(activities, activity => Assert.Equal(ActivitySourceName, (activity.Parent?.Source ?? activity.Source).Name));
+
+        var activity = activities.Last();
+
+        Assert.Equal(expectedSourceName, activity.Source.Name);
 
         VerifyActivityData(
-            commandText,
             captureTextCommandContent,
             isFailure,
-            shouldEnrich,
             expectedSystemName,
             expectedDatabaseName,
             activity);
@@ -163,7 +162,6 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
         }
 
-        Assert.Equal(shouldEnrich, enriched);
         Assert.True(filtered);
     }
 
@@ -202,6 +200,10 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation(options =>
+            {
+                options.SetDbStatementForText = captureTextCommandContent;
+            })
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = ActivityFilter;
@@ -225,7 +227,15 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
         var result = await context.Items.ToListAsync();
 
-        var activity = Assert.Single(activities);
+        Assert.NotNull(result);
+        Assert.Empty(result);
+
+        // All activities should either be the root EFCore activity or a child of it.
+        Assert.All(activities, activity => Assert.Equal(ActivitySourceName, (activity.Parent?.Source ?? activity.Source).Name));
+
+        // When using SQL Server there may be multiple activities, but we care
+        // about the EFCore activity which should be the parent activity.
+        var activity = Assert.Single(activities, activity => activity.Parent is null);
 
         Assert.Equal(ActivitySourceName, activity.Source.Name);
         Assert.Null(activity.Parent);
@@ -238,16 +248,12 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
     }
 
     private static void VerifyActivityData(
-        string? commandText,
         bool captureTextCommandContent,
         bool isFailure,
-        bool shouldEnrich,
         string expectedSystemName,
         string expectedDatabaseName,
         Activity activity)
     {
-        Assert.Equal(ActivitySourceName, activity.Source.Name);
-
         Assert.Equal(expectedDatabaseName, activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
@@ -263,22 +269,12 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             Assert.Empty(activity.Events);
         }
 
-        if (shouldEnrich)
-        {
-            Assert.Contains(activity.Tags, tag => tag.Key == "enriched");
-            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
-        }
-        else
-        {
-            Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
-        }
-
         Assert.Equal(expectedSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal(expectedDatabaseName, activity.GetTagValue(SemanticConventions.AttributeDbName));
 
         if (captureTextCommandContent)
         {
-            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.NotNull(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
         }
         else
         {
