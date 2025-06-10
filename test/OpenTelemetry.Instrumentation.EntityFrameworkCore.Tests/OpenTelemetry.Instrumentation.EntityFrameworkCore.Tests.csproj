@@ -17,14 +17,15 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.EntityFrameworkCore\OpenTelemetry.Instrumentation.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.SqlClient\OpenTelemetry.Instrumentation.SqlClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
+    <Compile Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.SqlClient.Tests\SqlClientIntegrationTestsFixture.cs" Link="SqlClientIntegrationTestsFixture.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
-    <Compile Include="..\OpenTelemetry.Instrumentation.SqlClient.Tests\SqlClientIntegrationTestsFixture.cs" Link="SqlClientIntegrationTestsFixture.cs" />
-    <Compile Include="..\..\src\Shared\SemanticConventions.cs" Link="SemanticConventions.cs" />
   </ItemGroup>
 
 </Project>
