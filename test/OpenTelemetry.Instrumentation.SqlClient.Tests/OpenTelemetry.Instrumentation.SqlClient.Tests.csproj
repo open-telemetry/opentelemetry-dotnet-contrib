@@ -17,8 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <PackageReference Include="Testcontainers.MsSql" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.SqlEdge" Version="3.10.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.5.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
 
     <!-- System.Runtime.Caching is indirect reference through Microsoft.Data.SqlClient package. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-qj66-m88j-hmgj -->
