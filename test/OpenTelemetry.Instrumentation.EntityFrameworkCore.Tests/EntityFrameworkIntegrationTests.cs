@@ -101,11 +101,11 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
         var filtered = false;
 
-        bool ActivityFilter(string? provider, IDbCommand command)
+        bool ActivityFilter(string? providerName, IDbCommand command)
         {
             filtered = true;
 
-            Assert.Equal(provider, provider);
+            Assert.Equal(provider, providerName);
             Assert.IsType(expectedCommandType, command, false);
 
             return true;
@@ -187,11 +187,11 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
         var filtered = false;
 
-        bool ActivityFilter(string? provider, IDbCommand command)
+        bool ActivityFilter(string? providerName, IDbCommand command)
         {
             filtered = true;
 
-            Assert.Equal(provider, provider);
+            Assert.Equal(provider, providerName);
             Assert.IsType(expectedCommandType, command, false);
 
             return true;
