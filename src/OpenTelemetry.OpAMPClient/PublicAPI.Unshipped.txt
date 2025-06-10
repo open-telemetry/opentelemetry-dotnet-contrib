@@ -1,0 +1,10 @@
+OpenTelemetry.OpAMPClient.OpAMPClient
+OpenTelemetry.OpAMPClient.OpAMPClient.OpAMPClient(System.Action<OpenTelemetry.OpAMPClient.Settings.OpAMPSettings!>? configure = null) -> void
+OpenTelemetry.OpAMPClient.OpAMPClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAMPClient.Settings.ConnectionType
+OpenTelemetry.OpAMPClient.Settings.ConnectionType.Http = 1 -> OpenTelemetry.OpAMPClient.Settings.ConnectionType
+OpenTelemetry.OpAMPClient.Settings.ConnectionType.WebSocket = 0 -> OpenTelemetry.OpAMPClient.Settings.ConnectionType
+OpenTelemetry.OpAMPClient.Settings.OpAMPSettings
+OpenTelemetry.OpAMPClient.Settings.OpAMPSettings.ConnectionType.get -> OpenTelemetry.OpAMPClient.Settings.ConnectionType
+OpenTelemetry.OpAMPClient.Settings.OpAMPSettings.ConnectionType.set -> void
+OpenTelemetry.OpAMPClient.Settings.OpAMPSettings.OpAMPSettings() -> void

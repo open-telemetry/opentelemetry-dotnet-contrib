@@ -3,29 +3,41 @@
 
 using Google.Protobuf;
 using Opamp.Protocol;
+using OpenTelemetry.OpAMPClient.Settings;
 using OpenTelemetry.OpAMPClient.Transport;
 using OpenTelemetry.OpAMPClient.Trash;
 
 namespace OpenTelemetry.OpAMPClient;
 
-internal class OpAMPClient
+/// <summary>
+/// OpAMP client implementation that connects to an OpAMP server.
+/// </summary>
+public class OpAMPClient
 {
     private readonly ByteString instanceUid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
-
     private readonly FrameProcessor processor = new(new SampleMessageListener());
-#pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    // TODO: remove this warning suppression once we have a public API in place
     private readonly IOpAMPTransport transport;
-#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     private CancellationToken token;
     private ulong sequenceNum;
 
-    public OpAMPClient(IOpAMPTransport transport)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OpAMPClient"/> class.
+    /// </summary>
+    /// <param name="configure">Configure OpAmp settings</param>
+    public OpAMPClient(Action<OpAMPSettings>? configure = null)
     {
-        // this.transport = new WsTransport(this.processor);
-        this.transport = new HttpTransport(this.processor);
+        var settings = new OpAMPSettings();
+        configure?.Invoke(settings);
+
+        this.transport = ConstructTransport(settings.ConnectionType, this.processor);
     }
 
+    /// <summary>
+    /// Starts the asynchronous operation to initialize the transport and send identification data.
+    /// </summary>
+    /// <param name="token">A <see cref="CancellationToken"/> that can be used to cancel the operation. Defaults to <see
+    /// langword="default"/> if not provided.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task StartAsync(CancellationToken token = default)
     {
         this.token = token;
@@ -38,7 +50,17 @@ internal class OpAMPClient
         await this.SendIdentificationAsync().ConfigureAwait(false);
     }
 
-    public async Task SendIdentificationAsync()
+    private static IOpAMPTransport ConstructTransport(ConnectionType connectionType, FrameProcessor processor)
+    {
+        return connectionType switch
+        {
+            ConnectionType.WebSocket => new WsTransport(processor),
+            ConnectionType.Http => new HttpTransport(processor),
+            _ => throw new NotSupportedException("Unsupported transport type"),
+        };
+    }
+
+    private async Task SendIdentificationAsync()
     {
         var message = new AgentToServer()
         {
