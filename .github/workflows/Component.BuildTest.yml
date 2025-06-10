@@ -48,6 +48,8 @@ jobs:
         exclude:
         - os: ubuntu-22.04
           version: net462
+        - os: ubuntu-24.04-arm
+          version: net462
         - os: macos-latest
           version: net462
 
@@ -98,7 +100,13 @@ jobs:
         # used if $project ends up Component.proj.
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
-    - name: Setup dotnet
+    - name: Setup previous .NET runtimes
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      with:
+        dotnet-version: |
+          8.0.x
+
+    - name: Setup .NET
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
