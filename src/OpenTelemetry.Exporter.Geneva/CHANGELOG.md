@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-alpha.1
+
+Released 2025-Jun-07
+
 * **Experimental**: Added an option for configuring a custom string size limit in
   the MessagePack serializer. The maximum string length, in characters, can be
   set using the `PrivatePreviewLogMessagePackStringSizeLimit=<CharCount>`
