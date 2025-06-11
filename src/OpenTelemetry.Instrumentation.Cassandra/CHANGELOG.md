@@ -4,6 +4,7 @@
 
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+* bumped min version of Cassandra to 3.17.0 ([#2836)(https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2836))
 
 ## 1.0.0-beta.2
 
