@@ -6,6 +6,27 @@ updates:
       interval: "daily"
     labels:
       - "infra"
+  - package-ecosystem: "docker"
+    directory: "test/OpenTelemetry.Instrumentation.Cassandra.Tests"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "infra"
+  - package-ecosystem: "docker"
+    directory: "test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "infra"
+  - package-ecosystem: "docker"
+    directory: "test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "infra"
   - package-ecosystem: "dotnet-sdk"
     directory: "/"
     schedule:
