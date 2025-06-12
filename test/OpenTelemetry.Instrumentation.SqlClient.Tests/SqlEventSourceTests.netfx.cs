@@ -3,12 +3,10 @@
 
 #if NETFRAMEWORK
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
