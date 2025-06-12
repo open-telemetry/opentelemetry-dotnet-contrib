@@ -62,7 +62,7 @@ public class OpAMPClient
         var message = new AgentToServer()
         {
             InstanceUid = this.instanceUid,
-            SequenceNum = this.sequenceNum++,
+            SequenceNum = this.IncrementSequenceNum(),
         };
 
         message.AgentDescription = new AgentDescription();
@@ -128,4 +128,6 @@ public class OpAMPClient
 
         await this.transport.SendAsync(message, token).ConfigureAwait(false);
     }
+
+    private ulong IncrementSequenceNum() => Interlocked.Increment(ref this.sequenceNum);
 }
