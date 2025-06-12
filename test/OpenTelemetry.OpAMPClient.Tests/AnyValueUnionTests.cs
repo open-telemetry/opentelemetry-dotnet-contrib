@@ -34,9 +34,9 @@ public class AnyValueUnionTests
         var stringValue = new AnyValueUnion(AnyValueType.String, stringValue: "test");
         var doubleValue = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
         Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Integer, intValue: 42).GetHashCode());
-        Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Boolean, boolValue: true).GetHashCode());
-        Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.String, stringValue: "test").GetHashCode());
-        Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14).GetHashCode());
+        Assert.Equal(boolValue.GetHashCode(), new AnyValueUnion(AnyValueType.Boolean, boolValue: true).GetHashCode());
+        Assert.Equal(stringValue.GetHashCode(), new AnyValueUnion(AnyValueType.String, stringValue: "test").GetHashCode());
+        Assert.Equal(doubleValue.GetHashCode(), new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14).GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), boolValue.GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), stringValue.GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), doubleValue.GetHashCode());
