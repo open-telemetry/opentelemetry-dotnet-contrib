@@ -6,7 +6,7 @@ namespace OpenTelemetry.OpAMPClient.Data;
 internal enum AnyValueType
 {
     String,
-    Bool,
-    Int,
+    Boolean,
+    Integer,
     Double,
 }
