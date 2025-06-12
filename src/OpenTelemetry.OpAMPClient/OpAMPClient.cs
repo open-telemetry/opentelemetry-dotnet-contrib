@@ -17,7 +17,6 @@ public class OpAMPClient
     private readonly ByteString instanceUid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
     private readonly FrameProcessor processor = new(new SampleMessageListener());
     private readonly IOpAMPTransport transport;
-    private CancellationToken token;
     private ulong sequenceNum;
 
     /// <summary>
@@ -40,14 +39,12 @@ public class OpAMPClient
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task StartAsync(CancellationToken token = default)
     {
-        this.token = token;
-
         if (this.transport is WsTransport wsTransport)
         {
             await wsTransport.StartAsync(token).ConfigureAwait(false);
         }
 
-        await this.SendIdentificationAsync().ConfigureAwait(false);
+        await this.SendIdentificationAsync(token).ConfigureAwait(false);
     }
 
     private static IOpAMPTransport ConstructTransport(ConnectionType connectionType, FrameProcessor processor)
@@ -60,7 +57,7 @@ public class OpAMPClient
         };
     }
 
-    private async Task SendIdentificationAsync()
+    private async Task SendIdentificationAsync(CancellationToken token)
     {
         var message = new AgentToServer()
         {
@@ -129,6 +126,6 @@ public class OpAMPClient
 
         // message.Flags = (ulong)AgentToServerFlags.RequestInstanceUid;
 
-        await this.transport.SendAsync(message, this.token).ConfigureAwait(false);
+        await this.transport.SendAsync(message, token).ConfigureAwait(false);
     }
 }
