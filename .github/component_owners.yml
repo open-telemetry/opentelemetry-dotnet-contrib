@@ -35,6 +35,9 @@ components:
     - g7ed6e
   src/OpenTelemetry.Instrumentation.ElasticsearchClient/:
     - ejsmith
+  src/OpenTelemetry.Instrumentation.EntityFrameworkCore/:
+    - martincostello
+    - matt-hensley
   src/OpenTelemetry.Instrumentation.EventCounters/:
     - hananiel
     - mic-max
