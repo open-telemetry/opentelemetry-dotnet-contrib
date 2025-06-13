@@ -3,9 +3,11 @@
 
 using Google.Protobuf;
 using Opamp.Protocol;
+using OpenTelemetry.OpAMPClient.Data;
 using OpenTelemetry.OpAMPClient.Settings;
 using OpenTelemetry.OpAMPClient.Transport;
 using OpenTelemetry.OpAMPClient.Trash;
+using OpenTelemetry.OpAMPClient.Utils;
 
 namespace OpenTelemetry.OpAMPClient;
 
@@ -16,6 +18,7 @@ public class OpAMPClient
 {
     private readonly ByteString instanceUid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
     private readonly FrameProcessor processor = new(new SampleMessageListener());
+    private readonly OpAMPSettings settings = new();
     private readonly IOpAMPTransport transport;
     private ulong sequenceNum;
 
@@ -25,10 +28,9 @@ public class OpAMPClient
     /// <param name="configure">Configure OpAmp settings</param>
     public OpAMPClient(Action<OpAMPSettings>? configure = null)
     {
-        var settings = new OpAMPSettings();
-        configure?.Invoke(settings);
+        configure?.Invoke(this.settings);
 
-        this.transport = ConstructTransport(settings.ConnectionType, this.processor);
+        this.transport = ConstructTransport(this.settings.ConnectionType, this.processor);
     }
 
     /// <summary>
@@ -44,7 +46,7 @@ public class OpAMPClient
             await wsTransport.StartAsync(token).ConfigureAwait(false);
         }
 
-        await this.SendIdentificationAsync(token).ConfigureAwait(false);
+        await this.SendIdentificationAsync(this.settings, token).ConfigureAwait(false);
     }
 
     private static IOpAMPTransport ConstructTransport(ConnectionType connectionType, FrameProcessor processor)
@@ -57,7 +59,32 @@ public class OpAMPClient
         };
     }
 
-    private async Task SendIdentificationAsync(CancellationToken token)
+    private static AgentDescription CreateAgentDescription(OpAMPClientResources resources)
+    {
+        var description = new AgentDescription();
+
+        foreach (var resource in resources.IdentifingResources)
+        {
+            description.IdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
+        }
+
+        foreach (var resource in resources.NonIdentifingResources)
+        {
+            description.NonIdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
+        }
+
+        return description;
+    }
+
+    private async Task SendIdentificationAsync(OpAMPSettings settings, CancellationToken token)
     {
         var message = new AgentToServer()
         {
@@ -65,10 +92,7 @@ public class OpAMPClient
             SequenceNum = this.IncrementSequenceNum(),
         };
 
-        message.AgentDescription = new AgentDescription();
-        message.AgentDescription.IdentifyingAttributes.Add(new KeyValue() { Key = "service.name", Value = new AnyValue() { StringValue = "opamp-exampleapp" } });
-        message.AgentDescription.IdentifyingAttributes.Add(new KeyValue() { Key = "service.version", Value = new AnyValue() { StringValue = "1.0.0" } });
-        message.AgentDescription.IdentifyingAttributes.Add(new KeyValue() { Key = "service.instance.id", Value = new AnyValue() { StringValue = Guid.NewGuid().ToString() } });
+        message.AgentDescription = CreateAgentDescription(settings.Resources);
 
         message.Capabilities = (ulong)Enum.GetValues<AgentCapabilities>()
             .Aggregate((f1, f2) => f1 | f2);
