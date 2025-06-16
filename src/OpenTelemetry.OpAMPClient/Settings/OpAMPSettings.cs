@@ -11,6 +11,11 @@ namespace OpenTelemetry.OpAMPClient.Settings;
 public class OpAMPSettings
 {
     /// <summary>
+    /// Gets or sets the unique identifier for the current instance.
+    /// </summary>
+    public Guid InstanceUid { get; set; } = Guid.NewGuid(); // TODO: use Guid.CreateVersion7() with .NET 9+
+
+    /// <summary>
     /// Gets or sets the chosen metrics schema to write.
     /// </summary>
     public ConnectionType ConnectionType { get; set; } = ConnectionType.WebSocket;
@@ -19,4 +24,9 @@ public class OpAMPSettings
     /// Gets or sets the collection of resources associated with the application.
     /// </summary>
     public OpAMPClientResources Resources { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the configuration settings for the heartbeat mechanism.
+    /// </summary>
+    public HeartbeatSettings HeartbeatSettings { get; set; } = new();
 }
