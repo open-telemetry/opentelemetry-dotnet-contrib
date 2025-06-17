@@ -1,36 +1,37 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Google.Protobuf;
-using Opamp.Protocol;
 using OpenTelemetry.OpAMPClient.Data;
+using OpenTelemetry.OpAMPClient.Services;
 using OpenTelemetry.OpAMPClient.Settings;
 using OpenTelemetry.OpAMPClient.Transport;
 using OpenTelemetry.OpAMPClient.Trash;
-using OpenTelemetry.OpAMPClient.Utils;
 
 namespace OpenTelemetry.OpAMPClient;
 
 /// <summary>
 /// OpAMP client implementation that connects to an OpAMP server.
 /// </summary>
-public class OpAMPClient
+public class OpAMPClient : IDisposable
 {
-    private readonly ByteString instanceUid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
-    private readonly FrameProcessor processor = new(new SampleMessageListener());
     private readonly OpAMPSettings settings = new();
+    private readonly FrameProcessor processor = new(new SampleMessageListener());
+    private readonly Dictionary<string, IBackgroundService> services = [];
+    private readonly FrameDispatcher dispatcher;
     private readonly IOpAMPTransport transport;
-    private ulong sequenceNum;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OpAMPClient"/> class.
     /// </summary>
-    /// <param name="configure">Configure OpAmp settings</param>
+    /// <param name="configure">Configure OpAmp settings.</param>
     public OpAMPClient(Action<OpAMPSettings>? configure = null)
     {
         configure?.Invoke(this.settings);
 
         this.transport = ConstructTransport(this.settings.ConnectionType, this.processor);
+        this.dispatcher = new FrameDispatcher(this.transport, this.settings);
+
+        this.ConfigureServices();
     }
 
     /// <summary>
@@ -43,10 +44,60 @@ public class OpAMPClient
     {
         if (this.transport is WsTransport wsTransport)
         {
-            await wsTransport.StartAsync(token).ConfigureAwait(false);
+            await wsTransport.StartAsync(token)
+                .ConfigureAwait(false);
         }
 
-        await this.SendIdentificationAsync(this.settings, token).ConfigureAwait(false);
+        await this.dispatcher.DispatchIdentificationFrameAsync(token)
+            .ConfigureAwait(false);
+
+        foreach (var service in this.services)
+        {
+            service.Value.Start();
+        }
+    }
+
+    /// <summary>
+    /// Updates the agent's health status.
+    /// </summary>
+    /// <param name="status">The agent's health update.</param>
+    public void UpdateHealth(HealthStatus status)
+    {
+        if (this.services.TryGetValue(HeartbeatService.Name, out var service) && service is HeartbeatService heartbeatService)
+        {
+            heartbeatService.UpdateStatus(status);
+        }
+    }
+
+    /// <summary>
+    /// Releases resources used by this client.
+    /// </summary>
+    public void Dispose()
+    {
+        this.Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// If disposing, disposes all backgroundservices and other resources.
+    /// </summary>
+    /// <param name="disposing">true if disposing, false if finalizing.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            foreach (var service in this.services.Values)
+            {
+                service.Stop();
+
+                if (service is IDisposable disposableService)
+                {
+                    disposableService.Dispose();
+                }
+            }
+
+            this.dispatcher.Dispose();
+        }
     }
 
     private static IOpAMPTransport ConstructTransport(ConnectionType connectionType, FrameProcessor processor)
@@ -59,99 +110,22 @@ public class OpAMPClient
         };
     }
 
-    private static AgentDescription CreateAgentDescription(OpAMPClientResources resources)
+    private void ConfigureServices()
     {
-        var description = new AgentDescription();
-
-        foreach (var resource in resources.IdentifingResources)
-        {
-            description.IdentifyingAttributes.Add(new KeyValue()
-            {
-                Key = resource.Key,
-                Value = resource.Value.ToAnyValue(),
-            });
-        }
-
-        foreach (var resource in resources.NonIdentifingResources)
-        {
-            description.NonIdentifyingAttributes.Add(new KeyValue()
-            {
-                Key = resource.Key,
-                Value = resource.Value.ToAnyValue(),
-            });
-        }
-
-        return description;
+        this.ConfigureService<HeartbeatService>(
+            settings => settings.HeartbeatSettings.IsEnabled,
+            () => new(this.dispatcher));
     }
 
-    private async Task SendIdentificationAsync(OpAMPSettings settings, CancellationToken token)
+    private void ConfigureService<T>(Predicate<OpAMPSettings> isEnabled, Func<T> construct)
+        where T : IBackgroundService
     {
-        var message = new AgentToServer()
+        if (isEnabled(this.settings))
         {
-            InstanceUid = this.instanceUid,
-            SequenceNum = this.IncrementSequenceNum(),
-        };
+            var service = construct();
+            service.Configure(this.settings);
 
-        message.AgentDescription = CreateAgentDescription(settings.Resources);
-
-        message.Capabilities = (ulong)Enum.GetValues<AgentCapabilities>()
-            .Aggregate((f1, f2) => f1 | f2);
-
-        message.Health = new ComponentHealth()
-        {
-            Healthy = true,
-            StartTimeUnixNano = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
-            LastError = "Unkown",
-            Status = "OK",
-            StatusTimeUnixNano = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
-            ComponentHealthMap =
-            {
-                {
-                    "opamp-exampleapp", new ComponentHealth()
-                    {
-                        Healthy = true,
-                        StartTimeUnixNano = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
-                        LastError = "Unkown",
-                        Status = "OK",
-                        StatusTimeUnixNano = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
-                    }
-                },
-            },
-        };
-
-        message.EffectiveConfig = new EffectiveConfig()
-        {
-            ConfigMap = new AgentConfigMap()
-            {
-                ConfigMap =
-                {
-                    { "otel.yml", new AgentConfigFile() { Body = ByteString.CopyFromUtf8(TestConfigData.Yaml), ContentType = "application/yaml" } },
-                    { "otel.json", new AgentConfigFile() { Body = ByteString.CopyFromUtf8(TestConfigData.Json), ContentType = "application/json" } },
-                },
-            },
-        };
-
-        message.RemoteConfigStatus = new RemoteConfigStatus()
-        {
-            ErrorMessage = "Error Message Here",
-            LastRemoteConfigHash = ByteString.CopyFromUtf8("test-set-1"),
-            Status = RemoteConfigStatuses.Applied,
-        };
-
-        message.PackageStatuses = new PackageStatuses()
-        {
-            ErrorMessage = "Error Message Here",
-        };
-
-        // message.AgentDisconnect = new AgentDisconnect()
-        // {
-
-        // };
-
-        // message.Flags = (ulong)AgentToServerFlags.RequestInstanceUid;
-
-        await this.transport.SendAsync(message, token).ConfigureAwait(false);
+            this.services[service.ServiceName] = service;
+        }
     }
-
-    private ulong IncrementSequenceNum() => Interlocked.Increment(ref this.sequenceNum);
 }
