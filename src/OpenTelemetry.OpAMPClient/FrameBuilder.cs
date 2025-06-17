@@ -130,9 +130,10 @@ internal class FrameBuilder : IFrameBuilder
             throw new InvalidOperationException("Message base is not initialized.");
         }
 
-        // TODO: Pass the actual capabilities here
-        this.currentMessage.Capabilities = (ulong)Enum.GetValues<AgentCapabilities>()
-            .Aggregate((f1, f2) => f1 | f2);
+        // TODO: Update the actual capabilities when available
+        this.currentMessage.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
+            | AgentCapabilities.ReportsHeartbeat
+            | AgentCapabilities.ReportsHealth);
 
         return this;
     }
