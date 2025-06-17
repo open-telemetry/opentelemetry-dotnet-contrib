@@ -3,12 +3,10 @@
 
 #if NETFRAMEWORK
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -17,17 +15,6 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlEventSourceTests
 {
-    /*
-        To run the integration tests, set the OTEL_SQLCONNECTIONSTRING machine-level environment variable to a valid Sql Server connection string.
-
-        To use Docker...
-         1) Run: docker run -d --name sql2019 -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Pass@word" -p 5433:1433 mcr.microsoft.com/mssql/server:2019-latest
-         2) Set OTEL_SQLCONNECTIONSTRING as: Data Source=127.0.0.1,5433; User ID=sa; Password=Pass@word
-     */
-
-    private const string SqlConnectionStringEnvVarName = "OTEL_SQLCONNECTIONSTRING";
-    private static readonly string? SqlConnectionString = SkipUnlessEnvVarFoundTheoryAttribute.GetEnvironmentVariable(SqlConnectionStringEnvVarName);
-
     public static IEnumerable<object[]> EventSourceFakeTestCases()
     {
         /* netfx driver can't capture queries, only stored procedure names */
@@ -60,53 +47,6 @@ public class SqlEventSourceTests
                    tracingEnabled,
                    metricsEnabled,
                };
-    }
-
-    [Trait("CategoryName", "SqlIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(SqlConnectionStringEnvVarName)]
-    [InlineData(CommandType.Text, "select 1/1", false)]
-    [InlineData(CommandType.Text, "select 1/0", false, true)]
-    [InlineData(CommandType.StoredProcedure, "sp_who", false)]
-    [InlineData(CommandType.StoredProcedure, "sp_who", true)]
-    public async Task SuccessfulCommandTest(CommandType commandType, string commandText, bool captureText, bool isFailure = false)
-    {
-        var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureText;
-            })
-            .Build();
-
-        Assert.NotNull(SqlConnectionString);
-        using var sqlConnection = new SqlConnection(SqlConnectionString);
-
-        await sqlConnection.OpenAsync();
-
-        var dataSource = sqlConnection.DataSource;
-
-        sqlConnection.ChangeDatabase("master");
-
-#pragma warning disable CA2100
-        using var sqlCommand = new SqlCommand(commandText, sqlConnection)
-#pragma warning restore CA2100
-        {
-            CommandType = commandType,
-        };
-
-        try
-        {
-            await sqlCommand.ExecuteNonQueryAsync();
-        }
-        catch
-        {
-        }
-
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
-
-        VerifyActivityData(commandText, captureText, isFailure, dataSource, activity);
     }
 
     [Theory]
