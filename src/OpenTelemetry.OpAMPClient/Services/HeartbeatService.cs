@@ -66,7 +66,7 @@ internal class HeartbeatService : IBackgroundService, IDisposable
 
         this.startTime = GetCurrentTimeInNanoseconds();
 
-        _ = Task.Run(() => this.HeartbeatLoop(this.cts.Token));
+        _ = Task.Run(() => this.HeartbeatLoopAsync(this.cts.Token));
     }
 
     public void Stop()
@@ -86,7 +86,7 @@ internal class HeartbeatService : IBackgroundService, IDisposable
         return (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000; // Convert to nanoseconds
     }
 
-    private async Task HeartbeatLoop(CancellationToken token)
+    private async Task HeartbeatLoopAsync(CancellationToken token)
     {
         while (await this.timer!.WaitForNextTickAsync(token)
             .ConfigureAwait(false))
