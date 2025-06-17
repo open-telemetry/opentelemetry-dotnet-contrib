@@ -13,32 +13,33 @@ internal class HeartbeatService : IBackgroundService, IDisposable
 
     private readonly FrameDispatcher dispatcher;
 
-    private Thread hearthbeatThread;
+    private PeriodicTimer? timer;
     private CancellationTokenSource cts;
-    private TimeSpan heartbeatInterval;
     private HealthStatus? lastStatus;
-    private bool isRunning;
     private ulong startTime; // Start time in unix nanoseconds
     private ulong statusTime;
+    private bool isConfigured;
 
     public HeartbeatService(FrameDispatcher dispatcher)
     {
         this.cts = new CancellationTokenSource();
         this.dispatcher = dispatcher;
-        this.hearthbeatThread = new Thread(this.HeartbeatLoop)
-        {
-            IsBackground = true,
-            Name = "OpAMP Heartbeat Thread",
-        };
     }
 
     public string ServiceName => Name;
 
     public void Configure(OpAMPSettings settings)
     {
-        this.heartbeatInterval = settings.HeartbeatSettings.Interval;
+        if (this.timer == null)
+        {
+            this.timer = new PeriodicTimer(settings.HeartbeatSettings.Interval);
+        }
+        else
+        {
+            this.timer.Period = settings.HeartbeatSettings.Interval;
+        }
 
-        if (!settings.HeartbeatSettings.ShouldWaitForFirstStatus)
+        if (!this.isConfigured && !settings.HeartbeatSettings.ShouldWaitForFirstStatus)
         {
             this.UpdateStatus(new HealthStatus
             {
@@ -46,6 +47,8 @@ internal class HeartbeatService : IBackgroundService, IDisposable
                 Status = settings.HeartbeatSettings.InitialStatus,
             });
         }
+
+        this.isConfigured = true;
     }
 
     public void UpdateStatus(HealthStatus status)
@@ -56,21 +59,25 @@ internal class HeartbeatService : IBackgroundService, IDisposable
 
     public void Start()
     {
-        this.isRunning = true;
-        this.hearthbeatThread.Start();
+        if (!this.isConfigured)
+        {
+            throw new InvalidOperationException("Heartbeat service is not configured. Call Configure() before starting.");
+        }
+
         this.startTime = GetCurrentTimeInNanoseconds();
+
+        _ = Task.Run(() => this.HeartbeatLoop(this.cts.Token));
     }
 
     public void Stop()
     {
-        this.isRunning = false;
+        this.timer?.Dispose();
         this.cts.Cancel(); // Cancel the heartbeat loop
     }
 
     public void Dispose()
     {
         this.Stop();
-        this.hearthbeatThread.Join();
         this.cts.Dispose();
     }
 
@@ -79,40 +86,22 @@ internal class HeartbeatService : IBackgroundService, IDisposable
         return (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000; // Convert to nanoseconds
     }
 
-    private async void HeartbeatLoop()
+    private async Task HeartbeatLoop(CancellationToken token)
     {
-        while (this.isRunning)
+        while (await this.timer!.WaitForNextTickAsync(token)
+            .ConfigureAwait(false))
         {
             // Status is not yet received
             if (this.lastStatus == null)
             {
-                try
-                {
-                    await Task.Delay(this.heartbeatInterval, this.cts.Token)
-                        .ConfigureAwait(false);
-
-                    continue;
-                }
-                catch (TaskCanceledException)
-                {
-                    // Handle cancellation gracefully
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    // TODO: Log the exception (logging not implemented here)
-                    Console.WriteLine($"Heartbeat error: {ex.Message}");
-                }
+                continue;
             }
 
             try
             {
                 var report = this.CreateHealthReport();
 
-                await this.dispatcher.DispatchHearthbeatAysnc(report, this.cts.Token)
-                    .ConfigureAwait(false);
-
-                await Task.Delay(this.heartbeatInterval, this.cts.Token)
+                await this.dispatcher.DispatchHeartbeatAysnc(report, token)
                     .ConfigureAwait(false);
             }
             catch (TaskCanceledException)
