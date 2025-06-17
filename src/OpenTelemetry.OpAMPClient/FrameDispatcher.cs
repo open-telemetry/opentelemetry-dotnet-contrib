@@ -22,7 +22,7 @@ internal class FrameDispatcher : IDisposable
     }
 
     // TODO: May need to redesign to request only partials
-    // so any other message awaiting to be send can be included to optimize transport usage and locking time.
+    // so any other message waiting to be sent can be included to optimize transport usage and locking time.
     public async Task DispatchIdentificationFrameAsync(CancellationToken token)
     {
         await this.syncRoot.WaitAsync(token)
