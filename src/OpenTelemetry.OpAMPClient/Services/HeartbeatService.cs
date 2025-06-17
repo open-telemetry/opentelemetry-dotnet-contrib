@@ -2,17 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAMPClient.Data;
+using OpenTelemetry.OpAMPClient.Listeners;
+using OpenTelemetry.OpAMPClient.Listeners.Messages;
 using OpenTelemetry.OpAMPClient.Services.Internal;
 using OpenTelemetry.OpAMPClient.Settings;
 
 namespace OpenTelemetry.OpAMPClient.Services;
 
-internal class HeartbeatService : IBackgroundService, IDisposable
+internal class HeartbeatService : IBackgroundService, IOpAMPListener<ConnectionSettingsMessage>, IDisposable
 {
     public const string Name = "heartbeat-service";
 
     private readonly FrameDispatcher dispatcher;
-
+    private readonly FrameProcessor processor;
     private Thread hearthbeatThread;
     private CancellationTokenSource cts;
     private TimeSpan heartbeatInterval;
@@ -21,15 +23,18 @@ internal class HeartbeatService : IBackgroundService, IDisposable
     private ulong startTime; // Start time in unix nanoseconds
     private ulong statusTime;
 
-    public HeartbeatService(FrameDispatcher dispatcher)
+    public HeartbeatService(FrameDispatcher dispatcher, FrameProcessor processor)
     {
         this.cts = new CancellationTokenSource();
         this.dispatcher = dispatcher;
+        this.processor = processor;
         this.hearthbeatThread = new Thread(this.HeartbeatLoop)
         {
             IsBackground = true,
             Name = "OpAMP Heartbeat Thread",
         };
+
+        this.processor.Subscribe(this);
     }
 
     public string ServiceName => Name;
@@ -63,8 +68,22 @@ internal class HeartbeatService : IBackgroundService, IDisposable
 
     public void Stop()
     {
+        this.processor.Unsubscribe(this);
+
         this.isRunning = false;
         this.cts.Cancel(); // Cancel the heartbeat loop
+    }
+
+    public void HandleMessage(ConnectionSettingsMessage message)
+    {
+        var newInterval = message.ConnectionSettings.Opamp.HeartbeatIntervalSeconds;
+
+        if (newInterval > 0)
+        {
+            // TODO: Debug log the new heartbeat interval
+            Console.WriteLine($"[Debug] New heartbeat interval received: {newInterval}s");
+            this.heartbeatInterval = TimeSpan.FromSeconds(newInterval);
+        }
     }
 
     public void Dispose()

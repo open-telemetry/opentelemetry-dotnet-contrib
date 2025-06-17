@@ -1,38 +1,45 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Opamp.Protocol;
+using OpenTelemetry.OpAMPClient.Listeners;
+using OpenTelemetry.OpAMPClient.Listeners.Messages;
 
 namespace OpenTelemetry.OpAMPClient.Trash;
 
-internal class SampleMessageListener : IOpAMPMessageListener
+internal class SampleMessageListener : IOpAMPListener,
+    IOpAMPListener<ConnectionSettingsMessage>,
+    IOpAMPListener<CustomCapabilitiesMessage>,
+    IOpAMPListener<CustomMessageMessage>,
+    IOpAMPListener<ErrorResponseMessage>,
+    IOpAMPListener<PackagesAvailableMessage>,
+    IOpAMPListener<RemoteConfigMessage>
 {
-    public void OnConnectionSettingsReceived(ConnectionSettingsOffers connectionSettings)
+    public void HandleMessage(ConnectionSettingsMessage message)
     {
-        Console.WriteLine("Certificate received");
+        Console.WriteLine("On connection settings received");
     }
 
-    public void OnCustomCapabilitiesReceived(CustomCapabilities customCapabilities)
+    public void HandleMessage(CustomCapabilitiesMessage message)
     {
         Console.WriteLine("Custom capabilities received");
     }
 
-    public void OnCustomMessageReceived(CustomMessage customMessage)
+    public void HandleMessage(CustomMessageMessage message)
     {
         Console.WriteLine("Custom message received");
     }
 
-    public void OnErrorResponseReceived(ServerErrorResponse errorResponse)
+    public void HandleMessage(ErrorResponseMessage message)
     {
         Console.WriteLine("On error response received");
     }
 
-    public void OnPackagesAvailableReceived(PackagesAvailable packagesAvailable)
+    public void HandleMessage(PackagesAvailableMessage message)
     {
         Console.WriteLine("On packages available received");
     }
 
-    public void OnSettingsReceived(AgentRemoteConfig remoteConfig)
+    public void HandleMessage(RemoteConfigMessage message)
     {
         Console.WriteLine("Config received");
     }

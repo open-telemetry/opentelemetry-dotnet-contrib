@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAMPClient.Data;
+using OpenTelemetry.OpAMPClient.Listeners.Messages;
 using OpenTelemetry.OpAMPClient.Services;
 using OpenTelemetry.OpAMPClient.Settings;
 using OpenTelemetry.OpAMPClient.Transport;
@@ -15,7 +16,7 @@ namespace OpenTelemetry.OpAMPClient;
 public class OpAMPClient : IDisposable
 {
     private readonly OpAMPSettings settings = new();
-    private readonly FrameProcessor processor = new(new SampleMessageListener());
+    private readonly FrameProcessor processor = new();
     private readonly Dictionary<string, IBackgroundService> services = [];
     private readonly FrameDispatcher dispatcher;
     private readonly IOpAMPTransport transport;
@@ -32,6 +33,15 @@ public class OpAMPClient : IDisposable
         this.dispatcher = new FrameDispatcher(this.transport, this.settings);
 
         this.ConfigureServices();
+
+        // TODO: for testing only, remove when done
+        var listener = new SampleMessageListener();
+        this.processor.Subscribe<ConnectionSettingsMessage>(listener);
+        this.processor.Subscribe<CustomCapabilitiesMessage>(listener);
+        this.processor.Subscribe<CustomMessageMessage>(listener);
+        this.processor.Subscribe<ErrorResponseMessage>(listener);
+        this.processor.Subscribe<PackagesAvailableMessage>(listener);
+        this.processor.Subscribe<RemoteConfigMessage>(listener);
     }
 
     /// <summary>
@@ -114,7 +124,7 @@ public class OpAMPClient : IDisposable
     {
         this.ConfigureService<HeartbeatService>(
             settings => settings.HeartbeatSettings.IsEnabled,
-            () => new(this.dispatcher));
+            () => new(this.dispatcher, this.processor));
     }
 
     private void ConfigureService<T>(Predicate<OpAMPSettings> isEnabled, Func<T> construct)
