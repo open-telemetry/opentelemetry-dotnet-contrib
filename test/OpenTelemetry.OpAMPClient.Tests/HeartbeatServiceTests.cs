@@ -14,7 +14,7 @@ public class HeartbeatServiceTests
     public async Task HeartbeatService_EmitsFiveHeartbeats()
     {
         const int messagesCount = 5;
-        const int intervalMs = 500;
+        const int intervalMs = 300;
 
         var delay = messagesCount * intervalMs; // No buffer is needed as the service starts with the heartbeat immediately
         var settings = new OpAMPSettings

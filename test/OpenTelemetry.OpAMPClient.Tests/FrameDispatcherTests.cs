@@ -39,7 +39,7 @@ public class FrameDispatcherTests
             }
             else
             {
-                await dispatcher.DispatchHearthbeatAysnc(healthReport, token);
+                await dispatcher.DispatchHeartbeatAysnc(healthReport, token);
             }
         });
 
