@@ -12,6 +12,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
 {
     // The Microsoft SQL Server Docker image is not compatible with ARM devices, such as Macs with Apple Silicon.
+    // See https://github.com/microsoft/mssql-docker/issues/881.
     public IContainer DatabaseContainer { get; } = Architecture.Arm64.Equals(RuntimeInformation.ProcessArchitecture) ? CreateSqlEdge() : CreateMsSql();
 
     public Task InitializeAsync()
