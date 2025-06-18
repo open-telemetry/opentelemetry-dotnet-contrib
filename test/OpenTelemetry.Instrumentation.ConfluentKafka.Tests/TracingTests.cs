@@ -361,4 +361,33 @@ public class TracingTests
             return default;
         }
     }
+
+    [Trait("CategoryName", "KafkaIntegrationTests")]
+    [SkipUnlessEnvVarFoundFact(KafkaHelpers.KafkaEndPointEnvVarName)]
+    public async Task ConsumeAndProcessMessageShouldPropagateException()
+    {
+        var topic = await KafkaHelpers.ProduceTestMessageAsync();
+
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = KafkaHelpers.KafkaEndPoint,
+            GroupId = "test-consumer-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+        };
+        InstrumentedConsumerBuilder<string, string> consumerBuilder = new(consumerConfig);
+
+        using var consumer = consumerBuilder.Build();
+        consumer.Subscribe(topic);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await consumer.ConsumeAndProcessMessageAsync(ExceptionOpAsync));
+
+        static ValueTask ExceptionOpAsync(
+            ConsumeResult<string, string> consumeResult,
+            Activity? activity,
+            CancellationToken cancellationToken = default)
+        {
+            throw new InvalidOperationException();
+        }
+    }
 }
