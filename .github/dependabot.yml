@@ -7,31 +7,7 @@ updates:
     labels:
       - "infra"
   - package-ecosystem: "docker"
-    directory: "test/OpenTelemetry.Instrumentation.Cassandra.Tests"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-    labels:
-      - "infra"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-  - package-ecosystem: "docker"
-    directory: "test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-    labels:
-      - "infra"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-  - package-ecosystem: "docker"
-    directory: "test/OpenTelemetry.Instrumentation.StackExchangeRedis.Tests"
+    directories: ["**/*"]
     schedule:
       interval: "weekly"
       day: "wednesday"
