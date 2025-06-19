@@ -1,42 +1,32 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
 using System.Data;
-#endif
 using System.Diagnostics;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
-
-#if !NETFRAMEWORK
 using OpenTelemetry.Tests;
-#endif
 using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 
+public enum SqlClientLibrary
+{
+    SystemDataSqlClient,
+    MicrosoftDataSqlClient,
+}
+
 [Collection("SqlClient")]
 public class SqlClientTests : IDisposable
 {
-#if !NETFRAMEWORK
     private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master";
-#endif
-
-    private readonly FakeSqlClientDiagnosticSource fakeSqlClientDiagnosticSource;
-
-    public SqlClientTests()
-    {
-        this.fakeSqlClientDiagnosticSource = new FakeSqlClientDiagnosticSource();
-    }
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
     public void Dispose()
     {
-        this.fakeSqlClientDiagnosticSource.Dispose();
+        // TODO: Why is this here? Add comment explaining why.
         GC.SuppressFinalize(this);
     }
 
@@ -47,69 +37,46 @@ public class SqlClientTests : IDisposable
         Assert.Throws<ArgumentNullException>(() => builder!.AddSqlClientInstrumentation());
     }
 
-    [Fact]
-    public void SqlClient_NamedOptions()
-    {
-        var defaultExporterOptionsConfigureOptionsInvocations = 0;
-        var namedExporterOptionsConfigureOptionsInvocations = 0;
-
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .ConfigureServices(services =>
-            {
-                services.Configure<SqlClientTraceInstrumentationOptions>(o => defaultExporterOptionsConfigureOptionsInvocations++);
-
-                services.Configure<SqlClientTraceInstrumentationOptions>("Instrumentation2", o => namedExporterOptionsConfigureOptionsInvocations++);
-            })
-            .AddSqlClientInstrumentation()
-            .AddSqlClientInstrumentation("Instrumentation2", configureSqlClientTraceInstrumentationOptions: null)
-            .Build();
-
-        Assert.Equal(1, defaultExporterOptionsConfigureOptionsInvocations);
-        Assert.Equal(1, namedExporterOptionsConfigureOptionsInvocations);
-    }
-
-    // DiagnosticListener-based instrumentation is only available on .NET Core
-#if !NETFRAMEWORK
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlMicrosoftBeforeExecuteCommand(SqlClientTestCase testCase)
+    public void TestMicrosoftDataSqlClient(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlDataBeforeExecuteCommand(SqlClientTestCase testCase)
+    public void TestSystemDataSqlClient(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlMicrosoftBeforeExecuteCommandOldConventions(SqlClientTestCase testCase)
+    public void TestMicrosoftDataSqlClientOldConventions(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: false);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient, emitOldAttributes: true, emitNewAttributes: false);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlMicrosoftBeforeExecuteCommandOldAndNewConventions(SqlClientTestCase testCase)
+    public void TestMicrosoftDataSqlClientOldAndNewConventions(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: true);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient, emitOldAttributes: true, emitNewAttributes: true);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlDataBeforeExecuteCommandOldConventions(SqlClientTestCase testCase)
+    public void TestSystemDataSqlClientOldConventions(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: false);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient, emitOldAttributes: true, emitNewAttributes: false);
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSqlDataBeforeExecuteCommandOldAndNewConventions(SqlClientTestCase testCase)
+    public void TestSystemDataSqlClientOldAndNewConventions(SqlClientTestCase testCase)
     {
-        this.RunSqlClientTestCase(testCase, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand, emitOldAttributes: true, emitNewAttributes: true);
+        this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient, emitOldAttributes: true, emitNewAttributes: true);
     }
 
     [Theory]
@@ -161,89 +128,6 @@ public class SqlClientTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void DbQueryTextCollectedWhenEnabled(bool captureTextCommandContent)
-    {
-        var activities = new List<Activity>();
-
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureTextCommandContent;
-                options.EmitOldAttributes = true;
-                options.EmitNewAttributes = true;
-            })
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        var commandText = "select * from sys.databases";
-        this.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(TestConnectionString, CommandType.Text, commandText, false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
-
-        tracerProvider.ForceFlush();
-        Assert.Equal(2, activities.Count);
-
-        if (captureTextCommandContent)
-        {
-            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
-            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
-        }
-        else
-        {
-            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
-            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
-        }
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ExceptionCapturedWhenRecordExceptionEnabled(bool recordException)
-    {
-        var activities = new List<Activity>();
-
-        using var traceProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.RecordException = recordException;
-            })
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", true, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
-
-        traceProvider.ForceFlush();
-
-        Assert.Equal(2, activities.Count);
-
-        Assert.Equal(ActivityStatusCode.Error, activities[0].Status);
-        Assert.Equal(ActivityStatusCode.Error, activities[1].Status);
-        Assert.NotNull(activities[0].StatusDescription);
-        Assert.NotNull(activities[1].StatusDescription);
-
-        if (recordException)
-        {
-            var events0 = activities[0].Events.ToList();
-            var events1 = activities[1].Events.ToList();
-            Assert.Single(events0);
-            Assert.Single(events1);
-            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events0[0].Name);
-            Assert.Equal(SemanticConventions.AttributeExceptionEventName, events1[0].Name);
-        }
-        else
-        {
-            Assert.Empty(activities[0].Events);
-            Assert.Empty(activities[1].Events);
-        }
-    }
-
-    [Theory]
     [InlineData(true, false)]
     [InlineData(false, false)]
     [InlineData(true, true)]
@@ -276,8 +160,8 @@ public class SqlClientTests : IDisposable
         using var tracerProvider = tracerProviderBuilder.Build();
         using var meterProvider = meterProviderBuilder.Build();
 
-        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientLibrary.SystemDataSqlClient);
+        MockCommandExecutor.ExecuteCommand(TestConnectionString, CommandType.StoredProcedure, "SP_GetOrders", false, SqlClientLibrary.MicrosoftDataSqlClient);
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
@@ -300,108 +184,6 @@ public class SqlClientTests : IDisposable
         else
         {
             Assert.Empty(metrics);
-        }
-    }
-
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
-    public void ShouldEnrichWhenEnabled(bool shouldEnrich, bool error)
-    {
-        var activities = new List<Activity>();
-
-        using var traceProvider = Sdk.CreateTracerProviderBuilder()
-            .AddSqlClientInstrumentation(
-            (opt) =>
-            {
-                if (shouldEnrich)
-                {
-                    opt.Enrich = ActivityEnrichment;
-                }
-            })
-            .AddInMemoryExporter(activities)
-            .Build();
-
-        this.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand);
-        this.ExecuteCommand(TestConnectionString, CommandType.Text, "SELECT * FROM Foo", error, SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand);
-
-        Assert.Equal(2, activities.Count);
-        if (shouldEnrich)
-        {
-            Assert.Contains("enriched", activities[0].Tags.Select(x => x.Key));
-            Assert.Contains("enriched", activities[1].Tags.Select(x => x.Key));
-            Assert.Equal("yes", activities[0].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
-            Assert.Equal("yes", activities[1].Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
-        }
-        else
-        {
-            Assert.DoesNotContain(activities[0].Tags, tag => tag.Key == "enriched");
-            Assert.DoesNotContain(activities[1].Tags, tag => tag.Key == "enriched");
-        }
-    }
-
-    [Fact]
-    public void ShouldCollectTelemetryWhenFilterEvaluatesToTrue()
-    {
-        var activities = this.RunCommandWithFilter(
-            cmd =>
-            {
-                cmd.CommandText = "select 2";
-            },
-            cmd =>
-            {
-                return cmd is not SqlCommand command || command.CommandText == "select 2";
-            });
-
-        Assert.Single(activities);
-        Assert.True(activities[0].IsAllDataRequested);
-        Assert.True(activities[0].ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
-    }
-
-    [Fact]
-    public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalse()
-    {
-        var activities = this.RunCommandWithFilter(
-            cmd =>
-            {
-                cmd.CommandText = "select 1";
-            },
-            cmd =>
-            {
-                return cmd is not SqlCommand command || command.CommandText == "select 2";
-            });
-
-        Assert.Empty(activities);
-    }
-
-    [Fact]
-    public void ShouldNotCollectTelemetryAndShouldNotPropagateExceptionWhenFilterThrowsException()
-    {
-        var activities = this.RunCommandWithFilter(
-            cmd =>
-            {
-                cmd.CommandText = "select 1";
-            },
-            cmd => throw new InvalidOperationException("foobar"));
-
-        Assert.Empty(activities);
-    }
-#endif
-
-    internal static void ActivityEnrichment(Activity activity, string method, object obj)
-    {
-        activity.SetTag("enriched", "yes");
-
-        switch (method)
-        {
-            case "OnCustom":
-                Assert.True(obj is SqlCommand);
-                break;
-
-            default:
-                break;
         }
     }
 
@@ -541,8 +323,7 @@ public class SqlClientTests : IDisposable
         }
     }
 
-#if !NETFRAMEWORK
-    private void RunSqlClientTestCase(SqlClientTestCase testCase, string beforeCommand, bool emitOldAttributes = false, bool emitNewAttributes = true)
+    private void RunSqlClientTestCase(SqlClientTestCase testCase, SqlClientLibrary library, bool emitOldAttributes = false, bool emitNewAttributes = true)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -569,7 +350,7 @@ public class SqlClientTests : IDisposable
             .AddInMemoryExporter(metrics)
             .Build();
 
-        this.ExecuteCommand(testCase.Input.ConnectionString, testCase.Input.CommandType, testCase.Input.CommandText, testCase.Expected.ErrorType != null, beforeCommand);
+        MockCommandExecutor.ExecuteCommand(testCase.Input.ConnectionString, testCase.Input.CommandType, testCase.Input.CommandText, testCase.Expected.ErrorType != null, library);
 
         traceProvider.ForceFlush();
         meterProvider.ForceFlush();
@@ -623,135 +404,6 @@ public class SqlClientTests : IDisposable
         {
             VerifySamplingParametersOldConventions(testCase, sampler.LatestSamplingParameters);
             VerifyOldAttributes(testCase, activity, metricPoint);
-        }
-    }
-
-    private Activity[] RunCommandWithFilter(
-        Action<SqlCommand> sqlCommandSetup,
-        Func<object, bool> filter)
-    {
-        using var sqlConnection = new SqlConnection(TestConnectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
-        var activities = new List<Activity>();
-        using (Sdk.CreateTracerProviderBuilder()
-           .AddSqlClientInstrumentation(
-               options =>
-               {
-                   options.Filter = filter;
-               })
-           .AddInMemoryExporter(activities)
-           .Build())
-        {
-            var operationId = Guid.NewGuid();
-            sqlCommandSetup(sqlCommand);
-
-            var beforeExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = (long?)1000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
-                beforeExecuteEventData);
-
-            var afterExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
-                afterExecuteEventData);
-        }
-
-        return [.. activities];
-    }
-
-    private void ExecuteCommand(string connectionString, CommandType commandType, string commandText, bool error, string beforeCommand)
-    {
-        var afterCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
-            ? SqlClientDiagnosticListener.SqlDataAfterExecuteCommand
-            : SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand;
-
-        var errorCommand = beforeCommand == SqlClientDiagnosticListener.SqlDataBeforeExecuteCommand
-            ? SqlClientDiagnosticListener.SqlDataWriteCommandError
-            : SqlClientDiagnosticListener.SqlMicrosoftWriteCommandError;
-
-        using var sqlConnection = new SqlConnection(connectionString);
-        using var sqlCommand = sqlConnection.CreateCommand();
-
-        var operationId = Guid.NewGuid();
-        sqlCommand.CommandType = commandType;
-#pragma warning disable CA2100
-        sqlCommand.CommandText = commandText;
-#pragma warning restore CA2100
-
-        var beforeExecuteEventData = new
-        {
-            OperationId = operationId,
-            Command = sqlCommand,
-            Timestamp = (long?)1000000L,
-        };
-
-        this.fakeSqlClientDiagnosticSource.Write(
-            beforeCommand,
-            beforeExecuteEventData);
-
-        if (error)
-        {
-            var commandErrorEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Exception = new Exception("Boom!"),
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                errorCommand,
-                commandErrorEventData);
-        }
-        else
-        {
-            var afterExecuteEventData = new
-            {
-                OperationId = operationId,
-                Command = sqlCommand,
-                Timestamp = 2000000L,
-            };
-
-            this.fakeSqlClientDiagnosticSource.Write(
-                afterCommand,
-                afterExecuteEventData);
-        }
-    }
-#endif
-
-    private class FakeSqlClientDiagnosticSource : IDisposable
-    {
-        private readonly DiagnosticListener listener;
-
-        public FakeSqlClientDiagnosticSource()
-        {
-            this.listener = new DiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
-        }
-
-        public void Write(string name, object value)
-        {
-            if (this.listener.IsEnabled(name))
-            {
-                this.listener.Write(name, value);
-            }
-        }
-
-        public void Dispose()
-        {
-            this.listener.Dispose();
         }
     }
 }
