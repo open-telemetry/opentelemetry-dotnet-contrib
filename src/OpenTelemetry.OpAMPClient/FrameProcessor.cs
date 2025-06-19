@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Opamp.Protocol;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAMPClient.Listeners;
@@ -12,20 +14,18 @@ namespace OpenTelemetry.OpAMPClient;
 
 internal class FrameProcessor
 {
-    private readonly Dictionary<Type, List<IOpAMPListener>> listeners = [];
+    private readonly ConcurrentDictionary<Type, ImmutableList<IOpAMPListener>> listeners = [];
 
     public void Subscribe<T>(IOpAMPListener<T> listener)
         where T : IOpAMPMessage
     {
         Guard.ThrowIfNull(listener, nameof(listener));
 
-        if (!this.listeners.TryGetValue(typeof(T), out var list))
-        {
-            list = [];
-            this.listeners[typeof(T)] = list;
-        }
-
-        list.Add(listener);
+        // It is expected to be much more read-heavy than write-heavy, so we use ImmutableList for thread safety
+        this.listeners.AddOrUpdate(
+            typeof(T),
+            _ => [listener],
+            (_, list) => list.Add(listener));
     }
 
     public void Unsubscribe<T>(IOpAMPListener<T> listener)
@@ -33,10 +33,18 @@ internal class FrameProcessor
     {
         Guard.ThrowIfNull(listener, nameof(listener));
 
-        if (this.listeners.TryGetValue(typeof(T), out var list))
-        {
-            list.Remove(listener);
-        }
+        this.listeners.AddOrUpdate(
+            typeof(T),
+            _ => ImmutableList<IOpAMPListener>.Empty,
+            (_, list) =>
+            {
+                if (list.Count == 1 && list[0] == listener)
+                {
+                    return ImmutableList<IOpAMPListener>.Empty;
+                }
+
+                return list.Remove(listener);
+            });
     }
 
     public void OnServerFrame(ReadOnlySequence<byte> sequence, int count, bool verifyHeader)
@@ -56,7 +64,7 @@ internal class FrameProcessor
         this.Deserialize(sequence, count, headerSize);
     }
 
-    public void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
+    private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
     {
         var dataSegment = sequence.Slice(headerSize, count - headerSize);
         var message = ServerToAgent.Parser.ParseFrom(dataSegment);
