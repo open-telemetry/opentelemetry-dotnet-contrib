@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using Hangfire;
-using Hangfire.Storage.Monitoring;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -173,13 +172,29 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
-        var timeout = DateTime.Now.AddSeconds(timeToWaitInSeconds);
+        var timeout = TimeSpan.FromSeconds(timeToWaitInSeconds);
+        using var cts = new CancellationTokenSource(timeout);
+
         string[] states = ["Enqueued", "Processing"];
-        JobDetailsDto jobDetails;
-        while (((jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId)) == null || jobDetails.History.All(h => states.Contains(h.StateName)))
-               && DateTime.Now < timeout)
+
+        while (!Completed() && !cts.IsCancellationRequested)
         {
             await Task.Delay(500);
+        }
+
+        bool Completed()
+        {
+            var jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId);
+
+            if (jobDetails == null)
+            {
+                return false;
+            }
+
+            // Copy the history to an array to avoid exception if the collection is modified while iterating
+            var history = jobDetails.History.ToArray();
+
+            return !history.All(h => states.Contains(h.StateName));
         }
     }
 }
