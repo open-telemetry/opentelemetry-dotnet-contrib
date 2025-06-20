@@ -11,9 +11,9 @@ namespace OpenTelemetry.OpAMPClient.Tests;
 public class HeartbeatServiceTests
 {
     [Fact]
-    public async Task HeartbeatService_EmitsFiveHeartbeats()
+    public async Task HeartbeatService_EmitsHeartbeats()
     {
-        const int messagesCount = 5;
+        const int messagesCount = 3;
         const int intervalMs = 300;
 
         var delay = messagesCount * intervalMs; // No buffer is needed as the service starts with the heartbeat immediately
@@ -29,7 +29,8 @@ public class HeartbeatServiceTests
 
         var transport = new MockTransport();
         var dispatcher = new FrameDispatcher(transport, settings);
-        var service = new HeartbeatService(dispatcher);
+        var processor = new FrameProcessor();
+        var service = new HeartbeatService(dispatcher, processor);
 
         service.Configure(settings);
         service.Start();

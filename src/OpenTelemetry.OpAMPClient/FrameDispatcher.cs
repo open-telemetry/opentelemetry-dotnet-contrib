@@ -53,7 +53,7 @@ internal class FrameDispatcher : IDisposable
         }
     }
 
-    public async Task DispatchHeartbeatAysnc(HealthReport report, CancellationToken token)
+    public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
     {
         await this.syncRoot.WaitAsync(token)
             .ConfigureAwait(false);

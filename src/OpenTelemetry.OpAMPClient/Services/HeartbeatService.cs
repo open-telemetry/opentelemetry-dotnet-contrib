@@ -2,41 +2,52 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAMPClient.Data;
+using OpenTelemetry.OpAMPClient.Listeners;
+using OpenTelemetry.OpAMPClient.Listeners.Messages;
 using OpenTelemetry.OpAMPClient.Services.Internal;
 using OpenTelemetry.OpAMPClient.Settings;
 
 namespace OpenTelemetry.OpAMPClient.Services;
 
-internal class HeartbeatService : IBackgroundService, IDisposable
+internal class HeartbeatService : IBackgroundService, IOpAMPListener<ConnectionSettingsMessage>, IDisposable
 {
     public const string Name = "heartbeat-service";
 
     private readonly FrameDispatcher dispatcher;
-
+    private readonly FrameProcessor processor;
     private PeriodicTimer? timer;
     private CancellationTokenSource cts;
     private HealthStatus? lastStatus;
+    private Task? heartbeatTask;
+    private TimeSpan? requestedInterval; // Server requested interval
     private ulong startTime; // Start time in unix nanoseconds
     private ulong statusTime;
     private bool isConfigured;
+    private bool isDisposed;
 
-    public HeartbeatService(FrameDispatcher dispatcher)
+    public HeartbeatService(FrameDispatcher dispatcher, FrameProcessor processor)
     {
         this.cts = new CancellationTokenSource();
         this.dispatcher = dispatcher;
+        this.processor = processor;
+
+        this.processor.Subscribe(this);
     }
 
     public string ServiceName => Name;
 
     public void Configure(OpAMPSettings settings)
     {
+        var interval = this.requestedInterval ?? settings.HeartbeatSettings.Interval;
+        this.requestedInterval = null; // Reset after use
+
         if (this.timer == null)
         {
-            this.timer = new PeriodicTimer(settings.HeartbeatSettings.Interval);
+            this.timer = new PeriodicTimer(interval);
         }
         else
         {
-            this.timer.Period = settings.HeartbeatSettings.Interval;
+            this.timer.Period = interval;
         }
 
         if (!this.isConfigured && !settings.HeartbeatSettings.ShouldWaitForFirstStatus)
@@ -59,26 +70,63 @@ internal class HeartbeatService : IBackgroundService, IDisposable
 
     public void Start()
     {
+        if (this.isDisposed)
+        {
+            ObjectDisposedException.ThrowIf(this.isDisposed, this);
+        }
+
         if (!this.isConfigured)
         {
             throw new InvalidOperationException("Heartbeat service is not configured. Call Configure() before starting.");
         }
 
-        this.startTime = GetCurrentTimeInNanoseconds();
+        if (this.heartbeatTask != null)
+        {
+            throw new InvalidOperationException("Heartbeat service already started.");
+        }
 
-        _ = Task.Run(() => this.HeartbeatLoopAsync(this.cts.Token));
+        this.startTime = GetCurrentTimeInNanoseconds();
+        this.heartbeatTask = Task.Run(() => this.HeartbeatLoopAsync(this.cts.Token));
     }
 
     public void Stop()
     {
+        this.processor.Unsubscribe(this);
+
         this.timer?.Dispose();
         this.cts.Cancel(); // Cancel the heartbeat loop
     }
 
+    public void HandleMessage(ConnectionSettingsMessage message)
+    {
+        var newInterval = message.ConnectionSettings.Opamp.HeartbeatIntervalSeconds;
+        if (newInterval > 0)
+        {
+            // TODO: Debug log the new heartbeat interval
+            Console.WriteLine($"[Debug] New heartbeat interval received: {newInterval}s");
+
+            // TODO: may need to sync further to eliminate the race condition completely
+            if (this.timer == null)
+            {
+                this.requestedInterval = TimeSpan.FromSeconds(newInterval);
+            }
+            else
+            {
+                this.timer.Period = TimeSpan.FromSeconds(newInterval);
+            }
+        }
+    }
+
     public void Dispose()
     {
+        if (this.isDisposed)
+        {
+            return; // Already disposed
+        }
+
         this.Stop();
         this.cts.Dispose();
+        this.isDisposed = true;
     }
 
     private static ulong GetCurrentTimeInNanoseconds()
@@ -101,7 +149,7 @@ internal class HeartbeatService : IBackgroundService, IDisposable
             {
                 var report = this.CreateHealthReport();
 
-                await this.dispatcher.DispatchHeartbeatAysnc(report, token)
+                await this.dispatcher.DispatchHeartbeatAsync(report, token)
                     .ConfigureAwait(false);
             }
             catch (TaskCanceledException)

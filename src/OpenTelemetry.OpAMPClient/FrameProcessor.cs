@@ -2,18 +2,49 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Opamp.Protocol;
+using OpenTelemetry.Internal;
+using OpenTelemetry.OpAMPClient.Listeners;
+using OpenTelemetry.OpAMPClient.Listeners.Messages;
 using OpenTelemetry.OpAMPClient.Utils;
 
 namespace OpenTelemetry.OpAMPClient;
 
 internal class FrameProcessor
 {
-    private readonly IOpAMPMessageListener listener;
+    private readonly ConcurrentDictionary<Type, ImmutableList<IOpAMPListener>> listeners = [];
 
-    public FrameProcessor(IOpAMPMessageListener listener)
+    public void Subscribe<T>(IOpAMPListener<T> listener)
+        where T : IOpAMPMessage
     {
-        this.listener = listener;
+        Guard.ThrowIfNull(listener, nameof(listener));
+
+        // It is expected to be much more read-heavy than write-heavy, so we use ImmutableList for thread safety
+        this.listeners.AddOrUpdate(
+            typeof(T),
+            _ => [listener],
+            (_, list) => list.Add(listener));
+    }
+
+    public void Unsubscribe<T>(IOpAMPListener<T> listener)
+        where T : IOpAMPMessage
+    {
+        Guard.ThrowIfNull(listener, nameof(listener));
+
+        this.listeners.AddOrUpdate(
+            typeof(T),
+            _ => ImmutableList<IOpAMPListener>.Empty,
+            (_, list) =>
+            {
+                if (list.Count == 1 && list[0] == listener)
+                {
+                    return ImmutableList<IOpAMPListener>.Empty;
+                }
+
+                return list.Remove(listener);
+            });
     }
 
     public void OnServerFrame(ReadOnlySequence<byte> sequence, int count, bool verifyHeader)
@@ -33,59 +64,74 @@ internal class FrameProcessor
         this.Deserialize(sequence, count, headerSize);
     }
 
-    public void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
+    private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
     {
         var dataSegment = sequence.Slice(headerSize, count - headerSize);
         var message = ServerToAgent.Parser.ParseFrom(dataSegment);
 
         if (message.ErrorResponse != null)
         {
-            this.listener.OnErrorResponseReceived(message.ErrorResponse);
+            this.Dispatch(new ErrorResponseMessage() { ErrorResponse = message.ErrorResponse });
         }
 
         if (message.RemoteConfig != null)
         {
-            this.listener.OnSettingsReceived(message.RemoteConfig);
+            this.Dispatch(new RemoteConfigMessage() { RemoteConfig = message.RemoteConfig });
         }
 
         if (message.ConnectionSettings != null)
         {
-            this.listener.OnConnectionSettingsReceived(message.ConnectionSettings);
+            this.Dispatch(new ConnectionSettingsMessage() { ConnectionSettings = message.ConnectionSettings });
         }
 
         if (message.PackagesAvailable != null)
         {
-            this.listener.OnPackagesAvailableReceived(message.PackagesAvailable);
+            this.Dispatch(new PackagesAvailableMessage() { PackagesAvailable = message.PackagesAvailable });
         }
 
         if (message.Flags != 0)
         {
-            Console.WriteLine($"TODO: On flags received - {message.Flags}");
+            this.Dispatch(new FlagsMessage() { Flags = (ServerToAgentFlags)message.Flags });
         }
 
         if (message.Capabilities != 0)
         {
-            Console.WriteLine($"TODO: On capabilities received - {message.Capabilities}");
+            this.Dispatch(new CapabilitiesMessage() { Capabilities = (ServerCapabilities)message.Capabilities });
         }
 
         if (message.AgentIdentification != null)
         {
-            Console.WriteLine($"TODO: On agent re-identification received - {message.AgentIdentification.NewInstanceUid}");
+            this.Dispatch(new AgentIdentificationMessage() { AgentIdentification = message.AgentIdentification });
         }
 
         if (message.Command != null)
         {
-            Console.WriteLine($"TODO: On agent command received - {message.Command.Type.ToString()}");
+            this.Dispatch(new CommandMessage() { Command = message.Command });
         }
 
         if (message.CustomCapabilities != null)
         {
-            this.listener.OnCustomCapabilitiesReceived(message.CustomCapabilities);
+            this.Dispatch(new CustomCapabilitiesMessage() { CustomCapabilities = message.CustomCapabilities });
         }
 
         if (message.CustomMessage != null)
         {
-            this.listener.OnCustomMessageReceived(message.CustomMessage);
+            this.Dispatch(new CustomMessageMessage() { CustomMessage = message.CustomMessage });
+        }
+    }
+
+    private void Dispatch<T>(T message)
+        where T : IOpAMPMessage
+    {
+        if (this.listeners.TryGetValue(typeof(T), out var list))
+        {
+            foreach (var listener in list)
+            {
+                if (listener is IOpAMPListener<T> typedListener)
+                {
+                    typedListener.HandleMessage(message);
+                }
+            }
         }
     }
 }
