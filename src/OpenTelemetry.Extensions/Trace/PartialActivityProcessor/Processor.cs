@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 
 /// <summary>
-/// The PartialSpanProcessor is an OpenTelemetry span processor that emits logs at regular intervals (referred to as "heartbeats") during the lifetime of a span and when the span ends.
+/// The PartialActivityProcessor is an OpenTelemetry span processor that emits logs at regular intervals (referred to as "heartbeats") during the lifetime of a span and when the span ends.
 /// This processor is useful for monitoring long-running spans by providing periodic updates.
 /// </summary>
 public class Processor : BaseProcessor<Activity>
