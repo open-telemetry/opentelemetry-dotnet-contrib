@@ -27,8 +27,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1")]
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
-    [InlineData(CommandType.Text, "select 1/0", false, null, true, false, false)]
-    [InlineData(CommandType.Text, "select 1/0", false, null, true, true, false)]
+    [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
     [InlineData(CommandType.StoredProcedure, "sp_who", false, "sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
@@ -36,13 +35,11 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         bool captureTextCommandContent = false,
         string? sanitizedCommandText = null,
         bool isFailure = false,
-        bool recordException = false,
-        bool shouldEnrich = true)
+        bool recordException = false)
     {
 #if NETFRAMEWORK
         // Disable things not available on netfx
         recordException = false;
-        shouldEnrich = false;
 #endif
 
         var sampler = new TestSampler();
@@ -54,10 +51,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             {
                 options.SetDbStatementForText = captureTextCommandContent;
                 options.RecordException = recordException;
-                if (shouldEnrich)
-                {
-                    options.Enrich = SqlClientTests.ActivityEnrichment;
-                }
             })
             .Build();
 
@@ -86,7 +79,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-        VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, shouldEnrich, activity);
+        VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
 
         if (isFailure)
@@ -111,7 +104,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         bool captureTextCommandContent,
         bool isFailure,
         bool recordException,
-        bool shouldEnrich,
         Activity activity,
         bool emitOldAttributes = true,
         bool emitNewAttributes = false)
@@ -147,16 +139,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             {
                 Assert.Empty(activity.Events);
             }
-        }
-
-        if (shouldEnrich)
-        {
-            Assert.Contains(activity.Tags, tag => tag.Key == "enriched");
-            Assert.Equal("yes", activity.Tags.FirstOrDefault(tag => tag.Key == "enriched").Value);
-        }
-        else
-        {
-            Assert.DoesNotContain(activity.Tags, tag => tag.Key == "enriched");
         }
 
         if (emitOldAttributes)
