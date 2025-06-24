@@ -1,8 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using Google.Api.Gax.Grpc;
+using Google.Cloud.Trace.V2;
+using Grpc.Core;
 using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 namespace OpenTelemetry.Exporter.GoogleCloud;
@@ -122,6 +126,6 @@ public class GoogleCloudTraceExporter : BaseExporter<Activity>
     private static void StackdriverCallHeaderAppender(Metadata metadata)
     {
         metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
-        metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; stackdriver-exporter {StackdriverExportVersion}");
+        metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; googlecloud-exporter {StackdriverExportVersion}");
     }
 }

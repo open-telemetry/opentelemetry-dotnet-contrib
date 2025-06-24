@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Google.Cloud.Trace.V2;
-using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 using OpenTelemetry.Resources;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
 public class ResourceExtensionsTests
 {

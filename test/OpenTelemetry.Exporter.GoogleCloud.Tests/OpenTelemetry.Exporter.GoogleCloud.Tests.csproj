@@ -4,12 +4,12 @@
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
-    <Description>Unit test project for Stackdriver Exporter for OpenTelemetry.</Description>
-    <RootNamespace>OpenTelemetry.Exporter.Stackdriver.Tests</RootNamespace>
+    <Description>Unit test project for GoogleCloud Exporter for OpenTelemetry.</Description>
+    <RootNamespace>OpenTelemetry.Exporter.GoogleCloud.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.Stackdriver\OpenTelemetry.Exporter.Stackdriver.csproj" />
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Exporter.GoogleCloud\OpenTelemetry.Exporter.GoogleCloud.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
 public class ActivityExtensionsTest
 {

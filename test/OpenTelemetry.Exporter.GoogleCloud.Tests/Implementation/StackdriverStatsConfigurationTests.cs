@@ -1,14 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests.Implementation;
 
-public class StackdriverStatsConfigurationTests
+public class GoogleCloudStatsConfigurationTests
 {
-    public StackdriverStatsConfigurationTests()
+    public GoogleCloudStatsConfigurationTests()
     {
         // Setting this for unit testing purposes, so we don't need credentials for real Google Cloud Account
         Environment.SetEnvironmentVariable("GOOGLE_PROJECT_ID", "test", EnvironmentVariableTarget.Process);
@@ -17,37 +17,37 @@ public class StackdriverStatsConfigurationTests
     [Fact]
     public void StatsConfiguration_ByDefault_MetricNamePrefixEmpty()
     {
-        Assert.NotNull(StackdriverStatsConfiguration.Default);
-        Assert.Equal(GoogleCloudResourceUtils.GetProjectId(), StackdriverStatsConfiguration.Default.ProjectId);
-        Assert.Equal(string.Empty, StackdriverStatsConfiguration.Default.MetricNamePrefix);
+        Assert.NotNull(GoogleCloudStatsConfiguration.Default);
+        Assert.Equal(GoogleCloudResourceUtils.GetProjectId(), GoogleCloudStatsConfiguration.Default.ProjectId);
+        Assert.Equal(string.Empty, GoogleCloudStatsConfiguration.Default.MetricNamePrefix);
     }
 
     [Fact]
     public void StatsConfiguration_ByDefault_ProjectIdIsGoogleCloudProjectId()
     {
-        Assert.NotNull(StackdriverStatsConfiguration.Default);
-        Assert.Equal(GoogleCloudResourceUtils.GetProjectId(), StackdriverStatsConfiguration.Default.ProjectId);
+        Assert.NotNull(GoogleCloudStatsConfiguration.Default);
+        Assert.Equal(GoogleCloudResourceUtils.GetProjectId(), GoogleCloudStatsConfiguration.Default.ProjectId);
     }
 
     [Fact]
     public void StatsConfiguration_ByDefault_ExportIntervalMinute()
     {
-        Assert.Equal(TimeSpan.FromMinutes(1), StackdriverStatsConfiguration.Default.ExportInterval);
+        Assert.Equal(TimeSpan.FromMinutes(1), GoogleCloudStatsConfiguration.Default.ExportInterval);
     }
 
     [Fact]
     public void StatsConfiguration_ByDefault_MonitoredResourceIsGlobal()
     {
-        Assert.NotNull(StackdriverStatsConfiguration.Default.MonitoredResource);
+        Assert.NotNull(GoogleCloudStatsConfiguration.Default.MonitoredResource);
 
-        Assert.Equal(Constants.Global, StackdriverStatsConfiguration.Default.MonitoredResource.Type);
+        Assert.Equal(Constants.Global, GoogleCloudStatsConfiguration.Default.MonitoredResource.Type);
 
-        Assert.NotNull(StackdriverStatsConfiguration.Default.MonitoredResource.Labels);
+        Assert.NotNull(GoogleCloudStatsConfiguration.Default.MonitoredResource.Labels);
 
-        Assert.True(StackdriverStatsConfiguration.Default.MonitoredResource.Labels.ContainsKey("project_id"));
-        Assert.True(StackdriverStatsConfiguration.Default.MonitoredResource.Labels.ContainsKey(Constants.ProjectIdLabelKey));
+        Assert.True(GoogleCloudStatsConfiguration.Default.MonitoredResource.Labels.ContainsKey("project_id"));
+        Assert.True(GoogleCloudStatsConfiguration.Default.MonitoredResource.Labels.ContainsKey(Constants.ProjectIdLabelKey));
         Assert.Equal(
-            StackdriverStatsConfiguration.Default.ProjectId,
-            StackdriverStatsConfiguration.Default.MonitoredResource.Labels[Constants.ProjectIdLabelKey]);
+            GoogleCloudStatsConfiguration.Default.ProjectId,
+            GoogleCloudStatsConfiguration.Default.MonitoredResource.Labels[Constants.ProjectIdLabelKey]);
     }
 }
