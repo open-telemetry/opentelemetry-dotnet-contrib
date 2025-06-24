@@ -105,7 +105,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         {
             filtered = true;
 
-            Assert.Equal(provider, providerName);
+            Assert.True(providerName == provider || providerName == null, $"The provider name {providerName} is not null or the expected value.");
             Assert.IsType(expectedCommandType, command, false);
 
             return true;
@@ -191,7 +191,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         {
             filtered = true;
 
-            Assert.Equal(provider, providerName);
+            Assert.True(providerName == provider || providerName == null, $"The provider name {providerName} is not null or the expected value.");
             Assert.IsType(expectedCommandType, command, false);
 
             return true;

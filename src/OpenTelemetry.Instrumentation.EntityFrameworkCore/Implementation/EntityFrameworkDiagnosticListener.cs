@@ -80,11 +80,21 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                     if (activity.IsAllDataRequested)
                     {
-                        var dbContext = this.dbContextFetcher.Fetch(payload);
-                        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                        string? providerOrCommandName = null;
 
-                        switch (providerName)
+                        if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
+                        {
+                            var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+                            providerOrCommandName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                        }
+                        else
+                        {
+                            // Try to infer the database name from the command
+                            // type if the DbContext is not available.
+                            providerOrCommandName = command.GetType().FullName;
+                        }
+
+                        switch (providerOrCommandName)
                         {
                             case "Microsoft.EntityFrameworkCore.SqlServer":
                                 activity.AddTag(AttributeDbSystem, "mssql");
@@ -92,6 +102,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             case "Microsoft.EntityFrameworkCore.Cosmos":
                                 activity.AddTag(AttributeDbSystem, "cosmosdb");
                                 break;
+                            case "Microsoft.Data.Sqlite.SqliteCommand":
                             case "Microsoft.EntityFrameworkCore.Sqlite":
                             case "Devart.Data.SQLite.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "sqlite");
@@ -136,7 +147,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
-                                activity.AddTag("ef.provider", providerName);
+                                activity.AddTag("ef.provider", providerOrCommandName);
                                 break;
                         }
 
@@ -179,9 +190,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                         try
                         {
-                            var dbContext = this.dbContextFetcher.Fetch(payload);
-                            var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                            var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                            string? providerName = null;
+
+                            if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
+                            {
+                                var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+                                providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                            }
 
                             if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
