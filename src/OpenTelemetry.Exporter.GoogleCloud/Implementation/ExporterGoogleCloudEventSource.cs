@@ -4,12 +4,12 @@
 using System.Diagnostics.Tracing;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 [EventSource(Name = "OpenTelemetry-Exporter-Stackdriver")]
-internal class ExporterStackdriverEventSource : EventSource
+internal class ExporterGoogleCloudEventSource : EventSource
 {
-    public static readonly ExporterStackdriverEventSource Log = new();
+    public static readonly ExporterGoogleCloudEventSource Log = new();
 
     [NonEvent]
     public void ExportMethodException(Exception ex)

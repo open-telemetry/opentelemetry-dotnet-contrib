@@ -1,13 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Globalization;
-using Google.Cloud.Trace.V2;
-using Google.Protobuf.WellKnownTypes;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 internal static class ActivityExtensions
 {

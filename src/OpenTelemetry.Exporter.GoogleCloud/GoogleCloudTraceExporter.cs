@@ -1,20 +1,16 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Google.Api.Gax.Grpc;
-using Google.Cloud.Trace.V2;
-using Grpc.Core;
-using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
-namespace OpenTelemetry.Exporter.Stackdriver;
+namespace OpenTelemetry.Exporter.GoogleCloud;
 
 /// <summary>
 /// Exports a group of spans to Stackdriver.
 /// </summary>
-public class StackdriverTraceExporter : BaseExporter<Activity>
+public class GoogleCloudTraceExporter : BaseExporter<Activity>
 {
     private static readonly string StackdriverExportVersion;
     private static readonly string OpenTelemetryExporterVersion;
@@ -24,12 +20,12 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     private readonly TraceServiceClient? traceServiceClient;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
-    static StackdriverTraceExporter()
+    static GoogleCloudTraceExporter()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
     {
         try
         {
-            var assemblyPackageVersion = typeof(StackdriverTraceExporter).GetTypeInfo().Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+            var assemblyPackageVersion = typeof(GoogleCloudTraceExporter).GetTypeInfo().Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
             StackdriverExportVersion = assemblyPackageVersion;
         }
         catch (Exception)
@@ -48,10 +44,10 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
+    /// Initializes a new instance of the <see cref="GoogleCloudTraceExporter"/> class.
     /// </summary>
     /// <param name="projectId">Project ID to send telemetry to.</param>
-    public StackdriverTraceExporter(string projectId)
+    public GoogleCloudTraceExporter(string projectId)
     {
         this.googleCloudProjectId = new Google.Api.Gax.ResourceNames.ProjectName(projectId);
 
@@ -62,13 +58,13 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackdriverTraceExporter"/> class.
+    /// Initializes a new instance of the <see cref="GoogleCloudTraceExporter"/> class.
     /// Only used internally for tests.
     /// </summary>
     /// <param name="projectId">Project ID to send telemetry to.</param>
     /// <param name="traceServiceClient">TraceServiceClient instance to use.</param>
     [ExcludeFromCodeCoverage]
-    internal StackdriverTraceExporter(string projectId, TraceServiceClient traceServiceClient)
+    internal GoogleCloudTraceExporter(string projectId, TraceServiceClient traceServiceClient)
         : this(projectId)
     {
         this.traceServiceClient = traceServiceClient;
@@ -111,7 +107,7 @@ public class StackdriverTraceExporter : BaseExporter<Activity>
         }
         catch (Exception ex)
         {
-            ExporterStackdriverEventSource.Log.ExportMethodException(ex);
+            ExporterGoogleCloudEventSource.Log.ExportMethodException(ex);
 
             return ExportResult.Failure;
         }

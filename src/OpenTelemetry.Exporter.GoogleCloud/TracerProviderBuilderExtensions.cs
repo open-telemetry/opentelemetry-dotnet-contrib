@@ -1,10 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Exporter.Stackdriver;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Trace;
+namespace OpenTelemetry.Exporter.GoogleCloud;
 
 /// <summary>
 /// Extension methods to simplify registering a Stackdriver exporter.
@@ -17,14 +16,14 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
     /// <param name="projectId">Project ID to send telemetry to.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    public static TracerProviderBuilder UseStackdriverExporter(
+    public static TracerProviderBuilder UseGoogleCloudExporter(
         this TracerProviderBuilder builder,
         string projectId)
     {
         Guard.ThrowIfNull(builder);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var activityExporter = new StackdriverTraceExporter(projectId);
+        var activityExporter = new GoogleCloudTraceExporter(projectId);
 
         return builder.AddProcessor(new BatchActivityExportProcessor(activityExporter));
 #pragma warning restore CA2000 // Dispose objects before losing scope

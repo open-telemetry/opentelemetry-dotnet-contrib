@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 internal class Constants
 {

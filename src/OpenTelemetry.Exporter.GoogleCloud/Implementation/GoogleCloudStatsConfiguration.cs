@@ -1,26 +1,23 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using Google.Api;
-using Google.Apis.Auth.OAuth2;
-
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 /// <summary>
 /// Configuration for exporting stats into Stackdriver.
 /// </summary>
-public class StackdriverStatsConfiguration
+public class GoogleCloudStatsConfiguration
 {
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// Gets default Stats Configuration for Stackdriver.
     /// </summary>
-    public static StackdriverStatsConfiguration Default
+    public static GoogleCloudStatsConfiguration Default
     {
         get
         {
-            var defaultConfig = new StackdriverStatsConfiguration
+            var defaultConfig = new GoogleCloudStatsConfiguration
             {
                 ExportInterval = DefaultInterval,
                 ProjectId = GoogleCloudResourceUtils.GetProjectId(),
