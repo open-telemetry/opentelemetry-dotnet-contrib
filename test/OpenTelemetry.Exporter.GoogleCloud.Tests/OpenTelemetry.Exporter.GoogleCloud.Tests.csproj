@@ -5,6 +5,7 @@
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for Stackdriver Exporter for OpenTelemetry.</Description>
+    <RootNamespace>OpenTelemetry.Exporter.Stackdriver.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

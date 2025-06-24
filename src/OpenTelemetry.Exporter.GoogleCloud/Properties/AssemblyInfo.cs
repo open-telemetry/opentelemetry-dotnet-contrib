@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("OpenTelemetry.Exporter.Stackdriver.Tests" + AssemblyInfo.PublicKey)]
+[assembly: InternalsVisibleTo("OpenTelemetry.Exporter.GoogleCloud.Tests" + AssemblyInfo.PublicKey)]
 
 #if SIGNED
 internal static class AssemblyInfo
