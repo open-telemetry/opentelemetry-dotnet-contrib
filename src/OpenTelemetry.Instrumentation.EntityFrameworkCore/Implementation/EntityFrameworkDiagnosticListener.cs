@@ -97,6 +97,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         switch (providerOrCommandName)
                         {
                             case "Microsoft.EntityFrameworkCore.SqlServer":
+                            case "Microsoft.Data.SqlClient.SqlCommand":
                                 activity.AddTag(AttributeDbSystem, "mssql");
                                 break;
                             case "Microsoft.EntityFrameworkCore.Cosmos":
@@ -108,21 +109,28 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 activity.AddTag(AttributeDbSystem, "sqlite");
                                 break;
                             case "MySql.Data.EntityFrameworkCore":
+                            case "MySql.Data.MySqlClient.MySqlCommand":
                             case "Pomelo.EntityFrameworkCore.MySql":
                             case "Devart.Data.MySql.Entity.EFCore":
+                            case "Devart.Data.MySql.MySqlCommand":
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
+                            case "Npgsql.NpgsqlCommand":
                             case "Devart.Data.PostgreSql.Entity.EFCore":
+                            case "Devart.Data.PostgreSql.PgSqlCommand":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
+                            case "Oracle.ManagedDataAccess.Client.OracleCommand":
                             case "Devart.Data.Oracle.Entity.EFCore":
+                            case "Devart.Data.Oracle.OracleCommand":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":
                                 activity.AddTag(AttributeDbSystem, "efcoreinmemory");
                                 break;
+                            case "FirebirdSql.Data.FirebirdClient.FbCommand":
                             case "FirebirdSql.EntityFrameworkCore.Firebird":
                                 activity.AddTag(AttributeDbSystem, "firebird");
                                 break;
@@ -131,17 +139,21 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "EntityFrameworkCore.SqlServerCompact35":
                             case "EntityFrameworkCore.SqlServerCompact40":
+                            case "System.Data.SqlServerCe.SqlCeCommand":
                                 activity.AddTag(AttributeDbSystem, "mssqlcompact");
                                 break;
                             case "EntityFrameworkCore.OpenEdge":
                                 activity.AddTag(AttributeDbSystem, "openedge");
                                 break;
                             case "EntityFrameworkCore.Jet":
+                            case "EntityFrameworkCore.Jet.Data.JetCommand":
                                 activity.AddTag(AttributeDbSystem, "jet");
                                 break;
                             case "Google.Cloud.EntityFrameworkCore.Spanner":
+                            case "Google.Cloud.Spanner.Data.SpannerCommand":
                                 activity.AddTag(AttributeDbSystem, "spanner");
                                 break;
+                            case "Teradata.Client.Provider.TdCommand":
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
                                 break;
