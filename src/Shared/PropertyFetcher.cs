@@ -120,19 +120,7 @@ internal sealed class PropertyFetcher<T>
                         $"Type: {declaringType.FullName} is a value type. PropertyFetcher can only operate on reference payload types.");
                 }
 
-                if (declaringType == typeof(object))
-                {
-                    // TODO: REMOVE this if branch when .NET 7 is out of support.
-                    // This branch is never executed and is only needed for .NET 7 AOT-compiler at trimming stage; i.e.,
-                    // this is not needed in .NET 8, because the compiler is improved and call into MakeGenericMethod will be AOT-compatible.
-                    // It is used to force the AOT compiler to create an instantiation of the method with a reference type.
-                    // The code for that instantiation can then be reused at runtime to create instantiation over any other reference.
-                    return CreateInstantiated<object>(propertyInfo);
-                }
-                else
-                {
-                    return DynamicInstantiationHelper(declaringType, propertyInfo);
-                }
+                return DynamicInstantiationHelper(declaringType, propertyInfo);
 
                 // Separated as a local function to be able to target the suppression to just this call.
                 // IL3050 was generated here because of the call to MakeGenericType, which is problematic in AOT if one of the type parameters is a value type;

@@ -28,7 +28,12 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
+#if NETFRAMEWORK
+    [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
+#else
     [InlineData(CommandType.StoredProcedure, "sp_who", false, "sp_who")]
+#endif
+    [InlineData(CommandType.StoredProcedure, "sp_who", true, "sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,

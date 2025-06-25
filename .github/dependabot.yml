@@ -6,6 +6,18 @@ updates:
       interval: "daily"
     labels:
       - "infra"
+  - package-ecosystem: "docker"
+    directories: ["**/*"]
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+    labels:
+      - "infra"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
   - package-ecosystem: "dotnet-sdk"
     directory: "/"
     schedule:

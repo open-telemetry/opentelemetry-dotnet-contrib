@@ -28,7 +28,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
-    internal static readonly ActivitySource SqlClientActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
+    internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -59,7 +59,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         {
             case EntityFrameworkCoreCommandCreated:
                 {
-                    activity = SqlClientActivitySource.StartActivity(ActivityName, ActivityKind.Client);
+                    activity = EntityFrameworkActivitySource.StartActivity(ActivityName, ActivityKind.Client);
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
@@ -80,38 +80,57 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                     if (activity.IsAllDataRequested)
                     {
-                        var dbContext = this.dbContextFetcher.Fetch(payload);
-                        var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                        var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                        string? providerOrCommandName = null;
 
-                        switch (providerName)
+                        if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
+                        {
+                            var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+                            providerOrCommandName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                        }
+                        else
+                        {
+                            // Try to infer the database name from the command
+                            // type if the DbContext is not available.
+                            providerOrCommandName = command.GetType().FullName;
+                        }
+
+                        switch (providerOrCommandName)
                         {
                             case "Microsoft.EntityFrameworkCore.SqlServer":
+                            case "Microsoft.Data.SqlClient.SqlCommand":
                                 activity.AddTag(AttributeDbSystem, "mssql");
                                 break;
                             case "Microsoft.EntityFrameworkCore.Cosmos":
                                 activity.AddTag(AttributeDbSystem, "cosmosdb");
                                 break;
+                            case "Microsoft.Data.Sqlite.SqliteCommand":
                             case "Microsoft.EntityFrameworkCore.Sqlite":
                             case "Devart.Data.SQLite.Entity.EFCore":
                                 activity.AddTag(AttributeDbSystem, "sqlite");
                                 break;
                             case "MySql.Data.EntityFrameworkCore":
+                            case "MySql.Data.MySqlClient.MySqlCommand":
                             case "Pomelo.EntityFrameworkCore.MySql":
                             case "Devart.Data.MySql.Entity.EFCore":
+                            case "Devart.Data.MySql.MySqlCommand":
                                 activity.AddTag(AttributeDbSystem, "mysql");
                                 break;
                             case "Npgsql.EntityFrameworkCore.PostgreSQL":
+                            case "Npgsql.NpgsqlCommand":
                             case "Devart.Data.PostgreSql.Entity.EFCore":
+                            case "Devart.Data.PostgreSql.PgSqlCommand":
                                 activity.AddTag(AttributeDbSystem, "postgresql");
                                 break;
                             case "Oracle.EntityFrameworkCore":
+                            case "Oracle.ManagedDataAccess.Client.OracleCommand":
                             case "Devart.Data.Oracle.Entity.EFCore":
+                            case "Devart.Data.Oracle.OracleCommand":
                                 activity.AddTag(AttributeDbSystem, "oracle");
                                 break;
                             case "Microsoft.EntityFrameworkCore.InMemory":
                                 activity.AddTag(AttributeDbSystem, "efcoreinmemory");
                                 break;
+                            case "FirebirdSql.Data.FirebirdClient.FbCommand":
                             case "FirebirdSql.EntityFrameworkCore.Firebird":
                                 activity.AddTag(AttributeDbSystem, "firebird");
                                 break;
@@ -120,23 +139,27 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 break;
                             case "EntityFrameworkCore.SqlServerCompact35":
                             case "EntityFrameworkCore.SqlServerCompact40":
+                            case "System.Data.SqlServerCe.SqlCeCommand":
                                 activity.AddTag(AttributeDbSystem, "mssqlcompact");
                                 break;
                             case "EntityFrameworkCore.OpenEdge":
                                 activity.AddTag(AttributeDbSystem, "openedge");
                                 break;
                             case "EntityFrameworkCore.Jet":
+                            case "EntityFrameworkCore.Jet.Data.JetCommand":
                                 activity.AddTag(AttributeDbSystem, "jet");
                                 break;
                             case "Google.Cloud.EntityFrameworkCore.Spanner":
+                            case "Google.Cloud.Spanner.Data.SpannerCommand":
                                 activity.AddTag(AttributeDbSystem, "spanner");
                                 break;
+                            case "Teradata.Client.Provider.TdCommand":
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
                                 break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
-                                activity.AddTag("ef.provider", providerName);
+                                activity.AddTag("ef.provider", providerOrCommandName);
                                 break;
                         }
 
@@ -168,7 +191,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
@@ -179,9 +202,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                         try
                         {
-                            var dbContext = this.dbContextFetcher.Fetch(payload);
-                            var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
-                            var providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                            string? providerName = null;
+
+                            if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
+                            {
+                                var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
+                                providerName = this.providerNameFetcher.Fetch(dbContextDatabase);
+                            }
 
                             if (command is IDbCommand typedCommand && this.options.Filter?.Invoke(providerName, typedCommand) == false)
                             {
@@ -267,12 +294,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source == EntityFrameworkActivitySource)
                     {
-                        return;
+                        activity.Stop();
                     }
 
-                    activity.Stop();
+                    // For some reason this EF event comes before the SQLClient SqlMicrosoftAfterExecuteCommand event.
+                    // EF span should not be parent of any other span except SQLClient, because of that it can be closed safely.
+                    // Can result in a slightly strange timeline where the EF span finishes before its child SQLClient but based on EventSource's it is true.
+                    if (activity.Parent?.Source == EntityFrameworkActivitySource)
+                    {
+                        activity.Parent.Stop();
+                    }
                 }
 
                 break;
@@ -285,7 +318,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (activity.Source != SqlClientActivitySource)
+                    if (activity.Source != EntityFrameworkActivitySource)
                     {
                         return;
                     }
