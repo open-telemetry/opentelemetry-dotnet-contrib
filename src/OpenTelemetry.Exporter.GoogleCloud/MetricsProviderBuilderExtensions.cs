@@ -25,7 +25,6 @@ public static class MetricsProviderBuilderExtensions
         Guard.ThrowIfNull(builder);
         builder.AddReader(_ =>
         {
-
             var exporter = new GoogleCloudMetricsExporter(projectId);
             return new PeriodicExportingMetricReader(exporter, 10000) // todo: make this configurable
             {
