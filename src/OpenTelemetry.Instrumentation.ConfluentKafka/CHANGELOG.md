@@ -20,6 +20,9 @@
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
+* Rethrow exception on consume and process.
+  ([#2847](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2847))
+
 ## 0.1.0-alpha.2
 
 Released 2024-Sep-18
