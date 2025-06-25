@@ -12,9 +12,6 @@ using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
 
-// Avoid mutations to RuntimePipelineCustomizerRegistry.Instance causing flaky tests
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 /// <summary>
