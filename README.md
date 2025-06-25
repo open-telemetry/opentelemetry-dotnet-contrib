@@ -96,8 +96,6 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*
 
-### Emeritus
-
 ### Emeritus Maintainer/Approver/Triager
 
 * [Cijo Thomas](https://github.com/cijothomas)
