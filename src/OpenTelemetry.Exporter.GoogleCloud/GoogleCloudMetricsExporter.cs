@@ -17,7 +17,7 @@ internal sealed class GoogleCloudMetricsExporter : BaseExporter<Metric>
     private static readonly string OpenTelemetryExporterVersion;
 
     private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
-    private readonly MetricService.MetricServiceClient metricServiceClient;
+    private readonly MetricServiceClient metricServiceClient;
 
     public GoogleCloudMetricsExporter()
     {
@@ -51,7 +51,6 @@ internal sealed class GoogleCloudMetricsExporter : BaseExporter<Metric>
         // Set header mutation for every outgoing API call to Stackdriver so the BE knows
         // which version of OC client is calling it as well as which version of the exporter
         var callSettings = CallSettings.FromHeaderMutation(StackdriverCallHeaderAppender);
-        this.traceServiceSettings = new TraceServiceSettings { CallSettings = callSettings };
     }
     /// <summary>
     /// Initializes a new instance of the <see cref="GoogleCloudTraceExporter"/> class.
@@ -60,29 +59,69 @@ internal sealed class GoogleCloudMetricsExporter : BaseExporter<Metric>
     /// <param name="projectId">Project ID to send telemetry to.</param>
     /// <param name="metricServiceClient">TraceServiceClient instance to use.</param>
     [ExcludeFromCodeCoverage]
-    internal GoogleCloudMetricsExporter(string projectId, MetricService.MetricServiceClient metricServiceClient)
+    internal GoogleCloudMetricsExporter(string projectId, MetricServiceClient metricServiceClient)
         : this(projectId)
     {
         this.metricServiceClient = metricServiceClient;
     }
     public override ExportResult Export(in Batch<Metric> batch)
     {
+        var traceWriter = this.metricServiceClient ?? MetricServiceClient.Create();
+        {
+
+        }
         try
         {
             foreach (var metric in batch)
             {
-                metricServiceClient.CreateServiceTimeSeries()
-                this.writer.Write(metric, this.ParentProvider?.GetResource(), this.writeApi);
+               var timeSeriesValue = ConvertMetricToTimeSeries(metric);
             }
 
             return ExportResult.Success;
         }
         catch (Exception exception)
         {
-            ExporterGoogleCloudEventSource.Log.FailedToExport(exception.Message);
+            ExporterGoogleCloudEventSource.Log.ExportMethodException(exception);
             return ExportResult.Failure;
         }
     }
+
+    private object ConvertMetricToTimeSeries(Metric metric)
+    {
+        return metric.MetricType switch
+        {
+            MetricType.LongGauge => ConvertFromLongGauseToTimeSeries(metric),
+            _ => throw new NotSupportedException("Unsupported metric type")
+        };
+    }
+
+    private object ConvertFromLongGauseToTimeSeries(Metric metric)
+    {
+        List<TimeSeries> typedValues = [];
+        foreach (var metricPoint in metric.GetMetricPoints())
+        {
+            typedValues.Add(new TimeSeries()
+            {
+                Unit = metric.Unit,
+                MetricKind = MetricDescriptor.Types.MetricKind.Cumulative,
+                ValueType = MetricDescriptor.Types.ValueType.Int64,
+                Points =
+                {
+                    new Point()
+                    {
+                        Interval = new TimeInterval()
+                        {
+                            StartTime = Timestamp.FromDateTimeOffset(metricPoint.StartTime),
+                            EndTime = Timestamp.FromDateTimeOffset(metricPoint.EndTime)
+                        }
+                    }
+                }
+            });
+        }
+        var timeSeries = this.metricServiceClient.CreateTimeSeries(googleCloudProjectId,typedValues,  )
+
+    }
+
     /// <summary>
     /// Appends OpenTelemetry headers for every outgoing request to Stackdriver Backend.
     /// </summary>

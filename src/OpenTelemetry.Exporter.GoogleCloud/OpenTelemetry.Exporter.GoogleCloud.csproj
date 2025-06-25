@@ -25,11 +25,5 @@
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="GoogleCloudMetricsExporter.cs" />
-    <None Include="GoogleCloudMetricsExporter.cs" />
-    <Compile Remove="MetricsProviderBuilderExtensions.cs" />
-    <None Include="MetricsProviderBuilderExtensions.cs" />
-  </ItemGroup>
 
 </Project>
