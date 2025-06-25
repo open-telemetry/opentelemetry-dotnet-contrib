@@ -12,6 +12,9 @@ using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using Xunit;
 
+// Avoid mutations to RuntimePipelineCustomizerRegistry.Instance causing flaky tests
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
 
 /// <summary>
@@ -23,28 +26,28 @@ namespace OpenTelemetry.Instrumentation.AWS.Tests;
 public sealed class AWSClientInstrumentationOptionsTests
 {
     [Fact]
-    public void CanUseSemanticConvention_V1_28_0()
+    public async Task CanUseSemanticConvention_V1_28_0()
     {
         var semanticVersion = SemanticConventionVersion.V1_28_0;
 
-        var tags = this.GetActivityTags(semanticVersion);
+        var tags = await this.GetActivityTagsAsync(semanticVersion);
 
         // GenAI System attribute differs slightly between 1.28 and 1.29
         Assert.Equal("aws_bedrock", tags["gen_ai.system"]);
     }
 
     [Fact]
-    public void CanUseSemanticConvention_V1_29_0()
+    public async Task CanUseSemanticConvention_V1_29_0()
     {
         var semanticVersion = SemanticConventionVersion.V1_29_0;
 
-        var tags = this.GetActivityTags(semanticVersion);
+        var tags = await this.GetActivityTagsAsync(semanticVersion);
 
         // GenAI System attribute differs slightly between 1.28 and 1.29
         Assert.Equal("aws.bedrock", tags["gen_ai.system"]);
     }
 
-    private Dictionary<string, string?> GetActivityTags(SemanticConventionVersion semVersion)
+    private async Task<Dictionary<string, string?>> GetActivityTagsAsync(SemanticConventionVersion semVersion)
     {
         var exportedItems = new List<Activity>();
 
@@ -63,15 +66,15 @@ public sealed class AWSClientInstrumentationOptionsTests
                        .AddInMemoryExporter(exportedItems)
                        .Build())
             {
-                var bedrockruntime = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                var client = new AmazonBedrockRuntimeClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
                 var dummyResponse = "{}";
-                CustomResponses.SetResponse(bedrockruntime, dummyResponse, requestId, true);
+                CustomResponses.SetResponse(client, dummyResponse, requestId, true);
                 var invokeModelRequest = new InvokeModelRequest { ModelId = "amazon.titan-text-express-v1" };
 
 #if NETFRAMEWORK
-                var response = bedrockruntime.InvokeModel(invokeModelRequest);
+                var response = await Task.FromResult(client.InvokeModel(invokeModelRequest));
 #else
-                var response = bedrockruntime.InvokeModelAsync(invokeModelRequest).Result;
+                var response = await client.InvokeModelAsync(invokeModelRequest);
 #endif
             }
         }
@@ -87,6 +90,6 @@ public sealed class AWSClientInstrumentationOptionsTests
                 .FirstOrDefault(a => a.DisplayName == "Bedrock Runtime.InvokeModel")
                 ?.Tags
                 .ToDictionary(x => x.Key, x => x.Value)
-                ?? new Dictionary<string, string?>();
+                ?? [];
     }
 }
