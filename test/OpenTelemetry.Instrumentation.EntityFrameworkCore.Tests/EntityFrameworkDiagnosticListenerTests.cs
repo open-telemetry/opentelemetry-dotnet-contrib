@@ -299,42 +299,14 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         context.Database.EnsureDeleted();
         context.Database.EnsureCreated();
 
-        var one = new Item("ItemOne");
+        var one = new Item() { Name = "ItemOne" };
 
-        var two = new Item("ItemTwo");
+        var two = new Item() { Name = "ItemTwo" };
 
-        var three = new Item("ItemThree");
+        var three = new Item() { Name = "ItemThree" };
 
         context.AddRange(one, two, three);
 
         context.SaveChanges();
-    }
-
-    private class Item
-    {
-        public Item(string name)
-        {
-            this.Name = name;
-        }
-
-        public string Name { get; }
-    }
-
-    private class ItemsContext : DbContext
-    {
-        public ItemsContext(DbContextOptions options)
-            : base(options)
-        {
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Item>(
-                b =>
-                {
-                    b.Property(e => e.Name);
-                    b.HasKey("Name");
-                });
-        }
     }
 }
