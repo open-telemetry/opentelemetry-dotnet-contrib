@@ -176,11 +176,15 @@ internal class FoobarService : Foobar.FoobarBase
     }
 
     /// <inheritdoc/>
-    public override Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
+    public async override Task<FoobarResponse> Unary(FoobarRequest request, ServerCallContext context)
     {
         this.CheckForFailure(context);
 
-        return Task.FromResult(DefaultResponseMessage);
+        // Yield to avoid race-condition where tests for disposal before the
+        // request completes fail as the call is completed before Dispose() completes.
+        await Task.Yield();
+
+        return DefaultResponseMessage;
     }
 
     /// <inheritdoc/>
