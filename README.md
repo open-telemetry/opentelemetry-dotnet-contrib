@@ -96,15 +96,15 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*
 
-### Emeritus
-
-[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
+### Emeritus Maintainer/Approver/Triager
 
 * [Cijo Thomas](https://github.com/cijothomas)
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)
 * [Vishwesh Bankwar](https://github.com/vishweshbankwar)
+
+For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership
