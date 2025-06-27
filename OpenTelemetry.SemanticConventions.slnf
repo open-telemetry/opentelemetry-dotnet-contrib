@@ -1,0 +1,12 @@
+{
+  "solution": {
+    "path": "opentelemetry-dotnet-contrib.sln",
+    "projects": [
+      "examples\\semantic-conventions\\OpenTelemetry.SemanticConventions.Example\\OpenTelemetry.SemanticConventions.Example.csproj",
+      "src\\OpenTelemetry.SemanticConventions.Abstractions\\OpenTelemetry.SemanticConventions.Abstractions.csproj",
+      "gen\\OpenTelemetry.SemanticConventions.Generator\\OpenTelemetry.SemanticConventions.Generator.csproj",
+      "src\\OpenTelemetry.SemanticConventions\\OpenTelemetry.SemanticConventions.csproj",
+      "test\\OpenTelemetry.SemanticConventions.Abstractions.Tests\\OpenTelemetry.SemanticConventions.Abstractions.Tests.csproj"
+    ]
+  }
+}

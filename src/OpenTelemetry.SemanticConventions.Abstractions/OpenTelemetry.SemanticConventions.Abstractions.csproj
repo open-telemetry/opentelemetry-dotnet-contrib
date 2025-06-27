@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
-    <Description>OpenTelemetry Semantic Conventions.</Description>
+    <Description>OpenTelemetry Semantic Convention Abstractions.</Description>
     <PackageTags>$(PackageTags);semantic-conventions</PackageTags>
     <MinVerTagPrefix>SemanticConventions-</MinVerTagPrefix>
   </PropertyGroup>
@@ -14,7 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenTelemetry.SemanticConventions.Abstractions\OpenTelemetry.SemanticConventions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\gen\OpenTelemetry.SemanticConventions.Generator\OpenTelemetry.SemanticConventions.Generator.csproj"
+                      ReferenceOutputAssembly="false"
+                      PackAsAnalyzer="true"  />
   </ItemGroup>
-
 </Project>

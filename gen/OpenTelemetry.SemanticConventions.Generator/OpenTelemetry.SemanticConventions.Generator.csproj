@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+    <IsPackable>false</IsPackable>
+    <AnalyzerLanguage>cs</AnalyzerLanguage>
+    <ImplicitUsings>false</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- The following libraries include the source generator interfaces and types we need -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="4.14.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
+  </ItemGroup>
+
+
+</Project>
