@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
 internal class TestActivityProcessor : BaseProcessor<Activity>, IDisposable
 {

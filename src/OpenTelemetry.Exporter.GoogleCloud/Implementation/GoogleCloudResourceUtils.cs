@@ -3,7 +3,7 @@
 
 using Google.Api;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 /// <summary>
 /// Utility methods for working with Google Cloud Resources.

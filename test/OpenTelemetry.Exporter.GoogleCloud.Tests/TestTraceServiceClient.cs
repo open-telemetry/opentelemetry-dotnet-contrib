@@ -5,7 +5,7 @@ using Google.Api.Gax.Grpc;
 using Google.Cloud.Trace.V2;
 using Grpc.Core;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
 internal class TestTraceServiceClient(bool throwException) : TraceServiceClient
 {
