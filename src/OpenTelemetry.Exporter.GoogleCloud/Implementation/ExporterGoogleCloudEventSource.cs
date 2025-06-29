@@ -6,7 +6,7 @@ using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
-[EventSource(Name = "OpenTelemetry-Exporter-Stackdriver")]
+[EventSource(Name = "OpenTelemetry-Exporter-GoogleCloudMonitoring ")]
 internal class ExporterGoogleCloudEventSource : EventSource
 {
     public static readonly ExporterGoogleCloudEventSource Log = new();
@@ -20,7 +20,7 @@ internal class ExporterGoogleCloudEventSource : EventSource
         }
     }
 
-    [Event(3, Message = "Stackdriver exporter encountered an error while exporting. Exception: {0}", Level = EventLevel.Error)]
+    [Event(3, Message = "GoogleCloudMonitoring  exporter encountered an error while exporting. Exception: {0}", Level = EventLevel.Error)]
     public void ExportMethodException(string ex)
     {
         this.WriteEvent(1, ex);

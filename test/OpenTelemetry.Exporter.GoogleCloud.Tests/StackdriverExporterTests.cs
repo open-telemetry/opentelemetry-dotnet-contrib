@@ -9,9 +9,9 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
-public class StackdriverExporterTests
+public class GoogleCloudMonitoringExporterTests
 {
-    static StackdriverExporterTests()
+    static GoogleCloudMonitoringExporterTests()
     {
         Activity.DefaultIdFormat = ActivityIdFormat.W3C;
         Activity.ForceDefaultIdFormat = true;
@@ -26,7 +26,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_CustomActivityProcessor()
+    public void GoogleCloudMonitoringExporter_CustomActivityProcessor()
     {
         const string ActivitySourceName = "stackdriver.test";
         var requestId = Guid.NewGuid();
@@ -61,7 +61,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_WithServiceNameMetadata()
+    public void GoogleCloudMonitoringExporter_WithServiceNameMetadata()
     {
         const string ActivitySourceName = "stackdriver.test";
 
@@ -83,7 +83,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_TraceClientThrows_ExportResultFailure()
+    public void GoogleCloudMonitoringExporter_TraceClientThrows_ExportResultFailure()
     {
         Exception? exception;
         var result = ExportResult.Success;
@@ -119,7 +119,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess()
+    public void GoogleCloudMonitoringExporter_TraceClientDoesNotTrow_ExportResultSuccess()
     {
         Exception? exception;
         var result = ExportResult.Failure;

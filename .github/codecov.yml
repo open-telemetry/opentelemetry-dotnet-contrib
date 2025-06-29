@@ -51,10 +51,10 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
-  unittests-Exporter.Stackdriver:
+  unittests-Exporter.GoogleCloud:
     carryforward: true
     paths:
-      - src/OpenTelemetry.Exporter.Stackdriver
+      - src/OpenTelemetry.Exporter.GoogleCloud
 
   unittests-Extensions:
     carryforward: true

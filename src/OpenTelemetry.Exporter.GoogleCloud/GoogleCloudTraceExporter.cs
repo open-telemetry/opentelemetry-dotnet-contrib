@@ -16,7 +16,7 @@ namespace OpenTelemetry.Exporter.GoogleCloud;
 /// </summary>
 public class GoogleCloudTraceExporter : BaseExporter<Activity>
 {
-    private static readonly string StackdriverExportVersion;
+    private static readonly string GoogleCloudTraceExportVersion;
     private static readonly string OpenTelemetryExporterVersion;
 
     private readonly Google.Api.Gax.ResourceNames.ProjectName googleCloudProjectId;
@@ -30,11 +30,11 @@ public class GoogleCloudTraceExporter : BaseExporter<Activity>
         try
         {
             var assemblyPackageVersion = typeof(GoogleCloudTraceExporter).GetTypeInfo().Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-            StackdriverExportVersion = assemblyPackageVersion;
+            GoogleCloudTraceExportVersion = assemblyPackageVersion;
         }
         catch (Exception)
         {
-            StackdriverExportVersion = $"{Constants.PackagVersionUndefined}";
+            GoogleCloudTraceExportVersion = $"{Constants.PackagVersionUndefined}";
         }
 
         try
@@ -126,6 +126,6 @@ public class GoogleCloudTraceExporter : BaseExporter<Activity>
     private static void StackdriverCallHeaderAppender(Metadata metadata)
     {
         metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
-        metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; googlecloud-exporter {StackdriverExportVersion}");
+        metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; googlecloud-exporter {GoogleCloudTraceExportVersion}");
     }
 }

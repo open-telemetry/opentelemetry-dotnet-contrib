@@ -44,7 +44,7 @@ public static class GoogleCloudResourceUtils
     /// Determining the resource to which the metrics belong.
     /// </summary>
     /// <param name="projectId">The project id.</param>
-    /// <returns>Stackdriver Monitored Resource.</returns>
+    /// <returns>GoogleCloudMonitoring  Monitored Resource.</returns>
     public static MonitoredResource GetDefaultResource(string? projectId)
     {
         var resource = new MonitoredResource();

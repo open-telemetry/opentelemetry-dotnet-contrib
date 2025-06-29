@@ -17,27 +17,27 @@ using Metric = OpenTelemetry.Metrics.Metric;
 namespace OpenTelemetry.Exporter.GoogleCloud;
 
 /// <summary>
-/// Exports a metrics to Stackdriver.
+/// Exports a metrics to Google Cloud Monitoring .
 /// </summary>
-public class GoogleCloudMetricsExporter : BaseExporter<Metric>
+public class GoogleCloudMonitoringExporter : BaseExporter<Metric>
 {
     private readonly ProjectName projectName;
     private readonly MetricServiceSettings? metricServiceSettings;
     private MetricServiceClient? metricServiceClient;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
-    static GoogleCloudMetricsExporter()
+    static GoogleCloudMonitoringExporter()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
     {
         try
         {
             var assemblyPackageVersion = typeof(GoogleCloudTraceExporter).GetTypeInfo().Assembly
                 .GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
-            StackdriverExportVersion = assemblyPackageVersion;
+            GoogleCloudMetricExportVersion = assemblyPackageVersion;
         }
         catch (Exception)
         {
-            StackdriverExportVersion = $"{Constants.PackagVersionUndefined}";
+            GoogleCloudMetricExportVersion = $"{Constants.PackagVersionUndefined}";
         }
 
         try
@@ -52,30 +52,30 @@ public class GoogleCloudMetricsExporter : BaseExporter<Metric>
 
     private static string OpenTelemetryExporterVersion { get; set; }
 
-    private static string StackdriverExportVersion { get; set; }
+    private static string GoogleCloudMetricExportVersion { get; set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GoogleCloudMetricsExporter"/> class.
+    /// Initializes a new instance of the <see cref="GoogleCloudMonitoringExporter"/> class.
     /// </summary>
     /// <param name="projectId">Project ID to send telemetry to.</param>
-    public GoogleCloudMetricsExporter(string projectId)
+    public GoogleCloudMonitoringExporter(string projectId)
     {
         this.projectName = new ProjectName(projectId);
 
-        // Set header mutation for every outgoing API call to Stackdriver so the BE knows
+        // Set header mutation for every outgoing API call to Google Cloud Monitoring so the BE knows
         // which version of OC client is calling it as well as which version of the exporter
         var callSettings = CallSettings.FromHeaderMutation(StackdriverCallHeaderAppender);
         this.metricServiceSettings = new MetricServiceSettings { CallSettings = callSettings };
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GoogleCloudMetricsExporter"/> class.
+    /// Initializes a new instance of the <see cref="GoogleCloudMonitoringExporter"/> class.
     /// Only used internally for tests.
     /// </summary>
     /// <param name="projectId">Project ID to send telemetry to.</param>
     /// <param name="metricServiceClient">MetricServiceClient instance to use.</param>
     [ExcludeFromCodeCoverage]
-    internal GoogleCloudMetricsExporter(string projectId, MetricServiceClient metricServiceClient)
+    internal GoogleCloudMonitoringExporter(string projectId, MetricServiceClient metricServiceClient)
         : this(projectId)
     {
         this.metricServiceClient = metricServiceClient;
@@ -239,6 +239,6 @@ public class GoogleCloudMetricsExporter : BaseExporter<Metric>
         metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
         metadata.Add(
             "AGENT_LABEL_VALUE_STRING",
-            $"{OpenTelemetryExporterVersion}; googlecloud-exporter {StackdriverExportVersion}");
+            $"{OpenTelemetryExporterVersion}; googlecloud-exporter {GoogleCloudMetricExportVersion}");
     }
 }

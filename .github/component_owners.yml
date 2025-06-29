@@ -12,7 +12,7 @@ components:
     - zivaninstana
   src/OpenTelemetry.Exporter.OneCollector/:
     - rajkumar-rangaraj
-  src/OpenTelemetry.Exporter.Stackdriver/:
+  src/OpenTelemetry.Exporter.GoogleCloudMonitoring /:
     - SergeyKanzhelev
   src/OpenTelemetry.Extensions/:
     - mikegoldsmith
@@ -99,7 +99,7 @@ components:
     - rajkumar-rangaraj
   test/OpenTelemetry.Exporter.OneCollector.Tests/:
     - rajkumar-rangaraj
-  test/OpenTelemetry.Exporter.Stackdriver.Tests/:
+  test/OpenTelemetry.Exporter.GoogleCloudMonitoring .Tests/:
     - SergeyKanzhelev
   test/OpenTelemetry.Extensions.Tests/:
     - mikegoldsmith
