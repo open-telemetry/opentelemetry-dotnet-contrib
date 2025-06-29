@@ -14,6 +14,7 @@ namespace OpenTelemetry.Exporter.GoogleCloud;
 /// <summary>
 /// Exports a group of spans to Stackdriver.
 /// </summary>
+[Obsolete("This exporter is deprecated and might be removed in a future version. Please consider using directly OTPL directly: https://cloud.google.com/stackdriver/docs/reference/telemetry/overview")]
 public class GoogleCloudTraceExporter : BaseExporter<Activity>
 {
     private static readonly string GoogleCloudTraceExportVersion;

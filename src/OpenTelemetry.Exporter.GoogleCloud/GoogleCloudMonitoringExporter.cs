@@ -19,6 +19,7 @@ namespace OpenTelemetry.Exporter.GoogleCloud;
 /// <summary>
 /// Exports a metrics to Google Cloud Monitoring .
 /// </summary>
+[Obsolete("This exporter is deprecated and might be removed in a future version. Please consider using directly OTPL directly: https://cloud.google.com/stackdriver/docs/reference/telemetry/overview")]
 public class GoogleCloudMonitoringExporter : BaseExporter<Metric>
 {
     private readonly ProjectName projectName;
