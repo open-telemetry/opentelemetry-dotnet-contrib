@@ -7,14 +7,15 @@ namespace OpenTelemetry.SemanticConventions.Generator;
 
 internal readonly record struct Properties
 {
-    internal readonly string AttributeName;
+    internal readonly string StructName;
     internal readonly string FileNamespace;
-    internal readonly List<string> Values;
+    internal readonly GenerationMode GenerationMode;
+    internal readonly List<string> AttributeNames = new List<string>();
 
-    internal Properties(string fileNamespace, string attributeName, List<string> values)
+    internal Properties(string fileNamespace, string structName, GenerationMode generationMode)
     {
-        this.AttributeName = attributeName;
+        this.StructName = structName;
         this.FileNamespace = fileNamespace;
-        this.Values = values;
+        this.GenerationMode = generationMode;
     }
 }

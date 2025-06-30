@@ -1,4 +1,4 @@
-﻿//HintName: OtelAttributes.DiskAttributeNames.g.cs
+﻿//HintName: OtelAttributes.DiskAttributeNames.AttributeNames.g.cs
 
 namespace OpenTelemetry.SemanticConventions.Example;
 

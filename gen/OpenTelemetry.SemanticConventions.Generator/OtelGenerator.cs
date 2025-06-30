@@ -25,12 +25,12 @@ public class OtelGenerator : IIncrementalGenerator
             .ForAttributeWithMetadataName(
                  "OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute",
                  predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
-                 transform: static (ctx, _) => GetStructTransformation(ctx))
+                 transform: static (ctx, _) => GetStructTransformation(ctx, GenerationMode.AttributeNamesAndValues))
              .Where(static m => m is not null);
 
         var combined = context.CompilationProvider.Combine(classDeclarations.Collect());
 
-        // Generate source code for each enum found
+        // Generate source code
         context.RegisterSourceOutput(
             classDeclarations,
             static (spc, source) => Execute(source, spc));
@@ -38,7 +38,7 @@ public class OtelGenerator : IIncrementalGenerator
         static bool IsSyntaxTargetForGeneration(SyntaxNode node)
             => node is StructDeclarationSyntax m;
 
-        static Properties? GetStructTransformation(GeneratorAttributeSyntaxContext context)
+        static Properties? GetStructTransformation(GeneratorAttributeSyntaxContext context, GenerationMode generationMode)
         {
             BaseTypeDeclarationSyntax structDeclarationSyntax = context.TargetNode is StructDeclarationSyntax syntax ?
                syntax :
@@ -48,9 +48,9 @@ public class OtelGenerator : IIncrementalGenerator
             {
                 foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
                 {
-                    if (attributeSyntax.Name.ToString() == "OtelAttributeNamespace" && attributeSyntax.ArgumentList != null)
+                    if (attributeSyntax.Name.ToString() + "Attribute" == context.Attributes[0].AttributeClass?.Name && attributeSyntax.ArgumentList != null)
                     {
-                        return GetAttributeToGenerate(context, attributeSyntax.ArgumentList);
+                        return GetAttributeToGenerate(context, attributeSyntax.ArgumentList, generationMode);
                     }
                 }
             }
@@ -59,7 +59,7 @@ public class OtelGenerator : IIncrementalGenerator
             return null;
         }
 
-        static Properties? GetAttributeToGenerate(GeneratorAttributeSyntaxContext context, AttributeArgumentListSyntax arguments)
+        static Properties? GetAttributeToGenerate(GeneratorAttributeSyntaxContext context, AttributeArgumentListSyntax arguments, GenerationMode generationMode)
         {
             string? attrNamespace = null;
 
@@ -67,8 +67,8 @@ public class OtelGenerator : IIncrementalGenerator
             foreach (AttributeArgumentSyntax attributeData in arguments.Arguments)
             {
                 // This is the right attribute, check the constructor arguments
-                if (attributeData.NameEquals?.Name.Identifier.ValueText == "AttributeNamespace" ||
-                    attributeData.NameColon?.Name.Identifier.ValueText == "AttributeNamespace" ||
+                if (attributeData.NameEquals?.Name.Identifier.ValueText == "Namespace" ||
+                    attributeData.NameColon?.Name.Identifier.ValueText == "Namespace" ||
                     i == 0)
                 {
                     attrNamespace = attributeData.Expression.GetFirstToken().ValueText.ToLowerInvariant();
@@ -82,37 +82,64 @@ public class OtelGenerator : IIncrementalGenerator
                 return null;
             }
 
-            var assembly = typeof(SourceGenerationHelper).Assembly;
-            var fileName = $"{assembly.GetName().Name!}.Resources.{attrNamespace}.md";
-            var resourceStream = assembly.GetManifestResourceStream(fileName);
-
-            if (resourceStream is null)
-            {
-                return null;
-            }
-
-            var streamReader = new StreamReader(resourceStream);
-            streamReader.ReadLine();
-            streamReader.ReadLine();
-            var values = new List<string>();
-            while (!streamReader.EndOfStream)
-            {
-                values.Add(streamReader.ReadLine()!.Trim('|'));
-            }
-
             var fileNamespace = context.TargetSymbol.ContainingNamespace.ToDisplayString();
-            return new Properties(fileNamespace, context.TargetSymbol.Name, values);
+            var properties = new Properties(fileNamespace, context.TargetSymbol.Name, generationMode);
+
+            var assembly = typeof(SourceGenerationHelper).Assembly;
+            var filesToLoad = new Dictionary<string, GenerationMode>();
+            if (generationMode is GenerationMode.AttributeNames or GenerationMode.AttributeNamesAndValues)
+            {
+                filesToLoad.Add($"{assembly.GetName().Name!}.Resources.AttributeNames.{attrNamespace}.md", GenerationMode.AttributeNames);
+            }
+
+            foreach (var file in filesToLoad)
+            {
+                var resourceStream = assembly.GetManifestResourceStream(file.Key);
+
+                if (resourceStream is null)
+                {
+                    continue;
+                }
+
+                var streamReader = new StreamReader(resourceStream);
+                streamReader.ReadLine();
+                streamReader.ReadLine();
+                streamReader.ReadLine();
+                while (!streamReader.EndOfStream)
+                {
+                    if (file.Value == GenerationMode.AttributeNames)
+                    {
+                        properties.AttributeNames.Add(streamReader.ReadLine()!.Trim('|').Trim());
+                    }
+                }
+            }
+
+            return properties;
         }
 
-        static void Execute(Properties? enumToGenerate, SourceProductionContext context)
+        static void Execute(Properties? properties, SourceProductionContext context)
         {
-            if (enumToGenerate is { } value)
+            if (properties is { } value)
             {
-                // generate the source code and add it to the output
-                string result = SourceGenerationHelper.GenerateAttributeClass(value);
+                if (value.GenerationMode == GenerationMode.AttributeNames ||
+                    value.GenerationMode == GenerationMode.AttributeNamesAndValues)
+                {
+                    // generate the source code and add it to the output
+                    string result = SourceGenerationHelper.GenerateAttributeClass(value, value.AttributeNames);
 
-                // Create a separate partial class file for each enum
-                context.AddSource($"OtelAttributes.{value.AttributeName}.g.cs", SourceText.From(result, Encoding.UTF8));
+                    // Create a separate partial class file for each enum
+                    context.AddSource($"OtelAttributes.{value.StructName}.AttributeNames.g.cs", SourceText.From(result, Encoding.UTF8));
+                }
+
+                if (value.GenerationMode == GenerationMode.AttributeValues ||
+                    value.GenerationMode == GenerationMode.AttributeNamesAndValues)
+                {
+                    // generate the source code and add it to the output
+                    string result = SourceGenerationHelper.GenerateAttributeClass(value, null);
+
+                    // Create a separate partial class file for each enum
+                    context.AddSource($"OtelAttributes.{value.StructName}.Attributevalues.g.cs", SourceText.From(result, Encoding.UTF8));
+                }
             }
         }
     }

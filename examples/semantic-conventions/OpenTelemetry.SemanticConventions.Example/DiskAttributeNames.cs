@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.SemanticConventions.Example;
 
-[OtelAttributeNamespace(AttributeNamespace = "Disk")]
+[OtelAttributeNamespace(Namespace = "Disk")]
 internal partial struct DiskAttributeNames
 {
 }

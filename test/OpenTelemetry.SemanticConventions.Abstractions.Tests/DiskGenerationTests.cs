@@ -47,7 +47,7 @@ namespace OpenTelemetry.SemanticConventions.Example;
 
 [Random]
 [Boo(2)]
-[OtelAttributeNamespace(AttributeNamespace = ")
+[OtelAttributeNamespace(Namespace = ")
             .Append("\"Disk\"")
             .Append(@")]
 internal partial struct DiskAttributeNames

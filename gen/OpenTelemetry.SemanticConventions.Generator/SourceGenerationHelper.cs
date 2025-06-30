@@ -1,14 +1,20 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Generic;
 using System.Text;
 
 namespace OpenTelemetry.SemanticConventions.Generator;
 
 internal static class SourceGenerationHelper
 {
-    internal static string GenerateAttributeClass(Properties enumToGenerate)
+    internal static string GenerateAttributeClass(Properties enumToGenerate, List<string>? items)
     {
+        if (items is null || items.Count == 0)
+        {
+            return string.Empty;
+        }
+
         var sb = new StringBuilder();
         sb.Append(@"
 namespace ")
@@ -16,14 +22,14 @@ namespace ")
             .Append(@";
 
 internal partial struct ")
-            .Append(enumToGenerate.AttributeName)
+            .Append(enumToGenerate.StructName)
             .AppendLine(@"
 {
     #pragma warning disable CS8981
     #pragma warning disable IDE1006
     #pragma warning disable SA1629");
 
-        foreach (var attribute in enumToGenerate.Values)
+        foreach (var attribute in items)
         {
             var properties = attribute.Split('|');
             var identifiers = properties[0].Trim().Split('.');
