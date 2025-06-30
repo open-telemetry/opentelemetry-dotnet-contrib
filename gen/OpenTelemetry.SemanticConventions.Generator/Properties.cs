@@ -5,16 +5,16 @@ using System.Collections.Generic;
 
 namespace OpenTelemetry.SemanticConventions.Generator;
 
-public readonly record struct Properties
+internal readonly record struct Properties
 {
-    public readonly string AttributeName;
-    public readonly string FileNamespace;
-    public readonly string[] Values;
+    internal readonly string AttributeName;
+    internal readonly string FileNamespace;
+    internal readonly List<string> Values;
 
-    public Properties(string fileNamespace, string attributeName, List<string> values)
+    internal Properties(string fileNamespace, string attributeName, List<string> values)
     {
-        AttributeName = attributeName;
-        FileNamespace = fileNamespace;
-        Values = values.ToArray();
+        this.AttributeName = attributeName;
+        this.FileNamespace = fileNamespace;
+        this.Values = values;
     }
 }

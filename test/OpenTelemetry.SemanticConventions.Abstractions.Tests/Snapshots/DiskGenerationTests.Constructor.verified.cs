@@ -2,9 +2,10 @@
 
 namespace OpenTelemetry.SemanticConventions;
 
-internal partial struct Disk 
+internal partial struct Disk
 {
     #pragma warning disable CS8981
+    #pragma warning disable IDE1006
     #pragma warning disable SA1629
     internal partial struct disk
     {
@@ -14,10 +15,10 @@ internal partial struct Disk
         /// The disk IO operation direction.
         /// </summary>
         /// <remarks>This is the key for an attribute/tag.</remarks>
-        /// <example>read</example>
         internal const string direction = "disk.io.direction";
     }
     }
     #pragma warning restore SA1629
+    #pragma warning restore IDE1006
     #pragma warning restore CS8981
 }

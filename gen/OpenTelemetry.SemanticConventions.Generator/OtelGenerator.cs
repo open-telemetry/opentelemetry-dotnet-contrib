@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -11,9 +12,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace OpenTelemetry.SemanticConventions.Generator;
 
+/// <inheritdoc/>
 [Generator]
-public class AttributeGenerator : IIncrementalGenerator
+public class OtelGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
+    [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "OTEL requires attributes to be lowercase.")]
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // If you're targeting the .NET 7 SDK, use this version instead:
@@ -36,8 +40,8 @@ public class AttributeGenerator : IIncrementalGenerator
 
         static Properties? GetStructTransformation(GeneratorAttributeSyntaxContext context)
         {
-            BaseTypeDeclarationSyntax structDeclarationSyntax = context.TargetNode is StructDeclarationSyntax ?
-               (StructDeclarationSyntax)context.TargetNode :
+            BaseTypeDeclarationSyntax structDeclarationSyntax = context.TargetNode is StructDeclarationSyntax syntax ?
+               syntax :
                throw new NotSupportedException("Target Node is not supported");
 
             foreach (AttributeListSyntax attributeListSyntax in structDeclarationSyntax.AttributeLists)
@@ -106,6 +110,7 @@ public class AttributeGenerator : IIncrementalGenerator
             {
                 // generate the source code and add it to the output
                 string result = SourceGenerationHelper.GenerateAttributeClass(value);
+
                 // Create a separate partial class file for each enum
                 context.AddSource($"OtelAttributes.{value.AttributeName}.g.cs", SourceText.From(result, Encoding.UTF8));
             }

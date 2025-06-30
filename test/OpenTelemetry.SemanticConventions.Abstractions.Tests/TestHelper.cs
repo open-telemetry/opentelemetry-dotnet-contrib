@@ -4,7 +4,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using OpenTelemetry.SemanticConventions.Generator;
-using VerifyXunit;
 
 namespace OpenTelemetry.SemanticConventions.Abstractions.Tests;
 
@@ -30,7 +29,7 @@ public static class TestHelper
             references: references);
 
         // Create an instance of our EnumGenerator incremental source generator
-        var generator = new AttributeGenerator();
+        var generator = new OtelGenerator();
 
         // The GeneratorDriver is used to run our generator against a compilation
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);

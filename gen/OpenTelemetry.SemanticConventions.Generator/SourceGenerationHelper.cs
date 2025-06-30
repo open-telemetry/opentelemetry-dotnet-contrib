@@ -5,9 +5,9 @@ using System.Text;
 
 namespace OpenTelemetry.SemanticConventions.Generator;
 
-public static class SourceGenerationHelper
+internal static class SourceGenerationHelper
 {
-    public static string GenerateAttributeClass(Properties enumToGenerate)
+    internal static string GenerateAttributeClass(Properties enumToGenerate)
     {
         var sb = new StringBuilder();
         sb.Append(@"
@@ -17,9 +17,10 @@ namespace ")
 
 internal partial struct ")
             .Append(enumToGenerate.AttributeName)
-            .AppendLine(@" 
+            .AppendLine(@"
 {
     #pragma warning disable CS8981
+    #pragma warning disable IDE1006
     #pragma warning disable SA1629");
 
         foreach (var attribute in enumToGenerate.Values)
@@ -45,9 +46,6 @@ internal partial struct ")
                         .Append(@"
         /// </summary>
         /// <remarks>This is the key for an attribute/tag.</remarks>
-        /// <example>")
-                        .Append(properties[3].Trim())
-                        .Append(@"</example>
         internal const string ")
                         .Append(name)
                         .Append(" = \"")
@@ -63,6 +61,7 @@ internal partial struct ")
         }
 
         sb.AppendLine(@"    #pragma warning restore SA1629
+    #pragma warning restore IDE1006
     #pragma warning restore CS8981
 }");
 

@@ -7,6 +7,7 @@ internal partial struct TargetDiskAttributeNames
 {
     #pragma warning disable SA1300
     #pragma warning disable SA1303
+    #pragma warning disable IDE1006
     #pragma warning disable CS8981
     internal partial struct disk
     {
@@ -16,7 +17,6 @@ internal partial struct TargetDiskAttributeNames
             /// The disk IO operation direction.
             /// </summary>
             /// <remarks>This is the key for an attribute/tag.</remarks>
-            /// <example>read</example>
             internal const string direction = "disk.io.direction";
         }
 
@@ -33,4 +33,5 @@ internal partial struct TargetDiskAttributeNames
     #pragma warning restore CS8981
     #pragma warning restore SA1303
     #pragma warning restore SA1300
+    #pragma warning restore IDE1006
 }
