@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -76,10 +77,24 @@ public class AttributeGenerator : IIncrementalGenerator
             {
                 return null;
             }
-            var values = new List<string>();
+
+            var assembly = typeof(SourceGenerationHelper).Assembly;
+            var fileName = $"{assembly.GetName().Name!}.Resources.{attrNamespace}.md";
+            var resourceStream = assembly.GetManifestResourceStream(fileName);
+
+            if (resourceStream is null)
             {
-                "disk.io.direction",
-            };
+                return null;
+            }
+
+            var streamReader = new StreamReader(resourceStream);
+            streamReader.ReadLine();
+            streamReader.ReadLine();
+            var values = new List<string>();
+            while (!streamReader.EndOfStream)
+            {
+                values.Add(streamReader.ReadLine()!.Trim('|'));
+            }
 
             var fileNamespace = context.TargetSymbol.ContainingNamespace.ToDisplayString();
             return new Properties(fileNamespace, context.TargetSymbol.Name, values);

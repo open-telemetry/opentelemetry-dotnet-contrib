@@ -13,6 +13,7 @@ internal partial struct Disk
         /// <summary>
         /// The disk IO operation direction.
         /// </summary>
+        /// <remarks>This is the key for an attribute/tag.</remarks>
         /// <example>read</example>
         internal const string direction = "disk.io.direction";
     }

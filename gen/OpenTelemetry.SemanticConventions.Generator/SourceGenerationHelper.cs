@@ -24,7 +24,8 @@ internal partial struct ")
 
         foreach (var attribute in enumToGenerate.Values)
         {
-            var identifiers = attribute.Split('.');
+            var properties = attribute.Split('|');
+            var identifiers = properties[0].Trim().Split('.');
             var position = 1;
             foreach (var name in identifiers)
             {
@@ -38,12 +39,20 @@ internal partial struct ")
                 }
                 else
                 {
-                    sb.Append("internal const string ")
+                    sb.Append(@"        /// <summary>
+        /// ")
+                        .Append(properties[2].Trim())
+                        .Append(@"
+        /// </summary>
+        /// <remarks>This is the key for an attribute/tag.</remarks>
+        /// <example>")
+                        .Append(properties[3].Trim())
+                        .Append(@"</example>
+        internal const string ")
                         .Append(name)
                         .Append(" = \"")
-                        .Append(attribute)
-                        .Append("\";")
-                        .AppendLine();
+                        .Append(properties[0].Trim())
+                        .AppendLine("\";");
                 }
             }
 
