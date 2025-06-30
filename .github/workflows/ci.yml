@@ -606,7 +606,7 @@ jobs:
       build-test-exporter-influxdb,
       build-test-exporter-instana,
       build-test-exporter-onecollector,
-      build-test-exporter-stackdriver,
+      build-test-exporter-googlecloud,
       build-test-extensions,
       build-test-extensions-enrichment,
       build-test-instrumentation-aspnet,
