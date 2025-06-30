@@ -1,10 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Exporter.GoogleCloud;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Exporter.GoogleCloud;
+// ReSharper disable once CheckNamespace
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering a Google Cloud exporter.

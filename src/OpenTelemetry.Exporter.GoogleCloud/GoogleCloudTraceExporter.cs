@@ -12,7 +12,7 @@ using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 namespace OpenTelemetry.Exporter.GoogleCloud;
 
 /// <summary>
-/// Exports a group of spans to Stackdriver.
+/// Exports a group of spans to Google Cloud.
 /// </summary>
 [Obsolete("This exporter is deprecated and might be removed in a future version. Please consider using directly OTPL directly: https://cloud.google.com/stackdriver/docs/reference/telemetry/overview")]
 public class GoogleCloudTraceExporter : BaseExporter<Activity>
@@ -56,9 +56,9 @@ public class GoogleCloudTraceExporter : BaseExporter<Activity>
     {
         this.googleCloudProjectId = new Google.Api.Gax.ResourceNames.ProjectName(projectId);
 
-        // Set header mutation for every outgoing API call to Stackdriver so the BE knows
+        // Set header mutation for every outgoing API call to Google Cloud so the BE knows
         // which version of OC client is calling it as well as which version of the exporter
-        var callSettings = CallSettings.FromHeaderMutation(StackdriverCallHeaderAppender);
+        var callSettings = CallSettings.FromHeaderMutation(GoogleCloudCallHeaderAppender);
         this.traceServiceSettings = new TraceServiceSettings { CallSettings = callSettings };
     }
 
@@ -124,7 +124,7 @@ public class GoogleCloudTraceExporter : BaseExporter<Activity>
     /// Appends OpenTelemetry headers for every outgoing request to Stackdriver Backend.
     /// </summary>
     /// <param name="metadata">The metadata that is sent with every outgoing http request.</param>
-    private static void StackdriverCallHeaderAppender(Metadata metadata)
+    private static void GoogleCloudCallHeaderAppender(Metadata metadata)
     {
         metadata.Add("AGENT_LABEL_KEY", "g.co/agent");
         metadata.Add("AGENT_LABEL_VALUE_STRING", $"{OpenTelemetryExporterVersion}; googlecloud-exporter {GoogleCloudTraceExportVersion}");

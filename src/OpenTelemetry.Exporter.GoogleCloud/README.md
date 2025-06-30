@@ -38,7 +38,7 @@ var spanExporter = new GoogleCloudMonitoring TraceExporter(projectId);
 
 using var tracerFactory = TracerFactory.Create(builder =>
     builder.AddProcessorPipeline(c => c.SetExporter(spanExporter)));
-var tracer = tracerFactory.GetTracer("stackdriver-test");
+var tracer = tracerFactory.GetTracer("googlecloud-test");
 
 using (tracer.StartActiveSpan("/getuser", out TelemetrySpan span))
 {
