@@ -1,0 +1,17 @@
+{%- import 'common.j2' as c %}
+
+{%- set my_file_name  = "AttributeValues/" ~ ctx.root_namespace ~ ".md" -%}
+{{- template.set_file_name(my_file_name) -}}
+
+# {{ctx.root_namespace}}
+{% for attribute in ctx.attributes %}
+{% if attribute.type is mapping %}
+{% set enum_class_name = attribute.name | pascal_case ~ "Values" %}
+{% set attribute_resolved_type = attribute.type | instantiated_type %}
+| Id | Type | Description | Values | Stability |
+|---|---|---|---|---|
+{% for member in attribute.type.members %}
+| {{attribute.name}}.{{ member.id }} |  | {{attribute.brief}} | {{member.value}} | {{attribute.stability}} |
+{% endfor %}
+{% endif %}
+{% endfor %}

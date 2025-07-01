@@ -8,9 +8,9 @@ namespace OpenTelemetry.SemanticConventions.Generator;
 
 internal static class SourceGenerationHelper
 {
-    internal static string GenerateAttributeClass(Properties enumToGenerate, List<string>? items)
+    internal static string GenerateAttributeClass(Properties enumToGenerate, KeyValuePair<GenerationMode, List<string>> items)
     {
-        if (items is null || items.Count == 0)
+        if (items.Value is null || items.Value.Count == 0)
         {
             return string.Empty;
         }
@@ -21,15 +21,18 @@ namespace ")
             .Append(enumToGenerate.FileNamespace)
             .Append(@";
 
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+#pragma warning disable SA1629
 internal partial struct ")
             .Append(enumToGenerate.StructName)
             .AppendLine(@"
-{
-    #pragma warning disable CS8981
-    #pragma warning disable IDE1006
-    #pragma warning disable SA1629");
+{");
 
-        foreach (var attribute in items)
+
+
+
+        foreach (var attribute in items.Value)
         {
             var properties = attribute.Split('|');
             var identifiers = properties[0].Trim().Split('.');
@@ -55,7 +58,7 @@ internal partial struct ")
         internal const string ")
                         .Append(name)
                         .Append(" = \"")
-                        .Append(properties[0].Trim())
+                        .Append(properties[3].Trim())
                         .AppendLine("\";");
                 }
             }
@@ -64,12 +67,10 @@ internal partial struct ")
             {
                 sb.AppendLine(@"    }");
             }
-        }
-
-        sb.AppendLine(@"    #pragma warning restore SA1629
+        sb.AppendLine("}")
+            .AppendLine(@"#pragma warning restore SA1629
     #pragma warning restore IDE1006
-    #pragma warning restore CS8981
-}");
+#pragma warning restore CS8981");
 
         return sb.ToString();
     }

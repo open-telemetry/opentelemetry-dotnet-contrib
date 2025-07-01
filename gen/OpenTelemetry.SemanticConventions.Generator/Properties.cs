@@ -9,13 +9,11 @@ internal readonly record struct Properties
 {
     internal readonly string StructName;
     internal readonly string FileNamespace;
-    internal readonly GenerationMode GenerationMode;
-    internal readonly List<string> AttributeNames = new List<string>();
+    internal readonly Dictionary<GenerationMode, List<string>> Values = new Dictionary<GenerationMode, List<string>>();
 
-    internal Properties(string fileNamespace, string structName, GenerationMode generationMode)
+    internal Properties(string fileNamespace, string structName)
     {
         this.StructName = structName;
         this.FileNamespace = fileNamespace;
-        this.GenerationMode = generationMode;
     }
 }

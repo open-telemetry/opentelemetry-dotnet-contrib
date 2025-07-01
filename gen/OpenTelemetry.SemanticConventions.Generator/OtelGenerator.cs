@@ -25,7 +25,7 @@ public class OtelGenerator : IIncrementalGenerator
             .ForAttributeWithMetadataName(
                  "OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute",
                  predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
-                 transform: static (ctx, _) => GetStructTransformation(ctx, GenerationMode.AttributeNamesAndValues))
+                 transform: static (ctx, _) => GetStructTransformation(ctx, new List<GenerationMode>() { GenerationMode.AttributeNames, GenerationMode.AttributeValues }))
              .Where(static m => m is not null);
 
         var combined = context.CompilationProvider.Combine(classDeclarations.Collect());
@@ -38,7 +38,7 @@ public class OtelGenerator : IIncrementalGenerator
         static bool IsSyntaxTargetForGeneration(SyntaxNode node)
             => node is StructDeclarationSyntax m;
 
-        static Properties? GetStructTransformation(GeneratorAttributeSyntaxContext context, GenerationMode generationMode)
+        static Properties? GetStructTransformation(GeneratorAttributeSyntaxContext context, List<GenerationMode> generationModes)
         {
             BaseTypeDeclarationSyntax structDeclarationSyntax = context.TargetNode is StructDeclarationSyntax syntax ?
                syntax :
@@ -50,7 +50,7 @@ public class OtelGenerator : IIncrementalGenerator
                 {
                     if (attributeSyntax.Name.ToString() + "Attribute" == context.Attributes[0].AttributeClass?.Name && attributeSyntax.ArgumentList != null)
                     {
-                        return GetAttributeToGenerate(context, attributeSyntax.ArgumentList, generationMode);
+                        return GetAttributeToGenerate(context, attributeSyntax.ArgumentList, generationModes);
                     }
                 }
             }
@@ -59,7 +59,7 @@ public class OtelGenerator : IIncrementalGenerator
             return null;
         }
 
-        static Properties? GetAttributeToGenerate(GeneratorAttributeSyntaxContext context, AttributeArgumentListSyntax arguments, GenerationMode generationMode)
+        static Properties? GetAttributeToGenerate(GeneratorAttributeSyntaxContext context, AttributeArgumentListSyntax arguments, List<GenerationMode> generationModes)
         {
             string? attrNamespace = null;
 
@@ -83,18 +83,14 @@ public class OtelGenerator : IIncrementalGenerator
             }
 
             var fileNamespace = context.TargetSymbol.ContainingNamespace.ToDisplayString();
-            var properties = new Properties(fileNamespace, context.TargetSymbol.Name, generationMode);
+            var properties = new Properties(fileNamespace, context.TargetSymbol.Name);
 
             var assembly = typeof(SourceGenerationHelper).Assembly;
-            var filesToLoad = new Dictionary<string, GenerationMode>();
-            if (generationMode is GenerationMode.AttributeNames or GenerationMode.AttributeNamesAndValues)
-            {
-                filesToLoad.Add($"{assembly.GetName().Name!}.Resources.AttributeNames.{attrNamespace}.md", GenerationMode.AttributeNames);
-            }
 
-            foreach (var file in filesToLoad)
+            foreach (var generationMode in generationModes)
             {
-                var resourceStream = assembly.GetManifestResourceStream(file.Key);
+                var file = $"{assembly.GetName().Name!}.Resources.{generationMode}.{attrNamespace}.md";
+                var resourceStream = assembly.GetManifestResourceStream(file);
 
                 if (resourceStream is null)
                 {
@@ -105,12 +101,10 @@ public class OtelGenerator : IIncrementalGenerator
                 streamReader.ReadLine();
                 streamReader.ReadLine();
                 streamReader.ReadLine();
+                properties.Values[generationMode] = new List<string>();
                 while (!streamReader.EndOfStream)
                 {
-                    if (file.Value == GenerationMode.AttributeNames)
-                    {
-                        properties.AttributeNames.Add(streamReader.ReadLine()!.Trim('|').Trim());
-                    }
+                    properties.Values[generationMode].Add(streamReader.ReadLine()!.Trim('|').Trim());
                 }
             }
 
@@ -121,24 +115,13 @@ public class OtelGenerator : IIncrementalGenerator
         {
             if (properties is { } value)
             {
-                if (value.GenerationMode == GenerationMode.AttributeNames ||
-                    value.GenerationMode == GenerationMode.AttributeNamesAndValues)
+                foreach (var item in value.Values)
                 {
                     // generate the source code and add it to the output
-                    string result = SourceGenerationHelper.GenerateAttributeClass(value, value.AttributeNames);
+                    string result = SourceGenerationHelper.GenerateAttributeClass(value, item);
 
                     // Create a separate partial class file for each enum
-                    context.AddSource($"OtelAttributes.{value.StructName}.AttributeNames.g.cs", SourceText.From(result, Encoding.UTF8));
-                }
-
-                if (value.GenerationMode == GenerationMode.AttributeValues ||
-                    value.GenerationMode == GenerationMode.AttributeNamesAndValues)
-                {
-                    // generate the source code and add it to the output
-                    string result = SourceGenerationHelper.GenerateAttributeClass(value, null);
-
-                    // Create a separate partial class file for each enum
-                    context.AddSource($"OtelAttributes.{value.StructName}.Attributevalues.g.cs", SourceText.From(result, Encoding.UTF8));
+                    context.AddSource($"OtelAttributes.{value.StructName}.{item.Key}.g.cs", SourceText.From(result, Encoding.UTF8));
                 }
             }
         }

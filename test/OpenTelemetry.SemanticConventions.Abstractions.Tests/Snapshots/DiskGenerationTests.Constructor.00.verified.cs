@@ -1,12 +1,12 @@
-﻿//HintName: OtelAttributes.Disk.AttributeNames.g.cs
+//HintName: OtelAttributes.Disk.AttributeNames.g.cs
 
 namespace OpenTelemetry.SemanticConventions;
 
+#pragma warning disable CS8981
+#pragma warning disable IDE1006
+#pragma warning disable SA1629
 internal partial struct Disk
 {
-    #pragma warning disable CS8981
-    #pragma warning disable IDE1006
-    #pragma warning disable SA1629
     internal partial struct disk
     {
     internal partial struct io
@@ -18,7 +18,8 @@ internal partial struct Disk
         internal const string direction = "disk.io.direction";
     }
     }
-    #pragma warning restore SA1629
-    #pragma warning restore IDE1006
-    #pragma warning restore CS8981
 }
+
+#pragma warning restore SA1629
+#pragma warning restore IDE1006
+#pragma warning restore CS8981

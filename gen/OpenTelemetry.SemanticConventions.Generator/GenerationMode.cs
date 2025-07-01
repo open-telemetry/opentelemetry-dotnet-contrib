@@ -6,17 +6,12 @@ namespace OpenTelemetry.SemanticConventions.Generator;
 internal enum GenerationMode
 {
     /// <summary>
-    /// Generate a class with attributes.
-    /// </summary>
-    AttributeNamesAndValues,
-
-    /// <summary>
-    /// Generate a class with enums.
+    /// Generate a class with attribute names.
     /// </summary>
     AttributeNames,
 
     /// <summary>
-    /// Generate a class with attributes and enums.
+    /// Generate a class with attribute values.
     /// </summary>
     AttributeValues,
 }
