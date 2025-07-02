@@ -3,6 +3,8 @@ OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.AspNetCoreTraceInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport.get -> bool
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreSignalRSupport.set -> void
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreBlazorSupport.get -> bool
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreBlazorSupport.set -> void
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnrichWithException.get -> System.Action<System.Diagnostics.Activity!, System.Exception!>?
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnrichWithException.set -> void
 OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnrichWithHttpRequest.get -> System.Action<System.Diagnostics.Activity!, Microsoft.AspNetCore.Http.HttpRequest!>?
