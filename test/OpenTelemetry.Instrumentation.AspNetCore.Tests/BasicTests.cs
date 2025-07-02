@@ -1212,9 +1212,8 @@ public sealed class BasicTests
 
         Assert.Empty(hubActivity);
     }
-#endif
 
-#if NET10_0_OR_GREATER
+    // note: this is always passing on Net9 or lower, because AddAspNetCoreInstrumentation only adds the subscription in Net10 or higher.
     [Fact]
     public async Task BlazorActivitesCanBeDisabled()
     {
