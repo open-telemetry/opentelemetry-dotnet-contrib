@@ -115,6 +115,7 @@ public static class OpenTelemetryConsumeResultExtensions
         {
             processActivity?.SetStatus(ActivityStatusCode.Error);
             processActivity?.SetTag(SemanticConventions.AttributeErrorType, ex.GetType().FullName);
+            throw;
         }
         finally
         {

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.12.0-beta.2
+
+Released 2025-Jun-25
+
+* Support use with `SqlClient` instrumentation.
+  ([#2280](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2280),
+   [#2829](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2829))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05

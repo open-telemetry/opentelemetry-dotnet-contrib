@@ -102,7 +102,7 @@ public class RateLimitingSamplerTests
 
         // Assert - We should have sampled in 5 traces per second over duration
         // Adding in a fudge factor
-        Assert.True(sampleIn > (approxSamples * 0.9) && sampleIn < (approxSamples * 1.1));
-        Assert.True(sampleOut == (CYCLES - sampleIn));
+        Assert.InRange(sampleIn, approxSamples * 0.9, approxSamples * 1.1);
+        Assert.Equal(sampleOut, CYCLES - sampleIn);
     }
 }

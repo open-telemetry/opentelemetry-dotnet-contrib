@@ -12,6 +12,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
 {
     // The Microsoft SQL Server Docker image is not compatible with ARM devices, such as Macs with Apple Silicon.
+    // See https://github.com/microsoft/mssql-docker/issues/881.
     public IContainer DatabaseContainer { get; } = Architecture.Arm64.Equals(RuntimeInformation.ProcessArchitecture) ? CreateSqlEdge() : CreateMsSql();
 
     public Task InitializeAsync()
@@ -39,7 +40,7 @@ public sealed class SqlClientIntegrationTestsFixture : IAsyncLifetime
         // a new version (>3.10.0) of Testcontainers.MsSql released. See:
         // https://github.com/testcontainers/testcontainers-dotnet/pull/1265
         return new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
+            .WithImage("mcr.microsoft.com/mssql/server:2022-CU19-ubuntu-22.04")
             .Build();
     }
 }
