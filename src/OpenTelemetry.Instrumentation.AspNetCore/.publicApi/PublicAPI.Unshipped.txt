@@ -1,0 +1,3 @@
+#nullable enable
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreBlazorSupport.get -> bool
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableAspNetCoreBlazorSupport.set -> void
