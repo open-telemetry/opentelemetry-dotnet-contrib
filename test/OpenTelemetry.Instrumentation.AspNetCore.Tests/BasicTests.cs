@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -1210,6 +1211,56 @@ public sealed class BasicTests
             .Where(a => a.DisplayName.StartsWith("TestApp.AspNetCore.TestHub", StringComparison.InvariantCulture));
 
         Assert.Empty(hubActivity);
+    }
+#endif
+
+#if NET10_0_OR_GREATER
+    [Fact]
+    public async Task BlazorActivitesCanBeDisabled()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation(o => o.EnableAspNetCoreBlazorSupport = false)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        using (var client = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            })
+            .CreateClient())
+        {
+            var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
+            var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
+            if (activity != null)
+            {
+                activity.Start();
+                activity.SetTag("aspnetcore.components.type", "BasicTests");
+                activity.SetTag("aspnetcore.components.method", "BlazorActivitesCanBeDisabled");
+                activity.Stop();
+            }
+
+            try
+            {
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            }
+            catch (Exception)
+            {
+                // ignore errors
+            }
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        var blazorActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("Microsoft.AspNetCore.Components", StringComparison.InvariantCulture));
+
+        Assert.Empty(blazorActivity);
     }
 #endif
 
