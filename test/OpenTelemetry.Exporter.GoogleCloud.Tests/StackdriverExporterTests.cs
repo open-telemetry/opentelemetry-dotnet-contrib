@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Exporter.Stackdriver.Implementation;
+using OpenTelemetry.Exporter.GoogleCloud.Implementation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Tests;
+namespace OpenTelemetry.Exporter.GoogleCloud.Tests;
 
-public class StackdriverExporterTests
+public class GoogleCloudMonitoringExporterTests
 {
-    static StackdriverExporterTests()
+    static GoogleCloudMonitoringExporterTests()
     {
         Activity.DefaultIdFormat = ActivityIdFormat.W3C;
         Activity.ForceDefaultIdFormat = true;
@@ -26,7 +26,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_CustomActivityProcessor()
+    public void GoogleCloudMonitoringExporter_CustomActivityProcessor()
     {
         const string ActivitySourceName = "stackdriver.test";
         var requestId = Guid.NewGuid();
@@ -50,7 +50,7 @@ public class StackdriverExporterTests
         var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
             .AddSource(ActivitySourceName)
             .AddProcessor(testActivityProcessor)
-            .UseStackdriverExporter("test").Build();
+            .UseGoogleCloudExporter("test").Build();
 
         var source = new ActivitySource(ActivitySourceName);
         var activity = source.StartActivity("Test Activity");
@@ -61,12 +61,12 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_WithServiceNameMetadata()
+    public void GoogleCloudMonitoringExporter_WithServiceNameMetadata()
     {
         const string ActivitySourceName = "stackdriver.test";
 
         var traceClient = new TestTraceServiceClient(throwException: false);
-        var activityExporter = new StackdriverTraceExporter("test_project", traceClient);
+        var activityExporter = new GoogleCloudTraceExporter("test_project", traceClient);
 
         var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
             .AddSource(ActivitySourceName)
@@ -83,7 +83,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_TraceClientThrows_ExportResultFailure()
+    public void GoogleCloudMonitoringExporter_TraceClientThrows_ExportResultFailure()
     {
         Exception? exception;
         var result = ExportResult.Success;
@@ -91,7 +91,7 @@ public class StackdriverExporterTests
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
         var traceClient = new TestTraceServiceClient(throwException: true);
-        var activityExporter = new StackdriverTraceExporter("test", traceClient);
+        var activityExporter = new GoogleCloudTraceExporter("test", traceClient);
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
@@ -119,7 +119,7 @@ public class StackdriverExporterTests
     }
 
     [Fact]
-    public void StackdriverExporter_TraceClientDoesNotTrow_ExportResultSuccess()
+    public void GoogleCloudMonitoringExporter_TraceClientDoesNotTrow_ExportResultSuccess()
     {
         Exception? exception;
         var result = ExportResult.Failure;
@@ -127,7 +127,7 @@ public class StackdriverExporterTests
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
         var traceClient = new TestTraceServiceClient(throwException: false);
-        var activityExporter = new StackdriverTraceExporter("test", traceClient);
+        var activityExporter = new GoogleCloudTraceExporter("test", traceClient);
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
