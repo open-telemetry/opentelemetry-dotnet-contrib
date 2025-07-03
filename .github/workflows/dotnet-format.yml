@@ -3,6 +3,9 @@ name: Lint - dotnet format
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   run-dotnet-format:
     runs-on: windows-latest
