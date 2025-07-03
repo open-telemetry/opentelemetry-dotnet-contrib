@@ -2,15 +2,16 @@
 # This should be run from the root of the repo:
 # docker build --file test/OpenTelemetry.Instrumentation.Cassandra.Tests/Dockerfile .
 
-ARG BUILD_SDK_VERSION=8.0
-ARG TEST_SDK_VERSION=8.0
+ARG BUILD_SDK_VERSION=10.0
+ARG TEST_SDK_VERSION=10.0
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0.411@sha256:57c3bf930db9ac075c9019b83fdfc77c474b11b874120b84bc97fa65f33662dd AS dotnet-sdk-8.0
 FROM mcr.microsoft.com/dotnet/sdk:9.0.300@sha256:c5b188baf837b0180a14f988815b9cc7a55b836dd6cbe1b6e6523cf3098faaa8 AS dotnet-sdk-9.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0.100-preview.5@sha256:8a2e8c3b5215793cc7311c743595507f9f11794ab0224231e3f808485082ff5e AS dotnet-sdk-10.0
 
 FROM dotnet-sdk-${BUILD_SDK_VERSION} AS build
 ARG PUBLISH_CONFIGURATION=Release
-ARG PUBLISH_FRAMEWORK=net8.0
+ARG PUBLISH_FRAMEWORK=net10.0
 WORKDIR /repo
 COPY . ./
 WORKDIR "/repo/test/OpenTelemetry.Instrumentation.Cassandra.Tests"
