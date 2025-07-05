@@ -8,10 +8,10 @@
 {% if attribute.type is mapping %}
 {% set enum_class_name = attribute.name | pascal_case ~ "Values" %}
 {% set attribute_resolved_type = attribute.type | instantiated_type %}
-| Id | Type | Description | Values | Stability |
+| Id | Type | Description | Values | Brief | Stability |
 |---|---|---|---|---|
 {% for member in attribute.type.members %}
-| {{attribute.name}}.{{ member.id }} |  | {{attribute.brief}} | {{member.value}} | {{attribute.stability}} |
+| {{attribute.name}} |  | {{attribute.brief}} | {{member.value}} | {{member.brief}} | {{attribute.stability}} |
 {% endfor %}
 {% endif %}
 {% endfor %}

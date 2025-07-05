@@ -120,7 +120,7 @@ public class OtelGenerator : IIncrementalGenerator
                     // generate the source code and add it to the output
                     string result = SourceGenerationHelper.GenerateAttributeClass(value, item);
 
-                    // Create a separate partial class file for each enum
+                    // Create a separate partial class file for each namespace
                     context.AddSource($"OtelAttributes.{value.StructName}.{item.Key}.g.cs", SourceText.From(result, Encoding.UTF8));
                 }
             }

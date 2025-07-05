@@ -4,8 +4,8 @@
 {{- template.set_file_name(my_file_name) -}}
 
 # {{ctx.root_namespace}}
-| Id | Type | Description | Values | Stability |
+| Id | Type | Description | Values | Brief | Stability |
 |---|---|---|---|---|
 {% for attribute in ctx.attributes | rejectattr("name", "in", ctx.excluded_attributes) %}
-| {{attribute.name}} |  | {{attribute.brief}} | {{attribute.value}} | {{attribute.stability}} |
+| {{attribute.name}} |  | {{attribute.brief}} | {{attribute.value}} | | {{attribute.stability}} |
 {% endfor %}
