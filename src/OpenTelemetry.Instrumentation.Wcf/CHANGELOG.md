@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Added server instrumentation support for `RecordException` option.
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06

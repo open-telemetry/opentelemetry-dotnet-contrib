@@ -205,6 +205,116 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
             Assert.Empty(stoppedActivities);
         }
     }
+
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, false)]
+    public async Task RecordExceptionTest(
+        bool recordException,
+        bool triggerException,
+        bool runAsync)
+    {
+        List<Activity> stoppedActivities = [];
+        List<Activity> startedActivities = [];
+
+        List<Exception> recordedExceptions = [];
+        using var activityListener = new ActivityListener
+        {
+            ShouldListenTo = activitySource => true,
+            ActivityStarted = startedActivities.Add,
+            ActivityStopped = stoppedActivities.Add,
+        };
+
+        activityListener.ExceptionRecorder += (Activity activity, Exception ex, ref TagList tags) =>
+        {
+            recordedExceptions.Add(ex);
+        };
+
+        ActivitySource.AddActivityListener(activityListener);
+
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddWcfInstrumentation(options =>
+            {
+                options.RecordException = recordException;
+            })
+            .Build();
+
+        var client = new ServiceClient(
+            new NetTcpBinding(),
+            new EndpointAddress(new Uri(this.serviceBaseUri, "/Service")));
+        try
+        {
+            if (triggerException)
+            {
+                if (runAsync)
+                {
+                    await client.ErrorAsync();
+                }
+                else
+                {
+                    client.ErrorSynchronous();
+                }
+            }
+            else
+            {
+                if (runAsync)
+                {
+                    await client.ExecuteAsync(
+                        new ServiceRequest(
+                            payload: "Hello Open Telemetry!"));
+                }
+                else
+                {
+                    client.ExecuteSynchronous(
+                        new ServiceRequest(
+                            payload: "Hello Open Telemetry!"));
+                }
+            }
+        }
+        catch (Exception)
+        {
+        }
+        finally
+        {
+            startedActivities[0].AddTag(nameof(recordException), recordException);
+            startedActivities[0].AddTag(nameof(triggerException), triggerException);
+            startedActivities[0].AddTag(nameof(runAsync), runAsync);
+
+            if (client.State == CommunicationState.Faulted)
+            {
+                client.Abort();
+            }
+            else
+            {
+                client.Close();
+            }
+
+            tracerProvider?.Shutdown();
+            tracerProvider?.Dispose();
+
+            WcfInstrumentationActivitySource.Options = null;
+        }
+
+        Assert.NotEmpty(stoppedActivities);
+        Assert.Single(stoppedActivities);
+
+        var activity = stoppedActivities[0];
+
+        if (recordException && triggerException)
+        {
+            Assert.Collection(recordedExceptions, e => Assert.IsType<Exception>(e));
+        }
+        else
+        {
+            Assert.Empty(recordedExceptions);
+        }
+    }
 }
 
 #endif
