@@ -1,0 +1,26 @@
+whitespace_control:
+  trim_blocks: true
+  lstrip_blocks: true
+  keep_trailing_newline: true
+
+templates:
+  - pattern: SemanticConventionsAttributeNames.md.j2
+    filter: >
+      semconv_grouped_attributes({
+        "exclude_deprecated": false,
+        "exclude_stability": [],
+      }) | map({
+          root_namespace: .root_namespace,
+          attributes: .attributes,
+      })
+    application_mode: each
+  - pattern: SemanticConventionsAttributeValues.md.j2
+    filter: >
+      semconv_grouped_attributes({
+        "exclude_deprecated": false,
+        "exclude_stability": [],
+      }) | map({
+          root_namespace: .root_namespace,
+          attributes: .attributes,
+      })
+    application_mode: each

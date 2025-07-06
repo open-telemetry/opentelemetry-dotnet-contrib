@@ -4,14 +4,18 @@
 {{- template.set_file_name(my_file_name) -}}
 
 # {{ctx.root_namespace}}
+| Id | Type | Description | Values | Brief | Stability | Reason |
+|---|---|---|---|---|---|---|
 {% for attribute in ctx.attributes %}
 {% if attribute.type is mapping %}
-{% set enum_class_name = attribute.name | pascal_case ~ "Values" %}
-{% set attribute_resolved_type = attribute.type | instantiated_type %}
-| Id | Type | Description | Values | Brief | Stability |
-|---|---|---|---|---|
 {% for member in attribute.type.members %}
-| {{attribute.name}} |  | {{attribute.brief}} | {{member.value}} | {{member.brief}} | {{attribute.stability}} |
+{% set status = attribute.stability %}
+{% set reason = "" %}
+{% if attribute is deprecated %}
+{% set status = "deprecated" %}
+{% set reason = attribute.deprecated.note %}
+{% endif %}
+| {{attribute.name | trim }} |  | {{attribute.brief | trim}} | {{member.value | trim}} | {{member.brief | trim}} | {{status | trim}} | {{reason}} |
 {% endfor %}
 {% endif %}
 {% endfor %}

@@ -1,4 +1,4 @@
-# Disk
-| Id | Type | Description | Values | Stability |
-|---|---|---|---|---|
-| disk.io.direction | string | The disk IO operation direction. | disk.io.direction | Development|
+# disk
+| Id | Type | Description | Values | Brief | Stability | Reason |
+|---|---|---|---|---|---|---|
+| disk.io.direction |  | The disk IO operation direction. | disk.io.direction | | development |  |
