@@ -1,5 +1,9 @@
 codecov:
   require_ci_to_pass: no
+  
+  # Note: Both PR and main branch uploads are handled through GitHub Actions
+  # PR uploads: ci.yml workflow (triggered on pull_request)
+  # Main branch uploads: ci-main.yml workflow (triggered on push to main)
 
 coverage:
   precision: 2
