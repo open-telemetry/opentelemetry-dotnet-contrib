@@ -9,6 +9,8 @@ OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Rec
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbStatementForText.get -> bool
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbStatementForText.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SqlClientTraceInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.ContextPropagationLevel.get -> string!
+OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.ContextPropagationLevel.set -> void
 OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
 static OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions.AddSqlClientInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!

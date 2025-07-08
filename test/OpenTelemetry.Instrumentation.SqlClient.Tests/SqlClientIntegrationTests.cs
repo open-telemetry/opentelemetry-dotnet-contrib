@@ -56,6 +56,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             {
                 options.SetDbStatementForText = captureTextCommandContent;
                 options.RecordException = recordException;
+                options.ContextPropagationLevel = SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace;
             })
             .Build();
 
