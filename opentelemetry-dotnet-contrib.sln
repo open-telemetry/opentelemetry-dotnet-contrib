@@ -405,9 +405,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests", "test\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj", "{00C9F0B8-3D51-483C-821A-5889B38A144C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAMPClient", "src\OpenTelemetry.OpAMPClient\OpenTelemetry.OpAMPClient.csproj", "{5BBAFF70-77C6-48C0-BA9F-7D132331AED0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client", "src\OpenTelemetry.OpAmp.Client\OpenTelemetry.OpAmp.Client.csproj", "{5BBAFF70-77C6-48C0-BA9F-7D132331AED0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAMPClient.Tests", "test\OpenTelemetry.OpAMPClient.Tests\OpenTelemetry.OpAMPClient.Tests.csproj", "{A4B5C1D2-A8FA-4627-B6D5-1A05E3429CED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client.Tests", "test\OpenTelemetry.OpAmp.Client.Tests\OpenTelemetry.OpAmp.Client.Tests.csproj", "{A4B5C1D2-A8FA-4627-B6D5-1A05E3429CED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

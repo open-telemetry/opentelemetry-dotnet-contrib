@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(NetMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks)</TargetFrameworks>
+    <Description>OpAMP Client for OpenTelemetry .NET.</Description>
+    <PackageTags>$(PackageTags);opamp</PackageTags>
+    <MinVerTagPrefix>OpenTelemetry.OpAmp.Client-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Trash\README" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\anyvalue.proto" ProtoRoot="Protos" Access="Internal" />
+    <Protobuf Include="Protos\opamp.proto" ProtoRoot="Protos" Access="Internal" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+  
+</Project>
