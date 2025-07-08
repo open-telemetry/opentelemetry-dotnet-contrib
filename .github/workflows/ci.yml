@@ -2,7 +2,7 @@ name: Build
 
 on:
   pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    branches: [ 'main2*', 'instrumentation*', 'exporter*', 'extensions*' ]
 
 jobs:
   lint-misspell-sanitycheck:

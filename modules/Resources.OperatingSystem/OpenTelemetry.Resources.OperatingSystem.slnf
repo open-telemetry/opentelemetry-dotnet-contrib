@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "..\\..\\opentelemetry-dotnet-contrib.sln",
+    "projects": [
+      "modules\\Resources.OperatingSystem\\src\\OpenTelemetry.Resources.OperatingSystem\\OpenTelemetry.Resources.OperatingSystem.csproj",
+      "modules\\Resources.OperatingSystem\\test\\OpenTelemetry.Resources.OperatingSystem.Tests\\OpenTelemetry.Resources.OperatingSystem.Tests.csproj"
+    ]
+  }
+}

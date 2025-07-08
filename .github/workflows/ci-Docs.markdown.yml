@@ -1,0 +1,15 @@
+name: Verify Markdown
+
+on:
+  pull_request:
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
+      - '**/*.md'
+
+jobs:
+  misspell-sanitycheck:
+    uses: ./.github/workflows/sanitycheck.yml
+
+  lint:
+    uses: ./.github/workflows/markdownlint.yml
+
