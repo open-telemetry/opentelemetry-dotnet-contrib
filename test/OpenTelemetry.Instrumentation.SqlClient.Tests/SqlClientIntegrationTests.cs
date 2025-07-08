@@ -3,6 +3,7 @@
 
 using System.Data;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.Data.SqlClient;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Tests;
@@ -28,6 +29,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
+    [InlineData(CommandType.Text, "SELECT CONTEXT_INFO()")]
 #if NETFRAMEWORK
     [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
 #else
@@ -73,10 +75,10 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         {
             CommandType = commandType,
         };
-
+        object commandResult = DBNull.Value;
         try
         {
-            sqlCommand.ExecuteNonQuery();
+            commandResult = sqlCommand.ExecuteScalar();
         }
         catch
         {
@@ -85,6 +87,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
+        VerifyContextInfo(commandText, commandResult, activity);
         VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
 
@@ -101,6 +104,20 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             Assert.EndsWith("SqlException", activity.GetTagValue(SemanticConventions.AttributeErrorType) as string);
             Assert.Equal("8134", activity.GetTagValue(SemanticConventions.AttributeDbResponseStatusCode));
 #endif
+        }
+    }
+
+    private static void VerifyContextInfo(
+        string? commandText,
+        object commandResult,
+        Activity activity)
+    {
+        if (commandText == "SELECT CONTEXT_INFO()")
+        {
+            Assert.NotEqual(commandResult, DBNull.Value);
+            Assert.True(commandResult is byte[]);
+            var contextInfo = Encoding.ASCII.GetString((byte[])commandResult).TrimEnd('\0');
+            Assert.Equal(contextInfo, activity.Id);
         }
     }
 
