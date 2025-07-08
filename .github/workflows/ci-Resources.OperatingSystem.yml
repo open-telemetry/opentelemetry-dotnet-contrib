@@ -1,0 +1,24 @@
+name: build-test
+
+on:
+  pull_request:
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
+      - 'modules/Resources.OperatingSystem/**'
+
+jobs:
+  resources-operatingsystem:
+    uses: ./.github/workflows/build-module.yml
+    with:
+      module-name: Resources.OperatingSystem
+      module-directory: './modules/Resources.OperatingSystem'
+
+  build-test:
+    needs: [
+      resources-operatingsystem
+    ]
+    if: always() && !cancelled()
+    runs-on: ubuntu-22.04
+    steps:
+    - run: |
+          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

@@ -4,7 +4,7 @@ on:
   push:
     branches: [ 'main' ]
   pull_request:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    branches: [ 'main2*', 'instrumentation*', 'exporter*', 'extensions*' ]
 
 permissions:
   contents: read

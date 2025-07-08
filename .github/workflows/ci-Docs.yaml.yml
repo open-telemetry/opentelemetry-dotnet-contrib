@@ -1,0 +1,15 @@
+name: Verify Yaml
+
+on:
+  pull_request:
+    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
+      - '**/*.yml'
+      - '**/*.yaml'
+
+jobs:
+  misspell-sanitycheck:
+    - uses: ./.github/workflows/sanitycheck.yml
+
+  lint:
+    uses: ./.github/workflows/yamllint.yml
