@@ -17,6 +17,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// </remarks>
 public class SqlClientTraceInstrumentationOptions
 {
+    internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_CONTEXT_PROPAGATION_LEVEL";
+
     /// <summary>
     /// Flag to send traceparent information to SQL Server.
     /// </summary>
@@ -41,6 +43,14 @@ public class SqlClientTraceInstrumentationOptions
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
         this.ContextPropagationLevel = ContextPropagationDisabled;
+
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetStringValue(ContextPropagationLevelEnvVar, out var contextPropagationLevel)
+            && contextPropagationLevel == ContextPropagationLevelTrace)
+        {
+            this.ContextPropagationLevel = contextPropagationLevel;
+        }
     }
 
     /// <summary>
@@ -73,17 +83,6 @@ public class SqlClientTraceInstrumentationOptions
     /// </para>
     /// </remarks>
     public bool SetDbStatementForText { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to send trace information to SQL Server database.
-    /// Optional values:
-    /// <see langword="trace"/>:
-    /// Send traceparent information to SQL Server.
-    /// <see langword="disabled"/>:
-    /// Disable sending trace information to SQL Server.
-    /// Default value: <see landword="disabled"/>.
-    /// </summary>
-    public string ContextPropagationLevel { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with the
@@ -148,4 +147,15 @@ public class SqlClientTraceInstrumentationOptions
     /// Gets or sets a value indicating whether the new database attributes should be emitted.
     /// </summary>
     internal bool EmitNewAttributes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to send trace information to SQL Server database.
+    /// Optional values:
+    /// <see langword="trace"/>:
+    /// Send traceparent information to SQL Server.
+    /// <see langword="disabled"/>:
+    /// Disable sending trace information to SQL Server.
+    /// Default value: <see langword="disabled"/>.
+    /// </summary>
+    internal string ContextPropagationLevel { get; set; }
 }

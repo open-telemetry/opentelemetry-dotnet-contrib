@@ -17,6 +17,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Trait("CategoryName", "SqlIntegrationTests")]
 public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrationTestsFixture>
 {
+    private const string GetContextInfoQuery = "SELECT CONTEXT_INFO()";
+
     private readonly SqlClientIntegrationTestsFixture fixture;
 
     public SqlClientIntegrationTests(SqlClientIntegrationTestsFixture fixture)
@@ -29,7 +31,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
-    [InlineData(CommandType.Text, "SELECT CONTEXT_INFO()")]
+    [InlineData(CommandType.Text, GetContextInfoQuery)]
 #if NETFRAMEWORK
     [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
 #else
@@ -44,6 +46,11 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         bool isFailure = false,
         bool recordException = false)
     {
+        if (commandText == GetContextInfoQuery)
+        {
+            Environment.SetEnvironmentVariable(SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar, SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace);
+        }
+
 #if NETFRAMEWORK
         // Disable things not available on netfx
         recordException = false;
@@ -58,7 +65,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             {
                 options.SetDbStatementForText = captureTextCommandContent;
                 options.RecordException = recordException;
-                options.ContextPropagationLevel = SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace;
             })
             .Build();
 
@@ -112,7 +118,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         object commandResult,
         Activity activity)
     {
-        if (commandText == "SELECT CONTEXT_INFO()")
+        if (commandText == GetContextInfoQuery)
         {
             Assert.NotEqual(commandResult, DBNull.Value);
             Assert.True(commandResult is byte[]);
