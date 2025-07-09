@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(NetMinimumSupportedVersion);netstandard2.1;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>OpenTelemetry SimpleConsole Exporter</Description>
+    <PackageTags>$(PackageTags);opentelemetry;exporter;simpleconsole</PackageTags>
+    <MinVerTagPrefix>Exporter.SimpleConsole-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OTelSdkVersion>$(OpenTelemetryCoreLatestVersion)</OTelSdkVersion>
+    <DefineConstants Condition="$(OTelSdkVersion.Contains('alpha')) OR $(OTelSdkVersion.Contains('beta')) OR $(OTelSdkVersion.Contains('rc'))">$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+  </ItemGroup>
+
+</Project>
