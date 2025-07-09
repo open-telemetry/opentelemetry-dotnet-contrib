@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Introduced the ``os.family`` attribute to the OperatingSystem resource detector.
+  ([#2885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2885))
+* Adapted the `os.type` attribute to the new OpenTelemetry specification.
+  ([#2885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2885))
+* Set the `os.description` attribute to the pretty name on linux
+  ([#2885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2885))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06

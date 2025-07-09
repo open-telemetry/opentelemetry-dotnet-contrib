@@ -10,13 +10,9 @@ internal static class OperatingSystemSemanticConventions
     public const string AttributeOperatingSystemDescription = "os.description";
     public const string AttributeOperatingSystemName = "os.name";
     public const string AttributeOperatingSystemVersion = "os.version";
+    public const string AttributeOperatingSystemFamily = "os.family";
 
-    public static class OperatingSystemsValues
-    {
-        public const string Windows = "windows";
-
-        public const string Linux = "linux";
-
-        public const string Darwin = "darwin";
-    }
+    public static string[] OSFamilyApple = ["darwin"];
+    public static string[] OSFamilyWindows = ["windows"];
+    public static string[] OSFamilyAndroid = ["aosp"];
 }
