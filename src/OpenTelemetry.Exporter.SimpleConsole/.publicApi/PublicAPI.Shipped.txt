@@ -1,1 +1,37 @@
 #nullable enable
+OpenTelemetry.Exporter.SimpleConsole.IConsole
+OpenTelemetry.Exporter.SimpleConsole.IConsole.BackgroundColor.get -> System.ConsoleColor
+OpenTelemetry.Exporter.SimpleConsole.IConsole.BackgroundColor.set -> void
+OpenTelemetry.Exporter.SimpleConsole.IConsole.ForegroundColor.get -> System.ConsoleColor
+OpenTelemetry.Exporter.SimpleConsole.IConsole.ForegroundColor.set -> void
+OpenTelemetry.Exporter.SimpleConsole.IConsole.ResetColor() -> void
+OpenTelemetry.Exporter.SimpleConsole.IConsole.Write(string! value) -> void
+OpenTelemetry.Exporter.SimpleConsole.IConsole.WriteLine(string! value) -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporter
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporter.SimpleConsoleExporter(OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions! options) -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.Console.get -> OpenTelemetry.Exporter.SimpleConsole.IConsole!
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.Console.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.IncludeSpanId.get -> bool
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.IncludeSpanId.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.IncludeTraceId.get -> bool
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.IncludeTraceId.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.SimpleConsoleExporterOptions() -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.TimestampFormat.get -> string?
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.TimestampFormat.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.TraceIdLength.get -> int
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.TraceIdLength.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.UseUtcTimestamp.get -> bool
+OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions.UseUtcTimestamp.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.BackgroundColor.get -> System.ConsoleColor
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.BackgroundColor.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.ForegroundColor.get -> System.ConsoleColor
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.ForegroundColor.set -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.ResetColor() -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.SystemConsole() -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.Write(string! value) -> void
+OpenTelemetry.Exporter.SimpleConsole.SystemConsole.WriteLine(string! value) -> void
+OpenTelemetry.Logs.SimpleConsoleLoggingExtensions
+override OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporter.Export(in OpenTelemetry.Batch<OpenTelemetry.Logs.LogRecord!> batch) -> OpenTelemetry.ExportResult
+static OpenTelemetry.Logs.SimpleConsoleLoggingExtensions.AddSimpleConsoleExporter(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! options, System.Action<OpenTelemetry.Exporter.SimpleConsole.SimpleConsoleExporterOptions!>? configure = null) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
