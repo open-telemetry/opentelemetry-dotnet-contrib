@@ -10,13 +10,15 @@
   the new conventions.
   ([#2811](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2811))
 
-* Added `ContextPropagationLevel` option to propagate trace context to
-  SQL Server database.
+* Added `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_CONTEXT_PROPAGATION_LEVEL`
+  environment variable to propagate trace context to SQL Server databases.
   ([#2709](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2709))
 
-  Valid options:
-  * `trace`: Propagate traceparent info to SQL Server database (see [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16))
-  * `disabled`: Default value
+  Valid options for this environment variable are:
+  * `trace`: Propagate `traceparent` information to SQL Server databases
+    (see [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)).
+    Note that this option incurs an additional round-trip to the database.
+  * `disabled`: No context propagation performed, default value.
 
 ## 1.12.0-beta.1
 
