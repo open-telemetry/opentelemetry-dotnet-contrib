@@ -2,8 +2,6 @@
 # This should be run from the root of the repo:
 # docker build --file test/OpenTelemetry.Instrumentation.Cassandra.Tests/Dockerfile .
 
-ARG TEST_SDK_VERSION=8.0
-
 ARG BUILD_SDK_VERSION=8.0
 ARG TEST_SDK_VERSION=8.0
 
