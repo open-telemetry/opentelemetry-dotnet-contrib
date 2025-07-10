@@ -97,6 +97,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
                     {
                         var setContextCommand = iDbCommand.Connection.CreateCommand();
+                        setContextCommand.Transaction = iDbCommand.Transaction;
                         setContextCommand.CommandText = SetContextSql;
                         setContextCommand.CommandType = CommandType.Text;
                         var parameter = setContextCommand.CreateParameter();
