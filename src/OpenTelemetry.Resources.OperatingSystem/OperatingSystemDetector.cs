@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 #if NET
 using System.Xml.Linq;
 #endif
+using System.Globalization;
 using static OpenTelemetry.Resources.OperatingSystem.OperatingSystemSemanticConventions;
 
 namespace OpenTelemetry.Resources.OperatingSystem;
@@ -94,9 +95,7 @@ internal sealed class OperatingSystemDetector : IResourceDetector
         if (this.osCategory != OperatingSystemCategory.Linux
         && this.osCategory != OperatingSystemCategory.MacOS)
         {
-#pragma warning disable CA1305 // Specify IFormatProvider
-            attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemBuildId, Environment.OSVersion.Version.Build.ToString()));
-#pragma warning restore CA1305 // Specify IFormatProvider
+            attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemBuildId, Environment.OSVersion.Version.Build.ToString(CultureInfo.InvariantCulture.NumberFormat)));
             attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemVersion, Environment.OSVersion.Version.ToString()));
             attributes.Add(new KeyValuePair<string, object>(AttributeOperatingSystemDescription, GetOSDescription()));
         }
