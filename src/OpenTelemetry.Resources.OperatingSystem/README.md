@@ -23,6 +23,65 @@ Operating System Resource Detectors.
 dotnet add package OpenTelemetry.Resources.OperatingSystem --prerelease
 ```
 
+## Attriutes Value
+
+When not specified the values come from `Environment.OSVersion.Version`
+
+### Android
+
+|Attribute| Definition |
+|--- | --- |
+| [os.build_id](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build-id) | |
+| [os.description](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
+| [os.family](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | aosp |
+| [os.name](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | Android |
+| [os.type](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | unix |
+| [os.version](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+
+### Apple OS
+
+|Attribute| Apple OS|
+|--- | --- |
+| [os.build_id](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build-id) | |
+| [os.description](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
+| [os.family](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | darwin |
+| [os.name](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | iOS, WatchOS or TvOS|
+| [os.type](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | unix |
+| [os.version](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+
+### Linux
+
+|Attribute| Linux |
+|--- | --- |
+| [os.build_id](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build-id) | The `BUILD_ID` within `OS-release` file. |
+| [os.description](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | The `PRETTY_NAME` within `OS-release` file. |
+| [os.family](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | The `LIKE_ID` within `OS-release` file. |
+| [os.name](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | The `NAME` within `OS-release` file. |
+| [os.type](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | unix |
+| [os.version](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | The `VERSION_ID` within `OS-release` file. |
+
+### MacOS
+
+|Attribute| MacOS |
+|--- | --- |
+| [os.build_id](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build-id) | The `ProductBuildVersion` from the `*.plist` file. |
+| [os.description](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
+| [os.family](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | darwin |
+| [os.name](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | The `ProductName` from the `*.plist` file.  |
+| [os.type](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | unix |
+| [os.version](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | The `ProductVersion` from the `*.plist` file. |
+
+### Windows
+
+|Attribute| Windows|
+|--- | --- |
+| [os.build_id](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build-id) | |
+| [os.description](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
+| [os.family](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | windows|
+| [os.name](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | `ProductName` from the `CurrentVersion` key in the registry |
+| [os.type](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | windows32nt|
+| [os.version](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+
 ## Usage
 
 You can configure Operating System resource detector to
