@@ -18,7 +18,18 @@ public static class ProcessResourceBuilderExtensions
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder)
     {
+        return builder.AddProcessDetector(new ProcessDetectorOptions());
+    }
+
+    /// <summary>
+    /// Enables process resource detector.
+    /// </summary>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="options">The <see cref="ProcessDetectorOptions"/> used to control the behaviour configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
+    public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder, ProcessDetectorOptions options)
+    {
         Guard.ThrowIfNull(builder);
-        return builder.AddDetector(new ProcessDetector());
+        return builder.AddDetector(new ProcessDetector(options));
     }
 }

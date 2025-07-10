@@ -8,18 +8,23 @@ namespace OpenTelemetry.Resources.Process;
 /// </summary>
 internal sealed class ProcessDetector : IResourceDetector
 {
+    private readonly ProcessDetectorOptions options;
+
+    internal ProcessDetector(ProcessDetectorOptions? options)
+    {
+        this.options = options ?? new ProcessDetectorOptions();
+    }
+
     /// <summary>
     ///     Detects the resource attributes for process.
     /// </summary>
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-        return new Resource(new List<KeyValuePair<string, object>>(2)
+        using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+        var attributes = new List<KeyValuePair<string, object>>(11)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
-            new(ProcessSemanticConventions.AttributeProcessCommandLine, Environment.CommandLine),
-            new(ProcessSemanticConventions.AttributeProcessCommandArgs, Environment.GetCommandLineArgs()),
             new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
             new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? string.Empty),
             new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.MainWindowTitle),
@@ -30,15 +35,17 @@ internal sealed class ProcessDetector : IResourceDetector
 #if NET
             new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
             new(ProcessSemanticConventions.AttributeProcessExecPath, Environment.ProcessPath ?? string.Empty),
-        });
+        };
 #else
-            new(ProcessSemanticConventions.AttributeProcessPid, GetProcessPid()),
-        });
-        static int GetProcessPid()
-        {
-            using var process = System.Diagnostics.Process.GetCurrentProcess();
-            return process.Id;
-        }
+            new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
+        };
 #endif
+        if (this.options.IncludeCommand)
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommandLine, Environment.CommandLine));
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommandArgs, Environment.GetCommandLineArgs()));
+        }
+
+        return new Resource(attributes);
     }
 }
