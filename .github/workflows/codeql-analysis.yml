@@ -16,6 +16,8 @@ permissions:
 jobs:
   analyze:
     name: Analyze
+    permissions:
+      security-events: write # for github/codeql-action/analyze to upload SARIF results
     runs-on: windows-latest
 
     strategy:
