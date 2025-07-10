@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
+using System.Net;
+using System.Net.NetworkInformation;
 #if !NETFRAMEWORK
 using System.Runtime.InteropServices;
 #endif
@@ -93,6 +96,37 @@ internal sealed class HostDetector : IResourceDetector
             if (machineId != null && !string.IsNullOrEmpty(machineId))
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
+            }
+
+            try
+            {
+                var hostEntry = Dns.GetHostEntry(Environment.MachineName);
+                var ips = hostEntry.AddressList.Where(x => !IPAddress.IsLoopback(x))
+                    .Select(x => x.ToString())
+                    .Distinct()
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToArray();
+                attributes.Add(new(HostSemanticConventions.AttributeHostIp, ips));
+            }
+            catch (Exception ex)
+            {
+                HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            }
+
+            try
+            {
+                var nics = NetworkInterface.GetAllNetworkInterfaces();
+                var macs = nics.Select(x => string.Join(":", x.GetPhysicalAddress()
+                        .GetAddressBytes()
+                        .Select(y => y.ToString("X2", CultureInfo.InvariantCulture))))
+                    .Distinct()
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .ToArray();
+                attributes.Add(new(HostSemanticConventions.AttributeHostMac, macs));
+            }
+            catch (Exception ex)
+            {
+                HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
             }
 
             return new Resource(attributes);

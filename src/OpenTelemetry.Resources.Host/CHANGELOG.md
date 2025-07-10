@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Added support for `host.ip` and `host.mac` attributes within the resource detector
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
