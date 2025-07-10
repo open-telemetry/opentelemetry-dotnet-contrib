@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Added support for `host.ip` and `host.mac` attributes within the resource detector
+  ([#2895](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2895))
 
 ## 1.12.0-beta.1
 
