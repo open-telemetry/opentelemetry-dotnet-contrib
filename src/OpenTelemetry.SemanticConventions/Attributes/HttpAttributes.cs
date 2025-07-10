@@ -112,9 +112,9 @@ public static class HttpAttributes
     public const string AttributeHttpRequestSize = "http.request.size";
 
     /// <summary>
-    /// Deprecated, use <c>http.request.header.<key></c> instead.
+    /// Deprecated, use <c>http.request.header.content-length</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.request.header.<key></c>.")]
+    [Obsolete("Replaced by <c>http.request.header.content-length</c>.")]
     public const string AttributeHttpRequestContentLength = "http.request_content_length";
 
     /// <summary>
@@ -162,15 +162,15 @@ public static class HttpAttributes
     public const string AttributeHttpResponseStatusCode = "http.response.status_code";
 
     /// <summary>
-    /// Deprecated, use <c>http.response.header.<key></c> instead.
+    /// Deprecated, use <c>http.response.header.content-length</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.response.header.<key></c>.")]
+    [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
 
     /// <summary>
     /// Deprecated, use <c>http.response.body.size</c> instead.
     /// </summary>
-    [Obsolete("Replace by <c>http.response.body.size</c>.")]
+    [Obsolete("Replaced by <c>http.response.body.size</c>.")]
     public const string AttributeHttpResponseContentLengthUncompressed = "http.response_content_length_uncompressed";
 
     /// <summary>
@@ -185,7 +185,7 @@ public static class HttpAttributes
     /// <summary>
     /// Deprecated, use <c>url.scheme</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>url.scheme</c> instead.")]
+    [Obsolete("Replaced by <c>url.scheme</c>.")]
     public const string AttributeHttpScheme = "http.scheme";
 
     /// <summary>
@@ -203,7 +203,7 @@ public static class HttpAttributes
     /// <summary>
     /// Deprecated, use <c>url.path</c> and <c>url.query</c> instead.
     /// </summary>
-    [Obsolete("Split to <c>url.path</c> and `url.query.")]
+    [Obsolete("Split to <c>url.path</c> and <c>url.query</c>.")]
     public const string AttributeHttpTarget = "http.target";
 
     /// <summary>

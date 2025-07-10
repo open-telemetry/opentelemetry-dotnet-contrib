@@ -39,12 +39,12 @@ public static class EnduserAttributes
     /// <summary>
     /// Deprecated, use <c>user.roles</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>user.roles</c> attribute.")]
+    [Obsolete("Use <c>user.roles</c> attribute instead.")]
     public const string AttributeEnduserRole = "enduser.role";
 
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("Removed.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeEnduserScope = "enduser.scope";
 }

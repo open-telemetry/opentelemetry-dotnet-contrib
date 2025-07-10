@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated to `v1.36.0` release of OpenTelemetry Semantic Conventions.
+  ([#2896](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2896))
+
 * Updated to `v1.33.0` release of OpenTelemetry Semantic Conventions.
   ([#2782](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2782))
 

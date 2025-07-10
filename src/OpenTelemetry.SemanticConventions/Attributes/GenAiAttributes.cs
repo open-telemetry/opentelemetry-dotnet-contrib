@@ -36,6 +36,19 @@ public static class GenAiAttributes
     public const string AttributeGenAiCompletion = "gen_ai.completion";
 
     /// <summary>
+    /// The unique identifier for a conversation (session, thread), used to store and correlate messages within this conversation.
+    /// </summary>
+    public const string AttributeGenAiConversationId = "gen_ai.conversation.id";
+
+    /// <summary>
+    /// The data source identifier.
+    /// </summary>
+    /// <remarks>
+    /// Data sources are used by AI agents and RAG applications to store grounding data. A data source may be an external database, object store, document collection, website, or any other storage system used by the GenAI agent or application. The <c>gen_ai.data_source.id</c> SHOULD match the identifier used by the GenAI system rather than a name specific to the external storage, such as a database or object store. Semantic conventions referencing <c>gen_ai.data_source.id</c> MAY also leverage additional attributes, such as <c>db.*</c>, to further identify and describe the data source.
+    /// </remarks>
+    public const string AttributeGenAiDataSourceId = "gen_ai.data_source.id";
+
+    /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
     [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
@@ -44,7 +57,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.request.seed</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.request.seed</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.request.seed</c>.")]
     public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
 
     /// <summary>
@@ -212,7 +225,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.output_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c>.")]
     public const string AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens";
 
     /// <summary>
@@ -228,7 +241,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.input_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c>.")]
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
 
     /// <summary>
@@ -386,12 +399,22 @@ public static class GenAiAttributes
         /// <summary>
         /// Azure AI Inference.
         /// </summary>
+        public const string AzureAiInference = "azure.ai.inference";
+
+        /// <summary>
+        /// Azure OpenAI.
+        /// </summary>
+        public const string AzureAiOpenai = "azure.ai.openai";
+
+        /// <summary>
+        /// Azure AI Inference.
+        /// </summary>
         public const string AzAiInference = "az.ai.inference";
 
         /// <summary>
         /// Azure OpenAI.
         /// </summary>
-        public const string AzAiOpenai = "az.ai.openai";
+        public const string AzAiOpenai = "azure.ai.openai";
 
         /// <summary>
         /// IBM Watsonx AI.

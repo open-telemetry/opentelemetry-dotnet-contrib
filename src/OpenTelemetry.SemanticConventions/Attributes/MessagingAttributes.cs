@@ -78,13 +78,13 @@ public static class MessagingAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed. No replacement at this time.")]
     public const string AttributeMessagingDestinationPublishAnonymous = "messaging.destination_publish.anonymous";
 
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed. No replacement at this time.")]
     public const string AttributeMessagingDestinationPublishName = "messaging.destination_publish.name";
 
     /// <summary>

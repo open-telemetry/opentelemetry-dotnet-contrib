@@ -33,7 +33,7 @@ public static class DeviceAttributes
     /// However, it may be appropriate for specific enterprise scenarios, such as kiosk devices or enterprise-managed devices, with appropriate compliance clearance.
     /// Any instrumentation providing this identifier MUST implement it as an opt-in feature.
     /// <p>
-    /// See <a href="/docs/attributes-registry/app.md#app-installation-id"><c>app.installation.id</c></a> for a more privacy-preserving alternative.</blockquote>
+    /// See <a href="/docs/registry/attributes/app.md#app-installation-id"><c>app.installation.id</c></a> for a more privacy-preserving alternative.</blockquote>
     /// </remarks>
     public const string AttributeDeviceId = "device.id";
 

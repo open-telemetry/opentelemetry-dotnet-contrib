@@ -28,12 +28,12 @@ public static class ProcessAttributes
     public const string AttributeProcessCommand = "process.command";
 
     /// <summary>
-    /// All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from <c>proc/[pid]/cmdline</c>. For libc-based executables, this would be the full argv vector passed to <c>main</c>.
+    /// All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from <c>proc/[pid]/cmdline</c>. For libc-based executables, this would be the full argv vector passed to <c>main</c>. SHOULD NOT be collected by default unless there is sanitization that excludes sensitive data.
     /// </summary>
     public const string AttributeProcessCommandArgs = "process.command_args";
 
     /// <summary>
-    /// The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of <c>GetCommandLineW</c>. Do not set this if you have to assemble it just for monitoring; use <c>process.command_args</c> instead.
+    /// The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of <c>GetCommandLineW</c>. Do not set this if you have to assemble it just for monitoring; use <c>process.command_args</c> instead. SHOULD NOT be collected by default unless there is sanitization that excludes sensitive data.
     /// </summary>
     public const string AttributeProcessCommandLine = "process.command_line";
 
@@ -54,7 +54,7 @@ public static class ProcessAttributes
     public const string AttributeProcessCreationTime = "process.creation.time";
 
     /// <summary>
-    /// Process environment variables, <key> being the environment variable name, the value being the environment variable value.
+    /// Process environment variables, <c><key></c> being the environment variable name, the value being the environment variable value.
     /// </summary>
     /// <remarks>
     /// Examples:

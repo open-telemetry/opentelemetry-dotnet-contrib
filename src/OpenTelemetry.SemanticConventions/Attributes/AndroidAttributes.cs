@@ -28,12 +28,9 @@ public static class AndroidAttributes
     public const string AttributeAndroidOsApiLevel = "android.os.api_level";
 
     /// <summary>
-    /// Deprecated. Use <c>android.app.state</c> instead.
+    /// Deprecated. Use <c>android.app.state</c> body field instead.
     /// </summary>
-    /// <remarks>
-    /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lc">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
-    /// </remarks>
-    [Obsolete("Renamed to <c>android.app.state</c>.")]
+    [Obsolete("Use <c>android.app.state</c> body field instead.")]
     public const string AttributeAndroidState = "android.state";
 
     /// <summary>
@@ -58,26 +55,26 @@ public static class AndroidAttributes
     }
 
     /// <summary>
-    /// Deprecated. Use <c>android.app.state</c> instead.
+    /// Deprecated. Use <c>android.app.state</c> body field instead.
     /// </summary>
     public static class AndroidStateValues
     {
         /// <summary>
         /// Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Use <c>android.app.state</c> body field instead.")]
         public const string Created = "created";
 
         /// <summary>
         /// Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Use <c>android.app.state</c> body field instead.")]
         public const string Background = "background";
 
         /// <summary>
         /// Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Use <c>android.app.state</c> body field instead.")]
         public const string Foreground = "foreground";
     }
 }
