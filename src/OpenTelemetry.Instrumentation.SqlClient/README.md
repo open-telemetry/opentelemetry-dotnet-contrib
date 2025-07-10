@@ -284,17 +284,15 @@ using var traceProvider = Sdk.CreateTracerProviderBuilder()
 ### Trace Context Propagation
 
 > [!NOTE]
-> Only `CommandType.Text` commands are supported for context propagation.
+> Only `CommandType.Text` commands are supported for trace context propagation.
 
-Database context propagation can be enabled by setting
-`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_CONTEXT_PROPAGATION_LEVEL` environment variable.
-The valid values are:
-
-* `disabled` - No context propagation is performed. This is the default value.
-* `trace` - Enables sending trace information to databases
-  in [W3C traceparent text format](https://www.w3.org/TR/trace-context/#traceparent-header).
-  This uses the `SET CONTEXT_INFO` command to set trace context in SQL Server,
-  which results in **an additional round-trip to the database**.
+Database trace context propagation can be enabled by setting
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
+environment variable to `true`.
+This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)
+command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)information
+for the current connection, which results in
+**an additional round-trip to the database**.
 
 ## References
 

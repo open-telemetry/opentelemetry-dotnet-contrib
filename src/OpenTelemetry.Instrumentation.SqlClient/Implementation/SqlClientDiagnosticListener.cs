@@ -69,7 +69,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 
                     // skip if this is an injected query
-                    if (options.ContextPropagationLevel == SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace &&
+                    if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;
@@ -93,7 +93,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    if (options.ContextPropagationLevel == SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace &&
+                    if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
                     {
                         var setContextCommand = iDbCommand.Connection.CreateCommand();
@@ -202,7 +202,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.commandFetcher.TryFetch(payload, out var command);
 
                     // skip if this is an injected query
-                    if (options.ContextPropagationLevel == SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace &&
+                    if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;
@@ -232,7 +232,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     _ = this.commandFetcher.TryFetch(payload, out var command);
 
                     // skip if this is an injected query
-                    if (options.ContextPropagationLevel == SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace &&
+                    if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;

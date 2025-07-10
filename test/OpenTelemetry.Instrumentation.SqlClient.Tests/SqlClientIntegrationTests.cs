@@ -31,7 +31,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
-    [InlineData(CommandType.Text, GetContextInfoQuery)]
+    [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, false)]
+    [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, true)]
 #if NETFRAMEWORK
     [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
 #else
@@ -44,11 +45,12 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         bool captureTextCommandContent = false,
         string? sanitizedCommandText = null,
         bool isFailure = false,
-        bool recordException = false)
+        bool recordException = false,
+        bool enableTransaction = false)
     {
         if (commandText == GetContextInfoQuery)
         {
-            Environment.SetEnvironmentVariable(SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar, SqlClientTraceInstrumentationOptions.ContextPropagationLevelTrace);
+            Environment.SetEnvironmentVariable(SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar, "true");
         }
 
 #if NETFRAMEWORK
@@ -75,12 +77,20 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
+        SqlTransaction transaction = null;
 #pragma warning disable CA2100
         using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
         {
             CommandType = commandType,
         };
+
+        if (enableTransaction)
+        {
+            transaction = sqlConnection.BeginTransaction();
+            sqlCommand.Transaction = transaction;
+        }
+
         object commandResult = DBNull.Value;
         try
         {
@@ -89,6 +99,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         catch
         {
         }
+
+        transaction?.Commit();
 
         Assert.Single(activities);
         var activity = activities[0];

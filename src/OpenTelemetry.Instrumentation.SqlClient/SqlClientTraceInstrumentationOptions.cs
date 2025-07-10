@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Trace;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
@@ -17,17 +18,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// </remarks>
 public class SqlClientTraceInstrumentationOptions
 {
-    internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_CONTEXT_PROPAGATION_LEVEL";
-
-    /// <summary>
-    /// Flag to send traceparent information to SQL Server.
-    /// </summary>
-    internal const string ContextPropagationLevelTrace = "trace";
-
-    /// <summary>
-    /// Flag to disable sending trace information to SQL Server.
-    /// </summary>
-    internal const string ContextPropagationDisabled = "disabled";
+    internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
@@ -42,14 +33,15 @@ public class SqlClientTraceInstrumentationOptions
         var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
-        this.ContextPropagationLevel = ContextPropagationDisabled;
 
         Debug.Assert(configuration != null, "configuration was null");
 
-        if (configuration!.TryGetStringValue(ContextPropagationLevelEnvVar, out var contextPropagationLevel)
-            && contextPropagationLevel == ContextPropagationLevelTrace)
+        if (configuration!.TryGetBoolValue(
+                SqlClientInstrumentationEventSource.Log,
+                ContextPropagationLevelEnvVar,
+                out var enableTraceContextPropagation))
         {
-            this.ContextPropagationLevel = contextPropagationLevel;
+            this.EnableTraceContextPropagation = enableTraceContextPropagation;
         }
     }
 
@@ -149,13 +141,14 @@ public class SqlClientTraceInstrumentationOptions
     internal bool EmitNewAttributes { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to send trace information to SQL Server database.
-    /// Optional values:
-    /// <see langword="trace"/>:
-    /// Send traceparent information to SQL Server.
-    /// <see langword="disabled"/>:
-    /// Disable sending trace information to SQL Server.
-    /// Default value: <see langword="disabled"/>.
+    /// Gets or sets a value indicating whether to send traceparent information to SQL Server database.
     /// </summary>
-    internal string ContextPropagationLevel { get; set; }
+    /// <remarks>
+    /// <para>
+    /// <b>Only `CommandType.Text` commands are supported for trace context propagation.</b>
+    /// Note: This uses the SET CONTEXT_INFO command to set traceparent information
+    /// for the current connection, which results in an additional round-trip to the database.
+    /// </para>
+    /// </remarks>
+    internal bool EnableTraceContextPropagation { get; set; }
 }
