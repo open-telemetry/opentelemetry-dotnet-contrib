@@ -57,6 +57,7 @@ public static class AndroidAttributes
     /// <summary>
     /// Deprecated. Use <c>android.app.state</c> body field instead.
     /// </summary>
+    [Obsolete("Use <c>android.app.state</c> body field instead.")]
     public static class AndroidStateValues
     {
         /// <summary>

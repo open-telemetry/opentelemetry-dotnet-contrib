@@ -61,6 +61,7 @@ public static class IosAttributes
     }
 
     
+    [Obsolete("Replaced by the <c>ios.app.state</c> event body field.")]
     public static class IosStateValues
     {
         /// <summary>

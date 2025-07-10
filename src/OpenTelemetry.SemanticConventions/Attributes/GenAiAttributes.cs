@@ -247,6 +247,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
     public static class GenAiOpenaiRequestResponseFormatValues
     {
         /// <summary>

@@ -88,6 +88,7 @@ public static class FeatureFlagAttributes
     /// <summary>
     /// Deprecated, use <c>feature_flag.result.reason</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
     public static class FeatureFlagEvaluationReasonValues
     {
         /// <summary>
