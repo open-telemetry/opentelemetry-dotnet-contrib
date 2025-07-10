@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Extended `ProcessDetector` to include more of the supported attributes.
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
