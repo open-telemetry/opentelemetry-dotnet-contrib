@@ -95,8 +95,13 @@ public static class OsAttributes
         public const string Solaris = "solaris";
 
         /// <summary>
-        /// IBM z/OS.
+        /// Deprecated. Use <c>zos</c> instead.
         /// </summary>
         public const string ZOs = "z_os";
+
+        /// <summary>
+        /// IBM z/OS.
+        /// </summary>
+        public const string Zos = "zos";
     }
 }

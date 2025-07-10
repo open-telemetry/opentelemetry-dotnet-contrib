@@ -127,7 +127,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbCosmosdbOperationType = "db.cosmosdb.operation_type";
 
     /// <summary>
@@ -181,13 +181,13 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.")]
+    [Obsolete("Removed, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.")]
     public const string AttributeDbInstanceId = "db.instance.id";
 
     /// <summary>
     /// Removed, no replacement at this time.
     /// </summary>
-    [Obsolete("Removed as not used.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbJdbcDriverClassname = "db.jdbc.driver_classname";
 
     /// <summary>
@@ -199,7 +199,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, SQL Server instance is now populated as a part of <c>db.namespace</c> attribute.
     /// </summary>
-    [Obsolete("Deprecated, no replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbMssqlInstanceName = "db.mssql.instance_name";
 
     /// <summary>
@@ -334,7 +334,7 @@ public static class DbAttributes
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
 
     /// <summary>
-    /// Deprecated, use <c>db.collection.name</c> instead, but only if not extracting the value from <c>db.query.text</c>.
+    /// Deprecated, use <c>db.collection.name</c> instead.
     /// </summary>
     [Obsolete("Replaced by <c>db.collection.name</c>, but only if not extracting the value from <c>db.query.text</c>.")]
     public const string AttributeDbSqlTable = "db.sql.table";
@@ -374,12 +374,13 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbUser = "db.user";
 
     /// <summary>
     /// Deprecated, use <c>cassandra.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
     public static class DbCassandraConsistencyLevelValues
     {
         /// <summary>
@@ -468,6 +469,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
     public static class DbClientConnectionsStateValues
     {
         /// <summary>
@@ -486,6 +488,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>azure.cosmosdb.connection.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
     public static class DbCosmosdbConnectionModeValues
     {
         /// <summary>
@@ -504,6 +507,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>cosmosdb.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
     public static class DbCosmosdbConsistencyLevelValues
     {
         /// <summary>
@@ -540,102 +544,104 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("Removed, no replacement at this time.")]
     public static class DbCosmosdbOperationTypeValues
     {
         /// <summary>
         /// batch.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Batch = "batch";
 
         /// <summary>
         /// create.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Create = "create";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// execute.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Execute = "execute";
 
         /// <summary>
         /// execute_javascript.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string ExecuteJavascript = "execute_javascript";
 
         /// <summary>
         /// invalid.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Invalid = "invalid";
 
         /// <summary>
         /// head.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Head = "head";
 
         /// <summary>
         /// head_feed.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string HeadFeed = "head_feed";
 
         /// <summary>
         /// patch.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Patch = "patch";
 
         /// <summary>
         /// query.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Query = "query";
 
         /// <summary>
         /// query_plan.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string QueryPlan = "query_plan";
 
         /// <summary>
         /// read.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Read = "read";
 
         /// <summary>
         /// read_feed.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string ReadFeed = "read_feed";
 
         /// <summary>
         /// replace.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Replace = "replace";
 
         /// <summary>
         /// upsert.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Upsert = "upsert";
     }
 
     /// <summary>
     /// Deprecated, use <c>db.system.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.system.name</c>.")]
     public static class DbSystemValues
     {
         /// <summary>

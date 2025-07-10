@@ -15,6 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DnsAttributes
 {
     /// <summary>
+    /// The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+    /// </summary>
+    public const string AttributeDnsAnswers = "dns.answers";
+
+    /// <summary>
     /// The name being queried.
     /// </summary>
     /// <remarks>

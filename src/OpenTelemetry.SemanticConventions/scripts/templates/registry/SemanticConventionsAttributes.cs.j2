@@ -37,6 +37,9 @@ public static class {{my_class_name}}
 {% set attribute_resolved_type = attribute.type | instantiated_type %}
 
     {{ attribute.brief | comment(indent=4) }}
+    {% if attribute is deprecated %}
+    [Obsolete("{{ attribute.deprecated.note | replace("\"", "") | comment(header="", footer="", prefix="", indent=0) }}")]
+    {% endif %}
     public static class {{enum_class_name}}
     {
         {% for member in attribute.type.members %}

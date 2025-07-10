@@ -54,6 +54,11 @@ public static class OtelAttributes
     public const string AttributeOtelScopeVersion = "otel.scope.version";
 
     /// <summary>
+    /// Determines whether the span has a parent span, and if so, <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">whether it is a remote parent</a>.
+    /// </summary>
+    public const string AttributeOtelSpanParentOrigin = "otel.span.parent.origin";
+
+    /// <summary>
     /// The result value of the sampler for this span.
     /// </summary>
     public const string AttributeOtelSpanSamplingResult = "otel.span.sampling_result";
@@ -109,6 +114,11 @@ public static class OtelAttributes
         public const string OtlpHttpJsonSpanExporter = "otlp_http_json_span_exporter";
 
         /// <summary>
+        /// Zipkin span exporter over HTTP.
+        /// </summary>
+        public const string ZipkinHttpSpanExporter = "zipkin_http_span_exporter";
+
+        /// <summary>
         /// OTLP log record exporter over gRPC with protobuf serialization.
         /// </summary>
         public const string OtlpGrpcLogExporter = "otlp_grpc_log_exporter";
@@ -142,6 +152,32 @@ public static class OtelAttributes
         /// OTLP metric exporter over HTTP with JSON serialization.
         /// </summary>
         public const string OtlpHttpJsonMetricExporter = "otlp_http_json_metric_exporter";
+
+        /// <summary>
+        /// Prometheus metric exporter over HTTP with the default text-based format.
+        /// </summary>
+        public const string PrometheusHttpTextMetricExporter = "prometheus_http_text_metric_exporter";
+    }
+
+    /// <summary>
+    /// Determines whether the span has a parent span, and if so, <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">whether it is a remote parent</a>.
+    /// </summary>
+    public static class OtelSpanParentOriginValues
+    {
+        /// <summary>
+        /// The span does not have a parent, it is a root span.
+        /// </summary>
+        public const string None = "none";
+
+        /// <summary>
+        /// The span has a parent and the parent's span context <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">isRemote()</a> is false.
+        /// </summary>
+        public const string Local = "local";
+
+        /// <summary>
+        /// The span has a parent and the parent's span context <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">isRemote()</a> is true.
+        /// </summary>
+        public const string Remote = "remote";
     }
 
     /// <summary>

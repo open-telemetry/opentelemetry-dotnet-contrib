@@ -12,17 +12,15 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class AzAttributes
+public static class ZosAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>azure.resource_provider.namespace</c> instead.
+    /// The System Management Facility (SMF) Identifier uniquely identified a z/OS system within a SYSPLEX or mainframe environment and is used for system and performance analysis.
     /// </summary>
-    [Obsolete("Replaced by <c>azure.resource_provider.namespace</c>.")]
-    public const string AttributeAzNamespace = "az.namespace";
+    public const string AttributeZosSmfId = "zos.smf.id";
 
     /// <summary>
-    /// Deprecated, use <c>azure.service.request.id</c> instead.
+    /// The name of the SYSPLEX to which the z/OS system belongs too.
     /// </summary>
-    [Obsolete("Replaced by <c>azure.service.request.id</c>.")]
-    public const string AttributeAzServiceRequestId = "az.service_request_id";
+    public const string AttributeZosSysplexName = "zos.sysplex.name";
 }

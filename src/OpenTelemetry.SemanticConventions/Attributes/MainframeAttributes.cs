@@ -12,17 +12,10 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class AzAttributes
+public static class MainframeAttributes
 {
     /// <summary>
-    /// Deprecated, use <c>azure.resource_provider.namespace</c> instead.
+    /// Name of the logical partition that hosts a systems with a mainframe operating system.
     /// </summary>
-    [Obsolete("Replaced by <c>azure.resource_provider.namespace</c>.")]
-    public const string AttributeAzNamespace = "az.namespace";
-
-    /// <summary>
-    /// Deprecated, use <c>azure.service.request.id</c> instead.
-    /// </summary>
-    [Obsolete("Replaced by <c>azure.service.request.id</c>.")]
-    public const string AttributeAzServiceRequestId = "az.service_request_id";
+    public const string AttributeMainframeLparName = "mainframe.lpar.name";
 }

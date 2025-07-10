@@ -41,7 +41,7 @@ public static class CloudAttributes
     public const string AttributeCloudProvider = "cloud.provider";
 
     /// <summary>
-    /// The geographical region the resource is running.
+    /// The geographical region within a cloud provider. When associated with a resource, this attribute specifies the region where the resource operates. When calling services or APIs deployed on a cloud, this attribute identifies the region where the called destination is deployed.
     /// </summary>
     /// <remarks>
     /// Refer to your provider's docs to see the available regions, for example <a href="https://www.alibabacloud.com/help/doc-detail/40654.htm">Alibaba Cloud regions</a>, <a href="https://aws.amazon.com/about-aws/global-infrastructure/regions_az/">AWS regions</a>, <a href="https://azure.microsoft.com/global-infrastructure/geographies/">Azure regions</a>, <a href="https://cloud.google.com/about/locations">Google Cloud regions</a>, or <a href="https://www.tencentcloud.com/document/product/213/6091">Tencent Cloud regions</a>.
@@ -64,7 +64,7 @@ public static class CloudAttributes
     /// with the resolved function version, as the same runtime instance may be invocable with
     /// multiple different aliases.</li>
     ///   <li><strong>GCP:</strong> The <a href="https://cloud.google.com/iam/docs/full-resource-names">URI of the resource</a></li>
-    ///   <li><strong>Azure:</strong> The <a href="https://docs.microsoft.com/rest/api/resources/resources/get-by-id">Fully Qualified Resource ID</a> of the invoked function,
+    ///   <li><strong>Azure:</strong> The <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">Fully Qualified Resource ID</a> of the invoked function,
     /// <em>not</em> the function app, having the form
     /// <c>/subscriptions/<SUBSCRIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC></c>.
     /// This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
@@ -131,37 +131,37 @@ public static class CloudAttributes
         /// <summary>
         /// Azure Virtual Machines.
         /// </summary>
-        public const string AzureVm = "azure_vm";
+        public const string AzureVm = "azure.vm";
 
         /// <summary>
         /// Azure Container Apps.
         /// </summary>
-        public const string AzureContainerApps = "azure_container_apps";
+        public const string AzureContainerApps = "azure.container_apps";
 
         /// <summary>
         /// Azure Container Instances.
         /// </summary>
-        public const string AzureContainerInstances = "azure_container_instances";
+        public const string AzureContainerInstances = "azure.container_instances";
 
         /// <summary>
         /// Azure Kubernetes Service.
         /// </summary>
-        public const string AzureAks = "azure_aks";
+        public const string AzureAks = "azure.aks";
 
         /// <summary>
         /// Azure Functions.
         /// </summary>
-        public const string AzureFunctions = "azure_functions";
+        public const string AzureFunctions = "azure.functions";
 
         /// <summary>
         /// Azure App Service.
         /// </summary>
-        public const string AzureAppService = "azure_app_service";
+        public const string AzureAppService = "azure.app_service";
 
         /// <summary>
         /// Azure Red Hat OpenShift.
         /// </summary>
-        public const string AzureOpenshift = "azure_openshift";
+        public const string AzureOpenshift = "azure.openshift";
 
         /// <summary>
         /// Google Bare Metal Solution (BMS).
