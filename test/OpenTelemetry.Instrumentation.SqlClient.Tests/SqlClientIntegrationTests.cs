@@ -77,7 +77,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var dataSource = sqlConnection.DataSource;
 
         sqlConnection.ChangeDatabase("master");
-        SqlTransaction transaction = null;
+        SqlTransaction? transaction = null;
 #pragma warning disable CA2100
         using var sqlCommand = new SqlCommand(commandText, sqlConnection)
 #pragma warning restore CA2100
