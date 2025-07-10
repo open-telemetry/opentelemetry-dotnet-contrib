@@ -10,7 +10,7 @@ on:
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana
         - OpenTelemetry.Exporter.OneCollector
-        - OpenTelemetry.Exporter.Stackdriver
+        - OpenTelemetry.Exporter.GoogleCloud
         - OpenTelemetry.Extensions
         - OpenTelemetry.Extensions.AWS
         - OpenTelemetry.Extensions.Enrichment

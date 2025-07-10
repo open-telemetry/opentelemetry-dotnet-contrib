@@ -13,7 +13,17 @@
 
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
-
+* Rename the namespaces to replace the `StackDrive` with GoogleCloud from them:
+    1. `OpenTelemetry.Exporter.Stackdriver` ->
+       `OpenTelemetry.Exporter.GoogleCloud`
+    2. `OpenTelemetry.Exporter.StackdriverImplementation` ->
+       `OpenTelemetry.Exporter.GoogleCloud.Implementation`
+    3. `OpenTelemetry.Exporter.Stackdriver.Utils` ->
+       `OpenTelemetry.Exporter.GoogleCloud.Utils`
+* Going forward the NuGet package will be
+  [`OpenTelemetry.Exporter.GoogleCloud`](https://www.nuget.org/packages/OpenTelemetry.Exporter.GoogleCloud).
+  Older versions will remain at
+  [`OpenTelemetry.Exporter.Stackdriver`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver).
 ## 1.0.0-beta.6
 
 Released 2024-Apr-22

@@ -3,7 +3,7 @@
 
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Utils;
+namespace OpenTelemetry.Exporter.GoogleCloud.Utils;
 
 /// <summary>
 /// Common Utility Methods that are not metrics/trace specific.

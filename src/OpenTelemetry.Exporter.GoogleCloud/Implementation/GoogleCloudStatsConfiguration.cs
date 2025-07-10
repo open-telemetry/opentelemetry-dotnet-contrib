@@ -4,23 +4,23 @@
 using Google.Api;
 using Google.Apis.Auth.OAuth2;
 
-namespace OpenTelemetry.Exporter.Stackdriver.Implementation;
+namespace OpenTelemetry.Exporter.GoogleCloud.Implementation;
 
 /// <summary>
-/// Configuration for exporting stats into Stackdriver.
+/// Configuration for exporting stats into GoogleCloudMonitoring .
 /// </summary>
-public class StackdriverStatsConfiguration
+public class GoogleCloudStatsConfiguration
 {
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromMinutes(1);
 
     /// <summary>
-    /// Gets default Stats Configuration for Stackdriver.
+    /// Gets default Stats Configuration for GoogleCloudMonitoring .
     /// </summary>
-    public static StackdriverStatsConfiguration Default
+    public static GoogleCloudStatsConfiguration Default
     {
         get
         {
-            var defaultConfig = new StackdriverStatsConfiguration
+            var defaultConfig = new GoogleCloudStatsConfiguration
             {
                 ExportInterval = DefaultInterval,
                 ProjectId = GoogleCloudResourceUtils.GetProjectId(),
@@ -38,7 +38,7 @@ public class StackdriverStatsConfiguration
     public TimeSpan ExportInterval { get; set; }
 
     /// <summary>
-    /// Gets or sets the prefix to append to every OpenTelemetry metric name in Stackdriver.
+    /// Gets or sets the prefix to append to every OpenTelemetry metric name in GoogleCloudMonitoring .
     /// </summary>
     public string? MetricNamePrefix { get; set; }
 
@@ -48,7 +48,7 @@ public class StackdriverStatsConfiguration
     public string? ProjectId { get; set; }
 
     /// <summary>
-    /// Gets or sets credential used to authenticate against Google Stackdriver Monitoring APIs.
+    /// Gets or sets credential used to authenticate against Google GoogleCloudMonitoring  Monitoring APIs.
     /// </summary>
     public GoogleCredential? GoogleCredential { get; set; }
 
