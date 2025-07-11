@@ -12,6 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		.markdownlint.yaml = .markdownlint.yaml
 		CODEOWNERS = CODEOWNERS
 		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		global.json = global.json
 		LICENSE.TXT = LICENSE.TXT
 		NuGet.config = NuGet.config
@@ -33,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\assign-reviewers.yml = .github\workflows\assign-reviewers.yml
 		.github\workflows\automation.yml = .github\workflows\automation.yml
 		.github\workflows\ci-Exporter.OneCollector-Integration.yml = .github\workflows\ci-Exporter.OneCollector-Integration.yml
+		.github\workflows\ci-Resources.OperatingSystem.yml = .github\workflows\ci-Resources.OperatingSystem.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
 		.github\workflows\Component.BuildTest.yml = .github\workflows\Component.BuildTest.yml
@@ -404,10 +408,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting", "src\OpenTelemetry.Instrumentation.ServiceFabricRemoting\OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj", "{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests", "test\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj", "{00C9F0B8-3D51-483C-821A-5889B38A144C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client", "src\OpenTelemetry.OpAmp.Client\OpenTelemetry.OpAmp.Client.csproj", "{B5AF4876-3970-4686-A4A9-4EA369843F1F}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client.Tests", "test\OpenTelemetry.OpAmp.Client.Tests\OpenTelemetry.OpAmp.Client.Tests.csproj", "{044B896A-FDC6-422F-B349-483BDE19F685}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -946,8 +946,8 @@ Global
 		{2A51E621-BCFA-4D52-96D0-E16AFF48CBE5} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{A5FCDD8F-20FF-4657-804E-707EAD4FE31D} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{A5EF701C-439E-407F-8BB4-394166000C6D} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{62B7060A-C35B-4D49-A0C2-3BF02880A200} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{F8E9EC7E-85A1-4C97-9C05-7EA82C1513A1} = {C97DAA02-5AEA-4EAA-B1A0-43634F176626}
+		{62B7060A-C35B-4D49-A0C2-3BF02880A200} = {1B1D4652-7DEA-41B5-8B0C-6F666B3303C9}
 		{033CA8D4-1529-413A-B244-07958D5F9A48} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{36271347-2055-438E-9659-B71542A17A73} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{7AD707F9-DC6D-430A-8834-D5DCD517BF6E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
@@ -975,8 +975,6 @@ Global
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
 		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{00C9F0B8-3D51-483C-821A-5889B38A144C} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
-		{B5AF4876-3970-4686-A4A9-4EA369843F1F} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{044B896A-FDC6-422F-B349-483BDE19F685} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
