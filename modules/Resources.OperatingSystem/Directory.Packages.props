@@ -1,0 +1,7 @@
+<Project>
+  <Import Project="..\..\Directory.Packages.props" Condition="Exists('..\..\Directory.Packages.props')" />
+  <ItemGroup>
+    <PackageVersion Include="OpenTelemetry" Version="1.12.0" />
+    <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
+  </ItemGroup>
+</Project>
