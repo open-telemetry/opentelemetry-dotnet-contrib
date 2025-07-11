@@ -25,11 +25,24 @@ public static class ProcessResourceBuilderExtensions
     /// Enables process resource detector.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
-    /// <param name="options">The <see cref="ProcessDetectorOptions"/> used to control the behaviour configured.</param>
+    /// <param name="options">The <see cref="ProcessDetectorOptions"/> which control's the behaviour of the resource detector.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder, ProcessDetectorOptions options)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new ProcessDetector(options));
+    }
+
+    /// <summary>
+    /// Enables process resource detector.
+    /// </summary>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="ProcessDetectorOptions"/> which control's the behaviour of the resource detector.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
+    public static ResourceBuilder AddProcessDetector(this ResourceBuilder builder, Action<ProcessDetectorOptions> configure)
+    {
+        var options = new ProcessDetectorOptions();
+        configure?.Invoke(options);
+        return builder.AddProcessDetector(options);
     }
 }

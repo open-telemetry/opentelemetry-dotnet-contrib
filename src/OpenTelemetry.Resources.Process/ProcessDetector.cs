@@ -10,9 +10,9 @@ internal sealed class ProcessDetector : IResourceDetector
 {
     private readonly ProcessDetectorOptions options;
 
-    internal ProcessDetector(ProcessDetectorOptions? options)
+    internal ProcessDetector(ProcessDetectorOptions options)
     {
-        this.options = options ?? new ProcessDetectorOptions();
+        this.options = options;
     }
 
     /// <summary>
