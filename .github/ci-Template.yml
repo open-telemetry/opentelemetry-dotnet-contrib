@@ -1,25 +1,21 @@
 name: build-test
 
 on:
-  push:
-    branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
-    paths:
-      - 'modules/Resources.OperatingSystem/**'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
-      - 'modules/Resources.OperatingSystem/**'
+      - 'modules/{{moduleName}}/**'
 
 jobs:
-  resources-operatingsystem:
+  {{moduleName}}:
     uses: ./.github/workflows/build-module.yml
     with:
-      module-name: Resources.OperatingSystem
-      module-directory: './modules/Resources.OperatingSystem'
+      module-name: {{moduleName}}
+      module-directory: './modules/{{moduleName}}'
 
   build-test:
     needs: [
-      resources-operatingsystem
+      {{moduleName}}
     ]
     if: always() && !cancelled()
     runs-on: ubuntu-22.04

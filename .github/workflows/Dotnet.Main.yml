@@ -113,8 +113,8 @@ jobs:
       with:
         files: '**/TestResults/**/*Cobertura.xml'
         env_vars: OS,TFM,FILTER
-        flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-        name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
+        flags: ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
+        name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
@@ -123,6 +123,6 @@ jobs:
       with:
         files: '**/TestResults/junit.xml'
         env_vars: OS,TFM,FILTER
-        flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
-        name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
+        flags: ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
+        name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         token: ${{ secrets.CODECOV_TOKEN }}

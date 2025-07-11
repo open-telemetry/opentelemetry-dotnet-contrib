@@ -210,16 +210,42 @@ file for the new project. The component owner(s) are expected to respond to
 issues and review PRs affecting their component.
 
 Although the projects within this repo share some properties and configurations,
-they are built and released independently. So if you are creating a new project
-within `/src` and corresponding test project within `/test`, here are a few
-things you should do to ensure that your project is automatically built and
-shipped through CI.
+they are built and released independently. This independence is controlled via modules.
+If you are creating a new module the first step is to create a folder
+within the `/modules` folder for your module. This folder will contain the following:
+
+* `/src` folder for the source code
+* `/test` folder for the tests
+* `OpenTelemetry.{moduleName}.slnf` which is a solution filter for your project
+* `Directory.packages.props` a listing of all packages used and enables CPM.
+This is to import from the root file.
+* `Directory.build.props` a convient location to define
+shared properties for your module.
+This is to import from the root file.
+
+To facilitate CI/CD, a workflow needs to be added in the `.github\workflows` folder.
+This file should be based on `ci-Template.yml` with
+`{{moduleName}}` replaced with your module name.
+
+To facilitate code coverage analysis, a block based on the below
+
+```code
+  unittests-{{moduleName}}:
+    carryforward: true
+    paths:
+      - modules/{{moduleName}}/src/OpenTelemetry.{{moduleName}}
+```
+
+with
+`{{moduleName}}` replaced with your module name.
 
 > [!NOTE]
 > It is generally helpful to reference a previous pull request when adding a new
   project to the repository. A good example to follow is the pull request which
   added the `OpenTelemetry.OpAmp.Client` project:
   [#2917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2917).
+
+### Additional Information for new projects
 
 * Based on what your project is, you may need to depend on the [OpenTelemetry
   SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry

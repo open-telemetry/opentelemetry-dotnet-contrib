@@ -38,7 +38,7 @@
     <WiremockNetPkgVer>[1.7.0,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' and '$(IsCPM)' != 'true'">
     <PackageReference Include="GitHubActionsTestLogger" Version="$(GitHubActionsTestLoggerPkgVer)" />
     <PackageReference Include="JunitXml.TestLogger" Version="$(JunitXmlTestLoggerPkgVer)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
