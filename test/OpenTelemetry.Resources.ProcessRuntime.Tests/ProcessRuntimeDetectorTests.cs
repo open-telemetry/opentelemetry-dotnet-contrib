@@ -12,18 +12,18 @@ public class ProcessRuntimeDetectorTests
     {
         var resource = ResourceBuilder.CreateEmpty().AddProcessRuntimeDetector().Build();
 
-        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
         Assert.Equal(3, resourceAttributes.Count);
 
 #if NETFRAMEWORK
-        Assert.Matches(@"^\.NET Framework \d+\.\d+\.\d+\.\d+$", (string)resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
+        Assert.Matches(@"^\.NET Framework \d+\.\d+\.\d+\.\d+$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
         Assert.Equal(".NET Framework", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName]);
-        Assert.Matches(@"^4.[1-9](.[1-2])?$", (string)resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
+        Assert.Matches(@"^4.[1-9](.[1-2])?$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
 #else
-        Assert.Matches(@"^\.NET \d+\.\d+\.\d+(\-(preview|rc)\.\d+\.\d+\.\d+)?$", (string)resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
+        Assert.Matches(@"^\.NET \d+\.\d+\.\d+(\-(preview|rc)\.\d+\.\d+\.\d+)?$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription]);
         Assert.Equal(".NET", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName]);
-        Assert.Matches(@"^\d+\.\d+\.\d+$", (string)resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
+        Assert.Matches(@"^\d+\.\d+\.\d+$", resourceAttributes[ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion]);
 #endif
     }
 }

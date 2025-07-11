@@ -20,26 +20,38 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
     public Resource Detect()
     {
         var frameworkDescription = RuntimeInformation.FrameworkDescription;
-        string netRuntimeVersion = Environment.Version.ToString();
+        string netRuntimeName;
 #if NETFRAMEWORK
         var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
-        string netRuntimeName = ".NET Framework";
-        if (!string.IsNullOrEmpty(netFrameworkVersion))
-        {
-            var lastSpace = netFrameworkVersion!.LastIndexOf(' ');
-            netRuntimeVersion = netFrameworkVersion.Substring(lastSpace + 1);
-        }
-#elif NETSTANDARD
-        string netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, string.Empty).Split('|')[0].Trim();
-#else
-        string netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, "|", StringComparison.InvariantCultureIgnoreCase).Split('|')[0].Trim();
 #endif
+
+        var lastSpace = frameworkDescription.LastIndexOf(' ');
+        if (lastSpace != -1)
+        {
+            // sample result '.NET Framework 4.8.9195.0'
+            netRuntimeName = frameworkDescription.Substring(0, lastSpace);
+#if NETFRAMEWORK
+            netFrameworkVersion ??= frameworkDescription.Substring(lastSpace + 1);
+#endif
+        }
+        else
+        {
+            // do not expect to be here, all checked implementation has common FrameworkDescription format - '{Name With Optional Spaces} {Version}'
+            netRuntimeName = "unknown";
+#if NETFRAMEWORK
+            netFrameworkVersion ??= "unknown";
+#endif
+        }
 
         return new Resource(
         [
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion),
+#if NETFRAMEWORK
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netFrameworkVersion),
+#else
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
+#endif
         ]);
     }
 
