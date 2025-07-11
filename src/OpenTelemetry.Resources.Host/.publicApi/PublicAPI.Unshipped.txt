@@ -4,6 +4,9 @@ OpenTelemetry.Resources.Host.HostDetectorOptions.IncludeIP.get -> bool
 OpenTelemetry.Resources.Host.HostDetectorOptions.IncludeIP.set -> void
 OpenTelemetry.Resources.Host.HostDetectorOptions.IncludeMac.get -> bool
 OpenTelemetry.Resources.Host.HostDetectorOptions.IncludeMac.set -> void
+OpenTelemetry.Resources.Host.HostDetectorOptions.Name.get -> string?
+OpenTelemetry.Resources.Host.HostDetectorOptions.Name.set -> void
 OpenTelemetry.Resources.HostResourceBuilderExtensions
 static OpenTelemetry.Resources.HostResourceBuilderExtensions.AddHostDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
 static OpenTelemetry.Resources.HostResourceBuilderExtensions.AddHostDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, OpenTelemetry.Resources.Host.HostDetectorOptions! options) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.HostResourceBuilderExtensions.AddHostDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Resources.Host.HostDetectorOptions!>? configure) -> OpenTelemetry.Resources.ResourceBuilder!

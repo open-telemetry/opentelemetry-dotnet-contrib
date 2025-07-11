@@ -257,6 +257,11 @@ internal sealed class HostDetector : IResourceDetector
 
     private string? GetMachineName()
     {
+        if (!string.IsNullOrEmpty(this.options.Name))
+        {
+            return this.options.Name;
+        }
+
         try
         {
             return Environment.MachineName;

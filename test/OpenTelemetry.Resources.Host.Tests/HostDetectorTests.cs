@@ -103,6 +103,48 @@ public class HostDetectorTests
         }
     }
 
+    [Theory]
+    [InlineData(false, false, 2)]
+    [InlineData(false, true, 3)]
+    [InlineData(true, false, 3)]
+    [InlineData(true, true, 4)]
+    public void TestHostAttributesAction(bool ip, bool mac, int attributes)
+    {
+        var resource = ResourceBuilder.CreateEmpty().AddHostDetector(x =>
+        {
+            x.IncludeIP = ip;
+            x.IncludeMac = mac;
+        }).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(attributes, resourceAttributes.Count);
+
+        Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+        Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostId]);
+        if (mac)
+        {
+            Assert.IsType<string[]>(resourceAttributes[HostSemanticConventions.AttributeHostMac]);
+            Assert.NotEmpty((string[])resourceAttributes[HostSemanticConventions.AttributeHostMac]);
+        }
+        else
+        {
+            Assert.Throws<KeyNotFoundException>(() => resourceAttributes[HostSemanticConventions.AttributeHostMac]);
+        }
+
+        if (ip)
+        {
+            Assert.IsType<string[]>(resourceAttributes[HostSemanticConventions.AttributeHostIp]);
+            Assert.NotEmpty((string[])resourceAttributes[HostSemanticConventions.AttributeHostIp]);
+        }
+        else
+        {
+            Assert.Throws<KeyNotFoundException>(() => resourceAttributes[HostSemanticConventions.AttributeHostIp]);
+        }
+    }
+
 #if NET
     [Theory]
     [InlineData(new string[] { }, null)]
@@ -151,12 +193,13 @@ public class HostDetectorTests
             {
                 IncludeIP = ip,
                 IncludeMac = mac,
+                Name = "LinuxHost",
             });
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
 
         Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostName]);
-        Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.Equal("LinuxHost", resourceAttributes[HostSemanticConventions.AttributeHostName]);
         if (mac)
         {
             Assert.IsType<string[]>(resourceAttributes[HostSemanticConventions.AttributeHostMac]);
@@ -217,11 +260,12 @@ public class HostDetectorTests
             {
                 IncludeIP = ip,
                 IncludeMac = mac,
+                Name = "MacHost",
             });
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostName]);
-        Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.Equal("MacHost", resourceAttributes[HostSemanticConventions.AttributeHostName]);
         Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostId]);
 
@@ -297,19 +341,21 @@ public class HostDetectorTests
         {
             IncludeIP = ip,
             IncludeMac = mac,
+            Name = "WindowsHost",
         });
 #else
         var detector = new HostDetector(() => [], () => throw new Exception("should not be called"), () => "windows-machine-id", new HostDetectorOptions()
         {
             IncludeIP = ip,
             IncludeMac = mac,
+            Name = "WindowsHost",
         });
 #endif
 
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostName]);
-        Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostName]);
+        Assert.Equal("WindowsHost", resourceAttributes[HostSemanticConventions.AttributeHostName]);
         Assert.IsType<string>(resourceAttributes[HostSemanticConventions.AttributeHostId]);
         Assert.NotEmpty((string)resourceAttributes[HostSemanticConventions.AttributeHostId]);
 

@@ -17,4 +17,9 @@ public class HostDetectorOptions
     /// Gets or sets a value indicating whether the IP addresses of the host are to be included as a resource attributes.
     /// </summary>
     public bool IncludeIP { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the host resource.
+    /// </summary>
+    public string? Name { get; set; }
 }
