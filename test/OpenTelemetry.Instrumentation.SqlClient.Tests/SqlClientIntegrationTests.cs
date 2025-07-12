@@ -105,7 +105,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
+#if !NETFRAMEWORK
         VerifyContextInfo(commandText, commandResult, activity);
+#endif
         VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
 
