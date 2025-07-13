@@ -34,7 +34,7 @@ internal class TracingErrorHandler : IErrorHandler
 
         // OperationContext.Current *should* be reliable even in async calls at .NET 4.6.2+.
         // In older versions it may not be.
-        var context = OperationContext.Current?.Extensions.FirstOrDefault(item => item is WcfOperationContext) as WcfOperationContext;
+        var context = OperationContext.Current?.Extensions.Find<WcfOperationContext>();
         var activity = context?.Activity ?? WcfInstrumentationActivitySource.ActivitySource.StartActivity(WcfInstrumentationActivitySource.UnassociatedExceptionActivityName, ActivityKind.Internal);
 
         activity?.AddException(error);
