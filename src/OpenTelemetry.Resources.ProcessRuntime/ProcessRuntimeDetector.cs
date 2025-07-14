@@ -20,19 +20,19 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
     public Resource Detect()
     {
         var frameworkDescription = RuntimeInformation.FrameworkDescription;
-        string netRuntimeVersion = Environment.Version.ToString();
+        var netRuntimeVersion = Environment.Version.ToString();
 #if NETFRAMEWORK
         var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
-        string netRuntimeName = ".NET Framework";
+        var netRuntimeName = ".NET Framework";
         if (!string.IsNullOrEmpty(netFrameworkVersion))
         {
             var lastSpace = netFrameworkVersion!.LastIndexOf(' ');
             netRuntimeVersion = netFrameworkVersion.Substring(lastSpace + 1);
         }
 #elif NETSTANDARD
-        string netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, string.Empty).Split('|')[0].Trim();
+        var netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, string.Empty).Split('|')[0].Trim();
 #else
-        string netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, "|", StringComparison.InvariantCultureIgnoreCase).Split('|')[0].Trim();
+        var netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, "|", StringComparison.InvariantCultureIgnoreCase).Split('|')[0].Trim();
 #endif
 
         return new Resource(
