@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
 using System.Diagnostics;
 using System.ServiceModel;
 
@@ -23,3 +24,4 @@ internal class WcfOperationContext : IExtension<OperationContext>
     {
     }
 }
+#endif
