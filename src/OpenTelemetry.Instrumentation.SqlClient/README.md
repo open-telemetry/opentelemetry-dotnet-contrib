@@ -285,6 +285,7 @@ using var traceProvider = Sdk.CreateTracerProviderBuilder()
 
 > [!NOTE]
 > Only `CommandType.Text` commands are supported for trace context propagation.
+> Only .NET and .NET Core runtimes are supported.
 
 Database trace context propagation can be enabled by setting
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
