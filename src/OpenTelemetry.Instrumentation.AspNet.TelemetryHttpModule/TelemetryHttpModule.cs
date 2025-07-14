@@ -29,7 +29,7 @@ public class TelemetryHttpModule : IHttpModule
     // ServerVariable set on every request if URL module is registered in HttpModule pipeline.
     private const string UrlRewriteModuleVersion = "IIS_UrlRewriteModule";
 
-    private static readonly MethodInfo OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
+    private static readonly MethodInfo? OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
 
     /// <summary>
     /// Gets the <see cref="TelemetryHttpModuleOptions"/> applied to requests processed by the handler.
