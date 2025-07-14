@@ -4,7 +4,9 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+#if NET
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+#endif
 using OpenTelemetry.Trace;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
@@ -34,6 +36,7 @@ public class SqlClientTraceInstrumentationOptions
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
 
+#if NET
         Debug.Assert(configuration != null, "configuration was null");
 
         if (configuration!.TryGetBoolValue(
@@ -43,6 +46,7 @@ public class SqlClientTraceInstrumentationOptions
         {
             this.EnableTraceContextPropagation = enableTraceContextPropagation;
         }
+#endif
     }
 
     /// <summary>
@@ -140,6 +144,7 @@ public class SqlClientTraceInstrumentationOptions
     /// </summary>
     internal bool EmitNewAttributes { get; set; }
 
+#if NET
     /// <summary>
     /// Gets or sets a value indicating whether to send traceparent information to SQL Server database.
     /// </summary>
@@ -151,4 +156,5 @@ public class SqlClientTraceInstrumentationOptions
     /// </para>
     /// </remarks>
     internal bool EnableTraceContextPropagation { get; set; }
+#endif
 }

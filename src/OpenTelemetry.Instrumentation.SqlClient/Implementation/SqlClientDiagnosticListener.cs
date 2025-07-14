@@ -8,7 +8,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
+#if NET
 using System.Text;
+#endif
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -27,8 +29,10 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
 
+#if NET
     private const string ContextInfoParameterName = "@opentelemetry_traceparent";
     private const string SetContextSql = $"set context_info {ContextInfoParameterName}";
+#endif
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -68,12 +72,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+#if NET
                     // skip if this is an injected query
                     if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;
                     }
+#endif
 
                     _ = this.connectionFetcher.TryFetch(command, out var connection);
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
@@ -93,6 +99,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+#if NET
                     if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
                     {
@@ -112,6 +119,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                         setContextCommand.ExecuteNonQuery();
                     }
+#endif
 
                     if (activity.IsAllDataRequested)
                     {
@@ -201,12 +209,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 {
                     _ = this.commandFetcher.TryFetch(payload, out var command);
 
+#if NET
                     // skip if this is an injected query
                     if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;
                     }
+#endif
 
                     if (activity == null)
                     {
@@ -231,12 +241,14 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 {
                     _ = this.commandFetcher.TryFetch(payload, out var command);
 
+#if NET
                     // skip if this is an injected query
                     if (options.EnableTraceContextPropagation &&
                         command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
                     {
                         return;
                     }
+#endif
 
                     if (activity == null)
                     {

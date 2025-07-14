@@ -12,7 +12,7 @@
 
 * Added `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
   environment variable to propagate trace context to SQL Server databases.
-  It is now only available on .NET Core.
+  It is now only available on .NET 8 and newer.
   ([#2709](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2709))
 
   > Propagate `traceparent` information to SQL Server databases
