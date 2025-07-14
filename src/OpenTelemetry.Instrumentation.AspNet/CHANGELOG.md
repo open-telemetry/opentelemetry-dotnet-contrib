@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Renamed `MeterProviderBuilderExtensions` and
+  `TracerProviderBuilderExtensions` to
+  `AspNetInstrumentationMeterProviderBuilderExtensions`
+  and `AspNetInstrumentationTracerProviderBuilderExtensions` respectively.
+  ([#2910](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2910))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05
