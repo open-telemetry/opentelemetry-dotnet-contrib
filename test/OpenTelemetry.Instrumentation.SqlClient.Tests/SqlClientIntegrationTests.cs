@@ -31,8 +31,10 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
     [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
+#if NET
     [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, false)]
     [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, true)]
+#endif
 #if NETFRAMEWORK
     [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
 #else
@@ -105,9 +107,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         Assert.Single(activities);
         var activity = activities[0];
 
-#if !NETFRAMEWORK
         VerifyContextInfo(commandText, commandResult, activity);
-#endif
         VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
 
