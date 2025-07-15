@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.2
+
+Released 2025-Jul-15
+
 * Add the `db.operation.name` attribute when `CommandType` is
   `StoredProcedure` to conform to the new semantic conventions.
   This affects you if you have opted into the new conventions.
