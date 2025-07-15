@@ -15,7 +15,7 @@ public class WebConfigTransformTest
     [Fact]
     public void VerifyInstallationToBasicWebConfig()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules />
@@ -25,7 +25,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -41,14 +41,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUpdateWithTypeRenamingWebConfig()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -62,7 +62,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -78,14 +78,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUpdateNewerVersionWebConfig()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -99,7 +99,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -116,14 +116,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUpdateWithIntegratedModeWebConfig()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -138,7 +138,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -154,14 +154,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUninstallationWithBasicWebConfig()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -176,7 +176,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules></httpModules>
@@ -186,14 +186,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyUninstallTransformation(OriginalWebConfigContent, UninstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyUninstallTransformation(originalWebConfigContent, UninstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUninstallWithIntegratedPrecondition()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -208,7 +208,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules></httpModules>
@@ -218,14 +218,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyUninstallTransformation(OriginalWebConfigContent, UninstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyUninstallTransformation(originalWebConfigContent, UninstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyUninstallationWithUserModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -242,7 +242,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -256,14 +256,14 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyUninstallTransformation(OriginalWebConfigContent, UninstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyUninstallTransformation(originalWebConfigContent, UninstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToWebConfigWithUserModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -277,7 +277,7 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -295,16 +295,16 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToEmptyWebConfig()
     {
-        const string OriginalWebConfigContent = @"<configuration/>";
+        const string originalWebConfigContent = @"<configuration/>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.web>
                         <httpModules>
@@ -320,16 +320,16 @@ public class WebConfigTransformTest
                     </system.webServer>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToWebConfigWithoutModules()
     {
-        const string OriginalWebConfigContent = @"<configuration><system.webServer/></configuration>";
+        const string originalWebConfigContent = @"<configuration><system.webServer/></configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                 <configuration>
                     <system.webServer>
                         <validation validateIntegratedModeConfiguration=""false"" />
@@ -345,8 +345,8 @@ public class WebConfigTransformTest
                     </system.web>
                 </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     private XDocument ApplyInstallTransformation(string originalConfiguration, string resourceName)
