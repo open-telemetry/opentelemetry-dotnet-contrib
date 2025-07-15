@@ -37,8 +37,8 @@ public class AspNetTraceInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets a filter callback function that determines on a per
-    /// request basis whether or not to collect telemetry.
+    /// Gets or sets a filter callback function that determines on a per-request
+    /// basis whether to collect telemetry.
     /// </summary>
     /// <remarks>
     /// The filter callback receives the <see cref="HttpContext"/> for the
