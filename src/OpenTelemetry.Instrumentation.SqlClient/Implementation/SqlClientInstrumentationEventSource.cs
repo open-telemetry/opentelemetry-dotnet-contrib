@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Tracing;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -10,7 +11,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 /// EventSource events emitted from the project.
 /// </summary>
 [EventSource(Name = "OpenTelemetry-Instrumentation-SqlClient")]
-internal sealed class SqlClientInstrumentationEventSource : EventSource
+internal sealed class SqlClientInstrumentationEventSource : EventSource, IConfigurationExtensionsLogger
 {
     public static SqlClientInstrumentationEventSource Log = new();
 
@@ -81,5 +82,16 @@ internal sealed class SqlClientInstrumentationEventSource : EventSource
     public void CommandFilterException(string exception)
     {
         this.WriteEvent(7, exception);
+    }
+
+    [Event(8, Message = "Configuration key '{0}' has an invalid value: '{1}'", Level = EventLevel.Warning)]
+    public void InvalidConfigurationValue(string key, string value)
+    {
+        this.WriteEvent(8, key, value);
+    }
+
+    void IConfigurationExtensionsLogger.LogInvalidConfigurationValue(string key, string value)
+    {
+        this.InvalidConfigurationValue(key, value);
     }
 }
