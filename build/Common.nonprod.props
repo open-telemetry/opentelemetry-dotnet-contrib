@@ -46,7 +46,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+  <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(SkipStrongNameValidation)' != 'true'">
     <Compile Include="$(RepoRoot)\test\Shared\StrongNameTests.cs" Link="StrongNameTests.cs" />
   </ItemGroup>
 

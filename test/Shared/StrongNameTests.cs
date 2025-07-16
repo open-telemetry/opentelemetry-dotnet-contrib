@@ -19,12 +19,6 @@ public static class StrongNameTests
         var assembly = typeof(StrongNameTests).Assembly;
         var name = assembly.GetName();
 
-        if (name.Name == "OpenTelemetry.Instrumentation.Hangfire.Tests")
-        {
-            // Hangfire tests are not strong named (SignAssembly=false), so skip
-            return;
-        }
-
         // Act
         var actual = name.GetPublicKey();
 
