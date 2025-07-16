@@ -12,6 +12,9 @@ namespace OpenTelemetry.Tests;
 
 public static class StrongNameTests
 {
+    // If this test fails and the test project needs to opt-out of strong naming, then add a
+    // <SkipStrongNameValidation>true</SkipStrongNameValidation> property to the tests' project file.
+
     [Fact]
     public static void Tests_Are_Strong_Named()
     {
