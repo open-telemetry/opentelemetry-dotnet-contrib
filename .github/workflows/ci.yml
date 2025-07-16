@@ -57,6 +57,7 @@ jobs:
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
+          opamp-client: ['*/OpenTelemetry.OpAmp.Client/**', '*/OpenTelemetry.OpAmp.Client.Tests/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
@@ -432,6 +433,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
+
+  build-test-opamp-client:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'opamp-client')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.OpAmp.Client]
+      code-cov-name: OpAmp.Client
 
   build-test-persistentstorage:
     needs: detect-changes

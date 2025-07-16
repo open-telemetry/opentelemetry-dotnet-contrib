@@ -170,6 +170,11 @@ flags:
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
 
+  unittests-OpAmp.Client:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.OpAmp.Client
+
   unittests-PersistentStorage:
     carryforward: true
     paths:
