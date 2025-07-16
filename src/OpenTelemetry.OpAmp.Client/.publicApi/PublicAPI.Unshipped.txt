@@ -1,0 +1,75 @@
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.AnyValueUnion() -> void
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.BoolValue.get -> bool?
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.DoubleValue.get -> double?
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.Equals(OpenTelemetry.OpAmp.Client.Data.AnyValueUnion other) -> bool
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.IntValue.get -> int?
+OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.StringValue.get -> string?
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.ComponentHealthStatus() -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.ComponentName.get -> string!
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.ComponentName.set -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.IsHealthy.get -> bool
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.IsHealthy.set -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.LastError.get -> string?
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.LastError.set -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.StartTime.get -> System.DateTimeOffset
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.StartTime.set -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.Status.get -> string?
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.Status.set -> void
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.StatusTime.get -> System.DateTimeOffset
+OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus.StatusTime.set -> void
+OpenTelemetry.OpAmp.Client.Data.HealthStatus
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.Components.get -> System.Collections.Generic.IList<OpenTelemetry.OpAmp.Client.Data.ComponentHealthStatus!>!
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.HealthStatus() -> void
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.IsHealthy.get -> bool
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.IsHealthy.set -> void
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.LastError.get -> string?
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.LastError.set -> void
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.Status.get -> string?
+OpenTelemetry.OpAmp.Client.Data.HealthStatus.Status.set -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddIdentifyingAttribute(string! key, bool value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddIdentifyingAttribute(string! key, double value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddIdentifyingAttribute(string! key, int value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddIdentifyingAttribute(string! key, string! value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddNonIdentifyingAttribute(string! key, bool value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddNonIdentifyingAttribute(string! key, double value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddNonIdentifyingAttribute(string! key, int value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.AddNonIdentifyingAttribute(string! key, string! value) -> void
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.IdentifingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Data.AnyValueUnion>!
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.NonIdentifingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Data.AnyValueUnion>!
+OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources.OpAmpClientResources() -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient
+OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings!>? configure = null) -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.UpdateHealth(OpenTelemetry.OpAmp.Client.Data.HealthStatus! status) -> void
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType.Http = 1 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType.WebSocket = 0 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.HeartbeatSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.InitialStatus.get -> string!
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.InitialStatus.set -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.get -> System.TimeSpan
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.set -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.set -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.ShouldWaitForFirstStatus.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.ShouldWaitForFirstStatus.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.ConnectionType.get -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.ConnectionType.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.HeartbeatSettings.get -> OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.HeartbeatSettings.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.InstanceUid.get -> System.Guid
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.InstanceUid.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.OpAmpSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.Resources.get -> OpenTelemetry.OpAmp.Client.Data.OpAmpClientResources!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpSettings.Resources.set -> void
+override OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.Equals(object? obj) -> bool
+override OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.GetHashCode() -> int
+static OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.operator !=(OpenTelemetry.OpAmp.Client.Data.AnyValueUnion left, OpenTelemetry.OpAmp.Client.Data.AnyValueUnion right) -> bool
+static OpenTelemetry.OpAmp.Client.Data.AnyValueUnion.operator ==(OpenTelemetry.OpAmp.Client.Data.AnyValueUnion left, OpenTelemetry.OpAmp.Client.Data.AnyValueUnion right) -> bool
+virtual OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose(bool disposing) -> void
