@@ -1,0 +1,5 @@
+OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute
+OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute.Namespace.get -> string!
+OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute.Namespace.set -> void
+OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute.OtelAttributeNamespaceAttribute() -> void
+OpenTelemetry.SemanticConventions.OtelAttributeNamespaceAttribute.OtelAttributeNamespaceAttribute(string! otelNamespace) -> void
