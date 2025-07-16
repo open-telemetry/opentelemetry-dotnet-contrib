@@ -19,7 +19,7 @@
                       Version="$(SystemNetHttp)"
                       IncludeAssets="none"
                       GeneratePathProperty="true"
-                      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))" />
+                      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
