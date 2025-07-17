@@ -57,6 +57,7 @@ jobs:
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
+          opamp-client: ['*/OpenTelemetry.OpAmp.Client*/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
@@ -433,6 +434,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
 
+  build-test-opamp-client:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'opamp-client')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.OpAmp.Client]
+      code-cov-name: OpAmp.Client
+
   build-test-persistentstorage:
     needs: detect-changes
     if: |
@@ -586,6 +598,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
@@ -636,6 +649,7 @@ jobs:
       build-test-instrumentation-stackexchangeredis,
       build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
+      build-test-opamp-client,
       build-test-persistentstorage,
       build-test-resources-aws,
       build-test-resources-azure,

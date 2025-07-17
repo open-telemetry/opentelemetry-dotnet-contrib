@@ -57,6 +57,8 @@ components:
     - xiang17
   src/OpenTelemetry.Instrumentation.ServiceFabricRemoting/:
     - sablancoleis
+  src/OpenTelemetry.OpAmp.Client/:
+    - RassK
   src/OpenTelemetry.PersistentStorage.Abstractions/:
     - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
@@ -145,6 +147,8 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
+  test/OpenTelemetry.OpAmp.Client.Tests/:
+    - RassK
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
