@@ -147,7 +147,7 @@ components:
     - xiang17
   test/OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests/:
     - sablancoleis
-  test/OpenTelemetry.OpAmp.Client/:
+  test/OpenTelemetry.OpAmp.Client.Tests/:
     - RassK
   test/OpenTelemetry.PersistentStorage.FileSystem.Tests/:
     - rajkumar-rangaraj
