@@ -17,12 +17,18 @@
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">false</EnablePackageValidation>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageChangelogFile>CHANGELOG.md</PackageChangelogFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" PublicKey="$(StrongNamePublicKey)" />
   </ItemGroup>
 
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
@@ -81,6 +87,62 @@
       <!-- Note: This resolves all the PublicApiAnalyzers files which are actually used by the analyzer -->
       <AdditionalFiles Include=".publicApi\PublicAPI.*.txt" />
       <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.*.txt" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Note: This target runs during pack to convert relative links in
+    markdown files into GitHub permalinks which will work when rendered in NuGet.
+  -->
+  <Target Name="IncludeReadmeAndReleaseNotesInPackages" BeforeTargets="_GetTargetFrameworksOutput">
+    <Exec
+      Command="git rev-parse HEAD"
+      ConsoleToMsBuild="True"
+      IgnoreExitCode="True"
+      StandardOutputImportance="low">
+      <Output PropertyName="GitCommitConsoleOutput" TaskParameter="ConsoleOutput"/>
+      <Output PropertyName="GitCommitExitCode" TaskParameter="ExitCode"/>
+    </Exec>
+
+    <Exec
+      Command="git remote get-url origin"
+      ConsoleToMsBuild="True"
+      IgnoreExitCode="True"
+      StandardOutputImportance="low">
+      <Output PropertyName="GitOriginConsoleOutput" TaskParameter="ConsoleOutput"/>
+      <Output PropertyName="GitOriginExitCode" TaskParameter="ExitCode"/>
+    </Exec>
+
+    <PropertyGroup>
+      <MarkdownCommentRegex>\[([^]]+?)\]\(\.(.+?)\)</MarkdownCommentRegex>
+      <GitHubRepoUrl>$(GitOriginConsoleOutput.Replace('.git',''))</GitHubRepoUrl>
+      <GitHubPermalinkUrl Condition="'$(PackTag)' != ''">$(GitHubRepoUrl)/blob/$(PackTag)</GitHubPermalinkUrl>
+      <GitHubPermalinkUrl Condition="'$(PackTag)' == ''">$(GitHubRepoUrl)/blob/$(GitCommitConsoleOutput)</GitHubPermalinkUrl>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="**GitInformationDebug** GitCommitConsoleOutput: $(GitCommitConsoleOutput), GitCommitExitCode: $(GitCommitExitCode), GitOriginConsoleOutput: $(GitOriginConsoleOutput), GitOriginExitCode: $(GitOriginExitCode), GitHubPermalinkUrl: $(GitHubPermalinkUrl)" />
+
+    <ItemGroup>
+      <PackageMarkdownFiles Include="README.md" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageMarkdownFiles Update="@(PackageMarkdownFiles)" Path="$([MSBuild]::ValueOrDefault('%(FullPath)','').Replace('$(RepoRoot)', '').Replace('%(FileName)%(Extension)', ''))" />
+    </ItemGroup>
+
+    <WriteLinesToFile
+        File="$(IntermediateOutputPath)%(PackageMarkdownFiles.Filename)%(PackageMarkdownFiles.Extension)"
+        Lines="$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText(%(PackageMarkdownFiles.FullPath))), '$(MarkdownCommentRegex)', '[$1]($(GitHubPermalinkUrl)%(PackageMarkdownFiles.Path).$2)').Replace('\', '/'))"
+        Overwrite="true"
+        Encoding="UTF-8"/>
+
+    <PropertyGroup>
+      <_PackageChangelogFilePath>$([System.IO.Path]::GetFullPath('$(PackageChangelogFile)').Replace('$(RepoRoot)', '').Replace('\', '/'))</_PackageChangelogFilePath>
+      <PackageReleaseNotes>For detailed changes see: $(GitHubPermalinkUrl)$(_PackageChangelogFilePath).</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="$(IntermediateOutputPath)*.md" PackagePath="/" />
     </ItemGroup>
   </Target>
 
