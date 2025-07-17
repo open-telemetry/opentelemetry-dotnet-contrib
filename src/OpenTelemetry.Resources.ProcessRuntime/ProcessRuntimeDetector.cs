@@ -24,15 +24,20 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
 #if NETFRAMEWORK
         var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
         var netRuntimeName = ".NET Framework";
-        if (!string.IsNullOrEmpty(netFrameworkVersion))
+        if (netFrameworkVersion == null)
         {
-            var lastSpace = netFrameworkVersion!.LastIndexOf(' ');
-            netRuntimeVersion = netFrameworkVersion.Substring(lastSpace + 1);
+            var lastSpace = frameworkDescription.LastIndexOf(' ');
+            netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : netRuntimeVersion;
         }
-#elif NETSTANDARD
-        var netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, string.Empty).Split('|')[0].Trim();
+        else
+        {
+            netRuntimeVersion = netFrameworkVersion;
+        }
+#elif NET
+        var netRuntimeName = ".NET";
 #else
-        var netRuntimeName = frameworkDescription.Replace(netRuntimeVersion, "|", StringComparison.InvariantCultureIgnoreCase).Split('|')[0].Trim();
+        var pos = frameworkDescription.LastIndexOf(netRuntimeVersion, StringComparison.InvariantCultureIgnoreCase);
+        var netRuntimeName = pos > 2 ? frameworkDescription.Substring(0, pos - 1) : frameworkDescription;
 #endif
 
         return new Resource(
