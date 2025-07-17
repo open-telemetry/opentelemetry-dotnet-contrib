@@ -648,6 +648,7 @@ jobs:
       build-test-instrumentation-stackexchangeredis,
       build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
+      build-test-opamp-client,
       build-test-persistentstorage,
       build-test-resources-aws,
       build-test-resources-azure,
