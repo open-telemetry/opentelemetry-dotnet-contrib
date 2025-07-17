@@ -57,7 +57,7 @@ jobs:
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
-          opamp-client: ['*/OpenTelemetry.OpAmp.Client/**', '*/OpenTelemetry.OpAmp.Client.Tests/**', '!**/*.md']
+          opamp-client: ['*/OpenTelemetry.OpAmp.Client*/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
