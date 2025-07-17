@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma warning disable IDE0005 // Some projects implicitly already add this namespace
 using Xunit;
-#pragma warning restore IDE0005
 
 namespace OpenTelemetry.Tests;
 
