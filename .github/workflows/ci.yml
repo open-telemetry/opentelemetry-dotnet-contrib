@@ -598,6 +598,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
