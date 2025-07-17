@@ -8,6 +8,9 @@ on:
         description: 'Release tag'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
