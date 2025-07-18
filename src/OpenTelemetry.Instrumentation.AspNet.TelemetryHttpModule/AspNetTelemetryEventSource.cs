@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 internal sealed class AspNetTelemetryEventSource : EventSource
 {
     /// <summary>
-    /// Instance of the PlatformEventSource class.
+    /// Instance of the AspNetTelemetryEventSource class.
     /// </summary>
     public static readonly AspNetTelemetryEventSource Log = new();
 

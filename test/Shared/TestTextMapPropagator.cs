@@ -21,7 +21,6 @@ internal class TestTextMapPropagator : TextMapPropagator
 
     public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
     {
-        var newAction = new Action<T, string, string>((c, k, v) => setter(c, k, v));
         this.OnInject?.Invoke(
             context,
             carrier!,
