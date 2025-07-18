@@ -3,6 +3,25 @@
 
 namespace OpenTelemetry.OpAmp.Client;
 
+/// <summary>
+/// Specifies the type of transport protocol to be used for communication.
+/// </summary>
+/// <remarks>This enumeration defines the available transport protocols for communication. Use <see
+/// cref="WebSocket"/> for WebSocket-based communication, or <see cref="Http"/> for
+/// HTTP-based communication.</remarks>
+internal enum ConnectionType
+{
+    /// <summary>
+    /// Use HTTP transport.
+    /// </summary>
+    Http = 0,
+
+    /// <summary>
+    /// Use WebSocket transport.
+    /// </summary>
+    WebSocket = 1,
+}
+
 internal class OpAmpClientSettings
 {
     /// <summary>
@@ -19,25 +38,4 @@ internal class OpAmpClientSettings
     /// Gets or sets the server URL to connect to.
     /// </summary>
     public Uri ServerUrl { get; set; } = new("https://localhost:4320/v1/opamp");
-}
-
-/// <summary>
-/// Specifies the type of transport protocol to be used for communication.
-/// </summary>
-/// <remarks>This enumeration defines the available transport protocols for communication. Use <see
-/// cref="WebSocket"/> for WebSocket-based communication, or <see cref="Http"/> for
-/// HTTP-based communication.</remarks>
-#pragma warning disable SA1201 // Elements should appear in the correct order
-internal enum ConnectionType
-#pragma warning restore SA1201 // Elements should appear in the correct order
-{
-    /// <summary>
-    /// Use HTTP transport.
-    /// </summary>
-    Http = 0,
-
-    /// <summary>
-    /// Use WebSocket transport.
-    /// </summary>
-    WebSocket = 1,
 }

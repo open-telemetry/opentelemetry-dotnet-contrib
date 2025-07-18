@@ -6,7 +6,7 @@ using OpAmp.Protocol;
 
 namespace OpenTelemetry.OpAmp.Client;
 
-internal class FrameBuilder : IFrameBuilder
+internal sealed class FrameBuilder : IFrameBuilder
 {
     private readonly OpAmpClientSettings settings;
 

@@ -46,10 +46,7 @@ internal class PlainHttpTransport : IOpAmpTransport, IDisposable
             .PostAsync(this.uri, byteContent, cancellationToken: token)
             .ConfigureAwait(false);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"Failed to send message: {response.ReasonPhrase}");
-        }
+        response.EnsureSuccessStatusCode();
 
         var responseMessage = await response.Content
 #if NET
