@@ -14,10 +14,6 @@
     <PackageReference Include="System.Text.Json"
                       Version="$(SystemTextJsonMinimumRequiredPkgVer)"
                       Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
-
-    <PackageReference Include="System.Text.Json"
-                      Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)"
-                      Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
 
 </Project>
