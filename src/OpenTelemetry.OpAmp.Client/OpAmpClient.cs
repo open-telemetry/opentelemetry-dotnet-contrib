@@ -25,7 +25,7 @@ internal class OpAmpClient
     {
         return settings.ConnectionType switch
         {
-            ConnectionType.WebSocket => throw new NotImplementedException("WebSocket transport is not avaiable."),
+            ConnectionType.WebSocket => throw new NotImplementedException("WebSocket transport is not available."),
             ConnectionType.Http => new PlainHttpTransport(settings.ServerUrl, processor),
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
