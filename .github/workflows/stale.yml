@@ -25,3 +25,5 @@ jobs:
           days-before-issue-stale: -1
           days-before-pr-close: 7
           days-before-issue-close: -1
+          exempt-draft-pr: true
+          remove-pr-stale-when-updated: true
