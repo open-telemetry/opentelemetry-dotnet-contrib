@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-* Added support for `host.ip` and `host.mac` attributes within the resource detector
+* Added ability for `host.ip` and `host.mac` attributes to be enabled
+which results in them being determined by the resource detector
+  ([#2895](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2895))
+
+* Added the ability to explicitly set the `host.name` rather than having it
+looked up from the system.
   ([#2895](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2895))
 
 ## 1.12.0-beta.1
