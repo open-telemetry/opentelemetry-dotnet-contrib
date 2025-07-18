@@ -41,7 +41,7 @@ internal sealed class HttpInListener : IDisposable
         {
             try
             {
-                // todo: Ideally we would also check
+                // TODO Ideally we would also check
                 // Sdk.SuppressInstrumentation here to prevent tagging a
                 // span that will not be collected, but we can't do that
                 // without an SDK reference. Need the spec to come around on
