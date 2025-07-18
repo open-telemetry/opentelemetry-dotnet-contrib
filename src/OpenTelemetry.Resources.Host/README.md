@@ -38,7 +38,12 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .ConfigureResource(resource => resource.AddHostDetector())
+    .ConfigureResource(resource => resource.AddHostDetector(new HostDetectorOptions()
+        {
+            IncludeIP = true, // Optional, default is false
+            IncludeMac = false, // Optional, default is false
+            Name = "MyCustomHostName", // Optional custom host name which is used instead of the looked up name for the host.
+        }))
     // other configurations
     .Build();
 
@@ -46,7 +51,12 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddOpenTelemetry(options =>
     {
-        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddHostDetector());
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddHostDetector(x =>
+        {
+            x.IncludeIP = false; // Optional, default is false
+            x.IncludeMac = true; // Optional, default is false
+            x.Name = "MyCustomHostName"; // Optional custom host name which is used instead of the looked up name for the host.
+        }));
     });
 });
 ```
