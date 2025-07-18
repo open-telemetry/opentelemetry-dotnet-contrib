@@ -8,6 +8,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
+#if NET
+using System.Text;
+#endif
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -25,6 +28,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
+
+#if NET
+    private const string ContextInfoParameterName = "@opentelemetry_traceparent";
+    private const string SetContextSql = $"set context_info {ContextInfoParameterName}";
+#endif
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -64,6 +72,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
+
                     _ = this.connectionFetcher.TryFetch(command, out var connection);
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
                     _ = this.dataSourceFetcher.TryFetch(connection, out var dataSource);
@@ -81,6 +98,28 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         this.beginTimestamp.Value = Stopwatch.GetTimestamp();
                         return;
                     }
+
+#if NET
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
+                    {
+                        var setContextCommand = iDbCommand.Connection.CreateCommand();
+                        setContextCommand.Transaction = iDbCommand.Transaction;
+                        setContextCommand.CommandText = SetContextSql;
+                        setContextCommand.CommandType = CommandType.Text;
+                        var parameter = setContextCommand.CreateParameter();
+                        parameter.ParameterName = ContextInfoParameterName;
+
+                        var tracedflags = (activity.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0 ? "01" : "00";
+                        var traceparent = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-{tracedflags}";
+
+                        parameter.DbType = DbType.Binary;
+                        parameter.Value = Encoding.UTF8.GetBytes(traceparent);
+                        setContextCommand.Parameters.Add(parameter);
+
+                        setContextCommand.ExecuteNonQuery();
+                    }
+#endif
 
                     if (activity.IsAllDataRequested)
                     {
@@ -168,6 +207,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataAfterExecuteCommand:
             case SqlMicrosoftAfterExecuteCommand:
                 {
+                    _ = this.commandFetcher.TryFetch(payload, out var command);
+
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
@@ -189,6 +239,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataWriteCommandError:
             case SqlMicrosoftWriteCommandError:
                 {
+                    _ = this.commandFetcher.TryFetch(payload, out var command);
+
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);

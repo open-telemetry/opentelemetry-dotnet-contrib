@@ -147,6 +147,8 @@ public class StackExchangeRedisCallsInstrumentationTests
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost:6379");
 
@@ -223,6 +225,8 @@ public class StackExchangeRedisCallsInstrumentationTests
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost:6379");
 
@@ -262,6 +266,8 @@ public class StackExchangeRedisCallsInstrumentationTests
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost:6379");
 
@@ -318,6 +324,8 @@ public class StackExchangeRedisCallsInstrumentationTests
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost");
 
@@ -349,6 +357,8 @@ public class StackExchangeRedisCallsInstrumentationTests
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost");
 

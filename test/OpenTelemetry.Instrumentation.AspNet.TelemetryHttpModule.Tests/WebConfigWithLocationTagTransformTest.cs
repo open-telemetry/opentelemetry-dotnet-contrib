@@ -14,7 +14,7 @@ public class WebConfigWithLocationTagTransformTest
     [Fact]
     public void VerifyInstallationWhenNonGlobalLocationTagExists()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                       <location path=""a.aspx"">
                         <system.webServer>
@@ -25,7 +25,7 @@ public class WebConfigWithLocationTagTransformTest
                       </location>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location path=""a.aspx"">
                         <system.webServer>
@@ -48,14 +48,14 @@ public class WebConfigWithLocationTagTransformTest
                       </system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationWhenGlobalAndNonGlobalLocationTagExists()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location path=""a.aspx"">
                             <system.webServer>
@@ -78,7 +78,7 @@ public class WebConfigWithLocationTagTransformTest
                         </location>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                         <location path=""a.aspx"">
                             <system.webServer>
@@ -107,14 +107,14 @@ public class WebConfigWithLocationTagTransformTest
                         <system.webServer></system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithDotPathAndExistingModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -132,7 +132,7 @@ public class WebConfigWithLocationTagTransformTest
                         </system.webServer>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -154,14 +154,14 @@ public class WebConfigWithLocationTagTransformTest
                       <system.web></system.web>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithEmptyPathAndExistingModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location>
                             <system.web>
@@ -177,7 +177,7 @@ public class WebConfigWithLocationTagTransformTest
                         </location>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location>
                         <system.web>
@@ -199,14 +199,14 @@ public class WebConfigWithLocationTagTransformTest
                       <system.webServer></system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithDotPathWithNoModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -220,7 +220,7 @@ public class WebConfigWithLocationTagTransformTest
                         </system.webServer>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -242,14 +242,14 @@ public class WebConfigWithLocationTagTransformTest
                       </system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithEmptyPathWithNoModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location>
                             <system.web>
@@ -259,7 +259,7 @@ public class WebConfigWithLocationTagTransformTest
                         </location>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location>
                         <system.web>
@@ -281,14 +281,14 @@ public class WebConfigWithLocationTagTransformTest
                       </system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithDotPathWithGlobalModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location path=""."">
                             <system.web>
@@ -308,7 +308,7 @@ public class WebConfigWithLocationTagTransformTest
                         </system.webServer>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
                         <system.web>
@@ -332,14 +332,14 @@ public class WebConfigWithLocationTagTransformTest
                       </system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     [Fact]
     public void VerifyInstallationToLocationTagWithEmptyPathWithGlobalModules()
     {
-        const string OriginalWebConfigContent = @"
+        const string originalWebConfigContent = @"
                     <configuration>
                         <location>
                         </location>
@@ -355,7 +355,7 @@ public class WebConfigWithLocationTagTransformTest
                         </system.webServer>
                     </configuration>";
 
-        const string ExpectedWebConfigContent = @"
+        const string expectedWebConfigContent = @"
                     <configuration>
                       <location>
                       </location>
@@ -375,8 +375,8 @@ public class WebConfigWithLocationTagTransformTest
                       </system.webServer>
                     </configuration>";
 
-        var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
-        this.VerifyTransformation(ExpectedWebConfigContent, transformedWebConfig);
+        var transformedWebConfig = this.ApplyInstallTransformation(originalWebConfigContent, InstallConfigTransformationResourceName);
+        this.VerifyTransformation(expectedWebConfigContent, transformedWebConfig);
     }
 
     private XDocument ApplyInstallTransformation(string originalConfiguration, string resourceName)

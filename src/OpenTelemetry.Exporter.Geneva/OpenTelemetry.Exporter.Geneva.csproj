@@ -13,6 +13,7 @@
     <NoWarn>$(NoWarn);SA1123;SA1310</NoWarn>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.12.0</PackageValidationBaselineVersion>
+    <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,11 @@
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="OpenTelemetry.Exporter.Geneva.Benchmarks" PublicKey="$(StrongNamePublicKey)" />
+    <InternalsVisibleTo Include="OpenTelemetry.Exporter.Geneva.Stress" PublicKey="$(StrongNamePublicKey)" />
   </ItemGroup>
 
 </Project>

@@ -27,6 +27,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" PublicKey="$(StrongNamePublicKey)" />
+  </ItemGroup>
+
   <Target Name="AssemblyVersionTarget" AfterTargets="MinVer" Condition="'$(MinVerVersion)'!=''">
     <!-- Note: $(BuildNumber) is typically only set for builds initiated by the
     publish workflow. -->

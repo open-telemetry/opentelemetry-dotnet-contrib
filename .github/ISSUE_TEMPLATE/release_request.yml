@@ -47,6 +47,7 @@ body:
         - OpenTelemetry.Instrumentation.SqlClient
         - OpenTelemetry.Instrumentation.StackExchangeRedis
         - OpenTelemetry.Instrumentation.Wcf
+        - OpenTelemetry.OpAmp.Client
         - OpenTelemetry.PersistentStorage.Abstractions
         - OpenTelemetry.PersistentStorage.FileSystem
         - OpenTelemetry.Resources.AWS

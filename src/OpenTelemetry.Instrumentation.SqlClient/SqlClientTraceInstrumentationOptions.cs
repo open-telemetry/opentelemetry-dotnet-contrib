@@ -4,6 +4,9 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+#if NET
+using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+#endif
 using OpenTelemetry.Trace;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
@@ -17,6 +20,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 /// </remarks>
 public class SqlClientTraceInstrumentationOptions
 {
+    internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
     /// </summary>
@@ -30,6 +35,18 @@ public class SqlClientTraceInstrumentationOptions
         var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+
+#if NET
+        Debug.Assert(configuration != null, "configuration was null");
+
+        if (configuration!.TryGetBoolValue(
+                SqlClientInstrumentationEventSource.Log,
+                ContextPropagationLevelEnvVar,
+                out var enableTraceContextPropagation))
+        {
+            this.EnableTraceContextPropagation = enableTraceContextPropagation;
+        }
+#endif
     }
 
     /// <summary>
@@ -126,4 +143,18 @@ public class SqlClientTraceInstrumentationOptions
     /// Gets or sets a value indicating whether the new database attributes should be emitted.
     /// </summary>
     internal bool EmitNewAttributes { get; set; }
+
+#if NET
+    /// <summary>
+    /// Gets or sets a value indicating whether to send traceparent information to SQL Server database.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Only `CommandType.Text` commands are supported for trace context propagation.</b>
+    /// Note: This uses the SET CONTEXT_INFO command to set traceparent information
+    /// for the current connection, which results in an additional round-trip to the database.
+    /// </para>
+    /// </remarks>
+    internal bool EnableTraceContextPropagation { get; set; }
+#endif
 }

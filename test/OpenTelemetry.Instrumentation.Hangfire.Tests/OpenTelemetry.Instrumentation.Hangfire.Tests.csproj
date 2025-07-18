@@ -6,6 +6,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry Hangfire instrumentation.</Description>
     <SignAssembly>false</SignAssembly>
+    <SkipStrongNameValidation>true</SkipStrongNameValidation>
   </PropertyGroup>
 
   <ItemGroup>

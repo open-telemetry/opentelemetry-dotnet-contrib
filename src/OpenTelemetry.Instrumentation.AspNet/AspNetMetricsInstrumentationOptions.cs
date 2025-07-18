@@ -19,12 +19,12 @@ public sealed class AspNetMetricsInstrumentationOptions
     public delegate void EnrichFunc(HttpContext context, ref TagList tags);
 
     /// <summary>
-    /// Gets or sets an function to enrich a recorded metric with additional custom tags.
+    /// Gets or sets a function to enrich a recorded metric with additional custom tags.
     /// </summary>
     public EnrichFunc? Enrich { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether emit server.address and server.port attributes.
+    /// Gets or sets a value indicating whether emit `server.address` and `server.port` attributes.
     /// </summary>
     internal bool EnableServerAttributesForRequestDuration { get; set; }
 }

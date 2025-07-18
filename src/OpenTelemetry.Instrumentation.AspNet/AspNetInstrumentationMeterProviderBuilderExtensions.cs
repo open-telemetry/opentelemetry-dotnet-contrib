@@ -11,7 +11,7 @@ namespace OpenTelemetry.Metrics;
 /// <summary>
 /// Extension methods to simplify registering of ASP.NET request instrumentation.
 /// </summary>
-public static class MeterProviderBuilderExtensions
+public static class AspNetInstrumentationMeterProviderBuilderExtensions
 {
     /// <summary>
     /// Enables the incoming requests automatic data collection for ASP.NET.

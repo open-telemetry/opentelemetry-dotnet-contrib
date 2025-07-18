@@ -3,6 +3,7 @@
 
 using Google.Api.Gax;
 using OpenTelemetry.Trace;
+using Xunit;
 
 namespace OpenTelemetry.Resources.Gcp.Tests;
 
