@@ -82,7 +82,6 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
 
-            // TODO url.query should be sanitized
             var query = url.Query;
             if (!string.IsNullOrEmpty(query))
             {
