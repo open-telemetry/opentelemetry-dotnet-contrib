@@ -11,5 +11,5 @@ internal class MockFrame
 
     public bool HasHeader { get; set; }
 
-    public string ExptectedContent { get; set; }
+    public string? ExptectedContent { get; set; }
 }

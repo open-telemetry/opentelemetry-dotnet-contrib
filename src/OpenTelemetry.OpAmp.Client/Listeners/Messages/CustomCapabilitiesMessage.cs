@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class CustomCapabilitiesMessage : IOpAmpMessage
 {
+    public CustomCapabilitiesMessage(CustomCapabilities customCapabilities)
+    {
+        this.CustomCapabilities = customCapabilities;
+    }
+
     public CustomCapabilities CustomCapabilities { get; set; }
 }

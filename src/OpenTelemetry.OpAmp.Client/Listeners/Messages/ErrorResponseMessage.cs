@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class ErrorResponseMessage : IOpAmpMessage
 {
+    public ErrorResponseMessage(ServerErrorResponse serverErrorResponse)
+    {
+        this.ErrorResponse = serverErrorResponse;
+    }
+
     public ServerErrorResponse ErrorResponse { get; set; }
 }

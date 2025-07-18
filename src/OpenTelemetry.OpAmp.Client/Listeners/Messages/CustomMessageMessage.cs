@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class CustomMessageMessage : IOpAmpMessage
 {
+    public CustomMessageMessage(CustomMessage customMessage)
+    {
+        this.CustomMessage = customMessage;
+    }
+
     public CustomMessage CustomMessage { get; set; }
 }

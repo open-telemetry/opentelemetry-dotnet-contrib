@@ -57,52 +57,52 @@ internal class FrameProcessor
 
         if (message.ErrorResponse != null)
         {
-            this.Dispatch(new ErrorResponseMessage() { ErrorResponse = message.ErrorResponse });
+            this.Dispatch(new ErrorResponseMessage(message.ErrorResponse));
         }
 
         if (message.RemoteConfig != null)
         {
-            this.Dispatch(new RemoteConfigMessage() { RemoteConfig = message.RemoteConfig });
+            this.Dispatch(new RemoteConfigMessage(message.RemoteConfig));
         }
 
         if (message.ConnectionSettings != null)
         {
-            this.Dispatch(new ConnectionSettingsMessage() { ConnectionSettings = message.ConnectionSettings });
+            this.Dispatch(new ConnectionSettingsMessage(message.ConnectionSettings));
         }
 
         if (message.PackagesAvailable != null)
         {
-            this.Dispatch(new PackagesAvailableMessage() { PackagesAvailable = message.PackagesAvailable });
+            this.Dispatch(new PackagesAvailableMessage(message.PackagesAvailable));
         }
 
         if (message.Flags != 0)
         {
-            this.Dispatch(new FlagsMessage() { Flags = (ServerToAgentFlags)message.Flags });
+            this.Dispatch(new FlagsMessage((ServerToAgentFlags)message.Flags));
         }
 
         if (message.Capabilities != 0)
         {
-            this.Dispatch(new CapabilitiesMessage() { Capabilities = (ServerCapabilities)message.Capabilities });
+            this.Dispatch(new CapabilitiesMessage((ServerCapabilities)message.Capabilities));
         }
 
         if (message.AgentIdentification != null)
         {
-            this.Dispatch(new AgentIdentificationMessage() { AgentIdentification = message.AgentIdentification });
+            this.Dispatch(new AgentIdentificationMessage(message.AgentIdentification));
         }
 
         if (message.Command != null)
         {
-            this.Dispatch(new CommandMessage() { Command = message.Command });
+            this.Dispatch(new CommandMessage(message.Command));
         }
 
         if (message.CustomCapabilities != null)
         {
-            this.Dispatch(new CustomCapabilitiesMessage() { CustomCapabilities = message.CustomCapabilities });
+            this.Dispatch(new CustomCapabilitiesMessage(message.CustomCapabilities));
         }
 
         if (message.CustomMessage != null)
         {
-            this.Dispatch(new CustomMessageMessage() { CustomMessage = message.CustomMessage });
+            this.Dispatch(new CustomMessageMessage(message.CustomMessage));
         }
     }
 

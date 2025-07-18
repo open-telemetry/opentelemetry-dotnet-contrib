@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class PackagesAvailableMessage : IOpAmpMessage
 {
+    public PackagesAvailableMessage(PackagesAvailable packageAvailable)
+    {
+        this.PackagesAvailable = packageAvailable;
+    }
+
     public PackagesAvailable PackagesAvailable { get; set; }
 }

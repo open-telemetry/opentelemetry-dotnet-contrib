@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class ConnectionSettingsMessage : IOpAmpMessage
 {
+    public ConnectionSettingsMessage(ConnectionSettingsOffers connectionSettingsOffers)
+    {
+        this.ConnectionSettings = connectionSettingsOffers;
+    }
+
     public ConnectionSettingsOffers ConnectionSettings { get; set; }
 }

@@ -19,7 +19,9 @@ internal class OpAmpClient
         this.transport = ConstructTransport(this.settings, this.processor);
     }
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         return settings.ConnectionType switch
         {

@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class AgentIdentificationMessage : IOpAmpMessage
 {
+    public AgentIdentificationMessage(AgentIdentification agentIdentification)
+    {
+        this.AgentIdentification = agentIdentification;
+    }
+
     public AgentIdentification AgentIdentification { get; set; }
 }

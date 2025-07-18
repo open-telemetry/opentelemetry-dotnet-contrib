@@ -7,5 +7,10 @@ namespace OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 internal class FlagsMessage : IOpAmpMessage
 {
+    public FlagsMessage(ServerToAgentFlags flags)
+    {
+        this.Flags = flags;
+    }
+
     public ServerToAgentFlags Flags { get; set; }
 }

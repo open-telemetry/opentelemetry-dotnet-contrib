@@ -27,7 +27,9 @@ internal class OpAmpClientSettings
 /// <remarks>This enumeration defines the available transport protocols for communication. Use <see
 /// cref="WebSocket"/> for WebSocket-based communication, or <see cref="Http"/> for
 /// HTTP-based communication.</remarks>
+#pragma warning disable SA1201 // Elements should appear in the correct order
 internal enum ConnectionType
+#pragma warning restore SA1201 // Elements should appear in the correct order
 {
     /// <summary>
     /// Use HTTP transport.
