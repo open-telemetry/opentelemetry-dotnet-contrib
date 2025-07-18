@@ -201,7 +201,15 @@ public partial class HttpClientTests
         var activity = Assert.Single(activities);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
+
+// .NET 10 reports its own activity, but does not set the status description
+#if NET10_0_OR_GREATER
+        var @event = Assert.Single(activity.Events);
+        Assert.Equal("exception", @event.Name);
+        Assert.Contains(@event.Tags, kvp => kvp.Key == "exception.type" && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
+#else
         Assert.Equal("Task Canceled", activity.StatusDescription);
+#endif
 
         var normalizedAttributes = activity.TagObjects.Where(kv => !kv.Key.StartsWith("otel.", StringComparison.Ordinal)).ToDictionary(x => x.Key, x => x.Value?.ToString());
         Assert.Contains(normalizedAttributes, kvp => kvp.Key == SemanticConventions.AttributeErrorType && kvp.Value?.ToString() == "System.Threading.Tasks.TaskCanceledException");
@@ -387,7 +395,12 @@ public partial class HttpClientTests
 
             if (tc.RecordException.HasValue && tc.RecordException.Value)
             {
+// .NET 10 reports its own activity too
+#if NET10_0_OR_GREATER
+                Assert.Contains(activity.Events, evt => evt.Name.Equals("exception"));
+#else
                 Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));
+#endif
                 Assert.True(enrichWithExceptionCalled);
             }
         }
