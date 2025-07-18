@@ -13,7 +13,31 @@
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/process.md#process).
 > These resources can be changed without prior notification.
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### ProcessDetector
+
+|Attribute| Comment |
+|--- | --- |
+|[`process.args.count`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-args-count)| |
+|[`process.command_args`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-command_args)| Needs to be enabled via the `IncludeCommand` setting. |
+|[`process.command_line`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-command_line)| Needs to be enabled via the `IncludeCommand` setting. |
+|[`process.creation.time`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-creation-time)| |
+|[`process.executable.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-executable-name)| |
+|[`process.executable.path`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-executable-path)| |
+|[`process.interactive`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-interactive)| |
+|[`process.owner`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-owner)| |
+|[`process.pid`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-pid)| |
+|[`process.title`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-title)| |
+|[`process.working.directory`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-working-directory)| |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.Process` package to be able to use the
@@ -23,7 +47,7 @@ Process Runtime Resource Detectors.
 dotnet add package OpenTelemetry.Resources.Process --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Process Runtime resource detector to
 the `ResourceBuilder` with the following example.
@@ -39,21 +63,22 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddProcessDetector())
     // other configurations
-    .Build();
+    .Build(new ProcessDetectorOptions()
+        {
+            IncludeCommand = true, // Optional default is false.
+        });
 
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddOpenTelemetry(options =>
     {
-        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessDetector());
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessDetector()x =>
+            {
+                x.IncludeCommand = true; // Optional default is false.
+            });
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **ProcessDetector**: `process.owner`, `process.pid`.
 
 ## References
 
