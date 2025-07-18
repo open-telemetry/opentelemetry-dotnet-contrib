@@ -9,6 +9,12 @@ namespace OpenTelemetry.Trace;
 /// <summary>
 /// Extension methods to simplify registering a Stackdriver exporter.
 /// </summary>
+///
+#if NET // todo: link to GCP .net documentation when becomes available
+[Obsolete("This exporter is deprecated and will be removed in a future version. Please use the native OTLP  within GCP.", UrlFormat="https://cloud.google.com/stackdriver/docs/reference/telemetry/overview")]
+#else
+[Obsolete("This exporter is deprecated and will be removed in a future version. Please use the native OTLP  within GCP.")]
+#endif
 public static class TracerProviderBuilderExtensions
 {
     /// <summary>

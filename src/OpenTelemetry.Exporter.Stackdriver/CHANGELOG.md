@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+* Update Google.Cloud.Monitoring.V3 3.8.0 -> 3.15.0
+* Update Google.Cloud.Trace.V2 3.5.0 -> 3.6.0
+* Obsolete Package `OpenTelemetry.Exporter.Stackdriver` in favor of native protocole in GCP
 
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
