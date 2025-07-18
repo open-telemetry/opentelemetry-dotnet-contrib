@@ -143,8 +143,8 @@ public partial class HttpWebRequestTests
 
         if (tc.RecordException.HasValue && tc.RecordException.Value)
         {
-// .NET 10 reports its own activity, but does not set the status description
 #if NET10_0_OR_GREATER
+            // .NET 10 reports its own activity, but does not set the status description
             Assert.Contains(activity.Events, evt => evt.Name.Equals("exception"));
 #else
             Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));
