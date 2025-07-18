@@ -1,10 +1,10 @@
 # Changelog
 
 ## Unreleased
-* Update Google.Cloud.Monitoring.V3 3.8.0 -> 3.15.0
-* Update Google.Cloud.Trace.V2 3.5.0 -> 3.6.0
-* Obsolete package `OpenTelemetry.Exporter.Stackdriver` in favor of native protocol in GCP
-
+* Update Google.Cloud.Monitoring.V3 3.8.0 -> 3.15.0 ([#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
+* Update Google.Cloud.Trace.V2 3.5.0 -> 3.6.0 ([#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
+* Obsolete Package `OpenTelemetry.Exporter.Stackdriver` in favor of native protocol in GCP
+  ([#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
   ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
