@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-* Extended `ProcessDetector` to include more of the supported attributes.
+* Extended `ProcessDetector` to include more of the recommend/required attributes.
+ ([#2893](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2893))
+
+* Extended `ProcessDetector` to support sending the 2 opt-in command line attributes
+when the IncludeCommand property is true.
  ([#2893](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2893))
 
 ## 1.12.0-beta.1

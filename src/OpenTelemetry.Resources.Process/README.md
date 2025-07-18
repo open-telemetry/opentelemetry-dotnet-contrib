@@ -39,13 +39,19 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .ConfigureResource(resource => resource.AddProcessDetector())
     // other configurations
-    .Build();
+    .Build(new ProcessDetectorOptions()
+        {
+            IncludeCommand = true, // Optional default is false.
+        });
 
 using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddOpenTelemetry(options =>
     {
-        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessDetector());
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddProcessDetector()x =>
+            {
+                x.IncludeCommand = true; // Optional default is false.
+            });
     });
 });
 ```
