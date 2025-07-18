@@ -20,7 +20,6 @@ namespace OpenTelemetry.Exporter.Stackdriver;
 [Obsolete("This exporter is deprecated and will be removed in a future version. Please use the native OTLP  within GCP.")]
 #endif
 
-
 public class StackdriverTraceExporter : BaseExporter<Activity>
 {
     private static readonly string StackdriverExportVersion;
