@@ -221,7 +221,8 @@ within the `/modules` folder for your module. This folder will contain the follo
 This is to import from the root file.
 * `Directory.build.props` a convient location to define
 shared properties for your module.
-This is to import from the root file.
+
+The props files are to import from the root file.
 
 To facilitate CI/CD, a workflow needs to be added in the `.github\workflows` folder.
 This file should be based on `ci-Template.yml` with
@@ -237,7 +238,22 @@ To facilitate code coverage analysis, a block based on the below
 ```
 
 with
-`{{moduleName}}` replaced with your module name.
+`{{moduleName}}` replaced with your module name and added to the `codecov.yml` file
+which is in the `.github` directory.
+
+## Migrating projects to module approach
+
+The process to migrate a project to be part of a module consists of the
+following steps:
+
+  1. Create module folder
+  2. Move source/test files into module folder and up date solution file
+  3. Create `Directory.Build.props` file making sure to set the module property.
+  4. Create Module workflow file based on template
+  5. Update codeowners file to refer to new files including the workflow definition
+  6. Update codecov.yaml paths
+  7. Remove project from `test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj`
+  8. Remove all references from the `ci.yml` file
 
 > [!NOTE]
 > It is generally helpful to reference a previous pull request when adding a new

@@ -29,6 +29,8 @@ jobs:
   verify:
     needs: main
     uses: ./.github/workflows/verifyaotcompat.yml
+    with:
+      module-name: ${{ inputs.module-name }}
 
   wrap-up:
     needs: main

@@ -2,6 +2,11 @@ name: Publish & Verify AOT Compatibility
 
 on:
   workflow_call:
+    inputs:
+      module-name:
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -24,4 +29,4 @@ jobs:
 
     - name: publish AOT testApp, assert static analysis warning count, and run the app
       shell: pwsh
-      run: .\build\scripts\test-aot-compatibility.ps1 ${{ matrix.version }}
+      run: .\build\scripts\test-aot-compatibility.ps1 ${{ matrix.version }} ${{ inputs.module-name }}

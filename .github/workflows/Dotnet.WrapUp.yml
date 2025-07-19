@@ -46,7 +46,7 @@ jobs:
     - name: Publish ${{ inputs.module-name }} NuGet packages to Artifacts
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       # Only publish packages from the first job
-      if: ${{ inputs.pack && strategy.job-index == 0 }}
+      if: ${{ inputs.pack }} && ${{ strategy.job-index == 0 }}
       with:
         name: ${{ inputs.module-name }}-packages
         path: '.\modules\**\src\**\*.*nupkg'

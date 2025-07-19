@@ -1,7 +1,10 @@
 <Project>
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
     <IsTestProject>true</IsTestProject>
-    <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
   </PropertyGroup>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.prod.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.props" />
+  <Import Condition="'$(IsTestProject)' != 'true'"
+    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.prod.props" />
+  <Import Condition="'$(IsTestProject)' == 'true'"
+    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.nonprod.props" />
 </Project>

@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Module>Resources.OperatingSystem</Module>
+    <IsCPM>true</IsCPM>
   </PropertyGroup>
   <Import Project="..\Directory.Build.props" />
 </Project>

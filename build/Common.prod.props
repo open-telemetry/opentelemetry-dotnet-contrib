@@ -1,6 +1,4 @@
 <Project>
-  <Import Project=".\Common.props" />
-
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
@@ -11,21 +9,14 @@
     <PackageIcon>opentelemetry-icon-color.png</PackageIcon>
     <Authors>OpenTelemetry Authors</Authors>
     <Copyright>Copyright The OpenTelemetry Authors</Copyright>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>$(NoWarn);1573;1712</NoWarn>
     <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">false</EnablePackageValidation>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageChangelogFile>CHANGELOG.md</PackageChangelogFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn);1573;1712</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
-    <IsPackable>false</IsPackable>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.test.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>$(NoWarn),1574,1591;CA1515</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsCPM)' != 'true'">
