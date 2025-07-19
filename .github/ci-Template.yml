@@ -11,7 +11,7 @@ jobs:
     uses: ./.github/workflows/build-module.yml
     with:
       module-name: {{moduleName}}
-      module-directory: './modules/{{moduleName}}'
+      module-directory: 'modules/{{moduleName}}'
 
   build-test:
     needs: [

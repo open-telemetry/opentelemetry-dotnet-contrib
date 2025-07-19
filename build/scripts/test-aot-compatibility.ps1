@@ -1,8 +1,10 @@
-param([string]$targetNetFramework)
+param([string]$targetNetFramework, [string]$moduleName, [string]$moduleDir)
 
 $rootDirectory = Get-Location
 
-$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --framework $targetNetFramework -nodeReuse:false /p:UseSharedCompilation=false
+$runtime = $IsWindows ? "win-x64" : ($IsMacOS ? "macos-x64" : "linux-x64")
+
+$publishOutput = dotnet publish $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/OpenTelemetry.AotCompatibility.TestApp.csproj --framework $targetNetFramework -nodeReuse:false /p:UseSharedCompilation=false --runtime $runtime -p:Module=$moduleName -p:ModuleDir=$moduleDir
 
 $actualWarningCount = 0
 
@@ -24,7 +26,6 @@ if ($LastExitCode -ne 0)
     Write-Host $publishOutput
 }
 
-$runtime = $IsWindows ? "win-x64" : ($IsMacOS ? "macos-x64" : "linux-x64")
 $app = $IsWindows ? "./OpenTelemetry.AotCompatibility.TestApp.exe" : "./OpenTelemetry.AotCompatibility.TestApp"
 
 Push-Location $rootDirectory/test/OpenTelemetry.AotCompatibility.TestApp/bin/Release/$targetNetFramework/$runtime

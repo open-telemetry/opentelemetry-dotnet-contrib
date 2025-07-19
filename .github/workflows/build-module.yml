@@ -10,6 +10,10 @@ on:
         required: false
         default: '.'
         type: string
+      os-list:
+        default: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
+        required: false
+        type: string
 
 jobs:
   initialization:
@@ -24,11 +28,14 @@ jobs:
     with:
       module-name: ${{ inputs.module-name }}
       module-directory: '${{ inputs.module-directory }}'
-      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
+      os-list: ${{ inputs.os-list }}
 
   verify:
     needs: main
     uses: ./.github/workflows/verifyaotcompat.yml
+    with:
+      module-name: ${{ inputs.module-name }}
+      module-directory: '${{ inputs.module-directory }}'
 
   wrap-up:
     needs: main

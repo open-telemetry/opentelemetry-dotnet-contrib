@@ -19,11 +19,7 @@ on:
         required: false
         type: string
       os-list:
-        default: '[ "windows-latest", "ubuntu-22.04" ]'
-        required: false
-        type: string
-      tfm-list:
-        default: '[ "net462", "net8.0", "net9.0" ]'
+        default: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
         required: false
         type: string
       test-case-filter:
@@ -41,19 +37,13 @@ jobs:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
         os: ${{ fromJSON(inputs.os-list) }}
-        version: ${{ fromJSON(inputs.tfm-list) }}
-        exclude:
-        - os: ubuntu-22.04
-          version: net462
-        - os: macos-latest
-          version: net462
 
     runs-on: ${{ matrix.os }}
 
     defaults:
       run:
         shell: bash
-        working-directory: '${{ inputs.module-directory }}'
+        working-directory: './${{ inputs.module-directory }}'
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -63,14 +53,12 @@ jobs:
         # retrieve them all.
         fetch-depth: 0
 
-    - name: Setup previous .NET runtimes
+    - name: Setup .NET runtimes
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
       with:
+        global-json-file: global.json
         dotnet-version: |
           8.0.x
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
 
     - name: dotnet restore ${{ inputs.module-name }}
       run: dotnet restore -p:EnablePackageValidation=true
@@ -91,7 +79,6 @@ jobs:
         dotnet test
         --collect:"Code Coverage;Format=cobertura"
         --results-directory:TestResults
-        --framework ${{ matrix.version }}
         --configuration Release
         --no-restore
         --no-build
@@ -107,14 +94,13 @@ jobs:
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
-        TFM: ${{ matrix.version }}
         FILTER: ${{ inputs.test-case-filter }}
         token: ${{ secrets.CODECOV_TOKEN }}
       with:
         files: '**/TestResults/**/*Cobertura.xml'
-        env_vars: OS,TFM,FILTER
+        env_vars: OS,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
-        name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}.${{ matrix.version }}]
+        name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}]
         codecov_yml_path: .github/codecov.yml
 
     - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
@@ -124,5 +110,5 @@ jobs:
         files: '**/TestResults/junit.xml'
         env_vars: OS,TFM,FILTER
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }}
-        name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}.${{ matrix.version }}]
+        name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.module-name }} on [${{ matrix.os }}]
         token: ${{ secrets.CODECOV_TOKEN }}
