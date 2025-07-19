@@ -1,5 +1,5 @@
 <Project>
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('.Tests'))">
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true' and $(MSBuildProjectName.Contains('.Tests'))">
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(IsCPM)' != 'true'">

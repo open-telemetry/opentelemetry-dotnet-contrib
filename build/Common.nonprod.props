@@ -1,6 +1,4 @@
 <Project>
-  <Import Project=".\Common.props" />
-
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.test.ruleset</CodeAnalysisRuleSet>

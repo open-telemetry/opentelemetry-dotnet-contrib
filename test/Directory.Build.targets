@@ -1,4 +1,6 @@
 <Project>
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
   <Import Project="..\Directory.Build.targets" Condition="Exists('..\Directory.Build.targets')" />
-  <Import Project="$(RepoRoot)\build\Common.targets" />
 </Project>

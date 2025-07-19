@@ -15,11 +15,19 @@ jobs:
     uses: ./.github/workflows/build-module.yml
     with:
       module-name: Resources.OperatingSystem
-      module-directory: './modules/Resources.OperatingSystem'
+      module-directory: "modules/Resources.OperatingSystem"
+
+  _resources-operatingsystem:
+    uses: ./.github/workflows/deploy-module.yml
+    if: ${{ github.event_name == 'push' }}
+    with:
+      module-name: Resources.OperatingSystem
+      module-directory: "modules/Resources.OperatingSystem"
 
   build-test:
     needs: [
-      resources-operatingsystem
+      resources-operatingsystem,
+      _resources-operatingsystem
     ]
     if: always() && !cancelled()
     runs-on: ubuntu-22.04

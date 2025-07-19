@@ -1,0 +1,21 @@
+name: Build Module
+
+on:
+  workflow_call:
+    inputs:
+      module-name:
+        required: true
+        type: string
+      module-directory:
+        required: false
+        default: '.'
+        type: string
+
+jobs:
+  run-dotnet-format:
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Blank
+      run: echo "Deployed"

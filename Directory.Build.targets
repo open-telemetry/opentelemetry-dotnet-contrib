@@ -1,24 +1,9 @@
 <Project>
-
-  <Import Project="build\Common.targets" />
-
-  <PropertyGroup>
-    <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true' and $(MSBuildProjectName.Contains('.Tests'))">
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <ItemGroup>
-    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(IsPackable)' == 'true'">
-    <None Include="$(PackagePrimaryLicenseFile)"
-          PackagePath="$([System.IO.Path]::GetFileName('$(PackagePrimaryLicenseFile)'))"
-          Pack="true"
-          Visible="false" />
-    <None Include="$(PackageThirdPartyNoticesFile)"
-          PackagePath="$([System.IO.Path]::GetFileName('$(PackageThirdPartyNoticesFile)'))"
-          Pack="true"
-          Visible="false" />
-  </ItemGroup>
-
+  <Import Project="build\Common.targets" />
+  <Import Condition="'$(IsTestProject)' != 'true'"
+    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.prod.targets" />
 </Project>
