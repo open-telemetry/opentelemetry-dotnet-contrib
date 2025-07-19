@@ -4,7 +4,7 @@
 name: "Close stale pull requests"
 on:
   schedule:
-    - cron: "12 3 * * *"  # arbitrary time not to DDOS GitHub
+    - cron: "14 5 * * *"  # arbitrary time not to DDOS GitHub
 
 permissions:
   contents: read
@@ -21,10 +21,8 @@ jobs:
           stale-pr-message: 'This PR was marked stale due to lack of activity. It will be closed in 7 days.'
           close-pr-message: 'Closed as inactive. Feel free to reopen if this PR is still being worked on.'
           operations-per-run: 400
-          days-before-pr-stale: 7
+          days-before-pr-stale: 60
           days-before-issue-stale: -1
-          days-before-pr-close: 7
+          days-before-pr-close: 90
           days-before-issue-close: -1
-          exempt-draft-pr: true
-          exempt-pr-labels: 'proposal,keep-open'
-          remove-pr-stale-when-updated: true
+          exempt-pr-labels: 'keep-open'
