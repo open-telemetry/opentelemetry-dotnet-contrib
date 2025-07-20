@@ -1,3 +1,0 @@
-OpenTelemetry.SemanticConventions.Generator.OtelGenerator
-OpenTelemetry.SemanticConventions.Generator.OtelGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
-OpenTelemetry.SemanticConventions.Generator.OtelGenerator.OtelGenerator() -> void

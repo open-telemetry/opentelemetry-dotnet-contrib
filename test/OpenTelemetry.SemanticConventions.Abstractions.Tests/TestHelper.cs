@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using OpenTelemetry.SemanticConventions.Generator;
+using OpenTelemetry.Weaver.SourceGenerator;
 
 namespace OpenTelemetry.SemanticConventions.Abstractions.Tests;
 

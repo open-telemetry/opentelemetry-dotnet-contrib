@@ -422,7 +422,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SemanticConve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SemanticConventions.Abstractions.Tests", "test\OpenTelemetry.SemanticConventions.Abstractions.Tests\OpenTelemetry.SemanticConventions.Abstractions.Tests.csproj", "{AEF6BA08-914C-4B61-9569-320DE6430B4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SemanticConventions.Generator", "gen\OpenTelemetry.SemanticConventions.Generator\OpenTelemetry.SemanticConventions.Generator.csproj", "{747EBE28-CC95-4AB7-BE3E-05E142008AC9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Weaver.SourceGenerator", "gen\OpenTelemetry.Weaver.SourceGenerator\OpenTelemetry.Weaver.SourceGenerator.csproj", "{747EBE28-CC95-4AB7-BE3E-05E142008AC9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gen", "gen", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
@@ -431,6 +431,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "gen", "gen", "{02EA681E-C7D
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.SemanticConventions.Example", "examples\semantic-conventions\OpenTelemetry.SemanticConventions.Example\OpenTelemetry.SemanticConventions.Example.csproj", "{950477C8-CE9E-428D-8187-2EE38EBC0C52}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Weaver.Core", "gen\OpenTelemetry.Weaver.Core\OpenTelemetry.Weaver.Core.csproj", "{C4C37434-6C00-4847-8E27-93404F727509}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -878,6 +880,10 @@ Global
 		{950477C8-CE9E-428D-8187-2EE38EBC0C52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{950477C8-CE9E-428D-8187-2EE38EBC0C52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{950477C8-CE9E-428D-8187-2EE38EBC0C52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4C37434-6C00-4847-8E27-93404F727509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4C37434-6C00-4847-8E27-93404F727509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4C37434-6C00-4847-8E27-93404F727509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4C37434-6C00-4847-8E27-93404F727509}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1010,6 +1016,7 @@ Global
 		{AEF6BA08-914C-4B61-9569-320DE6430B4F} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{747EBE28-CC95-4AB7-BE3E-05E142008AC9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{950477C8-CE9E-428D-8187-2EE38EBC0C52} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
+		{C4C37434-6C00-4847-8E27-93404F727509} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

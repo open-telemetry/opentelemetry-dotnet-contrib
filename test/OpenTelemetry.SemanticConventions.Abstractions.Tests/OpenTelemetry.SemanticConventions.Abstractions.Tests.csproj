@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\OpenTelemetry.SemanticConventions.Abstractions\OpenTelemetry.SemanticConventions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\gen\OpenTelemetry.SemanticConventions.Generator\OpenTelemetry.SemanticConventions.Generator.csproj" />
+    <ProjectReference Include="..\..\gen\OpenTelemetry.Weaver.SourceGenerator\OpenTelemetry.Weaver.SourceGenerator.csproj" />
   </ItemGroup>
 
 </Project>

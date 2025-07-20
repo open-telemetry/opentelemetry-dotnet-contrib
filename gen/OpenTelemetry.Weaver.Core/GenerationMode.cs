@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.SemanticConventions.Generator;
+namespace OpenTelemetry.Weaver;
 
 internal enum GenerationMode
 {

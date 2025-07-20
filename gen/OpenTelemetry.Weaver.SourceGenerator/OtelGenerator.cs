@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace OpenTelemetry.SemanticConventions.Generator;
+namespace OpenTelemetry.Weaver.SourceGenerator;
 
 /// <inheritdoc/>
 [Generator]
@@ -97,15 +97,7 @@ public class OtelGenerator : IIncrementalGenerator
                     continue;
                 }
 
-                var streamReader = new StreamReader(resourceStream);
-                streamReader.ReadLine();
-                streamReader.ReadLine();
-                streamReader.ReadLine();
-                properties.Values[generationMode] = new List<string>();
-                while (!streamReader.EndOfStream)
-                {
-                    properties.Values[generationMode].Add(streamReader.ReadLine()!.Trim('|').Trim());
-                }
+                properties.Streams[generationMode] = resourceStream;
             }
 
             return properties;
@@ -115,10 +107,18 @@ public class OtelGenerator : IIncrementalGenerator
         {
             if (properties is { } value)
             {
-                foreach (var item in value.Values)
+                foreach (var item in value.Streams)
                 {
+                    var streamReader = new StreamReader(item.Value);
+                    var result = item.Key switch
+                    {
+                        GenerationMode.AttributeNames => SourceGenerationHelper.GenerateNamespaceAttributeNames(value, streamReader),
+                        GenerationMode.AttributeValues => SourceGenerationHelper.GenerateNamespaceAttributeValues(value, streamReader),
+                        _ => throw new NotSupportedException($"Generation mode {item.Key} is not supported.")
+                    };
+
                     // generate the source code and add it to the output
-                    string result = SourceGenerationHelper.GenerateAttributeClass(value, item);
+                    //string result = SourceGenerationHelper.GenerateAttributeClass(value, item);
 
                     // Create a separate partial class file for each namespace
                     context.AddSource($"OtelAttributes.{value.StructName}.{item.Key}.g.cs", SourceText.From(result, Encoding.UTF8));

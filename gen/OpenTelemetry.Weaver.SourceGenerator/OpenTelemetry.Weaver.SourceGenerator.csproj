@@ -19,4 +19,11 @@
     <EmbeddedResource Include="Resources\*\*.md" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\OpenTelemetry.Weaver.Core\GenerationMode.cs" Link="Includes\GenerationMode.cs" />
+    <Compile Include="..\OpenTelemetry.Weaver.Core\Properties.cs" Link="Includes\Properties.cs" />
+    <Compile Include="..\OpenTelemetry.Weaver.Core\SourceGenerationHelper.cs" Link="Includes\SourceGenerationHelper.cs" />
+    <Compile Include="..\OpenTelemetry.Weaver.Core\StringBuilderExtensions.cs" Link="Includes\StringBuilderExtensions.cs" />
+  </ItemGroup>
+
 </Project>

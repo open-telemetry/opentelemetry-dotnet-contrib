@@ -1,0 +1,3 @@
+OpenTelemetry.Weaver.SourceGenerator.OtelGenerator
+OpenTelemetry.Weaver.SourceGenerator.OtelGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
+OpenTelemetry.Weaver.SourceGenerator.OtelGenerator.OtelGenerator() -> void

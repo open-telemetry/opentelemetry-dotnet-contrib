@@ -4,7 +4,7 @@
     "projects": [
       "examples\\semantic-conventions\\OpenTelemetry.SemanticConventions.Example\\OpenTelemetry.SemanticConventions.Example.csproj",
       "src\\OpenTelemetry.SemanticConventions.Abstractions\\OpenTelemetry.SemanticConventions.Abstractions.csproj",
-      "gen\\OpenTelemetry.SemanticConventions.Generator\\OpenTelemetry.SemanticConventions.Generator.csproj",
+      "gen\\OpenTelemetry.Weaver.SourceGenerator\\OpenTelemetry.Weaver.SourceGenerator.csproj",
       "src\\OpenTelemetry.SemanticConventions\\OpenTelemetry.SemanticConventions.csproj",
       "test\\OpenTelemetry.SemanticConventions.Abstractions.Tests\\OpenTelemetry.SemanticConventions.Abstractions.Tests.csproj"
     ]

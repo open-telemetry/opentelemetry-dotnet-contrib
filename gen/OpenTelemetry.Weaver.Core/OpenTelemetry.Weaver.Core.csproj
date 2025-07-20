@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetStandardMinimumSupportedVersion)</TargetFramework>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+    <IsPackable>false</IsPackable>
+    <AnalyzerLanguage>cs</AnalyzerLanguage>
+    <ImplicitUsings>false</ImplicitUsings>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+</Project>
