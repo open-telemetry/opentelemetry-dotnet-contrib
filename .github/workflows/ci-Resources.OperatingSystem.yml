@@ -5,10 +5,12 @@ on:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
       - 'modules/Resources.OperatingSystem/**'
+      - '.github/workflows/ci-Resources.OperatingSystem.yml'
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
     paths:
       - 'modules/Resources.OperatingSystem/**'
+      - '.github/workflows/ci-Resources.OperatingSystem.yml'
 
 jobs:
   resources-operatingsystem:
