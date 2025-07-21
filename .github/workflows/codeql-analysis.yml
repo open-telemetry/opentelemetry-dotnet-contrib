@@ -10,9 +10,14 @@ on:
     - cron: '0 0 * * *' # once in a day at 00:00
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
+    permissions:
+      security-events: write # for github/codeql-action/analyze to upload SARIF results
     runs-on: windows-latest
 
     strategy:
