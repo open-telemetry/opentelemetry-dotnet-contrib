@@ -21,18 +21,16 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
     /// <returns>Detected resource.</returns>
     public Resource Detect()
     {
-        var builder = this.semanticConventionBuilder
-            .AttributeBuilder
-            .AddAttributeCloudProviderIsAWS()
-            .AddAttributeCloudRegion(AWSLambdaUtils.GetAWSRegion())
-            .AddAttributeFaasName(AWSLambdaUtils.GetFunctionName())
-            .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion());
-
-        // TODO Update semantic conventions to include this
-        builder.Add("faas.instance", AWSLambdaUtils.GetFunctionInstance()!);
-        builder.Add("faas.max_memory", AWSLambdaUtils.GetFunctionMemorySize()!);
-
-        var resourceAttributes = builder.Build();
+        var resourceAttributes =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeCloudProviderIsAWS()
+                .AddAttributeCloudRegion(AWSLambdaUtils.GetAWSRegion())
+                .AddAttributeFaasName(AWSLambdaUtils.GetFunctionName())
+                .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion())
+                .AddAttributeFaasInstance(AWSLambdaUtils.GetFunctionInstance())
+                .AddAttributeFaasMaxMemory(AWSLambdaUtils.GetFunctionMemorySize())
+                .Build();
 
         return new Resource(resourceAttributes);
     }

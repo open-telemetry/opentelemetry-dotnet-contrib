@@ -170,20 +170,18 @@ internal class AWSLambdaUtils
     {
         var functionArn = context.InvokedFunctionArn;
 
-        var builder = this.semanticConventionBuilder
-            .AttributeBuilder
-            .AddAttributeFaasTrigger(GetFaasTrigger(input))
-            .AddAttributeFaasColdStart(isColdStart)
-            .AddAttributeFaasName(GetFunctionName(context))
-            .AddAttributeFaasExecution(context.AwsRequestId)
-            .AddAttributeFaasID(GetFaasId(functionArn))
-            .AddAttributeCloudAccountID(GetAccountId(functionArn));
-
-        // TODO Update semantic conventions to include these
-        builder.Add("faas.instance", GetFunctionInstance(context)!);
-        builder.Add("faas.max_memory", GetFunctionMemorySize(context)!);
-
-        var tags = builder.Build();
+        var tags =
+            this.semanticConventionBuilder
+                .AttributeBuilder
+                .AddAttributeFaasTrigger(GetFaasTrigger(input))
+                .AddAttributeFaasColdStart(isColdStart)
+                .AddAttributeFaasName(GetFunctionName(context))
+                .AddAttributeFaasExecution(context.AwsRequestId)
+                .AddAttributeFaasID(GetFaasId(functionArn))
+                .AddAttributeFaasInstance(GetFunctionInstance(context))
+                .AddAttributeFaasMaxMemory(GetFunctionMemorySize(context))
+                .AddAttributeCloudAccountID(GetAccountId(functionArn))
+                .Build();
 
         return tags;
     }
