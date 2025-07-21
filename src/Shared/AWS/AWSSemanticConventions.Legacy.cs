@@ -70,6 +70,8 @@ internal partial class AWSSemanticConventions
         public override string AttributeFaasVersion => "faas.version";
         public override string AttributeFaasTrigger => "faas.trigger";
         public override string AttributeFaasColdStart => "faas.coldstart";
+        public override string AttributeFaasInstance => "faas.instance";
+        public override string AttributeFaasMaxMemory => "faas.max_memory";
 
         // GEN AI Attributes
         public override string AttributeGenAiModelId => "gen_ai.request.model";
