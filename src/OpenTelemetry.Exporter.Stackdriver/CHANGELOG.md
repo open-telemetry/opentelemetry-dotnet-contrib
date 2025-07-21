@@ -15,7 +15,7 @@
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
-* Obsolete Package `OpenTelemetry.Exporter.Stackdriver`
+* Obsolete `OpenTelemetry.Exporter.Stackdriver` package
   in favor of OTLP protocol in GCP.
   ([#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
 
