@@ -12,19 +12,13 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
-    private readonly Histogram<double> httpServerDuration;
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
     private readonly AsyncLocal<long> beginTimestamp = new();
 
-    public HttpInListener(Meter meter)
+    public HttpInListener()
     {
         TelemetryHttpModule.Options.TextMapPropagator = Propagators.DefaultTextMapPropagator;
-        this.httpServerDuration = meter.CreateHistogram(
-            "http.server.request.duration",
-            unit: "s",
-            description: "Duration of HTTP server requests.",
-            advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
         TelemetryHttpModule.Options.OnRequestStartedCallback += this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
@@ -99,7 +93,7 @@ internal sealed class HttpInListener : IDisposable
 
         var duration = activity?.Duration.TotalSeconds ??
             CalculateDurationFromTimestamp(this.beginTimestamp.Value);
-        this.httpServerDuration.Record(duration, tags);
+        AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
     }
 
     private void OnStartActivity(Activity activity, HttpContext context)

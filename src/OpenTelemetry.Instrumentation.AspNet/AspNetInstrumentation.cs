@@ -3,6 +3,7 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using System.Threading;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Internal;
 
@@ -15,14 +16,19 @@ internal sealed class AspNetInstrumentation : IDisposable
 {
     public static readonly AspNetInstrumentation Instance = new();
 
+    public static readonly Assembly Assembly = typeof(HttpInListener).Assembly;
+    public static readonly AssemblyName AssemblyName = Assembly.GetName();
+    public static readonly string MeterName = AssemblyName.Name!;
+    public static readonly Meter Meter = new(MeterName, Assembly.GetPackageVersion());
+    public static readonly Histogram<double> HttpServerDuration = Meter.CreateHistogram(
+        "http.server.request.duration",
+        unit: "s",
+        description: "Duration of HTTP server requests.",
+        advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
+
+
+
     public readonly InstrumentationHandleManager HandleManager = new();
-    internal static readonly Assembly Assembly = typeof(HttpInListener).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string InstrumentationName = AssemblyName.Name;
-    internal static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
-
-
-    private readonly Meter meter;
     private readonly HttpInListener httpInListener;
 
     /// <summary>
@@ -30,8 +36,7 @@ internal sealed class AspNetInstrumentation : IDisposable
     /// </summary>
     private AspNetInstrumentation()
     {
-        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-        this.httpInListener = new HttpInListener(this.meter);
+        this.httpInListener = new();
     }
 
     public AspNetTraceInstrumentationOptions TraceOptions { get; set; } = new();
@@ -41,7 +46,6 @@ internal sealed class AspNetInstrumentation : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
-        this.meter?.Dispose();
         this.httpInListener?.Dispose();
     }
 }

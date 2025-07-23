@@ -109,6 +109,7 @@ internal static class ActivityHelper
         }
         else
         {
+            onRequestStartedCallback?.Invoke(activity, context);
             context.Items[ContextKey] = StartedButNotSampledObj;
         }
 
@@ -131,6 +132,7 @@ internal static class ActivityHelper
 
             // This is the case where a start was called but no activity was
             // created due to a sampling decision.
+            onRequestStoppedCallback?.Invoke(aspNetActivity, context);
             context.Items[ContextKey] = null;
             return;
         }
@@ -179,20 +181,18 @@ internal static class ActivityHelper
     /// <param name="onExceptionCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteActivityException(Activity? aspNetActivity, HttpContext context, Exception exception, Action<Activity, HttpContext, Exception>? onExceptionCallback)
+    public static void WriteActivityException(Activity? aspNetActivity, HttpContext context, Exception exception, Action<Activity?, HttpContext, Exception>? onExceptionCallback)
     {
-        if (aspNetActivity != null)
+        try
         {
-            try
-            {
-                onExceptionCallback?.Invoke(aspNetActivity, context, exception);
-            }
-            catch (Exception callbackEx)
-            {
-                AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnException", callbackEx);
-            }
-
-            AspNetTelemetryEventSource.Log.ActivityException(aspNetActivity, exception);
+            onExceptionCallback?.Invoke(aspNetActivity, context, exception);
         }
+        catch (Exception callbackEx)
+        {
+            AspNetTelemetryEventSource.Log.CallbackException(aspNetActivity, "OnException", callbackEx);
+        }
+
+        AspNetTelemetryEventSource.Log.ActivityException(aspNetActivity, exception);
     }
 
     /// <summary>
