@@ -50,7 +50,7 @@ public static class AspNetInstrumentationMeterProviderBuilderExtensions
                 {
                     return AspNetInstrumentation.Instance.HandleManager.AddMetricHandle();
                 });
-                meterProviderBuilder.AddMeter(HttpInListener.InstrumentationName);
+                meterProviderBuilder.AddMeter(AspNetInstrumentation.InstrumentationName);
             });
         });
     }

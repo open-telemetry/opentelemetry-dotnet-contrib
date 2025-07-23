@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Reflection;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
@@ -13,22 +12,15 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
-    internal static readonly Assembly Assembly = typeof(HttpInListener).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string InstrumentationName = AssemblyName.Name;
-    internal static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
-
-    private readonly Meter meter;
     private readonly Histogram<double> httpServerDuration;
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
     private readonly AsyncLocal<long> beginTimestamp = new();
 
-    public HttpInListener()
+    public HttpInListener(Meter meter)
     {
         TelemetryHttpModule.Options.TextMapPropagator = Propagators.DefaultTextMapPropagator;
-        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
-        this.httpServerDuration = this.meter.CreateHistogram(
+        this.httpServerDuration = meter.CreateHistogram(
             "http.server.request.duration",
             unit: "s",
             description: "Duration of HTTP server requests.",
@@ -41,7 +33,6 @@ internal sealed class HttpInListener : IDisposable
 
     public void Dispose()
     {
-        this.meter?.Dispose();
         TelemetryHttpModule.Options.OnRequestStartedCallback -= this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;

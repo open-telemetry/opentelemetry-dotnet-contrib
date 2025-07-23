@@ -1,7 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.Metrics;
+using System.Reflection;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
+using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -13,6 +16,13 @@ internal sealed class AspNetInstrumentation : IDisposable
     public static readonly AspNetInstrumentation Instance = new();
 
     public readonly InstrumentationHandleManager HandleManager = new();
+    internal static readonly Assembly Assembly = typeof(HttpInListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
+    internal static readonly string InstrumentationName = AssemblyName.Name;
+    internal static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
+
+
+    private readonly Meter meter;
     private readonly HttpInListener httpInListener;
 
     /// <summary>
@@ -20,7 +30,8 @@ internal sealed class AspNetInstrumentation : IDisposable
     /// </summary>
     private AspNetInstrumentation()
     {
-        this.httpInListener = new HttpInListener();
+        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+        this.httpInListener = new HttpInListener(this.meter);
     }
 
     public AspNetTraceInstrumentationOptions TraceOptions { get; set; } = new();
@@ -30,6 +41,7 @@ internal sealed class AspNetInstrumentation : IDisposable
     /// <inheritdoc/>
     public void Dispose()
     {
+        this.meter?.Dispose();
         this.httpInListener?.Dispose();
     }
 }
