@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="Microsoft.Win32.Registry" Condition="'$(TargetFrameworkIdentifier)' == '.NETStandard'" />
   </ItemGroup>
 
   <ItemGroup>

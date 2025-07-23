@@ -1,0 +1,42 @@
+name: build-test
+
+on:
+  push:
+    branches: [ 'main2*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
+      - 'Directory*.props'
+      - 'Directory*.targets'
+      - 'build/*.props'
+      - 'build/*.targets'
+      - 'global.json'
+      - '.github/workflows/*-module.yml'
+      - '.github/workflows/Dotnet.*.yml'
+  pull_request:
+    branches: [ 'main2*', 'instrumentation*', 'exporter*', 'extensions*' ]
+    paths:
+      - 'Directory*.props'
+      - 'Directory*.targets'
+      - 'build/*.props'
+      - 'build/*.targets'
+      - 'global.json'
+      - '.github/workflows/*-module.yml'
+      - '.github/workflows/Dotnet.*.yml'
+
+jobs:
+  resources-solution:
+    uses: ./.github/workflows/build-module.yml
+
+  _resources-solution:
+    uses: ./.github/workflows/deploy-module.yml
+    if: ${{ github.event_name == 'push' }}
+
+  build-test:
+    needs: [
+      resources-solution,
+      _resources-solution
+    ]
+    if: always() && !cancelled()
+    runs-on: ubuntu-22.04
+    steps:
+    - run: |
+          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

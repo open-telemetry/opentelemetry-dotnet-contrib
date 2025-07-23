@@ -209,7 +209,7 @@ flags:
   unittests-Resources.OperatingSystem:
     carryforward: true
     paths:
-      - src/OpenTelemetry.Resources.OperatingSystem
+      - modules/Resources.OperatingSystem/src/OpenTelemetry.Resources.OperatingSystem
 
   unittests-Resources.Process:
     carryforward: true

@@ -7,6 +7,7 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <EventSourceSupport>true</EventSourceSupport>
     <SelfContained>true</SelfContained>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)'==''">win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +19,7 @@
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Module)' == ''">
     <!--
       When adding projects here please also update the verify-aot-compat job in
       .github\workflows\ci.yml so that it runs for the project(s) being added.
@@ -41,12 +42,18 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Host" />
-    <TrimmerRootAssembly Include="OpenTelemetry.Resources.OperatingSystem" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />
+    <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Module)' != ''">
+    <TrimmerRootAssembly Include="OpenTelemetry.$(Module)" />
+
+    <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\$(ModuleDir)\src\%(Identity)\%(Identity).csproj" />
     <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
   </ItemGroup>
 

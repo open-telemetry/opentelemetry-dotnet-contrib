@@ -2,6 +2,19 @@ name: Publish & Verify AOT Compatibility
 
 on:
   workflow_call:
+    inputs:
+      module-name:
+        required: false
+        default: ''
+        type: string
+      module-directory:
+        required: false
+        default: '.'
+        type: string
+      os-list:
+        default: '[ "windows-latest", "ubuntu-22.04" ]'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -12,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ ubuntu-22.04, windows-latest ]
+        os: ${{ fromJSON(inputs.os-list) }}
         version: [ net8.0, net9.0 ]
 
     runs-on: ${{ matrix.os }}
@@ -21,7 +34,9 @@ jobs:
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      with:
+        global-json-file: global.json
 
     - name: publish AOT testApp, assert static analysis warning count, and run the app
       shell: pwsh
-      run: .\build\scripts\test-aot-compatibility.ps1 ${{ matrix.version }}
+      run: .\build\scripts\test-aot-compatibility.ps1 ${{ matrix.version }} ${{ inputs.module-name }} ${{ inputs.module-directory }}

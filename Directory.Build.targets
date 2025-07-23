@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true' and $(MSBuildProjectName.Contains('.Tests'))">
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <Import Project="build\Common.targets" />
+  <Import Condition="'$(IsTestProject)' != 'true'"
+    Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), 'opentelemetry-dotnet-contrib.sln'))\build\Common.prod.targets" />
+</Project>

@@ -1,6 +1,4 @@
 <Project>
-  <Import Project=".\Common.props" />
-
   <PropertyGroup>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/open-telemetry/opentelemetry-dotnet-contrib</RepositoryUrl>
@@ -21,7 +19,7 @@
     <PackageChangelogFile>CHANGELOG.md</PackageChangelogFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(IsCPM)' != 'true'">
     <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
