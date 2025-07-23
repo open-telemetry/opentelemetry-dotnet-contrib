@@ -10,16 +10,22 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 internal sealed class AspNetInstrumentation : IDisposable
 {
+    public static readonly AspNetInstrumentation Instance = new();
+
+    public readonly InstrumentationHandleManager HandleManager = new();
     private readonly HttpInListener httpInListener;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AspNetInstrumentation"/> class.
     /// </summary>
-    /// <param name="options">Configuration options for ASP.NET instrumentation.</param>
-    public AspNetInstrumentation(AspNetTraceInstrumentationOptions options)
+    private AspNetInstrumentation()
     {
-        this.httpInListener = new HttpInListener(options);
+        this.httpInListener = new HttpInListener();
     }
+
+    public AspNetTraceInstrumentationOptions TraceOptions { get; set; } = new();
+
+    public AspNetMetricsInstrumentationOptions MetricOptions { get; set; } = new();
 
     /// <inheritdoc/>
     public void Dispose()

@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.AspNet;
+using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Metrics;
@@ -43,9 +44,13 @@ public static class AspNetInstrumentationMeterProviderBuilderExtensions
             services.ConfigureOpenTelemetryMeterProvider((sp, meterProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetMetricsInstrumentationOptions>>().Get(name: null);
+                AspNetInstrumentation.Instance.MetricOptions = options;
 
-                meterProviderBuilder.AddInstrumentation(() => new AspNetMetrics(options));
-                meterProviderBuilder.AddMeter(AspNetMetrics.InstrumentationName);
+                meterProviderBuilder.AddInstrumentation(() =>
+                {
+                    return AspNetInstrumentation.Instance.HandleManager.AddMetricHandle();
+                });
+                meterProviderBuilder.AddMeter(HttpInListener.InstrumentationName);
             });
         });
     }

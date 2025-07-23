@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Reflection;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
@@ -11,17 +13,26 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
+    internal static readonly Assembly Assembly = typeof(HttpInListener).Assembly;
+    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
+    internal static readonly string InstrumentationName = AssemblyName.Name;
+    internal static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
+
+    private readonly Meter meter;
+    private readonly Histogram<double> httpServerDuration;
     private readonly HttpRequestRouteHelper routeHelper = new();
-    private readonly AspNetTraceInstrumentationOptions options;
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
-    public HttpInListener(AspNetTraceInstrumentationOptions options)
+    public HttpInListener()
     {
-        Guard.ThrowIfNull(options);
-
-        this.options = options;
-
         TelemetryHttpModule.Options.TextMapPropagator = Propagators.DefaultTextMapPropagator;
+        this.meter = new Meter(InstrumentationName, InstrumentationVersion);
+        this.httpServerDuration = this.meter.CreateHistogram(
+            "http.server.request.duration",
+            unit: "s",
+            description: "Duration of HTTP server requests.",
+            advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
 
         TelemetryHttpModule.Options.OnRequestStartedCallback += this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
@@ -30,13 +41,92 @@ internal sealed class HttpInListener : IDisposable
 
     public void Dispose()
     {
+        this.meter?.Dispose();
         TelemetryHttpModule.Options.OnRequestStartedCallback -= this.OnStartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
+    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    {
+        end ??= Stopwatch.GetTimestamp();
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
+    }
+
+    private void RecordDuration(Activity? activity, HttpContext context)
+    {
+        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        {
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.MetricOptions;
+        var request = context.Request;
+        var url = request.Url;
+        var tags = new TagList
+        {
+            { SemanticConventions.AttributeUrlScheme, url.Scheme },
+            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
+        };
+
+        if (options.EnableServerAttributesForRequestDuration)
+        {
+            tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+            tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+        }
+
+        var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
+
+        var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
+        if (!string.IsNullOrEmpty(protocolVersion))
+        {
+            tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
+        }
+
+        var template = this.routeHelper.GetRouteTemplate(request);
+        if (!string.IsNullOrEmpty(template))
+        {
+            tags.Add(SemanticConventions.AttributeHttpRoute, template);
+        }
+
+        if (options.Enrich is not null)
+        {
+            try
+            {
+                options.Enrich(context, ref tags);
+            }
+            catch (Exception ex)
+            {
+                AspNetInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), ex);
+            }
+        }
+
+        var duration = activity?.Duration.TotalSeconds ??
+            CalculateDurationFromTimestamp(this.beginTimestamp.Value);
+        this.httpServerDuration.Record(duration, tags);
+    }
+
     private void OnStartActivity(Activity activity, HttpContext context)
     {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles > 0)
+            {
+                // If we are not tracing, but we are collecting metrics, we still
+                // need to set the activity name and tags.
+                this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            }
+
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
             try
@@ -47,7 +137,7 @@ internal sealed class HttpInListener : IDisposable
                 // without an SDK reference. Need the spec to come around on
                 // this.
 
-                if (this.options.Filter?.Invoke(context) == false)
+                if (options.Filter?.Invoke(context) == false)
                 {
                     AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
@@ -86,7 +176,7 @@ internal sealed class HttpInListener : IDisposable
             if (!string.IsNullOrEmpty(query))
             {
                 var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
-                activity.SetTag(SemanticConventions.AttributeUrlQuery, this.options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
+                activity.SetTag(SemanticConventions.AttributeUrlQuery, options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
             }
 
             var userAgent = request.UserAgent;
@@ -97,7 +187,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithHttpRequest?.Invoke(activity, request);
+                options.EnrichWithHttpRequest?.Invoke(activity, request);
             }
             catch (Exception ex)
             {
@@ -108,6 +198,14 @@ internal sealed class HttpInListener : IDisposable
 
     private void OnStopActivity(Activity activity, HttpContext context)
     {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            this.RecordDuration(activity, context);
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
             var response = context.Response;
@@ -130,20 +228,30 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithHttpResponse?.Invoke(activity, response);
+                options.EnrichWithHttpResponse?.Invoke(activity, response);
             }
             catch (Exception ex)
             {
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnStopActivity", ex);
             }
         }
+
+        this.RecordDuration(activity, context);
     }
 
     private void OnException(Activity activity, HttpContext context, Exception exception)
     {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            this.RecordDuration(activity, context);
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
-            if (this.options.RecordException)
+            if (options.RecordException)
             {
                 activity.AddException(exception);
             }
@@ -153,7 +261,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithException?.Invoke(activity, exception);
+                options.EnrichWithException?.Invoke(activity, exception);
             }
             catch (Exception ex)
             {
