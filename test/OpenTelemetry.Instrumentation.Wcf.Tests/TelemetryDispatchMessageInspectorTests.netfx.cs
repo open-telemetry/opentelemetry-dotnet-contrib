@@ -302,9 +302,7 @@ public class TelemetryDispatchMessageInspectorTests : IDisposable
         }
 
         Assert.NotEmpty(stoppedActivities);
-        Assert.Single(stoppedActivities);
-
-        var activity = stoppedActivities[0];
+        var activity = Assert.Single(stoppedActivities);
 
         if (recordException && triggerException)
         {
