@@ -3,9 +3,8 @@
 
 using Cassandra.OpenTelemetry;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
-namespace OpenTelemetry.Metrics;
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering of dependency instrumentation.
