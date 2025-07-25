@@ -60,7 +60,7 @@ public class CassandraInstrumentationTests
 
         provider.ForceFlush(MaxTimeToAllowForFlush);
 
-        Assert.True(exportedItems.Count > 1);
+        Assert.NotEmpty(exportedItems);
         Assert.True(exportedItems.Count > 1, $"Count = {exportedItems.Count}");
     }
 
