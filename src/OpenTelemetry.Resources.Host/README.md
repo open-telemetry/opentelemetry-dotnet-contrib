@@ -13,7 +13,24 @@
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/host.md).
 > These resources can be changed without prior notification.
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### HostDetector
+
+|Attribute| Comment |
+|--- | --- |
+|[`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id)| Only set when running on non-containerized systems. |
+|[`host.ip`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-ip)| Needs to be enabled via the `IncludeIP` setting. |
+|[`host.mac`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-mac)| Needs to be enabled via the `IncludeMac` setting. |
+|[`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name)| Can be explicitly set via the `Name` setting. |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.Host` package to be able to use the
@@ -23,7 +40,7 @@ Host Resource Detectors.
 dotnet add package OpenTelemetry.Resources.Host --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Host resource detector to
 the `ResourceBuilder` with the following example.
@@ -38,7 +55,12 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 
 using var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .ConfigureResource(resource => resource.AddHostDetector())
+    .ConfigureResource(resource => resource.AddHostDetector(new HostDetectorOptions()
+        {
+            IncludeIP = true, // Optional, default is false
+            IncludeMac = false, // Optional, default is false
+            Name = "MyCustomHostName", // Optional custom host name which is used instead of the looked up name for the host.
+        }))
     // other configurations
     .Build();
 
@@ -46,15 +68,15 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 {
     builder.AddOpenTelemetry(options =>
     {
-        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddHostDetector());
+        options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddHostDetector(x =>
+        {
+            x.IncludeIP = false; // Optional, default is false
+            x.IncludeMac = true; // Optional, default is false
+            x.Name = "MyCustomHostName"; // Optional custom host name which is used instead of the looked up name for the host.
+        }));
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **HostDetector**: `host.id` (when running on non-containerized systems), `host.name`.
 
 ## References
 
