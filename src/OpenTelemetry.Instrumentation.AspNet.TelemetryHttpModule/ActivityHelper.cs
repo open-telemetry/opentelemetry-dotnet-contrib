@@ -60,7 +60,7 @@ internal static class ActivityHelper
     /// <param name="context"><see cref="HttpContext"/>.</param>
     /// <param name="onRequestStartedCallback">Callback action.</param>
     /// <returns>New root activity.</returns>
-    public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContext context, Action<Activity, HttpContext>? onRequestStartedCallback)
+    public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContext context, Action<Activity?, HttpContext>? onRequestStartedCallback)
     {
         var propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
@@ -124,7 +124,7 @@ internal static class ActivityHelper
     /// <param name="context"><see cref="HttpContext"/>.</param>
     /// <param name="onRequestStoppedCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void StopAspNetActivity(TextMapPropagator textMapPropagator, Activity? aspNetActivity, HttpContext context, Action<Activity, HttpContext>? onRequestStoppedCallback)
+    public static void StopAspNetActivity(TextMapPropagator textMapPropagator, Activity? aspNetActivity, HttpContext context, Action<Activity?, HttpContext>? onRequestStoppedCallback)
     {
         if (aspNetActivity == null)
         {
@@ -180,7 +180,6 @@ internal static class ActivityHelper
     /// <param name="exception"><see cref="Exception"/>.</param>
     /// <param name="onExceptionCallback">Callback action.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteActivityException(Activity? aspNetActivity, HttpContext context, Exception exception, Action<Activity, HttpContext, Exception>? onExceptionCallback)
     public static void WriteActivityException(Activity? aspNetActivity, HttpContext context, Exception exception, Action<Activity?, HttpContext, Exception>? onExceptionCallback)
     {
         try
