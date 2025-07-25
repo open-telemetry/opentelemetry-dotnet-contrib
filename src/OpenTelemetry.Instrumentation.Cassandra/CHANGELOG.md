@@ -7,9 +7,9 @@
 * Updated CassandraCSharpDriver to `3.17.0`.
   ([#2836](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2836))
 * Updated CassandraCSharpDriver to `3.22.0`.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#2939](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2939))
 * Add tracing support for CassandraCSharpDriver.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#2939](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2939))
 
 ## 1.0.0-beta.2
 
