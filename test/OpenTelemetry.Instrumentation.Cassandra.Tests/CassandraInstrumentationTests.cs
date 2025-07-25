@@ -1,11 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using Cassandra;
 using Cassandra.Mapping;
 using Cassandra.Metrics;
+using Cassandra.OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
 using Xunit;
 using CassandraData = Cassandra.Data.Linq;
 
@@ -63,10 +66,49 @@ public class CassandraInstrumentationTests
 
         var books = await mapper.FetchAsync<BooksEntity>();
 
+        Assert.NotEmpty(books);
+
         provider.ForceFlush(MaxTimeToAllowForFlush);
 
         Assert.True(exportedItems.Count > 1);
+        Assert.True(exportedItems.Count > 1, $"Count = {exportedItems.Count}");
+    }
+
+    [Trait("CategoryName", "CassandraIntegrationTests")]
+    [SkipUnlessEnvVarFoundFact(CassandraConnectionStringEnvName)]
+    public async Task CassandraTracesAreCaptured()
+    {
+        var exportedItems = new List<Activity>();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddCassandraInstrumentation()
+            .Build();
+
+        var cluster = new Builder()
+            .WithConnectionString(this.cassandraConnectionString)
+            .WithOpenTelemetryInstrumentation()
+            .Build();
+
+        var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
+
+        var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
+
+        await table.CreateIfNotExistsAsync();
+
+        var mapper = new Mapper(session);
+
+        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
+        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
+
+        var books = await mapper.FetchAsync<BooksEntity>();
+
         Assert.NotEmpty(books);
+
+        provider.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.NotEmpty(exportedItems);
+        Assert.True(exportedItems.Count > 1, $"Count = {exportedItems.Count}");
     }
 
     [Trait("CategoryName", "CassandraIntegrationTests")]
@@ -103,12 +145,12 @@ public class CassandraInstrumentationTests
 
         var books = await mapper.FetchAsync<BooksEntity>();
 
+        Assert.NotEmpty(books);
+
         provider.ForceFlush(MaxTimeToAllowForFlush);
 
-        var inFlightConnection = exportedItems.FirstOrDefault(i => i.Name == "cassandra.pool.in-flight");
-        Assert.NotNull(inFlightConnection);
-        Assert.Single(exportedItems);
-        Assert.NotEmpty(books);
+        Assert.NotEmpty(exportedItems);
+        Assert.Contains(exportedItems, i => i.Name == "cassandra.pool.in-flight");
     }
 
     [Trait("CategoryName", "CassandraIntegrationTests")]
@@ -140,10 +182,48 @@ public class CassandraInstrumentationTests
 
         var books = await mapper.FetchAsync<BooksEntity>();
 
+        Assert.NotEmpty(books);
+
         provider.ForceFlush(MaxTimeToAllowForFlush);
 
-        var cqlMessageLatency = exportedItems.FirstOrDefault(i => i.Name == "cassandra.cql-requests");
-        Assert.NotNull(cqlMessageLatency);
+        Assert.NotEmpty(exportedItems);
+        Assert.Contains(exportedItems, i => i.Name == "cassandra.cql-requests");
+    }
+
+    [Trait("CategoryName", "CassandraIntegrationTests")]
+    [SkipUnlessEnvVarFoundFact(CassandraConnectionStringEnvName)]
+    public async Task CassandraRequestsLatencyTracesAreCaptured()
+    {
+        var exportedItems = new List<Activity>();
+
+        using var provider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddCassandraInstrumentation()
+            .Build();
+
+        var cluster = new Builder()
+            .WithConnectionString(this.cassandraConnectionString)
+            .WithOpenTelemetryInstrumentation()
+            .Build();
+
+        var session = cluster.ConnectAndCreateDefaultKeyspaceIfNotExists();
+
+        var table = new CassandraData.Table<BooksEntity>(session, new MappingConfiguration());
+
+        await table.CreateIfNotExistsAsync();
+
+        var mapper = new Mapper(session);
+
+        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Good book"));
+        await mapper.InsertAsync(new BooksEntity(Guid.NewGuid(), "Bad book"));
+
+        var books = await mapper.FetchAsync<BooksEntity>();
+
         Assert.NotEmpty(books);
+
+        provider.ForceFlush(MaxTimeToAllowForFlush);
+
+        Assert.NotEmpty(exportedItems);
+        Assert.Contains(exportedItems, i => i.Tags.Any(t => t.Key == "db.system" && t.Value == "cassandra"));
     }
 }
