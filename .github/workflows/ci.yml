@@ -233,6 +233,16 @@ jobs:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
 
+  build-test-instrumentation-cassandra-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-cassandra')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+    with:
+      job: cassandra-integration-test
+
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
     if: |
@@ -630,6 +640,7 @@ jobs:
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
       build-test-instrumentation-cassandra,
+      build-test-instrumentation-cassandra-integration,
       build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
