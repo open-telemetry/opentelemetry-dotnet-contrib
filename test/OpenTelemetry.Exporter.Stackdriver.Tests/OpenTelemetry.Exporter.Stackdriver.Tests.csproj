@@ -18,7 +18,8 @@
     <PackageReference Include="System.Net.Http"
                       Version="$(SystemNetHttp)"
                       IncludeAssets="none"
-                      GeneratePathProperty="true" />
+                      GeneratePathProperty="true"
+                      Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
