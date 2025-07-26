@@ -7,12 +7,17 @@
   ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
 
 * Update Google Cloud libraries:
-  * Google.Cloud.Monitoring.V3 3.4.0 -> 3.8.0
-  * Google.Cloud.Trace.V2 3.3.0 -> 3.5.0
-  ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
+  * Google.Cloud.Monitoring.V3 3.4.0 -> 3.15.0
+  * Google.Cloud.Trace.V2 3.3.0 -> 3.6.0
+    ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127),
+    [#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
 
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
+* Obsolete `OpenTelemetry.Exporter.Stackdriver` package
+  in favor of OTLP protocol in GCP.
+  ([#2925](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2925))
 
 ## 1.0.0-beta.6
 
