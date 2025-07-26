@@ -24,6 +24,16 @@ public class CassandraInstrumentationTests
         this.cassandraConnectionString = Environment.GetEnvironmentVariable(CassandraConnectionStringEnvName);
     }
 
+    [Fact]
+    public void AddCassandraInstrumentationDoesNotThrow()
+    {
+        var builder = Sdk.CreateMeterProviderBuilder();
+
+        var actual = builder.AddCassandraInstrumentation();
+
+        Assert.Same(builder, actual);
+    }
+
     [Trait("CategoryName", "CassandraIntegrationTests")]
     [SkipUnlessEnvVarFoundFact(CassandraConnectionStringEnvName)]
     public async Task CassandraMetricsAreCaptured()
