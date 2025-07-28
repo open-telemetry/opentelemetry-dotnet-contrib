@@ -29,7 +29,7 @@ constructor for specifying path to the service account credential.
 
 > [!IMPORTANT]
 > **This package is deprecated**. Use [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://www.nuget.org/packages/OpenTelemetry.Exporter.OpenTelemetryProtocol)
-> NuGet package as it is [officially supported by Google Cloud](https://cloud.google.com/stackdriver/docs/reference/telemetry/overview).
+> NuGet package as OTLP protocol is [officially supported by Google Cloud](https://cloud.google.com/stackdriver/docs/reference/telemetry/overview).
 
 ## Installation
 
