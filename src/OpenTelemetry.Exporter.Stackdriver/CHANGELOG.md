@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## Deprecated
+
+* This package is deprecated. Please check [README.md](README.md#deprecated)
+  for more details.
 
 ## 1.12.0-beta.1
 
