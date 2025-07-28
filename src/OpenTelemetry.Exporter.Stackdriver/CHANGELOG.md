@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.1
+
+Released 2025-Jul-28
+
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
   ([#2127](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2127))
