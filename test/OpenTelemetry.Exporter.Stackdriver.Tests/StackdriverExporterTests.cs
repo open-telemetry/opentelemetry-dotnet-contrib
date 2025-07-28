@@ -66,7 +66,9 @@ public class StackdriverExporterTests
         const string ActivitySourceName = "stackdriver.test";
 
         var traceClient = new TestTraceServiceClient(throwException: false);
+#pragma warning disable CS0618 // Type or member is obsolete
         var activityExporter = new StackdriverTraceExporter("test_project", traceClient);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         var openTelemetrySdk = Sdk.CreateTracerProviderBuilder()
             .AddSource(ActivitySourceName)
@@ -91,7 +93,9 @@ public class StackdriverExporterTests
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
         var traceClient = new TestTraceServiceClient(throwException: true);
+#pragma warning disable CS0618 // Type or member is obsolete
         var activityExporter = new StackdriverTraceExporter("test", traceClient);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
@@ -127,7 +131,9 @@ public class StackdriverExporterTests
         const string ActivitySourceName = "stackdriver.test";
         var source = new ActivitySource(ActivitySourceName);
         var traceClient = new TestTraceServiceClient(throwException: false);
+#pragma warning disable CS0618 // Type or member is obsolete
         var activityExporter = new StackdriverTraceExporter("test", traceClient);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         var processor = new BatchActivityExportProcessor(new InMemoryExporter<Activity>(exportedItems));
 
