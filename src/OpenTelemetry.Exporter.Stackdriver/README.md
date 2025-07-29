@@ -25,6 +25,12 @@ constructor for specifying path to the service account credential.
 4. Instantiate a new instance of `StackdriverExporter` with your Google Cloud's
    ProjectId
 
+## Deprecated
+
+> [!IMPORTANT]
+> **This package is deprecated**. Use [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://www.nuget.org/packages/OpenTelemetry.Exporter.OpenTelemetryProtocol)
+> NuGet package as OTLP protocol is [supported by Google Cloud](https://cloud.google.com/stackdriver/docs/reference/telemetry/overview).
+
 ## Installation
 
 ```shell
