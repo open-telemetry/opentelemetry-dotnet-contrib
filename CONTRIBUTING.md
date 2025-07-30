@@ -226,9 +226,10 @@ When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership of the component you are contributing. The
 owner should at least be an [OpenTelemetry
 Member](https://github.com/open-telemetry/community/blob/main/community-membership.md#member)
-to be eligible to assigned as component owner. This is required to ensure that
-reviews can be automatically requested from the owners. Once the owner is
-identified, please update [component_owners](./.github/component_owners.yml)
+and be member of [@open-telemetry/dotnet-contrib-contributors](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-contributors)
+to be eligible to assigned as component owner.
+This is required to ensure that reviews can be automatically requested from
+the owners. Once the owner is identified, please update [component_owners](./.github/component_owners.yml)
 file for the new project. The component owner(s) are expected to respond to
 issues and review PRs affecting their component.
 
