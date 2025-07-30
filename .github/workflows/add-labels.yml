@@ -24,18 +24,19 @@ jobs:
       - name: Add labels for component found in bug issue descriptions
         shell: pwsh
         run: |
-          Import-Module .\build\scripts\add-labels.psm1
+          if (-Not [string]::IsNullOrEmpty($env:ISSUE_LABELS)) {
+            Import-Module .\build\scripts\add-labels.psm1
 
-          AddLabelsOnIssuesForComponentFoundInBody `
-            -issueNumber ${env:ISSUE_NUMBER} `
-            -issueLabels ${env:ISSUE_LABELS} `
-            -issueBody ${env:ISSUE_BODY}
+            AddLabelsOnIssuesForComponentFoundInBody `
+              -issueNumber ${env:ISSUE_NUMBER} `
+              -issueLabels ${env:ISSUE_LABELS} `
+              -issueBody ${env:ISSUE_BODY}
+          }
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-        if: ${{ env.ISSUE_LABELS != '' }}
 
   add-labels-on-pull-requests:
     permissions:
