@@ -37,7 +37,6 @@ jobs:
           exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
-          exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
@@ -151,17 +150,6 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
-
-  build-test-exporter-stackdriver:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'exporter-stackdriver')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Exporter.Stackdriver]
-      code-cov-name: Exporter.Stackdriver
 
   build-test-extensions:
     needs: detect-changes
@@ -633,7 +621,6 @@ jobs:
       build-test-exporter-influxdb,
       build-test-exporter-instana,
       build-test-exporter-onecollector,
-      build-test-exporter-stackdriver,
       build-test-extensions,
       build-test-extensions-enrichment,
       build-test-instrumentation-aspnet,
