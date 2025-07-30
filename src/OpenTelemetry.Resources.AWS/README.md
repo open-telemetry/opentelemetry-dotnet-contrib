@@ -9,7 +9,70 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.AWS)](https://www.nuget.org/packages/OpenTelemetry.Resources.AWS)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.AWS)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.AWS)
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### AWS EC2 Detector
+
+| Attribute | Comment |
+| --- | --- |
+|[`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ec2` |
+| [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
+| [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
+|[`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id)| |
+|[`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type)| |
+|[`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name)| |
+
+### AWS EBS Detector
+
+| Attribute | Comment |
+| --- | --- |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_elastic_beanstalk` |
+| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
+| [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-name) | |
+| [`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace) | |
+| [`service.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-version) | |
+
+### AWS ECS Detector
+
+| Attribute | Comment |
+| --- | --- |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ecs` |
+| [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
+| [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
+|[`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
+|[`cloud.resource.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
+|[`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+|[`aws.ecs.cluster.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-cluster-arn) | |
+|[`aws.ecs.task.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-arn) | |
+|[`aws.ecs.task.family`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-family) | |
+|[`aws.task.revision`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-revision) | |
+|[`aws.ecs.launchtype`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-launchtype) | |
+|[`aws.ecs.container.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-container-arn) | |
+|[`aws.log.group.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-names) | |
+|[`aws.log.group.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-arns) | |
+|[`aws.log.stream.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-names) | |
+|[`aws.log.stream.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-arns) | |
+
+### AWS EKS Detector
+
+| Attribute | Comment |
+| --- | --- |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_eks` |
+|[`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
+|[`k8s.cluster.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/k8s/#k8s-cluster-name) | |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.AWS` to be able to use the
@@ -22,7 +85,7 @@ EC2, Elastic Beanstalk, ECS, and EKS environments.
 dotnet add package OpenTelemetry.Resources.AWS
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure AWS resource detector to
 the `ResourceBuilder` with the following EC2 example.
@@ -53,32 +116,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **AWSEC2Detector**: cloud provider, cloud platform, account id,
-cloud availability zone, host id, host type, aws region, host name.
-- **AWSEBSDetector**: cloud provider, cloud platform, service name,
-service namespace, instance id, service version.
-- **AWSECSDetector**: cloud provider, cloud platform, cloud resource id,
-account id, cloud availability zone, cloud region, container id, cluster arn,
-task arn, task family, task revision, launch type, container arn, log group names,
-log group ids, log stream names, log stream ids.
-- **AWSEKSDetector**: cloud provider, cloud platform, cluster name,
-container id.
-
-## Semantic Conventions
-
-_For an overview on Semantic Conventions, see
-[Open Telemetery - Semantic Conventions](https://opentelemetry.io/docs/concepts/semantic-conventions/)_.
-
-While this library is intended for production use, it relies on several
-Semantic Conventions that are still considered Experimental, meaning
-they may undergo additional changes before becoming Stable.  This can impact
-the aggregation and analysis of telemetry signals in environments with
-multiple applications or microservices.
-
-For example, a microservice using an older version of the Semantic Conventions
-for Http Attributes may emit `"http.method"` with a value of GET, while a
-different microservice, using a new version of Semantic Convention may instead
-emit the GET as `"http.request.method"`.
+### Semantic Conventions
 
 Future versions the OpenTelemetry.*.AWS libraries will include updates to the
 Semantic Convention, which may break compatibility with a previous version.

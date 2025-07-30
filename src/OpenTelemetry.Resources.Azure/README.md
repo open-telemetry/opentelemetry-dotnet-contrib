@@ -13,13 +13,62 @@ This package contains [Resource
 Detectors](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#detecting-resource-information-from-the-environment)
 for applications running in Azure environment.
 
-## Installation
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### App Service Resource Detector
+
+| Attribute | Comment |
+|--- | --- |
+| azure.app.service.stamp | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_app_service` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
+| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
+| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`deployment.environment`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/#deployment-environment)  | |
+| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
+| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
+| [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-name) | |
+
+### VM Resource Detector
+
+|Attribute| Comment |
+|--- | --- |
+| azure.vm.scaleset.name   | |
+| azure.vm.sku             | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_vm` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
+| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
+| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
+| [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |
+| [`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type) | |
+|[`os.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | |
+|[`os.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
+
+### Container Apps Resource Detector
+
+|Attribute| Comment |
+|--- | --- |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_container_apps` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
+| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
+| [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-name) | |
+| [`service.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-version) | |
+
+## Getting Started
+
+### Installation
 
 ```shell
 dotnet add package --prerelease OpenTelemetry.Resources.Azure
 ```
 
-## App Service Resource Detector
+### Adding & Configuring App Service Resource Detector
 
 Adds resource attributes for the applications running in Azure App Service.
 The following example shows how to add `AppServiceResourceDetector` to
@@ -48,19 +97,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 });
 ```
 
-| Attribute               | Description                                                                                                                                                                                               |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| azure.app.service.stamp | The specific "stamp" cluster within Azure where the App Service is running, e.g., "waws-prod-sn1-001".                                                                                                    |
-| cloud.platform          | The cloud platform. Here, it's always "azure_app_service".                                                                                                                                                |
-| cloud.provider          | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
-| cloud.resource_id       | The Azure Resource Manager URI uniquely identifying the Azure App Service. Typically in the format "/subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Web/sites/{siteName}". |
-| cloud.region            | The Azure region where the App Service is hosted, e.g., "East US", "West Europe", etc.                                                                                                                    |
-| deployment.environment  | The deployment slot where the Azure App Service is running, such as "staging", "production", etc.                                                                                                         |
-| host.id                 | The primary hostname for the app, excluding any custom hostnames.                                                                                                                                         |
-| service.instance.id     | The specific instance of the Azure App Service, useful in a scaled-out configuration.                                                                                                                     |
-| service.name            | The name of the Azure App Service.                                                                                                                                                                        |
-
-## VM Resource Detector
+### Adding & Configuring VM Resource Detector
 
 Adds resource attributes for the applications running in an Azure virtual machine.
 The following example shows how to add `AzureVMResourceDetector` to
@@ -81,21 +118,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
-| Attribute                | Description                                                                                                                                                                                                                         |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| azure.vm.scaleset.name   | The name of the Virtual Machine Scale Set if the VM is part of one.                                                                                                                                                                 |
-| cloud.platform           | The cloud platform, which is always set to "azure_vm" in this context.                                                                                                                                                              |
-| cloud.provider           | The cloud service provider, which is always set to "azure" in this context.                                                                                                                                                         |
-| cloud.region             | The Azure region where the Virtual Machine is hosted, such as "East US", "West Europe", etc.                                                                                                                                        |
-| cloud.resource_id        | The Azure Resource Manager URI uniquely identifying the Azure Virtual Machine. It typically follows this format: "/subscriptions/{subscriptionId}/resourceGroups/{groupName}/providers/Microsoft.Compute/virtualMachines/{vmName}". |
-| host.id                  | A unique identifier for the VM host, for instance, "02aab8a4-74ef-476e-8182-f6d2ba4166a6".                                                                                                                                          |
-| host.name                | The name of the host machine.                                                                                                                                                                                                       |
-| host.type                | The size of the VM instance, for example, "Standard_D2s_v3".                                                                                                                                                                        |
-| os.type                  | The type of operating system running on the VM, such as "Linux" or "Windows".                                                                                                                                                       |
-| os.version               | The version of the operating system running on the VM.                                                                                                                                                                              |
-| service.instance.id      | An identifier for a specific instance of the service running on the Azure VM, for example, "02aab8a4-74ef-476e-8182-f6d2ba4166a6".                                                                                                  |
-
-## Azure Container Apps Resource Detector
+### Adding & Configuring Azure Container Apps Resource Detector
 
 Adds resource attributes for the applications running in Azure Container Apps
 or Azure Container App jobs. The following example shows how to add
@@ -115,11 +138,3 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
     // other configurations
     .Build();
 ```
-
-| Attribute               | Description                                                                                                                                                                                               |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| cloud.platform          | The cloud platform. Here, it's always "azure_container_apps".                                                                                                                                             |
-| cloud.provider          | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
-| service.instance.id     | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                                                                                                         |
-| service.name            | The name of the Azure Container Apps or Azure Container Apps job.                                                                                                                                         |
-| service.version         | The current revision or version of Azure Container Apps, or in case of a Azure Container Apps job - the job execution name.                                                                               |

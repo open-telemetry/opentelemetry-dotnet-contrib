@@ -13,7 +13,23 @@
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/host.md).
 > These resources can be changed without prior notification.
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### HostDetector
+
+|Attribute| Comment |
+|--- | --- |
+| [`host.arch`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-arch) | supported only on .NET |
+| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | Only set when running on non-containerized systems. |
+| [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.Host` package to be able to use the
@@ -23,7 +39,7 @@ Host Resource Detectors.
 dotnet add package OpenTelemetry.Resources.Host --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Host resource detector to
 the `ResourceBuilder` with the following example.
@@ -50,14 +66,6 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **HostDetector**:
-  - `host.arch` (supported only on .NET),
-  - `host.id` (when running on non-containerized systems),
-  - `host.name`.
 
 ## References
 

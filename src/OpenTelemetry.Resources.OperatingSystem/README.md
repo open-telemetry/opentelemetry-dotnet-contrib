@@ -13,7 +13,25 @@
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.26.0/docs/resource/os.md).
 > These resources can be changed without prior notification.
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### OperatingSystemDetector
+
+|Attribute| Comment |
+|--- | --- |
+|[`os.build_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build_id) | |
+|[`os.description`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
+|[`os.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | |
+|[`os.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | |
+|[`os.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.OperatingSystem` package to be able to use the
@@ -23,7 +41,7 @@ Operating System Resource Detectors.
 dotnet add package OpenTelemetry.Resources.OperatingSystem --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Operating System resource detector to
 the `ResourceBuilder` with the following example.
@@ -50,12 +68,6 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **OperatingSystemDetector**: `os.type`, `os.build_id`, `os.description`,
-  `os.name`, `os.version`.
 
 ## References
 
