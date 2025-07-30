@@ -182,6 +182,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceType.IsDynamoDbService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
+            string? cloudRegion = AWSServiceHelper.GetDynamoDbCloudRegion(requestContext);
+            if (cloudRegion != null)
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, cloudRegion);
+            }
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {

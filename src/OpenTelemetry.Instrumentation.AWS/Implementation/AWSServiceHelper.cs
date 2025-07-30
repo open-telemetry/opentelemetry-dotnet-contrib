@@ -114,4 +114,31 @@ internal class AWSServiceHelper
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
     }
+
+    internal static string? GetDynamoDbCloudRegion(IRequestContext requestContext)
+    {
+        string? region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
+
+        // Use ServiceURL as fallback.
+        region ??= GetCloudRegionFromDynamoServiceUrl(requestContext.ClientConfig?.ServiceURL);
+        return region;
+    }
+
+    private static string? GetCloudRegionFromDynamoServiceUrl(string? serviceUrl)
+    {
+        // In this method we assume that DynamoDB is accessed either via DynamoDB URL: https://dynamodb.<region>.amazonaws.com
+        // or via API Gateway: https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/<resource-path>
+        if (serviceUrl != null)
+        {
+            var uri = new Uri(serviceUrl);
+            string host = uri.Host;
+            string[] segments = host.Split('.');
+            if (segments.Length > 2)
+            {
+                return segments[segments.Length - 3];
+            }
+        }
+
+        return null;
+    }
 }
