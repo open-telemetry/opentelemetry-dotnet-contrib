@@ -13,7 +13,23 @@
 > Resources detected by this packages are defined by [experimental semantic convention](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/resource/process.md#process-runtimes).
 > These resources can be changed without prior notification.
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### ProcessRuntimeDetector
+
+|Attribute| Comment |
+|--- | --- |
+|[`process.runtime.description`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-description)|  |
+|[`process.runtime.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-name)|  |
+|[`process.runtime.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-version)|  |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.ProcessRuntime` package to be able to use the
@@ -23,7 +39,7 @@ Process Runtime Resource Detectors.
 dotnet add package OpenTelemetry.Resources.ProcessRuntime --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Process Runtime resource detector to
 the `ResourceBuilder` with the following example.
@@ -50,12 +66,6 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **ProcessRuntimeDetector**: `process.runtime.description`, `process.runtime.name`,
-  and `process.runtime.version`.
 
 ## References
 
