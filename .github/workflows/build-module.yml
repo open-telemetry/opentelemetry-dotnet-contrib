@@ -1,0 +1,45 @@
+name: Build Module
+
+on:
+  workflow_call:
+    inputs:
+      module-name:
+        required: true
+        type: string
+      module-directory:
+        required: false
+        default: '.'
+        type: string
+      os-list:
+        default: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
+        required: false
+        type: string
+
+jobs:
+  initialization:
+    uses: ./.github/workflows/Dotnet.Init.yml
+    with:
+      module-name: ${{ inputs.module-name }}
+      module-directory: '${{ inputs.module-directory }}'
+
+  main:
+    needs: initialization
+    uses: ./.github/workflows/Dotnet.Main.yml
+    with:
+      module-name: ${{ inputs.module-name }}
+      module-directory: '${{ inputs.module-directory }}'
+      os-list: ${{ inputs.os-list }}
+
+  verify:
+    needs: main
+    uses: ./.github/workflows/verifyaotcompat.yml
+    with:
+      module-name: ${{ inputs.module-name }}
+      module-directory: '${{ inputs.module-directory }}'
+
+  wrap-up:
+    needs: main
+    uses: ./.github/workflows/Dotnet.WrapUp.yml
+    with:
+      module-name: ${{ inputs.module-name }}
+      module-directory: '${{ inputs.module-directory }}'
