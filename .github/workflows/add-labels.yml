@@ -27,12 +27,15 @@ jobs:
           Import-Module .\build\scripts\add-labels.psm1
 
           AddLabelsOnIssuesForComponentFoundInBody `
-            -issueNumber ${{ github.event.issue.number }} `
-            -issueLabels '${{ join(github.event.issue.labels.*.name, ', ') }}' `
-            -issueBody $env:ISSUE_BODY
+            -issueNumber ${env:ISSUE_NUMBER} `
+            -issueLabels ${env:ISSUE_LABELS} `
+            -issueBody ${env:ISSUE_BODY}
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        if: ${{ env.ISSUE_LABELS != '' }}
 
   add-labels-on-pull-requests:
     permissions:
@@ -53,7 +56,8 @@ jobs:
           Import-Module .\build\scripts\add-labels.psm1
 
           AddLabelsOnPullRequestsBasedOnFilesChanged `
-            -pullRequestNumber ${{ github.event.pull_request.number }} `
+            -pullRequestNumber ${env:PR_NUMBER} `
             -labelPackagePrefix 'comp:'
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
