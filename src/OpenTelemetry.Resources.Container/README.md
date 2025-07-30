@@ -9,7 +9,21 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Container)](https://www.nuget.org/packages/OpenTelemetry.Resources.Container)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Resources.Container)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Resources.Container)
 
+## Attribute Utilization
+
+The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled in your project.
+
+### ContainerRuntimeDetector
+
+|Attribute| Comment |
+|--- | --- |
+|[`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
+
 ## Getting Started
+
+### Installation
 
 You need to install the
 `OpenTelemetry.Resources.Container` package to be able to use the
@@ -19,7 +33,7 @@ Container Resource Detectors.
 dotnet add package OpenTelemetry.Resources.Container --prerelease
 ```
 
-## Usage
+### Adding & Configuring Detector
 
 You can configure Container resource detector to
 the `ResourceBuilder` with the following example.
@@ -46,11 +60,6 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     });
 });
 ```
-
-The resource detectors will record the following metadata based on where
-your application is running:
-
-- **ContainerDetector**: container.id.
 
 ## References
 
