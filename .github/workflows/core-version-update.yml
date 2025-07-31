@@ -40,7 +40,7 @@ jobs:
       env:
         BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
-        DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        TARGET_BRANCH: ${{ github.event.repository.default_branch }}
         TAG: ${{ inputs.tag }}
       run: |
         Import-Module .\build\scripts\post-release.psm1
@@ -48,6 +48,6 @@ jobs:
         CreateOpenTelemetryCoreLatestVersionUpdatePullRequest `
           -gitRepository ${env:GITHUB_REPOSITORY} `
           -tag ${env:TAG} `
-          -targetBranch ${env:DEFAULT_BRANCH} `
+          -targetBranch ${env:TARGET_BRANCH} `
           -gitUserName ${env:BOT_USER_NAME} `
           -gitUserEmail ${env:BOT_USER_EMAIL}
