@@ -84,6 +84,12 @@ public class BasicTests
             var sum = metricPoint.GetHistogramSum();
 
             Assert.True(sum > 0, "Sum should be greater than 0");
+
+            if (tracesEnabled)
+            {
+                Assert.NotNull(activity);
+                Assert.Equal(activity.Duration.TotalSeconds, sum);
+            }
         }
         else
         {
