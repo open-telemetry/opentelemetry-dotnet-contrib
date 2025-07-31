@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
@@ -96,7 +95,7 @@ internal sealed class HttpInListener : IDisposable
         AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
     }
 
-    private void OnStartActivity(Activity activity, HttpContext context)
+    private void OnStartActivity(Activity? activity, HttpContext context)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -181,7 +180,7 @@ internal sealed class HttpInListener : IDisposable
         }
     }
 
-    private void OnStopActivity(Activity activity, HttpContext context)
+    private void OnStopActivity(Activity? activity, HttpContext context)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -224,7 +223,7 @@ internal sealed class HttpInListener : IDisposable
         this.RecordDuration(activity, context);
     }
 
-    private void OnException(Activity activity, HttpContext context, Exception exception)
+    private void OnException(Activity? activity, HttpContext context, Exception exception)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {

@@ -4,7 +4,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.AspNet;
-using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Metrics;

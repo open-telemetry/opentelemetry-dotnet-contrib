@@ -3,7 +3,6 @@
 
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using System.Threading;
 using OpenTelemetry.Instrumentation.AspNet.Implementation;
 using OpenTelemetry.Internal;
 
@@ -25,8 +24,6 @@ internal sealed class AspNetInstrumentation : IDisposable
         unit: "s",
         description: "Duration of HTTP server requests.",
         advice: new InstrumentAdvice<double> { HistogramBucketBoundaries = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10] });
-
-
 
     public readonly InstrumentationHandleManager HandleManager = new();
     private readonly HttpInListener httpInListener;
