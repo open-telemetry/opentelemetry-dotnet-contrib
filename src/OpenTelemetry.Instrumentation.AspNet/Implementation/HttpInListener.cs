@@ -57,14 +57,20 @@ internal sealed class HttpInListener : IDisposable
             { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
         };
 
+        // Add exception-related tags for metrics when an exception occurred
+        if (exception != null)
+        {
+            tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+        }
+
+        var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
+
         if (options.EnableServerAttributesForRequestDuration)
         {
             tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
             tags.Add(SemanticConventions.AttributeServerPort, url.Port);
         }
-
-        var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
-        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
 
         var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))
@@ -76,19 +82,6 @@ internal sealed class HttpInListener : IDisposable
         if (!string.IsNullOrEmpty(template))
         {
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
-        }
-
-        var query = url.Query;
-        if (!string.IsNullOrEmpty(query))
-        {
-            var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
-            tags.Add(SemanticConventions.AttributeUrlQuery, queryString);
-        }
-
-        var userAgent = request.UserAgent;
-        if (!string.IsNullOrEmpty(userAgent))
-        {
-            tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
         }
 
         if (options.Enrich is not null)
