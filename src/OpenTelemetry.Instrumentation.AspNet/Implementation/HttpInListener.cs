@@ -112,7 +112,6 @@ internal sealed class HttpInListener : IDisposable
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStartActivity));
-            this.RecordDuration(activity, context);
             return;
         }
 
