@@ -15,7 +15,7 @@ for applications running in Google Cloud Platform environments.
 
 ## Attribute Utilization
 
-The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
 added & enabled in your project.
 
@@ -23,10 +23,10 @@ added & enabled in your project.
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_kubernetes_engine` |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
 | [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_kubernetes_engine` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
 | [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
 | [`k8s.cluster.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/k8s/#k8s-cluster-name) | |
 | [`k8s.namespace.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/k8s/#k8s-namespace-name)      | |
@@ -36,28 +36,28 @@ added & enabled in your project.
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_app_engine` |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_app_engine` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
 
 ### Google Cloud Run
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_cloud_run` |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
 | [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_cloud_run` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
 | [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
 
 ### Google Compute Engine
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_compute_engine` |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
 | [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `gcp_compute_engine` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `gcp` |
 | [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
 
 ## Getting Started

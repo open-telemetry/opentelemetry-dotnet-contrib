@@ -11,7 +11,7 @@
 
 ## Attribute Utilization
 
-The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
 added & enabled in your project.
 
@@ -19,21 +19,21 @@ added & enabled in your project.
 
 | Attribute | Comment |
 | --- | --- |
-|[`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ec2` |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
 | [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
-|[`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id)| |
-|[`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type)| |
-|[`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name)| |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ec2` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
+| [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |
+| [`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type) | |
 
 ### AWS EBS Detector
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_elastic_beanstalk` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
 | [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
 | [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-name) | |
 | [`service.namespace`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-namespace) | |
@@ -43,32 +43,32 @@ added & enabled in your project.
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ecs` |
+| [`aws.ecs.cluster.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-cluster-arn) | |
+| [`aws.ecs.container.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-container-arn) | |
+| [`aws.ecs.launchtype`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-launchtype) | |
+| [`aws.ecs.task.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-arn) | |
+| [`aws.ecs.task.family`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-family) | |
+| [`aws.log.group.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-arns) | |
+| [`aws.log.group.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-names) | |
+| [`aws.log.stream.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-arns) | |
+| [`aws.log.stream.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-names) | |
+| [`aws.task.revision`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-revision) | |
 | [`cloud.account.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-account-id) | |
 | [`cloud.availability_zone`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-availability-zone) | |
-|[`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
-|[`cloud.resource.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
-|[`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
-|[`aws.ecs.cluster.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-cluster-arn) | |
-|[`aws.ecs.task.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-arn) | |
-|[`aws.ecs.task.family`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-family) | |
-|[`aws.task.revision`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-task-revision) | |
-|[`aws.ecs.launchtype`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-launchtype) | |
-|[`aws.ecs.container.arn`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-ecs-container-arn) | |
-|[`aws.log.group.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-names) | |
-|[`aws.log.group.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-group-arns) | |
-|[`aws.log.stream.names`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-names) | |
-|[`aws.log.stream.arns`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/aws/#aws-log-stream-arns) | |
+| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_ecs` |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`cloud.resource.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
+| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
 
 ### AWS EKS Detector
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `aws_eks` |
-|[`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
-|[`k8s.cluster.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/k8s/#k8s-cluster-name) | |
+| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `aws` |
+| [`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
+| [`k8s.cluster.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/k8s/#k8s-cluster-name) | |
 
 ## Getting Started
 

@@ -15,7 +15,7 @@
 
 ## Attribute Utilization
 
-The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
 added & enabled in your project.
 
