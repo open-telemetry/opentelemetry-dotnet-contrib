@@ -78,6 +78,19 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
         }
 
+        var query = url.Query;
+        if (!string.IsNullOrEmpty(query))
+        {
+            var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
+            tags.Add(SemanticConventions.AttributeUrlQuery, queryString);
+        }
+
+        var userAgent = request.UserAgent;
+        if (!string.IsNullOrEmpty(userAgent))
+        {
+            tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+        }
+
         if (options.Enrich is not null)
         {
             try
