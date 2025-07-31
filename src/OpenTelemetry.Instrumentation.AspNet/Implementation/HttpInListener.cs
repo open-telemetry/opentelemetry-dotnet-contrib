@@ -75,6 +75,16 @@ internal sealed class HttpInListener : IDisposable
         var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
         if (!string.IsNullOrEmpty(protocolVersion))
         {
+            // Determine the actual protocol name from the request
+            var protocolName = url.Scheme?.ToLowerInvariant() ?? "http";
+
+            // Only add network.protocol.name when it's not "http" and version is available
+            // Per spec: "Conditionally Required: If not http and network.protocol.version is set."
+            if (protocolName != "http")
+            {
+                tags.Add(SemanticConventions.AttributeNetworkProtocolName, protocolName);
+            }
+
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
         }
 
