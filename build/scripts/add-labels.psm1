@@ -3,7 +3,7 @@ Import-Module $PSScriptRoot\build.psm1
 function AddLabelsOnIssuesForComponentFoundInBody {
   param(
     [Parameter(Mandatory=$true)][int]$issueNumber,
-    [Parameter(Mandatory=$true)][AllowEmptyString][string]$issueLabels,
+    [Parameter(Mandatory=$true)][AllowEmptyString()][string]$issueLabels,
     [Parameter(Mandatory=$true)][string]$issueBody
   )
 
