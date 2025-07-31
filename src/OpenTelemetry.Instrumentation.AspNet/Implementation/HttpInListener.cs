@@ -109,6 +109,13 @@ internal sealed class HttpInListener : IDisposable
             return;
         }
 
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStartActivity));
+            this.RecordDuration(activity, context);
+            return;
+        }
+
         var options = AspNetInstrumentation.Instance.TraceOptions;
 
         if (activity.IsAllDataRequested)
@@ -188,6 +195,13 @@ internal sealed class HttpInListener : IDisposable
             return;
         }
 
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStopActivity));
+            this.RecordDuration(activity, context);
+            return;
+        }
+
         var options = AspNetInstrumentation.Instance.TraceOptions;
 
         if (activity.IsAllDataRequested)
@@ -227,6 +241,13 @@ internal sealed class HttpInListener : IDisposable
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
+            this.RecordDuration(activity, context);
+            return;
+        }
+
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnException));
             this.RecordDuration(activity, context);
             return;
         }
