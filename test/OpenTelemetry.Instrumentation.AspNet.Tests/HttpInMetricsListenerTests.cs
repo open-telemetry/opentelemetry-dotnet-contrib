@@ -40,20 +40,8 @@ public class HttpInMetricsListenerTests
         int expectedStatus,
         bool enableServerAttributesForRequestDuration = true)
     {
-        double duration = 0;
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, "GET");
         HttpContext.Current.Response.StatusCode = expectedStatus;
-
-        // This is to enable activity creation
-        // as it is created using ActivitySource inside TelemetryHttpModule
-        // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.EnrichWithHttpResponse
-                = (activity, response) =>
-                {
-                    duration = activity.Duration.TotalSeconds;
-                })
-            .Build();
 
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -102,8 +90,7 @@ public class HttpInMetricsListenerTests
         Assert.Equal("http.server.request.duration", exportedItems[0].Name);
         Assert.Equal("s", exportedItems[0].Unit);
         Assert.Equal(1L, count);
-        Assert.Equal(duration, sum);
-        Assert.True(duration > 0, "Metric duration should be set.");
+        Assert.True(sum > 0, "Metric sum (duration) should be greater than 0.");
 
         var expectedTagCount = 3;
 
