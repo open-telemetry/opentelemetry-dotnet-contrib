@@ -1,0 +1,95 @@
+<!-- Copyright The OpenTelemetry Authors; SPDX-License-Identifier: Apache-2.0 -->
+<Project>
+
+	<!--
+	  =================================================================
+	  GetOtelVcsResourceAttributes
+	  =================================================================
+	  This target attempts to include OpenTelemetry resource attributes
+	  as `AssemblyMetadata` items using `otel:`-prefixed keys which can
+	  later be detected by the `AssemblyMetadataDetector`.
+
+	  To disable this target, set `GetOtelVcsResourceAttributes=false`.
+	  ==================================================================
+	-->
+	<Target Name="GetOtelVcsResourceAttributes"
+			AfterTargets="InitializeSourceControlInformation"
+			BeforeTargets="GetAssemblyAttributes"
+			Condition="'$(GetOtelVcsResourceAttributes)' != 'false'"
+			Label="https://opentelemetry.io/docs/specs/semconv/registry/attributes/vcs/">
+
+		<PropertyGroup>
+			<OtelVcsChangeId Condition="'$(OtelVcsChangeId)' == ''">$(OTEL_VCS_CHANGE_ID)</OtelVcsChangeId>
+			<OtelVcsChangeState Condition="'$(OtelVcsChangeState)' == ''">$(OTEL_VCS_CHANGE_STATE)</OtelVcsChangeState>
+			<OtelVcsChangeTitle Condition="'$(OtelVcsChangeTitle)' == ''">$(OTEL_VCS_CHANGE_TITLE)</OtelVcsChangeTitle>
+			<OtelVcsLineChangeType Condition="'$(OtelVcsLineChangeType)' == ''">$(OTEL_VCS_LINE_CHANGE_TYPE)</OtelVcsLineChangeType>
+			<OtelVcsOwnerName Condition="'$(OtelVcsOwnerName)' == ''">$(OTEL_VCS_OWNER_NAME)</OtelVcsOwnerName>
+			<OtelVcsProviderName Condition="'$(OtelVcsProviderName)' == ''">$(OTEL_VCS_PROVIDER_NAME)</OtelVcsProviderName>
+			<OtelVcsRefBaseName Condition="'$(OtelVcsRefBaseName)' == ''">$(OTEL_VCS_REF_BASE_NAME)</OtelVcsRefBaseName>
+			<OtelVcsRefBaseRevision Condition="'$(OtelVcsRefBaseRevision)' == ''">$(OTEL_VCS_REF_BASE_REVISION)</OtelVcsRefBaseRevision>
+			<OtelVcsRefBaseType Condition="'$(OtelVcsRefBaseType)' == ''">$(OTEL_VCS_REF_BASE_TYPE)</OtelVcsRefBaseType>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == ''">$(OTEL_VCS_REF_HEAD_NAME)</OtelVcsRefHeadName>
+			<OtelVcsRefHeadRevision Condition="'$(OtelVcsRefHeadRevision)' == ''">$(OTEL_VCS_REF_HEAD_REVISION)</OtelVcsRefHeadRevision>
+			<OtelVcsRefHeadType Condition="'$(OtelVcsRefHeadType)' == ''">$(OTEL_VCS_REF_HEAD_TYPE)</OtelVcsRefHeadType>
+			<OtelVcsRefType Condition="'$(OtelVcsRefType)' == ''">$(OTEL_VCS_REF_TYPE)</OtelVcsRefType>
+			<OtelVcsRepositoryName Condition="'$(OtelVcsRepositoryName)' == ''">$(OTEL_VCS_REPOSITORY_NAME)</OtelVcsRepositoryName>
+			<OtelVcsRepositoryUrlFull Condition="'$(OtelVcsRepositoryUrlFull)' == ''">$(OTEL_VCS_REPOSITORY_URL_FULL)</OtelVcsRepositoryUrlFull>
+			<OtelVcsRevisionDeltaDirection Condition="'$(OtelVcsRevisionDeltaDirection)' == ''">$(OTEL_VCS_REVISION_DELTA_DIRECTION)</OtelVcsRevisionDeltaDirection>
+		</PropertyGroup>
+
+		<PropertyGroup Condition="'$(EnableSourceLink)' == 'true'">
+			<_Regex><![CDATA[^(?<url>(?:git|https)://(?<provider>gitea|github|gitlab|bitbucket)\.(?:com|org)/(?<owner>[^/]+?)/(?<repository>[^/]+?))(?:\.git)?$]]></_Regex>
+			<_IsMatch>$([System.Text.RegularExpressions.Regex]::IsMatch($(PrivateRepositoryUrl), $(_Regex)))</_IsMatch>
+			<OtelVcsOwnerName Condition="'$(OtelVcsOwnerName)' == '' and '$(_IsMatch)' == 'true'">$([System.Text.RegularExpressions.Regex]::Replace($(PrivateRepositoryUrl), $(_Regex), '${owner}'))</OtelVcsOwnerName>
+			<OtelVcsProviderName Condition="'$(OtelVcsProviderName)' == '' and '$(_IsMatch)' == 'true'">$([System.Text.RegularExpressions.Regex]::Replace($(PrivateRepositoryUrl), $(_Regex), '${provider}'))</OtelVcsProviderName>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == '' and $(SourceBranchName.StartsWith('refs/heads/'))">$(SourceBranchName.Substring(11))</OtelVcsRefHeadName>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == '' and $(SourceBranchName.StartsWith('refs/tags/'))">$(SourceBranchName.Substring(10))</OtelVcsRefHeadName>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == ''">$(SourceBranchName)</OtelVcsRefHeadName>
+			<OtelVcsRefHeadRevision Condition="'$(OtelVcsRefHeadRevision)' == ''">$(SourceRevisionId)</OtelVcsRefHeadRevision>
+			<OtelVcsRefHeadType Condition="'$(OtelVcsRefHeadType)' == '' and $(SourceBranchName.StartsWith('refs/heads/'))">branch</OtelVcsRefHeadType>
+			<OtelVcsRefHeadType Condition="'$(OtelVcsRefHeadType)' == '' and $(SourceBranchName.StartsWith('refs/tags/'))">tag</OtelVcsRefHeadType>
+			<OtelVcsRefType Condition="'$(OtelVcsRefType)' == '' and $(SourceBranchName.StartsWith('refs/heads/'))">branch</OtelVcsRefType>
+			<OtelVcsRefType Condition="'$(OtelVcsRefType)' == '' and $(SourceBranchName.StartsWith('refs/tags/'))">tag</OtelVcsRefType>
+			<OtelVcsRepositoryName Condition="'$(OtelVcsRepositoryName)' == '' and '$(_IsMatch)' == 'true'">$([System.Text.RegularExpressions.Regex]::Replace($(PrivateRepositoryUrl), $(_Regex), '${repository}'))</OtelVcsRepositoryName>
+			<OtelVcsRepositoryUrlFull Condition="'$(OtelVcsRepositoryUrlFull)' == '' and '$(_IsMatch)' == 'true'">$([System.Text.RegularExpressions.Regex]::Replace($(PrivateRepositoryUrl), $(_Regex), '${url}'))</OtelVcsRepositoryUrlFull>
+		</PropertyGroup>
+
+		<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+			<_Regex><![CDATA[^refs/pull/(?<pr_number>\d+)/merge$]]></_Regex>
+			<_IsMatch>$([System.Text.RegularExpressions.Regex]::IsMatch($(GITHUB_REF), $(_Regex)))</_IsMatch>
+			<OtelVcsChangeId Condition="'$(OtelVcsChangeId)' == '' and '$(_IsMatch)' == 'true'">$([System.Text.RegularExpressions.Regex]::Replace($(GITHUB_REF), $(_Regex), '${pr_number}'))</OtelVcsChangeId>
+			<OtelVcsOwnerName Condition="'$(OtelVcsOwnerName)' == ''">$(GITHUB_REPOSITORY_OWNER)</OtelVcsOwnerName>
+			<OtelVcsProviderName Condition="'$(OtelVcsProviderName)' == ''">github</OtelVcsProviderName>
+			<OtelVcsRefBaseName Condition="'$(OtelVcsRefBaseName)' == ''">$(GITHUB_BASE_REF)</OtelVcsRefBaseName>
+			<OtelVcsRefBaseType Condition="'$(OtelVcsRefBaseType)' == '' and '$(GITHUB_BASE_REF)' != ''">branch</OtelVcsRefBaseType>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == ''">$(GITHUB_HEAD_REF)</OtelVcsRefHeadName>
+			<OtelVcsRefHeadName Condition="'$(OtelVcsRefHeadName)' == ''">$(GITHUB_REF_NAME)</OtelVcsRefHeadName>
+			<OtelVcsRefHeadRevision Condition="'$(OtelVcsRefHeadRevision)' == ''">$(GITHUB_SHA)</OtelVcsRefHeadRevision>
+			<OtelVcsRefHeadType Condition="'$(OtelVcsRefHeadType)' == ''">$(GITHUB_REF_TYPE)</OtelVcsRefHeadType>
+			<OtelVcsRefType Condition="'$(OtelVcsRefType)' == ''">$(GITHUB_REF_TYPE)</OtelVcsRefType>
+			<OtelVcsRepositoryName Condition="'$(OtelVcsRepositoryName)' == ''">$(GITHUB_REPOSITORY.Substring($(GITHUB_REPOSITORY_OWNER.Length + 1)))</OtelVcsRepositoryName>
+			<OtelVcsRepositoryUrlFull Condition="'$(OtelVcsRepositoryUrlFull)' == ''">$(GITHUB_SERVER_URL)/$(GITHUB_REPOSITORY)</OtelVcsRepositoryUrlFull>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<AssemblyMetadata Include="otel:vcs.change.id" Value="$(OtelVcsChangeId)" Condition="'$(OtelVcsChangeId)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.change.state" Value="$(OtelVcsChangeState)" Condition="'$(OtelVcsChangeState)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.change.title" Value="$(OtelVcsChangeTitle)" Condition="'$(OtelVcsChangeTitle)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.line_change.type" Value="$(OtelVcsLineChangeType)" Condition="'$(OtelVcsLineChangeType)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.owner.name" Value="$(OtelVcsOwnerName)" Condition="'$(OtelVcsOwnerName)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.provider.name" Value="$(OtelVcsProviderName)" Condition="'$(OtelVcsProviderName)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.base.name" Value="$(OtelVcsRefBaseName)" Condition="'$(OtelVcsRefBaseName)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.base.revision" Value="$(OtelVcsRefBaseRevision)" Condition="'$(OtelVcsRefBaseRevision)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.base.type" Value="$(OtelVcsRefBaseType)" Condition="'$(OtelVcsRefBaseType)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.head.name" Value="$(OtelVcsRefHeadName)" Condition="'$(OtelVcsRefHeadName)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.head.revision" Value="$(OtelVcsRefHeadRevision)" Condition="'$(OtelVcsRefHeadRevision)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.head.type" Value="$(OtelVcsRefHeadType)" Condition="'$(OtelVcsRefHeadType)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.ref.type" Value="$(OtelVcsRefType)" Condition="'$(OtelVcsRefType)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.repository.name" Value="$(OtelVcsRepositoryName)" Condition="'$(OtelVcsRepositoryName)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.repository.url.full" Value="$(OtelVcsRepositoryUrlFull)" Condition="'$(OtelVcsRepositoryUrlFull)' != ''" />
+			<AssemblyMetadata Include="otel:vcs.revision_delta.direction" Value="$(OtelVcsRevisionDeltaDirection)" Condition="'$(OtelVcsRevisionDeltaDirection)' != ''" />
+		</ItemGroup>
+
+	</Target>
+
+</Project>

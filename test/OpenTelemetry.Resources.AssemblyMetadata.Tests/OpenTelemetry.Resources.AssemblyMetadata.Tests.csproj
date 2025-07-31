@@ -14,7 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\src\OpenTelemetry.SemanticConventions\Attributes\VcsAttributes.cs" LinkBase="Includes" />
+    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundFactAttribute.cs" LinkBase="Includes" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Resources.AssemblyMetadata\OpenTelemetry.Resources.AssemblyMetadata.csproj" />
   </ItemGroup>
+
+  <Import Project="$(RepoRoot)\src\OpenTelemetry.Resources.AssemblyMetadata\_.targets" />
 
 </Project>
