@@ -41,7 +41,7 @@ internal sealed class HttpInListener : IDisposable
         return duration.TotalSeconds;
     }
 
-    private void RecordDuration(Activity? activity, HttpContext context)
+    private void RecordDuration(Activity? activity, HttpContext context, Exception? exception = null)
     {
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -253,14 +253,14 @@ internal sealed class HttpInListener : IDisposable
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
-            this.RecordDuration(activity, context);
+            this.RecordDuration(activity, context, exception);
             return;
         }
 
         if (activity == null)
         {
             AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnException));
-            this.RecordDuration(activity, context);
+            this.RecordDuration(activity, context, exception);
             return;
         }
 
@@ -285,5 +285,7 @@ internal sealed class HttpInListener : IDisposable
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnException", ex);
             }
         }
+
+        this.RecordDuration(activity, context, exception);
     }
 }
