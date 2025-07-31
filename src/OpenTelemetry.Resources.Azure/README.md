@@ -15,7 +15,7 @@ for applications running in Azure environment.
 
 ## Attribute Utilization
 
-The below Attributes from OpenTelemetry Semantic Convention's can/will be included
+The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
 added & enabled in your project.
 
@@ -26,8 +26,8 @@ added & enabled in your project.
 | azure.app.service.stamp | |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_app_service` |
 | [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
-| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
 | [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
+| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
 | [`deployment.environment`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/#deployment-environment)  | |
 | [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
 | [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
@@ -46,8 +46,8 @@ added & enabled in your project.
 | [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
 | [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |
 | [`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type) | |
-|[`os.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | |
-|[`os.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
+| [`os.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | |
+| [`os.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
 | [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
 
 ### Container Apps Resource Detector
