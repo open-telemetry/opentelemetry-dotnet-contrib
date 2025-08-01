@@ -8,13 +8,6 @@ namespace OpenTelemetry.Resources.Process;
 /// </summary>
 internal sealed class ProcessDetector : IResourceDetector
 {
-    private readonly ProcessDetectorOptions options;
-
-    internal ProcessDetector(ProcessDetectorOptions options)
-    {
-        this.options = options;
-    }
-
     /// <summary>
     ///     Detects the resource attributes for process.
     /// </summary>
@@ -22,7 +15,7 @@ internal sealed class ProcessDetector : IResourceDetector
     public Resource Detect()
     {
         using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
-        var attributes = new List<KeyValuePair<string, object>>(11)
+        var attributes = new List<KeyValuePair<string, object>>(9)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
@@ -40,11 +33,6 @@ internal sealed class ProcessDetector : IResourceDetector
             new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
         };
 #endif
-        if (this.options.IncludeCommand)
-        {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommandLine, Environment.CommandLine));
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessCommandArgs, Environment.GetCommandLineArgs()));
-        }
 
         return new Resource(attributes);
     }

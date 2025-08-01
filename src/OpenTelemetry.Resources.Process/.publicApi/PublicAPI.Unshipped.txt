@@ -1,8 +1,2 @@
-OpenTelemetry.Resources.Process.ProcessDetectorOptions
-OpenTelemetry.Resources.Process.ProcessDetectorOptions.IncludeCommand.get -> bool
-OpenTelemetry.Resources.Process.ProcessDetectorOptions.IncludeCommand.set -> void
-OpenTelemetry.Resources.Process.ProcessDetectorOptions.ProcessDetectorOptions() -> void
 OpenTelemetry.Resources.ProcessResourceBuilderExtensions
 static OpenTelemetry.Resources.ProcessResourceBuilderExtensions.AddProcessDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
-static OpenTelemetry.Resources.ProcessResourceBuilderExtensions.AddProcessDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, OpenTelemetry.Resources.Process.ProcessDetectorOptions! options) -> OpenTelemetry.Resources.ResourceBuilder!
-static OpenTelemetry.Resources.ProcessResourceBuilderExtensions.AddProcessDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Resources.Process.ProcessDetectorOptions!>? configure) -> OpenTelemetry.Resources.ResourceBuilder!
