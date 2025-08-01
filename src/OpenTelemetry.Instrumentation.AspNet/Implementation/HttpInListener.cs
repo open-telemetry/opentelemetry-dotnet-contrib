@@ -76,11 +76,11 @@ internal sealed class HttpInListener : IDisposable
         if (!string.IsNullOrEmpty(protocolVersion))
         {
             // Determine the actual protocol name from the request
-            var protocolName = url.Scheme?.ToUpperInvariant() ?? "http";
+            var protocolName = url.Scheme ?? Uri.UriSchemeHttp;
 
             // Only add network.protocol.name when it's not "http" and version is available
             // Per spec: "Conditionally Required: If not http and network.protocol.version is set."
-            if (protocolName != "http")
+            if (!string.Equals(protocolName, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
             {
                 tags.Add(SemanticConventions.AttributeNetworkProtocolName, protocolName);
             }
