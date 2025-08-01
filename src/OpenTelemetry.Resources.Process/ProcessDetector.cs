@@ -14,20 +14,26 @@ internal sealed class ProcessDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        return new Resource(new List<KeyValuePair<string, object>>(2)
+        using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+        var attributes = new List<KeyValuePair<string, object>>(9)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
+            new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
+            new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? string.Empty),
+            new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.MainWindowTitle),
+            new(ProcessSemanticConventions.AttributeProcessWorkingDir, Environment.CurrentDirectory),
+
+            new(ProcessSemanticConventions.AttributeProcessExecName, currentProcess.ProcessName),
+            new(ProcessSemanticConventions.AttributeProcessInteractive, Environment.UserInteractive),
 #if NET
             new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
-        });
+            new(ProcessSemanticConventions.AttributeProcessExecPath, Environment.ProcessPath ?? string.Empty),
+        };
 #else
-            new(ProcessSemanticConventions.AttributeProcessPid, GetProcessPid()),
-        });
-        static int GetProcessPid()
-        {
-            using var process = System.Diagnostics.Process.GetCurrentProcess();
-            return process.Id;
-        }
+            new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
+        };
 #endif
+
+        return new Resource(attributes);
     }
 }
