@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-* Extended `ProcessDetector` to include more of the recommend/required attributes.
- ([#2893](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2893))
+* Extended `ProcessDetector` to include `process.executable.path`,
+`process.working.directory`, `process.args.count`,`process.creation.time`,
+`process.executable.name`, `process.interactive` as well as `process.title`.
+All attributes come from the Open Telemetry Semantic Convention Registry.
+ ([#2971](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2971))
 
 ## 1.12.0-beta.1
 
