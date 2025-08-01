@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Runtime;
+using Amazon.Util;
 using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -115,30 +116,15 @@ internal class AWSServiceHelper
         return operationName;
     }
 
-    internal static string? GetDynamoDbCloudRegion(IRequestContext requestContext)
+    internal static string? ExtractCloudRegion(IRequestContext requestContext)
     {
-        string? region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
-
-        // Use ServiceURL as fallback.
-        region ??= GetCloudRegionFromDynamoServiceUrl(requestContext.ClientConfig?.ServiceURL);
-        return region;
-    }
-
-    private static string? GetCloudRegionFromDynamoServiceUrl(string? serviceUrl)
-    {
-        // In this method we assume that DynamoDB is accessed either via DynamoDB URL: https://dynamodb.<region>.amazonaws.com
-        // or via API Gateway: https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/<resource-path>
-        if (serviceUrl != null)
+        var clientConfig = requestContext?.ClientConfig;
+        if (clientConfig == null)
         {
-            var uri = new Uri(serviceUrl);
-            string host = uri.Host;
-            string[] segments = host.Split('.');
-            if (segments.Length > 2)
-            {
-                return segments[segments.Length - 3];
-            }
+            return null;
         }
 
-        return null;
+        // Use ServiceURL as fallback.
+        return clientConfig.RegionEndpoint?.SystemName ?? AWSSDKUtils.DetermineRegion(clientConfig.ServiceURL);
     }
 }

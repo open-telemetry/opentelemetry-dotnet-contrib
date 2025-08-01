@@ -182,11 +182,6 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceType.IsDynamoDbService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
-            string? cloudRegion = AWSServiceHelper.GetDynamoDbCloudRegion(requestContext);
-            if (cloudRegion != null)
-            {
-                this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(activity, cloudRegion);
-            }
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
@@ -221,6 +216,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (currentActivity.IsAllDataRequested
             && currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
         {
+            string? cloudRegion = AWSServiceHelper.ExtractCloudRegion(executionContext.RequestContext);
+            if (cloudRegion != null)
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(currentActivity, cloudRegion);
+            }
+
             this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
         }
 
