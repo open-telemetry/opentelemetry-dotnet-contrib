@@ -14,10 +14,33 @@ Anyone may contribute but there are benefits of being a member of our community.
 See the [community membership
 document](https://github.com/open-telemetry/community/blob/main/community-membership.md)
 on how to become a
-[**Member**](https://github.com/open-telemetry/community/blob/main/community-membership.md#member),
-[**Approver**](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver)
+[**Member**](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#member),
+[**Triager**](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager),
+[**Approver**](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver),
 and
-[**Maintainer**](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
+[**Maintainer**](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
+
+## Give feedback
+
+We are always looking for your feedback.
+
+You can do this by [submitting a GitHub issue](https://github.com/open-telemetry/opentelemetry-dotnet/issues/new).
+
+You may also prefer writing on [#otel-dotnet Slack channel](https://cloud-native.slack.com/archives/C01N3BC2W7Q).
+
+### Report a bug
+
+Reporting bugs is an important contribution. Please make sure to include:
+
+* Expected and actual behavior;
+* OpenTelemetry, OS, and .NET versions you are using;
+* Steps to reproduce;
+* [Minimal, reproducible example](https://stackoverflow.com/help/minimal-reproducible-example).
+
+### Request a feature
+
+If you would like to work on something that is not listed as an issue
+(e.g. a new feature or enhancement) please create an issue and describe your proposal.
 
 ## Find a buddy and get started quickly
 
@@ -203,9 +226,10 @@ When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership of the component you are contributing. The
 owner should at least be an [OpenTelemetry
 Member](https://github.com/open-telemetry/community/blob/main/community-membership.md#member)
-to be eligible to assigned as component owner. This is required to ensure that
-reviews can be automatically requested from the owners. Once the owner is
-identified, please update [component_owners](./.github/component_owners.yml)
+and be member of [@open-telemetry/dotnet-contrib-contributors](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-contributors)
+to be eligible to assigned as component owner.
+This is required to ensure that reviews can be automatically requested from
+the owners. Once the owner is identified, please update [component_owners](./.github/component_owners.yml)
 file for the new project. The component owner(s) are expected to respond to
 issues and review PRs affecting their component.
 
