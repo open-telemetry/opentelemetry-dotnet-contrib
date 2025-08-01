@@ -119,4 +119,13 @@ public class AspNetCoreTraceInstrumentationOptions
     /// The redaction can be disabled by setting this property to <see langword="true" />.
     /// </remarks>
     internal bool DisableUrlQueryRedaction { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Blazor activities are recorded.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to true.
+    /// Only applies to .NET 10.0 or greater.
+    /// </remarks>
+    public bool EnableAspNetCoreBlazorSupport { get; set; } = true;
 }
