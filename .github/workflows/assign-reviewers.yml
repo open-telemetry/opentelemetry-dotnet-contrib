@@ -18,3 +18,4 @@ jobs:
       - uses: dyladan/component-owners@58bd86e9814d23f1525d0a970682cead459fa783 # v0.1.0
         with:
           assign-owners: ${{ github.event.pull_request.draft == false }}
+          request-owner-reviews: ${{ github.event.pull_request.draft == false }}

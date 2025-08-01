@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Runtime.InteropServices;
-#if NETFRAMEWORK
+#if !NET
 using Microsoft.Win32;
 #endif
 
@@ -20,42 +20,44 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
     public Resource Detect()
     {
         var frameworkDescription = RuntimeInformation.FrameworkDescription;
-        string netRuntimeName;
-#if NETFRAMEWORK
-        var netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
+        string? netRuntimeVersion = null;
+        string? netRuntimeName = null;
+        bool frameworkSet = false;
+
+#if NETSTANDARD || NETFRAMEWORK
+        if (Environment.Version.Major == 4)
+        {
+            string? netFrameworkVersion = GetNetFrameworkVersionFromRegistry();
+            netRuntimeName = ".NET Framework";
+            if (netFrameworkVersion == null)
+            {
+                var lastSpace = frameworkDescription.LastIndexOf(' ');
+                netRuntimeVersion = lastSpace > 0 ? frameworkDescription.Substring(lastSpace + 1) : Environment.Version.ToString();
+            }
+            else
+            {
+                netRuntimeVersion = netFrameworkVersion;
+            }
+
+            frameworkSet = netRuntimeVersion != null;
+        }
 #endif
 
-        var lastSpace = frameworkDescription.LastIndexOf(' ');
-        if (lastSpace != -1)
+        if (!frameworkSet)
         {
-            // sample result '.NET Framework 4.8.9195.0'
-            netRuntimeName = frameworkDescription.Substring(0, lastSpace);
-#if NETFRAMEWORK
-            netFrameworkVersion ??= frameworkDescription.Substring(lastSpace + 1);
-#endif
-        }
-        else
-        {
-            // do not expect to be here, all checked implementation has common FrameworkDescription format - '{Name With Optional Spaces} {Version}'
-            netRuntimeName = "unknown";
-#if NETFRAMEWORK
-            netFrameworkVersion ??= "unknown";
-#endif
+            netRuntimeVersion = Environment.Version.ToString();
+            netRuntimeName = ".NET";
         }
 
         return new Resource(
         [
             new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeDescription, frameworkDescription),
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName),
-#if NETFRAMEWORK
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netFrameworkVersion),
-#else
-            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, Environment.Version.ToString()),
-#endif
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeName, netRuntimeName!),
+            new(ProcessRuntimeSemanticConventions.AttributeProcessRuntimeVersion, netRuntimeVersion!),
         ]);
     }
 
-#if NETFRAMEWORK
+#if NETFRAMEWORK || NETSTANDARD
     private static string? GetNetFrameworkVersionFromRegistry()
     {
         try
@@ -64,7 +66,7 @@ internal sealed class ProcessRuntimeDetector : IResourceDetector
             using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             using var ndpKey = baseKey.OpenSubKey(subKey);
 
-            return ndpKey?.GetValue("Release") != null ? CheckFor45PlusVersion((int)ndpKey.GetValue("Release")) : null;
+            return ndpKey?.GetValue("Release") != null ? CheckFor45PlusVersion((int)ndpKey.GetValue("Release")!) : null;
         }
         catch
         {

@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## Deprecated
+
+* This package is deprecated. Please check [README.md](README.md#deprecated)
+  for more details.
+
+## 1.12.0-beta.1
+
+Released 2025-Jul-29
 
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
