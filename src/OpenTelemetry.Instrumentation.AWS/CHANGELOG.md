@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Added `cloud.region`to activity tags based on
+  [semantic convention v1.36.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/registry/attributes/cloud.md#cloud-region).
+  ([#2947](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2947))
+
 ## 1.12.0
 
 Released 2025-May-06
