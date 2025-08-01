@@ -54,7 +54,7 @@ The resource detectors will record the following metadata based on where
 your application is running:
 
 - **ProcessDetector**: `process.owner`, `process.pid`, `process.executable.path`,
-`process.working.directory`, `process.args.count`,`process.creation.time`,
+`process.working_directory`, `process.args_count`,`process.creation.time`,
 `process.executable.name`, `process.interactive`, `process.title`.
 
 ## References
