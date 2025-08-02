@@ -19,7 +19,6 @@ body:
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.Instana
         - OpenTelemetry.Exporter.OneCollector
-        - OpenTelemetry.Exporter.Stackdriver
         - OpenTelemetry.Extensions
         - OpenTelemetry.Extensions.AWS
         - OpenTelemetry.Extensions.Enrichment
