@@ -10,7 +10,6 @@ internal sealed class ResourceAttributeConstants
 
     // Azure VM resource attributes
     internal const string AzureVmScaleSetName = "azure.vm.scaleset.name";
-    internal const string AzureVmSku = "azure.vm.sku";
 
     // AppService environment variables
     internal const string AppServiceHostNameEnvVar = "WEBSITE_HOSTNAME";

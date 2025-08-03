@@ -13,7 +13,6 @@ internal sealed class AzureVMResourceDetector : IResourceDetector
     internal static readonly IReadOnlyCollection<string> ExpectedAzureAmsFields =
     [
         ResourceAttributeConstants.AzureVmScaleSetName,
-        ResourceAttributeConstants.AzureVmSku,
         ResourceSemanticConventions.AttributeCloudPlatform,
         ResourceSemanticConventions.AttributeCloudProvider,
         ResourceSemanticConventions.AttributeCloudRegion,

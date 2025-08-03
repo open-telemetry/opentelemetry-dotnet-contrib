@@ -77,9 +77,6 @@ internal sealed class AzureVmMetadataResponse
             case ResourceAttributeConstants.AzureVmScaleSetName:
                 amsValue = this.VmScaleSetName;
                 break;
-            case ResourceAttributeConstants.AzureVmSku:
-                amsValue = this.Sku;
-                break;
             default:
                 break;
         }
