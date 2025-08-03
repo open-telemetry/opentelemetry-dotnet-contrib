@@ -157,6 +157,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             case "Teradata.EntityFrameworkCore":
                                 activity.AddTag(AttributeDbSystem, "teradata");
                                 break;
+                            case "EFCore.Snowflake":
+                            case "EFCore.Snowflake.Storage":
+                            case "EFCore.Snowflake.Storage.Internal":
+                                activity.AddTag(AttributeDbSystem, "snowflake");
+                                break;
                             default:
                                 activity.AddTag(AttributeDbSystem, "other_sql");
                                 activity.AddTag("ef.provider", providerOrCommandName);

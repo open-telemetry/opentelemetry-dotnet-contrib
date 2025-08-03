@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added in Snowflake as a db system for `EFCore.Snowflake` provider.
+  ([#2980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2980))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jun-25
