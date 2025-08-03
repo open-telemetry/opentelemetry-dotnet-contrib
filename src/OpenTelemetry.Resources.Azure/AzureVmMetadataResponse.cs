@@ -17,17 +17,8 @@ internal sealed class AzureVmMetadataResponse
     [JsonPropertyName("osType")]
     public string? OsType { get; set; }
 
-    [JsonPropertyName("resourceGroupName")]
-    public string? ResourceGroupName { get; set; }
-
     [JsonPropertyName("resourceId")]
     public string? ResourceId { get; set; }
-
-    [JsonPropertyName("sku")]
-    public string? Sku { get; set; }
-
-    [JsonPropertyName("subscriptionId")]
-    public string? SubscriptionId { get; set; }
 
     [JsonPropertyName("version")]
     public string? Version { get; set; }
