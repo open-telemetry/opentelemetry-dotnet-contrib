@@ -3,7 +3,7 @@ Import-Module $PSScriptRoot\build.psm1
 function AddLabelsOnIssuesForComponentFoundInBody {
   param(
     [Parameter(Mandatory=$true)][int]$issueNumber,
-    [Parameter(Mandatory=$true)][string]$issueLabels,
+    [Parameter(Mandatory=$true)][AllowEmptyString()][string]$issueLabels,
     [Parameter(Mandatory=$true)][string]$issueBody
   )
 
@@ -17,7 +17,9 @@ function AddLabelsOnIssuesForComponentFoundInBody {
 
   gh issue edit $issueNumber --add-label $("comp:" + $component.ToLower())
 
-  if ($issueLabels.Contains('bug') -or $issueLabels.Contains('enhancement'))
+  $labels = ($issueLabels ?? "").Split(",", [System.StringSplitOptions]::RemoveEmptyEntries)
+
+  if ($labels.Contains('bug') -or $labels.Contains('enhancement'))
   {
      $componentOwners = $null
 

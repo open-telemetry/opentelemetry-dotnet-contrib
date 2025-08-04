@@ -37,7 +37,6 @@ jobs:
           exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
-          exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
@@ -152,17 +151,6 @@ jobs:
       project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
 
-  build-test-exporter-stackdriver:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'exporter-stackdriver')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Exporter.Stackdriver]
-      code-cov-name: Exporter.Stackdriver
-
   build-test-extensions:
     needs: detect-changes
     if: |
@@ -232,11 +220,16 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
-      run-tests: false
-       # Note: There is a unit test project for Cassandra but it only contains
-       # integration tests, which get skipped. This results in empty coverage
-       # files which messes with codecov. Enable tests if any real unit tests
-       # get added.
+
+  build-test-instrumentation-cassandra-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-cassandra')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+    with:
+      job: cassandra-integration-test
 
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
@@ -627,13 +620,13 @@ jobs:
       build-test-exporter-influxdb,
       build-test-exporter-instana,
       build-test-exporter-onecollector,
-      build-test-exporter-stackdriver,
       build-test-extensions,
       build-test-extensions-enrichment,
       build-test-instrumentation-aspnet,
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
       build-test-instrumentation-cassandra,
+      build-test-instrumentation-cassandra-integration,
       build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
