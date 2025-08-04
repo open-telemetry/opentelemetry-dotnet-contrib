@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Added in Snowflake as a db system for `EFCore.Snowflake` provider.
+* Added support for detecting Snowflake for the `db.system` attribute when using `EFCore.Snowflake`.
   ([#2980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2980))
 
 ## 1.12.0-beta.2
