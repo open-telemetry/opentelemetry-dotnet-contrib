@@ -4,7 +4,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Google.Protobuf;
-using OpAmp.Protocol;
+using OpAmp.Proto.V1;
 using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Tools;

@@ -20,10 +20,10 @@
 
 syntax = "proto3";
 
-package opamp.proto;
+package opamp.proto.v1;
 
 option go_package = "github.com/open-telemetry/opamp-go/protobufs";
-option csharp_namespace = "OpAmp.Protocol";
+option csharp_namespace = "OpAmp.Proto.V1";
 
 // AnyValue is used to represent any type of attribute value. AnyValue may contain a
 // primitive value such as a string or integer or it may contain an arbitrary nested

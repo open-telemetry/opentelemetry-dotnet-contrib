@@ -4,7 +4,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using OpAmp.Protocol;
+using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Listeners;
 using OpenTelemetry.OpAmp.Client.Listeners.Messages;

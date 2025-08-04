@@ -16,12 +16,12 @@
 
 syntax = "proto3";
 
-package opamp.proto;
+package opamp.proto.v1;
 
 import "anyvalue.proto";
 
 option go_package = "github.com/open-telemetry/opamp-go/protobufs";
-option csharp_namespace = "OpAmp.Protocol";
+option csharp_namespace = "OpAmp.Proto.V1";
 
 message AgentToServer
 {

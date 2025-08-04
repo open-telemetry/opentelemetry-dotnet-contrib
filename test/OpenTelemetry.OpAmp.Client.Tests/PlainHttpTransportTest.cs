@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Google.Protobuf;
-using OpAmp.Protocol;
+using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using OpenTelemetry.OpAmp.Client.Transport.Http;
