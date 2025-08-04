@@ -36,3 +36,16 @@ jobs:
 
       - name: Run kafka docker compose
         run: docker compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build
+
+  cassandra-integration-test:
+    if: inputs.job == 'all' || inputs.job == 'cassandra-integration-test'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [net8.0]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run cassandra docker compose
+        run: docker compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml --file=build/docker-compose.${{ matrix.version }}.yml --project-directory=. up --exit-code-from=tests --build

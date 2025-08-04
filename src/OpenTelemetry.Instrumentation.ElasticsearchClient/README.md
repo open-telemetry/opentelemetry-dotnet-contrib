@@ -1,9 +1,9 @@
 # Elasticsearch Client Instrumentation for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@ejsmith](https://github.com/ejsmith)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@ejsmith](https://github.com/ejsmith) |
 
 ## NEST/Elasticsearch.Net
 

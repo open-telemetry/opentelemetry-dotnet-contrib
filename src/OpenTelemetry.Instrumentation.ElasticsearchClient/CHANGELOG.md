@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.1
+
+Released 2025-Jul-30
+
 * Span status is set based on [semantic convention for client spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#status).
   ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
 

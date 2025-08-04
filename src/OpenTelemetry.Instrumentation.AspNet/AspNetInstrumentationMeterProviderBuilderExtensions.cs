@@ -40,12 +40,12 @@ public static class AspNetInstrumentationMeterProviderBuilderExtensions
                 services.Configure(configure);
             }
 
-            services.ConfigureOpenTelemetryMeterProvider((sp, builder) =>
+            services.ConfigureOpenTelemetryMeterProvider((sp, meterProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetMetricsInstrumentationOptions>>().Get(name: null);
 
-                builder.AddInstrumentation(() => new AspNetMetrics(options));
-                builder.AddMeter(AspNetMetrics.InstrumentationName);
+                meterProviderBuilder.AddInstrumentation(() => new AspNetMetrics(options));
+                meterProviderBuilder.AddMeter(AspNetMetrics.InstrumentationName);
             });
         });
     }

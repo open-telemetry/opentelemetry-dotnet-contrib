@@ -51,11 +51,6 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
-  unittests-Exporter.Stackdriver:
-    carryforward: true
-    paths:
-      - src/OpenTelemetry.Exporter.Stackdriver
-
   unittests-Extensions:
     carryforward: true
     paths:

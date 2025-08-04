@@ -1,9 +1,9 @@
 # Instana Exporter for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@zivaninstana](https://github.com/zivaninstana)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Stable](../../README.md#stable) |
+| Code Owners | [@zivaninstana](https://github.com/zivaninstana) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Instana)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Instana)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Instana)

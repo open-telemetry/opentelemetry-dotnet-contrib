@@ -1,9 +1,9 @@
 # Confluent.Kafka client instrumentation for OpenTelemetry
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Development](../../README.md#development)|
-| Code Owners   |  [@g7ed6e](https://github.com/g7ed6e)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Development](../../README.md#development) |
+| Code Owners | [@g7ed6e](https://github.com/g7ed6e) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.ConfluentKafka)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ConfluentKafka)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.ConfluentKafka)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.ConfluentKafka)

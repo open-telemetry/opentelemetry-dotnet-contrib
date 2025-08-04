@@ -1,9 +1,9 @@
 # Stackdriver Exporter for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@SergeyKanzhelev](https://github.com/SergeyKanzhelev)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@SergeyKanzhelev](https://github.com/SergeyKanzhelev) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Exporter.Stackdriver)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Exporter.Stackdriver)](https://www.nuget.org/packages/OpenTelemetry.Exporter.Stackdriver)
@@ -24,6 +24,12 @@ constructor for specifying path to the service account credential.
 3. Enable [Stackdriver Monitoring][stackdriver-monitoring-setup] API.
 4. Instantiate a new instance of `StackdriverExporter` with your Google Cloud's
    ProjectId
+
+## Deprecated
+
+> [!IMPORTANT]
+> **This package is deprecated**. Use [`OpenTelemetry.Exporter.OpenTelemetryProtocol`](https://www.nuget.org/packages/OpenTelemetry.Exporter.OpenTelemetryProtocol)
+> NuGet package as OTLP protocol is [supported by Google Cloud](https://cloud.google.com/stackdriver/docs/reference/telemetry/overview).
 
 ## Installation
 
