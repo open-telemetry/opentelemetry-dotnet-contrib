@@ -41,8 +41,8 @@ public class AspNetCoreTraceInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets a filter function that determines whether or not to
-    /// collect telemetry on a per request basis.
+    /// Gets or sets a filter function that determines whether to
+    /// collect telemetry on a per-request basis.
     /// </summary>
     /// <remarks>
     /// Notes:

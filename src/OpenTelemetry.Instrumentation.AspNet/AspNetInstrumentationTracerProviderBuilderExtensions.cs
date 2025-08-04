@@ -43,12 +43,12 @@ public static class AspNetInstrumentationTracerProviderBuilderExtensions
             services.RegisterOptionsFactory(
                 configuration => new AspNetTraceInstrumentationOptions(configuration));
 
-            services.ConfigureOpenTelemetryTracerProvider((sp, builder) =>
+            services.ConfigureOpenTelemetryTracerProvider((sp, tracerProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetTraceInstrumentationOptions>>().Get(name: null);
 
-                builder.AddInstrumentation(() => new AspNetInstrumentation(options));
-                builder.AddSource(TelemetryHttpModule.AspNetSourceName);
+                tracerProviderBuilder.AddInstrumentation(() => new AspNetInstrumentation(options));
+                tracerProviderBuilder.AddSource(TelemetryHttpModule.AspNetSourceName);
             });
         });
     }

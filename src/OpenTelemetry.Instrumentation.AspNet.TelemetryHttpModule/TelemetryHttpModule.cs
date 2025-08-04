@@ -34,7 +34,7 @@ public class TelemetryHttpModule : IHttpModule
     /// <summary>
     /// Gets the <see cref="TelemetryHttpModuleOptions"/> applied to requests processed by the handler.
     /// </summary>
-    public static TelemetryHttpModuleOptions Options { get; } = new TelemetryHttpModuleOptions();
+    public static TelemetryHttpModuleOptions Options { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()

@@ -7,6 +7,7 @@ using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -68,7 +69,7 @@ internal static class ActivityHelper
         {
             tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
 
-            tags[0] = new KeyValuePair<string, object?>("url.path", path);
+            tags[0] = new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlPath, path);
         }
         else
         {
