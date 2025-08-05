@@ -463,8 +463,8 @@ public class ActivityHelperTest : IDisposable
 
         var wasStopped = false;
         var context = HttpContextHelper.GetFakeHttpContext();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
-        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
+        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
 
         Assert.False(wasStopped);
     }
