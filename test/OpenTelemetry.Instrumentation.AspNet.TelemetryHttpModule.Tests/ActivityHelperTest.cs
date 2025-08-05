@@ -426,8 +426,9 @@ public class ActivityHelperTest : IDisposable
 
         ActivityHelper.WriteActivityException(null, context, new InvalidOperationException(), (a, c, e) => { callbacksFired++; });
 
-        // Callback should fire only for non-null activity
-        Assert.Equal(1, callbacksFired);
+        // Callback should always fire
+        // Telemetry decisions have been delegated to ASP.NET instrumentation
+        Assert.Equal(2, callbacksFired);
     }
 
     [Fact]
