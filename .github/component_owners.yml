@@ -61,6 +61,8 @@ components:
     - rajkumar-rangaraj
   src/OpenTelemetry.PersistentStorage.FileSystem/:
     - rajkumar-rangaraj
+  src/OpenTelemetry.Resources.AssemblyMetadata/:
+    - austindrenski
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - ppittle
