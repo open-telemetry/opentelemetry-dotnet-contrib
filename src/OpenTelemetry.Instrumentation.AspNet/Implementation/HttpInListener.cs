@@ -11,6 +11,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
+    private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
     private readonly HttpRequestRouteHelper routeHelper = new();
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
     private readonly AsyncLocal<long> beginTimestamp = new();
@@ -34,9 +35,8 @@ internal sealed class HttpInListener : IDisposable
     internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
     {
         end ??= Stopwatch.GetTimestamp();
-        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
         var delta = end - begin;
-        var ticks = (long)(timestampToTicks * delta);
+        var ticks = (long)(TimestampToTicks * delta);
         var duration = new TimeSpan(ticks);
         return duration.TotalSeconds;
     }
