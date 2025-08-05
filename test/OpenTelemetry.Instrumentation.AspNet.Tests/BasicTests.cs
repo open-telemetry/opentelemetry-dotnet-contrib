@@ -29,20 +29,18 @@ public class BasicTests
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
-        var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder();
+        var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities);
         if (tracesEnabled)
         {
-            tracerProviderBuilder
-                .AddAspNetInstrumentation()
-                .AddInMemoryExporter(activities);
+            tracerProviderBuilder.AddAspNetInstrumentation();
         }
 
-        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder();
+        var meterProviderBuilder = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics);
         if (metricsEnabled)
         {
-            meterProviderBuilder = meterProviderBuilder
-                .AddAspNetInstrumentation()
-                .AddInMemoryExporter(metrics);
+            meterProviderBuilder = meterProviderBuilder.AddAspNetInstrumentation();
         }
 
         using var tracerProvider = tracerProviderBuilder.Build();
