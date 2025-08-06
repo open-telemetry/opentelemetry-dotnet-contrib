@@ -291,7 +291,7 @@ Database trace context propagation can be enabled by setting
 `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
 environment variable to `true`.
 This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)
-command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)information
+command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header) information
 for the current connection, which results in
 **an additional round-trip to the database**.
 
