@@ -38,6 +38,7 @@ body:
         - OpenTelemetry.Instrumentation.Http
         - OpenTelemetry.Instrumentation.MassTransit
         - OpenTelemetry.Instrumentation.MySqlData
+        - OpenTelemetry.Instrumentation.OpenSearchClient
         - OpenTelemetry.Instrumentation.Owin
         - OpenTelemetry.Instrumentation.Process
         - OpenTelemetry.Instrumentation.Quartz
