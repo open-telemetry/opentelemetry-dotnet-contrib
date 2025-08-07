@@ -104,13 +104,6 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-
-#if NET
-        Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#else
-        Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#endif
     }
 
     [Fact]
