@@ -12,6 +12,7 @@ using OpenTelemetry.Trace;
 using StackExchange.Redis.Profiling;
 #if NET
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 #endif
 
@@ -128,22 +129,22 @@ internal static class RedisProfilerEntryToActivityConverter
 
                 if (!string.IsNullOrEmpty(commandAndKey) && !string.IsNullOrEmpty(script))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey + " " + script);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey + " " + script);
                 }
                 else if (!string.IsNullOrEmpty(commandAndKey))
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
                 }
                 else if (command.Command != null)
                 {
                     // Example: "db.statement": SET;
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                    activity.SetTag(SemanticConventions.AttributeDbQuerySummary, command.Command);
                 }
             }
             else if (command.Command != null)
             {
                 // Example: "db.statement": SET;
-                activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                activity.SetTag(SemanticConventions.AttributeDbQuerySummary, command.Command);
             }
 
             if (command.EndPoint != null)
@@ -168,8 +169,11 @@ internal static class RedisProfilerEntryToActivityConverter
                 }
 #endif
             }
-
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+#if NET
+            activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture.NumberFormat));
+#else
+            activity.SetTag(SemanticConventions.AttributeDbNamespace, $"{command.Db}");
+#endif
 
             // TODO: deal with the re-transmission
             // command.RetransmissionOf;

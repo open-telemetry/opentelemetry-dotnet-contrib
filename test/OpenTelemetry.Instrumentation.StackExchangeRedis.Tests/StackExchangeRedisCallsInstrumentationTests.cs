@@ -72,7 +72,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal(4, exportedItems.Count);
 
         Assert.Equal("EVAL", exportedItems[0].DisplayName);
-        Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
 
         VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
         VerifyActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
@@ -433,11 +433,11 @@ public class StackExchangeRedisCallsInstrumentationTests
             Assert.Equal("SETEX", activity.DisplayName);
             if (setCommandKey)
             {
-                Assert.Equal("SETEX key1", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                Assert.Equal("SETEX key1", activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
             }
             else
             {
-                Assert.Equal("SETEX", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                Assert.Equal("SETEX", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
             }
         }
         else
@@ -445,17 +445,17 @@ public class StackExchangeRedisCallsInstrumentationTests
             Assert.Equal("GET", activity.DisplayName);
             if (setCommandKey)
             {
-                Assert.Equal("GET key1", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                Assert.Equal("GET key1", activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
             }
             else
             {
-                Assert.Equal("GET", activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+                Assert.Equal("GET", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
             }
         }
 
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
-        Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(0, activity.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName));
+        Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
 
         if (endPoint is IPEndPoint ipEndPoint)
         {
@@ -480,7 +480,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.NotNull(samplingParameters.Tags);
         Assert.Contains(
             samplingParameters.Tags,
-            kvp => kvp.Key == SemanticConventions.AttributeDbSystem
+            kvp => kvp.Key == SemanticConventions.AttributeDbSystemName
                    && (string?)kvp.Value == "redis");
     }
 }

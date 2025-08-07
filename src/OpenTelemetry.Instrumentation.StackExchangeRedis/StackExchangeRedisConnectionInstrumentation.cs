@@ -17,15 +17,14 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
-    internal const string RedisDatabaseIndexKeyName = "db.redis.database_index";
     internal const string RedisFlagsKeyName = "db.redis.flags";
+    internal const string ActivityName = "redis";
     internal static readonly Assembly Assembly = typeof(StackExchangeRedisConnectionInstrumentation).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
-    internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource ActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
     internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags =
     [
-        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystem, "redis")
+        new KeyValuePair<string, object?>(SemanticConventions.AttributeDbSystemName, "redis")
     ];
 
     internal readonly ConcurrentDictionary<(ActivityTraceId TraceId, ActivitySpanId SpanId), (Activity Activity, ProfilingSession Session)> Cache
