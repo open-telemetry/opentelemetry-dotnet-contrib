@@ -5,6 +5,16 @@
 * Removed the `db.redis.flags` attribute from the implementation
   as it is not part of the Semantic Conventions for Database Client Calls.
  ([#2982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2982))
+* Renamed the `db.system` attribute to `db.system.name` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2984](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2984))
+* Renamed and changed the value type of `db.redis.database_index` attribute to `db.namespace`
+  to comply with v1.36.0 of Semantic Conventions
+  ([#2984](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2984))
+* Split the `db.statement` attribute to be `db.query.text` when script is present
+  and `db.query.summary`when only command is present to comply with
+  v1.36.0 of Semantic Conventions.
+  ([#2984](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2984))
 
 ## 1.12.0-beta.2
 

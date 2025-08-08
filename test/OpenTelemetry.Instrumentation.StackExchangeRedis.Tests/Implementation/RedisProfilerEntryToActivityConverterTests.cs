@@ -78,8 +78,8 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("redis", result.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("redis", result.GetTagValue(SemanticConventions.AttributeDbSystemName));
     }
 
     [Fact]
@@ -91,8 +91,8 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
 
         Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
-        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+        Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
     }
 
     [Fact]
