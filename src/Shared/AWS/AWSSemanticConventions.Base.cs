@@ -439,6 +439,22 @@ internal partial class AWSSemanticConventions
         /// FaasAttributes.AttributeFaasColdstart
         /// </remarks>
         public virtual string AttributeFaasColdStart => string.Empty;
+
+        /// <summary>
+        /// The execution environment ID as a string, that will be potentially reused for other invocations to the same function/function version.
+        /// </summary>
+        /// <remarks>
+        /// FaasAttributes.AttributeFaasInstance
+        /// </remarks>
+        public virtual string AttributeFaasInstance => string.Empty;
+
+        /// <summary>
+        /// The amount of memory available to the serverless function converted to Bytes.
+        /// </summary>
+        /// <remarks>
+        /// FaasAttributes.AttributeFaasMaxMemory
+        /// </remarks>
+        public virtual string AttributeFaasMaxMemory => string.Empty;
         #endregion
 
         #region GEN AI Attributes
