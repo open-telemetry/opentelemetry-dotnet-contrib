@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Removed the `db.redis.flags` attribute from the implementation
+  as it is not part of the Semantic Conventions for Database Client Calls.
+ ([#2982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2982))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-28
