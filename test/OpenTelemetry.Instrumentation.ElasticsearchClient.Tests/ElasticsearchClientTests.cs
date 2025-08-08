@@ -57,12 +57,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
@@ -110,12 +110,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch GET customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (404) low level call", debugInfo);
@@ -162,12 +162,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
@@ -394,12 +394,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
@@ -445,12 +445,12 @@ public class ElasticsearchClientTests
 
         Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Equal(
@@ -513,12 +513,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.DoesNotContain("123", debugInfo);
@@ -565,12 +565,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch POST", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
@@ -618,12 +618,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch POST customer", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("customer", searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Unsuccessful (500) low level call", debugInfo);
@@ -670,12 +670,12 @@ public class ElasticsearchClientTests
         Assert.Equal($"Elasticsearch GET", searchActivity.DisplayName);
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerName));
-        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetPeerPort));
+        Assert.Equal("localhost", searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+        Assert.Equal(9200, searchActivity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
 
-        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbName));
-        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement);
+        Assert.Equal("elasticsearch", searchActivity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbCollectionName));
+        var debugInfo = (string?)searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText);
         Assert.NotNull(debugInfo);
         Assert.NotEmpty(debugInfo);
         Assert.Contains("Successful (200) low level call", debugInfo);
@@ -783,7 +783,7 @@ public class ElasticsearchClientTests
         var searchActivity = exportedItems[0];
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Null(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
     }
 
     [Fact]
@@ -816,7 +816,7 @@ public class ElasticsearchClientTests
         var searchActivity = exportedItems[0];
 
         var tags = searchActivity.Tags.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.NotNull(searchActivity.GetTagValue(SemanticConventions.AttributeDbQueryText));
     }
 
     [Fact]
