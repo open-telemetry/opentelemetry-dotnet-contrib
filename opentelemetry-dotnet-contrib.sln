@@ -243,6 +243,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\GrpcStatusCanonicalCode.cs = src\Shared\GrpcStatusCanonicalCode.cs
 		src\Shared\GrpcTagHelper.cs = src\Shared\GrpcTagHelper.cs
 		src\Shared\Guard.cs = src\Shared\Guard.cs
+		src\Shared\InstrumentationHandleManager.cs = src\Shared\InstrumentationHandleManager.cs
 		src\Shared\IServerCertificateValidationEventSource.cs = src\Shared\IServerCertificateValidationEventSource.cs
 		src\Shared\IsExternalInit.cs = src\Shared\IsExternalInit.cs
 		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs

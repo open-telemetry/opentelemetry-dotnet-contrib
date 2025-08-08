@@ -426,8 +426,9 @@ public class ActivityHelperTest : IDisposable
 
         ActivityHelper.WriteActivityException(null, context, new InvalidOperationException(), (a, c, e) => { callbacksFired++; });
 
-        // Callback should fire only for non-null activity
-        Assert.Equal(1, callbacksFired);
+        // Callback should always fire
+        // Telemetry decisions have been delegated to ASP.NET instrumentation
+        Assert.Equal(2, callbacksFired);
     }
 
     [Fact]
@@ -463,8 +464,8 @@ public class ActivityHelperTest : IDisposable
 
         var wasStopped = false;
         var context = HttpContextHelper.GetFakeHttpContext();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
-        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = activity.IsStopped || wasStopped);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
+        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
 
         Assert.False(wasStopped);
     }
