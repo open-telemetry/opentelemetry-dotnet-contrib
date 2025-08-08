@@ -51,6 +51,7 @@ jobs:
           instrumentation-grpcnetclient: ['*/OpenTelemetry.Instrumentation.GrpcNetClient*/**', '!**/*.md']
           instrumentation-hangfire: ['*/OpenTelemetry.Instrumentation.Hangfire*/**', '!**/*.md']
           instrumentation-http: ['*/OpenTelemetry.Instrumentation.Http*/**', '!**/*.md']
+          instrumentation-opensearchclient: ['*/OpenTelemetry.Instrumentation.OpenSearchClient*/**', '!**/*.md']
           instrumentation-owin: ['*/OpenTelemetry.Instrumentation.Owin*/**', 'examples/owin/**', '!**/*.md']
           instrumentation-process: ['*/OpenTelemetry.Instrumentation.Process*/**', 'examples/process-instrumentation/**', '!**/*.md']
           instrumentation-quartz: ['*/OpenTelemetry.Instrumentation.Quartz*/**', '!**/*.md']
@@ -329,6 +330,17 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Http]
       code-cov-name: Instrumentation.Http
+
+  build-test-instrumentation-opensearchclient:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-opensearchclient')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.OpenSearchClient]
+      code-cov-name: Instrumentation.OpenSearchClient
 
   build-test-instrumentation-owin:
     needs: detect-changes
@@ -636,6 +648,7 @@ jobs:
       build-test-instrumentation-grpcnetclient,
       build-test-instrumentation-hangfire,
       build-test-instrumentation-http,
+      build-test-instrumentation-opensearchclient,
       build-test-instrumentation-owin,
       build-test-instrumentation-process,
       build-test-instrumentation-quartz,
