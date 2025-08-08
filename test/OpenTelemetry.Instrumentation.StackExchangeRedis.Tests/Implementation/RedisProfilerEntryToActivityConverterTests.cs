@@ -96,24 +96,6 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
     }
 
     [Fact]
-    public void ProfilerCommandToActivity_UsesFlagsForFlagsAttribute()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, CommandFlags.FireAndForget | CommandFlags.NoRedirect);
-
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
-
-        Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-
-#if NET
-        Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#else
-        Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#endif
-    }
-
-    [Fact]
     public void ProfilerCommandToActivity_UsesIpEndPointAsEndPoint()
     {
         long address = 1;

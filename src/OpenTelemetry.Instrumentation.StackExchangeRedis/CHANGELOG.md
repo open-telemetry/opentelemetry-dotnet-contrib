@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Removed the `db.redis.flags` attribute from the implementation
+  as it is not part of the Semantic Conventions for Database Client Calls.
+ ([#2982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2982))
 * Renamed the `db.system` attribute to `db.system.name` to comply with
   v1.36.0 of Semantic Conventions
   ([#2984](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2984))

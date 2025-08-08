@@ -17,7 +17,6 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
 {
-    internal const string RedisFlagsKeyName = "db.redis.flags";
     internal const string ActivityName = "redis";
     internal static readonly Assembly Assembly = typeof(StackExchangeRedisConnectionInstrumentation).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
