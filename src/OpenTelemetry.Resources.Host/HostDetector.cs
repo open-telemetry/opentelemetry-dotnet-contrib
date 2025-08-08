@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
+using System.Net;
+using System.Net.NetworkInformation;
 #if !NETFRAMEWORK
 using System.Runtime.InteropServices;
 #endif
@@ -24,18 +27,21 @@ internal sealed class HostDetector : IResourceDetector
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
     private readonly Func<string?> getWindowsMachineId;
+    private readonly HostDetectorOptions options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HostDetector"/> class.
     /// </summary>
-    public HostDetector()
+    /// <param name="options">The <see cref="HostDetectorOptions"/> which control's the behaviour of the resource detector.</param>
+    public HostDetector(HostDetectorOptions options)
         : this(
 #if !NETFRAMEWORK
-        RuntimeInformation.IsOSPlatform,
+            RuntimeInformation.IsOSPlatform,
 #endif
-        GetFilePaths,
-        GetMachineIdMacOs,
-        GetMachineIdWindows)
+            GetFilePaths,
+            GetMachineIdMacOs,
+            GetMachineIdWindows,
+            options)
     {
     }
 
@@ -43,12 +49,14 @@ internal sealed class HostDetector : IResourceDetector
     public HostDetector(
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        HostDetectorOptions options)
         : this(
             RuntimeInformation.IsOSPlatform,
             getFilePaths,
             getMacOsMachineId,
-            getWindowsMachineId)
+            getWindowsMachineId,
+            options)
     {
     }
 #endif
@@ -59,7 +67,8 @@ internal sealed class HostDetector : IResourceDetector
 #endif
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
-        Func<string?> getWindowsMachineId)
+        Func<string?> getWindowsMachineId,
+        HostDetectorOptions options)
     {
 #if !NETFRAMEWORK
         Guard.ThrowIfNull(isOsPlatform);
@@ -67,6 +76,8 @@ internal sealed class HostDetector : IResourceDetector
         Guard.ThrowIfNull(getFilePaths);
         Guard.ThrowIfNull(getMacOsMachineId);
         Guard.ThrowIfNull(getWindowsMachineId);
+
+        this.options = options;
 
 #if !NETFRAMEWORK
         this.isOsPlatform = isOsPlatform;
@@ -82,28 +93,50 @@ internal sealed class HostDetector : IResourceDetector
     /// <returns>Resource with key-value pairs of resource attributes.</returns>
     public Resource Detect()
     {
-        try
+        var attributes = new List<KeyValuePair<string, object>>(4);
+        var machineName = this.GetMachineName();
+        if (!string.IsNullOrEmpty(machineName))
         {
-            var attributes = new List<KeyValuePair<string, object>>(2)
-            {
-                new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
-            };
-            var machineId = this.GetMachineId();
+            attributes.Add(new(HostSemanticConventions.AttributeHostName, machineName!));
+        }
 
-            if (machineId != null && !string.IsNullOrEmpty(machineId))
+        var machineId = this.GetMachineId();
+
+        if (!string.IsNullOrEmpty(machineId))
+        {
+            attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId!));
+        }
+
+        if (this.options.IncludeIP)
+        {
+            var hostEntry = Dns.GetHostEntry(Environment.MachineName);
+            var ips = hostEntry?.AddressList.Where(x => !IPAddress.IsLoopback(x))
+                .Select(x => x.ToString())
+                .Distinct()
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToArray();
+            if (ips != null && ips.Length > 0)
             {
-                attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
+                attributes.Add(new(HostSemanticConventions.AttributeHostIp, ips));
             }
-
-            return new Resource(attributes);
         }
-        catch (InvalidOperationException ex)
+
+        if (this.options.IncludeMac)
         {
-            // Handling InvalidOperationException due to https://learn.microsoft.com/en-us/dotnet/api/system.environment.machinename#exceptions
-            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            var nics = NetworkInterface.GetAllNetworkInterfaces();
+            var macs = nics?.Select(x => string.Join(":", x.GetPhysicalAddress()
+                    .GetAddressBytes()
+                    .Select(y => y.ToString("X2", CultureInfo.InvariantCulture))))
+                .Distinct()
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToArray();
+            if (macs != null && macs.Length > 0)
+            {
+                attributes.Add(new(HostSemanticConventions.AttributeHostMac, macs));
+            }
         }
 
-        return Resource.Empty;
+        return new Resource(attributes);
     }
 
     internal static string? ParseMacOsOutput(string? output)
@@ -220,6 +253,26 @@ internal sealed class HostDetector : IResourceDetector
             this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) : null;
 
 #endif
+    }
+
+    private string? GetMachineName()
+    {
+        if (!string.IsNullOrEmpty(this.options.Name))
+        {
+            return this.options.Name;
+        }
+
+        try
+        {
+            return Environment.MachineName;
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Handling InvalidOperationException due to https://learn.microsoft.com/en-us/dotnet/api/system.environment.machinename#exceptions
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+        }
+
+        return null;
     }
 
     private string? GetMachineIdLinux()
