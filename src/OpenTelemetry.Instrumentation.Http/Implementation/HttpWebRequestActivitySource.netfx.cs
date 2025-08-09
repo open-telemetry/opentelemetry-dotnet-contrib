@@ -125,15 +125,6 @@ internal static class HttpWebRequestActivitySource
         {
             activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, RequestDataHelper.GetHttpProtocolVersion(response.ProtocolVersion));
             activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
-
-            try
-            {
-                TracingOptions.EnrichWithHttpWebResponse?.Invoke(activity, response);
-            }
-            catch (Exception ex)
-            {
-                HttpInstrumentationEventSource.Log.EnrichmentException(ex);
-            }
         }
     }
 
@@ -313,13 +304,15 @@ internal static class HttpWebRequestActivitySource
             Activity.Current = activity;
         }
 
+        HttpWebResponse response = null;
         try
         {
             if (result is Exception ex)
             {
                 errorType = GetErrorType(ex);
-                if (ex is WebException wexc && wexc.Response is HttpWebResponse response)
+                if (ex is WebException wexc && wexc.Response is HttpWebResponse hwr)
                 {
+                    response = hwr;
                     httpStatusCode = response.StatusCode;
                     protocolVersion = response.ProtocolVersion;
                     activityStatus = SpanHelper.ResolveActivityStatusForHttpStatusCode(ActivityKind.Client, (int)response.StatusCode);
@@ -346,7 +339,7 @@ internal static class HttpWebRequestActivitySource
             }
             else
             {
-                var response = (HttpWebResponse)result;
+                response = (HttpWebResponse)result;
 
                 if (forceResponseCopy || (asyncCallback == null && isContextAwareResultChecker(asyncResult)))
                 {
@@ -401,6 +394,18 @@ internal static class HttpWebRequestActivitySource
             if (errorType != null)
             {
                 activity.SetTag(SemanticConventions.AttributeErrorType, errorType);
+            }
+
+            if (response != null)
+            {
+                try
+                {
+                    TracingOptions.EnrichWithHttpWebResponse?.Invoke(activity, response);
+                }
+                catch (Exception ex)
+                {
+                    HttpInstrumentationEventSource.Log.EnrichmentException(ex);
+                }
             }
         }
 
