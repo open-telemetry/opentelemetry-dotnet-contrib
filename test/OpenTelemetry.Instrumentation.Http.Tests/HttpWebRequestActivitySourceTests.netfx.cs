@@ -737,6 +737,51 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(ActivityStatusCode.Ok)]
+    [InlineData(ActivityStatusCode.Error)]
+    [InlineData(ActivityStatusCode.Unset)]
+    public async Task TestActivityStatusChangeViaEnrichment(ActivityStatusCode activityStatus)
+    {
+        // This test verifies that we can change the activity status in the enrichment callback
+        HttpClientTraceInstrumentationOptions initialTracingOptions = HttpWebRequestActivitySource.TracingOptions;
+        HttpWebRequestActivitySource.TracingOptions = new HttpClientTraceInstrumentationOptions
+        {
+            EnrichWithHttpWebResponse = (activity, _) => activity.SetStatus(activityStatus)
+        };
+
+        try
+        {
+            var url = this.BuildRequestUrl();
+
+            using var eventRecords = new ActivitySourceRecorder();
+
+            // Send a random Http request to generate some events
+            using (var client = new HttpClient())
+            {
+                (await client.GetAsync(new Uri(url))).Dispose();
+            }
+
+            // We should have exactly one Start and one Stop event
+            Assert.Equal(2, eventRecords.Records.Count);
+            Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Start"));
+            Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
+
+            // Check to make sure: The first record must be a request, the next record must be a response.
+            var activity = AssertFirstEventWasStart(eventRecords);
+
+            Assert.True(eventRecords.Records.TryDequeue(out var stopEvent));
+            Assert.Equal("Stop", stopEvent.Key);
+
+            // The final activity status should match the one set via enrichment
+            Assert.Equal(activityStatus, activity.Status);
+        }
+        finally
+        {
+            HttpWebRequestActivitySource.TracingOptions = initialTracingOptions;
+        }
+    }
+
     private static Activity AssertFirstEventWasStart(ActivitySourceRecorder eventRecords)
     {
         Assert.True(eventRecords.Records.TryDequeue(out var startEvent));
