@@ -1,0 +1,3 @@
+OpenTelemetry.Resources.AssemblyMetadataResourceBuilderExtensions
+static OpenTelemetry.Resources.AssemblyMetadataResourceBuilderExtensions.AddAssemblyMetadataDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Resources.AssemblyMetadataResourceBuilderExtensions.AddAssemblyMetadataDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Reflection.Assembly? assembly) -> OpenTelemetry.Resources.ResourceBuilder!
