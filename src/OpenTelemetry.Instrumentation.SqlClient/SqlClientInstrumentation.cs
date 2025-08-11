@@ -18,12 +18,12 @@ internal sealed class SqlClientInstrumentation : IDisposable
 {
     public static readonly SqlClientInstrumentation Instance = new SqlClientInstrumentation();
 
+    public readonly InstrumentationHandleManager HandleManager = new();
+
     internal const string SqlClientDiagnosticListenerName = "SqlClientDiagnosticListener";
 #if NET
     internal const string SqlClientTrimmingUnsupportedMessage = "Trimming is not yet supported with SqlClient instrumentation.";
 #endif
-    internal static int MetricHandles;
-    internal static int TracingHandles;
 #if NETFRAMEWORK
     private readonly SqlEventSourceListener sqlEventSourceListener;
 #else
@@ -62,10 +62,6 @@ internal sealed class SqlClientInstrumentation : IDisposable
 
     public static SqlClientTraceInstrumentationOptions TracingOptions { get; set; } = new SqlClientTraceInstrumentationOptions();
 
-    public static IDisposable AddMetricHandle() => new MetricHandle();
-
-    public static IDisposable AddTracingHandle() => new TracingHandle();
-
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -74,49 +70,5 @@ internal sealed class SqlClientInstrumentation : IDisposable
 #else
         this.diagnosticSourceSubscriber?.Dispose();
 #endif
-    }
-
-#if NET
-    [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
-#endif
-    private sealed class MetricHandle : IDisposable
-    {
-        private bool disposed;
-
-        public MetricHandle()
-        {
-            Interlocked.Increment(ref MetricHandles);
-        }
-
-        public void Dispose()
-        {
-            if (!this.disposed)
-            {
-                Interlocked.Decrement(ref MetricHandles);
-                this.disposed = true;
-            }
-        }
-    }
-
-#if NET
-    [RequiresUnreferencedCode(SqlClientTrimmingUnsupportedMessage)]
-#endif
-    private sealed class TracingHandle : IDisposable
-    {
-        private bool disposed;
-
-        public TracingHandle()
-        {
-            Interlocked.Increment(ref TracingHandles);
-        }
-
-        public void Dispose()
-        {
-            if (!this.disposed)
-            {
-                Interlocked.Decrement(ref TracingHandles);
-                this.disposed = true;
-            }
-        }
     }
 }
