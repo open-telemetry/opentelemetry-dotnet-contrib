@@ -100,7 +100,8 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        if (Activity.Current == null)
+        var activity = Activity.Current;
+        if (activity == null)
         {
             return;
         }
