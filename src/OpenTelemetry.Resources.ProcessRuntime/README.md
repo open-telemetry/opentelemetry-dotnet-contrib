@@ -21,7 +21,7 @@ added & enabled in your project.
 
 ### ProcessRuntimeDetector
 
-|Attribute| Comment |
+| Attribute | Comment |
 |--- | --- |
 | [`process.runtime.description`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-description) |  |
 | [`process.runtime.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-name) |  |
