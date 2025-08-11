@@ -100,14 +100,13 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        ActivityContext contextToInject = default;
-        if (Activity.Current != null)
+        if (Activity.Current == null)
         {
-            contextToInject = Activity.Current.Context;
+            return;
         }
 
         var activityContextData = new Dictionary<string, string>();
-        Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(contextToInject, Baggage.Current), activityContextData, InjectActivityProperties);
+        Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(Activity.Current.Context, Baggage.Current), activityContextData, InjectActivityProperties);
         creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
     }
 

@@ -26,6 +26,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
         using var tel = Sdk.CreateTracerProviderBuilder()
             .AddHangfireInstrumentation()
             .AddInMemoryExporter(exportedItems)
+            .SetSampler<AlwaysOnSampler>()
             .Build();
 
         // Act
@@ -168,6 +169,27 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         Assert.Equal(shouldRecord, activity.IsAllDataRequested);
         Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+    }
+
+    [Fact]
+    public async Task Should_Not_Inject_Invalid_Context()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+        using var tel = Sdk.CreateTracerProviderBuilder()
+            .AddHangfireInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .SetSampler<AlwaysOffSampler>()
+            .Build();
+
+        using var listener = new OpenTelemetryEventListener();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.WaitJobProcessedAsync(jobId, 5);
+
+        // Assert
+        Assert.All(listener.Messages, args => Assert.NotEqual("FailedToInjectActivityContext", args.EventName));
     }
 
     private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
