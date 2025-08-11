@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using Hangfire;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -217,6 +218,61 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
             var history = jobDetails.History.ToArray();
 
             return !history.All(h => states.Contains(h.StateName));
+        }
+    }
+
+    private class OpenTelemetryEventListener : EventListener
+    {
+        private const string EventSourceName = "OpenTelemetry-Api";
+
+        private readonly Queue<EventWrittenEventArgs> events = new();
+        private readonly AutoResetEvent eventWritten = new(false);
+        private EventSource? apiEventSource;
+
+        public IEnumerable<EventWrittenEventArgs> Messages
+        {
+            get
+            {
+                if (this.events.Count == 0)
+                {
+                    this.eventWritten.WaitOne(TimeSpan.FromSeconds(3));
+                }
+
+                while (this.events.Count != 0)
+                {
+                    yield return this.events.Dequeue();
+                }
+            }
+        }
+
+        public override void Dispose()
+        {
+            if (this.apiEventSource != null)
+            {
+                this.DisableEvents(this.apiEventSource);
+            }
+
+            base.Dispose();
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == EventSourceName)
+            {
+                this.apiEventSource = eventSource;
+                this.EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
+            }
+
+            base.OnEventSourceCreated(eventSource);
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (eventData.EventSource.Name == EventSourceName)
+            {
+                this.events.Enqueue(eventData);
+                this.eventWritten.Set();
+            }
         }
     }
 }
