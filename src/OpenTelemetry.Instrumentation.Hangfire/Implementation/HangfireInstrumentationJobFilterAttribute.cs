@@ -107,7 +107,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         }
 
         var activityContextData = new Dictionary<string, string>();
-        Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(Activity.Current.Context, Baggage.Current), activityContextData, InjectActivityProperties);
+        Propagators.DefaultTextMapPropagator.Inject(new PropagationContext(activity.Context, Baggage.Current), activityContextData, InjectActivityProperties);
         creatingContext.SetJobParameter(HangfireInstrumentationConstants.ActivityContextKey, activityContextData);
     }
 
