@@ -53,7 +53,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
+            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -304,7 +305,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
-        if (SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }

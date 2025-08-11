@@ -46,8 +46,12 @@ public static class AspNetInstrumentationTracerProviderBuilderExtensions
             services.ConfigureOpenTelemetryTracerProvider((sp, tracerProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetTraceInstrumentationOptions>>().Get(name: null);
+                AspNetInstrumentation.Instance.TraceOptions = options;
 
-                tracerProviderBuilder.AddInstrumentation(() => new AspNetInstrumentation(options));
+                tracerProviderBuilder.AddInstrumentation(() =>
+                {
+                    return AspNetInstrumentation.Instance.HandleManager.AddTracingHandle();
+                });
                 tracerProviderBuilder.AddSource(TelemetryHttpModule.AspNetSourceName);
             });
         });
