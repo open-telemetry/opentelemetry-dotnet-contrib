@@ -366,4 +366,51 @@ public partial class HttpWebRequestTests : IDisposable
         Assert.DoesNotContain(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
 #endif
     }
+
+    [Theory]
+    [InlineData(ActivityStatusCode.Unset)]
+    [InlineData(ActivityStatusCode.Ok)]
+    [InlineData(ActivityStatusCode.Error)]
+    public async Task ResponseEnrichmentCanChangeActivityStatus(ActivityStatusCode activityStatus)
+    {
+        bool httpWebResponseEnrichmentApplied = false;
+        bool httpResponseMessageEnrichmentApplied = false;
+
+        var exportedItems = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddHttpClientInstrumentation(
+                options =>
+                {
+                    options.EnrichWithHttpWebResponse = (activity, _) =>
+                    {
+                        httpWebResponseEnrichmentApplied = true;
+                        activity.SetStatus(activityStatus);
+                    };
+                    options.EnrichWithHttpResponseMessage = (activity, _) =>
+                    {
+                        httpResponseMessageEnrichmentApplied = true;
+                        activity.SetStatus(activityStatus);
+                    };
+                })
+            .Build();
+
+        var request = (HttpWebRequest)WebRequest.Create(new Uri($"{this.url}?bypassHeaderCheck=true"));
+
+        request.Method = "GET";
+
+        using var response = await request.GetResponseAsync();
+
+#if NETFRAMEWORK
+        Assert.True(httpWebResponseEnrichmentApplied);
+        Assert.False(httpResponseMessageEnrichmentApplied);
+#else
+        Assert.False(httpWebResponseEnrichmentApplied);
+        Assert.True(httpResponseMessageEnrichmentApplied);
+#endif
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(activityStatus, item.Status);
+    }
 }
