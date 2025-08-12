@@ -94,7 +94,7 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
@@ -131,7 +131,7 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
@@ -165,7 +165,7 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit which fails the git tag operation below
         fetch-depth: 0
@@ -204,7 +204,7 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit which fails the git tag operation below
         fetch-depth: 0
@@ -247,7 +247,7 @@ jobs:
 
     steps:
     - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
