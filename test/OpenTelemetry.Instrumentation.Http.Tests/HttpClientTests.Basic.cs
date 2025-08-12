@@ -860,7 +860,6 @@ public partial class HttpClientTests : IDisposable
                     };
                 })
             .Build();
-
         {
             using var c = new HttpClient();
             await c.GetAsync(new Uri(this.url));
