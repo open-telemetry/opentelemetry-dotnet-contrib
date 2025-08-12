@@ -874,8 +874,8 @@ public partial class HttpClientTests : IDisposable
         Assert.True(httpResponseMessageEnrichmentApplied);
 #endif
 
-        Assert.Single(exportedItems);
-        Assert.Equal(activityStatus, exportedItems[0].Status);
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(activityStatus, item.Status);
     }
 
     public void Dispose()
