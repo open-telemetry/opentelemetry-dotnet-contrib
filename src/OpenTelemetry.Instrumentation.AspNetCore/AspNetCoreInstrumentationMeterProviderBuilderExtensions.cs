@@ -49,6 +49,8 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
              .AddMeter("Microsoft.AspNetCore.Http.Connections")
              .AddMeter("Microsoft.AspNetCore.Routing")
              .AddMeter("Microsoft.AspNetCore.Diagnostics")
-             .AddMeter("Microsoft.AspNetCore.RateLimiting");
+             .AddMeter("Microsoft.AspNetCore.RateLimiting")
+             .AddMeter("Microsoft.AspNetCore.Components")
+             .AddMeter("Microsoft.AspNetCore.Components.Server.Circuits");
     }
 }
