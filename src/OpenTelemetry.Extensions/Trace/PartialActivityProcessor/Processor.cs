@@ -168,8 +168,10 @@ public class Processor : BaseProcessor<Activity>
 
         using (this.logger.BeginScope(GetEndedLogRecordAttributes()))
         {
+#pragma warning disable CA1848, CA2254 // Use LoggerMessage delegates for improved performance and template should not vary between calls
             this.logger.LogInformation(
                 SpecHelper.Json(new TracesData(data, TracesData.Signal.Ended)));
+#pragma warning restore CA1848, CA2254
         }
     }
 
@@ -337,10 +339,10 @@ public class Processor : BaseProcessor<Activity>
 
             using (this.logger.BeginScope(GetHeartbeatLogRecordAttributes()))
             {
-                {
-                    this.logger.LogInformation(
-                        SpecHelper.Json(new TracesData(activity, TracesData.Signal.Heartbeat)));
-                }
+#pragma warning disable CA1848, CA2254 // Use LoggerMessage delegates for improved performance and template should not vary between calls
+                this.logger.LogInformation(
+                    SpecHelper.Json(new TracesData(activity, TracesData.Signal.Heartbeat)));
+#pragma warning restore CA1848, CA2254
             }
         }
     }
