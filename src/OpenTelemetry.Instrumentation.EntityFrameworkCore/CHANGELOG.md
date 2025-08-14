@@ -2,9 +2,12 @@
 
 ## Unreleased
 
-* Added support for detecting Snowflake for the `db.system` attribute
+* Added support for detecting Snowflake for the `db.system`/`db.system.name` attributes
   when using `EFCore.Snowflake`.
   ([#2980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2980))
+* Fix `db.system.name` values to follow new database semantic conventions when opted
+  into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
+  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))
 
 ## 1.12.0-beta.2
 
