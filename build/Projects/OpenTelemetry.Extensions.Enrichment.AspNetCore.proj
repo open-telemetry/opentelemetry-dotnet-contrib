@@ -1,0 +1,34 @@
+<Project>
+
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.Parent.FullName)</RepoRoot>
+    <MinVerTagPrefix>Extensions.Enrichment.AspNetCore-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SolutionProjects Include="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\examples\enrichment\**\*.csproj" />
+
+    <PackProjects Include="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj" />
+
+    <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj" />
+  </ItemGroup>
+
+  <Target Name="Build">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Build" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Restore">
+    <MSBuild Projects="@(SolutionProjects)" Targets="Restore" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="Pack">
+    <MSBuild Projects="@(PackProjects)" Targets="Pack" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+  <Target Name="VSTest">
+    <MSBuild Projects="@(TestProjects)" Targets="VSTest" ContinueOnError="ErrorAndStop" />
+  </Target>
+
+</Project>
