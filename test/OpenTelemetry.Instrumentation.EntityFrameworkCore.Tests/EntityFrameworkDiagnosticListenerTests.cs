@@ -7,7 +7,6 @@ using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -266,19 +265,19 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
+        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbSystem).Value);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
-        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
 
         if (!emitNewAttributes)
         {
-            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbName).Value);
         }
 
         if (emitNewAttributes)
         {
-            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbNamespace).Value);
         }
 
         if (!isError)
