@@ -251,7 +251,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     }
 
     /// <summary>
-    /// Gets the <c></c> and <c></c> values to use for the given provider or command name.
+    /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>
     /// <returns>
