@@ -87,7 +87,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             providerOrCommandName = command.GetType().FullName;
                         }
 
-                        this.AddSystemNameTag(activity, providerOrCommandName);
+                        this.AddDbSystemNameTag(activity, providerOrCommandName);
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
@@ -250,6 +250,68 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
     }
 
+    /// <summary>
+    /// Gets the <c></c> and <c></c> values to use for the given provider or command name.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
+    /// </returns>
+    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
+        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used; otherwise, a custom value MAY be used."
+        providerOrCommandName switch
+        {
+            //// These names are defined in the Semantic Conventions
+            "Microsoft.Data.SqlClient.SqlCommand" or
+            "Microsoft.EntityFrameworkCore.SqlServer"
+                => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
+            "Microsoft.EntityFrameworkCore.Cosmos" => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
+            "Devart.Data.SQLite.Entity.EFCore" or
+            "Microsoft.Data.Sqlite.SqliteCommand" or
+            "Microsoft.EntityFrameworkCore.Sqlite"
+                => (DbSystems.Sqlite, DbSystemNames.Sqlite),
+            "Devart.Data.MySql.Entity.EFCore" or
+            "Devart.Data.MySql.MySqlCommand" or
+            "MySql.Data.EntityFrameworkCore" or
+            "MySql.Data.MySqlClient.MySqlCommand" or
+            "Pomelo.EntityFrameworkCore.MySql"
+                => (DbSystems.Mysql, DbSystemNames.Mysql),
+            "Npgsql.EntityFrameworkCore.PostgreSQL" or
+            "Npgsql.NpgsqlCommand" or
+            "Devart.Data.PostgreSql.Entity.EFCore" or
+            "Devart.Data.PostgreSql.PgSqlCommand" => (DbSystems.Postgresql, DbSystemNames.Postgresql),
+            "Oracle.EntityFrameworkCore" or
+            "Oracle.ManagedDataAccess.Client.OracleCommand" or
+            "Devart.Data.Oracle.Entity.EFCore" or
+            "Devart.Data.Oracle.OracleCommand" => (DbSystems.Oracle, DbSystemNames.OracleDb),
+            "FirebirdSql.Data.FirebirdClient.FbCommand" or
+            "FirebirdSql.EntityFrameworkCore.Firebird"
+                => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
+            "Google.Cloud.EntityFrameworkCore.Spanner" or
+            "Google.Cloud.Spanner.Data.SpannerCommand"
+                => (DbSystems.Spanner, DbSystemNames.GcpSpanner),
+            "Teradata.Client.Provider.TdCommand" or
+            "Teradata.EntityFrameworkCore"
+                => (DbSystems.Teradata, DbSystemNames.Teradata),
+            //// These names are custom and are retained for backwards compatibility
+            "EFCore.Snowflake" or
+            "EFCore.Snowflake.Storage" or
+            "EFCore.Snowflake.Storage.Internal"
+                => ("snowflake", "snowflake"),
+            "Microsoft.EntityFrameworkCore.InMemory" => ("efcoreinmemory", "efcoreinmemory"),
+            "FileContextCore" => ("filecontextcore", "filecontextcore"),
+            "EntityFrameworkCore.SqlServerCompact35" or
+            "EntityFrameworkCore.SqlServerCompact40" or
+            "System.Data.SqlServerCe.SqlCeCommand"
+                => ("mssqlcompact", "mssqlcompact"),
+            "EntityFrameworkCore.OpenEdge" => ("openedge", "openedge"),
+            "EntityFrameworkCore.Jet" or
+            "EntityFrameworkCore.Jet.Data.JetCommand"
+                => ("jet", "jet"),
+            //// Otherwise use the fallback defined in the Semantic Conventions
+            _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
+        };
+
     private void AddTag(Activity activity, (string Old, string New) attributes, string value)
         => this.AddTag(activity, attributes, (value, value));
 
@@ -266,54 +328,53 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
         }
     }
 
-    private void AddSystemNameTag(Activity activity, string? providerOrCommandName)
+    private void AddDbSystemNameTag(Activity activity, string? providerOrCommandName)
     {
-        string? value = providerOrCommandName switch
-        {
-            "Microsoft.EntityFrameworkCore.SqlServer" or "Microsoft.Data.SqlClient.SqlCommand" => "mssql",
-            "Microsoft.EntityFrameworkCore.Cosmos" => "cosmosdb",
-            "Microsoft.Data.Sqlite.SqliteCommand" => "sqlite",
-            "Microsoft.EntityFrameworkCore.Sqlite" => "sqlite",
-            "Devart.Data.SQLite.Entity.EFCore" => "sqlite",
-            "MySql.Data.EntityFrameworkCore" => "mysql",
-            "MySql.Data.MySqlClient.MySqlCommand" => "mysql",
-            "Pomelo.EntityFrameworkCore.MySql" => "mysql",
-            "Devart.Data.MySql.Entity.EFCore" => "mysql",
-            "Devart.Data.MySql.MySqlCommand" => "mysql",
-            "Npgsql.EntityFrameworkCore.PostgreSQL" => "postgresql",
-            "Npgsql.NpgsqlCommand" => "postgresql",
-            "Devart.Data.PostgreSql.Entity.EFCore" => "postgresql",
-            "Devart.Data.PostgreSql.PgSqlCommand" => "postgresql",
-            "Oracle.EntityFrameworkCore" => "oracle",
-            "Oracle.ManagedDataAccess.Client.OracleCommand" => "oracle",
-            "Devart.Data.Oracle.Entity.EFCore" => "oracle",
-            "Devart.Data.Oracle.OracleCommand" => "oracle",
-            "Microsoft.EntityFrameworkCore.InMemory" => "efcoreinmemory",
-            "FirebirdSql.Data.FirebirdClient.FbCommand" => "firebird",
-            "FirebirdSql.EntityFrameworkCore.Firebird" => "firebird",
-            "FileContextCore" => "filecontextcore",
-            "EntityFrameworkCore.SqlServerCompact35" => "mssqlcompact",
-            "EntityFrameworkCore.SqlServerCompact40" => "mssqlcompact",
-            "System.Data.SqlServerCe.SqlCeCommand" => "mssqlcompact",
-            "EntityFrameworkCore.OpenEdge" => "openedge",
-            "EntityFrameworkCore.Jet" => "jet",
-            "EntityFrameworkCore.Jet.Data.JetCommand" => "jet",
-            "Google.Cloud.EntityFrameworkCore.Spanner" => "spanner",
-            "Google.Cloud.Spanner.Data.SpannerCommand" => "spanner",
-            "Teradata.Client.Provider.TdCommand" => "teradata",
-            "Teradata.EntityFrameworkCore" => "teradata",
-            "EFCore.Snowflake" => "snowflake",
-            "EFCore.Snowflake.Storage" => "snowflake",
-            "EFCore.Snowflake.Storage.Internal" => "snowflake",
-            _ => null,
-        };
+        var values = GetDbSystemNames(providerOrCommandName);
 
-        if (value == null)
+        // Custom tag for backwards compatibility only
+        if (this.options.EmitOldAttributes && (values == (DbSystems.OtherSql, DbSystemNames.OtherSql)))
         {
-            value = "other_sql";
             activity.AddTag("ef.provider", providerOrCommandName);
         }
 
-        this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), value);
+        this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), values);
+    }
+
+    // v1.36.0 database conventions:
+    // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
+
+    /// <summary>
+    /// Known (and used) values for the <c>db.system.name</c> attributes.
+    /// </summary>
+    private static class DbSystemNames
+    {
+        public const string OtherSql = "other_sql";
+        public const string AzureCosmosDb = "azure.cosmosdb";
+        public const string Firebirdsql = "firebirdsql";
+        public const string GcpSpanner = "gcp.spanner";
+        public const string MicrosoftSqlServer = "microsoft.sql_server";
+        public const string Mysql = "mysql";
+        public const string OracleDb = "oracle.db";
+        public const string Postgresql = "postgresql";
+        public const string Sqlite = "sqlite";
+        public const string Teradata = "teradata";
+    }
+
+    /// <summary>
+    /// Known (and used) values for the <c>db.system</c> attributes.
+    /// </summary>
+    private static class DbSystems
+    {
+        public const string OtherSql = "other_sql";
+        public const string Cosmosdb = "cosmosdb";
+        public const string Firebird = "firebird";
+        public const string Mssql = "mssql";
+        public const string Mysql = "mysql";
+        public const string Oracle = "oracle";
+        public const string Postgresql = "postgresql";
+        public const string Spanner = "spanner";
+        public const string Sqlite = "sqlite";
+        public const string Teradata = "teradata";
     }
 }

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using OpenTelemetry.Trace;
 using Xunit;
 
@@ -26,6 +27,158 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         this.connection = RelationalOptionsExtension.Extract(this.contextOptions).Connection!;
 
         this.Seed();
+    }
+
+    public static TheoryData<string, string, string> DbSystemTestCases()
+    {
+        var testCases = new TheoryData<string, string, string>()
+        {
+            { "EntityFrameworkCore.OpenEdge", "openedge", "openedge" },
+            { "FileContextCore", "filecontextcore", "filecontextcore" },
+            { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
+            { "Microsoft.EntityFrameworkCore.InMemory", "efcoreinmemory", "efcoreinmemory" },
+        };
+
+        // Firebird
+        string[] names =
+        [
+            "FirebirdSql.Data.FirebirdClient.FbCommand",
+            "FirebirdSql.EntityFrameworkCore.Firebird",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "firebird", "firebirdsql");
+        }
+
+        // JET
+        names =
+        [
+            "EntityFrameworkCore.Jet",
+            "EntityFrameworkCore.Jet.Data.JetCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "jet", "jet");
+        }
+
+        // Microsoft SQL Server
+        names =
+        [
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "mssql", "microsoft.sql_server");
+        }
+
+        // MySQL
+        names =
+        [
+            "Devart.Data.MySql.Entity.EFCore",
+            "Devart.Data.MySql.MySqlCommand",
+            "MySql.Data.EntityFrameworkCore",
+            "MySql.Data.MySqlClient.MySqlCommand",
+            "Pomelo.EntityFrameworkCore.MySql",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "mysql", "mysql");
+        }
+
+        // Oracle Database
+        names =
+        [
+            "Devart.Data.Oracle.Entity.EFCore",
+            "Devart.Data.Oracle.OracleCommand",
+            "Oracle.EntityFrameworkCore",
+            "Oracle.ManagedDataAccess.Client.OracleCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "oracle", "oracle.db");
+        }
+
+        // PostgreSQL
+        names =
+        [
+            "Devart.Data.PostgreSql.Entity.EFCore",
+            "Devart.Data.PostgreSql.PgSqlCommand",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Npgsql.NpgsqlCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "postgresql", "postgresql");
+        }
+
+        // SQLite
+        names =
+        [
+            "Devart.Data.SQLite.Entity.EFCore",
+            "Microsoft.Data.Sqlite.SqliteCommand",
+            "Microsoft.EntityFrameworkCore.Sqlite",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "sqlite", "sqlite");
+        }
+
+        // SQL Server Compact
+        names =
+        [
+            "EntityFrameworkCore.SqlServerCompact35",
+            "EntityFrameworkCore.SqlServerCompact40",
+            "System.Data.SqlServerCe.SqlCeCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "mssqlcompact", "mssqlcompact");
+        }
+
+        // Spanner
+        names =
+        [
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "spanner", "gcp.spanner");
+        }
+
+        // Teradata
+        names =
+        [
+            "Teradata.Client.Provider.TdCommand",
+            "Teradata.EntityFrameworkCore",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "teradata", "teradata");
+        }
+
+        return testCases;
+    }
+
+    [Theory]
+    [MemberData(nameof(DbSystemTestCases))]
+    public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
+    {
+        var actual = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+
+        Assert.Equal(expectedDbSystem, actual.Old);
+        Assert.Equal(expectedDbSystemName, actual.New);
     }
 
     [Fact]
