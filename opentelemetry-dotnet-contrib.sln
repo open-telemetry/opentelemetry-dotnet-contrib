@@ -405,6 +405,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client.Tests", "test\OpenTelemetry.OpAmp.Client.Tests\OpenTelemetry.OpAmp.Client.Tests.csproj", "{044B896A-FDC6-422F-B349-483BDE19F685}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.AspNetCore", "src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj", "{EB5F0E63-61E3-43AE-A383-48EA7878DA29}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -835,6 +837,10 @@ Global
 		{044B896A-FDC6-422F-B349-483BDE19F685}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{044B896A-FDC6-422F-B349-483BDE19F685}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{044B896A-FDC6-422F-B349-483BDE19F685}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -963,6 +969,7 @@ Global
 		{00C9F0B8-3D51-483C-821A-5889B38A144C} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B5AF4876-3970-4686-A4A9-4EA369843F1F} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{044B896A-FDC6-422F-B349-483BDE19F685} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
