@@ -422,6 +422,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
         Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
+        Assert.DoesNotContain(activity.Tags, t => t.Key == "server.address");
 
         if (!emitNewAttributes)
         {

@@ -92,7 +92,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            activity.AddTag(SemanticConventions.AttributeServerAddress, dataSource);
+                            this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), dataSource);
                         }
 
                         this.AddTag(activity, (SemanticConventions.AttributeDbName, SemanticConventions.AttributeDbNamespace), database);
