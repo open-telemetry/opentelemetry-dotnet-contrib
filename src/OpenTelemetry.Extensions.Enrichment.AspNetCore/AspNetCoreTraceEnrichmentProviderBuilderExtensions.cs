@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-using System.Diagnostics.CodeAnalysis;
-#endif
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -16,78 +13,61 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 public static class AspNetCoreTraceEnrichmentProviderBuilderExtensions
 {
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds the specified <typeparamref name="T"/> implementation as a Singleton <see cref="AspNetCoreTraceEnricher"/> service
+    /// to the <paramref name="builder"/> if the same service and implementation does not already exist.
     /// </summary>
+    /// <typeparam name="T">Concrete <see cref="AspNetCoreTraceEnricher"/> implementation type.</typeparam>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <typeparam name="T">Enricher object type.</typeparam>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> is <see langword="null" />.</exception>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="builder"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Add this enricher *before* exporter related Activity processors.
+    /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
-#if NET
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
-#else
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder)
-#endif
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder)
         where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(builder);
 
-        return builder.ConfigureServices(services => services.AddAspNetCoreTraceEnricher<T>());
+        return builder.ConfigureServices(services => services.TryAddAspNetCoreTraceEnricher<T>());
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds the specified <paramref name="enricher"/> implementation as a Singleton <see cref="AspNetCoreTraceEnricher"/> service
+    /// to the <paramref name="builder"/> if the same service and implementation does not already exist.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricher"/> is <see langword="null" />.</exception>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <param name="enricher">The <see cref="AspNetCoreTraceEnricher"/> instance being added.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="builder"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Add this enricher *before* exporter related Activity processors.
+    /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, AspNetCoreTraceEnricher enricher)
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, AspNetCoreTraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
-        return builder.ConfigureServices(services => services.AddAspNetCoreTraceEnricher(enricher));
+        return builder.ConfigureServices(services => services.TryAddAspNetCoreTraceEnricher(enricher));
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds the specified <typeparamref name="T"/> implementation produced by the supplied factory as a Singleton <see cref="AspNetCoreTraceEnricher"/> service
+    /// to the <paramref name="builder"/> if the same service and implementation does not already exist.
     /// </summary>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enrichmentAction">The <see cref="TraceEnrichmentBag"/> delegate to enrich traces.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enrichmentAction"/> is <see langword="null" />.</exception>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    /// <typeparam name="T">Concrete <see cref="AspNetCoreTraceEnricher"/> implementation type.</typeparam>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>>
+    /// <param name="enricherImplementationFactory">Factory used to create the <typeparamref name="T"/> instance.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null"/>.</exception>
     /// <remarks>
-    /// Add this enricher *before* exporter related Activity processors.
+    /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, Action<TraceEnrichmentBag> enrichmentAction)
-    {
-        Guard.ThrowIfNull(builder);
-        Guard.ThrowIfNull(enrichmentAction);
-
-        return builder.ConfigureServices(services => services.AddAspNetCoreTraceEnricher(enrichmentAction));
-    }
-
-    /// <summary>
-    /// Adds trace enricher.
-    /// </summary>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
-    /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
-    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null" />.</exception>
-    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
-    /// <remarks>
-    /// Add this enricher *before* exporter related Activity processors.
-    /// </remarks>
-    public static TracerProviderBuilder AddAspNetCoreTraceEnricher(this TracerProviderBuilder builder, Func<IServiceProvider, AspNetCoreTraceEnricher> enricherImplementationFactory)
+    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
+    public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder, Func<IServiceProvider, T> enricherImplementationFactory)
+        where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricherImplementationFactory);
 
-        return builder.ConfigureServices(services => services.AddAspNetCoreTraceEnricher(enricherImplementationFactory));
+        return builder.ConfigureServices(services => services.TryAddAspNetCoreTraceEnricher(enricherImplementationFactory));
     }
 }
