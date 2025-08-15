@@ -10,6 +10,9 @@ namespace OpenTelemetry.Extensions.Enrichment.AspNetCore;
 /// </summary>
 public abstract class AspNetCoreTraceEnricher
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AspNetCoreTraceEnricher"/> class.
+    /// </summary>
     protected AspNetCoreTraceEnricher()
     {
     }
