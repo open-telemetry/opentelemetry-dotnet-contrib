@@ -19,6 +19,7 @@ components:
     - ppittle
   src/OpenTelemetry.Extensions.Enrichment/:
     - evgenyfedorov2
+    - dariusclay
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - ppittle
@@ -109,6 +110,7 @@ components:
     - ppittle
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - evgenyfedorov2
+    - dariusclay
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
     - ppittle
