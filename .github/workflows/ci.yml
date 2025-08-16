@@ -38,7 +38,8 @@ jobs:
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
-          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
+          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '!**/*.md']
+          extensions-enrichment-aspnetcore: ['*/OpenTelemetry.Extensions.Enrichment.AspNetCore*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
           instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
           instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
@@ -172,6 +173,17 @@ jobs:
     with:
       project-name: OpenTelemetry.Extensions.Enrichment
       code-cov-name: Extensions.Enrichment
+
+  build-test-extensions-enrichment-aspnetcore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: OpenTelemetry.Extensions.Enrichment.AspNetCore
+      code-cov-name: Extensions.Enrichment.AspNetCore
 
   build-test-instrumentation-aspnet:
     needs: detect-changes
