@@ -20,7 +20,6 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
 {
     internal const string DatabaseSystemName = "elasticsearch";
     internal const string ExceptionCustomPropertyName = "OTel.Elasticsearch.Exception";
-    internal const string AttributeDbMethod = "db.method";
 
     internal static readonly Assembly Assembly = typeof(ElasticsearchRequestPipelineDiagnosticListener).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -182,31 +181,23 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
 
             var elasticIndex = GetElasticIndex(uri);
             activity.DisplayName = GetDisplayName(activity, method, elasticIndex);
-            activity.SetTag(SemanticConventions.AttributeDbSystem, DatabaseSystemName);
+            activity.SetTag(SemanticConventions.AttributeDbSystemName, DatabaseSystemName);
 
             if (elasticIndex != null)
             {
-                activity.SetTag(SemanticConventions.AttributeDbName, elasticIndex);
+                activity.SetTag(SemanticConventions.AttributeDbCollectionName, elasticIndex);
             }
 
-            var uriHostNameType = Uri.CheckHostName(uri.Host);
-            if (uriHostNameType is UriHostNameType.IPv4 or UriHostNameType.IPv6)
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerIp, uri.Host);
-            }
-            else
-            {
-                activity.SetTag(SemanticConventions.AttributeNetPeerName, uri.Host);
-            }
+            activity.SetTag(SemanticConventions.AttributeNetworkPeerAddress, uri.Host);
 
             if (uri.Port > 0)
             {
-                activity.SetTag(SemanticConventions.AttributeNetPeerPort, uri.Port);
+                activity.SetTag(SemanticConventions.AttributeNetworkPeerPort, uri.Port);
             }
 
             if (method != null)
             {
-                activity.SetTag(AttributeDbMethod, method.ToString());
+                activity.SetTag(SemanticConventions.AttributeDbOperationName, method.ToString());
             }
 
             activity.SetTag(SemanticConventions.AttributeUrlFull, uri.OriginalString);
@@ -243,7 +234,7 @@ internal class ElasticsearchRequestPipelineDiagnosticListener : ListenerHandler
                     dbStatement = dbStatement.Substring(0, this.options.MaxDbStatementLength);
                 }
 
-                activity.SetTag(SemanticConventions.AttributeDbStatement, dbStatement);
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, dbStatement);
             }
 
             var originalException = this.originalExceptionFetcher.Fetch(payload);
