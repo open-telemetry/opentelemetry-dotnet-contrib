@@ -24,17 +24,17 @@ public class TelemetryHttpModule : IHttpModule
     public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
 
     // ServerVariable set only on rewritten HttpContext by URL Rewrite module.
-    private const string URLRewriteRewrittenRequest = "IIS_WasUrlRewritten";
+    private const string UrlRewriteRewrittenRequest = "IIS_WasUrlRewritten";
 
     // ServerVariable set on every request if URL module is registered in HttpModule pipeline.
-    private const string URLRewriteModuleVersion = "IIS_UrlRewriteModule";
+    private const string UrlRewriteModuleVersion = "IIS_UrlRewriteModule";
 
-    private static readonly MethodInfo OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
+    private static readonly MethodInfo? OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
 
     /// <summary>
     /// Gets the <see cref="TelemetryHttpModuleOptions"/> applied to requests processed by the handler.
     /// </summary>
-    public static TelemetryHttpModuleOptions Options { get; } = new TelemetryHttpModuleOptions();
+    public static TelemetryHttpModuleOptions Options { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -93,7 +93,7 @@ public class TelemetryHttpModule : IHttpModule
             // Do not create activity for parent request. Parent request has IIS_UrlRewriteModule ServerVariable with success response code.
             // Child request contains an additional ServerVariable named - IIS_WasUrlRewritten.
             // Track failed response activity: Different modules in the pipeline has ability to end the response. For example, authentication module could set HTTP 401 in OnBeginRequest and end the response.
-            if (context.Request.ServerVariables != null && context.Request.ServerVariables[URLRewriteRewrittenRequest] == null && context.Request.ServerVariables[URLRewriteModuleVersion] != null && context.Response.StatusCode == 200)
+            if (context.Request.ServerVariables != null && context.Request.ServerVariables[UrlRewriteRewrittenRequest] == null && context.Request.ServerVariables[UrlRewriteModuleVersion] != null && context.Response.StatusCode == 200)
             {
                 trackActivity = false;
             }

@@ -1,9 +1,9 @@
 # Container Resource Detectors
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@iskiselev](https://github.com/iskiselev)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@iskiselev](https://github.com/iskiselev) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Container)](https://www.nuget.org/packages/OpenTelemetry.Resources.Container)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.Container)](https://www.nuget.org/packages/OpenTelemetry.Resources.Container)

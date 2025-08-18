@@ -1,9 +1,9 @@
 # SqlClient Instrumentation for OpenTelemetry
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.SqlClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient)
 [![NuGet](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.SqlClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient)
@@ -280,6 +280,20 @@ using var traceProvider = Sdk.CreateTracerProviderBuilder()
    .Build();
 {
 ```
+
+### Trace Context Propagation
+
+> [!NOTE]
+> Only `CommandType.Text` commands are supported for trace context propagation.
+> Only .NET runtimes are supported.
+
+Database trace context propagation can be enabled by setting
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
+environment variable to `true`.
+This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)
+command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)
+information for the current connection, which results in
+**an additional round-trip to the database**.
 
 ## References
 

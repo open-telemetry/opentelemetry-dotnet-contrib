@@ -25,6 +25,8 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
         };
         connectionOptions.EndPoints.Add("localhost:6379");
 
@@ -91,24 +93,6 @@ public class RedisProfilerEntryToActivityConverterTests : IDisposable
         Assert.NotNull(result);
         Assert.NotNull(result.GetTagValue(SemanticConventions.AttributeDbStatement));
         Assert.Equal("SET", result.GetTagValue(SemanticConventions.AttributeDbStatement));
-    }
-
-    [Fact]
-    public void ProfilerCommandToActivity_UsesFlagsForFlagsAttribute()
-    {
-        var activity = new Activity("redis-profiler");
-        var profiledCommand = new TestProfiledCommand(DateTime.UtcNow, CommandFlags.FireAndForget | CommandFlags.NoRedirect);
-
-        var result = RedisProfilerEntryToActivityConverter.ProfilerCommandToActivity(activity, profiledCommand, new StackExchangeRedisInstrumentationOptions());
-
-        Assert.NotNull(result);
-        Assert.NotNull(result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-
-#if NET
-        Assert.Equal("FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#else
-        Assert.Equal("PreferMaster, FireAndForget, NoRedirect", result.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName));
-#endif
     }
 
     [Fact]

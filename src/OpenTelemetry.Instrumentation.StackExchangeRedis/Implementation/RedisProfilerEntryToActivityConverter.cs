@@ -120,8 +120,6 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisFlagsKeyName, command.Flags.ToString());
-
             if (options.SetVerboseDatabaseStatements)
             {
                 var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);

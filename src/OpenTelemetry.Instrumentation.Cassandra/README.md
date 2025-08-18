@@ -1,9 +1,9 @@
 # Cassandra Instrumentation for OpenTelemetry
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Beta](../../README.md#beta)|
-| Code Owners   |  [@xsoheilalizadeh](https://github.com/xsoheilalizadeh)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@xsoheilalizadeh](https://github.com/xsoheilalizadeh) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)

@@ -11,7 +11,7 @@ namespace OpenTelemetry.Metrics;
 /// <summary>
 /// Extension methods to simplify registering of ASP.NET request instrumentation.
 /// </summary>
-public static class MeterProviderBuilderExtensions
+public static class AspNetInstrumentationMeterProviderBuilderExtensions
 {
     /// <summary>
     /// Enables the incoming requests automatic data collection for ASP.NET.
@@ -40,12 +40,16 @@ public static class MeterProviderBuilderExtensions
                 services.Configure(configure);
             }
 
-            services.ConfigureOpenTelemetryMeterProvider((sp, builder) =>
+            services.ConfigureOpenTelemetryMeterProvider((sp, meterProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetMetricsInstrumentationOptions>>().Get(name: null);
+                AspNetInstrumentation.Instance.MetricOptions = options;
 
-                builder.AddInstrumentation(() => new AspNetMetrics(options));
-                builder.AddMeter(AspNetMetrics.InstrumentationName);
+                meterProviderBuilder.AddInstrumentation(() =>
+                {
+                    return AspNetInstrumentation.Instance.HandleManager.AddMetricHandle();
+                });
+                meterProviderBuilder.AddMeter(AspNetInstrumentation.MeterName);
             });
         });
     }

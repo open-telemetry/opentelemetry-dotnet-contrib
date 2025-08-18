@@ -1,8 +1,13 @@
 name: Build
 
 on:
+  push:
+    branches: [ 'main' ]
   pull_request:
     branches: [ 'main*', 'instrumentation*', 'exporter*', 'extensions*' ]
+
+permissions:
+  contents: read
 
 jobs:
   lint-misspell-sanitycheck:
@@ -13,6 +18,10 @@ jobs:
     outputs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
+    - name: check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      if: ${{ github.event_name == 'push' }}
+
     - uses: AurorNZ/paths-filter@3b1f3abc3371cca888d8eb03dfa70bc8a9867629 # v4.0.0
       id: changes
       with:
@@ -28,7 +37,6 @@ jobs:
           exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
-          exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
@@ -51,6 +59,7 @@ jobs:
           instrumentation-sqlclient: ['*/OpenTelemetry.Instrumentation.SqlClient*/**', '!**/*.md']
           instrumentation-stackexchangeredis: ['*/OpenTelemetry.Instrumentation.StackExchangeRedis*/**', 'examples/redis/**', '!**/*.md']
           instrumentation-wcf: ['*/OpenTelemetry.Instrumentation.Wcf*/**', 'examples/wcf/**', '!**/*.md']
+          opamp-client: ['*/OpenTelemetry.OpAmp.Client*/**', '!**/*.md']
           persistentstorage: ['*/OpenTelemetry.PersistentStorage*/**', '!**/*.md']
           resources-aws: ['*/OpenTelemetry.Resources.AWS*/**', '!**/*.md']
           resources-azure: ['*/OpenTelemetry.Resources.Azure*/**', '!**/*.md']
@@ -142,17 +151,6 @@ jobs:
       project-name: Component[OpenTelemetry.Exporter.OneCollector]
       code-cov-name: Exporter.OneCollector
 
-  build-test-exporter-stackdriver:
-    needs: detect-changes
-    if: |
-      contains(needs.detect-changes.outputs.changes, 'exporter-stackdriver')
-      || contains(needs.detect-changes.outputs.changes, 'build')
-      || contains(needs.detect-changes.outputs.changes, 'shared')
-    uses: ./.github/workflows/Component.BuildTest.yml
-    with:
-      project-name: Component[OpenTelemetry.Exporter.Stackdriver]
-      code-cov-name: Exporter.Stackdriver
-
   build-test-extensions:
     needs: detect-changes
     if: |
@@ -222,11 +220,16 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
-      run-tests: false
-       # Note: There is a unit test project for Cassandra but it only contains
-       # integration tests, which get skipped. This results in empty coverage
-       # files which messes with codecov. Enable tests if any real unit tests
-       # get added.
+
+  build-test-instrumentation-cassandra-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-cassandra')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+    with:
+      job: cassandra-integration-test
 
   build-test-instrumentation-confluentkafka:
     needs: detect-changes
@@ -427,6 +430,17 @@ jobs:
       project-name: OpenTelemetry.Instrumentation.Wcf
       code-cov-name: Instrumentation.Wcf
 
+  build-test-opamp-client:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'opamp-client')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.OpAmp.Client]
+      code-cov-name: OpAmp.Client
+
   build-test-persistentstorage:
     needs: detect-changes
     if: |
@@ -580,6 +594,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
+      || contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
@@ -606,13 +621,13 @@ jobs:
       build-test-exporter-influxdb,
       build-test-exporter-instana,
       build-test-exporter-onecollector,
-      build-test-exporter-stackdriver,
       build-test-extensions,
       build-test-extensions-enrichment,
       build-test-instrumentation-aspnet,
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
       build-test-instrumentation-cassandra,
+      build-test-instrumentation-cassandra-integration,
       build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
@@ -630,6 +645,7 @@ jobs:
       build-test-instrumentation-stackexchangeredis,
       build-test-instrumentation-stackexchangeredis-integration,
       build-test-instrumentation-wcf,
+      build-test-opamp-client,
       build-test-persistentstorage,
       build-test-resources-aws,
       build-test-resources-azure,

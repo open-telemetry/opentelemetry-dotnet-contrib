@@ -11,7 +11,7 @@ namespace OpenTelemetry.Trace;
 /// <summary>
 /// Extension methods to simplify registering of ASP.NET request instrumentation.
 /// </summary>
-public static class TracerProviderBuilderExtensions
+public static class AspNetInstrumentationTracerProviderBuilderExtensions
 {
     /// <summary>
     /// Enables the incoming requests automatic data collection for ASP.NET.
@@ -43,12 +43,16 @@ public static class TracerProviderBuilderExtensions
             services.RegisterOptionsFactory(
                 configuration => new AspNetTraceInstrumentationOptions(configuration));
 
-            services.ConfigureOpenTelemetryTracerProvider((sp, builder) =>
+            services.ConfigureOpenTelemetryTracerProvider((sp, tracerProviderBuilder) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<AspNetTraceInstrumentationOptions>>().Get(name: null);
+                AspNetInstrumentation.Instance.TraceOptions = options;
 
-                builder.AddInstrumentation(() => new AspNetInstrumentation(options));
-                builder.AddSource(TelemetryHttpModule.AspNetSourceName);
+                tracerProviderBuilder.AddInstrumentation(() =>
+                {
+                    return AspNetInstrumentation.Instance.HandleManager.AddTracingHandle();
+                });
+                tracerProviderBuilder.AddSource(TelemetryHttpModule.AspNetSourceName);
             });
         });
     }

@@ -1,9 +1,9 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [RC](../../README.md#rc)|
-| Code Owners   |  [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
@@ -233,8 +233,8 @@ This instrumentation can be configured to change the default behavior by using
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
-to store the exception to the Activity itself as ActivityEvent. `RecordException`
-is available only on the client side.
+to store the exception to the Activity itself as ActivityEvent. This feature
+applies both on instrumented servers and clients.
 
 ## References
 
