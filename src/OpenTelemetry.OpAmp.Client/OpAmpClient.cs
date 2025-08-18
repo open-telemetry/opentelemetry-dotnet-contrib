@@ -6,7 +6,7 @@ using OpenTelemetry.OpAmp.Client.Transport.Http;
 
 namespace OpenTelemetry.OpAmp.Client;
 
-internal class OpAmpClient
+internal sealed class OpAmpClient
 {
     private readonly OpAmpClientSettings settings = new();
     private readonly FrameProcessor processor = new();

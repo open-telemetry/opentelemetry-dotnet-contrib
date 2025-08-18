@@ -11,7 +11,7 @@ using OpenTelemetry.OpAmp.Client.Utils;
 
 namespace OpenTelemetry.OpAmp.Client.Transport.Http;
 
-internal class PlainHttpTransport : IOpAmpTransport, IDisposable
+internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 {
     private readonly Uri uri;
     private readonly HttpClient httpClient;

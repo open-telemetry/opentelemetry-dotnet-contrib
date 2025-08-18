@@ -11,7 +11,7 @@ using OpenTelemetry.OpAmp.Client.Listeners.Messages;
 
 namespace OpenTelemetry.OpAmp.Client;
 
-internal class FrameProcessor
+internal sealed class FrameProcessor
 {
     private readonly ConcurrentDictionary<Type, ImmutableList<IOpAmpListener>> listeners = [];
 

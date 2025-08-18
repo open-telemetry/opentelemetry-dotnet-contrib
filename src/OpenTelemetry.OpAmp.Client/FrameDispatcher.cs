@@ -6,7 +6,7 @@ using OpenTelemetry.OpAmp.Client.Transport;
 
 namespace OpenTelemetry.OpAmp.Client;
 
-internal class FrameDispatcher : IDisposable
+internal sealed class FrameDispatcher : IDisposable
 {
     private readonly IOpAmpTransport transport;
     private readonly FrameBuilder frameBuilder;
