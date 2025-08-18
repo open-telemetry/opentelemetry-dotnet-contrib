@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* **Breaking Change**: Modified request lifecycle callbacks to always fire.
+  This is required as part of making ASP.NET metrics generation
+  independent from traces.
+  ([#2970](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2970))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05
