@@ -1,13 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// TracesData per spec.
+/// TracesData per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class TracesData
 {
@@ -40,5 +40,7 @@ public class TracesData
     /// <summary>
     /// Gets the resource spans.
     /// </summary>
-    public Collection<ResourceSpans> ResourceSpans { get; } = [];
+    [JsonPropertyName("resource_spans")]
+    [JsonInclude]
+    internal ICollection<ResourceSpans> ResourceSpans { get; } = new List<ResourceSpans>();
 }

@@ -1,14 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// Span per spec.
+/// Span per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class Span
 {
@@ -76,65 +76,91 @@ public class Span
     /// <summary>
     /// Gets or sets the trace identifier of the span.
     /// </summary>
-    public string? TraceId { get; set; }
+    [JsonPropertyName("trace_id")]
+    [JsonInclude]
+    internal string? TraceId { get; set; }
 
     /// <summary>
     /// Gets or sets the span identifier of the span.
     /// </summary>
-    public string? SpanId { get; set; }
+    [JsonPropertyName("span_id")]
+    [JsonInclude]
+    internal string? SpanId { get; set; }
 
     /// <summary>
     /// Gets or sets the trace state of the span.
     /// </summary>
-    public string? TraceState { get; set; }
+    [JsonPropertyName("trace_state")]
+    [JsonInclude]
+    internal string? TraceState { get; set; }
 
     /// <summary>
     /// Gets or sets the parent span identifier of the span.
     /// </summary>
-    public string? ParentSpanId { get; set; }
+    [JsonPropertyName("parent_span_id")]
+    [JsonInclude]
+    internal string? ParentSpanId { get; set; }
 
     /// <summary>
     /// Gets or sets the flags of the span.
     /// </summary>
-    public uint? Flags { get; set; }
+    [JsonPropertyName("flags")]
+    [JsonInclude]
+    internal uint? Flags { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the span.
     /// </summary>
-    public string? Name { get; set; }
+    [JsonPropertyName("name")]
+    [JsonInclude]
+    internal string? Name { get; set; }
 
     /// <summary>
     /// Gets or sets the kind of the span.
     /// </summary>
-    public SpanKind? Kind { get; set; }
+    [JsonPropertyName("kind")]
+    [JsonInclude]
+    internal SpanKind? Kind { get; set; }
 
     /// <summary>
     /// Gets or sets the start time in Unix nanoseconds when the span started.
     /// </summary>
-    public ulong? StartTimeUnixNano { get; set; }
+    [JsonPropertyName("start_time_unix_nano")]
+    [JsonInclude]
+    internal ulong? StartTimeUnixNano { get; set; }
 
     /// <summary>
     /// Gets or sets the end time in Unix nanoseconds when the span ended.
     /// </summary>
-    public ulong? EndTimeUnixNano { get; set; }
+    [JsonPropertyName("end_time_unix_nano")]
+    [JsonInclude]
+    internal ulong? EndTimeUnixNano { get; set; }
 
     /// <summary>
     /// Gets the attributes of the span.
     /// </summary>
-    public Collection<KeyValue> Attributes { get; } = [];
+    [JsonPropertyName("attributes")]
+    [JsonInclude]
+    internal ICollection<KeyValue> Attributes { get; } = new List<KeyValue>();
 
     /// <summary>
     /// Gets the events of the span.
     /// </summary>
-    public Collection<EventPerSpec> Events { get; } = [];
+    [JsonPropertyName("events")]
+    [JsonInclude]
+    internal ICollection<EventPerSpec> Events { get; } = new List<EventPerSpec>();
 
     /// <summary>
     /// Gets the links of the span.
     /// </summary>
-    public Collection<Link> Links { get; } = [];
+    [JsonPropertyName("links")]
+    [JsonInclude]
+    internal ICollection<Link> Links { get; } = new List<Link>();
 
     /// <summary>
     /// Gets or sets the status of the span.
     /// </summary>
-    public Status? Status { get; set; }
+    [JsonPropertyName("status")]
+    [JsonInclude]
+    internal Status? Status { get; set; }
 }

@@ -5,7 +5,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
 /// Helper class for specification-related operations.
@@ -18,6 +18,7 @@ public abstract class SpecHelper
         WriteIndented = false, // For pretty printing
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, // To allow special characters
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        IncludeFields = true,
     };
 
     /// <summary>

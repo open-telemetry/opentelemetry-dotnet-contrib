@@ -3,7 +3,6 @@
 
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;
@@ -15,15 +14,15 @@ public class ProcessorTests
     private const int InitialHeartbeatDelayMilliseconds = 1000;
     private const int ProcessIntervalMilliseconds = 0;
 
-    private readonly Processor processor;
+    private readonly OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor processor;
 
     public ProcessorTests()
     {
-        ILogger<Processor> logger = LoggerFactory.Create(builder =>
+        ILogger<OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor> logger = LoggerFactory.Create(builder =>
         {
             builder.SetMinimumLevel(LogLevel.Information);
-        }).CreateLogger<Processor>();
-        this.processor = new Processor(
+        }).CreateLogger<OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor>();
+        this.processor = new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(
             logger,
             HeartbeatIntervalMilliseconds,
             InitialHeartbeatDelayMilliseconds,
@@ -33,32 +32,32 @@ public class ProcessorTests
     [Fact]
     public void Constructor_ShouldThrowExceptionForInvalidParameters()
     {
-        ILogger<Processor> logger = LoggerFactory.Create(builder =>
+        ILogger<OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor> logger = LoggerFactory.Create(builder =>
         {
             builder.SetMinimumLevel(LogLevel.Information);
-        }).CreateLogger<Processor>();
+        }).CreateLogger<OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor>();
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Processor(
+            new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(
                 logger,
                 heartbeatIntervalMilliseconds: -1)); // Invalid heartbeat interval
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Processor(
+            new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(
                 logger,
                 initialHeartbeatDelayMilliseconds: -1)); // Invalid initial delay
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new Processor(
+            new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(
                 logger,
                 processIntervalMilliseconds: -1)); // Invalid process interval
 
 #if NET
         Assert.Throws<ArgumentNullException>(() =>
-            new Processor(logger: null!)); // Null log exporter
+            new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(logger: null!)); // Null log exporter
 #else
 Assert.Throws<ArgumentOutOfRangeException>(() =>
-    new PartialActivityProcessor(logger: null!)); // Null log exporter
+    new OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor(logger: null!)); // Null log exporter
 #endif
     }
 

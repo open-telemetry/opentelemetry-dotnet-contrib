@@ -1,13 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// Link per spec.
+/// Link per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class Link
 {
@@ -44,25 +44,35 @@ public class Link
     /// <summary>
     /// Gets or sets the trace identifier of the link.
     /// </summary>
-    public string? TraceId { get; set; }
+    [JsonPropertyName("trace_id")]
+    [JsonInclude]
+    internal string? TraceId { get; set; }
 
     /// <summary>
     /// Gets or sets the span identifier of the link.
     /// </summary>
-    public string? SpanId { get; set; }
+    [JsonPropertyName("span_id")]
+    [JsonInclude]
+    internal string? SpanId { get; set; }
 
     /// <summary>
     /// Gets or sets the trace state of the link.
     /// </summary>
-    public string? TraceState { get; set; }
+    [JsonPropertyName("trace_state")]
+    [JsonInclude]
+    internal string? TraceState { get; set; }
 
     /// <summary>
     /// Gets the attributes of the link.
     /// </summary>
-    public Collection<KeyValue> Attributes { get; } = [];
+    [JsonPropertyName("attributes")]
+    [JsonInclude]
+    internal ICollection<KeyValue> Attributes { get; } = new List<KeyValue>();
 
     /// <summary>
     /// Gets or sets the flags of the link.
     /// </summary>
-    public uint? Flags { get; set; }
+    [JsonPropertyName("flags")]
+    [JsonInclude]
+    internal uint? Flags { get; set; }
 }

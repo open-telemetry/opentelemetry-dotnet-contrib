@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 using System.Text.Json;
-using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialProcessor;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;

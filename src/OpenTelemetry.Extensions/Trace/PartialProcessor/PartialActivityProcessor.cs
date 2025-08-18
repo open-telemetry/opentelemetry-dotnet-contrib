@@ -4,13 +4,13 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
 /// The PartialActivityProcessor is an OpenTelemetry span processor that emits logs at regular intervals (referred to as "heartbeats") during the lifetime of a span and when the span ends.
 /// This processor is useful for monitoring long-running spans by providing periodic updates.
 /// </summary>
-public class Processor : BaseProcessor<Activity>
+public class PartialActivityProcessor : BaseProcessor<Activity>
 {
     private const int DefaultHeartbeatIntervalMilliseconds = 5000;
     private const int DefaultInitialHeartbeatDelayMilliseconds = 5000;
@@ -37,13 +37,13 @@ public class Processor : BaseProcessor<Activity>
     private readonly ManualResetEvent shutdownTrigger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Processor"/> class.
+    /// Initializes a new instance of the <see cref="PartialActivityProcessor"/> class.
     /// </summary>
     /// <param name="logger">Logger to be used for logging.</param>
     /// <param name="heartbeatIntervalMilliseconds">Heartbeat interval.</param>
     /// <param name="initialHeartbeatDelayMilliseconds">Initial heartbeat delay.</param>
     /// <param name="processIntervalMilliseconds">Interval when processor thread is called.</param>
-    public Processor(
+    public PartialActivityProcessor(
         ILogger logger,
         int heartbeatIntervalMilliseconds = DefaultHeartbeatIntervalMilliseconds,
         int initialHeartbeatDelayMilliseconds = DefaultInitialHeartbeatDelayMilliseconds,
@@ -69,7 +69,7 @@ public class Processor : BaseProcessor<Activity>
 
         this.processorThread = new Thread(this.ProcessQueues)
         {
-            IsBackground = true, Name = $"OpenTelemetry-{nameof(Processor)}",
+            IsBackground = true, Name = $"OpenTelemetry-{nameof(PartialActivityProcessor)}",
         };
         this.processorThread.Start();
     }
@@ -88,60 +88,6 @@ public class Processor : BaseProcessor<Activity>
             this.delayedHeartbeatActivitiesLookup.Add(data.SpanId);
             this.delayedHeartbeatActivities.Enqueue((data.SpanId,
                 DateTime.UtcNow.AddMilliseconds(this.initialHeartbeatDelayMilliseconds)));
-        }
-    }
-
-    // added for tests convenience
-
-    /// <summary>
-    /// Gets the active activities.
-    /// </summary>
-    /// <returns>Snapshot of <see cref="activeActivities"/>.</returns>
-    public IReadOnlyDictionary<ActivitySpanId, Activity> ActiveActivities()
-    {
-        lock (this.@lock)
-        {
-            return new Dictionary<ActivitySpanId, Activity>(this.activeActivities);
-        }
-    }
-
-    /// <summary>
-    /// Gets the activities that are delayed for heartbeat logging.
-    /// </summary>
-    /// <returns>Snapshot of <see cref="delayedHeartbeatActivities"/>.</returns>
-    public IReadOnlyCollection<(ActivitySpanId SpanId, DateTime InitialHeartbeatTime)>
-        DelayedHeartbeatActivities()
-    {
-        lock (this.@lock)
-        {
-            return new List<(ActivitySpanId SpanId, DateTime InitialHeartbeatTime)>(
-                this.delayedHeartbeatActivities);
-        }
-    }
-
-    /// <summary>
-    /// Gets the lookup for delayed heartbeat activities.
-    /// </summary>
-    /// <returns>Snapshot of <see cref="delayedHeartbeatActivitiesLookup"/>.</returns>
-    public IReadOnlyCollection<ActivitySpanId> DelayedHeartbeatActivitiesLookup()
-    {
-        lock (this.@lock)
-        {
-            return new List<ActivitySpanId>(this.delayedHeartbeatActivitiesLookup);
-        }
-    }
-
-    /// <summary>
-    /// Gets the activities that are ready for heartbeat logging.
-    /// </summary>
-    /// <returns>Snapshot of ready <see cref="readyHeartbeatActivities"/>.</returns>
-    public IReadOnlyCollection<(ActivitySpanId SpanId, DateTime NextHeartbeatTime)>
-        ReadyHeartbeatActivities()
-    {
-        lock (this.@lock)
-        {
-            return new List<(ActivitySpanId SpanId, DateTime NextHeartbeatTime)>(
-                this.readyHeartbeatActivities);
         }
     }
 
@@ -172,6 +118,60 @@ public class Processor : BaseProcessor<Activity>
             this.logger.LogInformation(
                 SpecHelper.Json(new TracesData(data, TracesData.Signal.Ended)));
 #pragma warning restore CA1848, CA2254
+        }
+    }
+
+    // added for tests convenience
+
+    /// <summary>
+    /// Gets the active activities.
+    /// </summary>
+    /// <returns>Snapshot of <see cref="activeActivities"/>.</returns>
+    internal IReadOnlyDictionary<ActivitySpanId, Activity> ActiveActivities()
+    {
+        lock (this.@lock)
+        {
+            return new Dictionary<ActivitySpanId, Activity>(this.activeActivities);
+        }
+    }
+
+    /// <summary>
+    /// Gets the activities that are delayed for heartbeat logging.
+    /// </summary>
+    /// <returns>Snapshot of <see cref="delayedHeartbeatActivities"/>.</returns>
+    internal IReadOnlyCollection<(ActivitySpanId SpanId, DateTime InitialHeartbeatTime)>
+        DelayedHeartbeatActivities()
+    {
+        lock (this.@lock)
+        {
+            return new List<(ActivitySpanId SpanId, DateTime InitialHeartbeatTime)>(
+                this.delayedHeartbeatActivities);
+        }
+    }
+
+    /// <summary>
+    /// Gets the lookup for delayed heartbeat activities.
+    /// </summary>
+    /// <returns>Snapshot of <see cref="delayedHeartbeatActivitiesLookup"/>.</returns>
+    internal IReadOnlyCollection<ActivitySpanId> DelayedHeartbeatActivitiesLookup()
+    {
+        lock (this.@lock)
+        {
+            return new List<ActivitySpanId>(this.delayedHeartbeatActivitiesLookup);
+        }
+    }
+
+    /// <summary>
+    /// Gets the activities that are ready for heartbeat logging.
+    /// </summary>
+    /// <returns>Snapshot of ready <see cref="readyHeartbeatActivities"/>.</returns>
+    internal IReadOnlyCollection<(ActivitySpanId SpanId, DateTime NextHeartbeatTime)>
+        ReadyHeartbeatActivities()
+    {
+        lock (this.@lock)
+        {
+            return new List<(ActivitySpanId SpanId, DateTime NextHeartbeatTime)>(
+                this.readyHeartbeatActivities);
         }
     }
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialProcessor;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;

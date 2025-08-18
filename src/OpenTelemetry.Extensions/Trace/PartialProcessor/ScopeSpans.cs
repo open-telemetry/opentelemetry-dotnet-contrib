@@ -1,13 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// ScopeSpans per spec.
+/// ScopeSpans per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class ScopeSpans
 {
@@ -25,10 +25,14 @@ public class ScopeSpans
     /// <summary>
     /// Gets or sets the instrumentation scope.
     /// </summary>
-    public InstrumentationScope? Scope { get; set; }
+    [JsonPropertyName("scope")]
+    [JsonInclude]
+    internal InstrumentationScope? Scope { get; set; }
 
     /// <summary>
     /// Gets the spans in this scope.
     /// </summary>
-    public Collection<Span> Spans { get; } = [];
+    [JsonPropertyName("spans")]
+    [JsonInclude]
+    internal ICollection<Span> Spans { get; } = new List<Span>();
 }

@@ -160,7 +160,6 @@ dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.RS0041.severity = suggestion
 
 
-
 [**/obj/**.cs]
 generated_code = true
 

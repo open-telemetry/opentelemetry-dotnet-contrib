@@ -1,13 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// Event per spec.
+/// Event per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class EventPerSpec
 {
@@ -34,15 +34,21 @@ public class EventPerSpec
     /// <summary>
     /// Gets or sets the time in Unix nanoseconds when the event occurred.
     /// </summary>
-    public ulong? TimeUnixNano { get; set; }
+    [JsonPropertyName("time_unix_nano")]
+    [JsonInclude]
+    internal ulong? TimeUnixNano { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the event.
     /// </summary>
-    public string? Name { get; set; }
+    [JsonPropertyName("name")]
+    [JsonInclude]
+    internal string? Name { get; set; }
 
     /// <summary>
     /// Gets the attributes of the event.
     /// </summary>
-    public Collection<KeyValue> Attributes { get; } = [];
+    [JsonPropertyName("attributes")]
+    [JsonInclude]
+    internal ICollection<KeyValue> Attributes { get; } = new List<KeyValue>();
 }

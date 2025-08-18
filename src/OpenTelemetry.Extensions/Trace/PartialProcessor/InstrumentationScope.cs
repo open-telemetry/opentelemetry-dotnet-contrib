@@ -1,14 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 using OpenTelemetry.Internal;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// Instrumentation scope per spec.
+/// Instrumentation scope per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class InstrumentationScope
 {
@@ -38,15 +38,21 @@ public class InstrumentationScope
     /// <summary>
     /// Gets or sets the name of the instrumentation scope.
     /// </summary>
-    public string? Name { get; set; }
+    [JsonPropertyName("name")]
+    [JsonInclude]
+    internal string? Name { get; set; }
 
     /// <summary>
     /// Gets or sets the version of the instrumentation scope.
     /// </summary>
-    public string? Version { get; set; }
+    [JsonPropertyName("version")]
+    [JsonInclude]
+    internal string? Version { get; set; }
 
     /// <summary>
     /// Gets the attributes of the instrumentation scope.
     /// </summary>
-    public Collection<KeyValue> Attributes { get; } = [];
+    [JsonPropertyName("attributes")]
+    [JsonInclude]
+    internal ICollection<KeyValue> Attributes { get; } = new List<KeyValue>();
 }

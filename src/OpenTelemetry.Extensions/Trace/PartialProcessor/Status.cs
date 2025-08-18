@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// Status per spec.
+/// Status per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto.
 /// </summary>
 public class Status
 {
@@ -51,10 +52,14 @@ public class Status
     /// <summary>
     /// Gets or sets the status message.
     /// </summary>
-    public string? Message { get; set; }
+    [JsonPropertyName("message")]
+    [JsonInclude]
+    internal string? Message { get; set; }
 
     /// <summary>
     /// Gets or sets the status code.
     /// </summary>
-    public StatusCode Code { get; set; }
+    [JsonPropertyName("code")]
+    [JsonInclude]
+    internal StatusCode Code { get; set; }
 }

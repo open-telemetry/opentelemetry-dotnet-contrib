@@ -1,10 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+using System.Text.Json.Serialization;
+
+namespace OpenTelemetry.Extensions.Trace.PartialProcessor;
 
 /// <summary>
-/// AnyValue per spec.
+/// AnyValue per spec https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/common/v1/common.proto.
 /// </summary>
 public class AnyValue
 {
@@ -20,5 +22,7 @@ public class AnyValue
     /// <summary>
     /// Gets or sets the string value.
     /// </summary>
-    public string? StringValue { get; set; }
+    [JsonPropertyName("string_value")]
+    [JsonInclude]
+    internal string? StringValue { get; set; }
 }

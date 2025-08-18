@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialProcessor;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;
@@ -19,6 +19,6 @@ public class ResourceSpansTests
 
         Assert.NotNull(resourceSpans.ScopeSpans);
         Assert.Single(resourceSpans.ScopeSpans);
-        Assert.IsType<ScopeSpans>(resourceSpans.ScopeSpans[0]);
+        Assert.IsType<ScopeSpans>(resourceSpans.ScopeSpans.First());
     }
 }

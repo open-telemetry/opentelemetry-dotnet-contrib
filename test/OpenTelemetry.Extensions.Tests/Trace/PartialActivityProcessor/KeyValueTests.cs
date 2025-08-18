@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Extensions.Trace.PartialActivityProcessor;
+using OpenTelemetry.Extensions.Trace.PartialProcessor;
 using Xunit;
 
 namespace OpenTelemetry.Extensions.Tests.Trace.PartialActivityProcessor;

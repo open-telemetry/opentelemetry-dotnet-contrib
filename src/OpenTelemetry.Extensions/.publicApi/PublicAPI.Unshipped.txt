@@ -1,104 +1,43 @@
 #nullable enable
 Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.AnyValue
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.AnyValue.AnyValue(string? stringValue) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.AnyValue.StringValue.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.AnyValue.StringValue.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.EventPerSpec(System.Diagnostics.ActivityEvent activityEvent) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.Name.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.Name.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.TimeUnixNano.get -> ulong?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec.TimeUnixNano.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.InstrumentationScope(System.Diagnostics.Activity! activity) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.Name.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.Name.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.Version.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope.Version.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue.Key.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue.Key.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue.KeyValue() -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue.Value.get -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.AnyValue?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue.Value.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.Flags.get -> uint?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.Flags.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.Link(System.Diagnostics.ActivityLink activityLink) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.SpanId.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.SpanId.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.TraceId.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.TraceId.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.TraceState.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link.TraceState.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.ActiveActivities() -> System.Collections.Generic.IReadOnlyDictionary<System.Diagnostics.ActivitySpanId, System.Diagnostics.Activity!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.DelayedHeartbeatActivities() -> System.Collections.Generic.IReadOnlyCollection<(System.Diagnostics.ActivitySpanId SpanId, System.DateTime InitialHeartbeatTime)>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.DelayedHeartbeatActivitiesLookup() -> System.Collections.Generic.IReadOnlyCollection<System.Diagnostics.ActivitySpanId>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.Processor(Microsoft.Extensions.Logging.ILogger! logger, int heartbeatIntervalMilliseconds = 5000, int initialHeartbeatDelayMilliseconds = 5000, int processIntervalMilliseconds = 5000) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.ReadyHeartbeatActivities() -> System.Collections.Generic.IReadOnlyCollection<(System.Diagnostics.ActivitySpanId SpanId, System.DateTime NextHeartbeatTime)>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ResourceSpans
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ResourceSpans.ResourceSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal signal) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ResourceSpans.ScopeSpans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans.Scope.get -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.InstrumentationScope?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans.Scope.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans.ScopeSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal signal) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ScopeSpans.Spans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Attributes.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.KeyValue!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.EndTimeUnixNano.get -> ulong?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.EndTimeUnixNano.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Events.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.EventPerSpec!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Flags.get -> uint?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Flags.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Kind.get -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Kind.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Links.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Link!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Name.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Name.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.ParentSpanId.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.ParentSpanId.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Span(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal signal) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.SpanId.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.SpanId.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.StartTimeUnixNano.get -> ulong?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.StartTimeUnixNano.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Status.get -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.Status.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.TraceId.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.TraceId.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.TraceState.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Span.TraceState.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Client = 3 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Consumer = 5 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Internal = 1 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Producer = 4 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Server = 2 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind.Unspecified = 0 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpanKind
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpecHelper
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpecHelper.SpecHelper() -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.Code.get -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.Code.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.Message.get -> string?
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.Message.set -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.Status(System.Diagnostics.ActivityStatusCode activityStatus, string? activityStatusDescription) -> void
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode.Error = 2 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode.Ok = 1 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode.Unset = 0 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Status.StatusCode
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.ResourceSpans.get -> System.Collections.ObjectModel.Collection<OpenTelemetry.Extensions.Trace.PartialActivityProcessor.ResourceSpans!>!
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal.Ended = 1 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal.Heartbeat = 0 -> OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal
-OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.TracesData(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData.Signal signal) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.AnyValue
+OpenTelemetry.Extensions.Trace.PartialProcessor.AnyValue.AnyValue(string? stringValue) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.EventPerSpec
+OpenTelemetry.Extensions.Trace.PartialProcessor.EventPerSpec.EventPerSpec(System.Diagnostics.ActivityEvent activityEvent) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.InstrumentationScope
+OpenTelemetry.Extensions.Trace.PartialProcessor.InstrumentationScope.InstrumentationScope(System.Diagnostics.Activity! activity) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.KeyValue
+OpenTelemetry.Extensions.Trace.PartialProcessor.KeyValue.KeyValue() -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.Link
+OpenTelemetry.Extensions.Trace.PartialProcessor.Link.Link(System.Diagnostics.ActivityLink activityLink) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor
+OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor.PartialActivityProcessor(Microsoft.Extensions.Logging.ILogger! logger, int heartbeatIntervalMilliseconds = 5000, int initialHeartbeatDelayMilliseconds = 5000, int processIntervalMilliseconds = 5000) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.ResourceSpans
+OpenTelemetry.Extensions.Trace.PartialProcessor.ResourceSpans.ResourceSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal signal) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.ScopeSpans
+OpenTelemetry.Extensions.Trace.PartialProcessor.ScopeSpans.ScopeSpans(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal signal) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.Span
+OpenTelemetry.Extensions.Trace.PartialProcessor.Span.Span(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal signal) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Client = 3 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Consumer = 5 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Internal = 1 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Producer = 4 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Server = 2 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind.Unspecified = 0 -> OpenTelemetry.Extensions.Trace.PartialProcessor.SpanKind
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpecHelper
+OpenTelemetry.Extensions.Trace.PartialProcessor.SpecHelper.SpecHelper() -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status.Status(System.Diagnostics.ActivityStatusCode activityStatus, string? activityStatusDescription) -> void
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode.Error = 2 -> OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode.Ok = 1 -> OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode.Unset = 0 -> OpenTelemetry.Extensions.Trace.PartialProcessor.Status.StatusCode
+OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData
+OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal.Ended = 1 -> OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal.Heartbeat = 0 -> OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal
+OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.TracesData(System.Diagnostics.Activity! activity, OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData.Signal signal) -> void
 OpenTelemetry.Logs.LogToActivityEventConversionOptions
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.get -> System.Func<OpenTelemetry.Logs.LogRecord!, bool>?
 OpenTelemetry.Logs.LogToActivityEventConversionOptions.Filter.set -> void
@@ -111,10 +50,10 @@ OpenTelemetry.RateLimitingSampler
 OpenTelemetry.RateLimitingSampler.RateLimitingSampler(int maxTracesPerSecond) -> void
 OpenTelemetry.Trace.BaggageActivityProcessor
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
-override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.Dispose(bool disposing) -> void
-override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.OnEnd(System.Diagnostics.Activity! data) -> void
-override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.OnShutdown(int timeoutMilliseconds) -> bool
-override OpenTelemetry.Extensions.Trace.PartialActivityProcessor.Processor.OnStart(System.Diagnostics.Activity! data) -> void
+override OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor.Dispose(bool disposing) -> void
+override OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor.OnEnd(System.Diagnostics.Activity! data) -> void
+override OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor.OnShutdown(int timeoutMilliseconds) -> bool
+override OpenTelemetry.Extensions.Trace.PartialProcessor.PartialActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
 override OpenTelemetry.RateLimitingSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
 override OpenTelemetry.Trace.BaggageActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
@@ -122,9 +61,9 @@ static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggagePro
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AttachLogsToActivityEvent(this OpenTelemetry.Logs.OpenTelemetryLoggerOptions! loggerOptions, System.Action<OpenTelemetry.Logs.LogToActivityEventConversionOptions!>? configure = null) -> OpenTelemetry.Logs.OpenTelemetryLoggerOptions!
-static OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpecHelper.Json(OpenTelemetry.Extensions.Trace.PartialActivityProcessor.TracesData! tracesData) -> string!
-static OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpecHelper.ToUnixTimeNanoseconds(System.DateTime dateTime) -> ulong
-static OpenTelemetry.Extensions.Trace.PartialActivityProcessor.SpecHelper.ToUnixTimeNanoseconds(System.DateTimeOffset dateTimeOffset) -> ulong
+static OpenTelemetry.Extensions.Trace.PartialProcessor.SpecHelper.Json(OpenTelemetry.Extensions.Trace.PartialProcessor.TracesData! tracesData) -> string!
+static OpenTelemetry.Extensions.Trace.PartialProcessor.SpecHelper.ToUnixTimeNanoseconds(System.DateTime dateTime) -> ulong
+static OpenTelemetry.Extensions.Trace.PartialProcessor.SpecHelper.ToUnixTimeNanoseconds(System.DateTimeOffset dateTimeOffset) -> ulong
 static OpenTelemetry.Trace.BaggageActivityProcessor.AllowAllBaggageKeys.get -> System.Predicate<string!>!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddAutoFlushActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Func<System.Diagnostics.Activity!, bool>! predicate, int timeoutMilliseconds = 10000) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddBaggageActivityProcessor(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Predicate<string!>! baggageKeyPredicate) -> OpenTelemetry.Trace.TracerProviderBuilder!
