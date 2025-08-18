@@ -57,6 +57,12 @@ internal sealed class AspNetInstrumentationEventSource : EventSource, IConfigura
         this.WriteEvent(4, key, value);
     }
 
+    [Event(5, Message = "Activity is null in '{0}'. Tracing is not available.", Level = EventLevel.Warning)]
+    public void NullActivity(string methodName)
+    {
+        this.WriteEvent(5, methodName);
+    }
+
     void IConfigurationExtensionsLogger.LogInvalidConfigurationValue(string key, string value)
     {
         this.InvalidConfigurationValue(key, value);
