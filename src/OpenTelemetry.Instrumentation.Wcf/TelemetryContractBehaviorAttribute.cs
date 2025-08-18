@@ -45,6 +45,7 @@ public sealed class TelemetryContractBehaviorAttribute : Attribute, IContractBeh
     {
 #if NETFRAMEWORK
         Guard.ThrowIfNull(dispatchRuntime);
+        dispatchRuntime.ChannelDispatcher.ErrorHandlers.Add(new TracingErrorHandler());
         TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(dispatchRuntime.EndpointDispatcher);
 #endif
     }

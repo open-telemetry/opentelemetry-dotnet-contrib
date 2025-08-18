@@ -41,6 +41,7 @@ public class TelemetryEndpointBehavior : IEndpointBehavior
     {
 #if NETFRAMEWORK
         Guard.ThrowIfNull(endpointDispatcher);
+        endpointDispatcher.ChannelDispatcher.ErrorHandlers.Add(new TracingErrorHandler());
         ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
 #endif
     }
