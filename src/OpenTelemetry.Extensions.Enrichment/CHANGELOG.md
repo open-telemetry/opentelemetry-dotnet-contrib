@@ -4,7 +4,7 @@
 
 ## 1.12.0-alpha.1
 
-Released 2025-Aug-13
+Released 2025-Aug-18
 
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
