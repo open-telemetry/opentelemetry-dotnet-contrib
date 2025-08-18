@@ -27,7 +27,12 @@ internal class OpAmpClientSettings
     /// <summary>
     /// Gets or sets the unique identifier for the current instance.
     /// </summary>
-    public Guid InstanceUid { get; set; } = Guid.NewGuid(); // TODO: use Guid.CreateVersion7() with .NET 9+
+    public Guid InstanceUid { get; set; }
+#if NET9_0_OR_GREATER
+        = Guid.CreateVersion7();
+#else
+        = Guid.NewGuid();
+#endif
 
     /// <summary>
     /// Gets or sets the chosen metrics schema to write.
