@@ -5,6 +5,7 @@
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
+using OpenTelemetry.Instrumentation.Wcf.Implementation;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Wcf;
@@ -27,6 +28,9 @@ public class TelemetryServiceBehavior : IServiceBehavior
         foreach (var channelDispatcherBase in serviceHostBase.ChannelDispatchers)
         {
             var channelDispatcher = (ChannelDispatcher)channelDispatcherBase;
+
+            channelDispatcher.ErrorHandlers.Add(new TracingErrorHandler());
+
             foreach (var endpointDispatcher in channelDispatcher.Endpoints)
             {
                 TelemetryEndpointBehavior.ApplyDispatchBehaviorToEndpoint(endpointDispatcher);
