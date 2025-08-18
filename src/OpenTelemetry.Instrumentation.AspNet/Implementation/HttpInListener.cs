@@ -11,16 +11,13 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal sealed class HttpInListener : IDisposable
 {
+    private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
     private readonly HttpRequestRouteHelper routeHelper = new();
-    private readonly AspNetTraceInstrumentationOptions options;
     private readonly RequestDataHelper requestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
-    public HttpInListener(AspNetTraceInstrumentationOptions options)
+    public HttpInListener()
     {
-        Guard.ThrowIfNull(options);
-
-        this.options = options;
-
         TelemetryHttpModule.Options.TextMapPropagator = Propagators.DefaultTextMapPropagator;
 
         TelemetryHttpModule.Options.OnRequestStartedCallback += this.OnStartActivity;
@@ -35,8 +32,107 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    private void OnStartActivity(Activity activity, HttpContext context)
+    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
     {
+        end ??= Stopwatch.GetTimestamp();
+        var delta = end - begin;
+        var ticks = (long)(TimestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+        return duration.TotalSeconds;
+    }
+
+    private void RecordDuration(Activity? activity, HttpContext context, Exception? exception = null)
+    {
+        if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        {
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.MetricOptions;
+        var request = context.Request;
+        var url = request.Url;
+        var tags = new TagList
+        {
+            { SemanticConventions.AttributeUrlScheme, url.Scheme },
+            { SemanticConventions.AttributeHttpResponseStatusCode, context.Response.StatusCode },
+        };
+
+        // Add exception-related tags for metrics when an exception occurred
+        if (exception != null)
+        {
+            tags.Add(SemanticConventions.AttributeErrorType, exception.GetType().FullName);
+        }
+
+        var normalizedMethod = this.requestDataHelper.GetNormalizedHttpMethod(request.HttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedMethod);
+
+        if (options.EnableServerAttributesForRequestDuration)
+        {
+            tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+            tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+        }
+
+        var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
+        if (!string.IsNullOrEmpty(protocolVersion))
+        {
+            // Determine the actual protocol name from the request
+            var protocolName = url.Scheme ?? Uri.UriSchemeHttp;
+
+            // Only add network.protocol.name when it's not "http" and version is available
+            // Per spec: "Conditionally Required: If not http and network.protocol.version is set."
+            if (!string.Equals(protocolName, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+            {
+                tags.Add(SemanticConventions.AttributeNetworkProtocolName, protocolName);
+            }
+
+            tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
+        }
+
+        var template = this.routeHelper.GetRouteTemplate(request);
+        if (!string.IsNullOrEmpty(template))
+        {
+            tags.Add(SemanticConventions.AttributeHttpRoute, template);
+        }
+
+        if (options.Enrich is not null)
+        {
+            try
+            {
+                options.Enrich(context, ref tags);
+            }
+            catch (Exception ex)
+            {
+                AspNetInstrumentationEventSource.Log.EnrichmentException(nameof(HttpInListener), ex);
+            }
+        }
+
+        var duration = activity?.Duration.TotalSeconds ??
+            CalculateDurationFromTimestamp(this.beginTimestamp.Value);
+        AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
+    }
+
+    private void OnStartActivity(Activity? activity, HttpContext context)
+    {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            if (AspNetInstrumentation.Instance.HandleManager.MetricHandles > 0)
+            {
+                // If we are not tracing, but we are collecting metrics, we still
+                // need to set the activity name and tags.
+                this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+            }
+
+            return;
+        }
+
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStartActivity));
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
             try
@@ -47,7 +143,7 @@ internal sealed class HttpInListener : IDisposable
                 // without an SDK reference. Need the spec to come around on
                 // this.
 
-                if (this.options.Filter?.Invoke(context) == false)
+                if (options.Filter?.Invoke(context) == false)
                 {
                     AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
@@ -86,7 +182,7 @@ internal sealed class HttpInListener : IDisposable
             if (!string.IsNullOrEmpty(query))
             {
                 var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
-                activity.SetTag(SemanticConventions.AttributeUrlQuery, this.options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
+                activity.SetTag(SemanticConventions.AttributeUrlQuery, options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
             }
 
             var userAgent = request.UserAgent;
@@ -97,7 +193,7 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithHttpRequest?.Invoke(activity, request);
+                options.EnrichWithHttpRequest?.Invoke(activity, request);
             }
             catch (Exception ex)
             {
@@ -106,8 +202,23 @@ internal sealed class HttpInListener : IDisposable
         }
     }
 
-    private void OnStopActivity(Activity activity, HttpContext context)
+    private void OnStopActivity(Activity? activity, HttpContext context)
     {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            this.RecordDuration(activity, context);
+            return;
+        }
+
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStopActivity));
+            this.RecordDuration(activity, context);
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
             var response = context.Response;
@@ -130,20 +241,37 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithHttpResponse?.Invoke(activity, response);
+                options.EnrichWithHttpResponse?.Invoke(activity, response);
             }
             catch (Exception ex)
             {
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnStopActivity", ex);
             }
         }
+
+        this.RecordDuration(activity, context);
     }
 
-    private void OnException(Activity activity, HttpContext context, Exception exception)
+    private void OnException(Activity? activity, HttpContext context, Exception exception)
     {
+        if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
+        {
+            this.RecordDuration(activity, context, exception);
+            return;
+        }
+
+        if (activity == null)
+        {
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnException));
+            this.RecordDuration(activity, context, exception);
+            return;
+        }
+
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+
         if (activity.IsAllDataRequested)
         {
-            if (this.options.RecordException)
+            if (options.RecordException)
             {
                 activity.AddException(exception);
             }
@@ -153,12 +281,14 @@ internal sealed class HttpInListener : IDisposable
 
             try
             {
-                this.options.EnrichWithException?.Invoke(activity, exception);
+                options.EnrichWithException?.Invoke(activity, exception);
             }
             catch (Exception ex)
             {
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnException", ex);
             }
         }
+
+        this.RecordDuration(activity, context, exception);
     }
 }
