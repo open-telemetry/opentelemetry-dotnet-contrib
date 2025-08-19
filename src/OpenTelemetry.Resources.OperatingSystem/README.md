@@ -17,12 +17,12 @@
 
 The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
-added & enabled in your project.
+added & enabled to the corresponding telemetry provider.
 
 ### OperatingSystemDetector
 
-|Attribute| Comment |
-|--- | --- |
+| Attribute | Comment |
+| --- | --- |
 | [`os.build_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-build_id) | |
 | [`os.description`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-description) | |
 | [`os.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-name) | |

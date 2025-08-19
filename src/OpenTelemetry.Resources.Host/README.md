@@ -17,12 +17,12 @@
 
 The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
-added & enabled in your project.
+added & enabled to the corresponding telemetry provider.
 
 ### HostDetector
 
-|Attribute| Comment |
-|--- | --- |
+| Attribute | Comment |
+| --- | --- |
 | [`host.arch`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-arch) | supported only on .NET |
 | [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | Only set when running on non-containerized systems. |
 | [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |

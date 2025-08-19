@@ -13,7 +13,7 @@
 
 The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
-added & enabled in your project.
+added & enabled to the corresponding telemetry provider.
 
 ### AWS EC2 Detector
 
