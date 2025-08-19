@@ -121,7 +121,6 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         using var scope = SemanticConventionScope.Get(useNewConventions);
 
         var activities = new List<Activity>();
-
         using var traceProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation(options =>
@@ -381,8 +380,8 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
 
             Environment.SetEnvironmentVariable(
-                    ConventionsOptIn,
-                    useNewConventions ? "database" : string.Empty);
+                ConventionsOptIn,
+                useNewConventions ? "database" : string.Empty);
 
             return new SemanticConventionScope(previous);
         }
