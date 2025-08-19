@@ -121,7 +121,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         using var scope = SemanticConventionScope.Get(useNewConventions);
 
         var activities = new List<Activity>();
-        using var traceProvider = Sdk.CreateTracerProviderBuilder()
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation(options =>
             {
