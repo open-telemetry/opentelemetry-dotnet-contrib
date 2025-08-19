@@ -17,12 +17,12 @@ for applications running in Azure environment.
 
 The below attributes from OpenTelemetry Semantic Conventions can/will be included
 on telemetry signals when the corresponding resource detector is
-added & enabled in your project.
+added & enabled to the corresponding telemetry provider.
 
 ### App Service Resource Detector
 
 | Attribute | Comment |
-|--- | --- |
+| --- | --- |
 | azure.app.service.stamp | |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_app_service` |
 | [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
@@ -35,8 +35,8 @@ added & enabled in your project.
 
 ### VM Resource Detector
 
-|Attribute| Comment |
-|--- | --- |
+| Attribute| Comment |
+| --- | --- |
 | azure.vm.scaleset.name   | |
 | azure.vm.sku             | |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_vm` |
@@ -52,8 +52,8 @@ added & enabled in your project.
 
 ### Container Apps Resource Detector
 
-|Attribute| Comment |
-|--- | --- |
+| Attribute | Comment |
+| --- | --- |
 | [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_container_apps` |
 | [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
 | [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
