@@ -49,7 +49,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
             // For some reason, SQLite does not throw an exception for division by zero
             // TODO Remove the second part of the condition when EFCore sets SemanticConventions.AttributeDbQuerySummary
-            // so that there isn't a drive between the expected span names used between SQL Server and EFCore
+            // so that there isn't a drift between the expected span names used between SQL Server and EFCore
             if (provider != SqliteProvider && !useNewConventions)
             {
                 testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, system, database);
