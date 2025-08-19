@@ -375,7 +375,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
     {
         private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
 
-        public static IDisposable Get(bool useNewConventions)
+        public static SemanticConventionScope Get(bool useNewConventions)
         {
             var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
 
