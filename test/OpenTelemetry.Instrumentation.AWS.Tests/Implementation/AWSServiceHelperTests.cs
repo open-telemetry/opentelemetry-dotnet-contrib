@@ -4,22 +4,29 @@
 using Amazon;
 using Amazon.DynamoDBv2;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
-using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 
 public class AWSServiceHelperTests
 {
-    [Fact]
-    public void ExtractCloudRegion_RegionEndpointIsSet_CloudRegionIsCorrect()
+    private const string DefaultAwsRegion = "us-east-1";
+
+    [Theory]
+    [InlineData(DefaultAwsRegion)]
+    [InlineData("eu-central-1")]
+    [InlineData("sa-east-1")]
+    [InlineData("us-gov-west-1")]
+    public void ExtractCloudRegion_RegionEndpointIsSet_CloudRegionIsCorrect(string region)
     {
-        var region = "eu-central-1";
-        var clientConfig = new AmazonDynamoDBConfig
+        var originalRequest = TestsHelper.CreateOriginalRequest(AWSServiceType.DynamoDbService);
+        var requestContext = new TestRequestContext(originalRequest, new TestRequest())
         {
-            RegionEndpoint = RegionEndpoint.GetBySystemName(region),
+            ClientConfig = new AmazonDynamoDBConfig
+            {
+                RegionEndpoint = RegionEndpoint.GetBySystemName(region),
+            },
         };
-        var requestContext = new MockRequestContext(clientConfig);
 
         var cloudRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
 
@@ -27,33 +34,43 @@ public class AWSServiceHelperTests
     }
 
     [Theory]
-    [InlineData("https://dynamodb.eu-central-1.amazonaws.com")]
-    [InlineData("https://a1b2c3.execute-api.eu-central-1.amazonaws.com/default/mydynamodb")]
-    public void ExtractCloudRegion_ServiceUrlIsSet_CloudRegionIsCorrect(string serviceUrl)
+    [InlineData($"https://dynamodb.{DefaultAwsRegion}.amazonaws.com", DefaultAwsRegion)]
+    [InlineData("https://dynamodb.eu-central-1.amazonaws.com", "eu-central-1")]
+    [InlineData("https://dynamodb.us-gov-west-1.amazonaws.com", "us-gov-west-1")]
+    [InlineData($"https://a1b2c3.execute-api.{DefaultAwsRegion}.amazonaws.com/default/mydynamodb", DefaultAwsRegion)]
+    [InlineData("https://a1b2c3.execute-api.eu-central-1.amazonaws.com/default/", "eu-central-1")]
+    [InlineData("https://a1b2c3.execute-api.us-gov-west-1.amazonaws.com/", "us-gov-west-1")]
+    public void ExtractCloudRegion_ServiceUrlIsSet_CloudRegionIsCorrect(string serviceUrl, string expectedRegion)
     {
-        var clientConfig = new AmazonDynamoDBConfig
+        var originalRequest = TestsHelper.CreateOriginalRequest(AWSServiceType.DynamoDbService);
+        var requestContext = new TestRequestContext(originalRequest, new TestRequest())
         {
-            ServiceURL = serviceUrl,
+            ClientConfig = new AmazonDynamoDBConfig
+            {
+                ServiceURL = serviceUrl,
+            },
         };
-        var requestContext = new MockRequestContext(clientConfig);
 
-        var cloudRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
+        var extractedRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
 
-        Assert.Equal("eu-central-1", cloudRegion);
+        Assert.Equal(expectedRegion, extractedRegion);
     }
 
     [Fact]
     public void ExtractCloudRegion_RegionIsMissingInServiceUrl_CloudRegionIsNull()
     {
-        var clientConfig = new AmazonDynamoDBConfig
+        var originalRequest = TestsHelper.CreateOriginalRequest(AWSServiceType.DynamoDbService);
+        var requestContext = new TestRequestContext(originalRequest, new TestRequest())
         {
-            ServiceURL = "https://mycompany.com/test",
+            ClientConfig = new AmazonDynamoDBConfig
+            {
+                ServiceURL = "https://mycompany.com/test",
+            },
         };
-        var requestContext = new MockRequestContext(clientConfig);
 
-        var cloudRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
+        var extractedRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
 
-        Assert.Equal("us-east-1", cloudRegion); // AWS SDK default
+        Assert.Equal(DefaultAwsRegion, extractedRegion);
     }
 
     [Theory]
@@ -62,14 +79,17 @@ public class AWSServiceHelperTests
     [InlineData("https://foo.baz.bar.mycomany.com/aaaa/bbbb")]
     public void ExtractCloudRegion_RegionNotFollowingEndpointPattern_CorrectPartOfUrlReturned(string serviceUrl)
     {
-        var clientConfig = new AmazonDynamoDBConfig
+        var originalRequest = TestsHelper.CreateOriginalRequest(AWSServiceType.DynamoDbService);
+        var requestContext = new TestRequestContext(originalRequest, new TestRequest())
         {
-            ServiceURL = serviceUrl,
+            ClientConfig = new AmazonDynamoDBConfig
+            {
+                ServiceURL = serviceUrl,
+            },
         };
-        var requestContext = new MockRequestContext(clientConfig);
 
         var cloudRegion = AWSServiceHelper.ExtractCloudRegion(requestContext);
 
-        Assert.Equal("us-east-1", cloudRegion); // AWS SDK default
+        Assert.Equal(DefaultAwsRegion, cloudRegion);
     }
 }

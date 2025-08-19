@@ -29,7 +29,7 @@ internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequ
 
     public AbstractAWSSigner Signer => throw new NotImplementedException();
 
-    public IClientConfig ClientConfig => throw new NotImplementedException();
+    public IClientConfig? ClientConfig { get; set; }
 
     public ImmutableCredentials ImmutableCredentials { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
