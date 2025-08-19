@@ -7,14 +7,19 @@ namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests
 {
-    public static IEnumerable<object[]> TestData => SqlProcessorTestCases.GetTestCases();
+    public static IEnumerable<object[]> TestData => SqlProcessorTestCases.GetSemanticConventionsTestCases();
 
     [Theory]
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase test)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Sql);
-        Assert.Equal(test.Sanitized, sqlStatementInfo.SanitizedSql);
-        Assert.Equal(test.Summary, sqlStatementInfo.DbQuerySummary);
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Input.Query);
+
+        foreach (var sanitizedQueryText in test.Expected.SanitizedQueryText)
+        {
+            Assert.Equal(sanitizedQueryText, sqlStatementInfo.SanitizedSql);
+        }
+
+        Assert.Equal(test.Expected.Summary, sqlStatementInfo.DbQuerySummary);
     }
 }
