@@ -139,8 +139,8 @@ internal static class SemanticConventions
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
 
-    // New database conventions:
-    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database
+    // v1.36.0 database conventions:
+    // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
     public const string AttributeDbCollectionName = "db.collection.name";
     public const string AttributeDbOperationName = "db.operation.name";
     public const string AttributeDbSystemName = "db.system.name";
