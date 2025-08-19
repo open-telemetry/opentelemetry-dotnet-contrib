@@ -285,6 +285,14 @@ internal static class SqlProcessor
         index = i;
     }
 
+    private static void AppendNormalized(StringBuilder builder, char ch)
+    {
+        if (!char.IsWhiteSpace(ch) || builder.Length == 0 || !char.IsWhiteSpace(builder[builder.Length - 1]))
+        {
+            builder.Append(ch);
+        }
+    }
+
     private static bool LookAheadDdl(string operation, string sql, ref int index, SqlProcessorState state)
     {
         var initialIndex = index;
@@ -307,7 +315,7 @@ internal static class SqlProcessor
 
             for (var i = initialIndex; i < index; ++i)
             {
-                state.DbQuerySummary.Append(sql[i]);
+                AppendNormalized(state.DbQuerySummary, sql[i]);
             }
 
             return true;
