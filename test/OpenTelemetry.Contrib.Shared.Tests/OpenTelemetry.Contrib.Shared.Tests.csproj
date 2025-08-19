@@ -24,6 +24,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\RedactionHelper.cs" Link="Includes\RedactionHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\RequestDataHelper.cs" Link="Includes\RequestDataHelper.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SqlConnectionDetails.cs" Link="Includes\SqlConnectionDetails.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlProcessor.cs" Link="Includes\SqlProcessor.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlStatementInfo.cs" Link="Includes\SqlStatementInfo.cs" />
   </ItemGroup>
