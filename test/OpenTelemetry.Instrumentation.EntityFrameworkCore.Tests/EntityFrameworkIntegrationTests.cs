@@ -180,6 +180,13 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             Assert.Contains(
                 activities,
                 activity => activity.Tags.Any(t => t.Key == conventions.Database));
+
+            if (conventions.ServerPort is not null)
+            {
+                Assert.Contains(
+                    activities,
+                    activity => activity.TagObjects.Any(t => t.Key == conventions.ServerPort));
+            }
         }
     }
 
