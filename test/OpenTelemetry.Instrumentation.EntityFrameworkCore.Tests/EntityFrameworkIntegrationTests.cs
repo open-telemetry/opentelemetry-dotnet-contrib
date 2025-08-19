@@ -30,33 +30,37 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         this.fixture = fixture;
     }
 
-    public static TheoryData<string, string, bool, bool, Type, string, string> RawSqlTestCases()
+    public static TheoryData<string, string, bool, bool, bool, Type, string, string> RawSqlTestCases()
     {
-        (string, Type, string, string)[] providers =
+        (string, Type, bool, string, string)[] providers =
         [
-            (SqliteProvider, typeof(SqliteCommand), "sqlite", "main"),
-            (SqlServerProvider, typeof(SqlCommand), "mssql", "master"),
+            (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
+            (SqliteProvider, typeof(SqliteCommand), true, "sqlite", "main"),
+            (SqlServerProvider, typeof(SqlCommand), false, "mssql", "master"),
+            (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, Type, string, string>();
+        var testCases = new TheoryData<string, string, bool, bool, bool, Type, string, string>();
 
-        foreach ((var provider, var commandType, var system, var database) in providers)
+        foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            testCases.Add(provider, "select 1/1", false, false, commandType, system, database);
-            testCases.Add(provider, "select 1/1", true, false, commandType, system, database);
+            testCases.Add(provider, "select 1/1", false, false, useNewConventions, commandType, system, database);
+            testCases.Add(provider, "select 1/1", true, false, useNewConventions, commandType, system, database);
 
             // For some reason, SQLite does not throw an exception for division by zero
-            if (provider != SqliteProvider)
+            // TODO Remove the second part of the condition when EFCore sets SemanticConventions.AttributeDbQuerySummary
+            // so that there isn't a drive between the expected span names used between SQL Server and EFCore
+            if (provider != SqliteProvider && !useNewConventions)
             {
-                testCases.Add(provider, "select 1/0", false, true, commandType, system, database);
-                testCases.Add(provider, "select 1/0", true, true, commandType, system, database);
+                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, system, database);
+                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, system, database);
             }
         }
 
         return testCases;
     }
 
-    public static TheoryData<string, bool, bool, Type, string, string> DataContextTestCases()
+    public static TheoryData<string, bool, bool, bool, Type, string, string> DataContextTestCases()
     {
         (string, Type, string, string)[] providers =
         [
@@ -66,7 +70,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
         bool[] trueFalse = [true, false];
 
-        var testCases = new TheoryData<string, bool, bool, Type, string, string>();
+        var testCases = new TheoryData<string, bool, bool, bool, Type, string, string>();
 
         foreach ((var provider, var commandType, var system, var database) in providers)
         {
@@ -74,7 +78,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             {
                 foreach (var shouldEnrich in trueFalse)
                 {
-                    testCases.Add(provider, captureTextCommandContent, shouldEnrich, commandType, system, database);
+                    testCases.Add(provider, captureTextCommandContent, shouldEnrich, false, commandType, system, database);
                 }
             }
         }
@@ -89,10 +93,13 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         string commandText,
         bool captureTextCommandContent,
         bool isFailure,
+        bool useNewConventions,
         Type expectedCommandType,
         string expectedSystemName,
         string expectedDatabaseName)
     {
+        var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
+
         // In the case of SQL Server, the activity we're interested in is the one
         // created by the SqlClient instrumentation which is a child of EFCore.
         var expectedSourceName = isFailure && provider is SqlServerProvider
@@ -111,8 +118,11 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             return true;
         }
 
+        using var scope = SemanticConventionScope.Get(useNewConventions);
+
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+
+        using var traceProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation(options =>
             {
@@ -152,6 +162,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         VerifyActivityData(
             captureTextCommandContent,
             isFailure,
+            conventions,
             expectedSystemName,
             expectedDatabaseName,
             activity);
@@ -163,6 +174,13 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         }
 
         Assert.True(filtered);
+
+        if (!isFailure && provider is SqlServerProvider)
+        {
+            Assert.Contains(
+                activities,
+                activity => activity.Tags.Any(t => t.Key == conventions.Database));
+        }
     }
 
     [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
@@ -171,10 +189,12 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         string provider,
         bool captureTextCommandContent,
         bool shouldEnrich,
+        bool useNewConventions,
         Type expectedCommandType,
         string expectedSystemName,
         string expectedDatabaseName)
     {
+        var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
         var enriched = false;
 
         void ActivityEnrichment(Activity activity, IDbCommand command)
@@ -196,6 +216,8 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
 
             return true;
         }
+
+        using var scope = SemanticConventionScope.Get(useNewConventions);
 
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -240,8 +262,8 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         Assert.Equal(ActivitySourceName, activity.Source.Name);
         Assert.Null(activity.Parent);
 
-        Assert.Equal(expectedSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(expectedDatabaseName, activity.GetTagValue(SemanticConventions.AttributeDbName));
+        Assert.Equal(expectedSystemName, activity.GetTagValue(conventions.System));
+        Assert.Equal(expectedDatabaseName, activity.GetTagValue(conventions.Database));
 
         Assert.Equal(shouldEnrich, enriched);
         Assert.True(filtered);
@@ -250,6 +272,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
     private static void VerifyActivityData(
         bool captureTextCommandContent,
         bool isFailure,
+        SemanticConvention conventions,
         string expectedSystemName,
         string expectedDatabaseName,
         Activity activity)
@@ -269,17 +292,16 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             Assert.Empty(activity.Events);
         }
 
-        Assert.Equal(expectedSystemName, activity.GetTagValue(SemanticConventions.AttributeDbSystem));
-        Assert.Equal(expectedDatabaseName, activity.GetTagValue(SemanticConventions.AttributeDbName));
+        Assert.Equal(expectedSystemName, activity.GetTagValue(conventions.System));
+        Assert.Equal(expectedDatabaseName, activity.GetTagValue(conventions.Database));
 
         if (captureTextCommandContent)
         {
-            Assert.NotNull(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+            Assert.NotNull(activity.GetTagValue(conventions.QueryText));
         }
         else
         {
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Null(activity.GetTagValue(conventions.QueryText));
         }
     }
 
@@ -306,5 +328,58 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
             default:
                 throw new NotSupportedException($"Unsupported provider: {provider}");
         }
+    }
+
+    private sealed class SemanticConvention
+    {
+        public static SemanticConvention Old { get; } = new SemanticConvention
+        {
+            EmitsNewAttributes = false,
+            Database = SemanticConventions.AttributeDbName,
+            QueryText = SemanticConventions.AttributeDbStatement,
+            ServerAddress = "peer.service",
+            ServerPort = null,
+            System = SemanticConventions.AttributeDbSystem,
+        };
+
+        public static SemanticConvention New { get; } = new SemanticConvention
+        {
+            EmitsNewAttributes = true,
+            Database = SemanticConventions.AttributeDbNamespace,
+            QueryText = SemanticConventions.AttributeDbQueryText,
+            ServerAddress = SemanticConventions.AttributeServerAddress,
+            ServerPort = SemanticConventions.AttributeServerPort,
+            System = SemanticConventions.AttributeDbSystemName,
+        };
+
+        public bool EmitsNewAttributes { get; private init; }
+
+        public required string Database { get; init; }
+
+        public required string QueryText { get; init; }
+
+        public required string ServerAddress { get; init; }
+
+        public required string? ServerPort { get; init; }
+
+        public required string System { get; init; }
+    }
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
+
+        public static IDisposable Get(bool useNewConventions)
+        {
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+
+            Environment.SetEnvironmentVariable(
+                    ConventionsOptIn,
+                    useNewConventions ? "database" : string.Empty);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }
