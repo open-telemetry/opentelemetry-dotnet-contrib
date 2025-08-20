@@ -15,10 +15,19 @@ public class SqlProcessorTests
     {
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Input.Query);
 
+        var succeeded = false;
         foreach (var sanitizedQueryText in test.Expected.SanitizedQueryText)
         {
-            Assert.Equal(sanitizedQueryText, sqlStatementInfo.SanitizedSql);
+            if (sqlStatementInfo.SanitizedSql.Equals(sanitizedQueryText))
+            {
+                succeeded = true;
+                break;
+            }
         }
+
+        Assert.True(
+            succeeded,
+            $"Expected one of the sanitized query texts to match: {string.Join(", ", test.Expected.SanitizedQueryText)} but got: {sqlStatementInfo.SanitizedSql}");
 
         Assert.Equal(test.Expected.Summary, sqlStatementInfo.DbQuerySummary);
     }
