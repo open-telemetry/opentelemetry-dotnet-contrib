@@ -832,6 +832,51 @@ public partial class HttpClientTests : IDisposable
 #endif
     }
 
+    [Theory]
+    [InlineData(ActivityStatusCode.Unset)]
+    [InlineData(ActivityStatusCode.Ok)]
+    [InlineData(ActivityStatusCode.Error)]
+    public async Task ResponseEnrichmentCanChangeActivityStatus(ActivityStatusCode activityStatus)
+    {
+        bool httpWebResponseEnrichmentApplied = false;
+        bool httpResponseMessageEnrichmentApplied = false;
+
+        var exportedItems = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(exportedItems)
+            .AddHttpClientInstrumentation(
+                options =>
+                {
+                    options.EnrichWithHttpWebResponse = (activity, _) =>
+                    {
+                        httpWebResponseEnrichmentApplied = true;
+                        activity.SetStatus(activityStatus);
+                    };
+                    options.EnrichWithHttpResponseMessage = (activity, _) =>
+                    {
+                        httpResponseMessageEnrichmentApplied = true;
+                        activity.SetStatus(activityStatus);
+                    };
+                })
+            .Build();
+        {
+            using var c = new HttpClient();
+            await c.GetAsync(new Uri(this.url));
+        }
+
+#if NETFRAMEWORK
+        Assert.True(httpWebResponseEnrichmentApplied);
+        Assert.False(httpResponseMessageEnrichmentApplied);
+#else
+        Assert.False(httpWebResponseEnrichmentApplied);
+        Assert.True(httpResponseMessageEnrichmentApplied);
+#endif
+
+        var item = Assert.Single(exportedItems);
+        Assert.Equal(activityStatus, item.Status);
+    }
+
     public void Dispose()
     {
         this.serverLifeTime?.Dispose();
