@@ -92,7 +92,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), dataSource);
+                            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+
+                            var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
+                            if (!string.IsNullOrEmpty(serverAddress))
+                            {
+                                this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), serverAddress);
+
+                                if (this.options.EmitNewAttributes && connectionDetails.Port is { } port)
+                                {
+                                    activity.AddTag(SemanticConventions.AttributeServerPort, port);
+                                }
+                            }
                         }
 
                         this.AddTag(activity, (SemanticConventions.AttributeDbName, SemanticConventions.AttributeDbNamespace), database);
@@ -312,10 +323,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
         };
 
-    private void AddTag(Activity activity, (string Old, string New) attributes, string value)
+    private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
 
-    private void AddTag(Activity activity, (string Old, string New) attributes, (string Old, string New) values)
+    private void AddTag(Activity activity, (string Old, string New) attributes, (string? Old, string? New) values)
     {
         if (this.options.EmitOldAttributes)
         {
