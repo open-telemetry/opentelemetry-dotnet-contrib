@@ -126,14 +126,25 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
             builder.AddLegacySource(HttpInListener.ActivityOperationName); // for the activities created by AspNetCore
         }
 
+        var options = serviceProvider?.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(optionsName);
+
         // SignalR activities first added in .NET 9.0
         if (Environment.Version.Major >= 9)
         {
-            var options = serviceProvider?.GetRequiredService<IOptionsMonitor<AspNetCoreTraceInstrumentationOptions>>().Get(optionsName);
             if (options is null || options.EnableAspNetCoreSignalRSupport)
             {
                 // https://github.com/dotnet/aspnetcore/blob/6ae3ea387b20f6497b82897d613e9b8a6e31d69c/src/SignalR/server/Core/src/Internal/SignalRServerActivitySource.cs#L13C35-L13C70
                 builder.AddSource("Microsoft.AspNetCore.SignalR.Server");
+            }
+        }
+
+        // Blazor activities first added in .NET 10.0
+        if (Environment.Version.Major >= 10)
+        {
+            if (options is null || options.EnableBlazorSupport)
+            {
+                builder.AddSource("Microsoft.AspNetCore.Components");
+                builder.AddSource("Microsoft.AspNetCore.Components.Server.Circuits");
             }
         }
     }
