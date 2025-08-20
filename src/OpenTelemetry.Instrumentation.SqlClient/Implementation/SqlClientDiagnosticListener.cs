@@ -121,6 +121,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
+                    if (options.SetDbQueryParameters)
+                    {
+                        SqlParameterProcessor.AddQueryParameters(activity, command);
+                    }
+
                     if (activity.IsAllDataRequested)
                     {
                         try
