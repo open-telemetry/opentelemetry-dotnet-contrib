@@ -2,6 +2,57 @@
 
 ## Unreleased
 
+* Added support for listening to ASP.NET Core Blazor activities.
+  Configurable with the
+  `AspNetCoreTraceInstrumentationOptions.EnableBlazorSupport`
+  option which defaults to `true`. Only applies to .NET 10.0 or greater.
+  ([#3012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3012))
+
+* Following metrics will now be enabled by default when targeting `.NET10.0` or
+  newer framework:
+
+  * **Meter** : `Microsoft.AspNetCore.MemoryPool`
+    * `aspnetcore.memory_pool.pooled`
+    * `aspnetcore.memory_pool.evicted`
+    * `aspnetcore.memory_pool.allocated`
+    * `aspnetcore.memory_pool.rented`
+  * **Meter** : `Microsoft.AspNetCore.Authentication`
+    * `aspnetcore.authentication.authenticate.duration`
+    * `aspnetcore.authentication.challenges`
+    * `aspnetcore.authentication.forbids`
+    * `aspnetcore.authentication.sign_ins`
+    * `aspnetcore.authentication.sign_outs`
+  * **Meter** : `Microsoft.AspNetCore.Authorization`
+    * `aspnetcore.authorization.attempts`
+  * **Meter** : `Microsoft.AspNetCore.Identity`
+    * `aspnetcore.identity.user.create.duration`
+    * `aspnetcore.identity.user.update.duration`
+    * `aspnetcore.identity.user.delete.duration`
+    * `aspnetcore.identity.user.check_password_attempts`
+    * `aspnetcore.identity.user.generated_tokens`
+    * `aspnetcore.identity.user.verify_token_attempts`
+    * `aspnetcore.identity.sign_in.authenticate.duration`
+    * `aspnetcore.identity.sign_in.check_password_attempts`
+    * `aspnetcore.identity.sign_in.sign_ins`
+    * `aspnetcore.identity.sign_in.sign_outs`
+    * `aspnetcore.identity.sign_in.two_factor_clients_remembered`
+    * `aspnetcore.identity.sign_in.two_factor_clients_forgotten`
+  * **Meter** : `Microsoft.AspNetCore.Components`
+    * `aspnetcore.components.navigate`
+    * `aspnetcore.components.handle_event.duration`
+  * **Meter** : `Microsoft.AspNetCore.Components.Lifecycle`
+    * `aspnetcore.components.update_parameters.duration`
+    * `aspnetcore.components.render_diff.duration`
+    * `aspnetcore.components.render_diff.size`
+  * **Meter** : `Microsoft.AspNetCore.Components.Server.Circuits`
+    * `aspnetcore.components.circuit.active`
+    * `aspnetcore.components.circuit.connected`
+    * `aspnetcore.components.circuit.duration`
+
+  For details about each individual metric check [ASP.NET Core
+  docs
+  page](https://learn.microsoft.com/dotnet/core/diagnostics/built-in-metrics-aspnetcore).
+
 ## 1.12.0
 
 Released 2025-May-05
