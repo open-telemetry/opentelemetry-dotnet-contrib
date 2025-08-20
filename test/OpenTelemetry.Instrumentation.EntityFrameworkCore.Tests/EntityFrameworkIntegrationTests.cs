@@ -304,6 +304,51 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.True(filtered);
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData(SqliteProvider)]
+    [InlineData(SqlServerProvider)]
+    public async Task SuccessfulParameterizedQueryTest(string provider)
+    {
+        // Arrange
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddEntityFrameworkCoreInstrumentation(options => options.SetDbQueryParameters = true)
+            .Build();
+
+        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+
+        this.ConfigureProvider(provider, optionsBuilder);
+
+        await using var context = new ItemsContext(optionsBuilder.Options);
+        await context.Database.EnsureCreatedAsync();
+
+        // Clear activities from creating the database
+        activities.Clear();
+
+        // Act
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT @x + @y",
+            CreateParameter(provider, "@x", 42),
+            CreateParameter(provider, "@y", 37));
+
+        // Assert
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(42, activity.GetTagValue("db.query.parameter.@x"));
+        Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
+    }
+
+    private static object CreateParameter(string provider, string name, object value)
+    {
+        return provider switch
+        {
+            SqliteProvider => new SqliteParameter(name, value),
+            SqlServerProvider => new SqlParameter(name, value),
+            _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
+        };
+    }
+
     private static void VerifyActivityData(
         bool captureTextCommandContent,
         bool isFailure,
@@ -339,6 +384,9 @@ public sealed class EntityFrameworkIntegrationTests :
         {
             Assert.Null(activity.GetTagValue(conventions.QueryText));
         }
+
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
+        Assert.DoesNotContain(activity.Tags, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
     }
 
     private string GetSqlServerConnectionString() => this.sqlServerFixture.DatabaseContainer switch

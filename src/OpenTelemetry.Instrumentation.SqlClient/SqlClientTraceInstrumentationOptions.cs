@@ -50,9 +50,8 @@ public class SqlClientTraceInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see
-    /// cref="SqlClientInstrumentation"/> should add the text of commands as
-    /// the <see cref="SemanticConventions.AttributeDbStatement"/> tag.
+    /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
+    /// should add the text of commands as the <see cref="SemanticConventions.AttributeDbStatement"/> tag.
     /// Default value: <see langword="false"/>.
     /// </summary>
     /// <remarks>
@@ -133,6 +132,23 @@ public class SqlClientTraceInstrumentationOptions
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.</para>
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
+    /// should add the names and values of query parameters as the <c>db.query.parameter.{key}</c> tag.
+    /// Default value: <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>WARNING: SetDbQueryParameters will capture the raw
+    /// <c>Value</c>. Make sure your query parameters never
+    /// contain any sensitive data.</b>
+    /// </para>
+    /// <para>
+    /// <b>SetDbQueryParameters is only supported on .NET and .NET Core runtimes.</b>
+    /// </para>
+    /// </remarks>
+    public bool SetDbQueryParameters { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the old database attributes should be emitted.
