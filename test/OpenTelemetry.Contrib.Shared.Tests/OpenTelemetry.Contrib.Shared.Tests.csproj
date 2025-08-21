@@ -29,4 +29,10 @@
     <Compile Include="$(RepoRoot)\src\Shared\SqlStatementInfo.cs" Link="Includes\SqlStatementInfo.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="SqlProcessorTestCases.json">
+      <LogicalName>SqlProcessorTestCases.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
