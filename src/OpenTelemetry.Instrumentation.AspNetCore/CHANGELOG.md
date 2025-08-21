@@ -4,7 +4,7 @@
 
 * Added support for listening to ASP.NET Core Blazor activities.
   Configurable with the
-  `AspNetCoreTraceInstrumentationOptions.EnableBlazorSupport`
+  `AspNetCoreTraceInstrumentationOptions.EnableRazorComponentsSupport`
   option which defaults to `true`. Only applies to .NET 10.0 or greater.
   ([#3012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3012))
 
