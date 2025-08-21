@@ -43,19 +43,24 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 
     internal static MeterProviderBuilder ConfigureMeters(this MeterProviderBuilder builder)
     {
-        return builder
-             .AddMeter("Microsoft.AspNetCore.Hosting")
-             .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-             .AddMeter("Microsoft.AspNetCore.Http.Connections")
-             .AddMeter("Microsoft.AspNetCore.Routing")
-             .AddMeter("Microsoft.AspNetCore.Diagnostics")
-             .AddMeter("Microsoft.AspNetCore.RateLimiting")
-             .AddMeter("Microsoft.AspNetCore.Components")
-             .AddMeter("Microsoft.AspNetCore.Components.Server.Circuits")
-             .AddMeter("Microsoft.AspNetCore.Components.Lifecycle")
-             .AddMeter("Microsoft.AspNetCore.Authorization")
-             .AddMeter("Microsoft.AspNetCore.Authentication")
-             .AddMeter("Microsoft.AspNetCore.Identity")
-             .AddMeter("Microsoft.AspNetCore.MemoryPool");
+        // There is no cost to listen for meters so listen for all built-in ASP.NET Core meters.
+        var builtInAspNetCoreMeters = new[]
+        {
+            "Microsoft.AspNetCore.Hosting",
+            "Microsoft.AspNetCore.Server.Kestrel",
+            "Microsoft.AspNetCore.Http.Connections",
+            "Microsoft.AspNetCore.Routing",
+            "Microsoft.AspNetCore.Diagnostics",
+            "Microsoft.AspNetCore.RateLimiting",
+            "Microsoft.AspNetCore.Components",
+            "Microsoft.AspNetCore.Components.Server.Circuits",
+            "Microsoft.AspNetCore.Components.Lifecycle",
+            "Microsoft.AspNetCore.Authorization",
+            "Microsoft.AspNetCore.Authentication",
+            "Microsoft.AspNetCore.Identity",
+            "Microsoft.AspNetCore.MemoryPool",
+        };
+
+        return builder.AddMeter(builtInAspNetCoreMeters);
     }
 }

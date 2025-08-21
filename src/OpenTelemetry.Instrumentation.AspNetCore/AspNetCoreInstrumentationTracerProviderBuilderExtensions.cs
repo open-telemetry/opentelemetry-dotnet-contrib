@@ -141,9 +141,12 @@ public static class AspNetCoreInstrumentationTracerProviderBuilderExtensions
         // Blazor activities first added in .NET 10.0
         if (Environment.Version.Major >= 10)
         {
-            if (options is null || options.EnableBlazorSupport)
+            if (options is null || options.EnableRazorComponentsSupport)
             {
+                // https://github.com/dotnet/aspnetcore/blob/182e86a5943c4e0fea5fc006a88ff257bcc0fa73/src/Components/Components/src/ComponentsActivitySource.cs#L14
                 builder.AddSource("Microsoft.AspNetCore.Components");
+
+                // https://github.com/dotnet/aspnetcore/blob/182e86a5943c4e0fea5fc006a88ff257bcc0fa73/src/Components/Server/src/Circuits/CircuitActivitySource.cs#L11
                 builder.AddSource("Microsoft.AspNetCore.Components.Server.Circuits");
             }
         }

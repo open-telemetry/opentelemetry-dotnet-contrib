@@ -52,6 +52,7 @@
   For details about each individual metric check [ASP.NET Core
   docs
   page](https://learn.microsoft.com/dotnet/core/diagnostics/built-in-metrics-aspnetcore).
+  ([#3012](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3012))
 
 ## 1.12.0
 
