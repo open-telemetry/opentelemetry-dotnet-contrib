@@ -30,25 +30,30 @@ jobs:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit. We need all the tags
         # for this work.
         fetch-depth: 0
         ref: ${{ github.event.repository.default_branch }}
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects
       if: |
-        (github.ref_type == 'tag' && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc'))
-        || (inputs.tag && !contains(inputs.tag, '-alpha') && !contains(inputs.tag, '-beta') && !contains(inputs.tag, '-rc'))
+        (github.ref_type == 'tag' && !contains(github.ref_name, '-alpha') && !contains(github.ref_name, '-beta') && !contains(github.ref_name, '-rc')) ||
+        (inputs.tag && !contains(inputs.tag, '-alpha') && !contains(inputs.tag, '-beta') && !contains(inputs.tag, '-rc'))
       shell: pwsh
+      env:
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        TAG: ${{ inputs.tag || github.ref_name }}
       run: |
         Import-Module .\build\scripts\post-release.psm1
 
         CreatePackageValidationBaselineVersionUpdatePullRequest `
-          -gitRepository '${{ github.repository }}' `
-          -tag '${{ inputs.tag || github.ref_name }}' `
-          -targetBranch '${{ github.event.repository.default_branch }}' `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -tag ${env:TAG} `
+          -targetBranch ${env:TARGET_BRANCH} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}

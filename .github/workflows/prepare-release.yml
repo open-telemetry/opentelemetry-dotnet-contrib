@@ -93,25 +93,32 @@ jobs:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Create GitHub Pull Request to prepare release
       shell: pwsh
+      env:
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        COMMENT_USER_NAME: ${{ github.event.sender.login }}
+        COMPONENT: ${{ inputs.component }}
+        RELEASE_ISSUE: ${{ inputs.releaseIssue }}
+        VERSION: ${{ inputs.version }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
 
         CreatePullRequestToUpdateChangelogsAndPublicApis `
-          -gitRepository '${{ github.repository }}' `
-          -component '${{ inputs.component }}' `
-          -version '${{ inputs.version }}' `
-          -requestedByUserName '${{ github.event.sender.login }}' `
-          -releaseIssue '${{ inputs.releaseIssue }}' `
-          -targetBranch '${{ github.ref_name }}' `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -component ${env:COMPONENT} `
+          -version ${env:VERSION} `
+          -requestedByUserName ${env:COMMENT_USER_NAME} `
+          -releaseIssue ${env:RELEASE_ISSUE} `
+          -targetBranch ${env:GITHUB_REF_NAME} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}
 
   lock-pr-and-post-notice-to-create-release-tag:
     runs-on: ubuntu-22.04
@@ -119,31 +126,34 @@ jobs:
     needs: automation
 
     if: |
-      github.event_name == 'pull_request'
-      && github.event.action == 'closed'
-      && github.event.pull_request.user.login == needs.automation.outputs.username
-      && github.event.pull_request.merged == true
-      && startsWith(github.event.pull_request.title, '[release] Prepare release ')
-      && needs.automation.outputs.enabled
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.user.login == needs.automation.outputs.username &&
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.title, '[release] Prepare release ') &&
+      needs.automation.outputs.enabled
 
     env:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Lock GitHub Pull Request to prepare release
       shell: pwsh
+      env:
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        ISSUE_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
 
         LockPullRequestAndPostNoticeToCreateReleaseTag `
-          -gitRepository '${{ github.repository }}' `
-          -pullRequestNumber '${{ github.event.pull_request.number }}' `
-          -botUserName '${{ needs.automation.outputs.username }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -pullRequestNumber ${env:ISSUE_NUMBER} `
+          -botUserName ${env:BOT_USER_NAME}
 
   create-release-tag-unlock-pr-post-notice:
     runs-on: ubuntu-22.04
@@ -151,38 +161,42 @@ jobs:
     needs: automation
 
     if: |
-      github.event_name == 'issue_comment'
-      && github.event.issue.pull_request
-      && github.event.issue.locked == true
-      && github.event.comment.user.login != needs.automation.outputs.username
-      && contains(github.event.comment.body, '/CreateReleaseTag')
-      && startsWith(github.event.issue.title, '[release] Prepare release ')
-      && github.event.issue.pull_request.merged_at
-      && needs.automation.outputs.enabled
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.issue.locked == true &&
+      github.event.comment.user.login != needs.automation.outputs.username &&
+      contains(github.event.comment.body, '/CreateReleaseTag') &&
+      startsWith(github.event.issue.title, '[release] Prepare release ') &&
+      github.event.issue.pull_request.merged_at &&
+      needs.automation.outputs.enabled
 
     env:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit which fails the git tag operation below
         fetch-depth: 0
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Create release tag
       id: create-tag
       shell: pwsh
+      env:
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
 
         CreateReleaseTagAndPostNoticeOnPullRequest `
-          -gitRepository '${{ github.repository }}' `
-          -pullRequestNumber '${{ github.event.issue.number }}' `
-          -botUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -pullRequestNumber ${env:ISSUE_NUMBER} `
+          -botUserName ${env:BOT_USER_NAME} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}
 
   update-changelog-release-dates-on-prepare-pr-post-notice:
     runs-on: ubuntu-22.04
@@ -190,39 +204,44 @@ jobs:
     needs: automation
 
     if: |
-      github.event_name == 'issue_comment'
-      && github.event.issue.pull_request
-      && github.event.issue.state == 'open'
-      && github.event.comment.user.login != needs.automation.outputs.username
-      && contains(github.event.comment.body, '/UpdateReleaseDates')
-      && startsWith(github.event.issue.title, '[release] Prepare release ')
-      && github.event.issue.pull_request.merged_at == null
-      && needs.automation.outputs.enabled
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.login != needs.automation.outputs.username &&
+      contains(github.event.comment.body, '/UpdateReleaseDates') &&
+      startsWith(github.event.issue.title, '[release] Prepare release ') &&
+      github.event.issue.pull_request.merged_at == null &&
+      needs.automation.outputs.enabled
 
     env:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit which fails the git tag operation below
         fetch-depth: 0
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Update release date
       id: create-tag
       shell: pwsh
+      env:
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        COMMENT_USER_NAME: ${{ github.event.comment.user.login }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
 
         UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest `
-          -gitRepository '${{ github.repository }}' `
-          -pullRequestNumber '${{ github.event.issue.number }}' `
-          -botUserName '${{ needs.automation.outputs.username }}' `
-          -commentUserName '${{ github.event.comment.user.login }}' `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -pullRequestNumber ${env:ISSUE_NUMBER} `
+          -botUserName ${env:BOT_USER_NAME} `
+          -commentUserName ${env:COMMENT_USER_NAME} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}
 
   process-release-request-issue:
     runs-on: ubuntu-22.04
@@ -230,41 +249,46 @@ jobs:
     needs: automation
 
     if: |
-      startsWith(github.event.issue.title, '[release request] ')
-      && github.event.issue.pull_request == null
-      && needs.automation.outputs.enabled
-      && (
-          (github.event_name == 'issues')
+      startsWith(github.event.issue.title, '[release request] ') &&
+      github.event.issue.pull_request == null &&
+      needs.automation.outputs.enabled &&
+      (
+        (github.event_name == 'issues')
         ||
-          (github.event_name == 'issue_comment'
-          && github.event.issue.state == 'open'
-          && contains(github.event.comment.body, '/PrepareRelease')
-          && github.event.comment.user.login != needs.automation.outputs.username)
+        (github.event_name == 'issue_comment' &&
+         github.event.issue.state == 'open' &&
+         contains(github.event.comment.body, '/PrepareRelease') &&
+         github.event.comment.user.login != needs.automation.outputs.username)
       )
 
     env:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-    - name: check out code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Check out code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ env.GH_TOKEN }}
 
     - name: Process release request issue being opened or commented
       shell: pwsh
+      env:
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        ISSUE_BODY: ${{ github.event.issue.body }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        REQUESTOR_USER_NAME: ${{ github.event.comment.user.login || github.event.sender.login }}
+        TARGET_BRANCH: ${{ github.event.repository.default_branch }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
 
         TagCodeOwnersOnOrRunWorkflowForRequestReleaseIssue `
-          -gitRepository '${{ github.repository }}' `
-          -targetBranch '${{ github.event.repository.default_branch }}' `
-          -triggeringEventName '${{ github.event_name }}' `
-          -approvingGroups '@${{ github.repository_owner }}/dotnet-approvers @${{ github.repository_owner }}/dotnet-maintainers' `
-          -requestedByUserName '${{ github.event.comment.user.login || github.event.sender.login }}' `
-          -issueNumber '${{ github.event.issue.number }}' `
-          -issueBody $env:ISSUE_BODY `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
-      env:
-        ISSUE_BODY: ${{ github.event.issue.body }}
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -targetBranch ${env:TARGET_BRANCH} `
+          -triggeringEventName ${env:GITHUB_EVENT_NAME} `
+          -approvingGroups "@${env:GITHUB_REPOSITORY_OWNER}/dotnet-approvers @${env:GITHUB_REPOSITORY_OWNER}/dotnet-maintainers" `
+          -requestedByUserName ${env:REQUESTOR_USER_NAME} `
+          -issueNumber ${env:ISSUE_NUMBER} `
+          -issueBody ${env:ISSUE_BODY} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}

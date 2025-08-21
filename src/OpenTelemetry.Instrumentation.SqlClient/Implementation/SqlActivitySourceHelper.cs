@@ -68,35 +68,43 @@ internal sealed class SqlActivitySourceHelper
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
-            if (options.EmitOldAttributes && !string.IsNullOrEmpty(databaseName))
+            if (!string.IsNullOrEmpty(databaseName))
             {
-                tags.Add(SemanticConventions.AttributeDbName, databaseName);
-                activityName = databaseName!;
-            }
+                if (options.EmitOldAttributes)
+                {
+                    tags.Add(SemanticConventions.AttributeDbName, databaseName);
+                    activityName = databaseName!;
+                }
 
-            if (options.EmitNewAttributes && !string.IsNullOrEmpty(databaseName))
-            {
-                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
-                    ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
-                    : databaseName!;
-                tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
-                activityName = dbNamespace;
+                if (options.EmitNewAttributes)
+                {
+                    var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
+                        ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
+                        : databaseName!;
+                    tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
+                    activityName = dbNamespace;
+                }
             }
 
             var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
             if (!string.IsNullOrEmpty(serverAddress))
             {
                 tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                if (connectionDetails.Port.HasValue)
+                if (connectionDetails.Port is { } port)
                 {
-                    tags.Add(SemanticConventions.AttributeServerPort, connectionDetails.Port);
+                    tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
                 if (activityName == MicrosoftSqlServerDbSystem || activityName == MicrosoftSqlServerDbSystemName)
                 {
-                    activityName = connectionDetails.Port.HasValue
-                        ? $"{serverAddress}:{connectionDetails.Port}" // TODO: Another opportunity to refactor SqlConnectionDetails
-                        : serverAddress!;
+                    if (connectionDetails.Port is { } portNumber)
+                    {
+                        activityName = $"{serverAddress}:{portNumber}"; // TODO: Another opportunity to refactor SqlConnectionDetails
+                    }
+                    else
+                    {
+                        activityName = serverAddress!;
+                    }
                 }
             }
 

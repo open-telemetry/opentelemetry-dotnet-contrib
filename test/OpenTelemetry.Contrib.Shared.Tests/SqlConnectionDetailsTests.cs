@@ -1,10 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using Xunit;
 
-namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
+namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlConnectionDetailsTests
 {
