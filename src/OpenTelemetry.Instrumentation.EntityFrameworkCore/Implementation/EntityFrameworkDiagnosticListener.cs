@@ -155,7 +155,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
-                        if (options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
                         {
                             SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
