@@ -2,21 +2,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.Tests;
 
 public class SqlProcessorTests
 {
-    public static IEnumerable<object[]> TestData => SqlProcessorTestCases.GetSemanticConventionsTestCases();
+    private readonly ITestOutputHelper output;
+
+    public SqlProcessorTests(ITestOutputHelper output)
+    {
+        this.output = output;
+    }
+
+    public static TheoryData<SqlProcessorTestCases.TestCase> TestData => SqlProcessorTestCases.GetSemanticConventionsTestCases();
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase test)
+    public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
     {
-        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(test.Input.Query);
+        this.output.WriteLine($"Running test case for query: {testCase.Input.Query}");
+
+        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(testCase.Input.Query);
 
         var succeeded = false;
-        foreach (var sanitizedQueryText in test.Expected.SanitizedQueryText)
+        foreach (var sanitizedQueryText in testCase.Expected.SanitizedQueryText)
         {
             if (sqlStatementInfo.SanitizedSql.Equals(sanitizedQueryText))
             {
@@ -27,8 +37,8 @@ public class SqlProcessorTests
 
         Assert.True(
             succeeded,
-            $"Expected one of the sanitized query texts to match: {string.Join(", ", test.Expected.SanitizedQueryText)} but got: {sqlStatementInfo.SanitizedSql}");
+            $"Expected one of the sanitized query texts to match: {string.Join(", ", testCase.Expected.SanitizedQueryText)} but got: {sqlStatementInfo.SanitizedSql}");
 
-        Assert.Equal(test.Expected.Summary, sqlStatementInfo.DbQuerySummary);
+        Assert.Equal(testCase.Expected.Summary, sqlStatementInfo.DbQuerySummary);
     }
 }
