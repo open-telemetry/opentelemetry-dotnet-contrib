@@ -90,16 +90,21 @@ internal sealed class SqlActivitySourceHelper
             if (!string.IsNullOrEmpty(serverAddress))
             {
                 tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                if (connectionDetails.Port.HasValue)
+                if (connectionDetails.Port is { } port)
                 {
-                    tags.Add(SemanticConventions.AttributeServerPort, connectionDetails.Port);
+                    tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
                 if (activityName == MicrosoftSqlServerDbSystem || activityName == MicrosoftSqlServerDbSystemName)
                 {
-                    activityName = connectionDetails.Port.HasValue
-                        ? $"{serverAddress}:{connectionDetails.Port}" // TODO: Another opportunity to refactor SqlConnectionDetails
-                        : serverAddress!;
+                    if (connectionDetails.Port is { } portNumber)
+                    {
+                        activityName = $"{serverAddress}:{portNumber}"; // TODO: Another opportunity to refactor SqlConnectionDetails
+                    }
+                    else
+                    {
+                        activityName = serverAddress!;
+                    }
                 }
             }
 
