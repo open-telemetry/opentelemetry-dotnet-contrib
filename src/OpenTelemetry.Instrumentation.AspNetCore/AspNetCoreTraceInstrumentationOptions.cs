@@ -103,6 +103,15 @@ public class AspNetCoreTraceInstrumentationOptions
     public bool EnableAspNetCoreSignalRSupport { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether Razor Components (Blazor) activities are recorded.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to true.
+    /// Only applies to .NET 10.0 or greater.
+    /// </remarks>
+    public bool EnableRazorComponentsSupport { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a value indicating whether RPC attributes are added to an Activity when using Grpc.AspNetCore.
     /// </summary>
     /// <remarks>

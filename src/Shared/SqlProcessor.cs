@@ -249,7 +249,7 @@ internal static class SqlProcessor
             LookAheadDdl("ALTER", sql, ref i, state) ||
             LookAheadDdl("DROP", sql, ref i, state) ||
             LookAhead("INTO", sql, ref i, state, false, true) ||
-            LookAhead("FROM", sql, ref i, state, false, true) ||
+            LookAhead("FROM", sql, ref i, state, false, true, true) ||
             LookAhead("JOIN", sql, ref i, state, false, true))
         {
             i -= 1;
@@ -276,6 +276,11 @@ internal static class SqlProcessor
             }
 
             i -= 1;
+
+            if (state.InFromClause && ch == ',')
+            {
+                state.CaptureNextTokenAsTarget = true;
+            }
         }
         else
         {
@@ -283,6 +288,14 @@ internal static class SqlProcessor
         }
 
         index = i;
+    }
+
+    private static void AppendNormalized(StringBuilder builder, char ch)
+    {
+        if (!char.IsWhiteSpace(ch) || builder.Length == 0 || !char.IsWhiteSpace(builder[builder.Length - 1]))
+        {
+            builder.Append(ch);
+        }
     }
 
     private static bool LookAheadDdl(string operation, string sql, ref int index, SqlProcessorState state)
@@ -307,7 +320,7 @@ internal static class SqlProcessor
 
             for (var i = initialIndex; i < index; ++i)
             {
-                state.DbQuerySummary.Append(sql[i]);
+                AppendNormalized(state.DbQuerySummary, sql[i]);
             }
 
             return true;
@@ -316,7 +329,7 @@ internal static class SqlProcessor
         return false;
     }
 
-    private static bool LookAhead(string compare, string sql, ref int index, SqlProcessorState state, bool isOperation = true, bool captureNextTokenAsTarget = false)
+    private static bool LookAhead(string compare, string sql, ref int index, SqlProcessorState state, bool isOperation = true, bool captureNextTokenAsTarget = false, bool inFromClause = false)
     {
         int i = index;
         var sqlLength = sql.Length;
@@ -365,6 +378,7 @@ internal static class SqlProcessor
 
         index = i;
         state.CaptureNextTokenAsTarget = captureNextTokenAsTarget;
+        state.InFromClause = inFromClause;
         return true;
     }
 
@@ -375,5 +389,7 @@ internal static class SqlProcessor
         public StringBuilder DbQuerySummary { get; set; } = new StringBuilder();
 
         public bool CaptureNextTokenAsTarget { get; set; }
+
+        public bool InFromClause { get; set; }
     }
 }

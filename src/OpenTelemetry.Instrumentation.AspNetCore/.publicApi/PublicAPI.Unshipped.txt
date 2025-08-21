@@ -1,0 +1,2 @@
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableRazorComponentsSupport.get -> bool
+OpenTelemetry.Instrumentation.AspNetCore.AspNetCoreTraceInstrumentationOptions.EnableRazorComponentsSupport.set -> void
