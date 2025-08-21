@@ -21,44 +21,101 @@ added & enabled to the corresponding telemetry provider.
 
 ### App Service Resource Detector
 
+**Name:** AzureAppServiceDetector
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
 | Attribute | Comment |
 | --- | --- |
-| azure.app.service.stamp | |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_app_service` |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
-| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
-| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
-| [`deployment.environment`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/deployment/#deployment-environment)  | |
-| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
-| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
-| [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-name) | |
+| `cloud.platform` | Will be set to `azure_app_service` |
+| `cloud.provider` | Will be set to `azure` |
+| `cloud.region` | |
+| `cloud.resource_id` | |
+
+**[`deployment`](https://opentelemetry.io/docs/specs/semconv/registry/entities/deployment/#deployment) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `deployment.environment`  | |
+
+**[`host`](https://opentelemetry.io/docs/specs/semconv/registry/entities/host/#host) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `host.id` | |
+
+**[`service`](https://opentelemetry.io/docs/specs/semconv/registry/entities/service/#service) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `service.instance.id` | |
+| `service.name` | |
+
+**Other Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `azure.app.service.stamp` | |
 
 ### VM Resource Detector
 
-| Attribute| Comment |
-| --- | --- |
-| azure.vm.scaleset.name   | |
-| azure.vm.sku             | |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_vm` |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
-| [`cloud.region`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-region) | |
-| [`cloud.resource_id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-resource-id) | |
-| [`host.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-id) | |
-| [`host.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-name) | |
-| [`host.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/host/#host-type) | |
-| [`os.type`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-type) | |
-| [`os.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/os/#os-version) | |
-| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
+**Name:** AzureVMDetector
 
-### Container Apps Resource Detector
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
 
 | Attribute | Comment |
 | --- | --- |
-| [`cloud.platform`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-platform) | Will be set to `azure_container_apps` |
-| [`cloud.provider`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/cloud/#cloud-provider) | Will be set to `azure` |
-| [`service.instance.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-instance-id) | |
-| [`service.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-name) | |
-| [`service.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/#service-version) | |
+| `cloud.platform` | Will be set to `azure_vm` |
+| `cloud.provider` | Will be set to `azure` |
+| `cloud.region` | |
+| `cloud.resource_id` | |
+
+**[`host`](https://opentelemetry.io/docs/specs/semconv/registry/entities/host/#host) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `host.id` | |
+| `host.name` | |
+| `host.type` | |
+
+**[`os`](https://opentelemetry.io/docs/specs/semconv/registry/entities/os/#os) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `os.type` | |
+| `os.version` | |
+
+**[`service`](https://opentelemetry.io/docs/specs/semconv/registry/entities/service/#service) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `service.instance.id` | |
+
+**Other Attributes:**
+
+| Attribute| Comment |
+| --- | --- |
+| `azure.vm.scaleset.name`   | |
+| `azure.vm.sku`             | |
+
+### Container Apps Resource Detector
+
+**Name:** AzureContainerAppsDetector
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `cloud.platform` | Will be set to `azure_container_apps` |
+| `cloud.provider` | Will be set to `azure` |
+
+**[`service`](https://opentelemetry.io/docs/specs/semconv/registry/entities/service/#service) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `service.instance.id` | |
+| `service.name` | |
+| `service.version` | |
 
 ## Getting Started
 
