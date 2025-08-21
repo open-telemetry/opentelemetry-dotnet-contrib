@@ -15,11 +15,15 @@ The below attributes from OpenTelemetry Semantic Conventions can/will be include
 on telemetry signals when the corresponding resource detector is
 added & enabled to the corresponding telemetry provider.
 
-### ContainerRuntimeDetector
+### Container
+
+**Name:** ContainerDetector
+
+**[`container`](https://opentelemetry.io/docs/specs/semconv/registry/entities/container/) Entity Attributes:**
 
 | Attribute | Comment |
 | --- | --- |
-| [`container.id`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/container/#container-id) | |
+| `container.id` | |
 
 ## Getting Started
 

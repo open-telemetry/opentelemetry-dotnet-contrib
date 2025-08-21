@@ -19,13 +19,17 @@ The below attributes from OpenTelemetry Semantic Conventions can/will be include
 on telemetry signals when the corresponding resource detector is
 added & enabled to the corresponding telemetry provider.
 
-### ProcessRuntimeDetector
+### Process Runtime Detector
+
+**Name:** ProcessRuntimeDetector
+
+**[proces.runtime](https://opentelemetry.io/docs/specs/semconv/registry/entities/process/#process-runtime) Entity Attributes:**
 
 | Attribute | Comment |
 | --- | --- |
-| [`process.runtime.description`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-description) |  |
-| [`process.runtime.name`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-name) |  |
-| [`process.runtime.version`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-runtime-version) |  |
+| `process.runtime.description` |  |
+| `process.runtime.name` |  |
+| `process.runtime.version` |  |
 
 ## Getting Started
 

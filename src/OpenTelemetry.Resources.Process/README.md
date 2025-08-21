@@ -19,12 +19,16 @@ The below attributes from OpenTelemetry Semantic Conventions can/will be include
 on telemetry signals when the corresponding resource detector is
 added & enabled to the corresponding telemetry provider.
 
-### ProcessDetector
+### Process
+
+**Name:** ProcessDetector
+
+**[`process`](https://opentelemetry.io/docs/specs/semconv/resource/process/#process) Entity Attributes:**
 
 | Attribute | Comment |
 | --- | --- |
-| [`process.owner`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-owner) | |
-| [`process.pid`](https://opentelemetry.io/docs/specs/semconv/registry/attributes/process/#process-pid) | |
+| `process.owner` | |
+| `process.pid` | |
 
 ## Getting Started
 
