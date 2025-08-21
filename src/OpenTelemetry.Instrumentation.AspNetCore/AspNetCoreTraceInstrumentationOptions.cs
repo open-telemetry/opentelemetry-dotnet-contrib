@@ -103,7 +103,7 @@ public class AspNetCoreTraceInstrumentationOptions
     public bool EnableAspNetCoreSignalRSupport { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether Razor Componenets (Blazor) activities are recorded.
+    /// Gets or sets a value indicating whether Razor Components (Blazor) activities are recorded.
     /// </summary>
     /// <remarks>
     /// Defaults to true.
