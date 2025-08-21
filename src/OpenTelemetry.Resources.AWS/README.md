@@ -3,7 +3,7 @@
 | Status      |           |
 | ----------- | --------- |
 | Stability   | [Stable](../../README.md#stable) |
-| Code Owners | [@srprash](https://github.com/srprash), [@ppittle](https://github.com/ppittle)|
+| Code Owners | [@srprash](https://github.com/srprash), [@normj](https://github.com/normj)|
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.AWS)](https://www.nuget.org/packages/OpenTelemetry.Resources.AWS)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Resources.AWS)](https://www.nuget.org/packages/OpenTelemetry.Resources.AWS)
