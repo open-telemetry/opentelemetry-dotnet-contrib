@@ -16,18 +16,18 @@ components:
     - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
-    - ppittle
+    - normj
   src/OpenTelemetry.Extensions.Enrichment/:
     - evgenyfedorov2
     - dariusclay
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
-    - ppittle
+    - normj
     - muhammad-othman
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
-    - ppittle
+    - normj
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ConfluentKafka/:
@@ -64,7 +64,7 @@ components:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.AWS/:
     - srprash
-    - ppittle
+    - normj
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.Container/:
@@ -85,7 +85,7 @@ components:
     - matt-hensley
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
-    - ppittle
+    - normj
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17
@@ -107,18 +107,18 @@ components:
     - mikegoldsmith
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - evgenyfedorov2
     - dariusclay
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
     - muhammad-othman
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
-    - ppittle
+    - normj
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
@@ -151,7 +151,7 @@ components:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.Container.Tests/:
@@ -169,4 +169,4 @@ components:
     - matt-hensley
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
