@@ -134,6 +134,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var sampler = new TestSampler();
         var activities = new List<Activity>();
 
+        using var scope = SemanticConventionScope.Get(useNewConventions: true);
+
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
             .AddInMemoryExporter(activities)
@@ -298,5 +300,23 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             MsSqlContainer container => container.GetConnectionString(),
             _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
         };
+    }
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
+
+        public static SemanticConventionScope Get(bool useNewConventions)
+        {
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+
+            Environment.SetEnvironmentVariable(
+                ConventionsOptIn,
+                useNewConventions ? "database" : string.Empty);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }

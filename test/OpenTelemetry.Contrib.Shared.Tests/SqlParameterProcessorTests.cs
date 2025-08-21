@@ -89,6 +89,7 @@ public static class SqlParameterProcessorTests
         command.Parameters.Add(new MyDbCommandParameter("foo", 1));
         command.Parameters.Add(new MyDbCommandParameter(2));
         command.Parameters.Add(new object());
+        command.Parameters.Add(new MyDbCommandParameter("FOO", 3));
 
         // Act
         SqlParameterProcessor.AddQueryParameters(activity, command);
@@ -96,7 +97,8 @@ public static class SqlParameterProcessorTests
         // Assert
         Assert.Equal(1, activity.GetTagValue("db.query.parameter.foo"));
         Assert.Equal(2, activity.GetTagValue("db.query.parameter.1"));
-        Assert.Equal(2, activity.TagObjects.Count());
+        Assert.Equal(3, activity.GetTagValue("db.query.parameter.FOO"));
+        Assert.Equal(3, activity.TagObjects.Count());
     }
 
 #nullable disable

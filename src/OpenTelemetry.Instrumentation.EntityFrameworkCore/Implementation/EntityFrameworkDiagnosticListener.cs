@@ -125,17 +125,9 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         return;
                     }
 
-                    object? command = null;
-
-                    if (this.options.SetDbQueryParameters)
-                    {
-                        command = this.commandFetcher.Fetch(payload);
-                        SqlParameterProcessor.AddQueryParameters(activity, command);
-                    }
-
                     if (activity.IsAllDataRequested)
                     {
-                        command ??= this.commandFetcher.Fetch(payload);
+                        var command = this.commandFetcher.Fetch(payload);
 
                         try
                         {
@@ -161,6 +153,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             activity.IsAllDataRequested = false;
                             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                             return;
+                        }
+
+                        if (options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
 
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
