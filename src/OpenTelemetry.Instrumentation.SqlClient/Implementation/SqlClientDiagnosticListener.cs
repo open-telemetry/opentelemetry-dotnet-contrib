@@ -121,11 +121,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     }
 #endif
 
-                    if (options.SetDbQueryParameters)
-                    {
-                        SqlParameterProcessor.AddQueryParameters(activity, command);
-                    }
-
                     if (activity.IsAllDataRequested)
                     {
                         try
@@ -144,6 +139,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             activity.IsAllDataRequested = false;
                             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                             return;
+                        }
+
+                        if (options.EmitNewAttributes && options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
 
                         if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&

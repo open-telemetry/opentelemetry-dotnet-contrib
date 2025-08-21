@@ -310,6 +310,8 @@ public sealed class EntityFrameworkIntegrationTests :
     public async Task SuccessfulParameterizedQueryTest(string provider)
     {
         // Arrange
+        using var scope = SemanticConventionScope.Get(useNewConventions: true);
+
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
