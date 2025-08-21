@@ -70,6 +70,7 @@ added & enabled to the corresponding telemetry provider.
 | `aws.ecs.launchtype` | |
 | `aws.ecs.task.arn` | |
 | `aws.ecs.task.family` | |
+| `aws.ecs.task.revision` | |
 
 **[`aws.log`](https://opentelemetry.io/docs/specs/semconv/registry/entities/aws/#aws-log) Entity Attributes:**
 
@@ -79,12 +80,6 @@ added & enabled to the corresponding telemetry provider.
 | `aws.log.group.names` | |
 | `aws.log.stream.arns` | |
 | `aws.log.stream.names` | |
-
-**Other Attributes:**
-
-| Attribute | Comment |
-| --- | --- |
-| `aws.task.revision` | |
 
 **[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
 
