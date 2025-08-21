@@ -43,7 +43,8 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 
     internal static MeterProviderBuilder ConfigureMeters(this MeterProviderBuilder builder)
     {
-        // There is no cost to listen for meters so listen for all built-in ASP.NET Core meters.
+        // There is no cost to listen for meters that aren't used. For example, listening for Kestrel meter in an app that doesn't use Kestrel is fine.
+        // Listen for all built-in ASP.NET Core meters so metrics automatically light up depending on what an app does.
         var builtInAspNetCoreMeters = new[]
         {
             "Microsoft.AspNetCore.Hosting",
