@@ -278,7 +278,6 @@ using var traceProvider = Sdk.CreateTracerProviderBuilder()
        })
    .AddConsoleExporter()
    .Build();
-{
 ```
 
 ### Trace Context Propagation
