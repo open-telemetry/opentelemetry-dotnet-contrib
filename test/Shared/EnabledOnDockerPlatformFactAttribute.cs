@@ -6,14 +6,14 @@ using Xunit;
 namespace OpenTelemetry.Tests;
 
 /// <summary>
-/// This <see cref="TheoryAttribute" /> skips tests if the required Docker engine is not available.
+/// This <see cref="FactAttribute" /> skips tests if the required Docker engine is not available.
 /// </summary>
-internal class EnabledOnDockerPlatformTheoryAttribute : TheoryAttribute
+internal class EnabledOnDockerPlatformFactAttribute : FactAttribute
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="EnabledOnDockerPlatformTheoryAttribute" /> class.
+    /// Initializes a new instance of the <see cref="EnabledOnDockerPlatformFactAttribute" /> class.
     /// </summary>
-    public EnabledOnDockerPlatformTheoryAttribute(DockerPlatform dockerPlatform)
+    public EnabledOnDockerPlatformFactAttribute(DockerPlatform dockerPlatform)
     {
         if (!DockerHelper.IsAvailable(dockerPlatform))
         {
