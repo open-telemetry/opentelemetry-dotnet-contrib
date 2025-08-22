@@ -86,7 +86,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         return testCases;
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [MemberData(nameof(RawSqlTestCases))]
     public async Task TracesRawSql(
         string provider,
@@ -189,7 +189,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         }
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [MemberData(nameof(DataContextTestCases))]
     public async Task TracesDataContext(
         string provider,
