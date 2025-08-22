@@ -294,6 +294,33 @@ command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-he
 information for the current connection, which results in
 **an additional round-trip to the database**.
 
+## Activity Duration calculation
+
+`Activity.Duration` represents the time the underlying connection takes to
+execute the command/query. Completing the operation includes the time up to
+determining that the request was successful. It doesn't include the time spent
+reading the results from a query set (for example enumerating all the rows
+returned by a data reader).
+
+This is illustrated by the code snippet below:
+
+```csharp
+using var connection = new SqlConnection("...");
+connection.Open();
+
+using var command = con.CreateCommand();
+command.CommandText = "select top 100000 * from Users";
+
+// Activity duration starts
+using var reader = cmd.ExecuteReader();
+// Activity duration ends
+
+// Not included in the Activity duration
+while (reader.Read())
+{
+}
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
