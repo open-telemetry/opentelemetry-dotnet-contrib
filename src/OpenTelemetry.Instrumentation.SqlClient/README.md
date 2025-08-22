@@ -308,11 +308,11 @@ This is illustrated by the code snippet below:
 using var connection = new SqlConnection("...");
 connection.Open();
 
-using var command = con.CreateCommand();
+using var command = connection.CreateCommand();
 command.CommandText = "select top 100000 * from Users";
 
 // Activity duration starts
-using var reader = cmd.ExecuteReader();
+using var reader = command.ExecuteReader();
 // Activity duration ends
 
 // Not included in the Activity duration
