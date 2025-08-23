@@ -13,6 +13,86 @@ This package contains [Resource
 Detectors](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/sdk.md#detecting-resource-information-from-the-environment)
 for applications running in Google Cloud Platform environments.
 
+## Attribute Utilization
+
+The below attributes from OpenTelemetry Semantic Conventions can/will be included
+on telemetry signals when the corresponding resource detector is
+added & enabled to the corresponding telemetry provider.
+
+### Google Kubernetes Engine
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `cloud.account.id` | |
+| `cloud.availability_zone` | |
+| `cloud.platform` | Will be set to `gcp_kubernetes_engine` |
+| `cloud.provider` | Will be set to `gcp` |
+
+**[`host`](https://opentelemetry.io/docs/specs/semconv/registry/entities/host/#host) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `host.id` | |
+
+**[k8s.cluster](https://opentelemetry.io/docs/specs/semconv/registry/entities/k8s/#k8s-cluster) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `k8s.cluster.name` | |
+
+**[k8s.namespace](https://opentelemetry.io/docs/specs/semconv/registry/entities/k8s/#k8s-namespace) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `k8s.namespace.name` | |
+
+**[k8s.pod](https://opentelemetry.io/docs/specs/semconv/registry/entities/k8s/#k8s-pod) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `k8s.pod.name` | |
+
+### Google App Engine
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `cloud.account.id` | |
+| `cloud.platform` | Will be set to `gcp_app_engine` |
+| `cloud.provider` | Will be set to `gcp` |
+
+### Google Cloud Run
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `cloud.account.id` | |
+| `cloud.availability_zone` | |
+| `cloud.platform` | Will be set to `gcp_cloud_run` |
+| `cloud.provider` | Will be set to `gcp` |
+| `cloud.region` | |
+
+### Google Compute Engine
+
+**[`cloud`](https://opentelemetry.io/docs/specs/semconv/registry/entities/cloud/#cloud) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `cloud.account.id` | |
+| `cloud.availability_zone` | |
+| `cloud.platform` | Will be set to `gcp_compute_engine` |
+| `cloud.provider` | Will be set to `gcp` |
+
+**[`host`](https://opentelemetry.io/docs/specs/semconv/registry/entities/host/#host) Entity Attributes:**
+
+| Attribute | Comment |
+| --- | --- |
+| `host.id` | |
+
 ## Getting Started
 
 You need to install the
@@ -50,49 +130,3 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     });
 });
 ```
-
-## Resource Attributes
-
-The following OpenTelemetry semantic conventions will be detected depending on
-which Google Cloud Platform environment an application is running in.
-
-### Google Kubernetes Engine
-
-| Attribute               | Value                 |
-|-------------------------|-----------------------|
-| cloud.provider          | gcp                   |
-| cloud.platform          | gcp_kubernetes_engine |
-| cloud.account.id        | auto                  |
-| cloud.availability_zone | auto                  |
-| host.id                 | auto                  |
-| k8s.cluster.name        | auto                  |
-| k8s.namespace.name      | auto                  |
-| k8s.pod.name            | auto                  |
-
-### Google App Engine
-
-| Attribute               | Value          |
-|-------------------------|----------------|
-| cloud.provider          | gcp            |
-| cloud.platform          | gcp_app_engine |
-| cloud.account.id        | auto           |
-
-### Google Cloud Run
-
-| Attribute               | Value         |
-|-------------------------|---------------|
-| cloud.provider          | gcp           |
-| cloud.platform          | gcp_cloud_run |
-| cloud.account.id        | auto          |
-| cloud.availability_zone | auto          |
-| cloud.region            | auto          |
-
-### Google Compute Engine
-
-| Attribute               | Value              |
-|-------------------------|--------------------|
-| cloud.provider          | gcp                |
-| cloud.platform          | gcp_compute_engine |
-| cloud.account.id        | auto               |
-| cloud.availability_zone | auto               |
-| host.id                 | auto               |
