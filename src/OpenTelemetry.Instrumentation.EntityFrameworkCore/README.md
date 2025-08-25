@@ -52,6 +52,7 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Trace;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -139,6 +140,24 @@ services.AddOpenTelemetry()
         })
         .AddConsoleExporter());
 ```
+
+### SetDbStatementForText
+
+`SetDbStatementForText` controls whether the `db.statement` attribute is
+emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
+see below for more details.
+
+Query text may contain sensitive data, so when `SetDbStatementForText` is
+enabled the raw query text is sanitized by automatically replacing literal
+values with a `?` character.
+
+> [!NOTE]
+> Query sanitization is only supported for the following SQL-like providers:
+>
+> * Microsoft SQL Server
+> * MySQL
+> * PostgreSQL
+> * SQLite
 
 ## References
 
