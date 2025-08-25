@@ -1212,9 +1212,8 @@ public sealed class BasicTests
         Assert.Empty(hubActivity);
     }
 
-    // note: this is always passing on Net9 or lower, because AddAspNetCoreInstrumentation only adds the subscription in Net10 or higher.
     [Fact]
-    public async Task RazorComponentsActivitesCanBeDisabled()
+    public async Task RazorComponentsActivitiesCanBeDisabled()
     {
         var exportedItems = new List<Activity>();
         void ConfigureTestServices(IServiceCollection services)
@@ -1239,7 +1238,7 @@ public sealed class BasicTests
             {
                 activity.Start();
                 activity.SetTag("aspnetcore.components.type", "BasicTests");
-                activity.SetTag("aspnetcore.components.method", "BlazorActivitesCanBeDisabled");
+                activity.SetTag("aspnetcore.components.method", "BlazorActivitiesCanBeDisabled");
                 activity.Stop();
             }
 
@@ -1260,6 +1259,57 @@ public sealed class BasicTests
 
         Assert.Empty(blazorActivity);
     }
+
+#if NET10_0_OR_GREATER
+    [Fact]
+    public async Task RazorComponentsActivitiesAreEnabledByDefault()
+    {
+        var exportedItems = new List<Activity>();
+        void ConfigureTestServices(IServiceCollection services)
+        {
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddAspNetCoreInstrumentation()
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+        }
+
+        using (var client = this.factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureLogging(loggingBuilder => loggingBuilder.ClearProviders());
+            })
+            .CreateClient())
+        {
+            var fakeActivitySource = new ActivitySource("Microsoft.AspNetCore.Components");
+            var activity = fakeActivitySource.CreateActivity("Microsoft.AspNetCore.Components.HandleEvent", ActivityKind.Internal, parentId: null, null, null);
+            if (activity != null)
+            {
+                activity.Start();
+                activity.SetTag("aspnetcore.components.type", "BasicTests");
+                activity.SetTag("aspnetcore.components.method", "BlazorActivitiesCanBeDisabled");
+                activity.Stop();
+            }
+
+            try
+            {
+                using var response = await client.GetAsync(new Uri("/api/values", UriKind.Relative));
+            }
+            catch (Exception)
+            {
+                // ignore errors
+            }
+
+            WaitForActivityExport(exportedItems, 1);
+        }
+
+        var blazorActivity = exportedItems
+            .Where(a => a.DisplayName.StartsWith("Microsoft.AspNetCore.Components", StringComparison.InvariantCulture));
+
+        Assert.NotEmpty(blazorActivity);
+    }
+#endif
+
 #endif
 
     public void Dispose()
