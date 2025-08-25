@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.ApplicationLoadBalancerEvents;
 using Amazon.Lambda.Core;
@@ -23,6 +24,8 @@ internal class AWSLambdaUtils
     private const string AWSXRayTraceHeaderKey = "X-Amzn-Trace-Id";
     private const string FunctionName = "AWS_LAMBDA_FUNCTION_NAME";
     private const string FunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
+    private const string FunctionMaxMemory = "AWS_LAMBDA_FUNCTION_MEMORY_SIZE";
+    private const string FunctionLogStreamName = "AWS_LAMBDA_LOG_STREAM_NAME";
 
     private static readonly Func<IDictionary<string, string>, string, IEnumerable<string>> Getter = (headers, name) =>
     {
@@ -101,6 +104,34 @@ internal class AWSLambdaUtils
         return Environment.GetEnvironmentVariable(FunctionVersion);
     }
 
+    internal static int? GetFunctionMemorySize(ILambdaContext? context = null)
+    {
+        int? memoryLimitInMB = context?.MemoryLimitInMB;
+
+        if (!memoryLimitInMB.HasValue)
+        {
+            var value = Environment.GetEnvironmentVariable(FunctionMaxMemory);
+
+            if (!string.IsNullOrWhiteSpace(value) && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int valueMB))
+            {
+                memoryLimitInMB = valueMB;
+            }
+        }
+
+        if (memoryLimitInMB.HasValue)
+        {
+            // Convert to bytes to match semantic conventions (e.g. 128 to 134217728)
+            return memoryLimitInMB.Value * 1024 * 1024;
+        }
+
+        return null;
+    }
+
+    internal static string? GetFunctionInstance(ILambdaContext? context = null)
+    {
+        return context?.LogStreamName ?? Environment.GetEnvironmentVariable(FunctionLogStreamName);
+    }
+
     internal static IEnumerable<string>? GetHeaderValues(APIGatewayProxyRequest request, string name)
     {
         var multiValueHeader = request.MultiValueHeaders?.GetValueByKeyIgnoringCase(name);
@@ -147,6 +178,8 @@ internal class AWSLambdaUtils
                 .AddAttributeFaasName(GetFunctionName(context))
                 .AddAttributeFaasExecution(context.AwsRequestId)
                 .AddAttributeFaasID(GetFaasId(functionArn))
+                .AddAttributeFaasInstance(GetFunctionInstance(context))
+                .AddAttributeFaasMaxMemory(GetFunctionMemorySize(context))
                 .AddAttributeCloudAccountID(GetAccountId(functionArn))
                 .Build();
 
