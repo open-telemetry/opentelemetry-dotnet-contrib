@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+* Renamed the `db.system` attribute to `db.system.name` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2985))
+* Renamed the `net.peer.name` attribute to `network.peer.address` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2985))
+* Renamed the `net.peer.ip` attribute to `network.peer.address` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2985))
+* Renamed the `db.method` attribute to `db.operation.name` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2985))
+* Renamed the `db.statement` attribute to `db.query.text` to comply with
+  v1.36.0 of Semantic Conventions
+  ([#2985](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2985))
+
 ## 1.12.0-beta.1
 
 Released 2025-Jul-30
