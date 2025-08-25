@@ -182,7 +182,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/Component.BuildTest.yml
     with:
-      project-name: OpenTelemetry.Extensions.Enrichment.AspNetCore
+      project-name: Component[OpenTelemetry.Extensions.Enrichment.AspNetCore]
       code-cov-name: Extensions.Enrichment.AspNetCore
 
   build-test-instrumentation-aspnet:
@@ -596,6 +596,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'exporter-onecollector')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
+      || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
@@ -634,6 +635,7 @@ jobs:
       build-test-exporter-onecollector,
       build-test-extensions,
       build-test-extensions-enrichment,
+      build-test-extensions-enrichment-aspnetcore,
       build-test-instrumentation-aspnet,
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
