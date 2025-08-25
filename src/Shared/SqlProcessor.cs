@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections;
 using System.Text;
 
 namespace OpenTelemetry.Instrumentation;
@@ -9,7 +8,7 @@ namespace OpenTelemetry.Instrumentation;
 internal static class SqlProcessor
 {
     private const int CacheCapacity = 1000;
-    private static readonly Hashtable Cache = [];
+    private static readonly Dictionary<string, SqlStatementInfo> Cache = [];
 
     public static SqlStatementInfo GetSanitizedSql(string? sql)
     {
@@ -18,7 +17,7 @@ internal static class SqlProcessor
             return default;
         }
 
-        if (Cache[sql] is not SqlStatementInfo sqlStatementInfo)
+        if (!Cache.TryGetValue(sql, out var sqlStatementInfo))
         {
             sqlStatementInfo = SanitizeSql(sql);
 
@@ -29,7 +28,7 @@ internal static class SqlProcessor
 
             lock (Cache)
             {
-                if ((Cache[sql] as string) == null)
+                if (!Cache.ContainsKey(sql))
                 {
                     if (Cache.Count < CacheCapacity)
                     {
@@ -44,7 +43,7 @@ internal static class SqlProcessor
 
     private static SqlStatementInfo SanitizeSql(string sql)
     {
-        var state = new SqlProcessorState();
+        var state = new SqlProcessorState(sql.Length);
 
         for (var i = 0; i < sql.Length; ++i)
         {
@@ -271,8 +270,12 @@ internal static class SqlProcessor
             if (state.CaptureNextTokenAsTarget)
             {
                 state.CaptureNextTokenAsTarget = false;
+#if NET
+                state.DbQuerySummary.Append(' ').Append(sql.AsSpan(index, i - index));
+#else
                 var collection = sql.Substring(index, i - index);
                 state.DbQuerySummary.Append(' ').Append(collection);
+#endif
             }
 
             i -= 1;
@@ -384,9 +387,15 @@ internal static class SqlProcessor
 
     internal class SqlProcessorState
     {
-        public StringBuilder SanitizedSql { get; set; } = new StringBuilder();
+        public SqlProcessorState(int maxCapacity)
+        {
+            this.SanitizedSql = new StringBuilder(maxCapacity);
+            this.DbQuerySummary = new StringBuilder(maxCapacity);
+        }
 
-        public StringBuilder DbQuerySummary { get; set; } = new StringBuilder();
+        public StringBuilder SanitizedSql { get; set; }
+
+        public StringBuilder DbQuerySummary { get; set; }
 
         public bool CaptureNextTokenAsTarget { get; set; }
 
