@@ -38,7 +38,7 @@ jobs:
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
-          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '!**/*.md']
+          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '*/OpenTelemetry.Extensions.Enrichment.Tests/**', '!**/*.md']
           extensions-enrichment-aspnetcore: ['*/OpenTelemetry.Extensions.Enrichment.AspNetCore*/**', '!**/*.md']
           instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
           instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']

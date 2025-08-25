@@ -55,7 +55,7 @@ public static class AspNetCoreTraceEnrichmentProviderBuilderExtensions
     /// to the <paramref name="builder"/> if the same service and implementation does not already exist.
     /// </summary>
     /// <typeparam name="T">Concrete <see cref="AspNetCoreTraceEnricher"/> implementation type.</typeparam>
-    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="enricherImplementationFactory">Factory used to create the <typeparamref name="T"/> instance.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="builder"/> or <paramref name="enricherImplementationFactory"/> is <see langword="null"/>.</exception>
     /// <remarks>

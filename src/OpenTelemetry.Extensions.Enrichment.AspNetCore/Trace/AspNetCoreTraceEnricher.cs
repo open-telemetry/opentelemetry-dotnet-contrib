@@ -20,7 +20,7 @@ public abstract class AspNetCoreTraceEnricher
     /// <summary>
     /// Enriches a trace with additional tags.
     /// </summary>
-    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to to enrich the traces.</param>
+    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to enrich the traces.</param>
     /// <param name="request"><see cref="HttpRequest"/> object from which additional information can be extracted to enrich the trace.</param>
     public virtual void EnrichWithHttpRequest(in TraceEnrichmentBag bag, HttpRequest request)
     {
@@ -29,7 +29,7 @@ public abstract class AspNetCoreTraceEnricher
     /// <summary>
     /// Enriches a trace with additional tags.
     /// </summary>
-    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to to enrich the traces.</param>
+    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to enrich the traces.</param>
     /// <param name="response"><see cref="HttpResponse"/> object from which additional information can be extracted to enrich the trace.</param>
     public virtual void EnrichWithHttpResponse(in TraceEnrichmentBag bag, HttpResponse response)
     {
@@ -38,7 +38,7 @@ public abstract class AspNetCoreTraceEnricher
     /// <summary>
     /// Enriches a trace with additional tags.
     /// </summary>
-    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to to enrich the traces.</param>
+    /// <param name="bag"><see cref="TraceEnrichmentBag"/> object to be used to add tags to enrich the traces.</param>
     /// <param name="exception"><see cref="Exception"/> object from which additional information can be extracted to enrich the trace.</param>
     public virtual void EnrichWithException(in TraceEnrichmentBag bag, Exception exception)
     {
