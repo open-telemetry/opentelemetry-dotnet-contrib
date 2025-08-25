@@ -183,6 +183,37 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
+    {
+        // Get all the possible names and assume they are false
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+
+        // Override specific entries to be true
+        values["Devart.Data.MySql.Entity.EFCore"] = true;
+        values["Devart.Data.MySql.MySqlCommand"] = true;
+        values["Devart.Data.PostgreSql.Entity.EFCore"] = true;
+        values["Devart.Data.PostgreSql.PgSqlCommand"] = true;
+        values["Devart.Data.SQLite.Entity.EFCore"] = true;
+        values["Microsoft.Data.SqlClient.SqlCommand"] = true;
+        values["Microsoft.Data.Sqlite.SqliteCommand"] = true;
+        values["Microsoft.EntityFrameworkCore.Sqlite"] = true;
+        values["Microsoft.EntityFrameworkCore.SqlServer"] = true;
+        values["MySql.Data.EntityFrameworkCore"] = true;
+        values["MySql.Data.MySqlClient.MySqlCommand"] = true;
+        values["Npgsql.EntityFrameworkCore.PostgreSQL"] = true;
+        values["Npgsql.NpgsqlCommand"] = true;
+        values["Pomelo.EntityFrameworkCore.MySql"] = true;
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -191,6 +222,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         Assert.Equal(expectedDbSystem, actualDbSystem);
         Assert.Equal(expectedDbSystemName, actualDbSystemName);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsSqlLikeProviderTestCases))]
+    public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkDiagnosticListener.IsSqlLikeProvider(name);
+
+        Assert.Equal(expected, actual);
     }
 
     [Fact]

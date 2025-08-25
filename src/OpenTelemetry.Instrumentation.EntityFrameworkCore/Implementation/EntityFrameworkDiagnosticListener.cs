@@ -128,11 +128,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity.IsAllDataRequested)
                     {
                         var command = this.commandFetcher.Fetch(payload);
+                        string? providerName = null;
 
                         try
                         {
-                            string? providerName = null;
-
                             if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
                             {
                                 var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
@@ -171,7 +170,26 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        this.AddTag(activity, (SemanticConventions.AttributeDbStatement, SemanticConventions.AttributeDbQueryText), commandText);
+                                        string queryText = commandText ?? string.Empty;
+                                        string querySummary = string.Empty;
+
+                                        // Ony SQL-like providers support sanitization as we are not
+                                        // able to sanitize arbitrary commands for other query dialects.
+                                        if (IsSqlLikeProvider(providerName))
+                                        {
+                                            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+
+                                            queryText = sqlStatementInfo.SanitizedSql;
+                                            querySummary = sqlStatementInfo.DbQuerySummary;
+                                        }
+
+                                        this.AddTag(activity, (SemanticConventions.AttributeDbStatement, SemanticConventions.AttributeDbQueryText), queryText);
+
+                                        if (this.options.EmitNewAttributes && !string.IsNullOrEmpty(querySummary))
+                                        {
+                                            activity.SetTag(SemanticConventions.AttributeDbQuerySummary, querySummary);
+                                            activity.DisplayName = querySummary;
+                                        }
                                     }
 
                                     break;
@@ -327,6 +345,26 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             //// Otherwise use the fallback defined in the Semantic Conventions
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
         };
+
+    /// <summary>
+    /// Returns whether the given provider or command name is SQL-like.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// <see langword="true"/> if the provider or command name is SQL-like; otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool IsSqlLikeProvider(string? providerOrCommandName)
+    {
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+
+        // TODO We can revisit which RDBMSs are supported after test cases are updated for
+        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2238
+        return dbSystemName switch
+        {
+            DbSystemNames.MicrosoftSqlServer or DbSystemNames.Mysql or DbSystemNames.Postgresql or DbSystemNames.Sqlite => true,
+            _ => false,
+        };
+    }
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
