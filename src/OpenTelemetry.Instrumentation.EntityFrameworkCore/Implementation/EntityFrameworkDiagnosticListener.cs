@@ -276,7 +276,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Microsoft.Data.SqlClient.SqlCommand" or
             "Microsoft.EntityFrameworkCore.SqlServer"
                 => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
-            "Microsoft.EntityFrameworkCore.Cosmos" => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
+            "Microsoft.EntityFrameworkCore.Cosmos"
+                => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
             "Devart.Data.SQLite.Entity.EFCore" or
             "Microsoft.Data.Sqlite.SqliteCommand" or
             "Microsoft.EntityFrameworkCore.Sqlite"
@@ -290,11 +291,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Npgsql.EntityFrameworkCore.PostgreSQL" or
             "Npgsql.NpgsqlCommand" or
             "Devart.Data.PostgreSql.Entity.EFCore" or
-            "Devart.Data.PostgreSql.PgSqlCommand" => (DbSystems.Postgresql, DbSystemNames.Postgresql),
+            "Devart.Data.PostgreSql.PgSqlCommand"
+                => (DbSystems.Postgresql, DbSystemNames.Postgresql),
             "Oracle.EntityFrameworkCore" or
             "Oracle.ManagedDataAccess.Client.OracleCommand" or
             "Devart.Data.Oracle.Entity.EFCore" or
-            "Devart.Data.Oracle.OracleCommand" => (DbSystems.Oracle, DbSystemNames.OracleDb),
+            "Devart.Data.Oracle.OracleCommand"
+                => (DbSystems.Oracle, DbSystemNames.OracleDb),
             "FirebirdSql.Data.FirebirdClient.FbCommand" or
             "FirebirdSql.EntityFrameworkCore.Firebird"
                 => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
@@ -309,8 +312,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "EFCore.Snowflake.Storage" or
             "EFCore.Snowflake.Storage.Internal"
                 => ("snowflake", "snowflake"),
-            "Microsoft.EntityFrameworkCore.InMemory" => ("efcoreinmemory", "efcoreinmemory"),
-            "FileContextCore" => ("filecontextcore", "filecontextcore"),
+            "Microsoft.EntityFrameworkCore.InMemory"
+                => ("efcoreinmemory", "efcoreinmemory"),
+            "FileContextCore"
+                => ("filecontextcore", "filecontextcore"),
             "EntityFrameworkCore.SqlServerCompact35" or
             "EntityFrameworkCore.SqlServerCompact40" or
             "System.Data.SqlServerCe.SqlCeCommand"

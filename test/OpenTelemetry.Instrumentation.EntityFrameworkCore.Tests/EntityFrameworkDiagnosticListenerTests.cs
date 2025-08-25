@@ -168,6 +168,18 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             testCases.Add(name, "teradata", "teradata");
         }
 
+        // Unknown providers
+        names =
+        [
+            "foo",
+            "Contoso.BusinessLogic.DataAccess.Command",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "other_sql", "other_sql");
+        }
+
         return testCases;
     }
 
@@ -175,10 +187,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
     {
-        var actual = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
 
-        Assert.Equal(expectedDbSystem, actual.Old);
-        Assert.Equal(expectedDbSystemName, actual.New);
+        Assert.Equal(expectedDbSystem, actualDbSystem);
+        Assert.Equal(expectedDbSystemName, actualDbSystemName);
     }
 
     [Fact]

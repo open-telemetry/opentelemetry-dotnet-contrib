@@ -6,6 +6,8 @@ using System.Diagnostics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
+using Npgsql;
 using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -16,44 +18,67 @@ using Xunit;
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
 [Trait("CategoryName", "SqlIntegrationTests")]
-public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientIntegrationTestsFixture>
+public sealed class EntityFrameworkIntegrationTests :
+    IClassFixture<MySqlIntegrationTestsFixture>,
+    IClassFixture<PostgresIntegrationTestsFixture>,
+    IClassFixture<SqlClientIntegrationTestsFixture>
 {
+    private const string MySqlProvider = "Pomelo.EntityFrameworkCore.MySql";
+    private const string PostgresProvider = "Npgsql.EntityFrameworkCore.PostgreSQL";
     private const string SqliteProvider = "Microsoft.EntityFrameworkCore.Sqlite";
     private const string SqlServerProvider = "Microsoft.EntityFrameworkCore.SqlServer";
 
     private const string ActivitySourceName = "OpenTelemetry.Instrumentation.EntityFrameworkCore";
 
-    private readonly SqlClientIntegrationTestsFixture fixture;
+    private readonly MySqlIntegrationTestsFixture mySqlFixture;
+    private readonly PostgresIntegrationTestsFixture postgresFixture;
+    private readonly SqlClientIntegrationTestsFixture sqlServerFixture;
 
-    public EntityFrameworkIntegrationTests(SqlClientIntegrationTestsFixture fixture)
+    public EntityFrameworkIntegrationTests(
+        MySqlIntegrationTestsFixture mySqlFixture,
+        PostgresIntegrationTestsFixture postgresFixture,
+        SqlClientIntegrationTestsFixture fixture)
     {
-        this.fixture = fixture;
+        this.mySqlFixture = mySqlFixture;
+        this.postgresFixture = postgresFixture;
+        this.sqlServerFixture = fixture;
     }
 
-    public static TheoryData<string, string, bool, bool, bool, Type, string, string> RawSqlTestCases()
+    public static TheoryData<string, string, bool, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
     {
         (string, Type, bool, string, string)[] providers =
         [
+            (MySqlProvider, typeof(MySqlCommand), false, "mysql", "test"),
+            (MySqlProvider, typeof(MySqlCommand), true, "mysql", "test"),
+            (PostgresProvider, typeof(NpgsqlCommand), false, "postgresql", "postgres"),
+            (PostgresProvider, typeof(NpgsqlCommand), true, "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), false, "sqlite", "main"),
             (SqliteProvider, typeof(SqliteCommand), true, "sqlite", "main"),
             (SqlServerProvider, typeof(SqlCommand), false, "mssql", "master"),
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, bool, Type, string, string>();
+        var testCases = new TheoryData<string, string, bool, bool, bool, Type, string, string, string, string?>();
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            testCases.Add(provider, "select 1/1", false, false, useNewConventions, commandType, system, database);
-            testCases.Add(provider, "select 1/1", true, false, useNewConventions, commandType, system, database);
+            var expectedSpanNameWhenCaptureTextCommandContent = database;
+
+            testCases.Add(provider, "select 1/1", false, false, useNewConventions, commandType, database, system, database, null);
+            testCases.Add(provider, "select 1/1", true, false, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, null);
 
             // For some reason, SQLite does not throw an exception for division by zero
-            // TODO Remove the second part of the condition when EFCore sets SemanticConventions.AttributeDbQuerySummary
+            // TODO Remove the second part of the conditions when EFCore sets SemanticConventions.AttributeDbQuerySummary
             // so that there isn't a drift between the expected span names used between SQL Server and EFCore
-            if (provider != SqliteProvider && !useNewConventions)
+            if (provider == PostgresProvider && !useNewConventions)
             {
-                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, system, database);
-                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, system, database);
+                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "22012: division by zero");
+                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "22012: division by zero");
+            }
+            else if (provider == SqlServerProvider && !useNewConventions)
+            {
+                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "Divide by zero error encountered.");
+                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "Divide by zero error encountered.");
             }
         }
 
@@ -64,6 +89,8 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
     {
         (string, Type, string, string)[] providers =
         [
+            (MySqlProvider, typeof(MySqlCommand), "mysql", "test"),
+            (PostgresProvider, typeof(NpgsqlCommand), "postgresql", "postgres"),
             (SqliteProvider, typeof(SqliteCommand), "sqlite", "main"),
             (SqlServerProvider, typeof(SqlCommand), "mssql", "master"),
         ];
@@ -86,7 +113,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         return testCases;
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [MemberData(nameof(RawSqlTestCases))]
     public async Task TracesRawSql(
         string provider,
@@ -95,8 +122,10 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         bool isFailure,
         bool useNewConventions,
         Type expectedCommandType,
+        string expectedSpanName,
         string expectedSystemName,
-        string expectedDatabaseName)
+        string expectedDatabaseName,
+        string? expectedStatusDescription)
     {
         var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
 
@@ -154,14 +183,14 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         // All activities should either be the root EFCore activity or a child of it.
         Assert.All(activities, activity => Assert.Equal(ActivitySourceName, (activity.Parent?.Source ?? activity.Source).Name));
 
-        var activity = activities.Last();
-
-        Assert.Equal(expectedSourceName, activity.Source.Name);
+        var activity = activities.FirstOrDefault((p) => p.Source.Name == expectedSourceName);
+        Assert.NotNull(activity);
 
         VerifyActivityData(
             captureTextCommandContent,
             isFailure,
             conventions,
+            expectedSpanName,
             expectedSystemName,
             expectedDatabaseName,
             activity);
@@ -169,7 +198,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         if (isFailure)
         {
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
-            Assert.Equal("Divide by zero error encountered.", activity.StatusDescription);
+            Assert.Equal(expectedStatusDescription, activity.StatusDescription);
         }
 
         Assert.True(filtered);
@@ -189,7 +218,7 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         }
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [MemberData(nameof(DataContextTestCases))]
     public async Task TracesDataContext(
         string provider,
@@ -279,11 +308,12 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         bool captureTextCommandContent,
         bool isFailure,
         SemanticConvention conventions,
+        string expectedSpanName,
         string expectedSystemName,
         string expectedDatabaseName,
         Activity activity)
     {
-        Assert.Equal(expectedDatabaseName, activity.DisplayName);
+        Assert.Equal(expectedSpanName, activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
 
@@ -311,24 +341,33 @@ public sealed class EntityFrameworkIntegrationTests : IClassFixture<SqlClientInt
         }
     }
 
-    private string GetConnectionString() => this.fixture.DatabaseContainer switch
+    private string GetSqlServerConnectionString() => this.sqlServerFixture.DatabaseContainer switch
     {
         SqlEdgeContainer container => container.GetConnectionString(),
         MsSqlContainer container => container.GetConnectionString(),
-        _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
+        _ => throw new InvalidOperationException($"Container type '${this.sqlServerFixture.DatabaseContainer.GetType().Name}' is not supported."),
     };
 
     private void ConfigureProvider(string provider, DbContextOptionsBuilder<ItemsContext> builder)
     {
         switch (provider)
         {
-            case "Microsoft.EntityFrameworkCore.Sqlite":
+            case MySqlProvider:
+                var connectionString = this.mySqlFixture.DatabaseContainer.GetConnectionString();
+                builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                break;
+
+            case PostgresProvider:
+                builder.UseNpgsql(this.postgresFixture.DatabaseContainer.GetConnectionString());
+                break;
+
+            case SqliteProvider:
                 var file = Path.GetTempFileName();
                 builder.UseSqlite($"Filename={file}");
                 break;
 
-            case "Microsoft.EntityFrameworkCore.SqlServer":
-                builder.UseSqlServer(this.GetConnectionString());
+            case SqlServerProvider:
+                builder.UseSqlServer(this.GetSqlServerConnectionString());
                 break;
 
             default:
