@@ -3,8 +3,18 @@
 
 namespace OpenTelemetry.Instrumentation;
 
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
+
+#if NET
+[RequiresUnreferencedCode(InstrumentationHandleManagerTrimmingUnsupportedMessage)]
+#endif
 internal sealed class InstrumentationHandleManager
 {
+#if NET
+    internal const string InstrumentationHandleManagerTrimmingUnsupportedMessage = "Trimming is not yet supported for InstrumentationHandleManager.";
+#endif
     private int metricHandles;
     private int tracingHandles;
 
@@ -30,6 +40,9 @@ internal sealed class InstrumentationHandleManager
     /// <returns>An IDisposable object.</returns>
     public IDisposable AddTracingHandle() => new TracingHandle(this);
 
+#if NET
+    [RequiresUnreferencedCode(InstrumentationHandleManagerTrimmingUnsupportedMessage)]
+#endif
     private sealed class MetricHandle : IDisposable
     {
         private readonly InstrumentationHandleManager manager;
@@ -51,6 +64,9 @@ internal sealed class InstrumentationHandleManager
         }
     }
 
+#if NET
+    [RequiresUnreferencedCode(InstrumentationHandleManagerTrimmingUnsupportedMessage)]
+#endif
     private sealed class TracingHandle : IDisposable
     {
         private readonly InstrumentationHandleManager manager;
