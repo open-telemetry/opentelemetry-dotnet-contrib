@@ -12,6 +12,9 @@
   conventions when opted into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment
   variable.
   ([#3011](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3011))
+* Extend `db.system.name` values to identity additional providers related to Couchbase,
+  DB2, MongoDB, MySQL, Oracle, PostgreSQL and SQLite.
+  ([#3025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3025))
 
 ## 1.12.0-beta.2
 
