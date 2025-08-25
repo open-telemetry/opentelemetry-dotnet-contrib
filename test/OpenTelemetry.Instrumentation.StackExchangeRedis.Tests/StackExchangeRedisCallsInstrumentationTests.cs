@@ -184,9 +184,9 @@ public class StackExchangeRedisCallsInstrumentationTests
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
+            .AddRedisInstrumentation(c => c.Enrich = (activity, context) =>
             {
-                if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
+                if (context.ProfiledCommand.ElapsedTime < TimeSpan.FromMilliseconds(100))
                 {
                     activity.AddTag("is_fast", true);
                 }
@@ -367,9 +367,9 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
+            .AddRedisInstrumentation(c => c.Enrich = (activity, context) =>
             {
-                if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
+                if (context.ProfiledCommand.ElapsedTime < TimeSpan.FromMilliseconds(100))
                 {
                     activity.AddTag("is_fast", true);
                 }
@@ -414,7 +414,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             .AddInMemoryExporter(exportedItems)
             .AddRedisInstrumentation(connection, options =>
             {
-                options.Filter = command => !string.Equals(command.Command, "GET", StringComparison.OrdinalIgnoreCase);
+                options.Filter = context => !string.Equals(context.ProfiledCommand.Command, "GET", StringComparison.OrdinalIgnoreCase);
             })
             .Build())
         {
