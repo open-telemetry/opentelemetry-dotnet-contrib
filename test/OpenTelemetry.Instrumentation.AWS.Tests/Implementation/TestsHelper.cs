@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -28,7 +29,7 @@ internal static class TestsHelper
         };
     }
 
-    internal static AmazonWebServiceRequest CreateOriginalRequest(string serviceType, int attributesCount)
+    internal static AmazonWebServiceRequest CreateOriginalRequest(string serviceType, int? attributesCount = 0)
     {
         AmazonWebServiceRequest resultRequest;
         var sendRequest = new SQS::SendMessageRequest()
@@ -39,7 +40,7 @@ internal static class TestsHelper
         {
             MessageAttributes = [],
         };
-        Action<int> addAttribute;
+        Action<int>? addAttribute = null;
 
         switch (serviceType)
         {
@@ -51,13 +52,19 @@ internal static class TestsHelper
                 resultRequest = publishRequest;
                 addAttribute = i => publishRequest.MessageAttributes.Add($"name{i}", new SNS::MessageAttributeValue { DataType = "String", StringValue = $"value{i}" });
                 break;
+            case AWSServiceType.DynamoDbService:
+                resultRequest = new QueryRequest();
+                break;
             default:
                 throw new NotSupportedException($"Tests for service type {serviceType} not supported.");
         }
 
-        for (var i = 1; i <= attributesCount; i++)
+        if (addAttribute != null)
         {
-            addAttribute(i);
+            for (var i = 1; i <= attributesCount; i++)
+            {
+                addAttribute(i);
+            }
         }
 
         return resultRequest;

@@ -216,6 +216,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (currentActivity.IsAllDataRequested
             && currentActivity.Source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal))
         {
+            string? cloudRegion = AWSServiceHelper.ExtractCloudRegion(executionContext.RequestContext);
+            if (cloudRegion != null)
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeCloudRegion(currentActivity, cloudRegion);
+            }
+
             this.AddRequestSpecificInformation(currentActivity, executionContext.RequestContext);
         }
 

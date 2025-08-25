@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Runtime;
+using Amazon.Util;
 using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -113,5 +114,17 @@ internal class AWSServiceHelper
         var suffix = "Request";
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
+    }
+
+    internal static string? ExtractCloudRegion(IRequestContext requestContext)
+    {
+        var clientConfig = requestContext?.ClientConfig;
+        if (clientConfig == null)
+        {
+            return null;
+        }
+
+        // Use ServiceURL as fallback.
+        return clientConfig.RegionEndpoint?.SystemName ?? AWSSDKUtils.DetermineRegion(clientConfig.ServiceURL);
     }
 }

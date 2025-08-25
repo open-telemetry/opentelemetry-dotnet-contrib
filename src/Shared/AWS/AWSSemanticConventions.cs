@@ -403,6 +403,9 @@ internal partial class AWSSemanticConventions
         }
 
         #region AWS
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeCloudRegion"/>
+        public Activity? SetTagAttributeCloudRegion(Activity? activity, object value)
+            => this.awsSemanticConventions.SetTag(activity, x => x.AttributeCloudRegion, value);
 
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeDbSystem"/>
         public Activity? SetTagAttributeDbSystemToDynamoDb(Activity? activity)
