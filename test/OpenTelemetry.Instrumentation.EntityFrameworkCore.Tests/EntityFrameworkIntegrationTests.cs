@@ -341,7 +341,7 @@ public sealed class EntityFrameworkIntegrationTests :
         }
     }
 
-    private string GetSqlConnectionString() => this.sqlServerFixture.DatabaseContainer switch
+    private string GetSqlServerConnectionString() => this.sqlServerFixture.DatabaseContainer switch
     {
         SqlEdgeContainer container => container.GetConnectionString(),
         MsSqlContainer container => container.GetConnectionString(),
@@ -367,7 +367,7 @@ public sealed class EntityFrameworkIntegrationTests :
                 break;
 
             case SqlServerProvider:
-                builder.UseSqlServer(this.GetSqlConnectionString());
+                builder.UseSqlServer(this.GetSqlServerConnectionString());
                 break;
 
             default:
