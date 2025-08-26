@@ -57,6 +57,7 @@ public static class AndroidAttributes
     /// <summary>
     /// Deprecated. Use <c>android.app.state</c> attribute instead.
     /// </summary>
+    [Obsolete("Replaced by <c>android.app.state</c>.")]
     public static class AndroidStateValues
     {
         /// <summary>

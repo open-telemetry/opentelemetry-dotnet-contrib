@@ -65,6 +65,7 @@ public static class IosAttributes
     /// <summary>
     /// Deprecated. Use the <c>ios.app.state</c> attribute.
     /// </summary>
+    [Obsolete("Replaced by <c>ios.app.state</c>.")]
     public static class IosStateValues
     {
         /// <summary>

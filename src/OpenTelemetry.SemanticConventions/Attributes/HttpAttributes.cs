@@ -237,6 +237,7 @@ public static class HttpAttributes
     /// <summary>
     /// Deprecated, use <c>network.protocol.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>network.protocol.name</c>.")]
     public static class HttpFlavorValues
     {
         /// <summary>

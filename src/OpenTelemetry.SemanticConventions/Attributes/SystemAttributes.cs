@@ -90,6 +90,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>.")]
     public static class SystemCpuStateValues
     {
         /// <summary>
@@ -226,6 +227,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>network.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>network.connection.state</c>.")]
     public static class SystemNetworkStateValues
     {
         /// <summary>
@@ -378,6 +380,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>system.process.status</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.process.status</c>.")]
     public static class SystemProcessesStatusValues
     {
         /// <summary>

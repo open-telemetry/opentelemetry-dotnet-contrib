@@ -107,6 +107,7 @@ public static class NetAttributes
     /// <summary>
     /// Deprecated, use <c>network.transport</c> and <c>network.type</c>.
     /// </summary>
+    [Obsolete("Split to <c>network.transport</c> and <c>network.type</c>.")]
     public static class NetSockFamilyValues
     {
         /// <summary>
@@ -131,6 +132,7 @@ public static class NetAttributes
     /// <summary>
     /// Deprecated, use <c>network.transport</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>network.transport</c>.")]
     public static class NetTransportValues
     {
         /// <summary>

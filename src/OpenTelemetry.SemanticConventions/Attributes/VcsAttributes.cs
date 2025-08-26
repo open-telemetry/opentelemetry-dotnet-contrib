@@ -303,6 +303,7 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
     public static class VcsRepositoryRefTypeValues
     {
         /// <summary>

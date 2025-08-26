@@ -130,6 +130,7 @@ public static class ContainerAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>.")]
     public static class ContainerCpuStateValues
     {
         /// <summary>

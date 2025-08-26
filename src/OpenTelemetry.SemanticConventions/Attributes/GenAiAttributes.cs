@@ -337,6 +337,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
     public static class GenAiOpenaiRequestResponseFormatValues
     {
         /// <summary>
@@ -361,6 +362,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>openai.request.service_tier</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
     public static class GenAiOpenaiRequestServiceTierValues
     {
         /// <summary>
@@ -527,6 +529,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.provider.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
     public static class GenAiSystemValues
     {
         /// <summary>

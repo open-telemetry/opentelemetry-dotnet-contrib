@@ -380,6 +380,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>cassandra.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
     public static class DbCassandraConsistencyLevelValues
     {
         /// <summary>
@@ -468,6 +469,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
     public static class DbClientConnectionsStateValues
     {
         /// <summary>
@@ -486,6 +488,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>azure.cosmosdb.connection.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
     public static class DbCosmosdbConnectionModeValues
     {
         /// <summary>
@@ -504,6 +507,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>cosmosdb.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
     public static class DbCosmosdbConsistencyLevelValues
     {
         /// <summary>
@@ -540,6 +544,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("Removed, no replacement at this time.")]
     public static class DbCosmosdbOperationTypeValues
     {
         /// <summary>
@@ -636,6 +641,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.system.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.system.name</c>.")]
     public static class DbSystemValues
     {
         /// <summary>
