@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add `faas.instance` and `faas.max_memory` resource/span attributes.
+  ([#2928](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2928))
+
 ## 1.12.0
 
 Released 2025-May-06
