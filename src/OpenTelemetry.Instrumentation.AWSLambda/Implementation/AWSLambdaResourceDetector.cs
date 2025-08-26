@@ -28,6 +28,8 @@ internal sealed class AWSLambdaResourceDetector : IResourceDetector
                 .AddAttributeCloudRegion(AWSLambdaUtils.GetAWSRegion())
                 .AddAttributeFaasName(AWSLambdaUtils.GetFunctionName())
                 .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion())
+                .AddAttributeFaasInstance(AWSLambdaUtils.GetFunctionInstance())
+                .AddAttributeFaasMaxMemory(AWSLambdaUtils.GetFunctionMemorySize())
                 .Build();
 
         return new Resource(resourceAttributes);

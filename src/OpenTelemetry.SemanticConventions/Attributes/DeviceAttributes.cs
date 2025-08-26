@@ -22,7 +22,7 @@ public static class DeviceAttributes
     /// However, it might be resettable by the user for all apps on a device.
     /// Hardware IDs (e.g. vendor-specific serial number, IMEI or MAC address) MAY be used as values.
     /// <p>
-    /// More information about Android identifier best practices can be found <a href="https://developer.android.com/training/articles/user-data-ids">here</a>.
+    /// More information about Android identifier best practices can be found in the <a href="https://developer.android.com/training/articles/user-data-ids">Android user data IDs guide</a>.
     /// <blockquote>
     /// [!WARNING]
     /// <p>
@@ -33,7 +33,7 @@ public static class DeviceAttributes
     /// However, it may be appropriate for specific enterprise scenarios, such as kiosk devices or enterprise-managed devices, with appropriate compliance clearance.
     /// Any instrumentation providing this identifier MUST implement it as an opt-in feature.
     /// <p>
-    /// See <a href="/docs/attributes-registry/app.md#app-installation-id"><c>app.installation.id</c></a> for a more privacy-preserving alternative.</blockquote>
+    /// See <a href="/docs/registry/attributes/app.md#app-installation-id"><c>app.installation.id</c></a> for a more privacy-preserving alternative.</blockquote>
     /// </remarks>
     public const string AttributeDeviceId = "device.id";
 

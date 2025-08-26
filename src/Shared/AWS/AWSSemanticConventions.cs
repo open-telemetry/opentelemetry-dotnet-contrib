@@ -290,6 +290,14 @@ internal partial class AWSSemanticConventions
         public AttributeBuilderImpl AddAttributeFaasColdStart(object? value, bool addIfEmpty = false) =>
             this.awsSemanticConventions.Add(this, x => x.AttributeFaasColdStart, value, addIfEmpty);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasInstance"/>
+        public AttributeBuilderImpl AddAttributeFaasInstance(object? value, bool addIfEmpty = false) =>
+            this.awsSemanticConventions.Add(this, x => x.AttributeFaasInstance, value, addIfEmpty);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasMaxMemory"/>
+        public AttributeBuilderImpl AddAttributeFaasMaxMemory(object? value, bool addIfEmpty = false) =>
+            this.awsSemanticConventions.Add(this, x => x.AttributeFaasMaxMemory, value, addIfEmpty);
+
         #endregion
 
         #region Host

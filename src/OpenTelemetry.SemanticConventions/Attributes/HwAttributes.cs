@@ -15,9 +15,74 @@ namespace OpenTelemetry.SemanticConventions;
 public static class HwAttributes
 {
     /// <summary>
+    /// Design capacity in Watts-hours or Amper-hours.
+    /// </summary>
+    public const string AttributeHwBatteryCapacity = "hw.battery.capacity";
+
+    /// <summary>
+    /// Battery <a href="https://schemas.dmtf.org/wbem/cim-html/2.31.0/CIM_Battery.html">chemistry</a>, e.g. Lithium-Ion, Nickel-Cadmium, etc.
+    /// </summary>
+    public const string AttributeHwBatteryChemistry = "hw.battery.chemistry";
+
+    /// <summary>
+    /// The current state of the battery.
+    /// </summary>
+    public const string AttributeHwBatteryState = "hw.battery.state";
+
+    /// <summary>
+    /// BIOS version of the hardware component.
+    /// </summary>
+    public const string AttributeHwBiosVersion = "hw.bios_version";
+
+    /// <summary>
+    /// Driver version for the hardware component.
+    /// </summary>
+    public const string AttributeHwDriverVersion = "hw.driver_version";
+
+    /// <summary>
+    /// Type of the enclosure (useful for modular systems).
+    /// </summary>
+    public const string AttributeHwEnclosureType = "hw.enclosure.type";
+
+    /// <summary>
+    /// Firmware version of the hardware component.
+    /// </summary>
+    public const string AttributeHwFirmwareVersion = "hw.firmware_version";
+
+    /// <summary>
+    /// Type of task the GPU is performing.
+    /// </summary>
+    public const string AttributeHwGpuTask = "hw.gpu.task";
+
+    /// <summary>
     /// An identifier for the hardware component, unique within the monitored host.
     /// </summary>
     public const string AttributeHwId = "hw.id";
+
+    /// <summary>
+    /// Type of limit for hardware components.
+    /// </summary>
+    public const string AttributeHwLimitType = "hw.limit_type";
+
+    /// <summary>
+    /// RAID Level of the logical disk.
+    /// </summary>
+    public const string AttributeHwLogicalDiskRaidLevel = "hw.logical_disk.raid_level";
+
+    /// <summary>
+    /// State of the logical disk space usage.
+    /// </summary>
+    public const string AttributeHwLogicalDiskState = "hw.logical_disk.state";
+
+    /// <summary>
+    /// Type of the memory module.
+    /// </summary>
+    public const string AttributeHwMemoryType = "hw.memory.type";
+
+    /// <summary>
+    /// Descriptive model name of the hardware component.
+    /// </summary>
+    public const string AttributeHwModel = "hw.model";
 
     /// <summary>
     /// An easily-recognizable name for the hardware component.
@@ -25,14 +90,54 @@ public static class HwAttributes
     public const string AttributeHwName = "hw.name";
 
     /// <summary>
+    /// Logical addresses of the adapter (e.g. IP address, or WWPN).
+    /// </summary>
+    public const string AttributeHwNetworkLogicalAddresses = "hw.network.logical_addresses";
+
+    /// <summary>
+    /// Physical address of the adapter (e.g. MAC address, or WWNN).
+    /// </summary>
+    public const string AttributeHwNetworkPhysicalAddress = "hw.network.physical_address";
+
+    /// <summary>
     /// Unique identifier of the parent component (typically the <c>hw.id</c> attribute of the enclosure, or disk controller).
     /// </summary>
     public const string AttributeHwParent = "hw.parent";
 
     /// <summary>
+    /// <a href="https://wikipedia.org/wiki/S.M.A.R.T.">S.M.A.R.T.</a> (Self-Monitoring, Analysis, and Reporting Technology) attribute of the physical disk.
+    /// </summary>
+    public const string AttributeHwPhysicalDiskSmartAttribute = "hw.physical_disk.smart_attribute";
+
+    /// <summary>
+    /// State of the physical disk endurance utilization.
+    /// </summary>
+    public const string AttributeHwPhysicalDiskState = "hw.physical_disk.state";
+
+    /// <summary>
+    /// Type of the physical disk.
+    /// </summary>
+    public const string AttributeHwPhysicalDiskType = "hw.physical_disk.type";
+
+    /// <summary>
+    /// Location of the sensor.
+    /// </summary>
+    public const string AttributeHwSensorLocation = "hw.sensor_location";
+
+    /// <summary>
+    /// Serial number of the hardware component.
+    /// </summary>
+    public const string AttributeHwSerialNumber = "hw.serial_number";
+
+    /// <summary>
     /// The current state of the component.
     /// </summary>
     public const string AttributeHwState = "hw.state";
+
+    /// <summary>
+    /// Type of tape drive operation.
+    /// </summary>
+    public const string AttributeHwTapeDriveOperationType = "hw.tape_drive.operation_type";
 
     /// <summary>
     /// Type of the component.
@@ -43,15 +148,130 @@ public static class HwAttributes
     public const string AttributeHwType = "hw.type";
 
     /// <summary>
+    /// Vendor name of the hardware component.
+    /// </summary>
+    public const string AttributeHwVendor = "hw.vendor";
+
+    /// <summary>
+    /// The current state of the battery.
+    /// </summary>
+    public static class HwBatteryStateValues
+    {
+        /// <summary>
+        /// Charging.
+        /// </summary>
+        public const string Charging = "charging";
+
+        /// <summary>
+        /// Discharging.
+        /// </summary>
+        public const string Discharging = "discharging";
+    }
+
+    /// <summary>
+    /// Type of task the GPU is performing.
+    /// </summary>
+    public static class HwGpuTaskValues
+    {
+        /// <summary>
+        /// Decoder.
+        /// </summary>
+        public const string Decoder = "decoder";
+
+        /// <summary>
+        /// Encoder.
+        /// </summary>
+        public const string Encoder = "encoder";
+
+        /// <summary>
+        /// General.
+        /// </summary>
+        public const string General = "general";
+    }
+
+    /// <summary>
+    /// Type of limit for hardware components.
+    /// </summary>
+    public static class HwLimitTypeValues
+    {
+        /// <summary>
+        /// Critical.
+        /// </summary>
+        public const string Critical = "critical";
+
+        /// <summary>
+        /// Degraded.
+        /// </summary>
+        public const string Degraded = "degraded";
+
+        /// <summary>
+        /// High Critical.
+        /// </summary>
+        public const string HighCritical = "high.critical";
+
+        /// <summary>
+        /// High Degraded.
+        /// </summary>
+        public const string HighDegraded = "high.degraded";
+
+        /// <summary>
+        /// Low Critical.
+        /// </summary>
+        public const string LowCritical = "low.critical";
+
+        /// <summary>
+        /// Low Degraded.
+        /// </summary>
+        public const string LowDegraded = "low.degraded";
+
+        /// <summary>
+        /// Maximum.
+        /// </summary>
+        public const string Max = "max";
+
+        /// <summary>
+        /// Throttled.
+        /// </summary>
+        public const string Throttled = "throttled";
+
+        /// <summary>
+        /// Turbo.
+        /// </summary>
+        public const string Turbo = "turbo";
+    }
+
+    /// <summary>
+    /// State of the logical disk space usage.
+    /// </summary>
+    public static class HwLogicalDiskStateValues
+    {
+        /// <summary>
+        /// Used.
+        /// </summary>
+        public const string Used = "used";
+
+        /// <summary>
+        /// Free.
+        /// </summary>
+        public const string Free = "free";
+    }
+
+    /// <summary>
+    /// State of the physical disk endurance utilization.
+    /// </summary>
+    public static class HwPhysicalDiskStateValues
+    {
+        /// <summary>
+        /// Remaining.
+        /// </summary>
+        public const string Remaining = "remaining";
+    }
+
+    /// <summary>
     /// The current state of the component.
     /// </summary>
     public static class HwStateValues
     {
-        /// <summary>
-        /// Ok.
-        /// </summary>
-        public const string Ok = "ok";
-
         /// <summary>
         /// Degraded.
         /// </summary>
@@ -61,6 +281,42 @@ public static class HwAttributes
         /// Failed.
         /// </summary>
         public const string Failed = "failed";
+
+        /// <summary>
+        /// Needs Cleaning.
+        /// </summary>
+        public const string NeedsCleaning = "needs_cleaning";
+
+        /// <summary>
+        /// OK.
+        /// </summary>
+        public const string Ok = "ok";
+
+        /// <summary>
+        /// Predicted Failure.
+        /// </summary>
+        public const string PredictedFailure = "predicted_failure";
+    }
+
+    /// <summary>
+    /// Type of tape drive operation.
+    /// </summary>
+    public static class HwTapeDriveOperationTypeValues
+    {
+        /// <summary>
+        /// Mount.
+        /// </summary>
+        public const string Mount = "mount";
+
+        /// <summary>
+        /// Unmount.
+        /// </summary>
+        public const string Unmount = "unmount";
+
+        /// <summary>
+        /// Clean.
+        /// </summary>
+        public const string Clean = "clean";
     }
 
     /// <summary>
