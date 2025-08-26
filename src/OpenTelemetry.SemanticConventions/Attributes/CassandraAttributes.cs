@@ -50,57 +50,57 @@ public static class CassandraAttributes
     public static class CassandraConsistencyLevelValues
     {
         /// <summary>
-        /// all.
+        /// All.
         /// </summary>
         public const string All = "all";
 
         /// <summary>
-        /// each_quorum.
+        /// Each Quorum.
         /// </summary>
         public const string EachQuorum = "each_quorum";
 
         /// <summary>
-        /// quorum.
+        /// Quorum.
         /// </summary>
         public const string Quorum = "quorum";
 
         /// <summary>
-        /// local_quorum.
+        /// Local Quorum.
         /// </summary>
         public const string LocalQuorum = "local_quorum";
 
         /// <summary>
-        /// one.
+        /// One.
         /// </summary>
         public const string One = "one";
 
         /// <summary>
-        /// two.
+        /// Two.
         /// </summary>
         public const string Two = "two";
 
         /// <summary>
-        /// three.
+        /// Three.
         /// </summary>
         public const string Three = "three";
 
         /// <summary>
-        /// local_one.
+        /// Local One.
         /// </summary>
         public const string LocalOne = "local_one";
 
         /// <summary>
-        /// any.
+        /// Any.
         /// </summary>
         public const string Any = "any";
 
         /// <summary>
-        /// serial.
+        /// Serial.
         /// </summary>
         public const string Serial = "serial";
 
         /// <summary>
-        /// local_serial.
+        /// Local Serial.
         /// </summary>
         public const string LocalSerial = "local_serial";
     }

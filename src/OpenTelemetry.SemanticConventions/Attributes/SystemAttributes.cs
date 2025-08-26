@@ -58,7 +58,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>network.connection.state</c> instead.
     /// </summary>
-    [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+    [Obsolete("Replaced by <c>network.connection.state</c>.")]
     public const string AttributeSystemNetworkState = "system.network.state";
 
     /// <summary>
@@ -90,6 +90,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>.")]
     public static class SystemCpuStateValues
     {
         /// <summary>
@@ -198,7 +199,7 @@ public static class SystemAttributes
     public static class SystemMemoryStateValues
     {
         /// <summary>
-        /// used.
+        /// Actual used virtual memory in bytes.
         /// </summary>
         public const string Used = "used";
 
@@ -226,78 +227,79 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>network.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>network.connection.state</c>.")]
     public static class SystemNetworkStateValues
     {
         /// <summary>
         /// close.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Close = "close";
 
         /// <summary>
         /// close_wait.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string CloseWait = "close_wait";
 
         /// <summary>
         /// closing.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Closing = "closing";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// established.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Established = "established";
 
         /// <summary>
         /// fin_wait_1.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait1 = "fin_wait_1";
 
         /// <summary>
         /// fin_wait_2.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait2 = "fin_wait_2";
 
         /// <summary>
         /// last_ack.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string LastAck = "last_ack";
 
         /// <summary>
         /// listen.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Listen = "listen";
 
         /// <summary>
         /// syn_recv.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynRecv = "syn_recv";
 
         /// <summary>
         /// syn_sent.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynSent = "syn_sent";
 
         /// <summary>
         /// time_wait.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string TimeWait = "time_wait";
     }
 
@@ -378,6 +380,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>system.process.status</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.process.status</c>.")]
     public static class SystemProcessesStatusValues
     {
         /// <summary>

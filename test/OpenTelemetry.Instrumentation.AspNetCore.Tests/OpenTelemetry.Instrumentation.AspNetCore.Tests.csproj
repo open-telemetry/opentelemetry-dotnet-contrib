@@ -40,4 +40,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <AssemblyMetadata Include="RouteTestsPath" Value="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)/RouteTests'))" />
+  </ItemGroup>
+
 </Project>

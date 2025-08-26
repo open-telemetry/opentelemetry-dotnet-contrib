@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -41,8 +42,13 @@ public enum TestApplicationScenario
 
 internal class TestApplicationFactory
 {
-    private static readonly string AspNetCoreTestsPath = new FileInfo(typeof(RoutingTests)!.Assembly!.Location)!.Directory!.Parent!.Parent!.Parent!.FullName;
-    private static readonly string ContentRootPath = Path.Combine(AspNetCoreTestsPath, "RouteTests", "TestApplication");
+    private static readonly string RouteTestsPath =
+        typeof(TestApplicationFactory).Assembly
+        .GetCustomAttributes()
+        .OfType<AssemblyMetadataAttribute>()
+        .FirstOrDefault((p) => p.Key is "RouteTestsPath")?.Value ?? ".";
+
+    private static readonly string ContentRootPath = Path.Combine(RouteTestsPath, "TestApplication");
 
     public static WebApplication? CreateApplication(TestApplicationScenario config)
     {
