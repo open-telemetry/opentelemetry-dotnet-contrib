@@ -26,7 +26,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         this.fixture = fixture;
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData(CommandType.Text, "select 1/1")]
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
@@ -104,8 +104,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         transaction?.Commit();
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        var activity = Assert.Single(activities);
 
         VerifyContextInfo(commandText, commandResult, activity);
         VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);

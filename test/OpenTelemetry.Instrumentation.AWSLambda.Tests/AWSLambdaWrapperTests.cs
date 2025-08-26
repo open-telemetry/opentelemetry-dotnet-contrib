@@ -26,6 +26,8 @@ public class AWSLambdaWrapperTests : IDisposable
         Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
         Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128");
+        Environment.SetEnvironmentVariable("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374");
     }
 
     public void Dispose()
@@ -322,6 +324,8 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal("us-east-1", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
         Assert.Equal("testfunction", resourceAttributes[ExpectedSemanticConventions.AttributeFaasName]);
         Assert.Equal("latest", resourceAttributes[ExpectedSemanticConventions.AttributeFaasVersion]);
+        Assert.Equal("2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374", resourceAttributes[ExpectedSemanticConventions.AttributeFaasInstance]);
+        Assert.Equal(134217728L, resourceAttributes[ExpectedSemanticConventions.AttributeFaasMaxMemory]);
     }
 
     private void AssertSpanAttributes(Activity activity)
@@ -331,6 +335,8 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasName));
         Assert.Equal("other", activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
         Assert.Equal("111111111111", activity.GetTagValue(ExpectedSemanticConventions.AttributeCloudAccountID));
+        Assert.Equal(this.sampleLambdaContext.LogStreamName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasInstance));
+        Assert.Equal(this.sampleLambdaContext.MemoryLimitInMB * 1024 * 1024, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasMaxMemory));
     }
 
     private void AssertSpanException(Activity activity)
@@ -353,5 +359,7 @@ public class AWSLambdaWrapperTests : IDisposable
         public const string AttributeFaasID = "cloud.resource_id";
         public const string AttributeFaasTrigger = "faas.trigger";
         public const string AttributeFaasVersion = "faas.version";
+        public const string AttributeFaasInstance = "faas.instance";
+        public const string AttributeFaasMaxMemory = "faas.max_memory";
     }
 }

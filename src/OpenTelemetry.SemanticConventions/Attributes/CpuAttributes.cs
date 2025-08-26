@@ -30,42 +30,42 @@ public static class CpuAttributes
     public static class CpuModeValues
     {
         /// <summary>
-        /// user.
+        /// User.
         /// </summary>
         public const string User = "user";
 
         /// <summary>
-        /// system.
+        /// System.
         /// </summary>
         public const string System = "system";
 
         /// <summary>
-        /// nice.
+        /// Nice.
         /// </summary>
         public const string Nice = "nice";
 
         /// <summary>
-        /// idle.
+        /// Idle.
         /// </summary>
         public const string Idle = "idle";
 
         /// <summary>
-        /// iowait.
+        /// IO Wait.
         /// </summary>
         public const string Iowait = "iowait";
 
         /// <summary>
-        /// interrupt.
+        /// Interrupt.
         /// </summary>
         public const string Interrupt = "interrupt";
 
         /// <summary>
-        /// steal.
+        /// Steal.
         /// </summary>
         public const string Steal = "steal";
 
         /// <summary>
-        /// kernel.
+        /// Kernel.
         /// </summary>
         public const string Kernel = "kernel";
     }
