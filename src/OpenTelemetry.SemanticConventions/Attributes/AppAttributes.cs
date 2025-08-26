@@ -15,6 +15,11 @@ namespace OpenTelemetry.SemanticConventions;
 public static class AppAttributes
 {
     /// <summary>
+    /// Unique identifier for a particular build or compilation of the application.
+    /// </summary>
+    public const string AttributeAppBuildId = "app.build_id";
+
+    /// <summary>
     /// A unique identifier representing the installation of an application on a specific device.
     /// </summary>
     /// <remarks>
@@ -35,9 +40,27 @@ public static class AppAttributes
     ///   <li><a href="https://developer.android.com/reference/android/provider/Settings.Secure#ANDROID_ID"><c>Settings.getString(Settings.Secure.ANDROID_ID)</c></a>.</li>
     /// </ul>
     /// <p>
-    /// More information about Android identifier best practices can be found <a href="https://developer.android.com/training/articles/user-data-ids">here</a>.
+    /// More information about Android identifier best practices can be found in the <a href="https://developer.android.com/training/articles/user-data-ids">Android user data IDs guide</a>.
     /// </remarks>
     public const string AttributeAppInstallationId = "app.installation.id";
+
+    /// <summary>
+    /// A number of frame renders that experienced jank.
+    /// </summary>
+    /// <remarks>
+    /// Depending on platform limitations, the value provided MAY be approximation.
+    /// </remarks>
+    public const string AttributeAppJankFrameCount = "app.jank.frame_count";
+
+    /// <summary>
+    /// The time period, in seconds, for which this jank is being reported.
+    /// </summary>
+    public const string AttributeAppJankPeriod = "app.jank.period";
+
+    /// <summary>
+    /// The minimum rendering threshold for this jank, in seconds.
+    /// </summary>
+    public const string AttributeAppJankThreshold = "app.jank.threshold";
 
     /// <summary>
     /// The x (horizontal) coordinate of a screen coordinate, in screen pixels.
