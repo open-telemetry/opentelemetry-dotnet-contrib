@@ -23,17 +23,14 @@ public static class AndroidAttributes
     public const string AttributeAndroidAppState = "android.app.state";
 
     /// <summary>
-    /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the android operating system. More information can be found <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">here</a>.
+    /// Uniquely identifies the framework API revision offered by a version (<c>os.version</c>) of the android operating system. More information can be found in the <a href="https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels">Android API levels documentation</a>.
     /// </summary>
     public const string AttributeAndroidOsApiLevel = "android.os.api_level";
 
     /// <summary>
-    /// Deprecated. Use <c>android.app.state</c> instead.
+    /// Deprecated. Use <c>android.app.state</c> attribute instead.
     /// </summary>
-    /// <remarks>
-    /// The Android lifecycle states are defined in <a href="https://developer.android.com/guide/components/activities/activity-lifecycle#lc">Activity lifecycle callbacks</a>, and from which the <c>OS identifiers</c> are derived.
-    /// </remarks>
-    [Obsolete("Renamed to <c>android.app.state</c>.")]
+    [Obsolete("Replaced by <c>android.app.state</c>.")]
     public const string AttributeAndroidState = "android.state";
 
     /// <summary>
@@ -58,26 +55,26 @@ public static class AndroidAttributes
     }
 
     /// <summary>
-    /// Deprecated. Use <c>android.app.state</c> instead.
+    /// Deprecated. Use <c>android.app.state</c> attribute instead.
     /// </summary>
     public static class AndroidStateValues
     {
         /// <summary>
         /// Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Created = "created";
 
         /// <summary>
         /// Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Background = "background";
 
         /// <summary>
         /// Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
         /// </summary>
-        [Obsolete("Renamed to <c>android.app.state</c>.")]
+        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Foreground = "foreground";
     }
 }

@@ -128,13 +128,13 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.change.id</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.change.id</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.change.id</c>.")]
     public const string AttributeVcsRepositoryChangeId = "vcs.repository.change.id";
 
     /// <summary>
     /// Deprecated, use <c>vcs.change.title</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.change.title</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.change.title</c>.")]
     public const string AttributeVcsRepositoryChangeTitle = "vcs.repository.change.title";
 
     /// <summary>
@@ -150,19 +150,19 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.name</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.name</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.name</c>.")]
     public const string AttributeVcsRepositoryRefName = "vcs.repository.ref.name";
 
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.revision</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.revision</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.revision</c>.")]
     public const string AttributeVcsRepositoryRefRevision = "vcs.repository.ref.revision";
 
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.type</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
     public const string AttributeVcsRepositoryRefType = "vcs.repository.ref.type";
 
     /// <summary>
@@ -308,13 +308,13 @@ public static class VcsAttributes
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefbranchabranch">branch</a>.
         /// </summary>
-        [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Branch = "branch";
 
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddeftagatag">tag</a>.
         /// </summary>
-        [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Tag = "tag";
     }
 

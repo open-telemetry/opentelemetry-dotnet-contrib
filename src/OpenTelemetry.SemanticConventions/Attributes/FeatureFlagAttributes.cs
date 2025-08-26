@@ -47,6 +47,18 @@ public static class FeatureFlagAttributes
     public const string AttributeFeatureFlagResultReason = "feature_flag.result.reason";
 
     /// <summary>
+    /// The evaluated value of the feature flag.
+    /// </summary>
+    /// <remarks>
+    /// With some feature flag providers, feature flag results can be quite large or contain private or sensitive details.
+    /// Because of this, <c>feature_flag.result.variant</c> is often the preferred attribute if it is available.
+    /// <p>
+    /// It may be desirable to redact or otherwise limit the size and scope of <c>feature_flag.result.value</c> if possible.
+    /// Because the evaluated flag value is unstructured and may be any type, it is left to the instrumentation author to determine how best to achieve this.
+    /// </remarks>
+    public const string AttributeFeatureFlagResultValue = "feature_flag.result.value";
+
+    /// <summary>
     /// A semantic identifier for an evaluated flag value.
     /// </summary>
     /// <remarks>

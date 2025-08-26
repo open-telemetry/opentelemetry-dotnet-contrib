@@ -109,7 +109,23 @@ public static class ContainerAttributes
     /// <summary>
     /// The container runtime managing this container.
     /// </summary>
+    [Obsolete("Replaced by <c>container.runtime.name</c>.")]
     public const string AttributeContainerRuntime = "container.runtime";
+
+    /// <summary>
+    /// A description about the runtime which could include, for example details about the CRI/API version being used or other customisations.
+    /// </summary>
+    public const string AttributeContainerRuntimeDescription = "container.runtime.description";
+
+    /// <summary>
+    /// The container runtime managing this container.
+    /// </summary>
+    public const string AttributeContainerRuntimeName = "container.runtime.name";
+
+    /// <summary>
+    /// The version of the runtime of this process, as returned by the runtime without modification.
+    /// </summary>
+    public const string AttributeContainerRuntimeVersion = "container.runtime.version";
 
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.

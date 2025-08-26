@@ -89,7 +89,7 @@ public static class NetAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("Removed.")]
+    [Obsolete("Removed. No replacement at this time.")]
     public const string AttributeNetSockPeerName = "net.sock.peer.name";
 
     /// <summary>
