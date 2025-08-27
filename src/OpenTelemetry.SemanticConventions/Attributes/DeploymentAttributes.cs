@@ -15,9 +15,9 @@ namespace OpenTelemetry.SemanticConventions;
 public static class DeploymentAttributes
 {
     /// <summary>
-    /// 'Deprecated, use <c>deployment.environment.name</c> instead.'.
+    /// Deprecated, use <c>deployment.environment.name</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>deployment.environment.name</c> instead.")]
+    [Obsolete("Replaced by <c>deployment.environment.name</c>.")]
     public const string AttributeDeploymentEnvironment = "deployment.environment";
 
     /// <summary>
