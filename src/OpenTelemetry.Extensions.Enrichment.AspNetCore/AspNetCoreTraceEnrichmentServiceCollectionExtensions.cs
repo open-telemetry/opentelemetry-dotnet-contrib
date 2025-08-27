@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Extensions.Enrichment.AspNetCore;
@@ -25,7 +28,11 @@ public static class AspNetCoreTraceEnrichmentServiceCollectionExtensions
     /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
     /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
+#if NET
+    public static IServiceCollection TryAddAspNetCoreTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services)
+#else
     public static IServiceCollection TryAddAspNetCoreTraceEnricher<T>(this IServiceCollection services)
+#endif
         where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(services);

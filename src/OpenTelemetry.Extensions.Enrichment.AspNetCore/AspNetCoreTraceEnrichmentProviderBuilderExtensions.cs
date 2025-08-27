@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NET
+using System.Diagnostics.CodeAnalysis;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -23,7 +26,11 @@ public static class AspNetCoreTraceEnrichmentProviderBuilderExtensions
     /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+#if NET
+    public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
+#else
     public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder)
+#endif
         where T : AspNetCoreTraceEnricher
     {
         Guard.ThrowIfNull(builder);
