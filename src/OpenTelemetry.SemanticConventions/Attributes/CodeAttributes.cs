@@ -39,7 +39,7 @@ public static class CodeAttributes
     /// <summary>
     /// Deprecated, use <c>code.function.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>code.function.name</c>.")]
+    [Obsolete("Value should be included in <c>code.function.name</c> which is expected to be a fully-qualified name.")]
     public const string AttributeCodeFunction = "code.function";
 
     /// <summary>

@@ -37,10 +37,36 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             { "FileContextCore", "filecontextcore", "filecontextcore" },
             { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
             { "Microsoft.EntityFrameworkCore.InMemory", "efcoreinmemory", "efcoreinmemory" },
+            { "MongoDB.EntityFrameworkCore", "mongodb", "mongodb" },
         };
 
-        // Firebird
+        // Couchbase
         string[] names =
+        [
+            "Couchbase.EntityFrameworkCore",
+            "Couchbase.EntityFrameworkCore.Storage.Internal",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "couchbase", "couchbase");
+        }
+
+        // DB2
+        names =
+        [
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "db2", "ibm.db2");
+        }
+
+        // Firebird
+        names =
         [
             "FirebirdSql.Data.FirebirdClient.FbCommand",
             "FirebirdSql.EntityFrameworkCore.Firebird",
@@ -82,6 +108,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Devart.Data.MySql.MySqlCommand",
             "MySql.Data.EntityFrameworkCore",
             "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
             "Pomelo.EntityFrameworkCore.MySql",
         ];
 
@@ -168,6 +195,18 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             testCases.Add(name, "teradata", "teradata");
         }
 
+        // Unknown providers
+        names =
+        [
+            "foo",
+            "Contoso.BusinessLogic.DataAccess.Command",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "other_sql", "other_sql");
+        }
+
         return testCases;
     }
 
@@ -175,10 +214,10 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
     {
-        var actual = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
 
-        Assert.Equal(expectedDbSystem, actual.Old);
-        Assert.Equal(expectedDbSystemName, actual.New);
+        Assert.Equal(expectedDbSystem, actualDbSystem);
+        Assert.Equal(expectedDbSystemName, actualDbSystemName);
     }
 
     [Fact]

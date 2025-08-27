@@ -407,6 +407,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client.Tests", "test\OpenTelemetry.OpAmp.Client.Tests\OpenTelemetry.OpAmp.Client.Tests.csproj", "{044B896A-FDC6-422F-B349-483BDE19F685}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AWS", "AWS", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\AWS\AWSSemanticConventions.Base.cs = src\Shared\AWS\AWSSemanticConventions.Base.cs
+		src\Shared\AWS\AWSSemanticConventions.cs = src\Shared\AWS\AWSSemanticConventions.cs
+		src\Shared\AWS\AWSSemanticConventions.Legacy.cs = src\Shared\AWS\AWSSemanticConventions.Legacy.cs
+		src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs
+		src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs
+		src\Shared\AWS\SemanticConventionVersion.cs = src\Shared\AWS\SemanticConventionVersion.cs
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.AspNetCore", "src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj", "{EB5F0E63-61E3-43AE-A383-48EA7878DA29}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests", "test\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj", "{14D441DE-5C76-7700-152E-7E8E01E5CA19}"
@@ -977,6 +987,7 @@ Global
 		{00C9F0B8-3D51-483C-821A-5889B38A144C} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{B5AF4876-3970-4686-A4A9-4EA369843F1F} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{044B896A-FDC6-422F-B349-483BDE19F685} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
 		{EB5F0E63-61E3-43AE-A383-48EA7878DA29} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{14D441DE-5C76-7700-152E-7E8E01E5CA19} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 	EndGlobalSection

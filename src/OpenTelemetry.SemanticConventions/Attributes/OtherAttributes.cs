@@ -23,6 +23,7 @@ public static class OtherAttributes
     /// <summary>
     /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
     public static class StateValues
     {
         /// <summary>
