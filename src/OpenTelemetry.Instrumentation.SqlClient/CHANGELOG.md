@@ -29,6 +29,9 @@ Released 2025-Jul-15
   the `SetDbQueryParameters` option. Not supported on .NET Framework.
   ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
 
+* Fix activities not being stopped on .NET Framework when using a global activity listener.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06

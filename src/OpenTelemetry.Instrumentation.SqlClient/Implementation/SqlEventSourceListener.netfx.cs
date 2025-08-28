@@ -199,14 +199,18 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
-            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles != 0)
+        var activity = Activity.Current;
+
+        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles != 0)
         {
+            // Ensure any activity that may exist due to ActivitySource.AddActivityListener() is stopped.
+            // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
+            activity?.Stop();
+
             this.RecordDuration(null, eventData);
             return;
         }
 
-        var activity = Activity.Current;
         if (activity?.Source != SqlActivitySourceHelper.ActivitySource)
         {
             return;
