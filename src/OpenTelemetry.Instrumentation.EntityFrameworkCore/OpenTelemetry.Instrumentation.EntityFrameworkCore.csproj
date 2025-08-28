@@ -32,6 +32,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.cs" Link="Includes\PropertyFetcher.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlConnectionDetails.cs" Link="Includes\SqlConnectionDetails.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SqlParameterProcessor.cs" Link="Includes\SqlParameterProcessor.cs" />
   </ItemGroup>
 
 </Project>
