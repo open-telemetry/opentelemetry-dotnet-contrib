@@ -55,7 +55,7 @@
     <OpenTelemetryCoreUnstableLatestVersion>[1.12.0-beta.1]</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestVersion>[1.12.0,2.0)</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>[1.11.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
-    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[1.12.0]</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
+    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[1.12.0,2.0)</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <StackExchangeRedisPkgVer>[2.6.122,3.0)</StackExchangeRedisPkgVer>
     <ConfluentKafkaPkgVer>[2.4.0,3.0)</ConfluentKafkaPkgVer>
     <CassandraCSharpDriverPkgVer>[3.17.0,4.0)</CassandraCSharpDriverPkgVer>

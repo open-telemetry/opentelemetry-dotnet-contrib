@@ -68,7 +68,7 @@ public static class AspNetCoreTraceEnrichmentProviderBuilderExtensions
     /// <remarks>
     /// Call this <b>before</b> exporter related Activity processors are added.
     /// </remarks>
-    /// <returns>The instance of <see cref="IServiceCollection"/> to chain the calls.</returns>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder TryAddAspNetCoreTraceEnricher<T>(this TracerProviderBuilder builder, Func<IServiceProvider, T> enricherImplementationFactory)
         where T : AspNetCoreTraceEnricher
     {

@@ -226,12 +226,18 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  # Update Common.props for Instrumentation.AspNetCore releases
-  if ($tagPrefix -eq 'Instrumentation.AspNetCore-')
+  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git commit failure'
+  }
+
+  # Update Common.props for Instrumentation.AspNetCore releases of 0.x or 1.x
+  if ($tagPrefix -eq 'Instrumentation.AspNetCore-' -and $version -match '^[01]\.')
   {
     (Get-Content build/Common.props -Raw) `
       -replace '<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>.*<\/OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>',
-               "<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[$version]</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>" |
+               "<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[$version,2.0)</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>" |
       Set-Content build/Common.props
 
     git add build/Common.props 2>&1 | % ToString
@@ -239,12 +245,12 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     {
         throw 'git add failure'
     }
-  }
 
-  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git commit failure'
+    git commit -m "Update OpenTelemetryInstrumentationAspNetCoreLatestStableVersion version in Common.props to $version." 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git commit failure'
+    }
   }
 
   git push -u origin $branch 2>&1 | % ToString
@@ -263,6 +269,14 @@ Merge once packages are available on NuGet and the build passes.
 
 * Sets ``PackageValidationBaselineVersion`` in ``$tagPrefix`` projects to ``$version``.
 "@
+
+  if ($tagPrefix -eq 'Instrumentation.AspNetCore-' -and $version -match '^[01]\.')
+  {
+    $body +=
+@"
+* Sets ``OpenTelemetryInstrumentationAspNetCoreLatestStableVersion`` in Common.props to version ``$version``.
+"@
+  }
 
   gh pr create `
     --title "[release] $tagPrefix stable release $version updates" `
