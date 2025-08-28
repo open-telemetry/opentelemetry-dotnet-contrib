@@ -8,6 +8,16 @@
 * Fix `db.system.name` values to follow new database semantic conventions when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
   ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))
+* Add the `server.port` resource attribute when following the new database semantic
+  conventions when opted into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment
+  variable.
+  ([#3011](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3011))
+* Extend `db.system.name` values to identity additional providers related to Couchbase,
+  DB2, MongoDB, MySQL, Oracle, PostgreSQL and SQLite.
+  ([#3025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3025))
+* Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
+  the `SetDbQueryParameters` option.
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
 
 ## 1.12.0-beta.2
 

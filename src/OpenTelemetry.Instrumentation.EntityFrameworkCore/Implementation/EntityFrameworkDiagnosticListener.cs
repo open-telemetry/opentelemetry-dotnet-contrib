@@ -92,7 +92,18 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), dataSource);
+                            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+
+                            var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
+                            if (!string.IsNullOrEmpty(serverAddress))
+                            {
+                                this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), serverAddress);
+
+                                if (this.options.EmitNewAttributes && connectionDetails.Port is { } port)
+                                {
+                                    activity.AddTag(SemanticConventions.AttributeServerPort, port);
+                                }
+                            }
                         }
 
                         this.AddTag(activity, (SemanticConventions.AttributeDbName, SemanticConventions.AttributeDbNamespace), database);
@@ -142,6 +153,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             activity.IsAllDataRequested = false;
                             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                             return;
+                        }
+
+                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
 
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
@@ -265,7 +281,8 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Microsoft.Data.SqlClient.SqlCommand" or
             "Microsoft.EntityFrameworkCore.SqlServer"
                 => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
-            "Microsoft.EntityFrameworkCore.Cosmos" => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
+            "Microsoft.EntityFrameworkCore.Cosmos"
+                => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
             "Devart.Data.SQLite.Entity.EFCore" or
             "Microsoft.Data.Sqlite.SqliteCommand" or
             "Microsoft.EntityFrameworkCore.Sqlite"
@@ -274,16 +291,19 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Devart.Data.MySql.MySqlCommand" or
             "MySql.Data.EntityFrameworkCore" or
             "MySql.Data.MySqlClient.MySqlCommand" or
+            "MySql.EntityFrameworkCore" or
             "Pomelo.EntityFrameworkCore.MySql"
                 => (DbSystems.Mysql, DbSystemNames.Mysql),
             "Npgsql.EntityFrameworkCore.PostgreSQL" or
             "Npgsql.NpgsqlCommand" or
             "Devart.Data.PostgreSql.Entity.EFCore" or
-            "Devart.Data.PostgreSql.PgSqlCommand" => (DbSystems.Postgresql, DbSystemNames.Postgresql),
+            "Devart.Data.PostgreSql.PgSqlCommand"
+                => (DbSystems.Postgresql, DbSystemNames.Postgresql),
             "Oracle.EntityFrameworkCore" or
             "Oracle.ManagedDataAccess.Client.OracleCommand" or
             "Devart.Data.Oracle.Entity.EFCore" or
-            "Devart.Data.Oracle.OracleCommand" => (DbSystems.Oracle, DbSystemNames.OracleDb),
+            "Devart.Data.Oracle.OracleCommand"
+                => (DbSystems.Oracle, DbSystemNames.OracleDb),
             "FirebirdSql.Data.FirebirdClient.FbCommand" or
             "FirebirdSql.EntityFrameworkCore.Firebird"
                 => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
@@ -293,13 +313,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Teradata.Client.Provider.TdCommand" or
             "Teradata.EntityFrameworkCore"
                 => (DbSystems.Teradata, DbSystemNames.Teradata),
+            "MongoDB.EntityFrameworkCore"
+                => (DbSystems.Mongodb, DbSystemNames.Mongodb),
+            "Couchbase.EntityFrameworkCore" or
+            "Couchbase.EntityFrameworkCore.Storage.Internal"
+                => (DbSystems.Couchbase, DbSystemNames.Couchbase),
+            "IBM.EntityFrameworkCore" or
+            "IBM.EntityFrameworkCore-lnx" or
+            "IBM.EntityFrameworkCore-osx"
+                => (DbSystems.Db2, DbSystemNames.IbmDb2),
             //// These names are custom and are retained for backwards compatibility
             "EFCore.Snowflake" or
             "EFCore.Snowflake.Storage" or
             "EFCore.Snowflake.Storage.Internal"
                 => ("snowflake", "snowflake"),
-            "Microsoft.EntityFrameworkCore.InMemory" => ("efcoreinmemory", "efcoreinmemory"),
-            "FileContextCore" => ("filecontextcore", "filecontextcore"),
+            "Microsoft.EntityFrameworkCore.InMemory"
+                => ("efcoreinmemory", "efcoreinmemory"),
+            "FileContextCore"
+                => ("filecontextcore", "filecontextcore"),
             "EntityFrameworkCore.SqlServerCompact35" or
             "EntityFrameworkCore.SqlServerCompact40" or
             "System.Data.SqlServerCe.SqlCeCommand"
@@ -312,10 +343,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
         };
 
-    private void AddTag(Activity activity, (string Old, string New) attributes, string value)
+    private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));
 
-    private void AddTag(Activity activity, (string Old, string New) attributes, (string Old, string New) values)
+    private void AddTag(Activity activity, (string Old, string New) attributes, (string? Old, string? New) values)
     {
         if (this.options.EmitOldAttributes)
         {
@@ -351,9 +382,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         public const string OtherSql = "other_sql";
         public const string AzureCosmosDb = "azure.cosmosdb";
+        public const string Couchbase = "couchbase";
         public const string Firebirdsql = "firebirdsql";
         public const string GcpSpanner = "gcp.spanner";
+        public const string IbmDb2 = "ibm.db2";
         public const string MicrosoftSqlServer = "microsoft.sql_server";
+        public const string Mongodb = "mongodb";
         public const string Mysql = "mysql";
         public const string OracleDb = "oracle.db";
         public const string Postgresql = "postgresql";
@@ -368,7 +402,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         public const string OtherSql = "other_sql";
         public const string Cosmosdb = "cosmosdb";
+        public const string Couchbase = "couchbase";
+        public const string Db2 = "db2";
         public const string Firebird = "firebird";
+        public const string Mongodb = "mongodb";
         public const string Mssql = "mssql";
         public const string Mysql = "mysql";
         public const string Oracle = "oracle";

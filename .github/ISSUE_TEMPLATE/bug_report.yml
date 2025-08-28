@@ -25,6 +25,7 @@ body:
         - OpenTelemetry.Extensions
         - OpenTelemetry.Extensions.AWS
         - OpenTelemetry.Extensions.Enrichment
+        - OpenTelemetry.Extensions.Enrichment.AspNetCore
         - OpenTelemetry.Instrumentation.AspNet
         - OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
         - OpenTelemetry.Instrumentation.AspNetCore

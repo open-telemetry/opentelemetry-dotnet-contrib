@@ -26,7 +26,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         this.fixture = fixture;
     }
 
-    [EnabledOnDockerPlatformTheory(EnabledOnDockerPlatformTheoryAttribute.DockerPlatform.Linux)]
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData(CommandType.Text, "select 1/1")]
     [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
     [InlineData(CommandType.Text, "select 1/0", false, null, true)]
@@ -104,8 +104,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 
         transaction?.Commit();
 
-        Assert.Single(activities);
-        var activity = activities[0];
+        var activity = Assert.Single(activities);
 
         VerifyContextInfo(commandText, commandResult, activity);
         VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
@@ -126,6 +125,46 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 #endif
         }
     }
+
+#if NET
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task SuccessfulParameterizedQueryTest()
+    {
+        // Arrange
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+
+        using var scope = SemanticConventionScope.Get(useNewConventions: true);
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation(options => options.SetDbQueryParameters = true)
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        var dataSource = sqlConnection.DataSource;
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("SELECT @x + @y", sqlConnection);
+
+        sqlCommand.Parameters.AddWithValue("@x", 42);
+        sqlCommand.Parameters.AddWithValue("@y", 37);
+
+        // Act
+        var result = await sqlCommand.ExecuteScalarAsync();
+
+        // Assert
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(42, activity.GetTagValue("db.query.parameter.@x"));
+        Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
+    }
+#endif
 
     private static void VerifyContextInfo(
         string? commandText,
@@ -196,6 +235,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
+        Assert.DoesNotContain(activity.Tags, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
+
         switch (commandType)
         {
             case CommandType.StoredProcedure:
@@ -258,5 +300,23 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             MsSqlContainer container => container.GetConnectionString(),
             _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
         };
+    }
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
+
+        public static SemanticConventionScope Get(bool useNewConventions)
+        {
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+
+            Environment.SetEnvironmentVariable(
+                ConventionsOptIn,
+                useNewConventions ? "database" : string.Empty);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }

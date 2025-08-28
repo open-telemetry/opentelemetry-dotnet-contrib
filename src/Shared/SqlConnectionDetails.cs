@@ -4,7 +4,7 @@
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
-namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
+namespace OpenTelemetry.Instrumentation;
 
 internal sealed partial class SqlConnectionDetails
 {

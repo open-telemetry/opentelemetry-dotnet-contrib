@@ -191,6 +191,33 @@ names will be captured. To capture query text, other command text and
 stored procedure command names, you need to use the `Microsoft.Data.SqlClient`
 NuGet package (v1.1+).
 
+### SetDbQueryParameters
+
+> [!NOTE]
+> SetDbQueryParameters is not supported on .NET Framework.
+
+`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
+are emitted.
+
+Query parameters may contain sensitive data, so only enable `SetDbStatementForText`
+if your queries and/or environment are appropriate for enabling this option.
+
+`SetDbQueryParameters` is _false_ by default. When set to `true`, the
+instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
+
+To enable capturing of parameter names and values use the
+following configuration.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddSqlClientInstrumentation(
+        options => options.SetDbStatementForText = true)
+    .AddConsoleExporter()
+    .Build();
+```
+
 ### Enrich
 
 > [!NOTE]
@@ -278,7 +305,6 @@ using var traceProvider = Sdk.CreateTracerProviderBuilder()
        })
    .AddConsoleExporter()
    .Build();
-{
 ```
 
 ### Trace Context Propagation
@@ -294,6 +320,33 @@ This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/sta
 command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)
 information for the current connection, which results in
 **an additional round-trip to the database**.
+
+## Activity Duration calculation
+
+`Activity.Duration` represents the time the underlying connection takes to
+execute the command/query. Completing the operation includes the time up to
+determining that the request was successful. It doesn't include the time spent
+reading the results from a query set (for example enumerating all the rows
+returned by a data reader).
+
+This is illustrated by the code snippet below:
+
+```csharp
+using var connection = new SqlConnection("...");
+connection.Open();
+
+using var command = connection.CreateCommand();
+command.CommandText = "select top 100000 * from Users";
+
+// Activity duration starts
+using var reader = command.ExecuteReader();
+// Activity duration ends
+
+// Not included in the Activity duration
+while (reader.Read())
+{
+}
+```
 
 ## References
 

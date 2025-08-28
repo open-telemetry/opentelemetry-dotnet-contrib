@@ -42,6 +42,8 @@ jobs:
       - name: Resolve project
         id: resolve-project
         shell: pwsh
+        env:
+          TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
           Import-Module .\build\scripts\build.psm1
 
@@ -57,54 +59,59 @@ jobs:
           $component = '' # Used to tell Component.proj what to build
 
           ResolveProjectForTag `
-            -tag '${{ github.ref_type == 'tag' && github.ref_name || '' }}' `
+            -tag ${env:TAG} `
             -title ([ref]$title) `
             -project ([ref]$project) `
             -component ([ref]$component)
 
-          echo "title=$title" >> $env:GITHUB_OUTPUT
-          echo "project=$project" >> $env:GITHUB_OUTPUT
+          echo "title=$title" >> ${env:GITHUB_OUTPUT}
+          echo "PROJECT_PATH=$project" >> ${env:GITHUB_ENV}
 
           # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
           # used if $project ends up Component.proj.
-          echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
+          echo "BUILD_COMPONENT=$component" >> ${env:GITHUB_ENV}
 
       - name: Setup dotnet
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
 
       - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
-        run: dotnet restore ${{ steps.resolve-project.outputs.project }}
+        run: dotnet restore ${env:PROJECT_PATH}
 
       - name: dotnet build ${{ steps.resolve-project.outputs.title }}
-        run: dotnet build ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+        run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:Deterministic=true -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
-        run: dotnet test ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore --no-build
+        run: dotnet test ${env:PROJECT_PATH} --configuration Release --no-restore --no-build
 
       - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
-        run: dotnet pack ${{ steps.resolve-project.outputs.project }} --configuration Release --no-restore --no-build  -p:PackTag=${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        shell: pwsh
+        run: dotnet pack ${env:PROJECT_PATH} --configuration Release --no-restore --no-build  -p:"PackTag=${env:TAG}"
 
       - name: Publish Artifacts
         id: upload-artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ github.ref_name }}-packages
-          path: 'src\**\*.*nupkg'
+          path: ./artifacts/package/release
+          if-no-files-found: error
 
-      - name: Publish MyGet
+      - name: Publish to MyGet
         env:
           MYGET_TOKEN_EXISTS: ${{ secrets.MYGET_TOKEN != '' }}
+          API_KEY: ${{ secrets.MYGET_TOKEN }}
+          SOURCE: https://www.myget.org/F/opentelemetry/api/v2/package
         if: env.MYGET_TOKEN_EXISTS == 'true' # Skip MyGet publish if run on a fork without the secret
-        run: |
-          nuget setApiKey ${{ secrets.MYGET_TOKEN }} -Source https://www.myget.org/F/opentelemetry/api/v2/package
-          nuget push src\**\*.nupkg -Source https://www.myget.org/F/opentelemetry/api/v2/package
+        shell: pwsh
+        run: dotnet nuget push "./artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
-      - name: Publish NuGets
+      - name: Publish to NuGet
         env:
           NUGET_TOKEN_EXISTS: ${{ secrets.NUGET_TOKEN != '' }}
+          API_KEY: ${{ secrets.NUGET_TOKEN }}
+          SOURCE: https://api.nuget.org/v3/index.json
         if: github.ref_type == 'tag' && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
-        run: |
-          nuget push src\**\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey ${{ secrets.NUGET_TOKEN }} -SymbolApiKey ${{ secrets.NUGET_TOKEN }}
+        shell: pwsh
+        run: dotnet nuget push "./artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
   post-build:
     runs-on: ubuntu-22.04
@@ -119,20 +126,23 @@ jobs:
       GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
 
     steps:
-      - name: check out code
+      - name: Check out code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+          token: ${{ env.GH_TOKEN }}
 
       - name: Download Artifacts
+        env:
+          ARTIFACT_ID: ${{ needs.build-pack-publish.outputs.artifact-id }}
+          ARTIFACT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           curl \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: token ${{ github.token }}" \
+            -H "Authorization: token ${ARTIFACT_TOKEN}" \
             -L \
-            -o '${{ github.workspace }}/artifacts/${{ github.ref_name }}-packages.zip' \
+            -o '${GITHUB_WORKSPACE}/artifacts/${GITHUB_REF_NAME}-packages.zip' \
             --create-dirs \
-            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ needs.build-pack-publish.outputs.artifact-id }}/zip"
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip"
 
       - name: Create GitHub Release
         if: github.ref_type == 'tag'
@@ -141,18 +151,21 @@ jobs:
           Import-Module .\build\scripts\post-release.psm1
 
           CreateRelease `
-            -gitRepository '${{ github.repository }}' `
-            -tag '${{ github.ref_name }}' `
-            -releaseFiles '${{ github.workspace }}/artifacts/${{ github.ref_name }}-packages.zip#Packages'
+            -gitRepository ${env:GITHUB_REPOSITORY} `
+            -tag ${env:GITHUB_REF_NAME} `
+            -releaseFiles "${env:GITHUB_WORKSPACE}/artifacts/${env:GITHUB_REF_NAME}-packages.zip#Packages"
 
       - name: Post notice when packages are ready
         shell: pwsh
+        env:
+          BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+          PACKAGES_URL: ${{ needs.build-pack-publish.outputs.artifact-url }}
         run: |
           Import-Module .\build\scripts\post-release.psm1
 
           TryPostPackagesReadyNoticeOnPrepareReleasePullRequest `
-            -gitRepository '${{ github.repository }}' `
-            -tag '${{ github.ref_name }}' `
-            -tagSha '${{ github.sha }}' `
-            -packagesUrl '${{ needs.build-pack-publish.outputs.artifact-url }}' `
-            -botUserName '${{ needs.automation.outputs.username }}'
+            -gitRepository ${env:GITHUB_REPOSITORY} `
+            -tag ${env:GITHUB_REF_NAME} `
+            -tagSha ${env:GITHUB_SHA} `
+            -packagesUrl ${env:PACKAGES_URL} `
+            -botUserName ${env:BOT_USER_NAME}
