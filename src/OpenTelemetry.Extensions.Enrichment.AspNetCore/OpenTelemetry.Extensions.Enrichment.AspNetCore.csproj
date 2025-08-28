@@ -20,10 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="$(OpenTelemetryInstrumentationAspNetCoreLatestStableVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj" />
+    <PackageReference Include="OpenTelemetry.Extensions.Enrichment" Version="1.12.0-alpha.1" />
   </ItemGroup>
 
 </Project>
