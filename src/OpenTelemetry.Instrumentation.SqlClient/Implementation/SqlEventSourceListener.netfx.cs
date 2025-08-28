@@ -205,7 +205,10 @@ internal sealed class SqlEventSourceListener : EventListener
         {
             // Ensure any activity that may exist due to ActivitySource.AddActivityListener() is stopped.
             // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
-            activity?.Stop();
+            if (activity?.Source == SqlActivitySourceHelper.ActivitySource)
+            {
+                activity.Stop();
+            }
 
             this.RecordDuration(null, eventData);
             return;
