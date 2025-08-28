@@ -226,6 +226,21 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
+  # Update Common.props for Instrumentation.AspNetCore releases
+  if ($tagPrefix -eq 'Instrumentation.AspNetCore-')
+  {
+    (Get-Content build/Common.props -Raw) `
+      -replace '<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>.*<\/OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>',
+               "<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[$version]</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>" |
+      Set-Content build/Common.props
+
+    git add build/Common.props 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git add failure'
+    }
+  }
+
   git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
