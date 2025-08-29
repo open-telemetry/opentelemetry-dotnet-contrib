@@ -36,13 +36,14 @@ public class AWSEC2DetectorTests
             new OpenTelemetry.AWS.AWSSemanticConventions(
                 SemanticConventionVersion.Latest));
 
+        var attributes = awsEC2Detector.Detect().Attributes;
         if (!await IsRunningOnEC2())
         {
-            Assert.Empty(awsEC2Detector.Detect().Attributes); // will be null as it's not in ec2 environment
+            Assert.Empty(attributes); // will be null as it's not in ec2 environment
         }
         else
         {
-            Assert.NotEmpty(awsEC2Detector.Detect().Attributes);
+            Assert.NotEmpty(attributes);
         }
     }
 
