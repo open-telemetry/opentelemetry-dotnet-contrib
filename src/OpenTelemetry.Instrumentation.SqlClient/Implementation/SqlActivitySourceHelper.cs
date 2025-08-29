@@ -136,9 +136,9 @@ internal sealed class SqlActivitySourceHelper
 #if NET8_0_OR_GREATER
         var duration = Stopwatch.GetElapsedTime(begin);
 #else
-        var endingTimestamp = Stopwatch.GetTimestamp();
+        var end = Stopwatch.GetTimestamp();
         var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
-        var delta = endingTimestamp - begin;
+        var delta = end - begin;
         var ticks = (long)(timestampToTicks * delta);
         var duration = new TimeSpan(ticks);
 #endif
