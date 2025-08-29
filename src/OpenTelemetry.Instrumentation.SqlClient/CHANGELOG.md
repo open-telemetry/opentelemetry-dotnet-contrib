@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
+  the `SetDbQueryParameters` option. Not supported on .NET Framework.
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
+
+* Fix activities not being stopped on .NET Framework when using a global activity
+  listener.
+  ([#3041](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3041))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-15
@@ -24,14 +32,6 @@ Released 2025-Jul-15
   > Propagate `traceparent` information to SQL Server databases
     (see [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)).
     Note that this option incurs an additional round-trip to the database.
-
-* Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
-  the `SetDbQueryParameters` option. Not supported on .NET Framework.
-  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
-
-* Fix activities not being stopped on .NET Framework when using a global activity
-  listener.
-  ([#3041](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3041))
 
 ## 1.12.0-beta.1
 
