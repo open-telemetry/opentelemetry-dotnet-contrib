@@ -37,10 +37,36 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             { "FileContextCore", "filecontextcore", "filecontextcore" },
             { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
             { "Microsoft.EntityFrameworkCore.InMemory", "efcoreinmemory", "efcoreinmemory" },
+            { "MongoDB.EntityFrameworkCore", "mongodb", "mongodb" },
         };
 
-        // Firebird
+        // Couchbase
         string[] names =
+        [
+            "Couchbase.EntityFrameworkCore",
+            "Couchbase.EntityFrameworkCore.Storage.Internal",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "couchbase", "couchbase");
+        }
+
+        // DB2
+        names =
+        [
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "db2", "ibm.db2");
+        }
+
+        // Firebird
+        names =
         [
             "FirebirdSql.Data.FirebirdClient.FbCommand",
             "FirebirdSql.EntityFrameworkCore.Firebird",
@@ -82,6 +108,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             "Devart.Data.MySql.MySqlCommand",
             "MySql.Data.EntityFrameworkCore",
             "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
             "Pomelo.EntityFrameworkCore.MySql",
         ];
 

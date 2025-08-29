@@ -142,6 +142,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             return;
                         }
 
+                        if (options.EmitNewAttributes && options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
+                        }
+
                         if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
                             this.commandTextFetcher.TryFetch(command, out var commandText))
                         {

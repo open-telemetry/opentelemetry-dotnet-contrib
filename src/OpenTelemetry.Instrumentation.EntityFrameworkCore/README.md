@@ -52,6 +52,7 @@ to the application.
 ```csharp
 using OpenTelemetry;
 using OpenTelemetry.Trace;
+
 public class Program
 {
     public static void Main(string[] args)
@@ -138,6 +139,44 @@ services.AddOpenTelemetry()
             };
         })
         .AddConsoleExporter());
+```
+
+### SetDbStatementForText
+
+`SetDbStatementForText` controls whether the `db.statement` attribute is
+emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
+see below for more details.
+
+<!--
+TODO Update the text to match SQL Server when we santize the query.
+See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3020.
+-->
+
+Query parameters may contain sensitive data, so only enable `SetDbStatementForText`
+if your queries and/or environment are appropriate for enabling this option.
+
+### SetDbQueryParameters
+
+`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
+are emitted.
+
+Query parameters may contain sensitive data, so only enable `SetDbQueryParameters`
+if your queries and/or environment are appropriate for enabling this option.
+
+`SetDbQueryParameters` is _false_ by default. When set to `true`, the
+instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
+
+To enable capturing of parameter names and values use the
+following configuration.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddEntityFrameworkCoreInstrumentation(
+        options => options.SetDbStatementForText = true)
+    .AddConsoleExporter()
+    .Build();
 ```
 
 ## References
