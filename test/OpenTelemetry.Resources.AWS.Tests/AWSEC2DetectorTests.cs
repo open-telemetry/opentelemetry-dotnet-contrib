@@ -1,25 +1,27 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if NETFRAMEWORK
 using System.Net.Http;
+#endif
 using Xunit;
 
 namespace OpenTelemetry.Resources.AWS.Tests;
 
 public class AWSEC2DetectorTests
 {
-    private static readonly HttpClient HttpClient = new HttpClient
+    private const string AwsEc2InstanceIdUrl = "http://169.254.169.254/latest/meta-data/instance-id";
+    private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(3),
     };
 
-    public static bool IsRunningOnEC2()
+    public static async Task<bool> IsRunningOnEC2()
     {
         try
         {
-            var task = HttpClient.GetStringAsync(new Uri("http://169.254.169.254/latest/meta-data/instance-id"));
-            task.Wait();
-            return !string.IsNullOrEmpty(task.Result);
+            var instanceId = await HttpClient.GetStringAsync(new Uri(AwsEc2InstanceIdUrl));
+            return !string.IsNullOrEmpty(instanceId);
         }
         catch
         {
@@ -28,13 +30,13 @@ public class AWSEC2DetectorTests
     }
 
     [Fact]
-    public void TestDetect()
+    public async Task TestDetect()
     {
         var awsEC2Detector = new AWSEC2Detector(
             new OpenTelemetry.AWS.AWSSemanticConventions(
                 SemanticConventionVersion.Latest));
 
-        if (!IsRunningOnEC2())
+        if (!await IsRunningOnEC2())
         {
             Assert.Empty(awsEC2Detector.Detect().Attributes); // will be null as it's not in ec2 environment
         }
