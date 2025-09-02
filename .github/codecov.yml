@@ -66,6 +66,11 @@ flags:
     paths:
       - src/OpenTelemetry.Extensions.Enrichment.AspNetCore
 
+  unittests-Extensions.Enrichment.Http:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.Enrichment.Http
+
   unittests-Instrumentation.AspNet:
     carryforward: true
     paths:
