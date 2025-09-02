@@ -7,9 +7,9 @@ using System.Net.Http;
 
 using Google.Protobuf;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Utils;
+using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-namespace OpenTelemetry.OpAmp.Client.Transport.Http;
+namespace OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 
 internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 {

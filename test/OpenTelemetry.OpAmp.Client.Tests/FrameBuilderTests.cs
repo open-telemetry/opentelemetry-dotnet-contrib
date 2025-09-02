@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.OpAmp.Client.Internal;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
