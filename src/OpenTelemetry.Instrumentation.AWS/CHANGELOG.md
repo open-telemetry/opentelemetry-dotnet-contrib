@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for AWS SDK v3 to address this issue.
+  ([#3049](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3049))
+
 ## 1.12.0
 
 Released 2025-May-06
