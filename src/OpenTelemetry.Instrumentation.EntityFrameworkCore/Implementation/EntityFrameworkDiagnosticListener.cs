@@ -128,11 +128,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity.IsAllDataRequested)
                     {
                         var command = this.commandFetcher.Fetch(payload);
+                        string? providerName = null;
 
                         try
                         {
-                            string? providerName = null;
-
                             if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
                             {
                                 var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
@@ -168,7 +167,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.StoredProcedure:
                                     if (this.options.SetDbStatementForStoredProcedure)
                                     {
-                                        this.AddTag(activity, (SemanticConventions.AttributeDbStatement, SemanticConventions.AttributeDbQueryText), commandText);
+                                        DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
+                                            activity,
+                                            commandText,
+                                            this.options.EmitOldAttributes,
+                                            this.options.EmitNewAttributes);
                                     }
 
                                     break;
@@ -176,7 +179,16 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     if (this.options.SetDbStatementForText)
                                     {
-                                        this.AddTag(activity, (SemanticConventions.AttributeDbStatement, SemanticConventions.AttributeDbQueryText), commandText);
+                                        // Only SQL-like providers support sanitization as we are not
+                                        // able to sanitize arbitrary commands for other query dialects.
+                                        bool sanitizeQuery = IsSqlLikeProvider(providerName);
+
+                                        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                            activity,
+                                            commandText,
+                                            this.options.EmitOldAttributes,
+                                            this.options.EmitNewAttributes,
+                                            sanitizeQuery);
                                     }
 
                                     break;
@@ -342,6 +354,33 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             //// Otherwise use the fallback defined in the Semantic Conventions
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
         };
+
+    /// <summary>
+    /// Returns whether the given provider or command name is SQL-like.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// <see langword="true"/> if the provider or command name is SQL-like; otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool IsSqlLikeProvider(string? providerOrCommandName)
+    {
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+
+        return dbSystemName switch
+        {
+            DbSystemNames.Firebirdsql or
+            DbSystemNames.GcpSpanner or
+            DbSystemNames.IbmDb2 or
+            DbSystemNames.MicrosoftSqlServer or
+            DbSystemNames.Mysql or
+            DbSystemNames.OracleDb or
+            DbSystemNames.Postgresql or
+            DbSystemNames.Sqlite or
+            DbSystemNames.Teradata
+              => true,
+            _ => false,
+        };
+    }
 
     private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
         => this.AddTag(activity, attributes, (value, value));

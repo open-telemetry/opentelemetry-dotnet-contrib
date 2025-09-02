@@ -210,6 +210,59 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
+    {
+        // Get all the possible names and assume they are false
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+
+        // Override specific entries to be true
+        string[] supported =
+        [
+            "Devart.Data.MySql.Entity.EFCore",
+            "Devart.Data.MySql.MySqlCommand",
+            "Devart.Data.Oracle.Entity.EFCore",
+            "Devart.Data.Oracle.OracleCommand",
+            "Devart.Data.PostgreSql.Entity.EFCore",
+            "Devart.Data.PostgreSql.PgSqlCommand",
+            "Devart.Data.SQLite.Entity.EFCore",
+            "FirebirdSql.Data.FirebirdClient.FbCommand",
+            "FirebirdSql.EntityFrameworkCore.Firebird",
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Microsoft.Data.Sqlite.SqliteCommand",
+            "Microsoft.EntityFrameworkCore.Sqlite",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+            "MySql.Data.EntityFrameworkCore",
+            "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Npgsql.NpgsqlCommand",
+            "Oracle.EntityFrameworkCore",
+            "Oracle.ManagedDataAccess.Client.OracleCommand",
+            "Pomelo.EntityFrameworkCore.MySql",
+            "Teradata.Client.Provider.TdCommand",
+            "Teradata.EntityFrameworkCore",
+        ];
+
+        foreach (var name in supported)
+        {
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -218,6 +271,15 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
         Assert.Equal(expectedDbSystem, actualDbSystem);
         Assert.Equal(expectedDbSystemName, actualDbSystemName);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsSqlLikeProviderTestCases))]
+    public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkDiagnosticListener.IsSqlLikeProvider(name);
+
+        Assert.Equal(expected, actual);
     }
 
     [Fact]

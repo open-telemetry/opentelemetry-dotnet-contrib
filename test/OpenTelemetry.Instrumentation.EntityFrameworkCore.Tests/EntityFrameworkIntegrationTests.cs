@@ -62,20 +62,20 @@ public sealed class EntityFrameworkIntegrationTests :
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            var expectedSpanNameWhenCaptureTextCommandContent = database;
+            var expectedSpanNameWhenCaptureTextCommandContent = useNewConventions
+                ? "select"
+                : database;
 
             testCases.Add(provider, "select 1/1", false, false, useNewConventions, commandType, database, system, database, null);
             testCases.Add(provider, "select 1/1", true, false, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, null);
 
             // For some reason, SQLite does not throw an exception for division by zero
-            // TODO Remove the second part of the conditions when EFCore sets SemanticConventions.AttributeDbQuerySummary
-            // so that there isn't a drift between the expected span names used between SQL Server and EFCore
-            if (provider == PostgresProvider && !useNewConventions)
+            if (provider == PostgresProvider)
             {
                 testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "22012: division by zero");
                 testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "22012: division by zero");
             }
-            else if (provider == SqlServerProvider && !useNewConventions)
+            else if (provider == SqlServerProvider)
             {
                 testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "Divide by zero error encountered.");
                 testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "Divide by zero error encountered.");
@@ -108,6 +108,29 @@ public sealed class EntityFrameworkIntegrationTests :
                     testCases.Add(provider, captureTextCommandContent, shouldEnrich, false, commandType, system, database);
                 }
             }
+        }
+
+        return testCases;
+    }
+
+    public static TheoryData<string, string, bool, bool, string?, string?> QuerySanitizationTestCases()
+    {
+        string[] providers =
+        [
+            MySqlProvider,
+            PostgresProvider,
+            SqliteProvider,
+            SqlServerProvider,
+        ];
+
+        var testCases = new TheoryData<string, string, bool, bool, string?, string?>();
+
+        foreach (var provider in providers)
+        {
+            testCases.Add(provider, "select 1/1", false, false, null, null);
+            testCases.Add(provider, "select 1/1", false, true, null, null);
+            testCases.Add(provider, "select 1/1", true, false, "select ?/?", null);
+            testCases.Add(provider, "select 1/1", true, true, "select ?/?", "select");
         }
 
         return testCases;
@@ -341,6 +364,57 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
     }
 
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [MemberData(nameof(QuerySanitizationTestCases))]
+    [InlineData(SqlServerProvider, "sp_who", false, false, null, null)]
+    [InlineData(SqlServerProvider, "sp_who", false, true, null, null)]
+    [InlineData(SqlServerProvider, "sp_who", true, false, "sp_who", null)]
+    [InlineData(SqlServerProvider, "sp_who", true, true, "sp_who", null)]
+    public async Task SqlQueriesAreSanitized(
+        string provider,
+        string commandText,
+        bool captureTextCommandContent,
+        bool useNewConventions,
+        string? expectedCommandText,
+        string? expectedQuerySummary)
+    {
+        var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
+        using var scope = SemanticConventionScope.Get(useNewConventions);
+
+        var activities = new List<Activity>();
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddEntityFrameworkCoreInstrumentation(options => options.SetDbStatementForText = captureTextCommandContent)
+            .Build();
+
+        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+
+        this.ConfigureProvider(provider, optionsBuilder);
+
+        await using var context = new ItemsContext(optionsBuilder.Options);
+        await context.Database.EnsureCreatedAsync();
+
+        // Clear activities from creating the database
+        activities.Clear();
+
+        // Act
+        await context.Database.ExecuteSqlRawAsync(commandText);
+
+        // Assert
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(expectedCommandText, activity.GetTagValue(conventions.QueryText));
+
+        if (conventions.EmitsNewAttributes)
+        {
+            Assert.Equal(expectedQuerySummary, activity.GetTagValue(conventions.QuerySummary));
+        }
+        else
+        {
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == conventions.QuerySummary);
+        }
+    }
+
     private static object CreateParameter(string provider, string name, object value)
     {
         return provider switch
@@ -381,6 +455,15 @@ public sealed class EntityFrameworkIntegrationTests :
         if (captureTextCommandContent)
         {
             Assert.NotNull(activity.GetTagValue(conventions.QueryText));
+
+            if (conventions.EmitsNewAttributes)
+            {
+                Assert.NotNull(activity.GetTagValue(conventions.QuerySummary));
+            }
+            else
+            {
+                Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == conventions.QuerySummary);
+            }
         }
         else
         {
@@ -431,6 +514,7 @@ public sealed class EntityFrameworkIntegrationTests :
         {
             EmitsNewAttributes = false,
             Database = SemanticConventions.AttributeDbName,
+            QuerySummary = SemanticConventions.AttributeDbQuerySummary,
             QueryText = SemanticConventions.AttributeDbStatement,
             ServerAddress = "peer.service",
             ServerPort = null,
@@ -441,6 +525,7 @@ public sealed class EntityFrameworkIntegrationTests :
         {
             EmitsNewAttributes = true,
             Database = SemanticConventions.AttributeDbNamespace,
+            QuerySummary = SemanticConventions.AttributeDbQuerySummary,
             QueryText = SemanticConventions.AttributeDbQueryText,
             ServerAddress = SemanticConventions.AttributeServerAddress,
             ServerPort = SemanticConventions.AttributeServerPort,
@@ -450,6 +535,8 @@ public sealed class EntityFrameworkIntegrationTests :
         public bool EmitsNewAttributes { get; private init; }
 
         public required string Database { get; init; }
+
+        public required string QuerySummary { get; init; }
 
         public required string QueryText { get; init; }
 

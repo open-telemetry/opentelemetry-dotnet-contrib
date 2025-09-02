@@ -1,8 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Instrumentation;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Internal;
 
@@ -54,6 +57,62 @@ internal static class DatabaseSemanticConventionHelper
         }
 
         return DatabaseSemanticConvention.Old;
+    }
+
+    public static void ApplyConventionsForQueryText(
+        Activity activity,
+        string? commandText,
+        bool emitOldAttributes,
+        bool emitNewAttributes,
+        bool sanitizeQuery = true)
+    {
+        string queryText = commandText ?? string.Empty;
+        string querySummary = string.Empty;
+
+        if (sanitizeQuery)
+        {
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+
+            queryText = sqlStatementInfo.SanitizedSql;
+            querySummary = sqlStatementInfo.DbQuerySummary;
+        }
+
+        if (emitOldAttributes)
+        {
+            activity.SetTag(SemanticConventions.AttributeDbStatement, queryText);
+        }
+
+        if (emitNewAttributes)
+        {
+            activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
+
+            if (!string.IsNullOrEmpty(querySummary))
+            {
+                activity.SetTag(SemanticConventions.AttributeDbQuerySummary, querySummary);
+                activity.DisplayName = querySummary;
+            }
+        }
+    }
+
+    public static void ApplyConventionsForStoredProcedure(
+        Activity activity,
+        string? commandText,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        if (emitOldAttributes)
+        {
+            activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+        }
+
+        if (emitNewAttributes)
+        {
+            activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
+            activity.SetTag(SemanticConventions.AttributeDbStoredProcedureName, commandText);
+            var dbQuerySummary = $"EXECUTE {commandText}";
+            activity.SetTag(SemanticConventions.AttributeDbQuerySummary, dbQuerySummary);
+            activity.DisplayName = dbQuerySummary;
+        }
     }
 
     private static bool TryGetConfiguredValues(IConfiguration configuration, [NotNullWhen(true)] out HashSet<string>? values)

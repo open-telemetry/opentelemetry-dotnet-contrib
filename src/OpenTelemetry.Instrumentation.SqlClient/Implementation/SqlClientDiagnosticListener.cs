@@ -11,6 +11,7 @@ using System.Globalization;
 #if NET
 using System.Text;
 #endif
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -153,46 +154,26 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (options.EmitOldAttributes)
-                                    {
-                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
-                                    }
-
-                                    if (options.EmitNewAttributes)
-                                    {
-                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                                        activity.SetTag(SemanticConventions.AttributeDbStoredProcedureName, commandText);
-                                        var dbQuerySummary = $"EXECUTE {commandText}";
-                                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, dbQuerySummary);
-                                        activity.DisplayName = dbQuerySummary;
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
+                                        activity,
+                                        commandText,
+                                        options.EmitOldAttributes,
+                                        options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.Text:
                                     if (options.SetDbStatementForText)
                                     {
-                                        var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
-                                        if (options.EmitOldAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, sqlStatementInfo.SanitizedSql);
-                                        }
-
-                                        if (options.EmitNewAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
-                                            if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
-                                            {
-                                                activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
-                                                activity.DisplayName = sqlStatementInfo.DbQuerySummary;
-                                            }
-                                        }
+                                        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                            activity,
+                                            commandText,
+                                            options.EmitOldAttributes,
+                                            options.EmitNewAttributes);
                                     }
 
                                     break;
 
                                 case CommandType.TableDirect:
-                                    break;
                                 default:
                                     break;
                             }
