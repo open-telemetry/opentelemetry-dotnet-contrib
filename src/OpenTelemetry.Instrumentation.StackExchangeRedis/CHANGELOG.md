@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* **Breaking change** Introduce `RedisInstrumentationContext` and use it
+  as context for `Filter`
+  ([#2977](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2977))
+
 * Removed the `db.redis.flags` attribute from the implementation
   as it is not part of the Semantic Conventions for Database Client Calls.
  ([#2982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2982))

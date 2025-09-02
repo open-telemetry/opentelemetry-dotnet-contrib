@@ -53,7 +53,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
+            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -139,6 +140,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             activity.IsAllDataRequested = false;
                             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                             return;
+                        }
+
+                        if (options.EmitNewAttributes && options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
                         }
 
                         if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
@@ -304,7 +310,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
-        if (SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
