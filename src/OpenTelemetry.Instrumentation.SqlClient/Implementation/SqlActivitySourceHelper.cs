@@ -133,7 +133,7 @@ internal sealed class SqlActivitySourceHelper
 
     internal static double CalculateDurationFromTimestamp(long begin)
     {
-#if NET8_0_OR_GREATER
+#if NET
         var duration = Stopwatch.GetElapsedTime(begin);
 #else
         var end = Stopwatch.GetTimestamp();
