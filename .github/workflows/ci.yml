@@ -30,7 +30,7 @@ jobs:
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
           shared: ['src/Shared/**', 'test/Shared/**']
-          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
+          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**', 'test/OpenTelemetry.Contrib.Shared.Benchmarks/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
