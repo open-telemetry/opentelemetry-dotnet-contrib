@@ -187,8 +187,9 @@ internal sealed class SqlEventSourceListener : EventListener
             [2] -> SqlExceptionNumber
          */
 
-        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
-            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        var handleManager = SqlClientInstrumentation.Instance.HandleManager;
+
+        if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
             return;
         }
@@ -208,7 +209,7 @@ internal sealed class SqlEventSourceListener : EventListener
 
         // If we're only collecting metrics, then we don't want to modify the activity
         var traceActivity =
-            SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles != 0 ?
+            handleManager.TracingHandles == 0 && handleManager.MetricHandles != 0 ?
             null :
             sqlActivity;
 
