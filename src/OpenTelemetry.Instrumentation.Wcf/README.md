@@ -20,6 +20,16 @@ Other configurations may work as well but have not been tested.
   * Streamed and buffered transfer modes
   * Signed and unsigned messages
 
+> [!CAUTION]
+> This component is based on the OpenTelemetry semantic conventions for
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md).
+> These conventions are
+> [in Development](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
+> and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
+> Until a [stable
+> version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
+> is released, there can be breaking changes.
+
 ## Installation
 
 Add the OpenTelemetry.Instrumentation.Wcf package via NuGet.
