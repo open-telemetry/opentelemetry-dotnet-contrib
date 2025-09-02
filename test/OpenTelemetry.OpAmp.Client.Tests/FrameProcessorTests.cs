@@ -19,8 +19,8 @@ public class FrameProcessorTests
         processor.Subscribe(listener);
         processor.OnServerFrame(mockFrame.Frame);
 
-        Assert.Single(listener.Messages);
-        Assert.Equal(mockFrame.ExptectedContent, listener.Messages[0].CustomMessage.Data.ToStringUtf8());
+        var message = Assert.Single(listener.Messages);
+        Assert.Equal(mockFrame.ExptectedContent, message.CustomMessage.Data.ToStringUtf8());
     }
 
     [Fact]

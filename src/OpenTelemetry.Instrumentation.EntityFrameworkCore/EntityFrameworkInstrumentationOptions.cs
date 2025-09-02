@@ -69,6 +69,20 @@ public class EntityFrameworkInstrumentationOptions
     public Func<string?, IDbCommand, bool>? Filter { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/>
+    /// should add the names and values of query parameters as the <c>db.query.parameter.{key}</c> tag.
+    /// Default value: <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>WARNING: SetDbQueryParameters will capture the raw
+    /// <c>Value</c>. Make sure your query parameters never
+    /// contain any sensitive data.</b>
+    /// </para>
+    /// </remarks>
+    public bool SetDbQueryParameters { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the old database attributes should be emitted.
     /// </summary>
     internal bool EmitOldAttributes { get; set; }
