@@ -12,16 +12,16 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Tools;
 internal class OpAmpFakeHttpServer : IDisposable
 {
     private readonly IDisposable httpServer;
-    private readonly BlockingCollection<AgentToServer> frames;
+    private readonly BlockingCollection<AgentToServer> frames = [];
 
     public OpAmpFakeHttpServer()
     {
-        this.frames = [];
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
                 var buffer = new byte[context.Request.ContentLength64];
                 _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
+
                 var frame = AgentToServer.Parser.ParseFrom(buffer);
 
                 this.frames.Add(frame);
