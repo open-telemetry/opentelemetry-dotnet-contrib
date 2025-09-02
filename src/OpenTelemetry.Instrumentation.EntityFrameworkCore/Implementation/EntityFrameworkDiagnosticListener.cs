@@ -155,6 +155,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
+                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
+                        }
+
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);

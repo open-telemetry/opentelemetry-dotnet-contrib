@@ -75,7 +75,7 @@ internal static class RedisProfilerEntryToActivityConverter
     {
         try
         {
-            if (options.Filter != null && !options.Filter(command))
+            if (options.Filter != null && !options.Filter(new(parentActivity, command)))
             {
                 return null;
             }
@@ -184,7 +184,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 activity.AddEvent(new ActivityEvent("ResponseReceived", response));
             }
 
-            options.Enrich?.Invoke(activity, command);
+            options.Enrich?.Invoke(activity, new(parentActivity, command));
         }
 
         activity.Stop();
