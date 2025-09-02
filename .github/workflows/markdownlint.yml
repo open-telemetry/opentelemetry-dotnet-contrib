@@ -20,3 +20,4 @@ jobs:
         globs: |
           **/*.md
           !.github/**/*.md
+          !**/*-report-github.md
