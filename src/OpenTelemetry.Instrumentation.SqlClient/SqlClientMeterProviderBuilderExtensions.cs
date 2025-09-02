@@ -29,7 +29,7 @@ public static class SqlClientMeterProviderBuilderExtensions
 
         builder.AddInstrumentation(sp =>
         {
-            return SqlClientInstrumentation.AddMetricHandle();
+            return SqlClientInstrumentation.Instance.HandleManager.AddMetricHandle();
         });
 
         builder.AddMeter(SqlActivitySourceHelper.MeterName);
