@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-namespace OpenTelemetry.OpAmp.Client;
+namespace OpenTelemetry.OpAmp.Client.Internal;
 
 /// <summary>
 /// Specifies the type of transport protocol to be used for communication.

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Transport;
+using OpenTelemetry.OpAmp.Client.Internal.Transport;
 
-namespace OpenTelemetry.OpAmp.Client;
+namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class FrameDispatcher : IDisposable
 {

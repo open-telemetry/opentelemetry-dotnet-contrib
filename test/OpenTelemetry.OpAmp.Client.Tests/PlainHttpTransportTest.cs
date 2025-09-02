@@ -3,9 +3,10 @@
 
 using Google.Protobuf;
 using OpAmp.Proto.V1;
+using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
-using OpenTelemetry.OpAmp.Client.Transport.Http;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;

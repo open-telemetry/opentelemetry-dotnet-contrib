@@ -1,10 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.OpAmp.Client.Transport;
-using OpenTelemetry.OpAmp.Client.Transport.Http;
+using OpenTelemetry.OpAmp.Client.Internal.Transport;
+using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 
-namespace OpenTelemetry.OpAmp.Client;
+namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class OpAmpClient
 {
