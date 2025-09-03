@@ -35,6 +35,8 @@ internal sealed class AWSEC2Detector : IResourceDetector
     {
         try
         {
+            // Prevents EC2 related http call from being instrumented.
+            using var scope = SuppressInstrumentationScope.Begin();
             var token = GetAWSEC2Token();
             var identity = GetAWSEC2Identity(token);
             var hostName = GetAWSEC2HostName(token);
