@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj" />
+    <SolutionProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Benchmarks\OpenTelemetry.Contrib.Shared.Benchmarks.csproj" />
     <TestProjects Include="$(RepoRoot)\test\OpenTelemetry.Contrib.Shared.Tests\OpenTelemetry.Contrib.Shared.Tests.csproj" />
   </ItemGroup>
 

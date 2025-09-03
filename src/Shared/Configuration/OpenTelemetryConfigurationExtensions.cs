@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-#if NET || NETSTANDARD2_1
+#if NET || NETSTANDARD2_1_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
@@ -13,7 +13,7 @@ internal static class OpenTelemetryConfigurationExtensions
 {
     public delegate bool TryParseFunc<T>(
         string value,
-#if NET || NETSTANDARD2_1
+#if NET || NETSTANDARD2_1_OR_GREATER
         [NotNullWhen(true)]
 #endif
         out T? parsedValue);
@@ -21,7 +21,7 @@ internal static class OpenTelemetryConfigurationExtensions
     public static bool TryGetStringValue(
         this IConfiguration configuration,
         string key,
-#if NET || NETSTANDARD2_1
+#if NET || NETSTANDARD2_1_OR_GREATER
         [NotNullWhen(true)]
 #endif
         out string? value)
@@ -37,7 +37,7 @@ internal static class OpenTelemetryConfigurationExtensions
         this IConfiguration configuration,
         IConfigurationExtensionsLogger logger,
         string key,
-#if NET || NETSTANDARD2_1
+#if NET || NETSTANDARD2_1_OR_GREATER
         [NotNullWhen(true)]
 #endif
         out Uri? value)
@@ -110,7 +110,7 @@ internal static class OpenTelemetryConfigurationExtensions
         IConfigurationExtensionsLogger logger,
         string key,
         TryParseFunc<T> tryParseFunc,
-#if NET || NETSTANDARD2_1
+#if NET || NETSTANDARD2_1_OR_GREATER
         [NotNullWhen(true)]
 #endif
         out T? value)

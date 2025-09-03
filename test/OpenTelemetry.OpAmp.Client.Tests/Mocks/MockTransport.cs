@@ -3,7 +3,7 @@
 
 using Google.Protobuf;
 using OpAmp.Proto.V1;
-using OpenTelemetry.OpAmp.Client.Transport;
+using OpenTelemetry.OpAmp.Client.Internal.Transport;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 

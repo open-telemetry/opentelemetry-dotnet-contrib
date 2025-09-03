@@ -187,8 +187,9 @@ internal sealed class SqlEventSourceListener : EventListener
             [2] -> SqlExceptionNumber
          */
 
-        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
-            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
+        var handleManager = SqlClientInstrumentation.Instance.HandleManager;
+
+        if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
             return;
         }
@@ -199,22 +200,22 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
-            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles != 0)
-        {
-            this.RecordDuration(null, eventData);
-            return;
-        }
+        var currentActivity = Activity.Current;
 
-        var activity = Activity.Current;
-        if (activity?.Source != SqlActivitySourceHelper.ActivitySource)
-        {
-            return;
-        }
+        // Ensure any activity that may exist due to ActivitySource.AddActivityListener()
+        // is stopped regardless of whether we're doing metrics and/or tracing.
+        // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
+        var sqlActivity = currentActivity?.Source == SqlActivitySourceHelper.ActivitySource ? currentActivity : null;
+
+        // If we're only collecting metrics, then we don't want to modify the activity
+        var traceActivity =
+            handleManager.TracingHandles == 0 && handleManager.MetricHandles != 0 ?
+            null :
+            sqlActivity;
 
         try
         {
-            if (activity.IsAllDataRequested)
+            if (traceActivity?.IsAllDataRequested is true)
             {
                 var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
 
@@ -222,21 +223,22 @@ internal sealed class SqlEventSourceListener : EventListener
                 {
                     if (errorNumber != null && exceptionType != null)
                     {
-                        activity.SetStatus(ActivityStatusCode.Error, errorNumber);
-                        activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
-                        activity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
+                        traceActivity.SetStatus(ActivityStatusCode.Error, errorNumber);
+                        traceActivity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+                        traceActivity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
                     }
                     else
                     {
-                        activity.SetStatus(ActivityStatusCode.Error, "Unknown Sql failure.");
+                        traceActivity.SetStatus(ActivityStatusCode.Error, "Unknown Sql failure.");
                     }
                 }
             }
         }
         finally
         {
-            activity.Stop();
-            this.RecordDuration(activity, eventData);
+            // If there's a SQL activity, stop it before recording the duration.
+            sqlActivity?.Stop();
+            this.RecordDuration(traceActivity, eventData);
         }
     }
 
