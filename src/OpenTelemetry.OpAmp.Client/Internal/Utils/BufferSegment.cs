@@ -5,7 +5,7 @@ using System.Buffers;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-internal class BufferSegment : ReadOnlySequenceSegment<byte>
+internal sealed class BufferSegment : ReadOnlySequenceSegment<byte>
 {
     public BufferSegment(byte[] buffer)
     {
