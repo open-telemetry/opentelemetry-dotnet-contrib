@@ -297,7 +297,6 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.EntityFrameworkCore]
       code-cov-name: Instrumentation.EntityFrameworkCore
-      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-instrumentation-eventcounters:
     needs: detect-changes
@@ -422,7 +421,6 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.SqlClient]
       code-cov-name: Instrumentation.SqlClient
-      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
 
   build-test-instrumentation-stackexchangeredis:
     needs: detect-changes
