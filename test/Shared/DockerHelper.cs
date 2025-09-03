@@ -57,6 +57,11 @@ internal static class DockerHelper
             process.BeginErrorReadLine();
             process.WaitForExit();
         }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // Thrown if Docker is not installed
+            return false;
+        }
         finally
         {
             process.OutputDataReceived -= AppendStdout;
