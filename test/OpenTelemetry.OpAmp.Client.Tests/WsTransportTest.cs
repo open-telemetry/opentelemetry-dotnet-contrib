@@ -33,7 +33,7 @@ public class WsTransportTest
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets: true);
 
         // Act
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         await wsTransport.SendAsync(mockFrame.Frame, cts.Token);
 
