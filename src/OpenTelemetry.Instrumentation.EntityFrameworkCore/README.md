@@ -147,13 +147,22 @@ services.AddOpenTelemetry()
 emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
 see below for more details.
 
-<!--
-TODO Update the text to match SQL Server when we santize the query.
-See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3020.
--->
+Query text may contain sensitive data, so when `SetDbStatementForText` is
+enabled the raw query text is sanitized by automatically replacing literal
+values with a `?` character.
 
-Query parameters may contain sensitive data, so only enable `SetDbStatementForText`
-if your queries and/or environment are appropriate for enabling this option.
+> [!NOTE]
+> Query sanitization is only supported for the following SQL-like providers:
+>
+> * Firebird
+> * GCP Spanner
+> * IBM DB2
+> * Microsoft SQL Server
+> * MySQL
+> * Oracle
+> * PostgreSQL
+> * SQLite
+> * Teradata
 
 ### SetDbQueryParameters
 
