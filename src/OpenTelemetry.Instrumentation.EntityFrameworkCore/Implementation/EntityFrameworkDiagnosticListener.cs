@@ -155,6 +155,11 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
+                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
+                        }
+
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
@@ -286,6 +291,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Devart.Data.MySql.MySqlCommand" or
             "MySql.Data.EntityFrameworkCore" or
             "MySql.Data.MySqlClient.MySqlCommand" or
+            "MySql.EntityFrameworkCore" or
             "Pomelo.EntityFrameworkCore.MySql"
                 => (DbSystems.Mysql, DbSystemNames.Mysql),
             "Npgsql.EntityFrameworkCore.PostgreSQL" or
@@ -307,6 +313,15 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "Teradata.Client.Provider.TdCommand" or
             "Teradata.EntityFrameworkCore"
                 => (DbSystems.Teradata, DbSystemNames.Teradata),
+            "MongoDB.EntityFrameworkCore"
+                => (DbSystems.Mongodb, DbSystemNames.Mongodb),
+            "Couchbase.EntityFrameworkCore" or
+            "Couchbase.EntityFrameworkCore.Storage.Internal"
+                => (DbSystems.Couchbase, DbSystemNames.Couchbase),
+            "IBM.EntityFrameworkCore" or
+            "IBM.EntityFrameworkCore-lnx" or
+            "IBM.EntityFrameworkCore-osx"
+                => (DbSystems.Db2, DbSystemNames.IbmDb2),
             //// These names are custom and are retained for backwards compatibility
             "EFCore.Snowflake" or
             "EFCore.Snowflake.Storage" or
@@ -367,9 +382,12 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         public const string OtherSql = "other_sql";
         public const string AzureCosmosDb = "azure.cosmosdb";
+        public const string Couchbase = "couchbase";
         public const string Firebirdsql = "firebirdsql";
         public const string GcpSpanner = "gcp.spanner";
+        public const string IbmDb2 = "ibm.db2";
         public const string MicrosoftSqlServer = "microsoft.sql_server";
+        public const string Mongodb = "mongodb";
         public const string Mysql = "mysql";
         public const string OracleDb = "oracle.db";
         public const string Postgresql = "postgresql";
@@ -384,7 +402,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     {
         public const string OtherSql = "other_sql";
         public const string Cosmosdb = "cosmosdb";
+        public const string Couchbase = "couchbase";
+        public const string Db2 = "db2";
         public const string Firebird = "firebird";
+        public const string Mongodb = "mongodb";
         public const string Mssql = "mssql";
         public const string Mysql = "mysql";
         public const string Oracle = "oracle";

@@ -13,6 +13,8 @@ on:
         - OpenTelemetry.Extensions
         - OpenTelemetry.Extensions.AWS
         - OpenTelemetry.Extensions.Enrichment
+        - OpenTelemetry.Extensions.Enrichment.AspNetCore
+        - OpenTelemetry.Extensions.Enrichment.Http
         - OpenTelemetry.Instrumentation.AspNet
         - OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
         - OpenTelemetry.Instrumentation.AspNetCore

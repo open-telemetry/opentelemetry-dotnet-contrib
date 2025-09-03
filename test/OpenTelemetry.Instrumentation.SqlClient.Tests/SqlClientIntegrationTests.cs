@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Data.SqlClient;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Testcontainers.MsSql;
@@ -126,6 +127,90 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         }
     }
 
+#if NET
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task SuccessfulParameterizedQueryTest()
+    {
+        // Arrange
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+
+        using var scope = SemanticConventionScope.Get(useNewConventions: true);
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddInMemoryExporter(activities)
+            .AddSqlClientInstrumentation(options => options.SetDbQueryParameters = true)
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        var dataSource = sqlConnection.DataSource;
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("SELECT @x + @y", sqlConnection);
+
+        sqlCommand.Parameters.AddWithValue("@x", 42);
+        sqlCommand.Parameters.AddWithValue("@y", 37);
+
+        // Act
+        var result = await sqlCommand.ExecuteScalarAsync();
+
+        // Assert
+        Assert.Equal(79, result);
+
+        var activity = Assert.Single(activities);
+
+        Assert.Equal(42, activity.GetTagValue("db.query.parameter.@x"));
+        Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
+    }
+#endif
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public async Task ActivityIsStoppedWhenOnlyUsingMetrics()
+    {
+        // Arrange
+        var activities = new List<Activity>();
+        var metrics = new List<MetricSnapshot>();
+
+        using var listener = new ActivityListener()
+        {
+            ActivityStarted = activities.Add,
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+            ShouldListenTo = _ => true,
+        };
+
+        ActivitySource.AddActivityListener(listener);
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddSqlClientInstrumentation()
+            .Build();
+
+        using var sqlConnection = new SqlConnection(this.GetConnectionString());
+
+        await sqlConnection.OpenAsync();
+
+        var dataSource = sqlConnection.DataSource;
+
+        sqlConnection.ChangeDatabase("master");
+
+        using var sqlCommand = new SqlCommand("select 1/1", sqlConnection);
+
+        // Act
+        var result = await sqlCommand.ExecuteScalarAsync();
+
+        // Assert
+        Assert.Equal(1, result);
+
+        var activity = Assert.Single(activities);
+
+        Assert.True(activity.IsStopped);
+    }
+
     private static void VerifyContextInfo(
         string? commandText,
         object commandResult,
@@ -195,6 +280,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             Assert.Equal("MSSQLLocalDB.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
+        Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
+        Assert.DoesNotContain(activity.Tags, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
+
         switch (commandType)
         {
             case CommandType.StoredProcedure:
@@ -249,13 +337,28 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
                    && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
-    private string GetConnectionString()
+    private string GetConnectionString() => this.fixture.DatabaseContainer switch
     {
-        return this.fixture.DatabaseContainer switch
+        SqlEdgeContainer container => container.GetConnectionString(),
+        MsSqlContainer container => container.GetConnectionString(),
+        _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
+    };
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
+
+        public static SemanticConventionScope Get(bool useNewConventions)
         {
-            SqlEdgeContainer container => container.GetConnectionString(),
-            MsSqlContainer container => container.GetConnectionString(),
-            _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
-        };
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+
+            Environment.SetEnvironmentVariable(
+                ConventionsOptIn,
+                useNewConventions ? "database" : string.Empty);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }

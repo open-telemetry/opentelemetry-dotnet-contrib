@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 using System.Net;
-#if NET8_0_OR_GREATER
+#if NET
 using System.Net.Sockets;
 #endif
 using System.Reflection;
@@ -75,7 +75,7 @@ internal static class RedisProfilerEntryToActivityConverter
     {
         try
         {
-            if (options.Filter != null && !options.Filter(command))
+            if (options.Filter != null && !options.Filter(new(parentActivity, command)))
             {
                 return null;
             }
@@ -158,7 +158,7 @@ internal static class RedisProfilerEntryToActivityConverter
                     activity.SetTag(SemanticConventions.AttributeServerAddress, dnsEndPoint.Host);
                     activity.SetTag(SemanticConventions.AttributeServerPort, dnsEndPoint.Port);
                 }
-#if NET8_0_OR_GREATER
+#if NET
                 else if (command.EndPoint is UnixDomainSocketEndPoint unixDomainSocketEndPoint)
                 {
                     activity.SetTag(SemanticConventions.AttributeServerAddress, unixDomainSocketEndPoint.ToString());
@@ -184,7 +184,7 @@ internal static class RedisProfilerEntryToActivityConverter
                 activity.AddEvent(new ActivityEvent("ResponseReceived", response));
             }
 
-            options.Enrich?.Invoke(activity, command);
+            options.Enrich?.Invoke(activity, new(parentActivity, command));
         }
 
         activity.Stop();

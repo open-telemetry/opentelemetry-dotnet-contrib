@@ -26,7 +26,7 @@ and later.
 > This component is based on the OpenTelemetry semantic conventions for
 [traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md).
 These conventions are
-[Experimental](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
+[in Development](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
 and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
@@ -190,6 +190,33 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 names will be captured. To capture query text, other command text and
 stored procedure command names, you need to use the `Microsoft.Data.SqlClient`
 NuGet package (v1.1+).
+
+### SetDbQueryParameters
+
+> [!NOTE]
+> SetDbQueryParameters is not supported on .NET Framework.
+
+`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
+are emitted.
+
+Query parameters may contain sensitive data, so only enable `SetDbStatementForText`
+if your queries and/or environment are appropriate for enabling this option.
+
+`SetDbQueryParameters` is _false_ by default. When set to `true`, the
+instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
+
+To enable capturing of parameter names and values use the
+following configuration.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddSqlClientInstrumentation(
+        options => options.SetDbStatementForText = true)
+    .AddConsoleExporter()
+    .Build();
+```
 
 ### Enrich
 
