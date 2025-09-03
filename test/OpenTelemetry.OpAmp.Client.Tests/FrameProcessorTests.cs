@@ -15,10 +15,10 @@ public class FrameProcessorTests
     {
         var processor = new FrameProcessor();
         var listener = new MockListener();
-        var mockFrame = FrameGenerator.GenerateMockFrame();
+        var mockFrame = FrameGenerator.GenerateMockServerFrame();
 
         processor.Subscribe(listener);
-        processor.OnServerFrame(mockFrame.Frame);
+        processor.OnServerFrame(mockFrame.Frame.ToSequence());
 
         var message = Assert.Single(listener.Messages);
         Assert.Equal(mockFrame.ExptectedContent, message.CustomMessage.Data.ToStringUtf8());
@@ -29,15 +29,15 @@ public class FrameProcessorTests
     {
         var processor = new FrameProcessor();
         var listener = new MockListener();
-        var mockFrame = FrameGenerator.GenerateMockFrame();
+        var mockFrame = FrameGenerator.GenerateMockServerFrame();
 
         processor.Subscribe(listener);
-        processor.OnServerFrame(mockFrame.Frame);
+        processor.OnServerFrame(mockFrame.Frame.ToSequence());
 
         Assert.Single(listener.Messages);
 
         processor.Unsubscribe(listener);
-        processor.OnServerFrame(mockFrame.Frame);
+        processor.OnServerFrame(mockFrame.Frame.ToSequence());
         Assert.Single(listener.Messages);
     }
 
@@ -46,7 +46,7 @@ public class FrameProcessorTests
     {
         var processor = new FrameProcessor();
         var listener = new MockListener();
-        var mockFrame = FrameGenerator.GenerateMockFrame();
+        var mockFrame = FrameGenerator.GenerateMockServerFrame();
         int iterations = 1000;
         var tasks = new List<Task>
         {
@@ -55,7 +55,7 @@ public class FrameProcessorTests
             {
                 Parallel.For(0, iterations, i =>
                 {
-                    processor.OnServerFrame(mockFrame.Frame);
+                    processor.OnServerFrame(mockFrame.Frame.ToSequence());
                 });
             }),
 

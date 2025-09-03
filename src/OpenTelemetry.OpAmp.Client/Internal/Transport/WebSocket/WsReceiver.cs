@@ -67,6 +67,12 @@ internal class WsReceiver : IDisposable
                 this.token.ThrowIfCancellationRequested();
             }
 
+            if (this.ws.State != WebSocketState.Open)
+            {
+                // Connection is closed, dont start a new loop
+                break;
+            }
+
             await this.ReceiveAsync(this.token).ConfigureAwait(false);
         }
     }

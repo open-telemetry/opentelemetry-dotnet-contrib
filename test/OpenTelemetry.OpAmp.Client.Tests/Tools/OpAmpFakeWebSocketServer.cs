@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.Tests;
@@ -15,7 +14,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
 
-    public OpAmpFakeWebSocketServer()
+    public OpAmpFakeWebSocketServer(bool useSmallReply)
     {
         this.httpServer = TestWebSocketServer.RunServer(
             async socket =>
@@ -46,7 +45,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                             var frame = ProcessReceive(ms);
                             this.frames.Add(frame);
 
-                            var response = GenerateResponse(frame);
+                            var response = GenerateResponse(frame, useSmallReply);
                             await socket.SendAsync(response, WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
                         }
                     }
@@ -93,28 +92,10 @@ internal class OpAmpFakeWebSocketServer : IDisposable
         return frame;
     }
 
-    private static ArraySegment<byte> GenerateResponse(AgentToServer frame)
+    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallReply)
     {
-        var response = new ServerToAgent
-        {
-            InstanceUid = frame.InstanceUid,
-            CustomMessage = new CustomMessage
-            {
-                Data = ByteString.CopyFromUtf8("Response from OpAmpFakeWebSocketServer"),
-            },
-        };
+        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, isSmall: useSmallReply, addHeader: true);
 
-        var responseLength = response.CalculateSize();
-        var responseBuffer = new byte[responseLength + OpAmpWsHeaderHelper.MaxHeaderLength];
-
-        var headerSize = OpAmpWsHeaderHelper.WriteHeader(new ArraySegment<byte>(responseBuffer));
-
-        var segment = new ArraySegment<byte>(responseBuffer, headerSize, responseLength);
-        response.WriteTo(segment);
-
-        // resegment to include the header byte
-        segment = new ArraySegment<byte>(responseBuffer, 0, responseLength + headerSize);
-
-        return segment;
+        return response.Frame;
     }
 }

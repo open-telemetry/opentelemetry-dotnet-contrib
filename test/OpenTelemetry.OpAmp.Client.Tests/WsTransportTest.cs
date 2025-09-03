@@ -3,8 +3,6 @@
 
 #if NET
 
-using Google.Protobuf;
-using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -15,11 +13,13 @@ namespace OpenTelemetry.OpAmp.Client.Tests;
 
 public class WsTransportTest
 {
-    [Fact]
-    public async Task WsTransport_SendReceiveCommunication()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WsTransport_SendReceiveCommunication(bool useSmallPackages)
     {
         // Arrange
-        using var opAmpServer = new OpAmpFakeWebSocketServer();
+        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackages);
         var opAmpEndpoint = opAmpServer.Endpoint;
 
         var mockListener = new MockListener();
@@ -29,12 +29,13 @@ public class WsTransportTest
         using var wsTransport = new WsTransport(opAmpEndpoint, frameProcessor);
         await wsTransport.StartAsync(CancellationToken.None);
 
-        var uid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
-        var frame = new AgentToServer() { InstanceUid = uid };
+        // Send only small packages, currently sending large package is not supported in WsTransport
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(isSmall: true);
 
         // Act
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        await wsTransport.SendAsync(frame, cts.Token);
+
+        await wsTransport.SendAsync(mockFrame.Frame, cts.Token);
 
         mockListener.WaitForMessages(TimeSpan.FromSeconds(30));
 
@@ -45,12 +46,13 @@ public class WsTransportTest
         // Assert
         var serverReceivedFrames = opAmpServer.GetFrames();
         var clientReceivedFrames = mockListener.Messages;
+        var receivedTextData = clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8();
 
         Assert.Single(serverReceivedFrames);
-        Assert.Equal(uid, serverReceivedFrames.First().InstanceUid);
+        Assert.Equal(mockFrame.Uid, serverReceivedFrames.First().InstanceUid);
 
         Assert.Single(clientReceivedFrames);
-        Assert.Equal("Response from OpAmpFakeWebSocketServer", clientReceivedFrames.First().CustomMessage.Data.ToStringUtf8());
+        Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
     }
 }
 
