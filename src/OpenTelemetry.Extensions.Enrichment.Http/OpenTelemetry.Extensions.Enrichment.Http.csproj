@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <Description>OpenTelemetry .NET SDK HTTP telemetry enrichment.</Description>
+    <MinVerTagPrefix>Extensions.Enrichment.Http-</MinVerTagPrefix>
+  </PropertyGroup>
+
+  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
+  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
+  <PropertyGroup>
+    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+  </PropertyGroup>
+
+</Project>

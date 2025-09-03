@@ -3,7 +3,7 @@
 
 using Google.Protobuf;
 
-namespace OpenTelemetry.OpAmp.Client.Transport;
+namespace OpenTelemetry.OpAmp.Client.Internal.Transport;
 
 internal interface IOpAmpTransport
 {

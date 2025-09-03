@@ -3,7 +3,7 @@
 
 using System.Buffers;
 
-namespace OpenTelemetry.OpAmp.Client.Utils;
+namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 internal static class SequenceHelper
 {

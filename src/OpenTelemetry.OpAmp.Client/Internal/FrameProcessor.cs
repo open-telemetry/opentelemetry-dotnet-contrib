@@ -6,10 +6,10 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Listeners;
-using OpenTelemetry.OpAmp.Client.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Internal.Listeners;
+using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
-namespace OpenTelemetry.OpAmp.Client;
+namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class FrameProcessor
 {
