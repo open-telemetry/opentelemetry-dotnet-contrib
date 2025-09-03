@@ -155,7 +155,7 @@ jobs:
           CreateRelease `
             -gitRepository ${env:GITHUB_REPOSITORY} `
             -tag ${env:GITHUB_REF_NAME} `
-            -releaseFiles "${env:GITHUB_WORKSPACE}/artifacts/${env:GITHUB_REF_NAME}-packages.zip#Packages"
+            -releaseFiles "${env:GITHUB_WORKSPACE}/artifacts/${env:GITHUB_REF_NAME}-packages.zip"
 
       - name: Post notice when packages are ready
         shell: pwsh
