@@ -86,10 +86,7 @@ internal class WsReceiver : IDisposable
 
         do
         {
-            if (this.token.IsCancellationRequested)
-            {
-                this.token.ThrowIfCancellationRequested();
-            }
+            this.token.ThrowIfCancellationRequested();
 
             // out of space, need to rent more
             if (workingBuffer.Length - workingCount == 0)
