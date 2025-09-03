@@ -16,7 +16,7 @@ internal class FrameGenerator
         if (!useSmallPackets)
         {
             var padding = new string('A', 100_000);
-            content = string.Concat(content, Environment.NewLine, padding);
+            content = string.Concat(content, "__", padding);
         }
 
         var uid = ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
@@ -39,7 +39,7 @@ internal class FrameGenerator
         if (!useSmallPackets)
         {
             var padding = new string('A', 100_000);
-            content = string.Concat(content, Environment.NewLine, padding);
+            content = string.Concat(content, "__", padding);
         }
 
         ByteString uid = instanceUid ?? ByteString.CopyFrom(Guid.NewGuid().ToByteArray());
