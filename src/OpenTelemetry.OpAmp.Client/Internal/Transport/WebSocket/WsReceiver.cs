@@ -62,10 +62,7 @@ internal class WsReceiver : IDisposable
     {
         while (true)
         {
-            if (this.token.IsCancellationRequested)
-            {
-                this.token.ThrowIfCancellationRequested();
-            }
+            this.token.ThrowIfCancellationRequested();
 
             if (this.ws.State != WebSocketState.Open)
             {
