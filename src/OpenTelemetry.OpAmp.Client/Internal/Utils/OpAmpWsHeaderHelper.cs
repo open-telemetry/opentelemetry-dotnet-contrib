@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-internal class OpAmpWsHeaderHelper
+internal static class OpAmpWsHeaderHelper
 {
     public const int OpAmpProtocolHeader = 0x00;
     public const int MaxHeaderLength = 10; // Maximum length for varint64 encoding
