@@ -14,10 +14,10 @@ public class PlainHttpTransportTest
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task PlainHttpTransport_SendReceiveCommunication(bool useSmallPackages)
+    public async Task PlainHttpTransport_SendReceiveCommunication(bool useSmallPackets)
     {
         // Arrange
-        using var opAmpServer = new OpAmpFakeHttpServer(useSmallPackages);
+        using var opAmpServer = new OpAmpFakeHttpServer(useSmallPackets);
         var opAmpEndpoint = opAmpServer.Endpoint;
 
         using var mockListener = new MockListener();
@@ -26,7 +26,7 @@ public class PlainHttpTransportTest
 
         var httpTransport = new PlainHttpTransport(opAmpEndpoint, frameProcessor);
 
-        var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackages);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets);
 
         // Act
         await httpTransport.SendAsync(mockFrame.Frame, CancellationToken.None);

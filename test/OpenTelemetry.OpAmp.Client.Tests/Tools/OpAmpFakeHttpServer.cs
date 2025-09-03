@@ -13,7 +13,7 @@ internal class OpAmpFakeHttpServer : IDisposable
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
 
-    public OpAmpFakeHttpServer(bool useSmallReply)
+    public OpAmpFakeHttpServer(bool useSmallPackets)
     {
         this.httpServer = TestHttpServer.RunServer(
             context =>
@@ -21,7 +21,7 @@ internal class OpAmpFakeHttpServer : IDisposable
                 var frame = ProcessReceive(context.Request);
                 this.frames.Add(frame);
 
-                var response = GenerateResponse(frame, useSmallReply);
+                var response = GenerateResponse(frame, useSmallPackets);
 
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
@@ -55,9 +55,9 @@ internal class OpAmpFakeHttpServer : IDisposable
         return frame;
     }
 
-    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallReply)
+    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallPackets)
     {
-        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, isSmall: useSmallReply, addHeader: false);
+        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, useSmallPackets, addHeader: false);
 
         return response.Frame;
     }

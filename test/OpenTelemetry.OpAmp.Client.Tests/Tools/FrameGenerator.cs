@@ -10,10 +10,10 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Tools;
 
 internal class FrameGenerator
 {
-    public static MockAgentFrame GenerateMockAgentFrame(bool isSmall = true)
+    public static MockAgentFrame GenerateMockAgentFrame(bool useSmallPackets = true)
     {
         var content = "This is a mock agent frame for testing purposes.";
-        if (!isSmall)
+        if (!useSmallPackets)
         {
             var padding = new string('A', 100_000);
             content = string.Concat(content, Environment.NewLine, padding);
@@ -33,10 +33,10 @@ internal class FrameGenerator
         return new MockAgentFrame(uid, frame);
     }
 
-    public static MockServerFrame GenerateMockServerFrame(ByteString? instanceUid = null, bool isSmall = true, bool addHeader = false)
+    public static MockServerFrame GenerateMockServerFrame(ByteString? instanceUid = null, bool useSmallPackets = true, bool addHeader = false)
     {
         var content = "This is a mock server frame for testing purposes.";
-        if (!isSmall)
+        if (!useSmallPackets)
         {
             var padding = new string('A', 100_000);
             content = string.Concat(content, Environment.NewLine, padding);

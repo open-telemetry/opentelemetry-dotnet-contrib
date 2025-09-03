@@ -16,10 +16,10 @@ public class WsTransportTest
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task WsTransport_SendReceiveCommunication(bool useSmallPackages)
+    public async Task WsTransport_SendReceiveCommunication(bool useSmallPackets)
     {
         // Arrange
-        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackages);
+        using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackets);
         var opAmpEndpoint = opAmpServer.Endpoint;
 
         using var mockListener = new MockListener();
@@ -30,7 +30,7 @@ public class WsTransportTest
         await wsTransport.StartAsync(CancellationToken.None);
 
         // Send only small packages, currently sending large package is not supported in WsTransport
-        var mockFrame = FrameGenerator.GenerateMockAgentFrame(isSmall: true);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets: true);
 
         // Act
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));

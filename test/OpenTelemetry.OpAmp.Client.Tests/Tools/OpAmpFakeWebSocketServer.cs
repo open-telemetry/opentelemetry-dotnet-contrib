@@ -14,7 +14,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
 
-    public OpAmpFakeWebSocketServer(bool useSmallReply)
+    public OpAmpFakeWebSocketServer(bool useSmallPackets)
     {
         this.httpServer = TestWebSocketServer.RunServer(
             async socket =>
@@ -45,7 +45,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                             var frame = ProcessReceive(ms);
                             this.frames.Add(frame);
 
-                            var response = GenerateResponse(frame, useSmallReply);
+                            var response = GenerateResponse(frame, useSmallPackets);
                             await socket.SendAsync(response, WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
                         }
                     }
@@ -92,9 +92,9 @@ internal class OpAmpFakeWebSocketServer : IDisposable
         return frame;
     }
 
-    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallReply)
+    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallPackets)
     {
-        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, isSmall: useSmallReply, addHeader: true);
+        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, useSmallPackets, addHeader: true);
 
         return response.Frame;
     }
