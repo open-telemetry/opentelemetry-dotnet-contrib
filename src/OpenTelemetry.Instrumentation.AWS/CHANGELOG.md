@@ -6,10 +6,6 @@
 
 Released 2025-Sep-03
 
-## 1.12.1
-
-Released 2025-Sep-03
-
 ## 1.12.0
 
 Released 2025-May-06
