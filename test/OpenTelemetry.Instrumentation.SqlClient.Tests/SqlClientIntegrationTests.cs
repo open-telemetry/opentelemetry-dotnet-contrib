@@ -9,8 +9,6 @@ using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Testcontainers.MsSql;
-using Testcontainers.SqlEdge;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
@@ -337,12 +335,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
                    && (string)kvp.Value == SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
     }
 
-    private string GetConnectionString() => this.fixture.DatabaseContainer switch
-    {
-        SqlEdgeContainer container => container.GetConnectionString(),
-        MsSqlContainer container => container.GetConnectionString(),
-        _ => throw new InvalidOperationException($"Container type '${this.fixture.DatabaseContainer.GetType().Name}' is not supported."),
-    };
+    private string GetConnectionString()
+        => this.fixture.DatabaseContainer.GetConnectionString();
 
     private sealed class SemanticConventionScope(string? previous) : IDisposable
     {

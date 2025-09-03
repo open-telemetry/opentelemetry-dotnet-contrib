@@ -11,8 +11,6 @@ using Npgsql;
 using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
-using Testcontainers.MsSql;
-using Testcontainers.SqlEdge;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
@@ -341,15 +339,12 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.Equal(37, activity.GetTagValue("db.query.parameter.@y"));
     }
 
-    private static object CreateParameter(string provider, string name, object value)
+    private static object CreateParameter(string provider, string name, object value) => provider switch
     {
-        return provider switch
-        {
-            SqliteProvider => new SqliteParameter(name, value),
-            SqlServerProvider => new SqlParameter(name, value),
-            _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
-        };
-    }
+        SqliteProvider => new SqliteParameter(name, value),
+        SqlServerProvider => new SqlParameter(name, value),
+        _ => throw new NotSupportedException($"Unsupported provider: {provider}"),
+    };
 
     private static void VerifyActivityData(
         bool captureTextCommandContent,
@@ -391,12 +386,8 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.DoesNotContain(activity.Tags, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
     }
 
-    private string GetSqlServerConnectionString() => this.sqlServerFixture.DatabaseContainer switch
-    {
-        SqlEdgeContainer container => container.GetConnectionString(),
-        MsSqlContainer container => container.GetConnectionString(),
-        _ => throw new InvalidOperationException($"Container type '${this.sqlServerFixture.DatabaseContainer.GetType().Name}' is not supported."),
-    };
+    private string GetSqlServerConnectionString()
+        => this.sqlServerFixture.DatabaseContainer.GetConnectionString();
 
     private void ConfigureProvider(string provider, DbContextOptionsBuilder<ItemsContext> builder)
     {
