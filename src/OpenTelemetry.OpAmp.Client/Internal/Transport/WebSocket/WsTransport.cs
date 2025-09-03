@@ -11,7 +11,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Transport;
 
 namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 
-internal class WsTransport : IOpAmpTransport, IDisposable
+internal sealed class WsTransport : IOpAmpTransport, IDisposable
 {
     private readonly Uri uri;
     private readonly SocketsHttpHandler handler = new();

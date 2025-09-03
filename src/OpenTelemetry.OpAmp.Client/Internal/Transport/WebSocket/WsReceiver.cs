@@ -11,7 +11,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 
-internal class WsReceiver : IDisposable
+internal sealed class WsReceiver : IDisposable
 {
     private const int RentalBufferSize = 4096;
     private const int ReceiveBufferSize = 8192;

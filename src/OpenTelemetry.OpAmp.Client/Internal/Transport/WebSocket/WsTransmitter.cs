@@ -10,7 +10,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 
-internal class WsTransmitter
+internal sealed class WsTransmitter
 {
     private const int BufferSize = 4096;
 
