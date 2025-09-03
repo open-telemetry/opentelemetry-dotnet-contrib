@@ -22,7 +22,7 @@ public class WsTransportTest
         using var opAmpServer = new OpAmpFakeWebSocketServer(useSmallPackages);
         var opAmpEndpoint = opAmpServer.Endpoint;
 
-        var mockListener = new MockListener();
+        using var mockListener = new MockListener();
         var frameProcessor = new FrameProcessor();
         frameProcessor.Subscribe(mockListener);
 

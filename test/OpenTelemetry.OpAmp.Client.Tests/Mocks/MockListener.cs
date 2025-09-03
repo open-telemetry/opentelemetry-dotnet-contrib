@@ -7,7 +7,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
 
 namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 
-internal class MockListener : IOpAmpListener<CustomMessageMessage>
+internal class MockListener : IOpAmpListener<CustomMessageMessage>, IDisposable
 {
     private AutoResetEvent messageEvent = new(false);
 
@@ -22,5 +22,10 @@ internal class MockListener : IOpAmpListener<CustomMessageMessage>
     public void WaitForMessages(TimeSpan timeout)
     {
         this.messageEvent.WaitOne(timeout);
+    }
+
+    public void Dispose()
+    {
+        this.messageEvent.Dispose();
     }
 }

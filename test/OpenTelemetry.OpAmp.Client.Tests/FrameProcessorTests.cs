@@ -13,8 +13,8 @@ public class FrameProcessorTests
     [Fact]
     public void FrameProcessor_Subscribe()
     {
+        using var listener = new MockListener();
         var processor = new FrameProcessor();
-        var listener = new MockListener();
         var mockFrame = FrameGenerator.GenerateMockServerFrame();
 
         processor.Subscribe(listener);
@@ -27,8 +27,8 @@ public class FrameProcessorTests
     [Fact]
     public void FrameProcessor_Unsubscribe()
     {
+        using var listener = new MockListener();
         var processor = new FrameProcessor();
-        var listener = new MockListener();
         var mockFrame = FrameGenerator.GenerateMockServerFrame();
 
         processor.Subscribe(listener);
@@ -44,8 +44,8 @@ public class FrameProcessorTests
     [Fact]
     public async Task FrameProcessor_ThreadSafety()
     {
+        using var listener = new MockListener();
         var processor = new FrameProcessor();
-        var listener = new MockListener();
         var mockFrame = FrameGenerator.GenerateMockServerFrame();
         int iterations = 1000;
         var tasks = new List<Task>
