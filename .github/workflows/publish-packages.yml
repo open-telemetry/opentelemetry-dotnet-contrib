@@ -102,7 +102,7 @@ jobs:
           SOURCE: https://www.myget.org/F/opentelemetry/api/v2/package
         if: env.MYGET_TOKEN_EXISTS == 'true' # Skip MyGet publish if run on a fork without the secret
         shell: pwsh
-        run: dotnet nuget push "./artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
+        run: dotnet nuget push "artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
       - name: Publish to NuGet
         env:
@@ -111,7 +111,7 @@ jobs:
           SOURCE: https://api.nuget.org/v3/index.json
         if: github.ref_type == 'tag' && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
         shell: pwsh
-        run: dotnet nuget push "./artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
+        run: dotnet nuget push "artifacts/package/release/*.nupkg" --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
   post-build:
     runs-on: ubuntu-22.04
