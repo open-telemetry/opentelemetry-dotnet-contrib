@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
 using Xunit;
@@ -19,8 +20,8 @@ public class FrameProcessorTests
         processor.Subscribe(listener);
         processor.OnServerFrame(mockFrame.Frame);
 
-        Assert.Single(listener.Messages);
-        Assert.Equal(mockFrame.ExptectedContent, listener.Messages[0].CustomMessage.Data.ToStringUtf8());
+        var message = Assert.Single(listener.Messages);
+        Assert.Equal(mockFrame.ExptectedContent, message.CustomMessage.Data.ToStringUtf8());
     }
 
     [Fact]

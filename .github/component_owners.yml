@@ -23,6 +23,9 @@ components:
   src/OpenTelemetry.Extensions.Enrichment.AspNetCore/:
     - evgenyfedorov2
     - dariusclay
+  src/OpenTelemetry.Extensions.Enrichment.Http/:
+    - evgenyfedorov2
+    - dariusclay
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
     - normj
@@ -115,6 +118,9 @@ components:
     - evgenyfedorov2
     - dariusclay
   test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/:
+    - evgenyfedorov2
+    - dariusclay
+  test/OpenTelemetry.Extensions.Enrichment.Http.Tests/:
     - evgenyfedorov2
     - dariusclay
   test/OpenTelemetry.Instrumentation.AWS.Tests/:

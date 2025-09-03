@@ -183,7 +183,7 @@ internal static class MetricSerializer
                 // TODO: What should we do when the data is invalid?
             }
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
             Span<byte> bufferSpan = new Span<byte>(buffer);
             bufferSpan = bufferSpan.Slice(bufferIndex);
             Span<byte> stringSpan = bufferSpan.Slice(2);
@@ -221,7 +221,7 @@ internal static class MetricSerializer
             // TODO: What should we do when the data is invalid?
         }
 
-#if NETSTANDARD2_1
+#if NETSTANDARD2_1_OR_GREATER
         Span<byte> sourceSpan = new Span<byte>(encodedValue);
         Span<byte> bufferSpan = new Span<byte>(buffer);
         bufferSpan = bufferSpan.Slice(bufferIndex);
