@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <Description>Unit test project for OpenTelemetry Microsoft.EntityFrameworkCore instrumentation.</Description>
   </PropertyGroup>
@@ -29,6 +28,10 @@
     <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(RepoRoot)\test\OpenTelemetry.Instrumentation.SqlClient.Tests\sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
 
 </Project>
