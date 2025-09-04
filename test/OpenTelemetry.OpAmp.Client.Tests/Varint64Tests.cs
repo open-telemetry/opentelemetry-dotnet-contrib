@@ -9,7 +9,7 @@ using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
-public class OpAmpHeaderHelperTests
+public class Varint64Tests
 {
     [Theory]
     [InlineData(0, new byte[] { 0x00 })]
@@ -21,7 +21,7 @@ public class OpAmpHeaderHelperTests
     public void OpAmpHeaderHelper_Encode(ulong value, byte[] verifiedEncoded)
     {
         var buffer = new ArraySegment<byte>(new byte[10]);
-        var encodedLength = OpAmpWsHeaderHelper.EncodeVarint64(buffer, value);
+        var encodedLength = Varint64.Encode(buffer, value);
 
         Assert.Equal(verifiedEncoded.Length, encodedLength);
         Assert.Equal(verifiedEncoded, buffer.Slice(0, encodedLength).ToArray());
@@ -36,7 +36,7 @@ public class OpAmpHeaderHelperTests
     [InlineData(ulong.MaxValue, 10, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01 })]
     public void OpAmpHeaderHelper_Decode(ulong value, int verifiedLength, byte[] buffer)
     {
-        var result = OpAmpWsHeaderHelper.DecodeVarint64(new ArraySegment<byte>(buffer), out int bytesRead);
+        var result = Varint64.Decode(new ArraySegment<byte>(buffer), out int bytesRead);
 
         Assert.Equal(value, result);
         Assert.Equal(verifiedLength, bytesRead);
