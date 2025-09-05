@@ -41,4 +41,16 @@ public class SequenceHelperTests
         var expected = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 };
         Assert.Equal(expected, array);
     }
+
+    [Fact]
+    public void SequenceHelperTests_SingleBuffer()
+    {
+        var buffer = new byte[] { 0x01 };
+
+        var sequence = SequenceHelper.CreateSequenceFromBuffers([buffer], 1);
+        var array = sequence.ToArray();
+
+        var expected = new byte[] { 0x01 };
+        Assert.Equal(expected, array);
+    }
 }
