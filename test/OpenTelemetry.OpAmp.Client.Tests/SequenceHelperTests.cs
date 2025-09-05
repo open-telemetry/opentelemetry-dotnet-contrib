@@ -28,7 +28,7 @@ public class SequenceHelperTests
     }
 
     [Fact]
-    public void SequenceHelperTests_ReadAllSequence()
+    public void SequenceHelperTests_CreateSequenceFromBuffers_VerifySequence()
     {
         var buffer1 = new byte[] { 0x01, 0x02, 0x03 };
         var buffer2 = new byte[] { 0x04, 0x05, 0x06, 0x07 };
@@ -43,7 +43,7 @@ public class SequenceHelperTests
     }
 
     [Fact]
-    public void SequenceHelperTests_SingleBuffer()
+    public void SequenceHelperTests_CreateSequenceFromBuffers_VerifySequence_SingleBuffer()
     {
         var buffer = new byte[] { 0x01 };
 
