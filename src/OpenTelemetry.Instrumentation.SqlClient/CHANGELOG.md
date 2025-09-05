@@ -10,6 +10,10 @@
   listener.
   ([#3041](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3041))
 
+* The `SetDbStatementForText` property has been removed. Behaviors related to this
+  option are now always enabled.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-15
