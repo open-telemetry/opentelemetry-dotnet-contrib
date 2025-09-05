@@ -26,15 +26,14 @@ public class WsTransportTest
         var frameProcessor = new FrameProcessor();
         frameProcessor.Subscribe(mockListener);
 
+        using var cts = new CancellationTokenSource();
         using var wsTransport = new WsTransport(opAmpEndpoint, frameProcessor);
-        await wsTransport.StartAsync(CancellationToken.None);
+        await wsTransport.StartAsync(cts.Token);
 
         // Send only small packages, currently sending large package is not supported in WsTransport
         var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets: true);
 
         // Act
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
         await wsTransport.SendAsync(mockFrame.Frame, cts.Token);
 
         mockListener.WaitForMessages(TimeSpan.FromSeconds(30));
