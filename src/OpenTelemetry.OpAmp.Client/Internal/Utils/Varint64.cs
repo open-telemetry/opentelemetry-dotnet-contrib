@@ -40,29 +40,18 @@ internal static class Varint64
         throw new ArgumentException("Incomplete varint data.");
     }
 
-    public static int Encode(ArraySegment<byte> buffer, ulong value)
+    public static byte[] Encode(ulong value)
     {
-        int bytesWritten = 0;
-        int offset = buffer.Offset;
+        var bytes = new List<byte>(MaxEncodedBytes);
 
         while (value > DataMask)
         {
-            if (bytesWritten >= buffer.Count)
-            {
-                throw new ArgumentException("Buffer is too small for varint encoding.");
-            }
-
-            buffer.Array![offset + bytesWritten++] = (byte)((value & DataMask) | ContinuationBit);
+            bytes.Add((byte)((value & DataMask) | ContinuationBit));
             value >>= BitsPerByte;
         }
 
-        if (bytesWritten >= buffer.Count)
-        {
-            throw new ArgumentException("Buffer is too small for varint encoding.");
-        }
+        bytes.Add((byte)value); // Last byte without continuation bit
 
-        buffer.Array![offset + bytesWritten++] = (byte)value; // Last byte without continuation bit
-
-        return bytesWritten;
+        return bytes.ToArray();
     }
 }

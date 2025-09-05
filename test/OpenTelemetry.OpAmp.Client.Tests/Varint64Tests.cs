@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
-#if NETFRAMEWORK
-using OpenTelemetry.OpAmp.Client.Tests.Tools;
-#endif
+
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -20,11 +18,10 @@ public class Varint64Tests
     [InlineData(ulong.MaxValue, new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01 })]
     public void OpAmpHeaderHelper_Encode(ulong value, byte[] verifiedEncoded)
     {
-        var buffer = new ArraySegment<byte>(new byte[10]);
-        var encodedLength = Varint64.Encode(buffer, value);
+        var encoded = Varint64.Encode(value);
 
-        Assert.Equal(verifiedEncoded.Length, encodedLength);
-        Assert.Equal(verifiedEncoded, buffer.Slice(0, encodedLength).ToArray());
+        Assert.Equal(verifiedEncoded.Length, encoded.Length);
+        Assert.Equal(verifiedEncoded, encoded);
     }
 
     [Theory]
