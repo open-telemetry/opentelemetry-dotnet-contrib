@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers;
 using System.Diagnostics;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
@@ -21,17 +22,20 @@ internal static class OpAmpWsHeaderHelper
         return EncodedHeader.Length;
     }
 
-    public static bool TryVerifyHeader(ReadOnlyMemory<byte> buffer, out int headerSize)
+    public static bool TryVerifyHeader(ReadOnlySequence<byte> sequence, out int headerSize, out string errorMessage)
     {
-        try
+        var result = Varint64.TryDecode(sequence, out headerSize, out ulong header, out errorMessage);
+        if (!result)
         {
-            var header = Varint64.Decode(buffer.Span, out headerSize);
-            return header == OpAmpProtocolHeader;
-        }
-        catch (Exception)
-        {
-            headerSize = -1;
             return false;
         }
+
+        if (header != OpAmpProtocolHeader)
+        {
+            errorMessage = $"Invalid OpAmp WebSocket header: {header}.";
+            return false;
+        }
+
+        return true;
     }
 }

@@ -63,9 +63,10 @@ internal sealed class FrameProcessor
         // verify and decode
         if (verifyHeader)
         {
-            var headerSegment = SequenceHelper.GetHeaderSegment(sequence);
-            if (!OpAmpWsHeaderHelper.TryVerifyHeader(headerSegment, out headerSize))
+            if (!OpAmpWsHeaderHelper.TryVerifyHeader(sequence, out headerSize, out string errorMessage))
             {
+                // TODO: log error message
+
                 return;
             }
         }

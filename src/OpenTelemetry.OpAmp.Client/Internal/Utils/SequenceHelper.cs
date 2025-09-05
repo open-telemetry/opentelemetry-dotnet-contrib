@@ -7,21 +7,6 @@ namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 internal static class SequenceHelper
 {
-    public static ReadOnlyMemory<byte> GetHeaderSegment(ReadOnlySequence<byte> sequence)
-    {
-        if (sequence.IsEmpty)
-        {
-            return default;
-        }
-
-        if (sequence.First.Length < OpAmpWsHeaderHelper.MaxHeaderLength)
-        {
-            throw new InvalidOperationException("Sequence is too small to contain a valid header.");
-        }
-
-        return sequence.First.Slice(0, OpAmpWsHeaderHelper.MaxHeaderLength);
-    }
-
     public static ReadOnlySequence<byte> AsSequence(this byte[] message)
     {
         if (message == null || message.Length == 0)

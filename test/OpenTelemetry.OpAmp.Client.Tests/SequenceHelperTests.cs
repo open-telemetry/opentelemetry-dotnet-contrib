@@ -10,25 +10,6 @@ namespace OpenTelemetry.OpAmp.Client.Tests;
 public class SequenceHelperTests
 {
     [Fact]
-    public void SequenceHelperTests_GetHeaderSegment()
-    {
-        byte[] data = Enumerable.Range(0, 12).Select(i => (byte)i).ToArray();
-        byte[] expexted = Enumerable.Range(0, OpAmpWsHeaderHelper.MaxHeaderLength).Select(i => (byte)i).ToArray();
-
-        var header = SequenceHelper.GetHeaderSegment(data.AsSequence());
-
-        Assert.Equal(expexted, header.ToArray());
-    }
-
-    [Fact]
-    public void SequenceHelperTests_GetHeaderSegment_TooSmallFirstSegment()
-    {
-        byte[] data = Enumerable.Range(0, 5).Select(i => (byte)i).ToArray();
-
-        Assert.Throws<InvalidOperationException>(() => SequenceHelper.GetHeaderSegment(data.AsSequence()));
-    }
-
-    [Fact]
     public void SequenceHelperTests_AsSequence()
     {
         var buffer = new byte[] { 0x04, 0x05, 0x06, 0x07 };

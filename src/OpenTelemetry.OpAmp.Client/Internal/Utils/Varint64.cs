@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers;
+
 namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 internal static class Varint64
@@ -11,33 +13,39 @@ internal static class Varint64
     private const int MaxEncodedBytes = 10;                     // 64 bits / 7 bits per byte = max 10 bytes
     private const int MaxShift = BitsPerByte * MaxEncodedBytes; // 70 bits (safety limit)
 
-    public static ulong Decode(ReadOnlySpan<byte> buffer, out int bytesRead)
+    public static bool TryDecode(ReadOnlySequence<byte> sequence, out int bytesRead, out ulong result, out string errorMessage)
     {
-        ulong result = 0;
         int shift = 0;
+        result = 0;
         bytesRead = 0;
+        errorMessage = string.Empty;
 
-        foreach (byte b in buffer)
+        foreach (var memory in sequence)
         {
-            ulong value = (ulong)(b & DataMask);
-            result |= value << shift;
-            bytesRead++;
-
-            if ((b & ContinuationBit) == 0)
+            foreach (byte b in memory.Span)
             {
-                return result;
-            }
+                ulong value = (ulong)(b & DataMask);
+                result |= value << shift;
+                bytesRead++;
 
-            shift += BitsPerByte;
+                if ((b & ContinuationBit) == 0)
+                {
+                    return true;
+                }
 
-            // 64 bits max + buffer
-            if (shift >= MaxShift)
-            {
-                throw new OverflowException("Varint is too long for 64-bit integer.");
+                shift += BitsPerByte;
+
+                // 64 bits max + buffer
+                if (shift >= MaxShift)
+                {
+                    errorMessage = "Varint is too long for 64-bit integer.";
+                    return false;
+                }
             }
         }
 
-        throw new ArgumentException("Incomplete varint data.");
+        errorMessage = "Incomplete varint data.";
+        return false;
     }
 
     public static byte[] Encode(ulong value)

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using OpAmp.Proto.V1;
@@ -83,10 +84,14 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 
     private static AgentToServer ProcessReceive(MemoryStream ms)
     {
-        var fullMessageBytes = ms.ToArray();
-        OpAmpWsHeaderHelper.TryVerifyHeader(fullMessageBytes, out var headerSize);
+        var fullMessageBytes = new ReadOnlySequence<byte>(ms.ToArray());
+        bool result = OpAmpWsHeaderHelper.TryVerifyHeader(fullMessageBytes, out var headerSize, out string errorMessage);
+        if (!result)
+        {
+            throw new InvalidOperationException(errorMessage);
+        }
 
-        var messageBytes = fullMessageBytes.AsSpan().Slice(headerSize, fullMessageBytes.Length - headerSize);
+        var messageBytes = fullMessageBytes.Slice(headerSize, fullMessageBytes.Length - headerSize);
         ms.SetLength(0);
 
         // Parse protobuf message from the websocket message bytes.
