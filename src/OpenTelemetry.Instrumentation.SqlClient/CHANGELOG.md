@@ -14,7 +14,7 @@
   option are now always enabled.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
-* The `Enrich`, `Filter` and `RecordException` properties has been removed from
+* The `Enrich`, `Filter` and `RecordException` properties have been removed from
   target frameworks where they were non-functional.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
