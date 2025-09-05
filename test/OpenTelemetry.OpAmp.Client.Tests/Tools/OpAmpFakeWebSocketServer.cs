@@ -13,6 +13,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 {
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
+    private readonly CancellationTokenSource cts = new();
 
     public OpAmpFakeWebSocketServer(bool useSmallPackets)
     {
@@ -26,11 +27,11 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                 {
                     while (socket.State == WebSocketState.Open)
                     {
-                        var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), this.cts.Token);
 
                         if (result.MessageType == WebSocketMessageType.Close)
                         {
-                            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", CancellationToken.None);
+                            await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", this.cts.Token);
 
                             break;
                         }
@@ -46,7 +47,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                             this.frames.Add(frame);
 
                             var response = GenerateResponse(frame, useSmallPackets);
-                            await socket.SendAsync(response, WebSocketMessageType.Binary, true, CancellationToken.None).ConfigureAwait(false);
+                            await socket.SendAsync(response, WebSocketMessageType.Binary, true, this.cts.Token).ConfigureAwait(false);
                         }
                     }
                 }
@@ -56,7 +57,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 
                     if (socket.State == WebSocketState.Open || socket.State == WebSocketState.CloseReceived)
                     {
-                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", CancellationToken.None);
+                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", this.cts.Token);
                     }
                 }
             },
@@ -75,6 +76,8 @@ internal class OpAmpFakeWebSocketServer : IDisposable
 
     public void Dispose()
     {
+        this.cts.Cancel();
+        this.cts.Dispose();
         this.httpServer.Dispose();
     }
 
