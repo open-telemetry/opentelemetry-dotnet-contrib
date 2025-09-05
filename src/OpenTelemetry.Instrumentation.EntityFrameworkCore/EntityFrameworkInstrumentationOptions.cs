@@ -29,16 +29,6 @@ public class EntityFrameworkInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="Trace.SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
-    /// </summary>
-    public bool SetDbStatementForStoredProcedure { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="Trace.SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
-    /// </summary>
-    public bool SetDbStatementForText { get; set; }
-
-    /// <summary>
     /// Gets or sets an action to enrich an Activity from the db command.
     /// </summary>
     /// <remarks>

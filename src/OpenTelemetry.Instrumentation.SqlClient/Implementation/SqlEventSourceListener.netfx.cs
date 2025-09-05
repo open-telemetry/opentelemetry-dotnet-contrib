@@ -157,7 +157,7 @@ internal sealed class SqlEventSourceListener : EventListener
         if (activity.IsAllDataRequested)
         {
             var commandText = (string)eventData.Payload[3];
-            if (!string.IsNullOrEmpty(commandText) && options.SetDbStatementForText)
+            if (!string.IsNullOrEmpty(commandText))
             {
                 var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
                 if (options.EmitOldAttributes)

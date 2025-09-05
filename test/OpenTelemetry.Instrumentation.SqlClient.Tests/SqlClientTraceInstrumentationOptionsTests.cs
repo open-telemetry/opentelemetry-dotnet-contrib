@@ -69,17 +69,14 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(1, namedExporterOptionsConfigureOptionsInvocations);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void DbQueryTextCollectedWhenEnabled(bool captureTextCommandContent)
+    [Fact]
+    public void DbQueryTextCollected()
     {
         var activities = new List<Activity>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSqlClientInstrumentation(options =>
             {
-                options.SetDbStatementForText = captureTextCommandContent;
                 options.EmitOldAttributes = true;
                 options.EmitNewAttributes = true;
             })
@@ -93,20 +90,10 @@ public class SqlClientTraceInstrumentationOptionsTests
         tracerProvider.ForceFlush();
         Assert.Equal(2, activities.Count);
 
-        if (captureTextCommandContent)
-        {
-            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
-            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
-        }
-        else
-        {
-            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
-            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
-        }
+        Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal(commandText, activities[0].GetTagValue(SemanticConventions.AttributeDbQueryText));
+        Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbStatement));
+        Assert.Equal(commandText, activities[1].GetTagValue(SemanticConventions.AttributeDbQueryText));
     }
 
 #if !NETFRAMEWORK

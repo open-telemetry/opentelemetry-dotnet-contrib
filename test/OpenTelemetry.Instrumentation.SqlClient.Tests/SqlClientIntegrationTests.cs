@@ -26,25 +26,18 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [InlineData(CommandType.Text, "select 1/1")]
-    [InlineData(CommandType.Text, "select 1/1", true, "select ?/?")]
-    [InlineData(CommandType.Text, "select 1/0", false, null, true)]
-    [InlineData(CommandType.Text, "select 1/0", false, null, true, true)]
+    [InlineData(CommandType.Text, "select 1/1", "select ?/?")]
+    [InlineData(CommandType.Text, "select 1/0", "select ?/?", true)]
+    [InlineData(CommandType.Text, "select 1/0", "select ?/?", true, true)]
 #if NET
-    [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, false)]
-    [InlineData(CommandType.Text, GetContextInfoQuery, false, null, false, false, true)]
+    [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, false)]
+    [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, true)]
 #endif
-#if NETFRAMEWORK
-    [InlineData(CommandType.StoredProcedure, "sp_who", false, null)]
-#else
-    [InlineData(CommandType.StoredProcedure, "sp_who", false, "sp_who")]
-#endif
-    [InlineData(CommandType.StoredProcedure, "sp_who", true, "sp_who")]
+    [InlineData(CommandType.StoredProcedure, "sp_who", "sp_who")]
     public void SuccessfulCommandTest(
         CommandType commandType,
         string commandText,
-        bool captureTextCommandContent = false,
-        string? sanitizedCommandText = null,
+        string? sanitizedCommandText,
         bool isFailure = false,
         bool recordException = false,
         bool enableTransaction = false)
@@ -64,11 +57,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
             .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureTextCommandContent;
-                options.RecordException = recordException;
-            })
+            .AddSqlClientInstrumentation(options => options.RecordException = recordException)
             .Build();
 
         using var sqlConnection = new SqlConnection(this.GetConnectionString());
@@ -106,7 +95,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         var activity = Assert.Single(activities);
 
         VerifyContextInfo(commandText, commandResult, activity);
-        VerifyActivityData(commandType, sanitizedCommandText, captureTextCommandContent, isFailure, recordException, activity);
+        VerifyActivityData(commandType, sanitizedCommandText, isFailure, recordException, activity);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
 
         if (isFailure)
@@ -226,7 +215,6 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     private static void VerifyActivityData(
         CommandType commandType,
         string? commandText,
-        bool captureTextCommandContent,
         bool isFailure,
         bool recordException,
         Activity activity,
@@ -297,22 +285,14 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
                 break;
 
             case CommandType.Text:
-                if (captureTextCommandContent)
+                if (emitOldAttributes)
                 {
-                    if (emitOldAttributes)
-                    {
-                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                    }
-
-                    if (emitNewAttributes)
-                    {
-                        Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-                    }
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
                 }
-                else
+
+                if (emitNewAttributes)
                 {
-                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-                    Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+                    Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
                 }
 
                 break;

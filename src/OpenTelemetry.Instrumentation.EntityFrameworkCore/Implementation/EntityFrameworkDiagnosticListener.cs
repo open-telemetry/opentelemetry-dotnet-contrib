@@ -165,32 +165,24 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.SetDbStatementForStoredProcedure)
-                                    {
-                                        DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
-                                            activity,
-                                            commandText,
-                                            this.options.EmitOldAttributes,
-                                            this.options.EmitNewAttributes);
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
+                                        activity,
+                                        commandText,
+                                        this.options.EmitOldAttributes,
+                                        this.options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.Text:
-                                    if (this.options.SetDbStatementForText)
-                                    {
-                                        // Only SQL-like providers support sanitization as we are not
-                                        // able to sanitize arbitrary commands for other query dialects.
-                                        bool sanitizeQuery = IsSqlLikeProvider(providerName);
+                                    // Only SQL-like providers support sanitization as we are not
+                                    // able to sanitize arbitrary commands for other query dialects.
+                                    bool sanitizeQuery = IsSqlLikeProvider(providerName);
 
-                                        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-                                            activity,
-                                            commandText,
-                                            this.options.EmitOldAttributes,
-                                            this.options.EmitNewAttributes,
-                                            sanitizeQuery);
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                        activity,
+                                        commandText,
+                                        this.options.EmitOldAttributes,
+                                        this.options.EmitNewAttributes,
+                                        sanitizeQuery);
                                     break;
 
                                 case CommandType.TableDirect:

@@ -15,38 +15,55 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlEventSourceTests
 {
-    public static IEnumerable<object[]> EventSourceFakeTestCases()
+    public static TheoryData<Type, CommandType, string, bool, int, bool, bool, bool, bool> EventSourceFakeTestCases()
     {
         /* netfx driver can't capture queries, only stored procedure names */
         /* always emit some attribute */
         var bools = new[] { true, false };
-        return from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
-               from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
-               from isFailure in bools
-               from captureText in bools
-               from emitOldAttributes in bools
-               from emitNewAttributes in bools
-               from tracingEnabled in bools
-               from metricsEnabled in bools
-               where !(commandType == CommandType.Text && captureText)
-               where emitOldAttributes && emitNewAttributes
-               let commandText = commandType == CommandType.Text
-                   ? (!isFailure ? "select 1/1" : "select 1/0")
-                   : "sp_who"
-               let sqlExceptionNumber = 0
-               select new object[]
-               {
-                   eventSourceType,
-                   commandType,
-                   commandText,
-                   captureText,
-                   isFailure,
-                   sqlExceptionNumber,
-                   emitOldAttributes,
-                   emitNewAttributes,
-                   tracingEnabled,
-                   metricsEnabled,
-               };
+        var query =
+            from eventSourceType in new[] { typeof(FakeBehavingAdoNetSqlEventSource), typeof(FakeBehavingMdsSqlEventSource) }
+            from commandType in new[] { CommandType.StoredProcedure, CommandType.Text }
+            from isFailure in bools
+            from emitOldAttributes in bools
+            from emitNewAttributes in bools
+            from tracingEnabled in bools
+            from metricsEnabled in bools
+            where !(commandType == CommandType.Text)
+            where emitOldAttributes && emitNewAttributes
+            let commandText = commandType == CommandType.Text
+                ? (!isFailure ? "select 1/1" : "select 1/0")
+                : "sp_who"
+            let sqlExceptionNumber = 0
+            select new
+            {
+                eventSourceType,
+                commandType,
+                commandText,
+                isFailure,
+                sqlExceptionNumber,
+                emitOldAttributes,
+                emitNewAttributes,
+                tracingEnabled,
+                metricsEnabled,
+            };
+
+        var testCases = new TheoryData<Type, CommandType, string, bool, int, bool, bool, bool, bool>();
+
+        foreach (var item in query)
+        {
+            testCases.Add(
+                item.eventSourceType,
+                item.commandType,
+                item.commandText,
+                item.isFailure,
+                item.sqlExceptionNumber,
+                item.emitOldAttributes,
+                item.emitNewAttributes,
+                item.tracingEnabled,
+                item.metricsEnabled);
+        }
+
+        return testCases;
     }
 
     [Theory]
@@ -55,13 +72,12 @@ public class SqlEventSourceTests
         Type eventSourceType,
         CommandType commandType,
         string commandText,
-        bool captureText,
-        bool isFailure = false,
-        int sqlExceptionNumber = 0,
-        bool emitOldAttributes = true,
-        bool emitNewAttributes = false,
-        bool tracingEnabled = true,
-        bool metricsEnabled = true)
+        bool isFailure,
+        int sqlExceptionNumber,
+        bool emitOldAttributes,
+        bool emitNewAttributes,
+        bool tracingEnabled,
+        bool metricsEnabled)
     {
         using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
 
@@ -75,7 +91,6 @@ public class SqlEventSourceTests
             traceProviderBuilder.AddInMemoryExporter(activities)
                 .AddSqlClientInstrumentation(options =>
                 {
-                    options.SetDbStatementForText = captureText;
                     options.EmitOldAttributes = emitOldAttributes;
                     options.EmitNewAttributes = emitNewAttributes;
                 });
@@ -123,7 +138,7 @@ public class SqlEventSourceTests
         if (tracingEnabled)
         {
             activity = Assert.Single(activities);
-            VerifyActivityData(commandText, captureText, isFailure, dataSource, activity, emitOldAttributes, emitNewAttributes);
+            VerifyActivityData(commandText, isFailure, dataSource, activity, emitOldAttributes, emitNewAttributes);
         }
 
         var dbClientOperationDurationMetrics = metrics
@@ -199,48 +214,8 @@ public class SqlEventSourceTests
         Assert.Empty(exportedItems);
     }
 
-    [Theory]
-    [InlineData(typeof(FakeBehavingAdoNetSqlEventSource))]
-    [InlineData(typeof(FakeBehavingMdsSqlEventSource))]
-    public void DefaultCaptureTextFalse(Type eventSourceType)
-    {
-        using var fakeSqlEventSource = (IFakeBehavingSqlEventSource)Activator.CreateInstance(eventSourceType);
-
-        var exportedItems = new List<Activity>();
-        var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddSqlClientInstrumentation()
-            .Build();
-
-        var objectId = Guid.NewGuid().GetHashCode();
-
-        const string commandText = "TestCommandTest";
-        fakeSqlEventSource.WriteBeginExecuteEvent(objectId, "127.0.0.1", "master", commandText);
-
-        // success is stored in the first bit in compositeState 0b001
-        var successFlag = 1;
-
-        // isSqlException is stored in the second bit in compositeState 0b010
-        var isSqlExceptionFlag = 2;
-
-        // synchronous state is stored in the third bit in compositeState 0b100
-        var synchronousFlag = 4;
-
-        var compositeState = successFlag | isSqlExceptionFlag | synchronousFlag;
-
-        fakeSqlEventSource.WriteEndExecuteEvent(objectId, compositeState, 0);
-        shutdownSignal.Dispose();
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
-
-        const bool captureText = false;
-        VerifyActivityData(commandText, captureText, false, "127.0.0.1", activity, false);
-    }
-
     private static void VerifyActivityData(
         string commandText,
-        bool captureText,
         bool isFailure,
         string dataSource,
         Activity activity,
@@ -295,22 +270,14 @@ public class SqlEventSourceTests
             Assert.Equal("instanceName.master", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
         }
 
-        if (captureText)
+        if (emitOldAttributes)
         {
-            if (emitOldAttributes)
-            {
-                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-            }
-
-            if (emitNewAttributes)
-            {
-                Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
-            }
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
         }
-        else
+
+        if (emitNewAttributes)
         {
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbStatement));
-            Assert.Null(activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal(commandText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
         }
 
         if (!isFailure)

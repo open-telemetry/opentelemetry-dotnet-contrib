@@ -141,11 +141,7 @@ public class SqlClientTests : IDisposable
         if (tracesEnabled)
         {
             tracerProviderBuilder
-                .AddSqlClientInstrumentation(options =>
-                {
-                    options.SetDbStatementForText = true;
-                    options.RecordException = true;
-                })
+                .AddSqlClientInstrumentation(options => options.RecordException = true)
                 .AddInMemoryExporter(activities);
         }
 
@@ -323,7 +319,11 @@ public class SqlClientTests : IDisposable
         }
     }
 
-    private void RunSqlClientTestCase(SqlClientTestCase testCase, SqlClientLibrary library, bool emitOldAttributes = false, bool emitNewAttributes = true)
+    private void RunSqlClientTestCase(
+        SqlClientTestCase testCase,
+        SqlClientLibrary library,
+        bool emitOldAttributes = false,
+        bool emitNewAttributes = true)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -337,7 +337,6 @@ public class SqlClientTests : IDisposable
             .SetSampler(sampler)
             .AddSqlClientInstrumentation(options =>
             {
-                options.SetDbStatementForText = true;
                 options.RecordException = true;
                 options.EmitOldAttributes = emitOldAttributes;
                 options.EmitNewAttributes = emitNewAttributes;
@@ -350,7 +349,12 @@ public class SqlClientTests : IDisposable
             .AddInMemoryExporter(metrics)
             .Build();
 
-        MockCommandExecutor.ExecuteCommand(testCase.Input.ConnectionString, testCase.Input.CommandType, testCase.Input.CommandText, testCase.Expected.ErrorType != null, library);
+        MockCommandExecutor.ExecuteCommand(
+            testCase.Input.ConnectionString,
+            testCase.Input.CommandType,
+            testCase.Input.CommandText,
+            testCase.Expected.ErrorType != null,
+            library);
 
         traceProvider.ForceFlush();
         meterProvider.ForceFlush();
