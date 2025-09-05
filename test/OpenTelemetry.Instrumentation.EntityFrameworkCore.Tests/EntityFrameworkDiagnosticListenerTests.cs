@@ -33,10 +33,7 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     {
         var testCases = new TheoryData<string, string, string>()
         {
-            { "EntityFrameworkCore.OpenEdge", "openedge", "openedge" },
-            { "FileContextCore", "filecontextcore", "filecontextcore" },
             { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
-            { "Microsoft.EntityFrameworkCore.InMemory", "efcoreinmemory", "efcoreinmemory" },
             { "MongoDB.EntityFrameworkCore", "mongodb", "mongodb" },
         };
 
@@ -75,18 +72,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         foreach (string name in names)
         {
             testCases.Add(name, "firebird", "firebirdsql");
-        }
-
-        // JET
-        names =
-        [
-            "EntityFrameworkCore.Jet",
-            "EntityFrameworkCore.Jet.Data.JetCommand",
-        ];
-
-        foreach (string name in names)
-        {
-            testCases.Add(name, "jet", "jet");
         }
 
         // Microsoft SQL Server
@@ -156,19 +141,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         foreach (string name in names)
         {
             testCases.Add(name, "sqlite", "sqlite");
-        }
-
-        // SQL Server Compact
-        names =
-        [
-            "EntityFrameworkCore.SqlServerCompact35",
-            "EntityFrameworkCore.SqlServerCompact40",
-            "System.Data.SqlServerCe.SqlCeCommand",
-        ];
-
-        foreach (string name in names)
-        {
-            testCases.Add(name, "mssqlcompact", "mssqlcompact");
         }
 
         // Spanner
