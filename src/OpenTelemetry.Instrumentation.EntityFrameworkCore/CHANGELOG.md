@@ -26,7 +26,7 @@
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
 * The `SetDbStatementForStoredProcedure` and `SetDbStatementForText` properties have
   been removed. Behaviors related to this option are now always enabled.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
 ## 1.12.0-beta.2
 

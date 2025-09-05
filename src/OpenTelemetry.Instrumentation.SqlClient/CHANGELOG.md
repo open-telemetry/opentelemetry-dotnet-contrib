@@ -12,11 +12,11 @@
 
 * The `SetDbStatementForText` property has been removed. Behaviors related to this
   option are now always enabled.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
 * The `Enrich`, `Filter` and `RecordException` properties has been removed from
   target frameworks where they were non-functional.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
 ## 1.12.0-beta.2
 
