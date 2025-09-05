@@ -121,76 +121,6 @@ For an ASP.NET application, adding instrumentation is typically done in the
 This instrumentation can be configured to change the default behavior by using
 `SqlClientTraceInstrumentationOptions`.
 
-### SetDbStatementForText
-
-`SetDbStatementForText` controls whether the `db.statement` attribute is
-emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
-see below for more details.
-
-Query text may contain sensitive data, so when `SetDbStatementForText` is
-enabled the raw query text is sanitized by automatically replacing literal
-values with a `?` character.
-
-#### .NET
-
-On .NET, `SetDbStatementForText` controls whether or not
-this instrumentation will set the
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the `CommandText` of the `SqlCommand` being executed when the `CommandType`
-is `CommandType.Text`. The
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute is always captured for `CommandType.StoredProcedure` because the `SqlCommand.CommandText`
-only contains the stored procedure name.
-
-`SetDbStatementForText` is _false_ by default. When set to `true`, the
-instrumentation will set
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the text of the SQL command being executed.
-
-To enable capturing of `SqlCommand.CommandText` for `CommandType.Text` use the
-following configuration.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.SetDbStatementForText = true)
-    .AddConsoleExporter()
-    .Build();
-```
-
-#### .NET Framework
-
-On .NET Framework, there is no way to determine the type of command being
-executed, so the `SetDbStatementForText` property always controls whether
-or not this instrumentation will set the
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the `CommandText` of the `SqlCommand` being executed. The
-`CommandText` could be the name of a stored procedure (when
-`CommandType.StoredProcedure` is used) or the full text of a `CommandType.Text`
-query.
-
-`SetDbStatementForText` is _false_ by default. When set to `true`, the
-instrumentation will set
-[`db.statement`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#call-level-attributes)
-attribute to the text of the SQL command being executed.
-
-To enable capturing of `SqlCommand.CommandText` for `CommandType.Text` use the
-following configuration.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.SetDbStatementForText = true)
-    .AddConsoleExporter()
-    .Build();
-```
-
-> [!NOTE]
-> When using the built-in `System.Data.SqlClient`, only stored procedure command
-names will be captured. To capture query text, other command text and
-stored procedure command names, you need to use the `Microsoft.Data.SqlClient`
-NuGet package (v1.1+).
-
 ### SetDbQueryParameters
 
 > [!NOTE]
@@ -199,10 +129,10 @@ NuGet package (v1.1+).
 `SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
 are emitted.
 
-Query parameters may contain sensitive data, so only enable `SetDbStatementForText`
+Query parameters may contain sensitive data, so only enable `SetDbQueryParameters`
 if your queries and/or environment are appropriate for enabling this option.
 
-`SetDbQueryParameters` is _false_ by default. When set to `true`, the
+`SetDbQueryParameters` is `false` by default. When set to `true`, the
 instrumentation will set
 [`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
@@ -213,7 +143,7 @@ following configuration.
 ```csharp
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddSqlClientInstrumentation(
-        options => options.SetDbStatementForText = true)
+        options => options.SetDbQueryParameters = true)
     .AddConsoleExporter()
     .Build();
 ```
