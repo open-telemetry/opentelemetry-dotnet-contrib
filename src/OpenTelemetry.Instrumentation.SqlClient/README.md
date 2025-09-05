@@ -151,7 +151,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ### Enrich
 
 > [!NOTE]
-> Enrich is supported on .NET and .NET Core runtimes only.
+> Enrich is available on .NET runtimes only.
 
 This option can be used to enrich the activity with additional information from
 the raw `SqlCommand` object. The `Enrich` action is called only when
@@ -188,7 +188,7 @@ access to `SqlCommand` object.
 ### RecordException
 
 > [!NOTE]
-> RecordException is supported on .NET and .NET Core runtimes only.
+> RecordException is available on .NET runtimes only.
 
 This option can be set to instruct the instrumentation to record SqlExceptions
 as Activity
@@ -207,7 +207,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ### Filter
 
 > [!NOTE]
-> Filter is supported on .NET and .NET Core runtimes only.
+> Filter is available on .NET runtimes only.
 
 This option can be used to filter out activities based on the properties of the
 `SqlCommand` object being instrumented using a `Func<object, bool>`. The
