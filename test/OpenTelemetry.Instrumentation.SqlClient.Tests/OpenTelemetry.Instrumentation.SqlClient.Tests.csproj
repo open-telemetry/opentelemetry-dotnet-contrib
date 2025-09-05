@@ -20,8 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-    <PackageReference Include="Testcontainers.MsSql" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.SqlEdge" Version="3.10.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
 
     <!-- System.Runtime.Caching is indirect reference through Microsoft.Data.SqlClient package. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-qj66-m88j-hmgj -->
@@ -35,10 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SqlClientTestCases.json">
-      <LogicalName>SqlClientTestCases.json</LogicalName>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="SqlClientTestCases.json" LogicalName="SqlClientTestCases.json" CopyToOutputDirectory="Always" />
+    <EmbeddedResource Include="sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
 
 </Project>

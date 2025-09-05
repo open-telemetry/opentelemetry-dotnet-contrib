@@ -33,6 +33,8 @@
     <Compile Include="$(RepoRoot)\src\Shared\SemanticConventions.cs" Link="Includes\SemanticConventions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlConnectionDetails.cs" Link="Includes\SqlConnectionDetails.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlParameterProcessor.cs" Link="Includes\SqlParameterProcessor.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SqlProcessor.cs" Link="Includes\SqlProcessor.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\SqlStatementInfo.cs" Link="Includes\SqlStatementInfo.cs" />
   </ItemGroup>
 
 </Project>

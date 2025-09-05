@@ -8,6 +8,9 @@
 * Updated OpenTelemetry core component version(s) to `1.12.0`.
   ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
+* Suppress OTel HTTP instrumentation in AWS Resource Detector
+  ([#3044](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3044))
+
 ## 1.11.1
 
 Released 2025-Mar-05
