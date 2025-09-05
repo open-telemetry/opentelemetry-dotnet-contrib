@@ -19,7 +19,7 @@ public sealed class AspNetMetricsInstrumentationOptions
     public delegate void EnrichWithHttpContextAction(HttpContext context, ref TagList tags);
 
     /// <summary>
-    /// Gets or sets a function to enrich a recorded metric with additional custom tags.
+    /// Gets or sets a delegate to enrich a recorded metric with additional custom tags.
     /// </summary>
     public EnrichWithHttpContextAction? EnrichWithHttpContext { get; set; }
 
