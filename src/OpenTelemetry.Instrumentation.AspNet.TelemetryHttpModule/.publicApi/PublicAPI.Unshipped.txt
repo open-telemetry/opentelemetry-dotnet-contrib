@@ -1,5 +1,3 @@
-const OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.AspNetActivityName = "Microsoft.AspNet.HttpReqIn" -> string!
-const OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet.Telemetry" -> string!
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Dispose() -> void
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.Init(System.Web.HttpApplication! context) -> void
