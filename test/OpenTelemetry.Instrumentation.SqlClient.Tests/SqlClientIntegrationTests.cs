@@ -57,12 +57,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
             .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation(options =>
-            {
-#if NET
-                options.RecordException = recordException;
-#endif
-            })
+            .AddSqlClientInstrumentation(options => options.RecordException = recordException)
             .Build();
 
         using var sqlConnection = new SqlConnection(this.GetConnectionString());

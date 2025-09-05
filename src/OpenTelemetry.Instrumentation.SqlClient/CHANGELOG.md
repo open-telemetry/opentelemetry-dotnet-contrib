@@ -14,10 +14,6 @@
   Behaviors related to this option are now always enabled.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
-* **Breaking change**: The `Enrich`, `Filter` and `RecordException` properties have
-  been removed from target frameworks where they were non-functional.
-  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
-
 ## 1.12.0-beta.2
 
 Released 2025-Jul-15

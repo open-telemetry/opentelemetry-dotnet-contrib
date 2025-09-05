@@ -1,9 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
 using System.Diagnostics;
-#endif
 using Microsoft.Extensions.Configuration;
 #if NET
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -49,12 +47,12 @@ public class SqlClientTraceInstrumentationOptions
 #endif
     }
 
-#if NET
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with the
     /// raw <c>SqlCommand</c> object.
     /// </summary>
     /// <remarks>
+    /// <para><b>Enrich is only executed on .NET runtimes.</b></para>
     /// The parameters passed to the enrich action are:
     /// <list type="number">
     /// <item>The <see cref="Activity"/> being enriched.</item>
@@ -72,6 +70,7 @@ public class SqlClientTraceInstrumentationOptions
     /// collect telemetry about a command.
     /// </summary>
     /// <remarks>
+    /// <para><b>Filter is only executed on .NET runtimes.</b></para>
     /// Notes:
     /// <list type="bullet">
     /// <item>The first parameter passed to the filter function is the raw
@@ -93,11 +92,11 @@ public class SqlClientTraceInstrumentationOptions
     /// langword="false"/>.
     /// </summary>
     /// <remarks>
+    /// <para><b>RecordException is only supported on .NET runtimes.</b></para>
     /// <para>For specification details see: <see
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.</para>
     /// </remarks>
     public bool RecordException { get; set; }
-#endif
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
