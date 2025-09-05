@@ -14,7 +14,7 @@ namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 internal sealed class WsTransport : IOpAmpTransport, IDisposable
 {
     private readonly Uri uri;
-    private readonly SocketsHttpHandler handler = new();
+    private readonly HttpClientHandler handler = new();
     private readonly ClientWebSocket ws = new();
     private readonly WsReceiver receiver;
     private readonly WsTransmitter transmitter;
@@ -26,9 +26,7 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         Guard.ThrowIfNull(processor, nameof(processor));
 
         // TODO: fix trust all certificates
-#pragma warning disable CA5359 // Do Not Disable Certificate Validation
-        this.handler.SslOptions.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
-#pragma warning restore CA5359 // Do Not Disable Certificate Validation
+        this.handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
         this.uri = serverUrl;
         this.processor = processor;
         this.receiver = new WsReceiver(this.ws, this.processor);
