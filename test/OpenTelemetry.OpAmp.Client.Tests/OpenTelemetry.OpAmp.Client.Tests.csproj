@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestWebSocketServer.cs" Link="Includes\TestWebSocketServer.cs" />
   </ItemGroup>
 
 </Project>

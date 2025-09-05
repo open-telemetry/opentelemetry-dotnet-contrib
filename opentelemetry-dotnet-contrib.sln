@@ -370,6 +370,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{70CA77
 		test\Shared\TestHttpServer.cs = test\Shared\TestHttpServer.cs
 		test\Shared\TestSampler.cs = test\Shared\TestSampler.cs
 		test\Shared\TestTextMapPropagator.cs = test\Shared\TestTextMapPropagator.cs
+		test\Shared\TestWebSocketServer.cs = test\Shared\TestWebSocketServer.cs
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{45D29DAA-0DB9-4808-B879-1AECC37EF366}"

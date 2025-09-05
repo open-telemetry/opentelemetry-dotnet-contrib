@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Net;
-using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Tests;
 
@@ -12,33 +11,21 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Tools;
 internal class OpAmpFakeHttpServer : IDisposable
 {
     private readonly IDisposable httpServer;
-    private readonly BlockingCollection<AgentToServer> frames;
+    private readonly BlockingCollection<AgentToServer> frames = [];
 
-    public OpAmpFakeHttpServer()
+    public OpAmpFakeHttpServer(bool useSmallPackets)
     {
-        this.frames = [];
         this.httpServer = TestHttpServer.RunServer(
             context =>
             {
-                var buffer = new byte[context.Request.ContentLength64];
-                _ = context.Request.InputStream.Read(buffer, 0, buffer.Length);
-                var frame = AgentToServer.Parser.ParseFrom(buffer);
-
+                var frame = ProcessReceive(context.Request);
                 this.frames.Add(frame);
 
-                var response = new ServerToAgent
-                {
-                    InstanceUid = frame.InstanceUid,
-                    CustomMessage = new CustomMessage
-                    {
-                        Data = ByteString.CopyFromUtf8("Response from OpAmpFakeHttpServer"),
-                    },
-                };
-                var responseBytes = response.ToByteArray();
+                var response = GenerateResponse(frame, useSmallPackets);
 
                 context.Response.StatusCode = (int)HttpStatusCode.OK;
                 context.Response.ContentType = "application/x-protobuf";
-                context.Response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
+                context.Response.OutputStream.Write(response.Array!, response.Offset, response.Count);
                 context.Response.Close();
             },
             out var host,
@@ -56,5 +43,22 @@ internal class OpAmpFakeHttpServer : IDisposable
     public void Dispose()
     {
         this.httpServer.Dispose();
+    }
+
+    private static AgentToServer ProcessReceive(HttpListenerRequest request)
+    {
+        var buffer = new byte[request.ContentLength64];
+        _ = request.InputStream.Read(buffer, 0, buffer.Length);
+
+        var frame = AgentToServer.Parser.ParseFrom(buffer);
+
+        return frame;
+    }
+
+    private static ArraySegment<byte> GenerateResponse(AgentToServer frame, bool useSmallPackets)
+    {
+        var response = FrameGenerator.GenerateMockServerFrame(frame.InstanceUid, useSmallPackets, addHeader: false);
+
+        return response.Frame;
     }
 }
