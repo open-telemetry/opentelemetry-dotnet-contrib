@@ -10,12 +10,12 @@
   listener.
   ([#3041](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3041))
 
-* The `SetDbStatementForText` property has been removed. Behaviors related to this
-  option are now always enabled.
+* **Breaking change**: The `SetDbStatementForText` property has been removed.
+  Behaviors related to this option are now always enabled.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
-* The `Enrich`, `Filter` and `RecordException` properties have been removed from
-  target frameworks where they were non-functional.
+* **Breaking change**: The `Enrich`, `Filter` and `RecordException` properties have
+  been removed from target frameworks where they were non-functional.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
 ## 1.12.0-beta.2
