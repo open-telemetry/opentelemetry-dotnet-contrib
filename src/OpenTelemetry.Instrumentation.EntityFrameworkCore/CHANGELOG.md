@@ -25,8 +25,8 @@
   is `true` are now sanitized when using specific SQL-like EFCore providers.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
 * **Breaking change**: `db.system.name` now only sets names that are explicitly
-  defined in the Semantic Conventions specification.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  defined in the Semantic Conventions for databases.
+  ([#3075](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3075))
 
 ## 1.12.0-beta.2
 
