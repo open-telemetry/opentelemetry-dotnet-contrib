@@ -74,71 +74,112 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("EVAL", exportedItems[0].DisplayName);
         Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbStatement));
 
-        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[3], false, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[3], false, connection.GetEndPoints()[0], true);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
     [Trait("CategoryName", "RedisIntegrationTests")]
-    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
-    [InlineData("value1", null)]
-    [InlineData("value1", "serviceKey")]
-    public void SuccessfulCommandTest(string value, string? serviceKey)
+    [Theory]
+    [InlineData("value1", null, true, false)]
+    [InlineData("value1", null, false, true)]
+    [InlineData("value1", null, true, true)]
+
+    [InlineData("value1", "serviceKey", true, false)]
+    [InlineData("value1", "serviceKey", false, true)]
+    [InlineData("value1", "serviceKey", true, true)]
+
+    public void SuccessfulCommandTest(
+        string value,
+        string? serviceKey,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        var stabilityOptIn = (emitOldAttributes, emitNewAttributes) switch
+        {
+            (false, true) => "database",
+            (true, true) => "database/dup",
+            _ => null,
+        };
+        Environment.SetEnvironmentVariable(DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName, stabilityOptIn);
+
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = true,
         };
         connectionOptions.EndPoints.Add(RedisEndPoint!);
 
-        ConnectionMultiplexer? connection = null;
-        var exportedItems = new List<Activity>();
-        var sampler = new TestSampler();
-        using (Sdk.CreateTracerProviderBuilder()
-            .ConfigureServices(services =>
-            {
-                if (serviceKey is null)
-                {
-                    services.TryAddSingleton<IConnectionMultiplexer>(sp =>
-                    {
-                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                    });
-                }
-                else
-                {
-                    services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
-                    {
-                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                    });
-                }
-            })
-            .AddInMemoryExporter(exportedItems)
-            .SetSampler(sampler)
-            .AddRedisInstrumentation(null, null, serviceKey, c => c.SetVerboseDatabaseStatements = false)
-            .Build())
+        try
         {
-            Assert.NotNull(connection);
+            ConnectionMultiplexer? connection = null;
+            var exportedItems = new List<Activity>();
+            var sampler = new TestSampler();
+            using (Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices(services =>
+                {
+                    if (serviceKey is null)
+                    {
+                        services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                        {
+                            return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                        });
+                    }
+                    else
+                    {
+                        services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
+                        {
+                            return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                        });
+                    }
+                })
+                .AddInMemoryExporter(exportedItems)
+                .SetSampler(sampler)
+                .AddRedisInstrumentation(null, null, serviceKey, c =>
+                {
+                    c.SetVerboseDatabaseStatements = false;
+                })
+                .Build())
+            {
+                Assert.NotNull(connection);
 
-            var db = connection.GetDatabase();
+                var db = connection.GetDatabase();
 
-            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+                var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
-            Assert.True(set);
+                Assert.True(set);
 
-            var redisValue = db.StringGet("key1");
+                var redisValue = db.StringGet("key1");
 
-            Assert.True(redisValue.HasValue);
-            Assert.Equal(value, redisValue.ToString());
+                Assert.True(redisValue.HasValue);
+                Assert.Equal(value, redisValue.ToString());
+            }
+
+            // Disposing SDK should flush the Redis profiling session immediately.
+
+            Assert.Equal(2, exportedItems.Count);
+
+            var endpoint = connection.GetEndPoints()[0];
+
+            if (emitOldAttributes)
+            {
+                VerifyOldActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
+                VerifyOldActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
+                VerifySamplingParameters(sampler.LatestSamplingParameters);
+            }
+
+            if (emitNewAttributes)
+            {
+                VerifyNewActivityData(exportedItems[0], true, endpoint);
+                VerifyNewActivityData(exportedItems[1], false, endpoint);
+
+                // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
+            }
         }
-
-        // Disposing SDK should flush the Redis profiling session immediately.
-
-        Assert.Equal(2, exportedItems.Count);
-
-        VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], false);
-        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], false);
-        VerifySamplingParameters(sampler.LatestSamplingParameters);
+        finally
+        {
+            Environment.SetEnvironmentVariable(DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName, null);
+        }
     }
 
     [Fact]
@@ -426,7 +467,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("SET", exportedItems[0].DisplayName);
     }
 
-    private static void VerifyActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
+    private static void VerifyOldActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
     {
         if (isSet)
         {
@@ -457,10 +498,40 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal(0, activity.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName));
 
+        VerifyEndPoint(activity, endPoint);
+    }
+
+    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint)
+    {
+        var displayName = "SETEX";
+        var dbOperationName = "SETEX";
+        var dbQueryText = "SETEX key1";
+
+        if (!isSet)
+        {
+            displayName = "GET";
+            dbOperationName = "GET";
+            dbQueryText = "GET key1";
+        }
+
+        Assert.Equal(displayName, activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.Equal(dbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
+        Assert.Equal(dbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        VerifyEndPoint(activity, endPoint);
+    }
+
+    private static void VerifyEndPoint(Activity activity, EndPoint endPoint)
+    {
         if (endPoint is IPEndPoint ipEndPoint)
         {
             Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeServerAddress));
             Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
         }
         else if (endPoint is DnsEndPoint dnsEndPoint)
         {
