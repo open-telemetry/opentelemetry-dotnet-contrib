@@ -94,11 +94,11 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
         }
 
-        if (options.Enrich is not null)
+        if (options.EnrichWithHttpContext is not null)
         {
             try
             {
-                options.Enrich(context, ref tags);
+                options.EnrichWithHttpContext(context, ref tags);
             }
             catch (Exception ex)
             {

@@ -42,7 +42,7 @@ public sealed class EntityFrameworkIntegrationTests :
         this.sqlServerFixture = fixture;
     }
 
-    public static TheoryData<string, string, bool, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
+    public static TheoryData<string, string, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
     {
         (string, Type, bool, string, string)[] providers =
         [
@@ -56,34 +56,31 @@ public sealed class EntityFrameworkIntegrationTests :
             (SqlServerProvider, typeof(SqlCommand), true, "microsoft.sql_server", "master"),
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, bool, Type, string, string, string, string?>();
+        var testCases = new TheoryData<string, string, bool, bool, Type, string, string, string, string?>();
 
         foreach ((var provider, var commandType, var useNewConventions, var system, var database) in providers)
         {
-            var expectedSpanNameWhenCaptureTextCommandContent = useNewConventions
+            var expectedSpanName = useNewConventions
                 ? "select"
                 : database;
 
-            testCases.Add(provider, "select 1/1", false, false, useNewConventions, commandType, database, system, database, null);
-            testCases.Add(provider, "select 1/1", true, false, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, null);
+            testCases.Add(provider, "select 1/1", false, useNewConventions, commandType, expectedSpanName, system, database, null);
 
             // For some reason, SQLite does not throw an exception for division by zero
             if (provider == PostgresProvider)
             {
-                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "22012: division by zero");
-                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "22012: division by zero");
+                testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database, "22012: division by zero");
             }
             else if (provider == SqlServerProvider)
             {
-                testCases.Add(provider, "select 1/0", false, true, useNewConventions, commandType, database, system, database, "Divide by zero error encountered.");
-                testCases.Add(provider, "select 1/0", true, true, useNewConventions, commandType, expectedSpanNameWhenCaptureTextCommandContent, system, database, "Divide by zero error encountered.");
+                testCases.Add(provider, "select 1/0", true, useNewConventions, commandType, expectedSpanName, system, database, "Divide by zero error encountered.");
             }
         }
 
         return testCases;
     }
 
-    public static TheoryData<string, bool, bool, bool, Type, string, string> DataContextTestCases()
+    public static TheoryData<string, bool, bool, Type, string, string> DataContextTestCases()
     {
         (string, Type, string, string)[] providers =
         [
@@ -95,23 +92,20 @@ public sealed class EntityFrameworkIntegrationTests :
 
         bool[] trueFalse = [true, false];
 
-        var testCases = new TheoryData<string, bool, bool, bool, Type, string, string>();
+        var testCases = new TheoryData<string, bool, bool, Type, string, string>();
 
         foreach ((var provider, var commandType, var system, var database) in providers)
         {
-            foreach (var captureTextCommandContent in trueFalse)
+            foreach (var shouldEnrich in trueFalse)
             {
-                foreach (var shouldEnrich in trueFalse)
-                {
-                    testCases.Add(provider, captureTextCommandContent, shouldEnrich, false, commandType, system, database);
-                }
+                testCases.Add(provider, shouldEnrich, false, commandType, system, database);
             }
         }
 
         return testCases;
     }
 
-    public static TheoryData<string, string, bool, bool, string?, string?> QuerySanitizationTestCases()
+    public static TheoryData<string, string, bool, string?, string?> QuerySanitizationTestCases()
     {
         string[] providers =
         [
@@ -121,14 +115,12 @@ public sealed class EntityFrameworkIntegrationTests :
             SqlServerProvider,
         ];
 
-        var testCases = new TheoryData<string, string, bool, bool, string?, string?>();
+        var testCases = new TheoryData<string, string, bool, string?, string?>();
 
         foreach (var provider in providers)
         {
-            testCases.Add(provider, "select 1/1", false, false, null, null);
-            testCases.Add(provider, "select 1/1", false, true, null, null);
-            testCases.Add(provider, "select 1/1", true, false, "select ?/?", null);
-            testCases.Add(provider, "select 1/1", true, true, "select ?/?", "select");
+            testCases.Add(provider, "select 1/1", false, "select ?/?", null);
+            testCases.Add(provider, "select 1/1", true, "select ?/?", "select");
         }
 
         return testCases;
@@ -139,7 +131,6 @@ public sealed class EntityFrameworkIntegrationTests :
     public async Task TracesRawSql(
         string provider,
         string commandText,
-        bool captureTextCommandContent,
         bool isFailure,
         bool useNewConventions,
         Type expectedCommandType,
@@ -173,15 +164,8 @@ public sealed class EntityFrameworkIntegrationTests :
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureTextCommandContent;
-            })
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = ActivityFilter;
-                options.SetDbStatementForText = captureTextCommandContent;
-            })
+            .AddSqlClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation(options => options.Filter = ActivityFilter)
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
@@ -208,7 +192,6 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.NotNull(activity);
 
         VerifyActivityData(
-            captureTextCommandContent,
             isFailure,
             conventions,
             expectedSpanName,
@@ -243,7 +226,6 @@ public sealed class EntityFrameworkIntegrationTests :
     [MemberData(nameof(DataContextTestCases))]
     public async Task TracesDataContext(
         string provider,
-        bool captureTextCommandContent,
         bool shouldEnrich,
         bool useNewConventions,
         Type expectedCommandType,
@@ -278,14 +260,10 @@ public sealed class EntityFrameworkIntegrationTests :
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation(options =>
-            {
-                options.SetDbStatementForText = captureTextCommandContent;
-            })
+            .AddSqlClientInstrumentation()
             .AddEntityFrameworkCoreInstrumentation(options =>
             {
                 options.Filter = ActivityFilter;
-                options.SetDbStatementForText = captureTextCommandContent;
                 if (shouldEnrich)
                 {
                     options.EnrichWithIDbCommand = ActivityEnrichment;
@@ -364,14 +342,11 @@ public sealed class EntityFrameworkIntegrationTests :
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [MemberData(nameof(QuerySanitizationTestCases))]
-    [InlineData(SqlServerProvider, "sp_who", false, false, null, null)]
-    [InlineData(SqlServerProvider, "sp_who", false, true, null, null)]
-    [InlineData(SqlServerProvider, "sp_who", true, false, "sp_who", null)]
-    [InlineData(SqlServerProvider, "sp_who", true, true, "sp_who", null)]
+    [InlineData(SqlServerProvider, "sp_who", false, "sp_who", null)]
+    [InlineData(SqlServerProvider, "sp_who", true, "sp_who", null)]
     public async Task SqlQueriesAreSanitized(
         string provider,
         string commandText,
-        bool captureTextCommandContent,
         bool useNewConventions,
         string? expectedCommandText,
         string? expectedQuerySummary)
@@ -382,7 +357,7 @@ public sealed class EntityFrameworkIntegrationTests :
         var activities = new List<Activity>();
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddEntityFrameworkCoreInstrumentation(options => options.SetDbStatementForText = captureTextCommandContent)
+            .AddEntityFrameworkCoreInstrumentation()
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
@@ -421,7 +396,6 @@ public sealed class EntityFrameworkIntegrationTests :
     };
 
     private static void VerifyActivityData(
-        bool captureTextCommandContent,
         bool isFailure,
         SemanticConvention conventions,
         string expectedSpanName,
@@ -447,22 +421,15 @@ public sealed class EntityFrameworkIntegrationTests :
         Assert.Equal(expectedSystemName, activity.GetTagValue(conventions.System));
         Assert.Equal(expectedDatabaseName, activity.GetTagValue(conventions.Database));
 
-        if (captureTextCommandContent)
-        {
-            Assert.NotNull(activity.GetTagValue(conventions.QueryText));
+        Assert.NotNull(activity.GetTagValue(conventions.QueryText));
 
-            if (conventions.EmitsNewAttributes)
-            {
-                Assert.NotNull(activity.GetTagValue(conventions.QuerySummary));
-            }
-            else
-            {
-                Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == conventions.QuerySummary);
-            }
+        if (conventions.EmitsNewAttributes)
+        {
+            Assert.NotNull(activity.GetTagValue(conventions.QuerySummary));
         }
         else
         {
-            Assert.Null(activity.GetTagValue(conventions.QueryText));
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == conventions.QuerySummary);
         }
 
         Assert.DoesNotContain(activity.TagObjects, tag => tag.Key.StartsWith("db.query.parameter.", StringComparison.Ordinal));
