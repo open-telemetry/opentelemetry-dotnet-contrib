@@ -13,8 +13,9 @@ namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 
 internal sealed class WsReceiver : IDisposable
 {
-    private const int RentalBufferSize = 4096;
-    private const int ReceiveBufferSize = 8192;
+    private const int RentalBufferSize = 4 * 1024; // 4 KB
+    private const int ReceiveBufferSize = 8 * 1024; // 8 KB
+    private const int MaxMessageSize = 128 * 1024; // 128 KB
 
     private readonly ClientWebSocket ws;
     private readonly Thread receiveThread;
@@ -73,12 +74,12 @@ internal sealed class WsReceiver : IDisposable
     {
         var totalCount = 0;
         var workingCount = 0;
-        var isClosed = false;
-        var continueRead = false;
         WebSocketReceiveResult result;
         byte[] workingBuffer = this.receiveBuffer;
 
         List<byte[]>? rentalBuffers = null;
+        bool continueRead;
+        bool isClosed;
 
         do
         {
@@ -106,7 +107,10 @@ internal sealed class WsReceiver : IDisposable
 
             try
             {
-                result = await this.ws.ReceiveAsync(segment1, this.token).ConfigureAwait(false);
+                result = await this.ws
+                    .ReceiveAsync(segment1, this.token)
+                    .ConfigureAwait(false);
+
                 continueRead = !result.EndOfMessage;
                 isClosed = result.CloseStatus != null;
                 workingCount += result.Count;
@@ -116,6 +120,17 @@ internal sealed class WsReceiver : IDisposable
             {
                 continueRead = false;
                 isClosed = true;
+            }
+
+            if (totalCount > MaxMessageSize)
+            {
+                // Message too large, abort the connection.
+                await this.ws
+                    .CloseOutputAsync(WebSocketCloseStatus.MessageTooBig, "Message too large", CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                isClosed = true;
+                break;
             }
         }
         while (continueRead && !this.token.IsCancellationRequested);
