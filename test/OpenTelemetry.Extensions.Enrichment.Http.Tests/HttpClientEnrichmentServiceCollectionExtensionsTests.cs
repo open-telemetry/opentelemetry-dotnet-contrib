@@ -34,7 +34,7 @@ public class HttpClientEnrichmentServiceCollectionExtensionsTests
     public void FactoryMethod_AddsSingleton()
     {
         var services = new ServiceCollection();
-        services.TryAddHttpClientTraceEnricher<TestEnricher>(_ => new TestEnricher());
+        services.TryAddHttpClientTraceEnricher(_ => new TestEnricher());
         var provider = services.BuildServiceProvider();
         var enricher = provider.GetService<HttpClientTraceEnricher>();
         Assert.NotNull(enricher);
@@ -46,8 +46,8 @@ public class HttpClientEnrichmentServiceCollectionExtensionsTests
     {
         Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher<TestEnricher>(null!));
         Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher(null!, new TestEnricher()));
-        Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher(new ServiceCollection(), null!));
-        Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher<TestEnricher>(null!, _ => new TestEnricher()));
-        Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher<TestEnricher>(new ServiceCollection(), null!));
+        Assert.Throws<ArgumentNullException>(() => new ServiceCollection().TryAddHttpClientTraceEnricher(null!));
+        Assert.Throws<ArgumentNullException>(() => HttpClientEnrichmentServiceCollectionExtensions.TryAddHttpClientTraceEnricher(null!, _ => new TestEnricher()));
+        Assert.Throws<ArgumentNullException>(() => new ServiceCollection().TryAddHttpClientTraceEnricher<TestEnricher>(null!));
     }
 }

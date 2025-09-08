@@ -13,11 +13,11 @@
   <PropertyGroup>
     <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="$(OpenTelemetryInstrumentationHttpLatestStableVersion)" />
     <PackageReference Include="OpenTelemetry.Extensions.Enrichment" Version="1.12.0-alpha.1" />

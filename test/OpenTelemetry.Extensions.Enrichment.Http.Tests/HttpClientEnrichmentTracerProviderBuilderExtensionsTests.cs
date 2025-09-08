@@ -44,7 +44,7 @@ public class HttpClientEnrichmentTracerProviderBuilderExtensionsTests
     {
         IServiceCollection? captured = null;
         using var provider = Sdk.CreateTracerProviderBuilder()
-            .TryAddHttpClientTraceEnricher<TestEnricher>(_ => new TestEnricher())
+            .TryAddHttpClientTraceEnricher(_ => new TestEnricher())
             .ConfigureServices(services => captured = services)
             .Build();
 
@@ -61,7 +61,7 @@ public class HttpClientEnrichmentTracerProviderBuilderExtensionsTests
         Assert.Throws<ArgumentNullException>(() => builder!.TryAddHttpClientTraceEnricher<TestEnricher>());
         Assert.Throws<ArgumentNullException>(() => builder!.TryAddHttpClientTraceEnricher(new TestEnricher()));
         Assert.Throws<ArgumentNullException>(() => builder!.TryAddHttpClientTraceEnricher(_ => new TestEnricher()));
-        Assert.Throws<ArgumentNullException>(() => Sdk.CreateTracerProviderBuilder().TryAddHttpClientTraceEnricher((HttpClientTraceEnricher)null!));
-        Assert.Throws<ArgumentNullException>(() => Sdk.CreateTracerProviderBuilder().TryAddHttpClientTraceEnricher<TestEnricher>((Func<IServiceProvider, TestEnricher>)null!));
+        Assert.Throws<ArgumentNullException>(() => Sdk.CreateTracerProviderBuilder().TryAddHttpClientTraceEnricher(null!));
+        Assert.Throws<ArgumentNullException>(() => Sdk.CreateTracerProviderBuilder().TryAddHttpClientTraceEnricher<TestEnricher>(null!));
     }
 }

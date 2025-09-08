@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+#if NETFRAMEWORK
+using System.Net;
+#endif
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -19,8 +22,15 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
         this.serverLifeTime = TestHttpServer.RunServer(
             ctx =>
             {
-                var responseCode = ctx.Request.Headers["responseCode"];
-                ctx.Response.StatusCode = responseCode != null ? int.Parse(responseCode) : 200;
+                if (ctx.Request.Url != null && ctx.Request.Url.PathAndQuery.Contains("500"))
+                {
+                    ctx.Response.StatusCode = 500;
+                }
+                else
+                {
+                    ctx.Response.StatusCode = 200;
+                }
+
                 ctx.Response.OutputStream.Close();
             },
             out var host,
@@ -43,13 +53,18 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
             .AddInMemoryExporter(exportedActivities)
             .Build();
 
+#if NET
         using var httpClient = new HttpClient();
         var request = new HttpRequestMessage(HttpMethod.Get, this.url);
 
-        // Act
         using var response = await httpClient.SendAsync(request);
+#else
+        var request = (HttpWebRequest)WebRequest.Create(new Uri(this.url));
+        request.Method = "GET";
 
-        // Assert
+        using var response = await request.GetResponseAsync();
+#endif
+
         var activity = Assert.Single(exportedActivities);
         Assert.Equal(ActivityKind.Client, activity.Kind);
         Assert.Equal("GET", activity.DisplayName);
@@ -71,13 +86,19 @@ public class HttpClientTraceEnrichmentAcceptanceTests : IDisposable
             .AddInMemoryExporter(exportedActivities)
             .Build();
 
-        using var httpClient = new HttpClient();
         var invalidUrl = new Uri("http://nonexistent.invalid-domain-for-otel-tests-xyz/");
 
         Exception? thrown = null;
         try
         {
+#if NET
+            using var httpClient = new HttpClient();
             await httpClient.GetAsync(invalidUrl);
+#else
+            var request = (HttpWebRequest)WebRequest.Create(new Uri($"{invalidUrl}500"));
+            request.Method = "GET";
+            using var response = await request.GetResponseAsync();
+#endif
         }
         catch (Exception ex)
         {
