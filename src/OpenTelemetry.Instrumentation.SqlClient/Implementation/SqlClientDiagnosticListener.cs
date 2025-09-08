@@ -162,15 +162,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                     break;
 
                                 case CommandType.Text:
-                                    if (options.SetDbStatementForText)
-                                    {
-                                        DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
-                                            activity,
-                                            commandText,
-                                            options.EmitOldAttributes,
-                                            options.EmitNewAttributes);
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                        activity,
+                                        commandText,
+                                        options.EmitOldAttributes,
+                                        options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.TableDirect:
