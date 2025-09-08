@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
