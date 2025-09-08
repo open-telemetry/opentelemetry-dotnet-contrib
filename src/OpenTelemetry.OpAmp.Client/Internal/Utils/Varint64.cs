@@ -50,16 +50,23 @@ internal static class Varint64
 
     public static byte[] Encode(ulong value)
     {
-        var bytes = new List<byte>(MaxEncodedBytes);
+        var bytes = new byte[MaxEncodedBytes];
+        var index = 0;
 
         while (value > DataMask)
         {
-            bytes.Add((byte)((value & DataMask) | ContinuationBit));
+            bytes[index++] = (byte)((value & DataMask) | ContinuationBit);
             value >>= BitsPerByte;
         }
 
-        bytes.Add((byte)value); // Last byte without continuation bit
+        bytes[index++] = (byte)value; // Last byte without continuation bit
 
-        return bytes.ToArray();
+#if NET
+        return bytes[..index];
+#else
+        var result = new byte[index];
+        Array.Copy(bytes, result, index);
+        return result;
+#endif
     }
 }
