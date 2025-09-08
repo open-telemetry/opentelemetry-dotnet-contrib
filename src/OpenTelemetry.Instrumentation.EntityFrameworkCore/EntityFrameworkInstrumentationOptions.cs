@@ -26,6 +26,12 @@ public class EntityFrameworkInstrumentationOptions
         var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+
+        if (configuration["OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS"] is { Length: > 0 } value &&
+            bool.TryParse(value, out var setDbQueryParameters))
+        {
+            this.SetDbQueryParameters = setDbQueryParameters;
+        }
     }
 
     /// <summary>
@@ -70,7 +76,7 @@ public class EntityFrameworkInstrumentationOptions
     /// contain any sensitive data.</b>
     /// </para>
     /// </remarks>
-    public bool SetDbQueryParameters { get; set; }
+    internal bool SetDbQueryParameters { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the old database attributes should be emitted.

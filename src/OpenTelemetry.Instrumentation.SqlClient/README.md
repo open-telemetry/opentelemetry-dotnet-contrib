@@ -121,33 +121,6 @@ For an ASP.NET application, adding instrumentation is typically done in the
 This instrumentation can be configured to change the default behavior by using
 `SqlClientTraceInstrumentationOptions`.
 
-### SetDbQueryParameters
-
-> [!NOTE]
-> SetDbQueryParameters is not supported on .NET Framework.
-
-`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
-are emitted.
-
-Query parameters may contain sensitive data, so only enable `SetDbQueryParameters`
-if your queries and/or environment are appropriate for enabling this option.
-
-`SetDbQueryParameters` is `false` by default. When set to `true`, the
-instrumentation will set
-[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
-attributes for each of the query parameters associated with a database command.
-
-To enable capturing of parameter names and values use the
-following configuration.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.SetDbQueryParameters = true)
-    .AddConsoleExporter()
-    .Build();
-```
-
 ### Enrich
 
 > [!NOTE]
