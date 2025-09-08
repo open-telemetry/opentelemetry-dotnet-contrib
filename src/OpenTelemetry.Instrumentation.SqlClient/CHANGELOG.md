@@ -18,7 +18,7 @@
 
 * **Breaking change**: The `Enrich`, `Filter` and `RecordException` properties have
   been removed for .NET Framework where they were non-functional.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3079](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3079))
 
 ## 1.12.0-beta.2
 
