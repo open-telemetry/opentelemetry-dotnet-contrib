@@ -10,6 +10,28 @@
   as it is not part of the Semantic Conventions for Database Client Calls.
  ([#2982](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2982))
 
+* The new database semantic conventions can be opted in to by setting
+  the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable. This allows for a
+  transition period for users to experiment with the new semantic conventions
+  and adapt as necessary. The environment variable supports the following
+  values:
+  * `database` - emit the new, frozen (proposed for stable) database
+  attributes, and stop emitting the old experimental database
+  attributes that the instrumentation emitted previously.
+  * `database/dup` - emit both the old and the frozen (proposed for stable) database
+  attributes, allowing for a more seamless transition.
+  * The default behavior (in the absence of one of these values) is to continue
+  emitting the same database semantic conventions that were emitted in
+  the previous version.
+  * Note: this option will be be removed after the new database
+  semantic conventions is marked stable. At which time this
+  instrumentation can receive a stable release, and the old database
+  semantic conventions will no longer be supported. Refer to the
+  specification for more information regarding the new database
+  semantic conventions for
+  [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
+ ([#3084](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3084))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-28
