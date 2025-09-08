@@ -3,7 +3,9 @@
 
 using System.Data;
 using System.Diagnostics;
+#if NET
 using Microsoft.Data.SqlClient;
+#endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
@@ -238,7 +240,6 @@ public class SqlClientTraceInstrumentationOptionsTests
         var options = new SqlClientTraceInstrumentationOptions(configuration);
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
-#endif
 
     private static void ActivityEnrichment(Activity activity, string method, object obj)
     {
@@ -255,7 +256,6 @@ public class SqlClientTraceInstrumentationOptionsTests
         }
     }
 
-#if NET
     private Activity[] RunCommandWithFilter(
         string commandText,
         Func<object, bool> filter)
