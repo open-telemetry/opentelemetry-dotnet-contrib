@@ -41,9 +41,9 @@ To configure your `web.config` manually, add this:
 
 `TelemetryHttpModule` registers an
 [ActivitySource](https://docs.microsoft.com/dotnet/api/system.diagnostics.activitysource)
-with the name `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`. By default, .NET
-`ActivitySource` will not generate any `Activity` objects unless there is a
-registered listener.
+with the name `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`.
+By default, .NET `ActivitySource` will not generate any `Activity` objects
+unless there is a registered listener.
 
 To register a listener automatically using OpenTelemetry, please use the
 [OpenTelemetry.Instrumentation.AspNet](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet/)
