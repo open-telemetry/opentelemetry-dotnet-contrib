@@ -278,7 +278,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
     /// </returns>
     internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
-        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used; otherwise, a custom value MAY be used."
+        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used"
         providerOrCommandName switch
         {
             //// These names are defined in the Semantic Conventions
@@ -326,23 +326,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             "IBM.EntityFrameworkCore-lnx" or
             "IBM.EntityFrameworkCore-osx"
                 => (DbSystems.Db2, DbSystemNames.IbmDb2),
-            //// These names are custom and are retained for backwards compatibility
-            "EFCore.Snowflake" or
-            "EFCore.Snowflake.Storage" or
-            "EFCore.Snowflake.Storage.Internal"
-                => ("snowflake", "snowflake"),
-            "Microsoft.EntityFrameworkCore.InMemory"
-                => ("efcoreinmemory", "efcoreinmemory"),
-            "FileContextCore"
-                => ("filecontextcore", "filecontextcore"),
-            "EntityFrameworkCore.SqlServerCompact35" or
-            "EntityFrameworkCore.SqlServerCompact40" or
-            "System.Data.SqlServerCe.SqlCeCommand"
-                => ("mssqlcompact", "mssqlcompact"),
-            "EntityFrameworkCore.OpenEdge" => ("openedge", "openedge"),
-            "EntityFrameworkCore.Jet" or
-            "EntityFrameworkCore.Jet.Data.JetCommand"
-                => ("jet", "jet"),
             //// Otherwise use the fallback defined in the Semantic Conventions
             _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
         };

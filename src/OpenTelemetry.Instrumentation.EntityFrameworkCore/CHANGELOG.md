@@ -28,6 +28,9 @@
   `SetDbStatementForText` properties have been removed. Behaviors related to this
   option are now always enabled.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
+* **Breaking change**: `db.system.name` now only sets names that are explicitly
+  defined in the Semantic Conventions for databases.
+  ([#3075](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3075))
 
 ## 1.12.0-beta.2
 
