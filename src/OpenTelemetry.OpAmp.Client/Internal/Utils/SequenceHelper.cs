@@ -24,6 +24,11 @@ internal static class SequenceHelper
             return ReadOnlySequence<byte>.Empty;
         }
 
+        if (buffers.Count == 1)
+        {
+            return new ReadOnlySequence<byte>(buffers[0], 0, endIndex);
+        }
+
         BufferSegment segment1 = new BufferSegment(buffers[0]);
         BufferSegment currentSegment = segment1;
 
