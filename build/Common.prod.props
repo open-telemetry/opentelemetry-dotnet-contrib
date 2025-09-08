@@ -86,6 +86,7 @@
       <!-- Note: This resolves all the PublicApiAnalyzers files which are actually used by the analyzer -->
       <AdditionalFiles Include=".publicApi\PublicAPI.*.txt" />
       <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.*.txt" />
+      <AdditionalFiles Include=".publicApi\$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))\PublicAPI.*.txt" />
     </ItemGroup>
   </Target>
 
