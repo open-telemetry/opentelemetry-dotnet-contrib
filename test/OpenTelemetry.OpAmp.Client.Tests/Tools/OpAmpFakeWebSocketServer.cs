@@ -22,7 +22,7 @@ internal class OpAmpFakeWebSocketServer : IDisposable
             async socket =>
             {
                 var buffer = new byte[8 * 1024];
-                var ms = new MemoryStream();
+                using var ms = new MemoryStream();
 
                 try
                 {
