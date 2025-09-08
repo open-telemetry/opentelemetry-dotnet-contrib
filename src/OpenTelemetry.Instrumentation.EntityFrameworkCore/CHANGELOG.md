@@ -21,9 +21,13 @@
 * Add the `db.query.summary` attribute and use it for the trace span name when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
-* The `db.statement` and `db.query.text` attributes added when `SetDbStatementForText`
-  is `true` are now sanitized when using specific SQL-like EFCore providers.
+* The `db.statement` and `db.query.text` attributes are now sanitized when using
+  specific SQL-like EFCore providers.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
+* **Breaking change**: The `SetDbStatementForStoredProcedure` and
+  `SetDbStatementForText` properties have been removed. Behaviors related to this
+  option are now always enabled.
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
 
 ## 1.12.0-beta.2
 

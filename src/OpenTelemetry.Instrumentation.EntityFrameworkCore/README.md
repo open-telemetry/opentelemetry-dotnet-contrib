@@ -141,29 +141,6 @@ services.AddOpenTelemetry()
         .AddConsoleExporter());
 ```
 
-### SetDbStatementForText
-
-`SetDbStatementForText` controls whether the `db.statement` attribute is
-emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
-see below for more details.
-
-Query text may contain sensitive data, so when `SetDbStatementForText` is
-enabled the raw query text is sanitized by automatically replacing literal
-values with a `?` character.
-
-> [!NOTE]
-> Query sanitization is only supported for the following SQL-like providers:
->
-> * Firebird
-> * GCP Spanner
-> * IBM DB2
-> * Microsoft SQL Server
-> * MySQL
-> * Oracle
-> * PostgreSQL
-> * SQLite
-> * Teradata
-
 ### SetDbQueryParameters
 
 `SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
@@ -183,7 +160,7 @@ following configuration.
 ```csharp
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddEntityFrameworkCoreInstrumentation(
-        options => options.SetDbStatementForText = true)
+        options => options.SetDbQueryParameters = true)
     .AddConsoleExporter()
     .Build();
 ```
