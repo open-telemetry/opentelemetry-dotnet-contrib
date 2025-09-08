@@ -180,7 +180,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #if !NETFRAMEWORK
                         try
                         {
-                            options.Enrich?.Invoke(activity, "OnCustom", command);
+                            options.EnrichWithSqlCommand?.Invoke(activity, command);
                         }
                         catch (Exception ex)
                         {

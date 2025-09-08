@@ -68,14 +68,11 @@ public class SqlClientTraceInstrumentationOptions
     /// The parameters passed to the enrich action are:
     /// <list type="number">
     /// <item>The <see cref="Activity"/> being enriched.</item>
-    /// <item>The name of the event. Currently only <c>"OnCustom"</c> is
-    /// used but more events may be added in the future.</item>
     /// <item>The raw <c>SqlCommand</c> object from which additional
-    /// information can be extracted to enrich the <see
-    /// cref="Activity"/>.</item>
+    /// information can be extracted to enrich the <see cref="Activity"/>.</item>
     /// </list>
     /// </remarks>
-    public Action<Activity, string, object>? Enrich { get; set; }
+    public Action<Activity, object>? EnrichWithSqlCommand { get; set; }
 
     /// <summary>
     /// Gets or sets a filter function that determines whether or not to
