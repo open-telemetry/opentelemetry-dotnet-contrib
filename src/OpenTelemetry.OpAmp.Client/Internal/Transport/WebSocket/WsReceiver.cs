@@ -63,25 +63,18 @@ internal sealed class WsReceiver : IDisposable
 
     private async void ReceiveLoop()
     {
-        while (true)
+        while (!this.token.IsCancellationRequested && this.ws.State == WebSocketState.Open)
         {
-            this.token.ThrowIfCancellationRequested();
-
-            if (this.ws.State != WebSocketState.Open)
-            {
-                // Connection is closed, dont start a new loop
-                break;
-            }
-
-            await this.ReceiveAsync(this.token).ConfigureAwait(false);
+            await this.ReceiveAsync().ConfigureAwait(false);
         }
     }
 
-    private async Task ReceiveAsync(CancellationToken token)
+    private async Task ReceiveAsync()
     {
         var totalCount = 0;
         var workingCount = 0;
         var isClosed = false;
+        var continueRead = false;
         WebSocketReceiveResult result;
         byte[] workingBuffer = this.receiveBuffer;
 
@@ -89,8 +82,6 @@ internal sealed class WsReceiver : IDisposable
 
         do
         {
-            this.token.ThrowIfCancellationRequested();
-
             // out of space, need to rent more
             if (workingBuffer.Length - workingCount == 0)
             {
@@ -112,13 +103,22 @@ internal sealed class WsReceiver : IDisposable
             }
 
             var segment1 = new ArraySegment<byte>(workingBuffer, workingCount, workingBuffer.Length - workingCount);
-            result = await this.ws.ReceiveAsync(segment1, token).ConfigureAwait(false);
 
-            isClosed = result.CloseStatus != null;
-            workingCount += result.Count;
-            totalCount += result.Count;
+            try
+            {
+                result = await this.ws.ReceiveAsync(segment1, this.token).ConfigureAwait(false);
+                continueRead = !result.EndOfMessage;
+                isClosed = result.CloseStatus != null;
+                workingCount += result.Count;
+                totalCount += result.Count;
+            }
+            catch (OperationCanceledException)
+            {
+                continueRead = false;
+                isClosed = true;
+            }
         }
-        while (!result.EndOfMessage);
+        while (continueRead && !this.token.IsCancellationRequested);
 
         if (!isClosed)
         {
