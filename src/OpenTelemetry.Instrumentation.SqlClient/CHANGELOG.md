@@ -20,6 +20,10 @@
   been removed for .NET Framework where they were non-functional.
   ([#3079](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3079))
 
+* **Breaking change**: The `Enrich` property has been renamed to
+  `EnrichWithSqlCommand` and no longer passes an event name to the delegate.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-15
