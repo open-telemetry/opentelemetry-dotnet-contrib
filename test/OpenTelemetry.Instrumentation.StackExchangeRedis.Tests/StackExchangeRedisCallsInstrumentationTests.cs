@@ -82,7 +82,7 @@ public class StackExchangeRedisCallsInstrumentationTests
     }
 
     [Trait("CategoryName", "RedisIntegrationTests")]
-    [Theory]
+    [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
     [InlineData("value1", null, true, false)]
     [InlineData("value1", null, false, true)]
     [InlineData("value1", null, true, true)]
