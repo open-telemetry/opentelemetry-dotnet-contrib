@@ -256,7 +256,6 @@ public class SqlClientTraceInstrumentationOptionsTests
         }
     }
 
-#if NET
     private Activity[] RunCommandWithFilter(
         string commandText,
         Func<object, bool> filter)
