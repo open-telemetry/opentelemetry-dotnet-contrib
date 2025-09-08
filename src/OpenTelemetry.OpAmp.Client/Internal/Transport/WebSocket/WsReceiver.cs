@@ -31,7 +31,10 @@ internal sealed class WsReceiver : IDisposable
 
         this.ws = ws;
         this.processor = processor;
-        this.receiveThread = new Thread(this.ReceiveLoop);
+        this.receiveThread = new Thread(this.ReceiveLoop)
+        {
+            Name = "OpAmp WebSocket Receive Loop",
+        };
     }
 
     public void Start(CancellationToken token = default)
