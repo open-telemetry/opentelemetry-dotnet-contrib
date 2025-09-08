@@ -54,8 +54,6 @@ internal class OpAmpFakeWebSocketServer : IDisposable
                 }
                 finally
                 {
-                    ms.Dispose();
-
                     if (socket.State == WebSocketState.Open || socket.State == WebSocketState.CloseReceived)
                     {
                         await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server disposed", this.cts.Token);
