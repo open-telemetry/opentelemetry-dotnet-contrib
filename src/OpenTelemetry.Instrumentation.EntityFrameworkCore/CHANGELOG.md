@@ -18,7 +18,8 @@
 * Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
   the `OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS`
   environment variable.
-  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015),
+  [#3081](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3081))
 * Add the `db.query.summary` attribute and use it for the trace span name when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
