@@ -8,8 +8,6 @@ OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Rec
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.RecordException.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbQueryParameters.get -> bool
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbQueryParameters.set -> void
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbStatementForText.get -> bool
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbStatementForText.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SqlClientTraceInstrumentationOptions() -> void
 OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions

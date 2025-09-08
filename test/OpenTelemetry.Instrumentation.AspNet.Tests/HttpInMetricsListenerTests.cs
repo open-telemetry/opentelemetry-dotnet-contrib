@@ -48,7 +48,7 @@ public class HttpInMetricsListenerTests
             {
                 options.EnableServerAttributesForRequestDuration = enableServerAttributesForRequestDuration;
 
-                options.Enrich += (HttpContext context, ref TagList tags) =>
+                options.EnrichWithHttpContext += (HttpContext context, ref TagList tags) =>
                 {
                     if (enrichMode == "throw")
                     {
