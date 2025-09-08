@@ -7,10 +7,18 @@
   `AspNetInstrumentationMeterProviderBuilderExtensions`
   and `AspNetInstrumentationTracerProviderBuilderExtensions` respectively.
   ([#2910](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2910))
+
 * **Breaking Change**: Made metrics generation independent from traces.
   Tracing must no longer be enabled to calculate metrics. A compatible version
   of `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule` is required.
   ([#2970](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2970))
+
+* **Breaking Change**: Metrics related option renamed:
+  * delegate `AspNetMetricsInstrumentationOptions.EnrichFunc` to
+    `AspNetMetricsInstrumentationOptions.EnrichWithHttpContextAction`,
+  * property `AspNetMetricsInstrumentationOptions.Enrich` to
+    `AspNetMetricsInstrumentationOptions.EnrichWithHttpContext`.
+  ([#3070](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3070))
 
 ## 1.12.0-beta.1
 
