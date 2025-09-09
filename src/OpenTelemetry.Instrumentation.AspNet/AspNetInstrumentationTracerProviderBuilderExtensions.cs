@@ -52,7 +52,7 @@ public static class AspNetInstrumentationTracerProviderBuilderExtensions
                 {
                     return AspNetInstrumentation.Instance.HandleManager.AddTracingHandle();
                 });
-                tracerProviderBuilder.AddSource("OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule");
+                tracerProviderBuilder.AddSource("OpenTelemetry.Instrumentation.AspNet");
             });
         });
     }

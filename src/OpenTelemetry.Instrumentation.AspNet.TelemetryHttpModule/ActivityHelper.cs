@@ -29,7 +29,7 @@ internal static class ActivityHelper
     /// <summary>
     /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
     /// </summary>
-    internal static readonly string AspNetSourceName = typeof(ActivityHelper).Assembly.GetName().Name!;
+    internal const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet";
 
     internal static readonly object StartedButNotSampledObj = new();
 

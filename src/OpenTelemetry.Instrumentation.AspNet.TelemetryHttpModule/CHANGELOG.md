@@ -9,7 +9,7 @@
 
 * **Breaking Change**: Activity source name changed from
   `OpenTelemetry.Instrumentation.AspNet.Telemetry` to
-  `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`.
+  `OpenTelemetry.Instrumentation.AspNet`.
   ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
 
 * **Breaking Change**: Following constants was removed from the public API
