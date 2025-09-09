@@ -68,8 +68,8 @@ internal sealed class FrameBuilder : IFrameBuilder
             var component = new ComponentHealth()
             {
                 Healthy = item.IsHealthy,
-                StartTimeUnixNano = (ulong)item.StartTime.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
-                StatusTimeUnixNano = (ulong)item.StatusTime.ToUnixTimeMilliseconds() * 1000000, // Convert to nanoseconds
+                StartTimeUnixNano = (ulong)item.StartTime.ToUnixTimeMilliseconds() * 1_000_000, // Convert to nanoseconds
+                StatusTimeUnixNano = (ulong)item.StatusTime.ToUnixTimeMilliseconds() * 1_000_000, // Convert to nanoseconds
             };
 
             if (health.Status != null)
