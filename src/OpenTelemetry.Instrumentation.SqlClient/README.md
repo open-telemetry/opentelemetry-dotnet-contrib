@@ -233,7 +233,7 @@ information for the current connection, which results in
 ### DB query parameters
 
 > [!NOTE]
-> This feature is not supported on .NET Framework.
+> This feature is available on .NET runtimes only.
 
 The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` environment
 variable controls whether `db.query.parameter.<key>` attributes are emitted.
