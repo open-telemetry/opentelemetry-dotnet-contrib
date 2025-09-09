@@ -141,6 +141,25 @@ services.AddOpenTelemetry()
         .AddConsoleExporter());
 ```
 
+## Experimental features
+
+> [!NOTE]
+> Experimental features are not enabled by default and can only be activated with
+> environment variables. They are subject to change or removal in future releases.
+
+### DB query parameters
+
+The `OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS` environment
+variable controls whether `db.query.parameter.<key>` attributes are emitted.
+
+Query parameters may contain sensitive data, so only enable this experimental feature
+if your queries and/or environment are appropriate for enabling this option.
+
+`OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS` is implicitly
+`false` by default. When set to `true`, the instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)

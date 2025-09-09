@@ -224,6 +224,28 @@ command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-he
 information for the current connection, which results in
 **an additional round-trip to the database**.
 
+## Experimental features
+
+> [!NOTE]
+> Experimental features are not enabled by default and can only be activated with
+> environment variables. They are subject to change or removal in future releases.
+
+### DB query parameters
+
+> [!NOTE]
+> This feature is not supported on .NET Framework.
+
+The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` environment
+variable controls whether `db.query.parameter.<key>` attributes are emitted.
+
+Query parameters may contain sensitive data, so only enable this experimental feature
+if your queries and/or environment are appropriate for enabling this option.
+
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` is implicitly
+`false` by default. When set to `true`, the instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
+
 ## Activity Duration calculation
 
 `Activity.Duration` represents the time the underlying connection takes to
