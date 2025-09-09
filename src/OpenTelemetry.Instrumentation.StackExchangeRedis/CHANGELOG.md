@@ -24,7 +24,7 @@
   emitting the same database semantic conventions that were emitted in
   the previous version.
   * Note: this option will be be removed after the new database
-  semantic conventions is marked stable. At which time this
+  semantic conventions are marked stable. At which time this
   instrumentation can receive a stable release, and the old database
   semantic conventions will no longer be supported. Refer to the
   specification for more information regarding the new database
