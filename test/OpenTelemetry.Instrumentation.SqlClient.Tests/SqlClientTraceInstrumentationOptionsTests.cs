@@ -216,6 +216,28 @@ public class SqlClientTraceInstrumentationOptionsTests
 
         Assert.Empty(activities);
     }
+
+    [Fact]
+    public void ShouldNotEmitDatabaseQueryParametersByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        Assert.False(options.SetDbQueryParameters);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("invalid", false)]
+    [InlineData("false", false)]
+    [InlineData("true", true)]
+    public void ShouldAssignSetDatabaseQueryParametersFromEnvironmentVariable(string value, bool expected)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS"] = value })
+            .Build();
+        var options = new SqlClientTraceInstrumentationOptions(configuration);
+        Assert.Equal(expected, options.SetDbQueryParameters);
+    }
 #endif
 
     private static void ActivityEnrichment(Activity activity, string method, object obj)
