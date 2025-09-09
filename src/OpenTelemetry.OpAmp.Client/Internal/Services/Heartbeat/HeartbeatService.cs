@@ -52,8 +52,8 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         var newInterval = message.ConnectionSettings.Opamp?.HeartbeatIntervalSeconds ?? 0;
         if (newInterval > 0)
         {
-            // TODO: Debug log the new heartbeat interval
-            Console.WriteLine($"[Debug] New heartbeat interval received: {newInterval}s");
+            // TODO: change to proper logging
+            Console.WriteLine($"[debug] New heartbeat interval received: {newInterval}s");
 
             this.CreateOrUpdateTimer(TimeSpan.FromSeconds(newInterval));
         }
@@ -100,8 +100,8 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         }
         catch (Exception ex)
         {
-            // TODO: Log the exception (logging not implemented here)
-            Console.WriteLine($"Heartbeat error: {ex.Message}");
+            // TODO: change to proper logging
+            Console.WriteLine($"[error] Heartbeat error: {ex.Message}");
         }
     }
 
