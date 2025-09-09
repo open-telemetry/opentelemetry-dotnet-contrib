@@ -7,7 +7,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 
-internal class HeartbeatService : IBackgroundService, IOpAmpListener<ConnectionSettingsMessage>, IDisposable
+internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<ConnectionSettingsMessage>, IDisposable
 {
     public const string Name = "heartbeat-service";
 

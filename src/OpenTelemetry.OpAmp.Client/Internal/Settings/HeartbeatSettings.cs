@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Settings;
 
-internal class HeartbeatSettings
+internal sealed class HeartbeatSettings
 {
     /// <summary>
     /// Gets or sets a value indicating whether the heartbeat is enabled.

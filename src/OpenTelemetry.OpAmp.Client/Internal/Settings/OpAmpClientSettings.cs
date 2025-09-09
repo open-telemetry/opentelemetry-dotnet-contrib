@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Settings;
 
-internal class OpAmpClientSettings
+internal sealed class OpAmpClientSettings
 {
     /// <summary>
     /// Gets or sets the unique identifier for the current instance.
