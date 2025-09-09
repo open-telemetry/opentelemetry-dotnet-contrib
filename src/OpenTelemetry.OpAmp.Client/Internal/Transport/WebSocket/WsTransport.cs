@@ -1,15 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-
+#if NETFRAMEWORK
+using System.Net.Http;
+#endif
 using System.Net.WebSockets;
 using Google.Protobuf;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Transport;
 
-namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
+namespace OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
 internal sealed class WsTransport : IOpAmpTransport, IDisposable
 {
@@ -26,7 +25,9 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         Guard.ThrowIfNull(processor, nameof(processor));
 
         // TODO: fix trust all certificates
+#if NET
         this.handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+#endif
         this.uri = serverUrl;
         this.processor = processor;
         this.receiver = new WsReceiver(this.ws, this.processor);
@@ -35,10 +36,16 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
 
     public async Task StartAsync(CancellationToken token = default)
     {
+#if NET
         using var invoker = new HttpMessageInvoker(this.handler);
+#endif
 
         await this.ws
+#if NET
             .ConnectAsync(this.uri, invoker, token)
+#else
+            .ConnectAsync(this.uri, token)
+#endif
             .ConfigureAwait(false);
 
         this.receiver.Start(token);
@@ -64,5 +71,3 @@ internal sealed class WsTransport : IOpAmpTransport, IDisposable
         this.receiver.Dispose();
     }
 }
-
-#endif
