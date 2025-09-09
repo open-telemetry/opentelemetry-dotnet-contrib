@@ -22,7 +22,7 @@
 
 * **Breaking change**: The `Enrich` property has been renamed to
   `EnrichWithSqlCommand` and no longer passes an event name to the delegate.
-  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+  ([#3080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3080))
 
 ## 1.12.0-beta.2
 
