@@ -97,13 +97,13 @@ public class StackExchangeRedisCallsInstrumentationTests
         bool emitOldAttributes,
         bool emitNewAttributes)
     {
-        var stabilityOptIn = (emitOldAttributes, emitNewAttributes) switch
-        {
-            (false, true) => "database",
-            (true, true) => "database/dup",
-            _ => null,
-        };
-        Environment.SetEnvironmentVariable(DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName, stabilityOptIn);
+        using var scope = SemanticConventionScope.Get(
+            (emitOldAttributes, emitNewAttributes) switch
+            {
+                (true, true) => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe,
+                (false, true) => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New,
+                _ => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Old,
+            });
 
         var connectionOptions = new ConfigurationOptions
         {
@@ -111,75 +111,68 @@ public class StackExchangeRedisCallsInstrumentationTests
         };
         connectionOptions.EndPoints.Add(RedisEndPoint!);
 
-        try
+        ConnectionMultiplexer? connection = null;
+        var exportedItems = new List<Activity>();
+        var sampler = new TestSampler();
+        using (Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services =>
+            {
+                if (serviceKey is null)
+                {
+                    services.TryAddSingleton<IConnectionMultiplexer>(sp =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
+                else
+                {
+                    services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
+                    {
+                        return connection = ConnectionMultiplexer.Connect(connectionOptions);
+                    });
+                }
+            })
+            .AddInMemoryExporter(exportedItems)
+            .SetSampler(sampler)
+            .AddRedisInstrumentation(null, null, serviceKey, c =>
+            {
+                c.SetVerboseDatabaseStatements = false;
+            })
+            .Build())
         {
-            ConnectionMultiplexer? connection = null;
-            var exportedItems = new List<Activity>();
-            var sampler = new TestSampler();
-            using (Sdk.CreateTracerProviderBuilder()
-                .ConfigureServices(services =>
-                {
-                    if (serviceKey is null)
-                    {
-                        services.TryAddSingleton<IConnectionMultiplexer>(sp =>
-                        {
-                            return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                        });
-                    }
-                    else
-                    {
-                        services.TryAddKeyedSingleton<IConnectionMultiplexer>(serviceKey, (sp, key) =>
-                        {
-                            return connection = ConnectionMultiplexer.Connect(connectionOptions);
-                        });
-                    }
-                })
-                .AddInMemoryExporter(exportedItems)
-                .SetSampler(sampler)
-                .AddRedisInstrumentation(null, null, serviceKey, c =>
-                {
-                    c.SetVerboseDatabaseStatements = false;
-                })
-                .Build())
-            {
-                Assert.NotNull(connection);
+            Assert.NotNull(connection);
 
-                var db = connection.GetDatabase();
+            var db = connection.GetDatabase();
 
-                var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
+            var set = db.StringSet("key1", value, TimeSpan.FromSeconds(60));
 
-                Assert.True(set);
+            Assert.True(set);
 
-                var redisValue = db.StringGet("key1");
+            var redisValue = db.StringGet("key1");
 
-                Assert.True(redisValue.HasValue);
-                Assert.Equal(value, redisValue.ToString());
-            }
-
-            // Disposing SDK should flush the Redis profiling session immediately.
-
-            Assert.Equal(2, exportedItems.Count);
-
-            var endpoint = connection.GetEndPoints()[0];
-
-            if (emitOldAttributes)
-            {
-                VerifyOldActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
-                VerifyOldActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
-                VerifySamplingParameters(sampler.LatestSamplingParameters);
-            }
-
-            if (emitNewAttributes)
-            {
-                VerifyNewActivityData(exportedItems[0], true, endpoint);
-                VerifyNewActivityData(exportedItems[1], false, endpoint);
-
-                // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
-            }
+            Assert.True(redisValue.HasValue);
+            Assert.Equal(value, redisValue.ToString());
         }
-        finally
+
+        // Disposing SDK should flush the Redis profiling session immediately.
+
+        Assert.Equal(2, exportedItems.Count);
+
+        var endpoint = connection.GetEndPoints()[0];
+
+        if (emitOldAttributes)
         {
-            Environment.SetEnvironmentVariable(DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName, null);
+            VerifyOldActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
+            VerifyOldActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
+            VerifySamplingParameters(sampler.LatestSamplingParameters);
+        }
+
+        if (emitNewAttributes)
+        {
+            VerifyNewActivityData(exportedItems[0], true, endpoint);
+            VerifyNewActivityData(exportedItems[1], false, endpoint);
+
+            // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
         }
     }
 
@@ -554,5 +547,29 @@ public class StackExchangeRedisCallsInstrumentationTests
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && (string?)kvp.Value == "redis");
+    }
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName;
+
+        public static SemanticConventionScope Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention convention)
+        {
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+            var value = convention switch
+            {
+                DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe => "database/dup",
+                DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New => "database",
+                _ => string.Empty,
+            };
+
+            Environment.SetEnvironmentVariable(
+                ConventionsOptIn,
+                value);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }
