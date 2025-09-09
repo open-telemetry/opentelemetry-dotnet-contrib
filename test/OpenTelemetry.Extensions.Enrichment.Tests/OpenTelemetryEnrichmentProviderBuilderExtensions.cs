@@ -12,14 +12,14 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
     private const string SourceName = nameof(OpenTelemetryEnrichmentProviderBuilderExtensions);
 
     [Fact]
-    public void AddTraceEnricherOfTRegistersEnricher()
+    public void GenericMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
-            .AddTraceEnricher<MyTraceEnricher>()
-            .AddTraceEnricher<MyTraceEnricher2>()
+            .TryAddTraceEnricher<MyTraceEnricher>()
+            .TryAddTraceEnricher<MyTraceEnricher2>()
             .AddInMemoryExporter(exportedItems)
             .Build();
 
@@ -41,14 +41,14 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
     }
 
     [Fact]
-    public void AddTraceEnricherRegistersEnricher()
+    public void InstanceMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddSource(SourceName)
-            .AddTraceEnricher(new MyTraceEnricher())
-            .AddTraceEnricher(new MyTraceEnricher2())
+            .TryAddTraceEnricher(new MyTraceEnricher())
+            .TryAddTraceEnricher(new MyTraceEnricher2())
             .AddInMemoryExporter(exportedItems)
             .Build();
 
@@ -71,7 +71,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
     }
 
     [Fact]
-    public void AddTraceEnricherActionRegistersEnricher()
+    public void DelegateMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -106,7 +106,7 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
     }
 
     [Fact]
-    public void AddTraceEnricherFactoryRegistersEnricher()
+    public void FactoryMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 

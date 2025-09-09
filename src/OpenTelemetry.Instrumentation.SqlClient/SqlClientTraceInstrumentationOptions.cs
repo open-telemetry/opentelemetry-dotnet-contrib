@@ -19,6 +19,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient;
 public class SqlClientTraceInstrumentationOptions
 {
     internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION";
+    internal const string SetDbQueryParametersEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
@@ -43,6 +44,14 @@ public class SqlClientTraceInstrumentationOptions
                 out var enableTraceContextPropagation))
         {
             this.EnableTraceContextPropagation = enableTraceContextPropagation;
+        }
+
+        if (configuration!.TryGetBoolValue(
+                SqlClientInstrumentationEventSource.Log,
+                SetDbQueryParametersEnvVar,
+                out var setDbQueryParameters))
+        {
+            this.SetDbQueryParameters = setDbQueryParameters;
         }
 #endif
     }
@@ -98,6 +107,7 @@ public class SqlClientTraceInstrumentationOptions
     /// </remarks>
     public bool RecordException { get; set; }
 
+#if !NETFRAMEWORK
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="SqlClientInstrumentation"/>
     /// should add the names and values of query parameters as the <c>db.query.parameter.{key}</c> tag.
@@ -110,10 +120,11 @@ public class SqlClientTraceInstrumentationOptions
     /// contain any sensitive data.</b>
     /// </para>
     /// <para>
-    /// <b>SetDbQueryParameters is only supported on .NET and .NET Core runtimes.</b>
+    /// <b>SetDbQueryParameters is only supported on .NET runtimes.</b>
     /// </para>
     /// </remarks>
-    public bool SetDbQueryParameters { get; set; }
+    internal bool SetDbQueryParameters { get; set; }
+#endif
 
     /// <summary>
     /// Gets or sets a value indicating whether the old database attributes should be emitted.
