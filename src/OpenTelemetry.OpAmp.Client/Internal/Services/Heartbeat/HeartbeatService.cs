@@ -76,10 +76,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     {
         lock (this.timerUpdateLock)
         {
-            if (this.timer == null)
-            {
-                this.timer = new Timer(this.HeartbeatTick);
-            }
+            this.timer ??= new Timer(this.HeartbeatTick);
 
             this.timer.Change(interval, interval);
         }
