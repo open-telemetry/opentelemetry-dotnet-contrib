@@ -241,7 +241,7 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
 
-    private static void ActivityEnrichment(Activity activity, string method, object obj)
+    private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
         Assert.IsType<SqlCommand>(obj);
