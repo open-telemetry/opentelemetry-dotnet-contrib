@@ -7,8 +7,8 @@ namespace OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 internal static class Varint64
 {
-    private const byte DataMask = 0x7F;                         // 0111 1111 - lower 7 bits of a byte
-    private const byte ContinuationBit = 0x80;                  // 1000 0000 - signals more bytes follow
+    private const byte DataMask = 0b_0111_1111;                 // 0111 1111 - lower 7 bits of a byte
+    private const byte ContinuationBit = 0b_1000_0000;          // 1000 0000 - signals more bytes follow
     private const int BitsPerByte = 7;                          // Varint encodes 7 bits per byte
     private const int MaxEncodedBytes = 10;                     // 64 bits / 7 bits per byte = max 10 bytes
     private const int MaxShift = BitsPerByte * MaxEncodedBytes; // 70 bits (safety limit)
