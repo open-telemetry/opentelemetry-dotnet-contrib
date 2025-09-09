@@ -14,10 +14,10 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     private readonly FrameDispatcher dispatcher;
     private readonly FrameProcessor processor;
     private readonly CancellationTokenSource cts;
+    private readonly object timerUpdateLock = new();
     private Timer? timer;
     private TimeSpan tickInterval;
     private ulong startTime;
-    private object timerUpdateLock = new();
 
     public HeartbeatService(FrameDispatcher dispatcher, FrameProcessor processor)
     {
@@ -77,7 +77,6 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         lock (this.timerUpdateLock)
         {
             this.timer ??= new Timer(this.HeartbeatTick);
-
             this.timer.Change(interval, interval);
         }
     }
