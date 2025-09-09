@@ -69,7 +69,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
 
     private static ulong GetCurrentTimeInNanoseconds()
     {
-        return (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000000; // Convert to nanoseconds
+        return (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000; // Convert to nanoseconds
     }
 
     private void CreateOrUpdateTimer(TimeSpan interval)
