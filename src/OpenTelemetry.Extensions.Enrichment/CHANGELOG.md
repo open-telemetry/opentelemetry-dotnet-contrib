@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Renamed some extension methods from Add*() to TryAdd*() pattern to more accurately reflect their behavior of
+only adding the enricher if it hasn't already been added.
+([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
+
 ## 1.12.0-alpha.1
 
 Released 2025-Aug-18
