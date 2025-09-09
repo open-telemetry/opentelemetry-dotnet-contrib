@@ -11,9 +11,8 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 internal class MockTransport : IOpAmpTransport, IDisposable
 {
     private readonly ConcurrentQueue<AgentToServer> messages = [];
-
-    private AutoResetEvent messageEvent = new(false);
-    private int expectedCount;
+    private readonly AutoResetEvent messageEvent = new(false);
+    private readonly int expectedCount;
 
     public MockTransport(int expectedCount)
     {
