@@ -2,10 +2,10 @@
 
 ## Unreleased
 
-* Renamed some extension methods from `AddTraceEnricher*()` to
-`TryAddTraceEnricer*()` pattern to more accurately reflect their behavior of
-only adding the enricher if it hasn't already been added.
-([#3085](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3085))
+* **Breaking change**: Renamed some extension methods from `AddTraceEnricher*()`
+  to `TryAddTraceEnricer*()` pattern to more accurately reflect their behavior of
+  only adding the enricher if it hasn't already been added.
+  ([#3085](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3085))
 
 ## 1.12.0-alpha.1
 
