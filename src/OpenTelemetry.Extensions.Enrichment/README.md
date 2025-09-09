@@ -79,7 +79,7 @@ in your application.
 ### Step 3: Register enricher class
 
 Add your custom enricher class to the `TracerProviderBuilder` by calling the
-`AddTraceEnricher<T>()` method. Configure other services via
+`TryAddTraceEnricher<T>()` method. Configure other services via
 `ConfigureServices()`, add `ActivitySource` and an exporter as usual:
 
 ```csharp
@@ -87,7 +87,7 @@ using var MyActivitySource = new ActivitySource("MyCompany.MyProduct.MyLibrary")
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .ConfigureServices(services => services.AddSingleton<IMyService, MyService>())
     .AddSource("MyCompany.MyProduct.MyLibrary")
-    .AddTraceEnricher<MyTraceEnricher>()
+    .TryAddTraceEnricher<MyTraceEnricher>()
     .AddConsoleExporter()
     .Build();
 ```
@@ -103,7 +103,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddSingleton<IMyService, MyService>();
     services.AddOpenTelemetry().WithTracing((builder) => builder
         .AddSource("MyCompany.MyProduct.MyLibrary")
-        .AddTraceEnricher<MyTraceEnricher>()
+        .TryAddTraceEnricher<MyTraceEnricher>()
         .AddConsoleExporter());
 }
 ```
@@ -155,16 +155,16 @@ enricher class. In this case, the enricher class will be created for you by
 Dependency Injection:
 
 ```csharp
-public static AddTraceEnricher<T>(this IServiceCollection services)
-public static AddTraceEnricher<T>(this TracerProviderBuilder builder)
+public static TryAddTraceEnricher<T>(this IServiceCollection services)
+public static TryAddTraceEnricher<T>(this TracerProviderBuilder builder)
 ```
 
 If you prefer to instantiate your enricher class on your own, you may use one of
 these methods which allow for the usage of pre-existing enricher objects:
 
 ```csharp
-public static AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
-public static AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
+public static TryAddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
+public static TryAddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
 ```
 
 If you only need to enrich a small amount of data, it may not be necessary to create

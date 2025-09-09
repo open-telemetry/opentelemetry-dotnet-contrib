@@ -16,7 +16,7 @@ namespace OpenTelemetry.Extensions.Enrichment;
 public static class TraceEnrichmentProviderBuilderExtensions
 {
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a <see cref="TraceEnricher"/> implementation of type <typeparamref name="T"/> as a Singleton to the specified <see cref="TracerProviderBuilder"/> if one has not already been registered.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <typeparam name="T">Enricher object type.</typeparam>
@@ -26,20 +26,20 @@ public static class TraceEnrichmentProviderBuilderExtensions
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
 #if NET
-    public static TracerProviderBuilder AddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
+    public static TracerProviderBuilder TryAddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this TracerProviderBuilder builder)
 #else
-    public static TracerProviderBuilder AddTraceEnricher<T>(this TracerProviderBuilder builder)
+    public static TracerProviderBuilder TryAddTraceEnricher<T>(this TracerProviderBuilder builder)
 #endif
         where T : TraceEnricher
     {
         Guard.ThrowIfNull(builder);
 
         return builder
-            .ConfigureServices(services => services.AddTraceEnricher<T>());
+            .ConfigureServices(services => services.TryAddTraceEnricher<T>());
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a <see cref="TraceEnricher"/> implementation of type <paramref name="enricher"/> as a Singleton to the specified <see cref="TracerProviderBuilder"/> if one has not already been registered.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
@@ -48,17 +48,17 @@ public static class TraceEnrichmentProviderBuilderExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static TracerProviderBuilder AddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
+    public static TracerProviderBuilder TryAddTraceEnricher(this TracerProviderBuilder builder, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(enricher);
 
         return builder
-            .ConfigureServices(services => services.AddTraceEnricher(enricher));
+            .ConfigureServices(services => services.TryAddTraceEnricher(enricher));
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a trace enricher delegate to the specified <see cref="TracerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="enrichmentAction">The <see cref="TraceEnrichmentBag"/> delegate to enrich traces.</param>
@@ -77,7 +77,7 @@ public static class TraceEnrichmentProviderBuilderExtensions
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a trace enricher factory to the specified <see cref="TracerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>

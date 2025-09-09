@@ -14,7 +14,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     private const string SourceName = nameof(OpenTelemetryEnrichmentServiceCollectionExtensionsTests);
 
     [Fact]
-    public async Task AddTraceEnricherOfTRegistersEnricher()
+    public async Task GenericMethod_TRegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -25,8 +25,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddSource(SourceName)
                     .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher<MyTraceEnricher>()
-                .AddTraceEnricher<MyTraceEnricher2>())
+                .TryAddTraceEnricher<MyTraceEnricher>()
+                .TryAddTraceEnricher<MyTraceEnricher2>())
             .Build();
 
         await host.StartAsync();
@@ -62,7 +62,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddTraceEnricherRegistersEnricher()
+    public async Task InstanceMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -73,8 +73,8 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
                     .AddSource(SourceName)
                     .AddInMemoryExporter(exportedItems))
                 .Services
-                .AddTraceEnricher(new MyTraceEnricher())
-                .AddTraceEnricher(new MyTraceEnricher2()))
+                .TryAddTraceEnricher(new MyTraceEnricher())
+                .TryAddTraceEnricher(new MyTraceEnricher2()))
             .Build();
 
         await host.StartAsync();
@@ -103,7 +103,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddTraceEnricherActionRegistersEnricher()
+    public async Task DelegateMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
@@ -144,7 +144,7 @@ public sealed class OpenTelemetryEnrichmentServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public async Task AddTraceEnricherFactoryRegistersEnricher()
+    public async Task FactoryMethod_RegistersEnricher()
     {
         var exportedItems = new List<Activity>();
 
