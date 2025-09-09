@@ -322,7 +322,7 @@ public class AWSLambdaWrapperTests : IDisposable
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("us-east-1", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
-        Assert.Equal("2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374", resourceAttributes[ExpectedSemanticConventions.AttributeFaasInstance]);
+        Assert.Equal("2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374", resourceAttributes[ExpectedSemanticConventions.AttributeFaasInstanceID]);
         Assert.Equal(134217728L, resourceAttributes[ExpectedSemanticConventions.AttributeFaasMaxMemory]);
     }
 
