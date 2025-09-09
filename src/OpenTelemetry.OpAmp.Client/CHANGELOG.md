@@ -7,4 +7,6 @@
 * Added support for OpAMP Plain HTTP transport.
   ([#2926](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2926))
 * Added support for OpAMP WebSocket transport.
-  ([#2926](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3064))
+  ([#3064](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3064))
+* Added support for OpAMP WebSocket transport for .NET Framework.
+  ([#3092](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3092))
