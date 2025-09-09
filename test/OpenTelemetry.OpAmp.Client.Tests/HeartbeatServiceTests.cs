@@ -25,10 +25,9 @@ public class HeartbeatServiceTests
             },
         };
 
-        var transport = new MockTransport(messagesCount);
-        var dispatcher = new FrameDispatcher(transport, settings);
-        var processor = new FrameProcessor();
-        var service = new HeartbeatService(dispatcher, processor);
+        using var transport = new MockTransport(messagesCount);
+        using var dispatcher = new FrameDispatcher(transport, settings);
+        using var service = new HeartbeatService(dispatcher, new FrameProcessor());
 
         service.Configure(settings);
         service.Start();
