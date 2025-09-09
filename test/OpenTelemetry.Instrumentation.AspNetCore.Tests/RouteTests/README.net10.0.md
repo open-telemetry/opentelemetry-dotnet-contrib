@@ -455,7 +455,7 @@
   "IdealHttpRoute": "/Index",
   "ActivityDisplayName": "GET",
   "ActivityHttpRoute": "",
-  "MetricHttpRoute": "",
+  "MetricHttpRoute": "/",
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
