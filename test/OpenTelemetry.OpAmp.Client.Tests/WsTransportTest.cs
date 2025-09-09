@@ -1,12 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
-using OpenTelemetry.OpAmp.Client.Transport.WebSocket;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -54,6 +52,3 @@ public class WsTransportTest
         Assert.StartsWith("This is a mock server frame for testing purposes.", receivedTextData);
     }
 }
-
-#endif
-

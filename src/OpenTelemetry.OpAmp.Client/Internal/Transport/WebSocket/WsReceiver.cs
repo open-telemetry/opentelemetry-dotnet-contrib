@@ -1,15 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-
 using System.Buffers;
 using System.Net.WebSockets;
 using OpenTelemetry.Internal;
-using OpenTelemetry.OpAmp.Client.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
+namespace OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
 internal sealed class WsReceiver : IDisposable
 {
@@ -148,5 +145,3 @@ internal sealed class WsReceiver : IDisposable
         ReturnRentalBuffers(rentalBuffers);
     }
 }
-
-#endif

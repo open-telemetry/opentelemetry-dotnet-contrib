@@ -1,14 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-
 using System.Net.WebSockets;
 using Google.Protobuf;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
-namespace OpenTelemetry.OpAmp.Client.Transport.WebSocket;
+namespace OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
 internal sealed class WsTransmitter
 {
@@ -27,7 +25,7 @@ internal sealed class WsTransmitter
 
     public async Task SendAsync(IMessage message, CancellationToken token = default)
     {
-        var headerSize = OpAmpWsHeaderHelper.WriteHeader(this.buffer);
+        var headerSize = OpAmpWsHeaderHelper.WriteHeader(new ArraySegment<byte>(this.buffer));
         var size = message.CalculateSize();
 
         // fits to the buffer, send completely
@@ -50,5 +48,3 @@ internal sealed class WsTransmitter
         }
     }
 }
-
-#endif
