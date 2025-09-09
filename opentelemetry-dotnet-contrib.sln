@@ -416,6 +416,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AWS", "AWS", "{02EA681E-C7D
 		src\Shared\AWS\AWSSemanticConventions.Legacy.cs = src\Shared\AWS\AWSSemanticConventions.Legacy.cs
 		src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs
 		src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs
+		src\Shared\AWS\AWSSemanticConventions.v1.38.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.38.0.cs
 		src\Shared\AWS\SemanticConventionVersion.cs = src\Shared\AWS\SemanticConventionVersion.cs
 	EndProjectSection
 EndProject

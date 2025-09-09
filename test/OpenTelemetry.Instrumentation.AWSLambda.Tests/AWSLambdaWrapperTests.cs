@@ -322,8 +322,6 @@ public class AWSLambdaWrapperTests : IDisposable
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("us-east-1", resourceAttributes[ExpectedSemanticConventions.AttributeCloudRegion]);
-        Assert.Equal("testfunction", resourceAttributes[ExpectedSemanticConventions.AttributeFaasName]);
-        Assert.Equal("latest", resourceAttributes[ExpectedSemanticConventions.AttributeFaasVersion]);
         Assert.Equal("2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374", resourceAttributes[ExpectedSemanticConventions.AttributeFaasInstance]);
         Assert.Equal(134217728L, resourceAttributes[ExpectedSemanticConventions.AttributeFaasMaxMemory]);
     }
@@ -331,11 +329,11 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertSpanAttributes(Activity activity)
     {
         Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasExecution));
-        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasID));
+        Assert.Equal(this.sampleLambdaContext.InvokedFunctionArn, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasFunctionID));
         Assert.Equal(this.sampleLambdaContext.FunctionName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasName));
         Assert.Equal("other", activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasTrigger));
         Assert.Equal("111111111111", activity.GetTagValue(ExpectedSemanticConventions.AttributeCloudAccountID));
-        Assert.Equal(this.sampleLambdaContext.LogStreamName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasInstance));
+        Assert.Equal(this.sampleLambdaContext.LogStreamName, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasInstanceID));
         Assert.Equal(this.sampleLambdaContext.MemoryLimitInMB * 1024 * 1024, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasMaxMemory));
     }
 
@@ -356,10 +354,12 @@ public class AWSLambdaWrapperTests : IDisposable
         public const string AttributeFaasColdStart = "faas.coldstart";
         public const string AttributeFaasName = "faas.name";
         public const string AttributeFaasExecution = "faas.invocation_id";
+        public const string AttributeFaasFunctionID = "faas.function.id";
         public const string AttributeFaasID = "cloud.resource_id";
         public const string AttributeFaasTrigger = "faas.trigger";
         public const string AttributeFaasVersion = "faas.version";
         public const string AttributeFaasInstance = "faas.instance";
+        public const string AttributeFaasInstanceID = "faas.instance.id";
         public const string AttributeFaasMaxMemory = "faas.max_memory";
     }
 }
