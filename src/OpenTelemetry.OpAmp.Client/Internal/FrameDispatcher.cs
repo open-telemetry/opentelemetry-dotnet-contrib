@@ -72,7 +72,7 @@ internal sealed class FrameDispatcher : IDisposable
                 .AddHeartbeat(report)
                 .Build();
 
-            // TODO: change to debug log message
+            // TODO: change to proper logging
             Console.WriteLine("[debug] Sending hearthbeat message");
 
             await this.transport.SendAsync(message, token)
@@ -80,7 +80,7 @@ internal sealed class FrameDispatcher : IDisposable
         }
         catch (Exception)
         {
-            // TODO: log error
+            // TODO: change to proper logging
             Console.WriteLine("[error] hearthbeat message failure");
 
             this.frameBuilder.Reset(); // Reset the builder in case of failure
