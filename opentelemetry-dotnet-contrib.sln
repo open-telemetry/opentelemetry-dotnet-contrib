@@ -234,6 +234,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "enrichment", "enrichment", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
 	ProjectSection(SolutionItems) = preProject
+		src\Shared\ActivityHelperExtensions.cs = src\Shared\ActivityHelperExtensions.cs
 		src\Shared\ActivityInstrumentationHelper.cs = src\Shared\ActivityInstrumentationHelper.cs
 		src\Shared\AssemblyVersionExtensions.cs = src\Shared\AssemblyVersionExtensions.cs
 		src\Shared\DatabaseSemanticConventionHelper.cs = src\Shared\DatabaseSemanticConventionHelper.cs
@@ -243,14 +244,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\GrpcStatusCanonicalCode.cs = src\Shared\GrpcStatusCanonicalCode.cs
 		src\Shared\GrpcTagHelper.cs = src\Shared\GrpcTagHelper.cs
 		src\Shared\Guard.cs = src\Shared\Guard.cs
+		src\Shared\HttpRequestMessageContextPropagation.cs = src\Shared\HttpRequestMessageContextPropagation.cs
 		src\Shared\InstrumentationHandleManager.cs = src\Shared\InstrumentationHandleManager.cs
 		src\Shared\IServerCertificateValidationEventSource.cs = src\Shared\IServerCertificateValidationEventSource.cs
 		src\Shared\IsExternalInit.cs = src\Shared\IsExternalInit.cs
 		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs
+		src\Shared\Lock.cs = src\Shared\Lock.cs
 		src\Shared\MultiTypePropertyFetcher.cs = src\Shared\MultiTypePropertyFetcher.cs
 		src\Shared\NullableAttributes.cs = src\Shared\NullableAttributes.cs
 		src\Shared\PropertyFetcher.cs = src\Shared\PropertyFetcher.cs
 		src\Shared\RedactionHelper.cs = src\Shared\RedactionHelper.cs
+		src\Shared\RequestDataHelper.cs = src\Shared\RequestDataHelper.cs
 		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
 		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
 		src\Shared\ServerCertificateValidationHandler.cs = src\Shared\ServerCertificateValidationHandler.cs
@@ -258,7 +262,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\SpanAttributeConstants.cs = src\Shared\SpanAttributeConstants.cs
 		src\Shared\SpanHelper.cs = src\Shared\SpanHelper.cs
 		src\Shared\SqlConnectionDetails.cs = src\Shared\SqlConnectionDetails.cs
+		src\Shared\SqlParameterProcessor.cs = src\Shared\SqlParameterProcessor.cs
 		src\Shared\SqlProcessor.cs = src\Shared\SqlProcessor.cs
+		src\Shared\SqlStatementInfo.cs = src\Shared\SqlStatementInfo.cs
 		src\Shared\UriHelper.cs = src\Shared\UriHelper.cs
 	EndProjectSection
 EndProject
@@ -427,6 +433,26 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.Http", "src\OpenTelemetry.Extensions.Enrichment.Http\OpenTelemetry.Extensions.Enrichment.Http.csproj", "{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.Http.Tests", "test\OpenTelemetry.Extensions.Enrichment.Http.Tests\OpenTelemetry.Extensions.Enrichment.Http.Tests.csproj", "{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{BF37C97A-2DF5-4F56-9489-4C7F5FCE3D30}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\Configuration\IConfigurationExtensionsLogger.cs = src\Shared\Configuration\IConfigurationExtensionsLogger.cs
+		src\Shared\Configuration\OpenTelemetryConfigurationExtensions.cs = src\Shared\Configuration\OpenTelemetryConfigurationExtensions.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EnvironmentVariables", "EnvironmentVariables", "{340BF6EF-AF29-49ED-9025-4F0909394762}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationProvider.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationProvider.cs
+		src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationSource.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationSource.cs
+		src\Shared\EnvironmentVariables\EnvironmentVariablesExtensions.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesExtensions.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Options", "Options", "{92CF142D-488B-4E47-AACB-8D21C6E338BC}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\Options\DelegatingOptionsFactory.cs = src\Shared\Options\DelegatingOptionsFactory.cs
+		src\Shared\Options\DelegatingOptionsFactoryServiceCollectionExtensions.cs = src\Shared\Options\DelegatingOptionsFactoryServiceCollectionExtensions.cs
+		src\Shared\Options\SingletonOptionsManager.cs = src\Shared\Options\SingletonOptionsManager.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1012,6 +1038,9 @@ Global
 		{14D441DE-5C76-7700-152E-7E8E01E5CA19} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{BF37C97A-2DF5-4F56-9489-4C7F5FCE3D30} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
+		{340BF6EF-AF29-49ED-9025-4F0909394762} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
+		{92CF142D-488B-4E47-AACB-8D21C6E338BC} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}
