@@ -8,7 +8,7 @@ namespace OpenTelemetry.Exporter.OneCollector;
 internal sealed class CallbackManager<T> : IDisposable
     where T : Delegate
 {
-    private readonly object lockObject = new();
+    private readonly Lock lockObject = new();
     private bool disposed;
 
     public T? Root { get; private set; }
