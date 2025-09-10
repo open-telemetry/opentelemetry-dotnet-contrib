@@ -84,7 +84,7 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingIdentificationMessage);
     }
 
-    [Event(EventIdSendingHeartbeatMessage, Message = "Sending hearthbeat message.", Level = EventLevel.Informational)]
+    [Event(EventIdSendingHeartbeatMessage, Message = "Sending heartbeat message.", Level = EventLevel.Informational)]
     public void SendingHeartbeatMessage()
     {
         this.WriteEvent(EventIdSendingHeartbeatMessage);
@@ -114,7 +114,7 @@ internal class OpAmpClientEventSource : EventSource
         }
     }
 
-    [Event(EventIdFailedToSendHeartbeatMessage, Message = "Failed to send heatbeat message: {0}", Level = EventLevel.Error)]
+    [Event(EventIdFailedToSendHeartbeatMessage, Message = "Failed to send heartbeat message: {0}", Level = EventLevel.Error)]
     public void FailedToSendHeartbeatMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendHeartbeatMessage, exception);
