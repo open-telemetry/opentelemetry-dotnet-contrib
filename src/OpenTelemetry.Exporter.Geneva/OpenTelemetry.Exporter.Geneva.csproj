@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Note: Only include LinuxTracepoints-Net files for net8.0+ targets -->
+    <!-- Note: Only include LinuxTracepoints-Net files for netfx targets -->
     <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
