@@ -23,6 +23,7 @@ instrumentation changes, the README files will be updated to reflect the change.
 
 * [.NET 8](./README.net8.0.md)
 * [.NET 9](./README.net9.0.md)
+* [.NET 10](./README.net10.0.md)
 
 For each test case a request is made to an ASP.NET Core application with a
 particular routing configuration. ASP.NET Core offers a
