@@ -121,33 +121,6 @@ For an ASP.NET application, adding instrumentation is typically done in the
 This instrumentation can be configured to change the default behavior by using
 `SqlClientTraceInstrumentationOptions`.
 
-### SetDbQueryParameters
-
-> [!NOTE]
-> SetDbQueryParameters is not supported on .NET Framework.
-
-`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
-are emitted.
-
-Query parameters may contain sensitive data, so only enable `SetDbQueryParameters`
-if your queries and/or environment are appropriate for enabling this option.
-
-`SetDbQueryParameters` is `false` by default. When set to `true`, the
-instrumentation will set
-[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
-attributes for each of the query parameters associated with a database command.
-
-To enable capturing of parameter names and values use the
-following configuration.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddSqlClientInstrumentation(
-        options => options.SetDbQueryParameters = true)
-    .AddConsoleExporter()
-    .Build();
-```
-
 ### Enrich
 
 > [!NOTE]
@@ -250,6 +223,28 @@ This uses the [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/sta
 command to set [traceparent](https://www.w3.org/TR/trace-context/#traceparent-header)
 information for the current connection, which results in
 **an additional round-trip to the database**.
+
+## Experimental features
+
+> [!NOTE]
+> Experimental features are not enabled by default and can only be activated with
+> environment variables. They are subject to change or removal in future releases.
+
+### DB query parameters
+
+> [!NOTE]
+> This feature is available on .NET runtimes only.
+
+The `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` environment
+variable controls whether `db.query.parameter.<key>` attributes are emitted.
+
+Query parameters may contain sensitive data, so only enable this experimental feature
+if your queries and/or environment are appropriate for enabling this option.
+
+`OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS` is implicitly
+`false` by default. When set to `true`, the instrumentation will set
+[`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
+attributes for each of the query parameters associated with a database command.
 
 ## Activity Duration calculation
 

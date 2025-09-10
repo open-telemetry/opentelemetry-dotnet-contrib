@@ -8,6 +8,7 @@ using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
+using OpenTelemetry.OpAmp.Client.Internal.Utils;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
@@ -49,6 +50,30 @@ internal sealed class FrameProcessor
     public void OnServerFrame(ReadOnlySequence<byte> sequence)
     {
         this.Deserialize(sequence);
+    }
+
+    public void OnServerFrame(ReadOnlySequence<byte> sequence, int count, bool verifyHeader)
+    {
+        var headerSize = 0;
+
+        // verify and decode
+        if (verifyHeader)
+        {
+            if (!OpAmpWsHeaderHelper.TryVerifyHeader(sequence, out headerSize, out string errorMessage))
+            {
+                // TODO: log error message
+
+                return;
+            }
+        }
+
+        this.Deserialize(sequence, count, headerSize);
+    }
+
+    private void Deserialize(ReadOnlySequence<byte> sequence, int count, int headerSize)
+    {
+        var dataSegment = sequence.Slice(headerSize, count - headerSize);
+        this.Deserialize(dataSegment);
     }
 
     private void Deserialize(ReadOnlySequence<byte> sequence)

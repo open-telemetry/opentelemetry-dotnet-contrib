@@ -6,8 +6,6 @@ OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Fil
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.RecordException.set -> void
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbQueryParameters.get -> bool
-OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SetDbQueryParameters.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SqlClientTraceInstrumentationOptions() -> void
 OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions

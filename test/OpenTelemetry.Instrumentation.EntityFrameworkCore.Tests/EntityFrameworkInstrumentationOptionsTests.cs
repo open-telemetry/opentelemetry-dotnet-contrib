@@ -39,4 +39,26 @@ public class EntityFrameworkInstrumentationOptionsTests
         Assert.False(options.EmitOldAttributes);
         Assert.True(options.EmitNewAttributes);
     }
+
+    [Fact]
+    public void ShouldNotEmitDatabaseQueryParametersByDefault()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
+        Assert.False(options.SetDbQueryParameters);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("invalid", false)]
+    [InlineData("false", false)]
+    [InlineData("true", true)]
+    public void ShouldAssignSetDatabaseQueryParametersFromEnvironmentVariable(string value, bool expected)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS"] = value })
+            .Build();
+        var options = new EntityFrameworkInstrumentationOptions(configuration);
+        Assert.Equal(expected, options.SetDbQueryParameters);
+    }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class TraceEnrichmentServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a <see cref="TraceEnricher"/> implementation of type <typeparamref name="T"/> as a Singleton to the specified <see cref="IServiceCollection"/> if one has not already been registered.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <typeparam name="T">Enricher object type.</typeparam>
@@ -27,21 +27,21 @@ public static class TraceEnrichmentServiceCollectionExtensions
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
 #if NET
-    public static IServiceCollection AddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services)
+    public static IServiceCollection TryAddTraceEnricher<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceCollection services)
 #else
-    public static IServiceCollection AddTraceEnricher<T>(this IServiceCollection services)
+    public static IServiceCollection TryAddTraceEnricher<T>(this IServiceCollection services)
 #endif
         where T : TraceEnricher
     {
         Guard.ThrowIfNull(services);
 
-        return services
-            .TryAddEnrichment()
-            .AddSingleton<TraceEnricher, T>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<TraceEnricher, T>());
+
+        return services.TryAddEnrichment();
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a <see cref="TraceEnricher"/> implementation of type <paramref name="enricher"/> as a Singleton to the specified <see cref="IServiceCollection"/> if one has not already been registered.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <param name="enricher">The <see cref="TraceEnricher"/> object being added.</param>
@@ -50,18 +50,18 @@ public static class TraceEnrichmentServiceCollectionExtensions
     /// <remarks>
     /// Add this enricher *before* exporter related Activity processors.
     /// </remarks>
-    public static IServiceCollection AddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
+    public static IServiceCollection TryAddTraceEnricher(this IServiceCollection services, TraceEnricher enricher)
     {
         Guard.ThrowIfNull(services);
         Guard.ThrowIfNull(enricher);
 
-        return services
-            .TryAddEnrichment()
-            .AddSingleton(enricher);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton(enricher));
+
+        return services.TryAddEnrichment();
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a trace enricher delegate to the specified <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <param name="enrichmentAction">The <see cref="TraceEnrichmentBag"/> delegate to enrich traces.</param>
@@ -83,7 +83,7 @@ public static class TraceEnrichmentServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds trace enricher.
+    /// Adds a trace enricher factory to the specified <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services"><see cref="IServiceCollection"/> being configured.</param>
     /// <param name="enricherImplementationFactory">The <see cref="TraceEnricher"/> object being added using implementation factory.</param>
@@ -99,7 +99,7 @@ public static class TraceEnrichmentServiceCollectionExtensions
 
         return services
             .TryAddEnrichment()
-            .AddSingleton((serviceProvider) => enricherImplementationFactory(serviceProvider));
+            .AddSingleton(enricherImplementationFactory);
     }
 
     private static IServiceCollection TryAddEnrichment(this IServiceCollection services)
