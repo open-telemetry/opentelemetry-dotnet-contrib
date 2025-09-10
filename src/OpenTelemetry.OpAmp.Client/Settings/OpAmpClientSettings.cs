@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using OpenTelemetry.OpAmp.Client.Internal.Settings;
-
 namespace OpenTelemetry.OpAmp.Client.Settings;
 
 /// <summary>
@@ -52,10 +50,10 @@ public sealed class OpAmpClientSettings
     /// If not explicitly set, a default URL is returned based on the <see cref="ConnectionType"/>:
     /// <list type="bullet">
     ///   <item>
-    ///     <description><see cref="ConnectionType.Http"/> → <c>https://localhost:4318/v1/opamp</c></description>
+    ///     <description><see cref="ConnectionType.Http"/> -> <c>https://localhost:4318/v1/opamp</c></description>
     ///   </item>
     ///   <item>
-    ///     <description><see cref="ConnectionType.WebSocket"/> → <c>wss://localhost:4318/v1/opamp</c></description>
+    ///     <description><see cref="ConnectionType.WebSocket"/> -> <c>wss://localhost:4318/v1/opamp</c></description>
     ///   </item>
     /// </list>
     /// </value>
@@ -87,5 +85,5 @@ public sealed class OpAmpClientSettings
     /// <summary>
     /// Gets or sets the heartbeat settings.
     /// </summary>
-    internal HeartbeatSettings Heartbeat { get; set; } = new();
+    public HeartbeatSettings Heartbeat { get; set; } = new();
 }

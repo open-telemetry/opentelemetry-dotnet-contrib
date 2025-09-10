@@ -6,9 +6,17 @@ OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationTo
 OpenTelemetry.OpAmp.Client.Settings.ConnectionType
 OpenTelemetry.OpAmp.Client.Settings.ConnectionType.Http = 0 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
 OpenTelemetry.OpAmp.Client.Settings.ConnectionType.WebSocket = 1 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.HeartbeatSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.get -> System.TimeSpan
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.set -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.get -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Heartbeat.get -> OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Heartbeat.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.get -> System.Guid
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.OpAmpClientSettings() -> void
