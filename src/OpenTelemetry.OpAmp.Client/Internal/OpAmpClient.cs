@@ -3,6 +3,7 @@
 
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
 using OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
+using OpenTelemetry.OpAmp.Client.Internal.Transport.WebSocket;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
@@ -19,13 +20,11 @@ internal sealed class OpAmpClient
         this.transport = ConstructTransport(this.settings, this.processor);
     }
 
-#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IOpAmpTransport ConstructTransport(OpAmpClientSettings settings, FrameProcessor processor)
-#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         return settings.ConnectionType switch
         {
-            ConnectionType.WebSocket => throw new NotImplementedException("WebSocket transport is not available."),
+            ConnectionType.WebSocket => new WsTransport(settings.ServerUrl, processor),
             ConnectionType.Http => new PlainHttpTransport(settings.ServerUrl, processor),
             _ => throw new NotSupportedException("Unsupported transport type"),
         };
