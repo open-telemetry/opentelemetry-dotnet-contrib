@@ -11,9 +11,9 @@ internal class OpAmpClientEventSource : EventSource
 {
     public static OpAmpClientEventSource Log = new();
 
-    // General errors 1-499
+    // General events 1-499
 
-    // Service errors 500-999
+    // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
     private const int EventIdHeartbeatServiceStop = 501;
     private const int EventIdHeartbeatServiceTickFailure = 502;
