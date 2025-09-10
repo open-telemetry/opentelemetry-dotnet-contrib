@@ -74,11 +74,13 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         Assert.Equal(testCase.HttpMethod, activityHttpMethod);
         Assert.Equal(testCase.HttpMethod, metricHttpMethod);
 
-        // TODO: The CurrentHttpRoute property will go away. It They only serve to capture status quo.
+        // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
         var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
         Assert.Equal(expectedHttpRoute, activityHttpRoute);
-        Assert.Equal(expectedHttpRoute, metricHttpRoute);
+
+        var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
+        Assert.Equal(expectedMetricRoute, metricHttpRoute);
 
         // Activity.DisplayName should be a combination of http.method + http.route attributes, see:
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#name
