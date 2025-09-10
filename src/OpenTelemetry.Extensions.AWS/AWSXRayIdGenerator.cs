@@ -23,7 +23,7 @@ public static class AWSXRayIdGenerator
     private static readonly DateTime EpochStart = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
     private static readonly long UnixEpochMicroseconds = EpochStart.Ticks / TicksPerMicrosecond;
     private static readonly Random Global = new();
-    private static readonly object RandLock = new();
+    private static readonly Lock RandLock = new();
 
     internal static void ReplaceTraceId(Sampler? sampler = null)
     {
