@@ -159,7 +159,7 @@ public class HttpInListenerTests
                     Assert.Single(inMemoryEventListener.Events, e => e.EventId == 2);
                 }
 
-                Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current!.OperationName);
+                Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current!.OperationName);
 
                 if (recordException)
                 {
@@ -179,7 +179,7 @@ public class HttpInListenerTests
 
             var span = exportedItems[0];
 
-            Assert.Equal(TelemetryHttpModule.AspNetActivityName, span.OperationName);
+            Assert.Equal(ActivityHelper.AspNetActivityName, span.OperationName);
             Assert.NotEqual(TimeSpan.Zero, span.Duration);
 
             Assert.Equal(expectedName, span.DisplayName);

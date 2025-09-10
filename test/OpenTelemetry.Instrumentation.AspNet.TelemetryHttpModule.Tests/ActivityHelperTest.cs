@@ -126,7 +126,7 @@ public class ActivityHelperTest : IDisposable
         {
             Assert.NotNull(Activity.Current);
             Assert.Equal(Activity.Current, a);
-            Assert.Equal(TelemetryHttpModule.AspNetActivityName, Activity.Current.OperationName);
+            Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current.OperationName);
         });
         var context = HttpContextHelper.GetFakeHttpContext();
         using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
@@ -476,7 +476,7 @@ public class ActivityHelperTest : IDisposable
 
         this.activitySourceListener = new ActivityListener
         {
-            ShouldListenTo = (activitySource) => activitySource.Name == TelemetryHttpModule.AspNetSourceName,
+            ShouldListenTo = (activitySource) => activitySource.Name == ActivityHelper.AspNetSourceName,
             ActivityStarted = (a) => onStarted?.Invoke(a),
             ActivityStopped = (a) => onStopped?.Invoke(a),
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
