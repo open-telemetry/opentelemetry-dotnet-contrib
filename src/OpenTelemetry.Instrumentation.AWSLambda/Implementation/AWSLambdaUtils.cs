@@ -175,10 +175,12 @@ internal class AWSLambdaUtils
                 .AttributeBuilder
                 .AddAttributeFaasTrigger(GetFaasTrigger(input))
                 .AddAttributeFaasColdStart(isColdStart)
+                .AddAttributeFaasFunctionID(GetFaasId(functionArn))
                 .AddAttributeFaasName(GetFunctionName(context))
                 .AddAttributeFaasExecution(context.AwsRequestId)
                 .AddAttributeFaasID(GetFaasId(functionArn))
                 .AddAttributeFaasInstance(GetFunctionInstance(context))
+                .AddAttributeFaasInstanceId(GetFunctionInstance(context))
                 .AddAttributeFaasMaxMemory(GetFunctionMemorySize(context))
                 .AddAttributeCloudAccountID(GetAccountId(functionArn))
                 .Build();
