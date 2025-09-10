@@ -3,7 +3,7 @@
 
 using OpenTelemetry.OpAmp.Client.Internal.Listeners;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners.Messages;
-using OpenTelemetry.OpAmp.Client.Internal.Settings;
+using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 

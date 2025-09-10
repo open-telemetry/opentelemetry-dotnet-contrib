@@ -3,8 +3,8 @@
 
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
-using OpenTelemetry.OpAmp.Client.Internal.Settings;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
+using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
