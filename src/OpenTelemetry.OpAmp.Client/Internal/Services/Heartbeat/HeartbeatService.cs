@@ -14,11 +14,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     private readonly FrameDispatcher dispatcher;
     private readonly FrameProcessor processor;
     private readonly CancellationTokenSource cts;
-#if NET9_0_OR_GREATER
     private readonly Lock timerUpdateLock = new();
-#else
-    private readonly object timerUpdateLock = new();
-#endif
     private Timer? timer;
     private TimeSpan tickInterval;
     private ulong startTime;
