@@ -39,12 +39,16 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     {
         this.startTime = GetCurrentTimeInNanoseconds();
         this.CreateOrUpdateTimer(this.tickInterval);
+
+        OpAmpClientEventSource.Log.HeartbeatServiceStart();
     }
 
     public void Stop()
     {
         this.cts.Cancel();
         this.CreateOrUpdateTimer(Timeout.InfiniteTimeSpan);
+
+        OpAmpClientEventSource.Log.HeartbeatServiceStop();
     }
 
     public void HandleMessage(ConnectionSettingsMessage message)
@@ -52,8 +56,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         var newInterval = message.ConnectionSettings.Opamp?.HeartbeatIntervalSeconds ?? 0;
         if (newInterval > 0)
         {
-            // TODO: change to proper logging
-            Console.WriteLine($"[debug] New heartbeat interval received: {newInterval}s");
+            OpAmpClientEventSource.Log.HeartbeatServiceTimerUpdateReceived(newInterval);
 
             this.CreateOrUpdateTimer(TimeSpan.FromSeconds(newInterval));
         }
@@ -76,8 +79,15 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
     {
         lock (this.timerUpdateLock)
         {
-            this.timer ??= new Timer(this.HeartbeatTick);
-            this.timer.Change(interval, interval);
+            try
+            {
+                this.timer ??= new Timer(this.HeartbeatTick);
+                this.timer.Change(interval, interval);
+            }
+            catch (Exception ex)
+            {
+                OpAmpClientEventSource.Log.HeartbeatServiceTimerUpdateException(ex);
+            }
         }
     }
 
@@ -96,8 +106,7 @@ internal sealed class HeartbeatService : IBackgroundService, IOpAmpListener<Conn
         }
         catch (Exception ex)
         {
-            // TODO: change to proper logging
-            Console.WriteLine($"[error] Heartbeat error: {ex.Message}");
+            OpAmpClientEventSource.Log.HeartbeatServiceTickException(ex);
         }
     }
 

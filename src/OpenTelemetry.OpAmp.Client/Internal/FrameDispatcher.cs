@@ -36,16 +36,14 @@ internal sealed class FrameDispatcher : IDisposable
                 .StartBaseMessage()
                 .Build();
 
-            // TODO: change to proper logging
-            Console.WriteLine("[debug] Sending identification message.");
+            OpAmpClientEventSource.Log.SendingIdentificationMessage();
 
             await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // TODO: change to proper logging
-            Console.WriteLine($"[error]: {ex.Message}");
+            OpAmpClientEventSource.Log.SendIdentificationMessageException(ex);
 
             this.frameBuilder.Reset(); // Reset the builder in case of failure
         }
@@ -72,16 +70,14 @@ internal sealed class FrameDispatcher : IDisposable
                 .AddHeartbeat(report)
                 .Build();
 
-            // TODO: change to proper logging
-            Console.WriteLine("[debug] Sending hearthbeat message");
+            OpAmpClientEventSource.Log.SendingHeartbeatMessage();
 
             await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // TODO: change to proper logging
-            Console.WriteLine("[error] hearthbeat message failure");
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException(ex);
 
             this.frameBuilder.Reset(); // Reset the builder in case of failure
         }

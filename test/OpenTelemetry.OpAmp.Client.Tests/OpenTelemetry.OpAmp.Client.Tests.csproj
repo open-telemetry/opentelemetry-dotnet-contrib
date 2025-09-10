@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="Includes\TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="Includes\TestHttpServer.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestWebSocketServer.cs" Link="Includes\TestWebSocketServer.cs" />
   </ItemGroup>
