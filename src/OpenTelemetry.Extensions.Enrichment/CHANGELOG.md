@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.1
+
+Released 2025-Sep-10
+
 * **Breaking change**: Renamed some extension methods from `AddTraceEnricher*()`
   to `TryAddTraceEnricer*()` pattern to more accurately reflect their behavior of
   only adding the enricher if it hasn't already been added.
