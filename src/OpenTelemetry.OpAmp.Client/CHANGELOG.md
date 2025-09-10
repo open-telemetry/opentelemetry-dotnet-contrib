@@ -11,3 +11,5 @@
   [#3092](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3092))
 * Added support for heartbeat messages.
   ([#3095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3095))
+* Added EventSource `OpenTelemetry-OpAmp-Client` for diagnostics.
+  ([#3102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3102))
