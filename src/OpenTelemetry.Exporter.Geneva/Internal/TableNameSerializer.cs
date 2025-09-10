@@ -26,7 +26,7 @@ internal sealed class TableNameSerializer
     private readonly byte[] defaultTableName;
     private readonly Dictionary<string, byte[]>? tableMappings;
     private readonly bool shouldPassThruTableMappings;
-    private readonly object lockObject = new();
+    private readonly Lock lockObject = new();
     private TableNameCacheDictionary tableNameCache = new();
 
     public TableNameSerializer(GenevaExporterOptions options, string defaultTableName)

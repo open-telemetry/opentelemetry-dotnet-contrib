@@ -7,6 +7,16 @@
   independent from traces.
   ([#2970](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2970))
 
+* **Breaking Change**: Activity source name changed from
+  `OpenTelemetry.Instrumentation.AspNet.Telemetry` to
+  `OpenTelemetry.Instrumentation.AspNet`.
+  ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
+
+* **Breaking Change**: Following constants was removed from the public API
+  * `TelemetryHttpModule.AspNetActivityName`,
+  * `TelemetryHttpModule.AspNetSourceName`.
+  ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05

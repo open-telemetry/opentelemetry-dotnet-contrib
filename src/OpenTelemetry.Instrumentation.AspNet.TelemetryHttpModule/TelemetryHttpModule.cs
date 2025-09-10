@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using OpenTelemetry.Internal;
@@ -13,16 +12,6 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 public class TelemetryHttpModule : IHttpModule
 {
-    /// <summary>
-    /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
-    /// </summary>
-    public const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet.Telemetry";
-
-    /// <summary>
-    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
-    /// </summary>
-    public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
-
     // ServerVariable set only on rewritten HttpContext by URL Rewrite module.
     private const string UrlRewriteRewrittenRequest = "IIS_WasUrlRewritten";
 

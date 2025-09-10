@@ -17,15 +17,26 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 internal static class ActivityHelper
 {
     /// <summary>
+    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
+    /// </summary>
+    internal const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
+
+    /// <summary>
     /// Key to store the state in HttpContext.
     /// </summary>
     internal const string ContextKey = "__AspnetInstrumentationContext__";
+
+    /// <summary>
+    /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
+    /// </summary>
+    internal const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet";
+
     internal static readonly object StartedButNotSampledObj = new();
 
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequest, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
     private static readonly ActivitySource AspNetSource = new(
-        TelemetryHttpModule.AspNetSourceName,
+        AspNetSourceName,
         typeof(ActivityHelper).Assembly.GetPackageVersion());
 
     [ThreadStatic]
@@ -76,7 +87,7 @@ internal static class ActivityHelper
             tags = null;
         }
 
-        var activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
+        var activity = AspNetSource.StartActivity(AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
         if (tags is not null)
         {

@@ -43,7 +43,7 @@ public class GenevaLogExporterAFDCorrelationTests
             }
 
             var exportedItems = new List<LogRecord>();
-            var syncObj = new object();
+            var syncObj = new Lock();
 
             using var loggerFactory = LoggerFactory.Create(builder => builder
                 .AddOpenTelemetry(options =>
