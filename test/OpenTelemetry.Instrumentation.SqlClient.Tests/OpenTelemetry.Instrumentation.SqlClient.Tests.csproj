@@ -19,14 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
     <PackageReference Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-
-    <!-- System.Runtime.Caching is indirect reference through Microsoft.Data.SqlClient package. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-qj66-m88j-hmgj -->
-    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
-    <!-- System.Text.Json is indirect reference through Testcontainers packages. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-8g4q-xg66-9fp4 -->
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" />
   </ItemGroup>
 
   <ItemGroup>

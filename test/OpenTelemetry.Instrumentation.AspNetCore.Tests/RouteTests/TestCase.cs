@@ -11,6 +11,8 @@ public class TestCase
 
     public int? MinimumDotnetVersion { get; set; }
 
+    public int? MaximumDotnetVersion { get; set; }
+
     public TestApplicationScenario TestApplicationScenario { get; set; }
 
     public string? HttpMethod { get; set; }
@@ -22,6 +24,8 @@ public class TestCase
     public string? ExpectedHttpRoute { get; set; }
 
     public string? CurrentHttpRoute { get; set; }
+
+    public string? ExpectedMetricRoute { get; set; }
 
     public override string ToString()
     {
