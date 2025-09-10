@@ -34,7 +34,7 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdHeartbeatServiceStart);
     }
 
-    [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service stopped.", Level = EventLevel.Informational)]
+    [Event(EventIdHeartbeatServiceStop, Message = "Heartbeat service stopped.", Level = EventLevel.Informational)]
     public void HeartbeatServiceStop()
     {
         this.WriteEvent(EventIdHeartbeatServiceStop);
@@ -67,13 +67,13 @@ internal class OpAmpClientEventSource : EventSource
     [Event(EventIdHeartbeatServiceTimerUpdateFailure, Message = "Failed to update timer interval: {0}", Level = EventLevel.Error)]
     public void HeartbeatServiceTimerUpdateFailure(string exception)
     {
-        this.WriteEvent(EventIdHeartbeatServiceTickFailure, exception);
+        this.WriteEvent(EventIdHeartbeatServiceTimerUpdateFailure, exception);
     }
 
     [Event(EventIdHeartbeatServiceTimerUpdateReceived, Message = "New heartbeat interval received: {0}s", Level = EventLevel.Informational)]
     public void HeartbeatServiceTimerUpdateReceived(ulong seconds)
     {
-        this.WriteEvent(EventIdHeartbeatServiceTickFailure, seconds);
+        this.WriteEvent(EventIdHeartbeatServiceTimerUpdateReceived, seconds);
     }
 
     /* Sending messages */
