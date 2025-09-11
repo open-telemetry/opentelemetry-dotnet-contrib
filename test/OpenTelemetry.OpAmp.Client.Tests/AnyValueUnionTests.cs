@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.OpAmp.Client.Internal.Settings;
+using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Settings;
 #if NETFRAMEWORK
 using OpenTelemetry.OpAmp.Client.Tests.Tools;
@@ -103,5 +104,44 @@ public class AnyValueUnionTests
         var uncoveredValue = new AnyValueUnion((AnyValueType)int.MinValue, intValue: 42);
 
         Assert.Equal(0, uncoveredValue.GetHashCode());
+    }
+
+    [Theory]
+    [InlineData(AnyValueType.Integer, 10, null, null, null)]
+    [InlineData(AnyValueType.Boolean, null, true, null, null)]
+    [InlineData(AnyValueType.String, null, null, "hello", null)]
+    [InlineData(AnyValueType.Double, null, null, null, 3.14)]
+    internal void AnyValueUnion_Extensions_ProtoMapTests(
+        AnyValueType type,
+        int? intValue,
+        bool? boolValue,
+        string? stringValue,
+        double? doubleValue)
+    {
+        // Arrange
+        var anyValueUnion = new AnyValueUnion(type, intValue, boolValue, stringValue, doubleValue);
+
+        // Act
+        var protoValue = anyValueUnion.ToAnyValue();
+
+        // Assert
+        switch (type)
+        {
+            case AnyValueType.Integer:
+                Assert.Equal((long?)intValue, protoValue.IntValue);
+                break;
+            case AnyValueType.Boolean:
+                Assert.Equal(boolValue, protoValue.BoolValue);
+                break;
+            case AnyValueType.String:
+                Assert.Equal(stringValue, protoValue.StringValue);
+                break;
+            case AnyValueType.Double:
+                Assert.Equal(doubleValue, protoValue.DoubleValue);
+                break;
+            default:
+                Assert.Fail($"Unhandled type {type}");
+                break;
+        }
     }
 }
