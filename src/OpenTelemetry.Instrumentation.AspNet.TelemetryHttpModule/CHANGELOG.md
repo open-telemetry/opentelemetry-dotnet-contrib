@@ -17,6 +17,10 @@
   * `TelemetryHttpModule.AspNetSourceName`.
   ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
 
+* **Breaking Change**: Change in public API contract.
+  All usages of `HttpContext` replaced by `HttpContextBase`.
+  ([#3110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3110))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05
