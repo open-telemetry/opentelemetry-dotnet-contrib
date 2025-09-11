@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Settings;
@@ -26,17 +25,13 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
             switch (type)
             {
                 case AnyValueType.String:
-                    Guard.ThrowIfNull(stringValue);
-                    return;
+                    throw new ArgumentNullException(nameof(stringValue), "Must not be null");
                 case AnyValueType.Boolean:
-                    Guard.ThrowIfNull(boolValue);
-                    return;
+                    throw new ArgumentNullException(nameof(boolValue), "Must not be null");
                 case AnyValueType.Integer:
-                    Guard.ThrowIfNull(intValue);
-                    return;
+                    throw new ArgumentNullException(nameof(intValue), "Must not be null");
                 case AnyValueType.Double:
-                    Guard.ThrowIfNull(doubleValue);
-                    return;
+                    throw new ArgumentNullException(nameof(doubleValue), "Must not be null");
                 default:
                     Debug.Fail($"Missing check for AnyValueType of '{type}'");
                     return;
