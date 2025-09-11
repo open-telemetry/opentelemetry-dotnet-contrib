@@ -6,7 +6,7 @@ using OpenTelemetry.OpAmp.Client.Internal.Settings;
 namespace OpenTelemetry.OpAmp.Client.Settings;
 
 /// <summary>
-/// Represents a union type that can hold a value of one of several predefined types: integer, boolean, or string.
+/// Represents a union type that can hold a value of one of several predefined types: integer, double, boolean, or string.
 /// </summary>
 public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
 {
