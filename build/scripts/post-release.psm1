@@ -232,26 +232,8 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
       throw 'git commit failure'
   }
 
-  # Update Common.props for Instrumentation.AspNetCore releases of 0.x or 1.x
-  if ($tagPrefix -eq 'Instrumentation.AspNetCore-' -and $version -match '^[01]\.')
-  {
-    (Get-Content build/Common.props -Raw) `
-      -replace '<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>.*<\/OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>',
-               "<OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>[$version,2.0)</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>" |
-      Set-Content build/Common.props
-
-    git add build/Common.props 2>&1 | % ToString
-    if ($LASTEXITCODE -gt 0)
-    {
-        throw 'git add failure'
-    }
-
-    git commit -m "Update OpenTelemetryInstrumentationAspNetCoreLatestStableVersion version in Common.props to $version." 2>&1 | % ToString
-    if ($LASTEXITCODE -gt 0)
-    {
-        throw 'git commit failure'
-    }
-  }
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.AspNetCore-' -propertyDisplayName 'OpenTelemetryInstrumentationAspNetCoreLatestStableVersion'
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Http-' -propertyDisplayName 'OpenTelemetryInstrumentationHttpLatestStableVersion'
 
   git push -u origin $branch 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -575,4 +557,33 @@ function GetCoreDependenciesForProjects {
     }
 
     return $projectsAndDependencies
+}
+
+function UpdateCommonPropsVersion {
+  param(
+    [Parameter(Mandatory=$true)][string]$tagPrefix,
+    [Parameter(Mandatory=$true)][string]$version,
+    [Parameter(Mandatory=$true)][string]$propertyName,
+    [Parameter(Mandatory=$true)][string]$propertyDisplayName
+  )
+
+  if ($tagPrefix -eq $propertyName -and $version -match '^[01]\.')
+  {
+    (Get-Content build/Common.props -Raw) `
+      -replace "<$propertyDisplayName>.*<\/$propertyDisplayName>",
+               "<$propertyDisplayName>[$version,2.0)</$propertyDisplayName>" |
+      Set-Content build/Common.props
+
+    git add build/Common.props 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git add failure'
+    }
+
+    git commit -m "Update $propertyDisplayName version in Common.props to $version." 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git commit failure'
+    }
+  }
 }

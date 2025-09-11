@@ -21,7 +21,7 @@ information that you would like to be present in traces for outgoing HTTP reques
 
 With the HTTP Telemetry enrichment framework, you don't need to worry
 about attaching the information carefully to each telemetry object you touch.
-Instead, if you implement your enricher class inherited from `HttpTraceEnricher`,
+Instead, if you implement your enricher class inherited from `HttpClientTraceEnricher`,
 it  takes care of the details automatically. You simply register your class with
 the enrichment framework and the enrichment framework will make sure to call the
 enrichment methods of your class for every outgoing HTTP request in your app.
