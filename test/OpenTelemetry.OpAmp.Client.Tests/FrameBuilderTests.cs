@@ -3,21 +3,13 @@
 
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
-using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Tests.DataGenerators;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
 public class FrameBuilderTests
 {
-    public static IEnumerable<object[]> TestData()
-    {
-        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddAgentDescription()), new Func<AgentToServer, object>(m => m.AgentDescription) };
-
-        var healthReport = new HealthReport { IsHealthy = true };
-        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddHealth(healthReport)), new Func<AgentToServer, object>(m => m.Health) };
-    }
-
     [Fact]
     public void FrameBuilder_InitializesCorrectly()
     {
@@ -64,7 +56,7 @@ public class FrameBuilderTests
     }
 
     [Theory]
-    [MemberData(nameof(TestData))]
+    [ClassData(typeof(FrameBuilderTestData))]
     internal void FrameBuilder_AddPartial(Func<IFrameBuilder, IFrameBuilder> addMessage, Func<AgentToServer, object> propertyFetcher)
     {
         var frameBuilder = new FrameBuilder(new());
