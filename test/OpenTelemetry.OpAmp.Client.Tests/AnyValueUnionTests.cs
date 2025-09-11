@@ -43,6 +43,7 @@ public class AnyValueUnionTests
         Assert.True(intValue.Equals((object)intValue));
         Assert.True(intValue.Equals((object)intValue2));
         Assert.False(intValue.Equals((object)boolValue));
+        Assert.False(intValue.Equals((object)42));
 #pragma warning disable CS1718 // Comparison made to same variable
         Assert.True(intValue == intValue);
 #pragma warning restore CS1718 // Comparison made to same variable
