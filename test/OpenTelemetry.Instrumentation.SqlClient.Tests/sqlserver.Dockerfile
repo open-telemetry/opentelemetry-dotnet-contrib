@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/mssql/server:2022-latest@sha256:6249e946034c0b72e98cbbdd790deede2bb94fe5c73335ecdbb77176af4d267c
+FROM mcr.microsoft.com/mssql/server:2022-latest@sha256:d1d2fa72786dd255f25ef85a4862510db1d4f9aa844519db565136311c0d7c7f
