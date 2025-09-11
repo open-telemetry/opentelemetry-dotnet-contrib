@@ -145,4 +145,12 @@ public class AnyValueUnionTests
                 break;
         }
     }
+
+    [Fact]
+    internal void AnyValueUnion_Extensions_ProtoMapTests_UncoveredTests()
+    {
+        var uncoveredValue = new AnyValueUnion((AnyValueType)int.MinValue, intValue: 42);
+
+        Assert.Throws<NotSupportedException>(() => uncoveredValue.ToAnyValue());
+    }
 }
