@@ -27,19 +27,19 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
             {
                 case AnyValueType.String:
                     Guard.ThrowIfNull(stringValue);
-                    break;
+                    return;
                 case AnyValueType.Boolean:
                     Guard.ThrowIfNull(boolValue);
-                    break;
+                    return;
                 case AnyValueType.Integer:
                     Guard.ThrowIfNull(intValue);
-                    break;
+                    return;
                 case AnyValueType.Double:
                     Guard.ThrowIfNull(doubleValue);
-                    break;
+                    return;
                 default:
                     Debug.Fail($"Missing check for AnyValueType of '{type}'");
-                    break;
+                    return;
             }
         }
     }
