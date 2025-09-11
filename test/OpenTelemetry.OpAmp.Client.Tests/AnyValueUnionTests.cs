@@ -75,6 +75,7 @@ public class AnyValueUnionTests
         var uncoveredValue = new AnyValueUnion((AnyValueType)int.MinValue, intValue: 42);
 
         Assert.False(intValue.Equals(uncoveredValue));
+        Assert.False(uncoveredValue.Equals(uncoveredValue));
     }
 
     [Fact]
