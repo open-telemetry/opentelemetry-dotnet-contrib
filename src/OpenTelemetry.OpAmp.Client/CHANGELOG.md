@@ -13,3 +13,5 @@
   ([#3095](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3095))
 * Added EventSource `OpenTelemetry-OpAmp-Client` for diagnostics.
   ([#3102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3102))
+* Added support for agent identification messages.
+  ([#3112](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3112))
