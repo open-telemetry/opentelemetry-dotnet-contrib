@@ -1,13 +1,23 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
 
 public class FrameBuilderTests
 {
+    public static IEnumerable<object[]> TestData()
+    {
+        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddDescription()), new Func<AgentToServer, object>(m => m.AgentDescription) };
+
+        var healthReport = new HealthReport { IsHealthy = true };
+        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddHeartbeat(healthReport)), new Func<AgentToServer, object>(m => m.Health) };
+    }
+
     [Fact]
     public void FrameBuilder_InitializesCorrectly()
     {
@@ -51,5 +61,19 @@ public class FrameBuilderTests
         frameBuilder.StartBaseMessage();
 
         Assert.Throws<InvalidOperationException>(frameBuilder.StartBaseMessage);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    internal void FrameBuilder_AddPartial(Func<IFrameBuilder, IFrameBuilder> addMessage, Func<AgentToServer, object> propertyFetcher)
+    {
+        var frameBuilder = new FrameBuilder(new());
+        var messageBuilder = frameBuilder.StartBaseMessage();
+        addMessage(messageBuilder);
+
+        var message = messageBuilder.Build();
+        var property = propertyFetcher(message);
+
+        Assert.NotNull(property);
     }
 }

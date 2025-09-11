@@ -4,6 +4,7 @@
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
@@ -36,6 +37,39 @@ internal sealed class FrameBuilder : IFrameBuilder
         };
 
         this.currentMessage = message;
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddDescription()
+    {
+        if (this.currentMessage == null)
+        {
+            throw new InvalidOperationException("Message base is not initialized.");
+        }
+
+        var resources = this.settings.Identification;
+        var description = new AgentDescription();
+
+        foreach (var resource in resources.IdentifyingResources)
+        {
+            description.IdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
+        }
+
+        foreach (var resource in resources.NonIdentifyingResources)
+        {
+            description.NonIdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
+        }
+
+        this.currentMessage.AgentDescription = description;
+
         return this;
     }
 

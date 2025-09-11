@@ -8,6 +8,8 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal interface IFrameBuilder
 {
+    IFrameBuilder AddDescription();
+
     IFrameBuilder AddHeartbeat(HealthReport health);
 
     AgentToServer Build();
