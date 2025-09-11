@@ -68,6 +68,15 @@ public class AnyValueUnionTests
     }
 
     [Fact]
+    public void AnyValueUnion_EqualityTests_UncoveredValues()
+    {
+        var intValue = new AnyValueUnion(AnyValueType.Integer, intValue: 42);
+        var uncoveredValue = new AnyValueUnion((AnyValueType)int.MinValue, intValue: 42);
+
+        Assert.False(intValue.Equals(uncoveredValue));
+    }
+
+    [Fact]
     public void AnyValueUnion_HashCodeTests()
     {
         var intValue = new AnyValueUnion(AnyValueType.Integer, intValue: 42);
@@ -86,5 +95,13 @@ public class AnyValueUnionTests
         Assert.NotEqual(boolValue.GetHashCode(), stringValue.GetHashCode());
         Assert.NotEqual(boolValue.GetHashCode(), doubleValue.GetHashCode());
         Assert.NotEqual(stringValue.GetHashCode(), doubleValue.GetHashCode());
+    }
+
+    [Fact]
+    public void AnyValueUnion_HashCodeTests_UncoveredValues()
+    {
+        var uncoveredValue = new AnyValueUnion((AnyValueType)int.MinValue, intValue: 42);
+
+        Assert.Equal(0, uncoveredValue.GetHashCode());
     }
 }
