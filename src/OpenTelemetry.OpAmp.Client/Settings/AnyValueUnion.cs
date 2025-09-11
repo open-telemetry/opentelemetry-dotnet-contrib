@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Settings;
@@ -17,6 +19,29 @@ public readonly struct AnyValueUnion : IEquatable<AnyValueUnion>
         this.BoolValue = boolValue;
         this.StringValue = stringValue;
         this.DoubleValue = doubleValue;
+
+        // No value defined
+        if (intValue == null && boolValue == null && stringValue == null && doubleValue == null)
+        {
+            switch (type)
+            {
+                case AnyValueType.String:
+                    Guard.ThrowIfNull(stringValue);
+                    break;
+                case AnyValueType.Boolean:
+                    Guard.ThrowIfNull(boolValue);
+                    break;
+                case AnyValueType.Integer:
+                    Guard.ThrowIfNull(intValue);
+                    break;
+                case AnyValueType.Double:
+                    Guard.ThrowIfNull(doubleValue);
+                    break;
+                default:
+                    Debug.Fail($"Missing check for AnyValueType of '{type}'");
+                    break;
+            }
+        }
     }
 
     /// <summary>

@@ -3,6 +3,9 @@
 
 using OpenTelemetry.OpAmp.Client.Internal.Settings;
 using OpenTelemetry.OpAmp.Client.Settings;
+#if NETFRAMEWORK
+using OpenTelemetry.OpAmp.Client.Tests.Tools;
+#endif
 using Xunit;
 
 namespace OpenTelemetry.OpAmp.Client.Tests;
@@ -32,6 +35,33 @@ public class AnyValueUnionTests
         Assert.NotEqual(boolValue, stringValue);
         Assert.NotEqual(boolValue, doubleValue);
         Assert.NotEqual(stringValue, doubleValue);
+
+        // Explicit equality tests
+        Assert.True(intValue.Equals(intValue));
+        Assert.True(intValue.Equals(intValue2));
+        Assert.True(intValue.Equals((object)intValue));
+        Assert.True(intValue.Equals((object)intValue2));
+#pragma warning disable CS1718 // Comparison made to same variable
+        Assert.True(intValue == intValue);
+#pragma warning restore CS1718 // Comparison made to same variable
+        Assert.True(intValue == intValue2);
+        Assert.True(intValue != doubleValue);
+    }
+
+    [Fact]
+    public void AnyValueUnion_EqualityTests_NullTests()
+    {
+        var enumValues
+#if NET
+            = Enum.GetValues<AnyValueType>();
+#else
+            = EnumPolyfill.GetValues<AnyValueType>();
+#endif
+
+        foreach (var type in enumValues)
+        {
+            Assert.Throws<ArgumentNullException>(() => new AnyValueUnion(type));
+        }
     }
 
     [Fact]
