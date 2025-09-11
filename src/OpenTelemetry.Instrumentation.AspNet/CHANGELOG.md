@@ -20,6 +20,11 @@
     `AspNetMetricsInstrumentationOptions.EnrichWithHttpContext`.
   ([#3070](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3070))
 
+* **Breaking Change**: Change in public API contract.
+  All usages of `HttpRequest`, `HttpResponse` and `HttpContext` replaced by
+ `HttpRequestBase`, `HttpResponseBase` and `HttpContextBase` respectively.
+  ([#3110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3110))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-05

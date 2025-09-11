@@ -48,9 +48,9 @@ public class BasicTests
 
         HttpContext.Current = RouteTestHelper.BuildHttpContext("http://localhost", 0, null, "GET");
         HttpContext.Current.Response.StatusCode = 200;
-        var requestActivity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        var requestActivity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
         Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, requestActivity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, requestActivity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();

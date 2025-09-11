@@ -48,7 +48,7 @@ public class HttpInMetricsListenerTests
             {
                 options.EnableServerAttributesForRequestDuration = enableServerAttributesForRequestDuration;
 
-                options.EnrichWithHttpContext += (HttpContext context, ref TagList tags) =>
+                options.EnrichWithHttpContext += (HttpContextBase context, ref TagList tags) =>
                 {
                     if (enrichMode == "throw")
                     {
@@ -64,9 +64,9 @@ public class HttpInMetricsListenerTests
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
         Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
 

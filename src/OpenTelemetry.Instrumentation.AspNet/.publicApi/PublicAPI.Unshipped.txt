@@ -7,11 +7,11 @@ OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.AspNetTraceInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithException.get -> System.Action<System.Diagnostics.Activity!, System.Exception!>?
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithException.set -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpRequest.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpRequest!>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpRequest.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpRequestBase!>?
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpRequest.set -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpResponse.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpResponse!>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpResponse.get -> System.Action<System.Diagnostics.Activity!, System.Web.HttpResponseBase!>?
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.EnrichWithHttpResponse.set -> void
-OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Filter.get -> System.Func<System.Web.HttpContext!, bool>?
+OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Filter.get -> System.Func<System.Web.HttpContextBase!, bool>?
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.Filter.set -> void
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions.RecordException.set -> void
@@ -21,4 +21,4 @@ static OpenTelemetry.Metrics.AspNetInstrumentationMeterProviderBuilderExtensions
 static OpenTelemetry.Metrics.AspNetInstrumentationMeterProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Trace.AspNetInstrumentationTracerProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.AspNetInstrumentationTracerProviderBuilderExtensions.AddAspNetInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.AspNet.AspNetTraceInstrumentationOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
-virtual OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichWithHttpContextAction.Invoke(System.Web.HttpContext! context, ref System.Diagnostics.TagList tags) -> void
+virtual OpenTelemetry.Instrumentation.AspNet.AspNetMetricsInstrumentationOptions.EnrichWithHttpContextAction.Invoke(System.Web.HttpContextBase! context, ref System.Diagnostics.TagList tags) -> void

@@ -41,7 +41,7 @@ internal sealed class HttpInListener : IDisposable
         return duration.TotalSeconds;
     }
 
-    private void RecordDuration(Activity? activity, HttpContext context, Exception? exception = null)
+    private void RecordDuration(Activity? activity, HttpContextBase context, Exception? exception = null)
     {
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -111,7 +111,7 @@ internal sealed class HttpInListener : IDisposable
         AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
     }
 
-    private void OnStartActivity(Activity? activity, HttpContext context)
+    private void OnStartActivity(Activity? activity, HttpContextBase context)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -202,7 +202,7 @@ internal sealed class HttpInListener : IDisposable
         }
     }
 
-    private void OnStopActivity(Activity? activity, HttpContext context)
+    private void OnStopActivity(Activity? activity, HttpContextBase context)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -252,7 +252,7 @@ internal sealed class HttpInListener : IDisposable
         this.RecordDuration(activity, context);
     }
 
-    private void OnException(Activity? activity, HttpContext context, Exception exception)
+    private void OnException(Activity? activity, HttpContextBase context, Exception exception)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {

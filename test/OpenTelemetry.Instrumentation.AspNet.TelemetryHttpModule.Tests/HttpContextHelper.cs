@@ -9,7 +9,13 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 internal class HttpContextHelper
 {
-    public static HttpContext GetFakeHttpContext(string page = "/page", string query = "", IDictionary<string, string>? headers = null)
+    public static HttpContextBase GetFakeHttpContextBase(string page = "/page", string query = "", IDictionary<string, string>? headers = null)
+    {
+        var context = GetFakeHttpContext(page, query, headers);
+        return new HttpContextWrapper(context);
+    }
+
+    private static HttpContext GetFakeHttpContext(string page = "/page", string query = "", IDictionary<string, string>? headers = null)
     {
         Thread.GetDomain().SetData(".appPath", string.Empty);
         Thread.GetDomain().SetData(".appVPath", string.Empty);
@@ -18,12 +24,6 @@ internal class HttpContextHelper
         var context = new HttpContext(workerRequest);
         HttpContext.Current = context;
         return context;
-    }
-
-    public static HttpContextBase GetFakeHttpContextBase(string page = "/page", string query = "", IDictionary<string, string>? headers = null)
-    {
-        var context = GetFakeHttpContext(page, query, headers);
-        return new HttpContextWrapper(context);
     }
 
     private class SimpleWorkerRequestWithHeaders : SimpleWorkerRequest
