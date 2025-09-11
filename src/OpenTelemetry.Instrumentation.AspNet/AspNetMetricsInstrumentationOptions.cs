@@ -16,7 +16,7 @@ public sealed class AspNetMetricsInstrumentationOptions
     /// </summary>
     /// <param name="context"><see cref="HttpContext"/>: the HttpContext object. Both Request and Response are available.</param>
     /// <param name="tags"><see cref="TagList"/>: List of current tags. You can add additional tags to this list. </param>
-    public delegate void EnrichWithHttpContextAction(HttpContext context, ref TagList tags);
+    public delegate void EnrichWithHttpContextAction(HttpContextBase context, ref TagList tags);
 
     /// <summary>
     /// Gets or sets a delegate to enrich a recorded metric with additional custom tags.

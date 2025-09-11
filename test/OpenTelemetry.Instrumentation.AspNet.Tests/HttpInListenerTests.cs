@@ -152,7 +152,7 @@ public class HttpInListenerTests
             {
                 using var inMemoryEventListener = new InMemoryEventListener(AspNetInstrumentationEventSource.Log);
 
-                var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+                var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
 
                 if (filter == "{ThrowException}")
                 {
@@ -163,10 +163,10 @@ public class HttpInListenerTests
 
                 if (recordException)
                 {
-                    ActivityHelper.WriteActivityException(activity, HttpContext.Current, new InvalidOperationException(), TelemetryHttpModule.Options.OnExceptionCallback);
+                    ActivityHelper.WriteActivityException(activity, new HttpContextWrapper(HttpContext.Current), new InvalidOperationException(), TelemetryHttpModule.Options.OnExceptionCallback);
                 }
 
-                ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+                ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
             }
 
             if (HttpContext.Current.Request.Path == filter || filter == "{ThrowException}")
@@ -261,8 +261,8 @@ public class HttpInListenerTests
             .AddAspNetInstrumentation()
             .AddProcessor(activityProcessor).Build())
         {
-            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
+            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
         }
 
         Assert.True(isPropagatorCalled);
@@ -301,8 +301,8 @@ public class HttpInListenerTests
             })
             .AddProcessor(activityProcessor).Build())
         {
-            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
-            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+            var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
+            ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
         }
 
         Assert.True(isFilterCalled);
