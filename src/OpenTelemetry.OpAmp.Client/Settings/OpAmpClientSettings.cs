@@ -83,6 +83,11 @@ public sealed class OpAmpClientSettings
     }
 
     /// <summary>
+    /// Gets or sets the identification settings.
+    /// </summary>
+    public IdentificationSettings Identification { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the heartbeat settings.
     /// </summary>
     public HeartbeatSettings Heartbeat { get; set; } = new();

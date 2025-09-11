@@ -26,11 +26,11 @@ public class FrameDispatcherTests
         {
             if (i % 2 == 0)
             {
-                await dispatcher.DispatchServerFrameAsync(token);
+                await dispatcher.DispatchIdentificationAsync(token);
             }
             else
             {
-                await dispatcher.DispatchServerFrameAsync(token);
+                await dispatcher.DispatchIdentificationAsync(token);
             }
         });
 

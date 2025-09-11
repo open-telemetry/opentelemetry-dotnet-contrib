@@ -25,7 +25,7 @@ internal sealed class FrameDispatcher : IDisposable
 
     // TODO: May need to redesign to request only partials
     // so any other message waiting to be sent can be included to optimize transport usage and locking time.
-    public async Task DispatchServerFrameAsync(CancellationToken token)
+    public async Task DispatchIdentificationAsync(CancellationToken token)
     {
         await this.syncRoot.WaitAsync(token)
             .ConfigureAwait(false);
@@ -34,6 +34,7 @@ internal sealed class FrameDispatcher : IDisposable
         {
             var message = this.frameBuilder
                 .StartBaseMessage()
+                .AddAgentDescription()
                 .Build();
 
             OpAmpClientEventSource.Log.SendingIdentificationMessage();
@@ -53,11 +54,6 @@ internal sealed class FrameDispatcher : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        this.syncRoot.Dispose();
-    }
-
     public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
     {
         await this.syncRoot.WaitAsync(token)
@@ -67,7 +63,7 @@ internal sealed class FrameDispatcher : IDisposable
         {
             var message = this.frameBuilder
                 .StartBaseMessage()
-                .AddHeartbeat(report)
+                .AddHealth(report)
                 .Build();
 
             OpAmpClientEventSource.Log.SendingHeartbeatMessage();
@@ -85,5 +81,10 @@ internal sealed class FrameDispatcher : IDisposable
         {
             this.syncRoot.Release();
         }
+    }
+
+    public void Dispose()
+    {
+        this.syncRoot.Dispose();
     }
 }

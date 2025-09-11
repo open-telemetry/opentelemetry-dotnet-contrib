@@ -49,7 +49,8 @@ public sealed class OpAmpClient : IDisposable
                 .ConfigureAwait(false);
         }
 
-        // TODO: Dispatch identification message here
+        await this.dispatcher.DispatchIdentificationAsync(token)
+            .ConfigureAwait(false);
 
         foreach (var service in this.services.Values)
         {
