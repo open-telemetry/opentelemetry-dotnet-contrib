@@ -34,7 +34,7 @@ internal sealed class FrameDispatcher : IDisposable
         {
             var message = this.frameBuilder
                 .StartBaseMessage()
-                .AddDescription()
+                .AddAgentDescription()
                 .Build();
 
             OpAmpClientEventSource.Log.SendingIdentificationMessage();
@@ -63,7 +63,7 @@ internal sealed class FrameDispatcher : IDisposable
         {
             var message = this.frameBuilder
                 .StartBaseMessage()
-                .AddHeartbeat(report)
+                .AddHealth(report)
                 .Build();
 
             OpAmpClientEventSource.Log.SendingHeartbeatMessage();

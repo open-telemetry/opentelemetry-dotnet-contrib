@@ -40,7 +40,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    IFrameBuilder IFrameBuilder.AddDescription()
+    IFrameBuilder IFrameBuilder.AddAgentDescription()
     {
         if (this.currentMessage == null)
         {
@@ -73,7 +73,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    IFrameBuilder IFrameBuilder.AddHeartbeat(HealthReport health)
+    IFrameBuilder IFrameBuilder.AddHealth(HealthReport health)
     {
         if (this.currentMessage == null)
         {

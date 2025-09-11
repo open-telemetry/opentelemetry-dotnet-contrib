@@ -12,10 +12,10 @@ public class FrameBuilderTests
 {
     public static IEnumerable<object[]> TestData()
     {
-        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddDescription()), new Func<AgentToServer, object>(m => m.AgentDescription) };
+        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddAgentDescription()), new Func<AgentToServer, object>(m => m.AgentDescription) };
 
         var healthReport = new HealthReport { IsHealthy = true };
-        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddHeartbeat(healthReport)), new Func<AgentToServer, object>(m => m.Health) };
+        yield return new object[] { new Func<IFrameBuilder, IFrameBuilder>(fb => fb.AddHealth(healthReport)), new Func<AgentToServer, object>(m => m.Health) };
     }
 
     [Fact]
