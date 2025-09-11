@@ -127,29 +127,29 @@ internal static class RedisProfilerEntryToActivityConverter
             if (options.EmitOldAttributes)
             {
                 activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                string? statement = null;
 
                 if (options.SetVerboseDatabaseStatements)
                 {
                     var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
 
-                    if (!string.IsNullOrEmpty(commandAndKey) && !string.IsNullOrEmpty(script))
+                    if (!string.IsNullOrEmpty(commandAndKey))
                     {
-                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey + " " + script);
-                    }
-                    else if (!string.IsNullOrEmpty(commandAndKey))
-                    {
-                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey);
-                    }
-                    else if (command.Command != null)
-                    {
-                        // Example: "db.statement": SET;
-                        activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                        statement = commandAndKey;
+
+                        if (!string.IsNullOrEmpty(script))
+                        {
+                            statement += " " + script;
+                        }
                     }
                 }
-                else if (command.Command != null)
+
+                // Example: "db.statement": SET;
+                statement ??= command.Command;
+
+                if (statement != null)
                 {
-                    // Example: "db.statement": SET;
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, statement);
                 }
             }
 
