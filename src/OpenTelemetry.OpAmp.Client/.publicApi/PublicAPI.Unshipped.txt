@@ -1,0 +1,24 @@
+OpenTelemetry.OpAmp.Client.OpAmpClient
+OpenTelemetry.OpAmp.Client.OpAmpClient.Dispose() -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.OpAmpClient(System.Action<OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings!>? configure = null) -> void
+OpenTelemetry.OpAmp.Client.OpAmpClient.StartAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.OpAmpClient.StopAsync(System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType.Http = 0 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.ConnectionType.WebSocket = 1 -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.HeartbeatSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.get -> System.TimeSpan
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.Interval.set -> void
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings.IsEnabled.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.get -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Heartbeat.get -> OpenTelemetry.OpAmp.Client.Settings.HeartbeatSettings!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Heartbeat.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.get -> System.Guid
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.OpAmpClientSettings() -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ServerUrl.get -> System.Uri!
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ServerUrl.set -> void
