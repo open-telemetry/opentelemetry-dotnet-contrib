@@ -1,7 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+#if !NETFRAMEWORK
 using System.Diagnostics;
+#endif
 using Microsoft.Extensions.Configuration;
 #if NET
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -56,6 +58,7 @@ public class SqlClientTraceInstrumentationOptions
 #endif
     }
 
+#if !NETFRAMEWORK
     /// <summary>
     /// Gets or sets an action to enrich an <see cref="Activity"/> with the
     /// raw <c>SqlCommand</c> object.
@@ -106,6 +109,7 @@ public class SqlClientTraceInstrumentationOptions
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.</para>
     /// </remarks>
     public bool RecordException { get; set; }
+#endif
 
 #if !NETFRAMEWORK
     /// <summary>
