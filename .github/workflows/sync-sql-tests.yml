@@ -14,13 +14,19 @@ jobs:
 
     steps:
 
+      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        id: otelbot-token
+        with:
+          app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
+          private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           filter: 'tree:0'
           persist-credentials: true
           show-progress: false
-          token: ${{ secrets.OPENTELEMETRYBOT_GITHUB_TOKEN }}
+          token: ${{ steps.otelbot-token.outputs.token }}
 
       - name: Update SQL test cases from open-telemetry/semantic-conventions
         id: update-sql-tests
@@ -48,7 +54,7 @@ jobs:
             exit 0
           }
 
-          $BranchName = "update-sql-test-cases"
+          $BranchName = "otelbot/update-sql-test-cases"
 
           git config user.email ${env:GIT_COMMIT_USER_EMAIL} | Out-Null
           git config user.name ${env:GIT_COMMIT_USER_NAME} | Out-Null
@@ -81,7 +87,7 @@ jobs:
           UPSTREAM_REF: ${{ steps.update-sql-tests.outputs.upstream-ref }}
           UPSTREAM_REPO_NAME: ${{ steps.update-sql-tests.outputs.upstream-repo-name }}
         with:
-          github-token: ${{ secrets.OPENTELEMETRYBOT_GITHUB_TOKEN }}
+          github-token: ${{ steps.otelbot-token.outputs.token }}
           script: |
             const { repo, owner } = context.repo;
             const workflowUrl = `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`;
