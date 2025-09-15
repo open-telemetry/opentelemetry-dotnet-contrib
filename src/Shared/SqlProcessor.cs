@@ -19,7 +19,7 @@ internal static class SqlProcessor
 
     // We can extend this in the future to include more keywords if needed.
     // The keywords should be ordered by frequency of use to optimize performance.
-    // This only includes keywords that are standalone or which are often the first keyword in a statement.
+    // This only includes keywords that may be the first keyword in a statement.
     private static readonly SqlKeywordInfo[] SqlKeywords =
     [
         SqlKeywordInfo.SelectKeyword,
@@ -38,43 +38,43 @@ internal static class SqlProcessor
     ];
 
     // Maintain our own approximate count to avoid ConcurrentDictionary.Count on hot path.
-    // We only increment on successful TryAdd. This may result in a slightly oversized cache under high concurrency
-    // but this is acceptable for the use case.
+    // We only increment on successful TryAdd. This may result in a slightly oversized cache
+    // under high concurrency but this is acceptable for this scenario.
     private static int approxCacheCount;
 
     private enum SqlKeyword
     {
         Unknown,
-        Select,
-        Insert,
-        Update,
+        Alter,
+        Clustered,
+        Create,
+        Database,
         Delete,
+        Distinct,
+        Drop,
+        Exists,
         From,
+        Function,
+        If,
+        Index,
+        Insert,
         Into,
         Join,
-        Create,
-        Alter,
-        Drop,
-        Table,
-        Index,
-        Procedure,
-        View,
-        Database,
-        Trigger,
-        Union,
-        Unique,
         NonClustered,
-        Clustered,
-        Distinct,
-        On,
-        Schema,
-        Function,
-        User,
-        Role,
-        Sequence,
-        If,
         Not,
-        Exists,
+        On,
+        Procedure,
+        Role,
+        Schema,
+        Select,
+        Sequence,
+        Table,
+        Trigger,
+        Unique,
+        Union,
+        Update,
+        User,
+        View,
     }
 
     public static SqlStatementInfo GetSanitizedSql(string? sql)
@@ -109,7 +109,6 @@ internal static class SqlProcessor
     }
 
 #if !NET
-    // Private helpers (kept after public methods to satisfy analyzers)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAsciiLetter(char c)
     {
@@ -136,9 +135,9 @@ internal static class SqlProcessor
 
     private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
     {
-        // We use a single buffer for both sanitized SQL and DB query summary
-        // DB query summary starts from the index of the length of the input SQL
-        // We rent a buffer twice the size of the input SQL to ensure we have enough space
+        // We use a single buffer for both sanitized SQL and DB query summary.
+        // We rent a buffer twice the size of the input SQL to ensure we have enough space.
+        // The summary starts from the middle position of the rented buffer.
         var rentedBuffer = ArrayPool<char>.Shared.Rent(sql.Length * 2);
 
         var buffer = rentedBuffer.AsSpan();
@@ -167,12 +166,19 @@ internal static class SqlProcessor
                 continue;
             }
 
-            ParseNextToken(sql, buffer, ref state);
+            if (state.SummaryPosition >= 255)
+            {
+                ParseNextTokenFast(sql, buffer, ref state);
+            }
+            else
+            {
+                ParseNextToken(sql, buffer, ref state);
+            }
         }
 
         var summaryLength = Math.Min(state.SummaryPosition, 255);
 
-        // Trim trailing space (if required)
+        // Trim trailing space
         if (summaryLength > 0 && state.SummaryBuffer[summaryLength - 1] == ' ')
         {
             summaryLength -= 1;
@@ -188,27 +194,46 @@ internal static class SqlProcessor
         return sqlStatementInfo;
     }
 
+    private static void ParseNextTokenFast(
+        ReadOnlySpan<char> sql,
+        Span<char> buffer,
+        ref ParseState state)
+    {
+        var start = state.ParsePosition;
+
+#if NET
+        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceSearchValues);
+#else
+        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny([' ', '\t', '\r', '\n']);
+#endif
+
+        var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : sql.Length - start;
+
+        sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+        state.SanitizedPosition += length;
+        state.ParsePosition += length;
+    }
+
     private static void ParseNextToken(
         ReadOnlySpan<char> sql,
         Span<char> buffer,
         ref ParseState state)
     {
-        var nextChar = sql[state.ParsePosition];
+        var start = state.ParsePosition;
+        var nextChar = sql[start];
 
-        // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter
+        // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
 #if NET
         var mayBeKeyword = char.IsAsciiLetter(nextChar);
 #else
         var mayBeKeyword = IsAsciiLetter(nextChar);
 #endif
 
-        // As an optimization, we only compare for keywords if we haven't already captured 255 characters for the summary.
-        // Avoid comparing for keywords if the previous token was a keyword that is expected to be followed by an identifier.
         if (mayBeKeyword)
         {
-            var remainingSql = sql.Slice(state.ParsePosition);
+            var remainingSql = sql.Slice(start);
 
-            // Determine the length of the next contiguous ascii-letter run
+            // Determine the length of the next contiguous ascii-letter run.
             // This allows some fast paths in the comparisons below.
             var asciiLetterLength = 1;
             while (asciiLetterLength < remainingSql.Length)
@@ -226,7 +251,7 @@ internal static class SqlProcessor
                 asciiLetterLength++;
             }
 
-            // NOTE: At one stage we tried checking if the length was between 2 and 12 (inclusive)
+            // IMPLEMENTATION NOTE: At one stage we tried checking if the length was between 2 and 12 (inclusive)
             // the range of shortest and longest keywords. This ended up being slower in practice
             // as many tokens fall into this range and it was faster to skip the length check.
 
@@ -251,7 +276,6 @@ internal static class SqlProcessor
             for (int i = 0; i < keywordsToCheck.Length; i++)
             {
                 var potentialKeywordInfo = keywordsToCheck[i];
-
                 var keywordSpan = potentialKeywordInfo.KeywordText.AsSpan();
                 var keywordLength = keywordSpan.Length;
 
@@ -261,21 +285,13 @@ internal static class SqlProcessor
                     continue;
                 }
 
-                // First-letter quick check to reduce comparisons early.
-                // We know the current char is an ASCII letter so this is a safe way to lowercase.
-                // The keyword string is already lowercase so doesn't need to be lowercased here.
-                if ((remainingSql[0] | 0x20) != keywordSpan[0])
-                {
-                    continue;
-                }
-
+                var sqlToCopy = remainingSql.Slice(0, keywordLength);
                 var matchedKeyword = true;
 
-                var sqlToCopy = remainingSql.Slice(0, keywordLength);
-
-                // Compare the potential keyword in a case-insensitive manner
+                // Compare the potential keyword in a case-insensitive manner.
                 for (var charPos = 1; charPos < keywordLength; charPos++)
                 {
+                    // We know that sqlToCopy is all ascii letters so this comparison is safe.
                     if ((sqlToCopy[charPos] | 0x20) != keywordSpan[charPos])
                     {
                         matchedKeyword = false;
@@ -285,12 +301,12 @@ internal static class SqlProcessor
 
                 if (matchedKeyword)
                 {
+                    // Copy the keyword to the sanitized buffer.
                     sqlToCopy.CopyTo(buffer.Slice(state.SanitizedPosition));
                     state.SanitizedPosition += keywordLength;
 
-                    // We only capture if we haven't already filled the summary to the max length of 255.
-                    // Check if the keyword should be captured in the summary
-                    if (state.SummaryPosition < 255 && SqlKeywordInfo.CaptureInSummary(in state, potentialKeywordInfo))
+                    // Potentially copy the keyword to the summary buffer.
+                    if (SqlKeywordInfo.CaptureInSummary(in state, potentialKeywordInfo))
                     {
                         if (state.SummaryPosition == 0)
                         {
@@ -300,7 +316,7 @@ internal static class SqlProcessor
                         sqlToCopy.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                         state.SummaryPosition += keywordLength;
 
-                        // Add a space after the keyword. The trailing space will be trimmed later if needed.
+                        // Add a space after the keyword. The trailing space will be trimmed later.
                         state.SummaryBuffer[state.SummaryPosition++] = ' ';
 
                         state.PreviousSummaryKeyword = potentialKeywordInfo.SqlKeyword;
@@ -316,11 +332,13 @@ internal static class SqlProcessor
             }
         }
 
-        // If we get this far, we have not matched a keyword, so we copy the token as-is
+        // If we get this far, we have not matched a keyword, so we copy the token as-is.
+
         if (char.IsLetter(nextChar) || nextChar == '_')
         {
-            // Scan the identifier token once, then bulk-copy to minimize per-char branching
-            var start = state.ParsePosition;
+            // This first block handles identifiers (which start with a letter or underscore).
+
+            // Scan the token once, then bulk-copy to minimize per-char branching.
             var i = start;
             while (i < sql.Length)
             {
@@ -337,18 +355,17 @@ internal static class SqlProcessor
             var length = i - start;
             if (length > 0)
             {
-                // Copy to sanitized buffer
+                // Copy to sanitized buffer.
                 sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
                 state.SanitizedPosition += length;
 
-                // Optionally copy to summary buffer
-                if (state.SummaryPosition < 255 && state.CaptureNextTokenInSummary)
+                // Optionally copy to summary buffer.
+                if (state.CaptureNextTokenInSummary)
                 {
-                    // We may copy paste 255 here which is fine as we slice to max 255 when creating the final string
                     sql.Slice(start, length).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                     state.SummaryPosition += length;
 
-                    // Add a space after the identifier. The trailing space will be trimmed later if needed.
+                    // Add a space after the identifier. The trailing space will be trimmed later.
                     state.SummaryBuffer[state.SummaryPosition++] = ' ';
                 }
             }
@@ -358,6 +375,8 @@ internal static class SqlProcessor
         }
         else
         {
+            // Special case: if the token is a comma and follows a FROM keyword,
+            // we are in an old style implicit join and we want to capture the next valid identifier in the summary.
             var prevKeyword = state.PreviousParsedKeyword?.SqlKeyword ?? SqlKeyword.Unknown;
             state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && nextChar == ',';
 
