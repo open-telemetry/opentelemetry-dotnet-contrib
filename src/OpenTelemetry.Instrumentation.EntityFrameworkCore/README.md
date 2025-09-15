@@ -141,52 +141,24 @@ services.AddOpenTelemetry()
         .AddConsoleExporter());
 ```
 
-### SetDbStatementForText
-
-`SetDbStatementForText` controls whether the `db.statement` attribute is
-emitted. The behavior of `SetDbStatementForText` depends on the runtime used,
-see below for more details.
-
-Query text may contain sensitive data, so when `SetDbStatementForText` is
-enabled the raw query text is sanitized by automatically replacing literal
-values with a `?` character.
+## Experimental features
 
 > [!NOTE]
-> Query sanitization is only supported for the following SQL-like providers:
->
-> * Firebird
-> * GCP Spanner
-> * IBM DB2
-> * Microsoft SQL Server
-> * MySQL
-> * Oracle
-> * PostgreSQL
-> * SQLite
-> * Teradata
+> Experimental features are not enabled by default and can only be activated with
+> environment variables. They are subject to change or removal in future releases.
 
-### SetDbQueryParameters
+### DB query parameters
 
-`SetDbQueryParameters` controls whether `db.query.parameter.<key>` attributes
-are emitted.
+The `OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS` environment
+variable controls whether `db.query.parameter.<key>` attributes are emitted.
 
-Query parameters may contain sensitive data, so only enable `SetDbQueryParameters`
+Query parameters may contain sensitive data, so only enable this experimental feature
 if your queries and/or environment are appropriate for enabling this option.
 
-`SetDbQueryParameters` is _false_ by default. When set to `true`, the
-instrumentation will set
+`OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS` is implicitly
+`false` by default. When set to `true`, the instrumentation will set
 [`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
-
-To enable capturing of parameter names and values use the
-following configuration.
-
-```csharp
-using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-    .AddEntityFrameworkCoreInstrumentation(
-        options => options.SetDbStatementForText = true)
-    .AddConsoleExporter()
-    .Build();
-```
 
 ## References
 

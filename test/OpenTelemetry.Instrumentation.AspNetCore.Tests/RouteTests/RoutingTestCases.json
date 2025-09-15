@@ -128,6 +128,7 @@
   {
     "name": "Root path",
     "testApplicationScenario": "RazorPages",
+    "maximumDotnetVersion": 9,
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,

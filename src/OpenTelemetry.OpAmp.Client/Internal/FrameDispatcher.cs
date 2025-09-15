@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using OpenTelemetry.Internal;
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
+using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
@@ -34,16 +36,14 @@ internal sealed class FrameDispatcher : IDisposable
                 .StartBaseMessage()
                 .Build();
 
-            // TODO: change to proper logging
-            Console.WriteLine("Sending identification message.");
+            OpAmpClientEventSource.Log.SendingIdentificationMessage();
 
             await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // TODO: change to proper logging
-            Console.WriteLine($"[Error]: {ex.Message}");
+            OpAmpClientEventSource.Log.SendIdentificationMessageException(ex);
 
             this.frameBuilder.Reset(); // Reset the builder in case of failure
         }
@@ -56,5 +56,34 @@ internal sealed class FrameDispatcher : IDisposable
     public void Dispose()
     {
         this.syncRoot.Dispose();
+    }
+
+    public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
+    {
+        await this.syncRoot.WaitAsync(token)
+            .ConfigureAwait(false);
+
+        try
+        {
+            var message = this.frameBuilder
+                .StartBaseMessage()
+                .AddHeartbeat(report)
+                .Build();
+
+            OpAmpClientEventSource.Log.SendingHeartbeatMessage();
+
+            await this.transport.SendAsync(message, token)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException(ex);
+
+            this.frameBuilder.Reset(); // Reset the builder in case of failure
+        }
+        finally
+        {
+            this.syncRoot.Release();
+        }
     }
 }

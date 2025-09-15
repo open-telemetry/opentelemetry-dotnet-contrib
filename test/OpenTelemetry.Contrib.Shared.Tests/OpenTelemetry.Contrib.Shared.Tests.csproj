@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
     <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

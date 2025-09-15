@@ -3,6 +3,8 @@
 
 using Google.Protobuf;
 using OpAmp.Proto.V1;
+using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
 
@@ -34,6 +36,55 @@ internal sealed class FrameBuilder : IFrameBuilder
         };
 
         this.currentMessage = message;
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddHeartbeat(HealthReport health)
+    {
+        if (this.currentMessage == null)
+        {
+            throw new InvalidOperationException("Message base is not initialized.");
+        }
+
+        this.currentMessage.Health = new ComponentHealth()
+        {
+            Healthy = health.IsHealthy,
+            StartTimeUnixNano = health.StartTime,
+            StatusTimeUnixNano = health.StatusTime,
+        };
+
+        if (health.Status != null)
+        {
+            this.currentMessage.Health.Status = health.Status;
+        }
+
+        if (health.LastError != null)
+        {
+            this.currentMessage.Health.LastError = health.LastError;
+        }
+
+        foreach (var item in health.Components)
+        {
+            var component = new ComponentHealth()
+            {
+                Healthy = item.IsHealthy,
+                StartTimeUnixNano = (ulong)item.StartTime.ToUnixTimeMilliseconds() * 1_000_000, // Convert to nanoseconds
+                StatusTimeUnixNano = (ulong)item.StatusTime.ToUnixTimeMilliseconds() * 1_000_000, // Convert to nanoseconds
+            };
+
+            if (health.Status != null)
+            {
+                component.Status = health.Status;
+            }
+
+            if (health.LastError != null)
+            {
+                component.LastError = health.LastError;
+            }
+
+            this.currentMessage.Health.ComponentHealthMap[item.ComponentName] = component;
+        }
+
         return this;
     }
 

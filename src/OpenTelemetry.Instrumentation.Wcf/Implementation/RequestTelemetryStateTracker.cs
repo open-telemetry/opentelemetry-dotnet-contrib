@@ -9,7 +9,7 @@ internal static class RequestTelemetryStateTracker
 {
     private static readonly Dictionary<string, Entry> OutstandingRequestStates = [];
     private static readonly SortedSet<EntryTimeoutProperties> TimeoutQueue = [];
-    private static readonly object Sync = new();
+    private static readonly Lock Sync = new();
     private static readonly Timer Timer = new(OnTimer);
     private static long currentTimerDueAt = Timeout.Infinite;
 

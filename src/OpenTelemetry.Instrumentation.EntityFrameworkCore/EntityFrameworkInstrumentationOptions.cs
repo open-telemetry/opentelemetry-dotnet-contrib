@@ -26,17 +26,13 @@ public class EntityFrameworkInstrumentationOptions
         var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
         this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
         this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+
+        if (configuration["OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS"] is { Length: > 0 } value &&
+            bool.TryParse(value, out var setDbQueryParameters))
+        {
+            this.SetDbQueryParameters = setDbQueryParameters;
+        }
     }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the names of <see cref="CommandType.StoredProcedure"/> commands as the <see cref="Trace.SemanticConventions.AttributeDbStatement"/> tag. Default value: True.
-    /// </summary>
-    public bool SetDbStatementForStoredProcedure { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/> should add the text of <see cref="CommandType.Text"/> commands as the <see cref="Trace.SemanticConventions.AttributeDbStatement"/> tag. Default value: False.
-    /// </summary>
-    public bool SetDbStatementForText { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an Activity from the db command.
@@ -80,7 +76,7 @@ public class EntityFrameworkInstrumentationOptions
     /// contain any sensitive data.</b>
     /// </para>
     /// </remarks>
-    public bool SetDbQueryParameters { get; set; }
+    internal bool SetDbQueryParameters { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the old database attributes should be emitted.

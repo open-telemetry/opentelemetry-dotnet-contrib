@@ -16,14 +16,23 @@
   DB2, MongoDB, MySQL, Oracle, PostgreSQL and SQLite.
   ([#3025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3025))
 * Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
-  the `SetDbQueryParameters` option.
-  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015))
+  the `OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS`
+  environment variable.
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015),
+  [#3081](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3081))
 * Add the `db.query.summary` attribute and use it for the trace span name when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
-* The `db.statement` and `db.query.text` attributes added when `SetDbStatementForText`
-  is `true` are now sanitized when using specific SQL-like EFCore providers.
+* The `db.statement` and `db.query.text` attributes are now sanitized when using
+  specific SQL-like EFCore providers.
   ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
+* **Breaking change**: The `SetDbStatementForStoredProcedure` and
+  `SetDbStatementForText` properties have been removed. Behaviors related to this
+  option are now always enabled.
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
+* **Breaking change**: `db.system.name` now only sets names that are explicitly
+  defined in the Semantic Conventions for databases.
+  ([#3075](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3075))
 
 ## 1.12.0-beta.2
 
