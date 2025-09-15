@@ -719,8 +719,11 @@ internal static class SqlProcessor
         // Used on keywords that are only included in the summary if they are the first keyword in the statement.
         private static readonly SqlKeyword[] Unknown = [SqlKeyword.Unknown];
 
-        private static readonly SqlKeyword[] DdlKeywords = [
-            SqlKeyword.Create, SqlKeyword.Drop, SqlKeyword.Alter
+        private static readonly SqlKeyword[] DdlKeywords =
+        [
+            SqlKeyword.Create,
+            SqlKeyword.Drop,
+            SqlKeyword.Alter,
         ];
 
         private readonly SqlKeyword[]? captureInSummaryWhenPrevious;
