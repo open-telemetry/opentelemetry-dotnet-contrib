@@ -9,6 +9,7 @@ namespace OpenTelemetry.Instrumentation;
 
 internal static class SqlProcessor
 {
+    private const int MaxSummaryLength = 255;
     private const int CacheCapacity = 1000;
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
@@ -166,7 +167,7 @@ internal static class SqlProcessor
                 continue;
             }
 
-            if (state.SummaryPosition >= 255)
+            if (state.SummaryPosition >= MaxSummaryLength)
             {
                 ParseNextTokenFast(sql, buffer, ref state);
             }
@@ -176,7 +177,7 @@ internal static class SqlProcessor
             }
         }
 
-        var summaryLength = Math.Min(state.SummaryPosition, 255);
+        var summaryLength = Math.Min(state.SummaryPosition, MaxSummaryLength);
 
         // Trim trailing space
         if (summaryLength > 0 && state.SummaryBuffer[summaryLength - 1] == ' ')
@@ -220,13 +221,13 @@ internal static class SqlProcessor
         ref ParseState state)
     {
         var start = state.ParsePosition;
-        var nextChar = sql[start];
+        var currentChar = sql[start];
 
         // Quick first-character filter: only attempt keyword matching if the current char is an ASCII letter.
 #if NET
-        var mayBeKeyword = char.IsAsciiLetter(nextChar);
+        var mayBeKeyword = char.IsAsciiLetter(currentChar);
 #else
-        var mayBeKeyword = IsAsciiLetter(nextChar);
+        var mayBeKeyword = IsAsciiLetter(currentChar);
 #endif
 
         if (mayBeKeyword)
@@ -334,7 +335,7 @@ internal static class SqlProcessor
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
 
-        if (char.IsLetter(nextChar) || nextChar == '_')
+        if (char.IsLetter(currentChar) || currentChar == '_')
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
@@ -378,9 +379,9 @@ internal static class SqlProcessor
             // Special case: if the token is a comma and follows a FROM keyword,
             // we are in an old style implicit join and we want to capture the next valid identifier in the summary.
             var prevKeyword = state.PreviousParsedKeyword?.SqlKeyword ?? SqlKeyword.Unknown;
-            state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && nextChar == ',';
+            state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && currentChar == ',';
 
-            buffer[state.SanitizedPosition++] = nextChar;
+            buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
         }
     }
@@ -391,21 +392,21 @@ internal static class SqlProcessor
 
         while (state.ParsePosition < sql.Length)
         {
-            var nextChar = sql[state.ParsePosition];
+            var currentChar = sql[state.ParsePosition];
 
 #if NET
-            if (WhitespaceSearchValues.Contains(nextChar))
+            if (WhitespaceSearchValues.Contains(currentChar))
 #else
-            if (nextChar == ' ' || nextChar == '\t' || nextChar == '\r' || nextChar == '\n')
+            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\r' || currentChar == '\n')
 #endif
             {
                 foundWhitespace = true;
-                buffer[state.SanitizedPosition++] = nextChar;
+                buffer[state.SanitizedPosition++] = currentChar;
                 state.ParsePosition++;
                 continue; // keep consuming contiguous whitespace
             }
 
-            break; // stop when nextChar is not whitespace
+            break; // stop when currentChar is not whitespace
         }
 
         return foundWhitespace;
@@ -417,11 +418,14 @@ internal static class SqlProcessor
         var ch = sql[i];
         var length = sql.Length;
 
+        var iPlusOne = i + 1;
+        var iPlusTwo = i + 2;
+
         // Scan past multi-line comment
-        if (ch == '/' && i + 1 < length && sql[i + 1] == '*')
+        if (ch == '/' && iPlusOne < length && sql[iPlusOne] == '*')
         {
 #if NET
-            var rest = sql.Slice(i + 2);
+            var rest = sql.Slice(iPlusTwo);
             while (!rest.IsEmpty)
             {
                 var starIdx = rest.IndexOf('*');
@@ -435,7 +439,7 @@ internal static class SqlProcessor
                 // Check for closing */
                 if (starIdx + 1 < rest.Length && rest[starIdx + 1] == '/')
                 {
-                    state.ParsePosition = i + 2 + starIdx + 2; // position after */
+                    state.ParsePosition = iPlusTwo + starIdx + 2; // position after */
                     return true;
                 }
 
@@ -449,7 +453,7 @@ internal static class SqlProcessor
             for (i += 2; i < length; ++i)
             {
                 ch = sql[i];
-                if (ch == '*' && i + 1 < length && sql[i + 1] == '/')
+                if (ch == '*' && iPlusOne < length && sql[iPlusOne] == '/')
                 {
                     i += 1;
                     break;
@@ -462,16 +466,16 @@ internal static class SqlProcessor
         }
 
         // Scan past single-line comment
-        if (ch == '-' && i + 1 < length && sql[i + 1] == '-')
+        if (ch == '-' && iPlusOne < length && sql[iPlusOne] == '-')
         {
 #if NET
             // Find next line break efficiently and preserve the newline for whitespace handling
-            var rest = sql.Slice(i + 2);
+            var rest = sql.Slice(iPlusTwo);
             var idx = rest.IndexOfAny('\r', '\n');
             if (idx >= 0)
             {
                 // Position at the newline so ParseWhitespace can copy it
-                state.ParsePosition = i + 2 + idx;
+                state.ParsePosition = iPlusTwo + idx;
             }
             else
             {
@@ -500,21 +504,22 @@ internal static class SqlProcessor
 
     private static bool SanitizeStringLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
-        var nextChar = sql[state.ParsePosition];
-        if (nextChar == '\'')
+        var currentChar = sql[state.ParsePosition];
+        if (currentChar == '\'')
         {
 #if NET
             var rest = sql.Slice(state.ParsePosition + 1);
             while (!rest.IsEmpty)
             {
                 var idx = rest.IndexOf('\'');
+                var idxPlusOne = idx + 1;
                 if (idx < 0)
                 {
                     state.ParsePosition = sql.Length;
                     return true;
                 }
 
-                if (idx + 1 < rest.Length && rest[idx + 1] == '\'')
+                if (idxPlusOne < rest.Length && rest[idxPlusOne] == '\'')
                 {
                     // Skip escaped quote ('')
                     rest = rest.Slice(idx + 2);
@@ -522,7 +527,7 @@ internal static class SqlProcessor
                 }
 
                 // Found terminating quote
-                state.ParsePosition = sql.Length - rest.Length + idx + 1;
+                state.ParsePosition = sql.Length - rest.Length + idxPlusOne;
 
                 buffer[state.SanitizedPosition++] = '?';
                 return true;
@@ -533,16 +538,17 @@ internal static class SqlProcessor
 #else
             var i = state.ParsePosition + 1;
             var length = sql.Length;
+            var iPlusOne = i + 1;
             for (; i < length; ++i)
             {
-                nextChar = sql[i];
-                if (nextChar == '\'' && i + 1 < length && sql[i + 1] == '\'')
+                currentChar = sql[i];
+                if (currentChar == '\'' && iPlusOne < length && sql[iPlusOne] == '\'')
                 {
                     ++i;
                     continue;
                 }
 
-                if (nextChar == '\'')
+                if (currentChar == '\'')
                 {
                     break;
                 }
@@ -563,8 +569,9 @@ internal static class SqlProcessor
         var i = state.ParsePosition;
         var ch = sql[i];
         var length = sql.Length;
+        var iPlusOne = i + 1;
 
-        if (ch == '0' && i + 1 < length && (sql[i + 1] == 'x' || sql[i + 1] == 'X'))
+        if (ch == '0' && iPlusOne < length && (sql[iPlusOne] == 'x' || sql[iPlusOne] == 'X'))
         {
             for (i += 2; i < length; ++i)
             {
@@ -603,12 +610,13 @@ internal static class SqlProcessor
     private static bool SanitizeNumericLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
         var i = state.ParsePosition;
-        var nextChar = sql[i];
+        var currentChar = sql[i];
         var length = sql.Length;
+        var iPlusOne = i + 1;
 
         // If the digit follows an open bracket, check for a parenthesized digit sequence
         if (i > 0 && sql[i - 1] == '('
-            && IsAsciiDigit(nextChar))
+            && IsAsciiDigit(currentChar))
         {
             int start = i;
             int j = i;
@@ -632,39 +640,40 @@ internal static class SqlProcessor
         }
 
         // Scan past leading sign
-        if ((nextChar == '-' || nextChar == '+') && i + 1 < length && (IsAsciiDigit(sql[i + 1]) || sql[i + 1] == '.'))
+        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == '.'))
         {
             i += 1;
-            nextChar = sql[i];
+            iPlusOne = i + 1;
+            currentChar = sql[i];
         }
 
         // Scan past leading decimal point
         var periodMatched = false;
-        if (nextChar == '.' && i + 1 < length && IsAsciiDigit(sql[i + 1]))
+        if (currentChar == '.' && iPlusOne < length && IsAsciiDigit(sql[iPlusOne]))
         {
             periodMatched = true;
             i += 1;
-            nextChar = sql[i];
+            currentChar = sql[i];
         }
 
-        if (IsAsciiDigit(nextChar))
+        if (IsAsciiDigit(currentChar))
         {
             var exponentMatched = false;
             for (i += 1; i < length; ++i)
             {
-                nextChar = sql[i];
-                if (IsAsciiDigit(nextChar))
+                currentChar = sql[i];
+                if (IsAsciiDigit(currentChar))
                 {
                     continue;
                 }
 
-                if (!periodMatched && nextChar == '.')
+                if (!periodMatched && currentChar == '.')
                 {
                     periodMatched = true;
                     continue;
                 }
 
-                if (!exponentMatched && (nextChar == 'e' || nextChar == 'E'))
+                if (!exponentMatched && (currentChar == 'e' || currentChar == 'E'))
                 {
                     // Scan past sign in exponent
                     if (i + 1 < length && (sql[i + 1] == '-' || sql[i + 1] == '+'))
