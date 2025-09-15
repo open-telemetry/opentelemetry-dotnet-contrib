@@ -765,10 +765,22 @@ internal static class SqlProcessor
             ViewKeyword = new("view", SqlKeyword.View, DdlKeywords);
 
             // Phase 2: Build arrays that depend on instances
-            DdlSubKeywords = [
-                TableKeyword, IndexKeyword, ViewKeyword, ProcedureKeyword, TriggerKeyword,
-                DatabaseKeyword, SchemaKeyword, FunctionKeyword, UserKeyword, RoleKeyword, SequenceKeyword, UniqueKeyword,
-                ClusteredKeyword, NonClusteredKeyword
+            DdlSubKeywords =
+            [
+                TableKeyword,
+                IndexKeyword,
+                ViewKeyword,
+                ProcedureKeyword,
+                TriggerKeyword,
+                DatabaseKeyword,
+                SchemaKeyword,
+                FunctionKeyword,
+                UserKeyword,
+                RoleKeyword,
+                SequenceKeyword,
+                UniqueKeyword,
+                ClusteredKeyword,
+                NonClusteredKeyword,
             ];
 
             // Phase 3: Wire follow relationships
