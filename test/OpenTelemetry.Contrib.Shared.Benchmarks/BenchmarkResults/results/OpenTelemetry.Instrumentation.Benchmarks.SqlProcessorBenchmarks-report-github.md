@@ -8,14 +8,14 @@ Unknown processor
 
 
 ```
-| Method          | Sql                  | Mean     | Error    | StdDev    | Median   | Allocated |
-|---------------- |--------------------- |---------:|---------:|----------:|---------:|----------:|
-| **GetSanitizedSql** | **CREAT(...)s(Id) [56]** | **420.6 ns** | **22.18 ns** |  **60.71 ns** | **428.3 ns** |     **584 B** |
-| **GetSanitizedSql** | **DELET(...) = 42 [32]** | **255.7 ns** |  **7.11 ns** |  **20.18 ns** | **252.0 ns** |     **448 B** |
-| **GetSanitizedSql** | **INSER(...)3e-5) [76]** | **514.4 ns** | **16.39 ns** |  **48.33 ns** | **513.3 ns** |     **680 B** |
-| **GetSanitizedSql** | **SELEC(...)ls od [39]** | **439.8 ns** | **39.56 ns** | **116.65 ns** | **374.5 ns** |     **528 B** |
-| **GetSanitizedSql** | **SELE(...)tory [111]**  | **584.5 ns** | **11.55 ns** |  **24.36 ns** | **583.5 ns** |    **1056 B** |
-| **GetSanitizedSql** | **SELEC(...)table [69]** | **269.9 ns** |  **8.34 ns** |  **23.79 ns** | **271.8 ns** |     **600 B** |
-| **GetSanitizedSql** | **SELEC(...) c.Id [74]** | **563.1 ns** | **22.71 ns** |  **66.25 ns** | **553.4 ns** |     **736 B** |
-| **GetSanitizedSql** | **SELE(...)_id) [101]**  | **691.8 ns** | **19.53 ns** |  **56.02 ns** | **693.5 ns** |     **912 B** |
-| **GetSanitizedSql** | **UPDAT(...) = 42 [44]** | **328.1 ns** | **11.58 ns** |  **33.40 ns** | **329.8 ns** |     **504 B** |
+| Method          | Sql                  | Mean     | Error   | StdDev  | Allocated |
+|---------------- |--------------------- |---------:|--------:|--------:|----------:|
+| **GetSanitizedSql** | **CREAT(...)s(Id) [56]** | **237.5 ns** | **3.17 ns** | **2.97 ns** |     **248 B** |
+| **GetSanitizedSql** | **DELET(...) = 42 [32]** | **177.5 ns** | **3.34 ns** | **3.57 ns** |     **128 B** |
+| **GetSanitizedSql** | **INSER(...)3e-5) [76]** | **272.8 ns** | **3.13 ns** | **2.62 ns** |     **192 B** |
+| **GetSanitizedSql** | **SELEC(...)ls od [39]** | **160.5 ns** | **2.06 ns** | **1.83 ns** |     **184 B** |
+| **GetSanitizedSql** | **SELE(...)tory [111]**  | **276.9 ns** | **2.23 ns** | **1.98 ns** |     **424 B** |
+| **GetSanitizedSql** | **SELEC(...)table [69]** | **114.1 ns** | **1.51 ns** | **1.41 ns** |     **128 B** |
+| **GetSanitizedSql** | **SELEC(...) c.Id [74]** | **255.5 ns** | **1.71 ns** | **1.52 ns** |     **264 B** |
+| **GetSanitizedSql** | **SELE(...)_id) [101]**  | **303.3 ns** | **2.41 ns** | **2.25 ns** |     **312 B** |
+| **GetSanitizedSql** | **UPDAT(...) = 42 [44]** | **199.8 ns** | **2.29 ns** | **2.14 ns** |     **144 B** |
