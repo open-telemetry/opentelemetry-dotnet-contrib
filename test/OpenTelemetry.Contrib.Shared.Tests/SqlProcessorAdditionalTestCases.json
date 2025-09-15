@@ -1,0 +1,600 @@
+[
+  {
+    "name": "keyword_prefix_for_target",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM SelectedData"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM SelectedData"
+      ],
+      "db.query.summary": "SELECT SelectedData"
+    }
+  },
+  {
+    "name": "summary_truncated",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM Vecnzotjejucwitzgrfifscuevittljlnrlpbruvkezeptqciyvbjhsytmbucbhwttidayecnthaztxbyppbyztcqccedeirgkxzrfezjxfwbtuqxeusroqgbvulgmsvnelovkxqsaqmlogomkhtjuirzhaocxlrmerihnmwaelullionarkmxwdamhduwrbooknqsnilurutgyerxphokeqnnoumbpcfjtmqrbpukjllofiwaltyoawkp o, OrderDetails od"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM Vecnzotjejucwitzgrfifscuevittljlnrlpbruvkezeptqciyvbjhsytmbucbhwttidayecnthaztxbyppbyztcqccedeirgkxzrfezjxfwbtuqxeusroqgbvulgmsvnelovkxqsaqmlogomkhtjuirzhaocxlrmerihnmwaelullionarkmxwdamhduwrbooknqsnilurutgyerxphokeqnnoumbpcfjtmqrbpukjllofiwaltyoawkp o, OrderDetails od"
+      ],
+      "db.query.summary": "SELECT Vecnzotjejucwitzgrfifscuevittljlnrlpbruvkezeptqciyvbjhsytmbucbhwttidayecnthaztxbyppbyztcqccedeirgkxzrfezjxfwbtuqxeusroqgbvulgmsvnelovkxqsaqmlogomkhtjuirzhaocxlrmerihnmwaelullionarkmxwdamhduwrbooknqsnilurutgyerxphokeqnnoumbpcfjtmqrbpukjllofiwaltyoaw"
+    }
+  },
+  {
+    "name": "create_unique_clustered_index",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE UNIQUE CLUSTERED INDEX IX_Employee_Email ON Employees (Email);"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE UNIQUE CLUSTERED INDEX IX_Employee_Email ON Employees (Email);"
+      ],
+      "db.query.summary": "CREATE UNIQUE CLUSTERED INDEX IX_Employee_Email"
+    }
+  },
+  {
+    "name": "create_unique_index",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE UNIQUE INDEX IX_Employee_Email ON Employees (Email);"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE UNIQUE INDEX IX_Employee_Email ON Employees (Email);"
+      ],
+      "db.query.summary": "CREATE UNIQUE INDEX IX_Employee_Email"
+    }
+  },
+  {
+    "name": "select_distinct",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT DISTINCT Country FROM Countries"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT DISTINCT Country FROM Countries"
+      ],
+      "db.query.summary": "SELECT DISTINCT Countries"
+    }
+  },
+  {
+    "name": "select_distinct_with_join",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT DISTINCT o.Id FROM Orders o JOIN Customers c ON o.CustomerId = c.Id"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT DISTINCT o.Id FROM Orders o JOIN Customers c ON o.CustomerId = c.Id"
+      ],
+      "db.query.summary": "SELECT DISTINCT Orders Customers"
+    }
+  },
+  {
+    "name": "create_table_with_if_not_exists",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE TABLE IF NOT EXISTS Users (Id INT PRIMARY KEY, Name NVARCHAR(100));"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TABLE IF NOT EXISTS Users (Id INT PRIMARY KEY, Name NVARCHAR(100));"
+      ],
+      "db.query.summary": "CREATE TABLE Users"
+    }
+  },
+  {
+    "name": "create_view_with_select",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE VIEW ActiveUsers AS SELECT * FROM Users WHERE IsActive = 1;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE VIEW ActiveUsers AS SELECT * FROM Users WHERE IsActive = ?;"
+      ],
+      "db.query.summary": "CREATE VIEW ActiveUsers"
+    }
+  },
+  {
+    "name": "alter_table_add_column",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER TABLE Orders ADD COLUMN OrderStatus NVARCHAR(50);"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER TABLE Orders ADD COLUMN OrderStatus NVARCHAR(50);"
+      ],
+      "db.query.summary": "ALTER TABLE Orders"
+    }
+  },
+  {
+    "name": "alter_table_rename_column",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER TABLE Orders RENAME COLUMN OldName TO NewName;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER TABLE Orders RENAME COLUMN OldName TO NewName;"
+      ],
+      "db.query.summary": "ALTER TABLE Orders"
+    }
+  },
+  {
+    "name": "create_procedure_with_params",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE PROCEDURE GetUserById @UserId INT AS SELECT * FROM Users WHERE Id = @UserId;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE PROCEDURE GetUserById @UserId INT AS SELECT * FROM Users WHERE Id = @UserId;"
+      ],
+      "db.query.summary": "CREATE PROCEDURE GetUserById"
+    }
+  },
+  {
+    "name": "alter_view_as_select",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER VIEW ActiveUsers AS SELECT * FROM Users WHERE IsActive = 1;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER VIEW ActiveUsers AS SELECT * FROM Users WHERE IsActive = ?;"
+      ],
+      "db.query.summary": "ALTER VIEW ActiveUsers"
+    }
+  },
+  {
+    "name": "create_trigger_on_table",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE TRIGGER trg_UpdateTimestamp ON Orders AFTER UPDATE AS BEGIN UPDATE Orders SET UpdatedAt = GETDATE() WHERE Id IN (SELECT Id FROM inserted); END;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TRIGGER trg_UpdateTimestamp ON Orders AFTER UPDATE AS BEGIN UPDATE Orders SET UpdatedAt = GETDATE() WHERE Id IN (SELECT Id FROM inserted); END;"
+      ],
+      "db.query.summary": "CREATE TRIGGER trg_UpdateTimestamp"
+    }
+  },
+  {
+    "name": "alter_procedure_with_params",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER PROCEDURE UpdateUserEmail @UserId INT, @Email NVARCHAR(100) AS UPDATE Users SET Email = @Email WHERE Id = @UserId;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER PROCEDURE UpdateUserEmail @UserId INT, @Email NVARCHAR(100) AS UPDATE Users SET Email = @Email WHERE Id = @UserId;"
+      ],
+      "db.query.summary": "ALTER PROCEDURE UpdateUserEmail"
+    }
+  },
+  {
+    "name": "create_index_with_include",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE INDEX IX_Orders_CustomerId ON Orders (CustomerId) INCLUDE (OrderDate, TotalAmount);"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE INDEX IX_Orders_CustomerId ON Orders (CustomerId) INCLUDE (OrderDate, TotalAmount);"
+      ],
+      "db.query.summary": "CREATE INDEX IX_Orders_CustomerId"
+    }
+  },
+  {
+    "name": "alter_table_drop_column",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER TABLE Orders DROP COLUMN TempColumn;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER TABLE Orders DROP COLUMN TempColumn;"
+      ],
+      "db.query.summary": "ALTER TABLE Orders"
+    }
+  },
+  {
+    "name": "drop_trigger",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP TRIGGER IF EXISTS trg_AfterInsert;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP TRIGGER IF EXISTS trg_AfterInsert;"
+      ],
+      "db.query.summary": "DROP TRIGGER trg_AfterInsert"
+    }
+  },
+  {
+    "name": "alter_trigger",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER TRIGGER trg_AfterInsert ON Employees AFTER INSERT AS BEGIN INSERT INTO AuditLog (EmployeeId, Action) SELECT Id, 'INSERT' FROM inserted; END;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER TRIGGER trg_AfterInsert ON Employees AFTER INSERT AS BEGIN INSERT INTO AuditLog (EmployeeId, Action) SELECT Id, ? FROM inserted; END;"
+      ],
+      "db.query.summary": "ALTER TRIGGER trg_AfterInsert"
+    }
+  },
+  {
+    "name": "create_procedure_with_multiple_params",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE PROCEDURE AddEmployee @Name NVARCHAR(100), @Email NVARCHAR(100) AS INSERT INTO Employees (Name, Email) VALUES (@Name, @Email);"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE PROCEDURE AddEmployee @Name NVARCHAR(100), @Email NVARCHAR(100) AS INSERT INTO Employees (Name, Email) VALUES (@Name, @Email);"
+      ],
+      "db.query.summary": "CREATE PROCEDURE AddEmployee"
+    }
+  },
+  {
+    "name": "drop_procedure",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP PROCEDURE IF EXISTS RemoveEmployee;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP PROCEDURE IF EXISTS RemoveEmployee;"
+      ],
+      "db.query.summary": "DROP PROCEDURE RemoveEmployee"
+    }
+  },
+  {
+    "name": "alter_procedure_add_param",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER PROCEDURE UpdateEmployeeEmail @EmployeeId INT, @Email NVARCHAR(100) AS UPDATE Employees SET Email = @Email WHERE Id = @EmployeeId;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER PROCEDURE UpdateEmployeeEmail @EmployeeId INT, @Email NVARCHAR(100) AS UPDATE Employees SET Email = @Email WHERE Id = @EmployeeId;"
+      ],
+      "db.query.summary": "ALTER PROCEDURE UpdateEmployeeEmail"
+    }
+  },
+  {
+    "name": "select_with_multiple_joins_and_group_by",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT o.Id, c.Name, SUM(oi.Quantity) FROM Orders o JOIN Customers c ON o.CustomerId = c.Id JOIN OrderItems oi ON o.Id = oi.OrderId GROUP BY o.Id, c.Name;"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT o.Id, c.Name, SUM(oi.Quantity) FROM Orders o JOIN Customers c ON o.CustomerId = c.Id JOIN OrderItems oi ON o.Id = oi.OrderId GROUP BY o.Id, c.Name;"
+      ],
+      "db.query.summary": "SELECT Orders Customers OrderItems"
+    }
+  },
+  {
+    "name": "select_with_distinct_and_window_function",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT DISTINCT Department, COUNT(*) OVER (PARTITION BY Department) AS DeptCount FROM Employees;"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT DISTINCT Department, COUNT(*) OVER (PARTITION BY Department) AS DeptCount FROM Employees;"
+      ],
+      "db.query.summary": "SELECT DISTINCT Employees"
+    }
+  },
+  {
+    "name": "select_with_union_and_order_by",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT Id, Name FROM Customers UNION SELECT Id, Name FROM Suppliers ORDER BY Name;"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT Id, Name FROM Customers UNION SELECT Id, Name FROM Suppliers ORDER BY Name;"
+      ],
+      "db.query.summary": "SELECT Customers Suppliers"
+    }
+  },
+  {
+    "name": "create_database",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE DATABASE TestDb;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE DATABASE TestDb;"
+      ],
+      "db.query.summary": "CREATE DATABASE TestDb"
+    }
+  },
+  {
+    "name": "alter_database",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER DATABASE TestDb MODIFY NAME = NewTestDb;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER DATABASE TestDb MODIFY NAME = NewTestDb;"
+      ],
+      "db.query.summary": "ALTER DATABASE TestDb"
+    }
+  },
+  {
+    "name": "drop_database",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP DATABASE IF EXISTS TestDb;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP DATABASE IF EXISTS TestDb;"
+      ],
+      "db.query.summary": "DROP DATABASE TestDb"
+    }
+  },
+  {
+    "name": "create_schema",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE SCHEMA Reporting;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE SCHEMA Reporting;"
+      ],
+      "db.query.summary": "CREATE SCHEMA Reporting"
+    }
+  },
+  {
+    "name": "alter_schema",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER SCHEMA Reporting TRANSFER dbo.OldTable;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER SCHEMA Reporting TRANSFER dbo.OldTable;"
+      ],
+      "db.query.summary": "ALTER SCHEMA Reporting"
+    }
+  },
+  {
+    "name": "drop_schema",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP SCHEMA IF EXISTS Reporting;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP SCHEMA IF EXISTS Reporting;"
+      ],
+      "db.query.summary": "DROP SCHEMA Reporting"
+    }
+  },
+  {
+    "name": "create_sequence_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "CREATE SEQUENCE SalesSeq START WITH 1 INCREMENT BY 1;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE SEQUENCE SalesSeq START WITH 1 INCREMENT BY 1;"
+      ],
+      "db.query.summary": "CREATE SEQUENCE SalesSeq"
+    }
+  },
+  {
+    "name": "alter_sequence_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "ALTER SEQUENCE SalesSeq RESTART WITH 100;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER SEQUENCE SalesSeq RESTART WITH 100;"
+      ],
+      "db.query.summary": "ALTER SEQUENCE SalesSeq"
+    }
+  },
+  {
+    "name": "drop_sequence_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "DROP SEQUENCE SalesSeq;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP SEQUENCE SalesSeq;"
+      ],
+      "db.query.summary": "DROP SEQUENCE SalesSeq"
+    }
+  },
+  {
+    "name": "create_function_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "CREATE FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a + @b; END;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a + @b; END;"
+      ],
+      "db.query.summary": "CREATE FUNCTION dbo.GetTotal"
+    }
+  },
+  {
+    "name": "alter_function_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "ALTER FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a * @b; END;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a * @b; END;"
+      ],
+      "db.query.summary": "ALTER FUNCTION dbo.GetTotal"
+    }
+  },
+  {
+    "name": "drop_function_tsql",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "DROP FUNCTION dbo.GetTotal;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP FUNCTION dbo.GetTotal;"
+      ],
+      "db.query.summary": "DROP FUNCTION dbo.GetTotal"
+    }
+  },
+  {
+    "name": "create_user",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE USER johndoe WITH PASSWORD = 'password';"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE USER johndoe WITH PASSWORD = ?;"
+      ],
+      "db.query.summary": "CREATE USER johndoe"
+    }
+  },
+  {
+    "name": "alter_user",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER USER johndoe WITH PASSWORD = 'newpassword';"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER USER johndoe WITH PASSWORD = ?;"
+      ],
+      "db.query.summary": "ALTER USER johndoe"
+    }
+  },
+  {
+    "name": "drop_user",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP USER IF EXISTS johndoe;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP USER IF EXISTS johndoe;"
+      ],
+      "db.query.summary": "DROP USER johndoe"
+    }
+  },
+  {
+    "name": "create_role",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE ROLE app_admin;"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE ROLE app_admin;"
+      ],
+      "db.query.summary": "CREATE ROLE app_admin"
+    }
+  },
+  {
+    "name": "alter_role",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER ROLE app_admin ADD MEMBER johndoe;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER ROLE app_admin ADD MEMBER johndoe;"
+      ],
+      "db.query.summary": "ALTER ROLE app_admin"
+    }
+  },
+  {
+    "name": "drop_role",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "DROP ROLE IF EXISTS app_admin;"
+    },
+    "expected": {
+      "db.query.text": [
+        "DROP ROLE IF EXISTS app_admin;"
+      ],
+      "db.query.summary": "DROP ROLE app_admin"
+    }
+  },
+  {
+    "name": "alter_index",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER INDEX IX_Employee_Email ON Employees REBUILD;"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER INDEX IX_Employee_Email ON Employees REBUILD;"
+      ],
+      "db.query.summary": "ALTER INDEX IX_Employee_Email"
+    }
+  },
+  {
+    "name": "exec_sp_rename_table",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "EXEC sp_rename 'OldTable', 'NewTable';"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC sp_rename 'OldTable', 'NewTable';"
+      ],
+      "db.query.summary": "EXEC sp_rename"
+    }
+  },
+  {
+    "name": "exec_stored_procedure_no_params",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "EXEC GetAllEmployees;"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC GetAllEmployees;"
+      ],
+      "db.query.summary": "EXEC GetAllEmployees"
+    }
+  },
+  {
+    "name": "exec_stored_procedure_with_params",
+    "input": {
+      "db.system.name": "mssql",
+      "query": "EXEC GetEmployeeById @EmployeeId = 42;"
+    },
+    "expected": {
+      "db.query.text": [
+        "EXEC GetEmployeeById @EmployeeId = ?;"
+      ],
+      "db.query.summary": "EXEC GetEmployeeById"
+    }
+  }
+]

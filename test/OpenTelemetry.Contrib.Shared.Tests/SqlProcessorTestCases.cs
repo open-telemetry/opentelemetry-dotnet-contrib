@@ -21,12 +21,50 @@ public static class SqlProcessorTestCases
 
     public static TheoryData<TestCase> GetSemanticConventionsTestCases()
     {
+        var data = new TheoryData<TestCase>();
+
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<TestCase[]>(
             assembly.GetManifestResourceStream("SqlProcessorTestCases.json")!,
             JsonSerializerOptions)!;
 
-        var data = new TheoryData<TestCase>();
+        if (input is not null)
+        {
+            foreach (var testCase in input)
+            {
+                // Skipping this for now as we need to discuss the expected output.
+                if (testCase.Name == "alter_table")
+                {
+                    continue;
+                }
+
+                if (DbSystemTestCasesToExecute.Contains(testCase.Input.DbSystemName))
+                {
+                    data.Add(testCase);
+                }
+            }
+        }
+
+        // Reintroduce "alter_table" with a revised expected output.
+        // We don't expect the number '255' to be redacted when defining the size of a column.
+        data.Add(new()
+        {
+            Name = "alter_table",
+            Input = new()
+            {
+                DbSystemName = "other_sql",
+                Query = "ALTER  TABLE MyTable ADD Name varchar(255)",
+            },
+            Expected = new()
+            {
+                SanitizedQueryText = ["ALTER  TABLE MyTable ADD Name varchar(255)"],
+                Summary = "ALTER TABLE MyTable",
+            },
+        });
+
+        input = JsonSerializer.Deserialize<TestCase[]>(
+            assembly.GetManifestResourceStream("SqlProcessorAdditionalTestCases.json")!,
+            JsonSerializerOptions)!;
 
         if (input is not null)
         {

@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SqlProcessorAdditionalTestCases.json">
+      <LogicalName>SqlProcessorAdditionalTestCases.json</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="SqlProcessorTestCases.json">
       <LogicalName>SqlProcessorTestCases.json</LogicalName>
     </EmbeddedResource>
