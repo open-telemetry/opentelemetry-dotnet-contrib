@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
@@ -42,10 +44,7 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddAgentDescription()
     {
-        if (this.currentMessage == null)
-        {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+        this.EnsureInitialized();
 
         var resources = this.settings.Identification;
         var description = new AgentDescription();
@@ -75,10 +74,7 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddHealth(HealthReport health)
     {
-        if (this.currentMessage == null)
-        {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+        this.EnsureInitialized();
 
         this.currentMessage.Health = new ComponentHealth()
         {
@@ -124,22 +120,28 @@ internal sealed class FrameBuilder : IFrameBuilder
 
     IFrameBuilder IFrameBuilder.AddAgentDisconnect()
     {
-        if (this.currentMessage == null)
-        {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+        this.EnsureInitialized();
 
         this.currentMessage.AgentDisconnect = new AgentDisconnect();
 
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddCapabilities()
+    {
+        this.EnsureInitialized();
+
+        // TODO: Update the actual capabilities when features are implemented.
+        this.currentMessage.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
+            | AgentCapabilities.ReportsHealth
+            | AgentCapabilities.ReportsHeartbeat);
+
+        return this;
+    }
+
     AgentToServer IFrameBuilder.Build()
     {
-        if (this.currentMessage == null)
-        {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+        this.EnsureInitialized();
 
         var message = this.currentMessage;
         this.currentMessage = null; // Reset for the next message
@@ -150,5 +152,15 @@ internal sealed class FrameBuilder : IFrameBuilder
     public void Reset()
     {
         this.currentMessage = null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MemberNotNull(nameof(currentMessage))]
+    private void EnsureInitialized()
+    {
+        if (this.currentMessage == null)
+        {
+            throw new InvalidOperationException("Message base is not initialized.");
+        }
     }
 }

@@ -36,7 +36,10 @@ internal sealed class FrameDispatcher : IDisposable
 
         static AgentToServer BuildIdentificationMessage(FrameBuilder fb)
         {
-            return fb.StartBaseMessage().AddAgentDescription().Build();
+            return fb.StartBaseMessage()
+                .AddAgentDescription()
+                .AddCapabilities()
+                .Build();
         }
     }
 
