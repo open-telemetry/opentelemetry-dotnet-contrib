@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
@@ -66,7 +67,7 @@ internal sealed class FrameBuilder : IFrameBuilder
             });
         }
 
-        this.currentMessage!.AgentDescription = description;
+        this.currentMessage.AgentDescription = description;
 
         return this;
     }
@@ -75,7 +76,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     {
         this.EnsureInitialized();
 
-        this.currentMessage!.Health = new ComponentHealth()
+        this.currentMessage.Health = new ComponentHealth()
         {
             Healthy = health.IsHealthy,
             StartTimeUnixNano = health.StartTime,
@@ -121,7 +122,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     {
         this.EnsureInitialized();
 
-        this.currentMessage!.AgentDisconnect = new AgentDisconnect();
+        this.currentMessage.AgentDisconnect = new AgentDisconnect();
 
         return this;
     }
@@ -131,7 +132,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         this.EnsureInitialized();
 
         // TODO: Update the actual capabilities when features are implemented.
-        this.currentMessage!.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
+        this.currentMessage.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
             | AgentCapabilities.ReportsHealth
             | AgentCapabilities.ReportsHeartbeat);
 
@@ -154,6 +155,7 @@ internal sealed class FrameBuilder : IFrameBuilder
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MemberNotNull(nameof(currentMessage))]
     private void EnsureInitialized()
     {
         if (this.currentMessage == null)
