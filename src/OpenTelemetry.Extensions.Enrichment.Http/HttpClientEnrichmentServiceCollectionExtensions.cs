@@ -13,7 +13,7 @@ using OpenTelemetry.Internal;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods to register ASP.NET Core specific telemetry trace enrichers.
+/// Extension methods to register HTTP Client specific telemetry trace enrichers.
 /// </summary>
 public static class HttpClientEnrichmentServiceCollectionExtensions
 {
