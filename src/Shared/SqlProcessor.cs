@@ -12,10 +12,25 @@ internal static class SqlProcessor
     private const int MaxSummaryLength = 255;
     private const int CacheCapacity = 1000;
 
+    private const char SanitizationPlaceholder = '?';
+    private const char SpaceChar = ' ';
+    private const char CommaChar = ',';
+    private const char OpenParenChar = '(';
+    private const char CloseParenChar = ')';
+    private const char DashChar = '-';
+    private const char ForwardSlashChar = '/';
+    private const char SingleQuoteChar = '\'';
+    private const char AsteriskChar = '*';
+    private const char UnderscoreChar = '_';
+    private const char DotChar = '.';
+    private const char NewLineChar = '\n';
+    private const char CarriageReturnChar = '\r';
+    private const char TabChar = '\t';
+
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
 
 #if NET
-    private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create([' ', '\t', '\r', '\n']);
+    private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
 #endif
 
     // We can extend this in the future to include more keywords if needed.
@@ -129,9 +144,9 @@ internal static class SqlProcessor
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAsciiIdentifierChar(char c) =>
 #if NET
-        char.IsAsciiLetter(c) || char.IsAsciiDigit(c) || c == '_' || c == '.';
+        char.IsAsciiLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #else
-        IsAsciiLetter(c) || IsAsciiDigit(c) || c == '_' || c == '.';
+        IsAsciiLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #endif
 
     private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
@@ -180,7 +195,7 @@ internal static class SqlProcessor
         var summaryLength = Math.Min(state.SummaryPosition, MaxSummaryLength);
 
         // Trim trailing space
-        if (summaryLength > 0 && state.SummaryBuffer[summaryLength - 1] == ' ')
+        if (summaryLength > 0 && state.SummaryBuffer[summaryLength - 1] == SpaceChar)
         {
             summaryLength -= 1;
         }
@@ -205,7 +220,7 @@ internal static class SqlProcessor
 #if NET
         var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceSearchValues);
 #else
-        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny([' ', '\t', '\r', '\n']);
+        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
 #endif
 
         var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : sql.Length - start;
@@ -261,7 +276,7 @@ internal static class SqlProcessor
             // Check if the previous character is '(', in which case, we only check against the SELECT keyword.
             // Otherwise, check if the previous keyword may be the start of a keyword chain so we can limit the
             // number of keyword comparisons we need to do by only comparing for tokens we expect to appear next.
-            if (state.ParsePosition > 0 && sql[state.ParsePosition - 1] == '(')
+            if (state.ParsePosition > 0 && sql[state.ParsePosition - 1] == OpenParenChar)
             {
                 keywordsToCheck = SelectOnlyKeywordArray;
             }
@@ -335,7 +350,7 @@ internal static class SqlProcessor
 
         // If we get this far, we have not matched a keyword, so we copy the token as-is.
 
-        if (char.IsLetter(currentChar) || currentChar == '_')
+        if (char.IsLetter(currentChar) || currentChar == UnderscoreChar)
         {
             // This first block handles identifiers (which start with a letter or underscore).
 
@@ -367,7 +382,7 @@ internal static class SqlProcessor
                     state.SummaryPosition += length;
 
                     // Add a space after the identifier. The trailing space will be trimmed later.
-                    state.SummaryBuffer[state.SummaryPosition++] = ' ';
+                    state.SummaryBuffer[state.SummaryPosition++] = SpaceChar;
                 }
             }
 
@@ -379,7 +394,7 @@ internal static class SqlProcessor
             // Special case: if the token is a comma and follows a FROM keyword,
             // we are in an old style implicit join and we want to capture the next valid identifier in the summary.
             var prevKeyword = state.PreviousParsedKeyword?.SqlKeyword ?? SqlKeyword.Unknown;
-            state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && currentChar == ',';
+            state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && currentChar == CommaChar;
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
@@ -397,7 +412,7 @@ internal static class SqlProcessor
 #if NET
             if (WhitespaceSearchValues.Contains(currentChar))
 #else
-            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\r' || currentChar == '\n')
+            if (currentChar == SpaceChar || currentChar == TabChar || currentChar == CarriageReturnChar || currentChar == NewLineChar)
 #endif
             {
                 foundWhitespace = true;
@@ -422,13 +437,12 @@ internal static class SqlProcessor
         var iPlusTwo = i + 2;
 
         // Scan past multi-line comment
-        if (ch == '/' && iPlusOne < length && sql[iPlusOne] == '*')
+        if (ch == '/' && iPlusOne < length && sql[iPlusOne] == AsteriskChar)
         {
-#if NET
             var rest = sql.Slice(iPlusTwo);
             while (!rest.IsEmpty)
             {
-                var starIdx = rest.IndexOf('*');
+                var starIdx = rest.IndexOf(AsteriskChar);
                 if (starIdx < 0)
                 {
                     // Unterminated comment, consume to end
@@ -437,7 +451,7 @@ internal static class SqlProcessor
                 }
 
                 // Check for closing */
-                if (starIdx + 1 < rest.Length && rest[starIdx + 1] == '/')
+                if (starIdx + 1 < rest.Length && rest[starIdx + 1] == ForwardSlashChar)
                 {
                     state.ParsePosition = iPlusTwo + starIdx + 2; // position after */
                     return true;
@@ -449,29 +463,14 @@ internal static class SqlProcessor
 
             state.ParsePosition = length;
             return true;
-#else
-            for (i += 2; i < length; ++i)
-            {
-                ch = sql[i];
-                if (ch == '*' && iPlusOne < length && sql[iPlusOne] == '/')
-                {
-                    i += 1;
-                    break;
-                }
-            }
-
-            state.ParsePosition = ++i;
-            return true;
-#endif
         }
 
         // Scan past single-line comment
-        if (ch == '-' && iPlusOne < length && sql[iPlusOne] == '-')
+        if (ch == DashChar && iPlusOne < length && sql[iPlusOne] == DashChar)
         {
-#if NET
             // Find next line break efficiently and preserve the newline for whitespace handling
             var rest = sql.Slice(iPlusTwo);
-            var idx = rest.IndexOfAny('\r', '\n');
+            var idx = rest.IndexOfAny(CarriageReturnChar, NewLineChar);
             if (idx >= 0)
             {
                 // Position at the newline so ParseWhitespace can copy it
@@ -483,20 +482,6 @@ internal static class SqlProcessor
             }
 
             return true;
-#else
-            for (i += 2; i < length; ++i)
-            {
-                ch = sql[i];
-                if (ch == '\r' || ch == '\n')
-                {
-                    i -= 1;
-                    break;
-                }
-            }
-
-            state.ParsePosition = ++i;
-            return true;
-#endif
         }
 
         return false;
@@ -505,13 +490,12 @@ internal static class SqlProcessor
     private static bool SanitizeStringLiteral(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state)
     {
         var currentChar = sql[state.ParsePosition];
-        if (currentChar == '\'')
+        if (currentChar == SingleQuoteChar)
         {
-#if NET
             var rest = sql.Slice(state.ParsePosition + 1);
             while (!rest.IsEmpty)
             {
-                var idx = rest.IndexOf('\'');
+                var idx = rest.IndexOf(SingleQuoteChar);
                 var idxPlusOne = idx + 1;
                 if (idx < 0)
                 {
@@ -519,7 +503,7 @@ internal static class SqlProcessor
                     return true;
                 }
 
-                if (idxPlusOne < rest.Length && rest[idxPlusOne] == '\'')
+                if (idxPlusOne < rest.Length && rest[idxPlusOne] == SingleQuoteChar)
                 {
                     // Skip escaped quote ('')
                     rest = rest.Slice(idx + 2);
@@ -529,36 +513,12 @@ internal static class SqlProcessor
                 // Found terminating quote
                 state.ParsePosition = sql.Length - rest.Length + idxPlusOne;
 
-                buffer[state.SanitizedPosition++] = '?';
+                buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
                 return true;
             }
 
-            buffer[state.SanitizedPosition++] = '?';
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
-#else
-            var i = state.ParsePosition + 1;
-            var length = sql.Length;
-            var iPlusOne = i + 1;
-            for (; i < length; ++i)
-            {
-                currentChar = sql[i];
-                if (currentChar == '\'' && iPlusOne < length && sql[iPlusOne] == '\'')
-                {
-                    ++i;
-                    continue;
-                }
-
-                if (currentChar == '\'')
-                {
-                    break;
-                }
-            }
-
-            state.ParsePosition = ++i;
-
-            buffer[state.SanitizedPosition++] = '?';
-            return true;
-#endif
         }
 
         return false;
@@ -600,7 +560,7 @@ internal static class SqlProcessor
 
             state.ParsePosition = ++i;
 
-            buffer[state.SanitizedPosition++] = '?';
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
         }
 
@@ -615,7 +575,7 @@ internal static class SqlProcessor
         var iPlusOne = i + 1;
 
         // If the digit follows an open bracket, check for a parenthesized digit sequence
-        if (i > 0 && sql[i - 1] == '('
+        if (i > 0 && sql[i - 1] == OpenParenChar
             && IsAsciiDigit(currentChar))
         {
             int start = i;
@@ -627,7 +587,7 @@ internal static class SqlProcessor
                 j++;
             }
 
-            if (j < length && sql[j] == ')')
+            if (j < length && sql[j] == CloseParenChar)
             {
                 // Copy the digits and the closing bracket to the buffer
                 sql.Slice(start, j - start + 1).CopyTo(buffer.Slice(state.SanitizedPosition));
@@ -640,7 +600,7 @@ internal static class SqlProcessor
         }
 
         // Scan past leading sign
-        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == '.'))
+        if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))
         {
             i += 1;
             iPlusOne = i + 1;
@@ -691,7 +651,7 @@ internal static class SqlProcessor
 
             state.ParsePosition = ++i;
 
-            buffer[state.SanitizedPosition++] = '?';
+            buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
             return true;
         }
 
@@ -774,22 +734,24 @@ internal static class SqlProcessor
             ViewKeyword = new("view", SqlKeyword.View, DdlKeywords);
 
             // Phase 2: Build arrays that depend on instances
+            // NOTE: This array is sorted by an estimation of the most likely
+            // keywords first to optimise the comparison loop.
             DdlSubKeywords =
             [
                 TableKeyword,
                 IndexKeyword,
+                UniqueKeyword,
+                ClusteredKeyword,
+                NonClusteredKeyword,
                 ViewKeyword,
                 ProcedureKeyword,
                 TriggerKeyword,
                 DatabaseKeyword,
-                SchemaKeyword,
-                FunctionKeyword,
                 UserKeyword,
                 RoleKeyword,
                 SequenceKeyword,
-                UniqueKeyword,
-                ClusteredKeyword,
-                NonClusteredKeyword,
+                SchemaKeyword,
+                FunctionKeyword,
             ];
 
             // Phase 3: Wire follow relationships
