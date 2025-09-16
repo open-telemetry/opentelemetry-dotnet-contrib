@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using OpenTelemetry.Trace;
+using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 
@@ -11,6 +13,21 @@ namespace OpenTelemetry.Instrumentation.StackExchangeRedis;
 /// </summary>
 public class StackExchangeRedisInstrumentationOptions
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StackExchangeRedisInstrumentationOptions"/> class.
+    /// </summary>
+    public StackExchangeRedisInstrumentationOptions()
+        : this(new ConfigurationBuilder().AddEnvironmentVariables().Build())
+    {
+    }
+
+    internal StackExchangeRedisInstrumentationOptions(IConfiguration configuration)
+    {
+        var databaseSemanticConvention = GetSemanticConventionOptIn(configuration);
+        this.EmitOldAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.Old);
+        this.EmitNewAttributes = databaseSemanticConvention.HasFlag(DatabaseSemanticConvention.New);
+    }
+
     /// <summary>
     /// Gets or sets the maximum time that should elapse between flushing the internal buffer of Redis profiling sessions and creating <see cref="Activity"/> objects. Default value: 00:00:10.
     /// </summary>
@@ -47,4 +64,14 @@ public class StackExchangeRedisInstrumentationOptions
     /// Gets or sets a value indicating whether the <see cref="StackExchangeRedisConnectionInstrumentation"/> should enrich Activity with <see cref="ActivityEvent"/> entries about the Redis command processing/lifetime. Defaults to <see langword="true"/>.
     /// </summary>
     public bool EnrichActivityWithTimingEvents { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the old database attributes should be emitted.
+    /// </summary>
+    internal bool EmitOldAttributes { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the new database attributes should be emitted.
+    /// </summary>
+    internal bool EmitNewAttributes { get; set; }
 }
