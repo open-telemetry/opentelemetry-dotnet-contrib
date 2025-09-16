@@ -14,5 +14,7 @@ internal interface IFrameBuilder
 
     IFrameBuilder AddAgentDisconnect();
 
+    IFrameBuilder AddCapabilities();
+
     AgentToServer Build();
 }

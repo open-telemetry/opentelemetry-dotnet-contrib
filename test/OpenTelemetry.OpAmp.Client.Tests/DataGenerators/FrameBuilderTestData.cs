@@ -18,5 +18,7 @@ internal class FrameBuilderTestData
         this.Add(fb => fb.AddHealth(new HealthReport { IsHealthy = true }), m => m.Health);
 
         this.Add(fb => fb.AddAgentDisconnect(), m => m.AgentDisconnect);
+
+        this.Add(fb => fb.AddCapabilities(), m => m.Capabilities);
     }
 }

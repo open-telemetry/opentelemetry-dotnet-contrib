@@ -126,6 +126,18 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddCapabilities()
+    {
+        this.EnsureInitialized();
+
+        // TODO: Update the actual capabilities when features are implemented.
+        this.currentMessage!.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
+            | AgentCapabilities.ReportsHealth
+            | AgentCapabilities.ReportsHeartbeat);
+
+        return this;
+    }
+
     AgentToServer IFrameBuilder.Build()
     {
         this.EnsureInitialized();
