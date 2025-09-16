@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 #if NET
 using System.Net.Sockets;
@@ -95,7 +96,10 @@ internal static class RedisProfilerEntryToActivityConverter
             name,
             ActivityKind.Client,
             parentActivity?.Context ?? default,
-            StackExchangeRedisConnectionInstrumentation.CreationTags,
+            [
+                .. options.EmitOldAttributes ? StackExchangeRedisConnectionInstrumentation.OldCreationTags : [],
+                .. options.EmitNewAttributes ? StackExchangeRedisConnectionInstrumentation.NewCreationTags : [],
+            ],
             startTime: command.CommandCreated);
 
         if (activity == null)
@@ -120,28 +124,41 @@ internal static class RedisProfilerEntryToActivityConverter
             // Total:
             // command.ElapsedTime;             // 00:00:32.4988020
 
-            if (options.SetVerboseDatabaseStatements)
+            if (options.EmitOldAttributes)
             {
-                var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+                activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
+                string? statement = null;
 
-                if (!string.IsNullOrEmpty(commandAndKey) && !string.IsNullOrEmpty(script))
+                if (options.SetVerboseDatabaseStatements)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey + " " + script);
+                    var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+
+                    if (!string.IsNullOrEmpty(commandAndKey))
+                    {
+                        statement = commandAndKey;
+
+                        if (!string.IsNullOrEmpty(script))
+                        {
+                            statement += " " + script;
+                        }
+                    }
                 }
-                else if (!string.IsNullOrEmpty(commandAndKey))
+
+                // Example: "db.statement": SET;
+                statement ??= command.Command;
+
+                if (statement != null)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandAndKey);
-                }
-                else if (command.Command != null)
-                {
-                    // Example: "db.statement": SET;
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, statement);
                 }
             }
-            else if (command.Command != null)
+
+            if (options.EmitNewAttributes)
             {
-                // Example: "db.statement": SET;
-                activity.SetTag(SemanticConventions.AttributeDbStatement, command.Command);
+                var (commandAndKey, script) = MessageDataGetter.Value.Invoke(command);
+                activity.SetTag(SemanticConventions.AttributeDbOperationName, command.Command);
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, command.Db.ToString(CultureInfo.InvariantCulture));
+                activity.SetTag(SemanticConventions.AttributeDbQueryText, commandAndKey);
             }
 
             if (command.EndPoint != null)
@@ -166,8 +183,6 @@ internal static class RedisProfilerEntryToActivityConverter
                 }
 #endif
             }
-
-            activity.SetTag(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName, command.Db);
 
             // TODO: deal with the re-transmission
             // command.RetransmissionOf;
