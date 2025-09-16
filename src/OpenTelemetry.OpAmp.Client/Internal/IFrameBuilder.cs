@@ -12,5 +12,7 @@ internal interface IFrameBuilder
 
     IFrameBuilder AddHealth(HealthReport health);
 
+    IFrameBuilder AddAgentDisconnect();
+
     AgentToServer Build();
 }

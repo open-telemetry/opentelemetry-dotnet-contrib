@@ -23,10 +23,12 @@ internal class OpAmpClientEventSource : EventSource
     // FrameDispatcher verbose messages 1000-1099
     private const int EventIdSendingIdentificationMessage = 1_000;
     private const int EventIdSendingHeartbeatMessage = 1_001;
+    private const int EventIdSendingAgentDisconnectMessage = 1_002;
 
     // FrameDispatcher error messages 1100-1199
     private const int EventIdFailedToSendIdentificationMessage = 1_100;
     private const int EventIdFailedToSendHeartbeatMessage = 1_101;
+    private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]
     public void HeartbeatServiceStart()
@@ -90,6 +92,12 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdSendingHeartbeatMessage);
     }
 
+    [Event(EventIdSendingAgentDisconnectMessage, Message = "Sending agent disconnect.", Level = EventLevel.Informational)]
+    public void SendingAgentDisconnectMessage()
+    {
+        this.WriteEvent(EventIdSendingAgentDisconnectMessage);
+    }
+
     [NonEvent]
     public void SendIdentificationMessageException(Exception ex)
     {
@@ -118,5 +126,20 @@ internal class OpAmpClientEventSource : EventSource
     public void FailedToSendHeartbeatMessage(string exception)
     {
         this.WriteEvent(EventIdFailedToSendHeartbeatMessage, exception);
+    }
+
+    [NonEvent]
+    public void SendAgentDisconnectMessageException(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            this.FailedToSendAgentDisconnectMessage(ex.ToInvariantString());
+        }
+    }
+
+    [Event(EventIdFailedToSendAgentDisconnectMessage, Message = "Failed to send agent disconnect message: {0}", Level = EventLevel.Error)]
+    public void FailedToSendAgentDisconnectMessage(string exception)
+    {
+        this.WriteEvent(EventIdFailedToSendAgentDisconnectMessage, exception);
     }
 }
