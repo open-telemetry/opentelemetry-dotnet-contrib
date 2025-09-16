@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -27,64 +28,78 @@ internal sealed class FrameDispatcher : IDisposable
     // so any other message waiting to be sent can be included to optimize transport usage and locking time.
     public async Task DispatchIdentificationAsync(CancellationToken token)
     {
-        await this.syncRoot.WaitAsync(token)
-            .ConfigureAwait(false);
+        await this.DispatchFrameAsync(
+            BuildIdentificationMessage,
+            OpAmpClientEventSource.Log.SendingIdentificationMessage,
+            OpAmpClientEventSource.Log.SendIdentificationMessageException,
+            token).ConfigureAwait(false);
 
-        try
+        static AgentToServer BuildIdentificationMessage(FrameBuilder fb)
         {
-            var message = this.frameBuilder
-                .StartBaseMessage()
-                .AddAgentDescription()
-                .Build();
-
-            OpAmpClientEventSource.Log.SendingIdentificationMessage();
-
-            await this.transport.SendAsync(message, token)
-                .ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            OpAmpClientEventSource.Log.SendIdentificationMessageException(ex);
-
-            this.frameBuilder.Reset(); // Reset the builder in case of failure
-        }
-        finally
-        {
-            this.syncRoot.Release();
+            return fb.StartBaseMessage().AddAgentDescription().Build();
         }
     }
 
     public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
     {
-        await this.syncRoot.WaitAsync(token)
-            .ConfigureAwait(false);
+        await this.DispatchFrameAsync(
+            BuildHeartbeatMessage,
+            OpAmpClientEventSource.Log.SendingHeartbeatMessage,
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            token).ConfigureAwait(false);
 
-        try
+        AgentToServer BuildHeartbeatMessage(FrameBuilder fb)
         {
-            var message = this.frameBuilder
-                .StartBaseMessage()
-                .AddHealth(report)
-                .Build();
-
-            OpAmpClientEventSource.Log.SendingHeartbeatMessage();
-
-            await this.transport.SendAsync(message, token)
-                .ConfigureAwait(false);
+            return fb.StartBaseMessage().AddHealth(report).Build();
         }
-        catch (Exception ex)
-        {
-            OpAmpClientEventSource.Log.SendHeartbeatMessageException(ex);
+    }
 
-            this.frameBuilder.Reset(); // Reset the builder in case of failure
-        }
-        finally
+    public async Task DispatchAgentDisconnectAsync(CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildDisconnectMessage,
+            OpAmpClientEventSource.Log.SendingAgentDisconnectMessage,
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            token).ConfigureAwait(false);
+
+        static AgentToServer BuildDisconnectMessage(FrameBuilder fb)
         {
-            this.syncRoot.Release();
+            return fb.StartBaseMessage().AddAgentDisconnect().Build();
         }
     }
 
     public void Dispose()
     {
         this.syncRoot.Dispose();
+    }
+
+    private async Task DispatchFrameAsync(
+        Func<FrameBuilder, AgentToServer> messageBuilder,
+        Action informationLogger,
+        Action<Exception> exceptionLogger,
+        CancellationToken token)
+    {
+        await this.syncRoot.WaitAsync(token)
+            .ConfigureAwait(false);
+
+        try
+        {
+            var message = messageBuilder(this.frameBuilder);
+
+            informationLogger();
+
+            await this.transport.SendAsync(message, token)
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            exceptionLogger(ex);
+
+            this.frameBuilder.Reset(); // Reset the builder in case of failure
+        }
+        finally
+        {
+            this.syncRoot.Release();
+        }
     }
 }

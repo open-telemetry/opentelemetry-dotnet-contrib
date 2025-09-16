@@ -122,6 +122,18 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddAgentDisconnect()
+    {
+        if (this.currentMessage == null)
+        {
+            throw new InvalidOperationException("Message base is not initialized.");
+        }
+
+        this.currentMessage.AgentDisconnect = new AgentDisconnect();
+
+        return this;
+    }
+
     AgentToServer IFrameBuilder.Build()
     {
         if (this.currentMessage == null)
