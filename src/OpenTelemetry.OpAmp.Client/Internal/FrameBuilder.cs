@@ -146,7 +146,7 @@ internal sealed class FrameBuilder : IFrameBuilder
         var message = this.currentMessage;
         this.currentMessage = null; // Reset for the next message
 
-        return message!;
+        return message;
     }
 
     public void Reset()
