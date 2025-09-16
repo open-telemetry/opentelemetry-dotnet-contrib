@@ -22,13 +22,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Note: Only include LinuxTracepoints-Net files for net8.0+ targets -->
+    <!-- Note: Only include LinuxTracepoints-Net files for netfx targets -->
     <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
+    <Compile Include="$(RepoRoot)\src\Shared\Lock.cs" Link="Includes\Lock.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\NullableAttributes.cs" Link="Includes\NullableAttributes.cs" />
   </ItemGroup>
 

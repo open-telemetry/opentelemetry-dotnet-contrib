@@ -6,8 +6,11 @@
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace OpenTelemetry.Resources.AWS.Tests;
@@ -143,11 +146,12 @@ public class AWSECSDetectorTests : IDisposable
     internal class MockEcsMetadataEndpoint : IAsyncDisposable
     {
         public readonly Uri Address;
-        private readonly IWebHost server;
+        private readonly IHost host;
 
         public MockEcsMetadataEndpoint(string containerJsonPath, string taskJsonPath)
         {
-            this.server = new WebHostBuilder()
+            this.host = new HostBuilder()
+                .ConfigureWebHost(builder => builder
                 .UseKestrel()
                 .UseUrls("http://127.0.0.1:0") // Use random localhost port
                 .Configure(app =>
@@ -174,21 +178,18 @@ public class AWSECSDetectorTests : IDisposable
                         await context.Response.WriteAsync("Not found");
                     }
                 });
-            }).Build();
-            this.server.Start();
+            })).Build();
+            this.host.Start();
 
-            this.Address = new Uri(this.server.ServerFeatures.Get<IServerAddressesFeature>()!.Addresses.First());
+            var server = this.host.Services.GetRequiredService<IServer>();
+            this.Address = new Uri(server.Features.Get<IServerAddressesFeature>()!.Addresses.First());
         }
 
-        public async ValueTask DisposeAsync()
-        {
+        public async ValueTask DisposeAsync() =>
             await this.DisposeAsyncCore();
-        }
 
-        protected virtual async ValueTask DisposeAsyncCore()
-        {
-            await this.server.StopAsync();
-        }
+        protected virtual async ValueTask DisposeAsyncCore() =>
+            await this.host.StopAsync();
     }
 
     private static class ExpectedSemanticConventions

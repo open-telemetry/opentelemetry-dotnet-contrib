@@ -1214,7 +1214,7 @@ public sealed class BasicTests
 
     // note: this is always passing on Net9 or lower, because AddAspNetCoreInstrumentation only adds the subscription in Net10 or higher.
     [Fact]
-    public async Task RazorComponentsActivitesCanBeDisabled()
+    public async Task RazorComponentsActivitiesCanBeDisabled()
     {
         var exportedItems = new List<Activity>();
         void ConfigureTestServices(IServiceCollection services)
@@ -1239,7 +1239,7 @@ public sealed class BasicTests
             {
                 activity.Start();
                 activity.SetTag("aspnetcore.components.type", "BasicTests");
-                activity.SetTag("aspnetcore.components.method", "BlazorActivitesCanBeDisabled");
+                activity.SetTag("aspnetcore.components.method", "BlazorActivitiesCanBeDisabled");
                 activity.Stop();
             }
 

@@ -9,7 +9,7 @@ namespace OpenTelemetry.OpAmp.Client.Tests.Mocks;
 
 internal class MockListener : IOpAmpListener<CustomMessageMessage>, IDisposable
 {
-    private AutoResetEvent messageEvent = new(false);
+    private readonly AutoResetEvent messageEvent = new(false);
 
     public ConcurrentBag<CustomMessageMessage> Messages { get; private set; } = [];
 

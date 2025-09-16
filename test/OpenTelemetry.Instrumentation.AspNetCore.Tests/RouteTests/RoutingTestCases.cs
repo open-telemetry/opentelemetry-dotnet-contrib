@@ -27,10 +27,12 @@ public static class RoutingTestCases
     private static List<object[]> GetArgumentsFromTestCaseObject(IEnumerable<TestCase> input)
     {
         var result = new List<object[]>();
+        var dotnetVersion = Environment.Version.Major;
 
         foreach (var testCase in input)
         {
-            if (testCase.MinimumDotnetVersion.HasValue && Environment.Version.Major < testCase.MinimumDotnetVersion.Value)
+            if ((testCase.MinimumDotnetVersion.HasValue && dotnetVersion < testCase.MinimumDotnetVersion.Value) ||
+                (testCase.MaximumDotnetVersion.HasValue && dotnetVersion > testCase.MaximumDotnetVersion.Value))
             {
                 continue;
             }

@@ -4,6 +4,7 @@
 #if NET
 
 using OpenTelemetry.OpAmp.Client.Internal;
+using OpenTelemetry.OpAmp.Client.Settings;
 using OpenTelemetry.OpAmp.Client.Tests.Mocks;
 using Xunit;
 
@@ -14,12 +15,12 @@ public class FrameDispatcherTests
     [Fact]
     public async Task FrameDispatcher_IsThreadSafe_WhenDispatchingConcurrently()
     {
-        var transport = new MockTransport();
-        var settings = new OpAmpClientSettings();
-        var dispatcher = new FrameDispatcher(transport, settings);
-
         // Simulate concurrent dispatches
         var taskCount = 20; // Number of concurrent tasks
+
+        var transport = new MockTransport(taskCount);
+        var settings = new OpAmpClientSettings();
+        var dispatcher = new FrameDispatcher(transport, settings);
 
         await Parallel.ForEachAsync(Enumerable.Range(0, taskCount), async (i, token) =>
         {
