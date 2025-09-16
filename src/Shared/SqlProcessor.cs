@@ -667,7 +667,7 @@ internal static class SqlProcessor
         // - Keeping the struct simple and flat minimizes stack pressure and lets the JIT keep values in registers.
 
         // Stored in state to avoid slicing repeatedly.
-        public Span<char> SummaryBuffer; // 16 bytes (on x64)
+        public Span<char> SummaryBuffer;
 
         public SqlKeywordInfo? PreviousParsedKeyword; // 8 bytes (reference type)
 
