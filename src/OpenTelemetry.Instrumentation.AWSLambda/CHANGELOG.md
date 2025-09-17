@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Switch to `fass.function.id` rather than `cloud.resource.id` for the resource signal.
+  ([#3087](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3087))
+* Switch to `faas.instance.id` rather than `faas.instance` for the
+span and resource signals.
+  ([#3087](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3087))
+* Remove `faas.name` & `faas.version` from the resource signal as the
+identifying attribute is not available.
+  ([#3087](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3087))
+
 ## 1.12.1
 
 Released 2025-Sep-03

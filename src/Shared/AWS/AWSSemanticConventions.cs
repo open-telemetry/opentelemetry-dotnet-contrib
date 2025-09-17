@@ -270,6 +270,10 @@ internal partial class AWSSemanticConventions
         public AttributeBuilderImpl AddAttributeFaasID(object? value, bool addIfEmpty = false) =>
             this.awsSemanticConventions.Add(this, x => x.AttributeFaasID, value, addIfEmpty);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasID"/>
+        public AttributeBuilderImpl AddAttributeFaasFunctionID(object? value, bool addIfEmpty = false) =>
+            this.awsSemanticConventions.Add(this, x => x.AttributeFaasFunctionId, value, addIfEmpty);
+
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasExecution"/>
         public AttributeBuilderImpl AddAttributeFaasExecution(object? value, bool addIfEmpty = false) =>
             this.awsSemanticConventions.Add(this, x => x.AttributeFaasExecution, value, addIfEmpty);
@@ -293,6 +297,10 @@ internal partial class AWSSemanticConventions
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasInstance"/>
         public AttributeBuilderImpl AddAttributeFaasInstance(object? value, bool addIfEmpty = false) =>
             this.awsSemanticConventions.Add(this, x => x.AttributeFaasInstance, value, addIfEmpty);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasInstanceId"/>
+        public AttributeBuilderImpl AddAttributeFaasInstanceId(object? value, bool addIfEmpty = false) =>
+            this.awsSemanticConventions.Add(this, x => x.AttributeFaasInstanceId, value, addIfEmpty);
 
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeFaasMaxMemory"/>
         public AttributeBuilderImpl AddAttributeFaasMaxMemory(object? value, bool addIfEmpty = false) =>
@@ -494,6 +502,8 @@ internal partial class AWSSemanticConventions
         switch (this.semanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
+            case SemanticConventionVersion.V1_38_0:
+                return new AWSSemanticConventions_V1_38_0();
             case SemanticConventionVersion.V1_29_0:
                 return new AWSSemanticConventions_V1_29_0();
 

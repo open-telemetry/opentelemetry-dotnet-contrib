@@ -368,6 +368,35 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeFaasID => string.Empty;
 
         /// <summary>
+        /// Cloud provider-specific native identifier of the monitored cloud resource (e.g. an <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a> on AWS, a <a href="https://learn.microsoft.com/rest/api/resources/resources/get-by-id">fully qualified resource ID</a> on Azure, a <a href="https://cloud.google.com/apis/design/resource_names#full_resource_name">full resource name</a> on GCP).
+        /// </summary>
+        /// <remarks>
+        /// On some cloud providers, it may not be possible to determine the full ID at startup,
+        /// so it may be necessary to set <c>cloud.resource_id</c> as a span attribute instead.
+        /// <p>
+        /// The exact value to use for <c>cloud.resource_id</c> depends on the cloud provider.
+        /// The following well-known definitions MUST be used if you set this attribute and they apply:
+        /// <p>
+        /// <ul>
+        ///   <li><strong>AWS Lambda:</strong> The function <a href="https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html">ARN</a>.
+        /// Take care not to use the "invoked ARN" directly but replace any
+        /// <a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html">alias suffix</a>
+        /// with the resolved function version, as the same runtime instance may be invocable with
+        /// multiple different aliases.</li>
+        ///   <li><strong>GCP:</strong> The <a href="https://cloud.google.com/iam/docs/full-resource-names">URI of the resource</a></li>
+        ///   <li><strong>Azure:</strong> The <a href="https://docs.microsoft.com/rest/api/resources/resources/get-by-id">Fully Qualified Resource ID</a> of the invoked function,
+        /// <em>not</em> the function app, having the form
+        /// <c>/subscriptions/<SUBSCRIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC></c>.
+        /// This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
+        /// a TracerProvider.</li>
+        /// </ul>
+        /// </remarks>
+        /// <remarks>
+        /// FaasAttributes.AttributeFaasFunctionId
+        /// </remarks>
+        public virtual string AttributeFaasFunctionId => string.Empty;
+
+        /// <summary>
         /// The invocation ID of the current function invocation.
         /// </summary>
         /// <remarks>
@@ -447,6 +476,14 @@ internal partial class AWSSemanticConventions
         /// FaasAttributes.AttributeFaasInstance
         /// </remarks>
         public virtual string AttributeFaasInstance => string.Empty;
+
+        /// <summary>
+        /// The execution environment ID as a string, that will be potentially reused for other invocations to the same function/function version.
+        /// </summary>
+        /// <remarks>
+        /// FaasAttributes.AttributeFaasInstanceId
+        /// </remarks>
+        public virtual string AttributeFaasInstanceId => string.Empty;
 
         /// <summary>
         /// The amount of memory available to the serverless function converted to Bytes.
