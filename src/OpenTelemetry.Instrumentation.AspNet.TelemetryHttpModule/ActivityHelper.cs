@@ -39,8 +39,7 @@ internal static class ActivityHelper
         AspNetSourceName,
         typeof(ActivityHelper).Assembly.GetPackageVersion());
 
-    [ThreadStatic]
-    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
+    private static readonly RequestDataHelper RequestDataHelper = new(configureByHttpKnownMethodsEnvironmentalVariable: true);
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
@@ -75,24 +74,14 @@ internal static class ActivityHelper
     {
         var propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        KeyValuePair<string, object?>[]? tags;
-        if (context.Request?.Unvalidated?.Path is string path)
-        {
-            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
+        TagList tags = default;
 
-            tags[0] = new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlPath, path);
-        }
-        else
+        if (context.Request.Unvalidated?.Path is string path)
         {
-            tags = null;
+            tags.Add(SemanticConventions.AttributeUrlPath, path);
         }
 
         var activity = AspNetSource.StartActivity(AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
-
-        if (tags is not null)
-        {
-            tags[0] = default;
-        }
 
         if (activity != null)
         {
