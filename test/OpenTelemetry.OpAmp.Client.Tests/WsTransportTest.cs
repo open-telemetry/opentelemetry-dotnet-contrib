@@ -28,8 +28,7 @@ public class WsTransportTest
         using var wsTransport = new WsTransport(opAmpEndpoint, frameProcessor);
         await wsTransport.StartAsync(cts.Token);
 
-        // Send only small packets, currently sending large package is not supported in WsTransport
-        var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets: true);
+        var mockFrame = FrameGenerator.GenerateMockAgentFrame(useSmallPackets);
 
         // Act
         await wsTransport.SendAsync(mockFrame.Frame, cts.Token);

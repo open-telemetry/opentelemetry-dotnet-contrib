@@ -43,8 +43,34 @@ internal sealed class WsTransmitter
         // Does not fit, need to chunk the message
         else
         {
-            // TODO: Implement chunking logic for large messages
-            throw new NotImplementedException();
+            // It's expected that large messages are created very rarely by the client.
+            var messageBuffer = message.ToByteArray();
+            var buffer = new byte[headerSize + size];
+            var offset = 0;
+
+            // Copy the already written header
+            Buffer.BlockCopy(this.buffer, 0, buffer, 0, headerSize);
+
+            // Copy the message
+            Buffer.BlockCopy(messageBuffer, 0, buffer, headerSize, size);
+
+            while (true)
+            {
+                var count = buffer.Length - offset < BufferSize
+                    ? buffer.Length - offset
+                    : BufferSize;
+
+                var segment = new ArraySegment<byte>(buffer, offset, count);
+                var isEnd = (offset + count) == buffer.Length;
+                await this.ws.SendAsync(segment, WebSocketMessageType.Binary, isEnd, token).ConfigureAwait(false);
+
+                offset += count;
+
+                if (offset >= buffer.Length)
+                {
+                    break;
+                }
+            }
         }
     }
 }
