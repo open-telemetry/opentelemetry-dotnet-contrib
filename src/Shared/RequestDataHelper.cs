@@ -62,6 +62,17 @@ internal sealed class RequestDataHelper
         }
     }
 
+    public void SetHttpMethodTag(ref TagList tags, string originalHttpMethod)
+    {
+        var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
+        tags.Add(SemanticConventions.AttributeHttpRequestMethod, normalizedHttpMethod);
+
+        if (originalHttpMethod != normalizedHttpMethod)
+        {
+            tags.Add(SemanticConventions.AttributeHttpRequestMethodOriginal, originalHttpMethod);
+        }
+    }
+
     public string GetNormalizedHttpMethod(string method)
     {
         return this.knownHttpMethods.TryGetValue(method, out var normalizedMethod)

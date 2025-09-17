@@ -76,6 +76,10 @@ internal static class ActivityHelper
 
         TagList tags = default;
 
+        var request = context.Request;
+        var originalHttpMethod = request.HttpMethod;
+        RequestDataHelper.SetHttpMethodTag(ref tags, originalHttpMethod);
+
         if (context.Request.Unvalidated?.Path is string path)
         {
             tags.Add(SemanticConventions.AttributeUrlPath, path);
