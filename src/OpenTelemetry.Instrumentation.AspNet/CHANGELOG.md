@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.2
+
+Released 2025-Sep-17
+
 * **Breaking Change**: Renamed `MeterProviderBuilderExtensions` and
   `TracerProviderBuilderExtensions` to
   `AspNetInstrumentationMeterProviderBuilderExtensions`
