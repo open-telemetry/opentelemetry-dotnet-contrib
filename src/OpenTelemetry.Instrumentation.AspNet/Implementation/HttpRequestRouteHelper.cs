@@ -19,7 +19,7 @@ internal sealed class HttpRequestRouteHelper
     /// </summary>
     /// <param name="request">The <see cref="HttpRequest"/> being processed.</param>
     /// <returns>The route template or <see langword="null"/>.</returns>
-    internal string? GetRouteTemplate(HttpRequest request)
+    internal string? GetRouteTemplate(HttpRequestBase request)
     {
         var routeData = request.RequestContext.RouteData;
 

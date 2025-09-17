@@ -49,7 +49,8 @@ public sealed class OpAmpClient : IDisposable
                 .ConfigureAwait(false);
         }
 
-        // TODO: Dispatch identification message here
+        await this.dispatcher.DispatchIdentificationAsync(token)
+            .ConfigureAwait(false);
 
         foreach (var service in this.services.Values)
         {
@@ -64,7 +65,8 @@ public sealed class OpAmpClient : IDisposable
     /// <returns>A task that represents the asynchronous stop operation.</returns>
     public async Task StopAsync(CancellationToken token = default)
     {
-        // TODO: Identify if there is any messages to send to the server before stopping services
+        await this.dispatcher.DispatchAgentDisconnectAsync(token)
+            .ConfigureAwait(false);
 
         foreach (var service in this.services.Values)
         {

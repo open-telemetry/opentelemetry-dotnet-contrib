@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
 using OpenTelemetry.OpAmp.Client.Internal.Transport;
@@ -25,31 +26,48 @@ internal sealed class FrameDispatcher : IDisposable
 
     // TODO: May need to redesign to request only partials
     // so any other message waiting to be sent can be included to optimize transport usage and locking time.
-    public async Task DispatchServerFrameAsync(CancellationToken token)
+    public async Task DispatchIdentificationAsync(CancellationToken token)
     {
-        await this.syncRoot.WaitAsync(token)
-            .ConfigureAwait(false);
+        await this.DispatchFrameAsync(
+            BuildIdentificationMessage,
+            OpAmpClientEventSource.Log.SendingIdentificationMessage,
+            OpAmpClientEventSource.Log.SendIdentificationMessageException,
+            token).ConfigureAwait(false);
 
-        try
+        static AgentToServer BuildIdentificationMessage(FrameBuilder fb)
         {
-            var message = this.frameBuilder
-                .StartBaseMessage()
+            return fb.StartBaseMessage()
+                .AddAgentDescription()
+                .AddCapabilities()
                 .Build();
-
-            OpAmpClientEventSource.Log.SendingIdentificationMessage();
-
-            await this.transport.SendAsync(message, token)
-                .ConfigureAwait(false);
         }
-        catch (Exception ex)
-        {
-            OpAmpClientEventSource.Log.SendIdentificationMessageException(ex);
+    }
 
-            this.frameBuilder.Reset(); // Reset the builder in case of failure
-        }
-        finally
+    public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildHeartbeatMessage,
+            OpAmpClientEventSource.Log.SendingHeartbeatMessage,
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            token).ConfigureAwait(false);
+
+        AgentToServer BuildHeartbeatMessage(FrameBuilder fb)
         {
-            this.syncRoot.Release();
+            return fb.StartBaseMessage().AddHealth(report).Build();
+        }
+    }
+
+    public async Task DispatchAgentDisconnectAsync(CancellationToken token)
+    {
+        await this.DispatchFrameAsync(
+            BuildDisconnectMessage,
+            OpAmpClientEventSource.Log.SendingAgentDisconnectMessage,
+            OpAmpClientEventSource.Log.SendHeartbeatMessageException,
+            token).ConfigureAwait(false);
+
+        static AgentToServer BuildDisconnectMessage(FrameBuilder fb)
+        {
+            return fb.StartBaseMessage().AddAgentDisconnect().Build();
         }
     }
 
@@ -58,26 +76,27 @@ internal sealed class FrameDispatcher : IDisposable
         this.syncRoot.Dispose();
     }
 
-    public async Task DispatchHeartbeatAsync(HealthReport report, CancellationToken token)
+    private async Task DispatchFrameAsync(
+        Func<FrameBuilder, AgentToServer> messageBuilder,
+        Action informationLogger,
+        Action<Exception> exceptionLogger,
+        CancellationToken token)
     {
         await this.syncRoot.WaitAsync(token)
             .ConfigureAwait(false);
 
         try
         {
-            var message = this.frameBuilder
-                .StartBaseMessage()
-                .AddHeartbeat(report)
-                .Build();
+            var message = messageBuilder(this.frameBuilder);
 
-            OpAmpClientEventSource.Log.SendingHeartbeatMessage();
+            informationLogger();
 
             await this.transport.SendAsync(message, token)
                 .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            OpAmpClientEventSource.Log.SendHeartbeatMessageException(ex);
+            exceptionLogger(ex);
 
             this.frameBuilder.Reset(); // Reset the builder in case of failure
         }

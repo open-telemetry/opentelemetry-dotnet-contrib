@@ -56,13 +56,13 @@ public class TelemetryHttpModule : IHttpModule
     private void Application_BeginRequest(object sender, EventArgs e)
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_BeginRequest");
-        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, ((HttpApplication)sender).Context, Options.OnRequestStartedCallback);
+        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, new HttpContextWrapper(((HttpApplication)sender).Context), Options.OnRequestStartedCallback);
     }
 
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-        ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
+        ActivityHelper.RestoreContextIfNeeded(new HttpContextWrapper(context.ApplicationInstance.Context));
         step();
     }
 
@@ -71,7 +71,7 @@ public class TelemetryHttpModule : IHttpModule
         AspNetTelemetryEventSource.Log.TraceCallback("Application_EndRequest");
         var trackActivity = true;
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
         {
@@ -103,7 +103,7 @@ public class TelemetryHttpModule : IHttpModule
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_Error");
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         var exception = context.Error;
         if (exception != null)

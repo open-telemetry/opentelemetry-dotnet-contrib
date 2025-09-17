@@ -1,9 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using OpAmp.Proto.V1;
 using OpenTelemetry.OpAmp.Client.Internal.Services.Heartbeat;
+using OpenTelemetry.OpAmp.Client.Internal.Utils;
 using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal;
@@ -39,12 +42,39 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
-    IFrameBuilder IFrameBuilder.AddHeartbeat(HealthReport health)
+    IFrameBuilder IFrameBuilder.AddAgentDescription()
     {
-        if (this.currentMessage == null)
+        this.EnsureInitialized();
+
+        var resources = this.settings.Identification;
+        var description = new AgentDescription();
+
+        foreach (var resource in resources.IdentifyingResources)
         {
-            throw new InvalidOperationException("Message base is not initialized.");
+            description.IdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
         }
+
+        foreach (var resource in resources.NonIdentifyingResources)
+        {
+            description.NonIdentifyingAttributes.Add(new KeyValue()
+            {
+                Key = resource.Key,
+                Value = resource.Value.ToAnyValue(),
+            });
+        }
+
+        this.currentMessage.AgentDescription = description;
+
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddHealth(HealthReport health)
+    {
+        this.EnsureInitialized();
 
         this.currentMessage.Health = new ComponentHealth()
         {
@@ -88,12 +118,30 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    IFrameBuilder IFrameBuilder.AddAgentDisconnect()
+    {
+        this.EnsureInitialized();
+
+        this.currentMessage.AgentDisconnect = new AgentDisconnect();
+
+        return this;
+    }
+
+    IFrameBuilder IFrameBuilder.AddCapabilities()
+    {
+        this.EnsureInitialized();
+
+        // TODO: Update the actual capabilities when features are implemented.
+        this.currentMessage.Capabilities = (ulong)(AgentCapabilities.ReportsStatus
+            | AgentCapabilities.ReportsHealth
+            | AgentCapabilities.ReportsHeartbeat);
+
+        return this;
+    }
+
     AgentToServer IFrameBuilder.Build()
     {
-        if (this.currentMessage == null)
-        {
-            throw new InvalidOperationException("Message base is not initialized.");
-        }
+        this.EnsureInitialized();
 
         var message = this.currentMessage;
         this.currentMessage = null; // Reset for the next message
@@ -104,5 +152,15 @@ internal sealed class FrameBuilder : IFrameBuilder
     public void Reset()
     {
         this.currentMessage = null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MemberNotNull(nameof(currentMessage))]
+    private void EnsureInitialized()
+    {
+        if (this.currentMessage == null)
+        {
+            throw new InvalidOperationException("Message base is not initialized.");
+        }
     }
 }
