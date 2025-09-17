@@ -52,7 +52,7 @@ internal sealed class SqlActivitySourceHelper
             ? MicrosoftSqlServerDbSystemName
             : MicrosoftSqlServerDbSystem;
 
-        var tags = new TagList { };
+        TagList tags = default;
 
         if (options.EmitOldAttributes)
         {
