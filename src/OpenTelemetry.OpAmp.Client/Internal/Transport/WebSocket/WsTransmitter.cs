@@ -64,12 +64,12 @@ internal sealed class WsTransmitter
                 var isEnd = (offset + count) == buffer.Length;
                 await this.ws.SendAsync(segment, WebSocketMessageType.Binary, isEnd, token).ConfigureAwait(false);
 
-                offset += count;
-
-                if (offset >= buffer.Length)
+                if (isEnd)
                 {
                     break;
                 }
+
+                offset += count;
             }
         }
     }
