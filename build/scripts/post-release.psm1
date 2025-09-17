@@ -163,7 +163,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   $tagPrefix = $match.Groups[1].Value
   $version = $match.Groups[2].Value
 
-  $branch="release/post-stable-${tag}-update"
+  $branch="otelbot/post-stable-${tag}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
@@ -312,7 +312,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
-  $branch="release/post-core-${version}-update"
+  $branch="otelbot/post-core-${version}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {

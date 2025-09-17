@@ -14,7 +14,8 @@ permissions:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
-    secrets: inherit
+    secrets:
+      OTELBOT_DOTNET_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
 
   core-version-update:
     runs-on: ubuntu-22.04
@@ -23,14 +24,17 @@ jobs:
 
     if: needs.automation.outputs.enabled
 
-    env:
-      GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
-
     steps:
+    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+      id: otelbot-token
+      with:
+        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         ref: ${{ github.event.repository.default_branch }}
-        token: ${{ env.GH_TOKEN }}
+        token: ${{ steps.otelbot-token.outputs.token }}
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
@@ -38,6 +42,7 @@ jobs:
     - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
       shell: pwsh
       env:
+        GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
         BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
         TARGET_BRANCH: ${{ github.event.repository.default_branch }}

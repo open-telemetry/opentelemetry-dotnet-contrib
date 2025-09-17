@@ -16,7 +16,8 @@ permissions:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
-    secrets: inherit
+    secrets:
+      OTELBOT_DOTNET_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
 
   post-release:
     runs-on: ubuntu-22.04
@@ -26,17 +27,20 @@ jobs:
 
     if: needs.automation.outputs.enabled
 
-    env:
-      GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
-
     steps:
+    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+      id: otelbot-token
+      with:
+        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit. We need all the tags
         # for this work.
         fetch-depth: 0
         ref: ${{ github.event.repository.default_branch }}
-        token: ${{ env.GH_TOKEN }}
+        token: ${{ steps.otelbot-token.outputs.token }}
 
     - name: Create GitHub Pull Request to update PackageValidationBaselineVersion in projects
       if: |
@@ -44,6 +48,7 @@ jobs:
         (inputs.tag && !contains(inputs.tag, '-alpha') && !contains(inputs.tag, '-beta') && !contains(inputs.tag, '-rc'))
       shell: pwsh
       env:
+        GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
         BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
         TARGET_BRANCH: ${{ github.event.repository.default_branch }}

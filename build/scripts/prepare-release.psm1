@@ -28,7 +28,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
 
   $minVerTagPrefix = $match.Groups[1].Value
   $tag="${minVerTagPrefix}${version}"
-  $branch="release/prepare-${tag}-release"
+  $branch="otelbot/prepare-${tag}-release"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
