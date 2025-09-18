@@ -45,25 +45,25 @@ internal sealed class WsTransmitter
         {
             // It's expected that large messages are created very rarely by the client.
             var messageBuffer = message.ToByteArray();
-            var buffer = new byte[headerSize + size];
+            var frameBuffer = new byte[headerSize + size];
             var offset = 0;
 
             // Copy the already written header
-            Buffer.BlockCopy(this.buffer, 0, buffer, 0, headerSize);
+            Buffer.BlockCopy(this.buffer, 0, frameBuffer, 0, headerSize);
 
             // Copy the message
-            Buffer.BlockCopy(messageBuffer, 0, buffer, headerSize, size);
+            Buffer.BlockCopy(messageBuffer, 0, frameBuffer, headerSize, size);
 
             while (true)
             {
                 token.ThrowIfCancellationRequested();
 
-                var count = buffer.Length - offset < BufferSize
-                    ? buffer.Length - offset
+                var count = frameBuffer.Length - offset < BufferSize
+                    ? frameBuffer.Length - offset
                     : BufferSize;
 
-                var segment = new ArraySegment<byte>(buffer, offset, count);
-                var isEnd = (offset + count) == buffer.Length;
+                var segment = new ArraySegment<byte>(frameBuffer, offset, count);
+                var isEnd = (offset + count) == frameBuffer.Length;
                 await this.ws.SendAsync(segment, WebSocketMessageType.Binary, isEnd, token).ConfigureAwait(false);
 
                 if (isEnd)
