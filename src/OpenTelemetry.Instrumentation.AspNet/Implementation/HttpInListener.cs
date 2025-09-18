@@ -161,10 +161,6 @@ internal sealed class HttpInListener : IDisposable
 
             var request = context.Request;
 
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
-            var originalHttpMethod = request.HttpMethod;
-            this.requestDataHelper.SetActivityDisplayName(activity, originalHttpMethod);
-
             var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
             if (!string.IsNullOrEmpty(protocolVersion))
             {

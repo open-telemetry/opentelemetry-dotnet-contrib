@@ -82,12 +82,17 @@ internal sealed class RequestDataHelper
 
     public void SetActivityDisplayName(Activity activity, string originalHttpMethod, string? httpRoute = null)
     {
+        activity.DisplayName = this.GetActivityDisplayName(originalHttpMethod, httpRoute);
+    }
+
+    public string GetActivityDisplayName(string originalHttpMethod, string? httpRoute = null)
+    {
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#name
 
         var normalizedHttpMethod = this.GetNormalizedHttpMethod(originalHttpMethod);
         var namePrefix = normalizedHttpMethod == "_OTHER" ? "HTTP" : normalizedHttpMethod;
 
-        activity.DisplayName = string.IsNullOrEmpty(httpRoute) ? namePrefix : $"{namePrefix} {httpRoute}";
+        return string.IsNullOrEmpty(httpRoute) ? namePrefix : $"{namePrefix} {httpRoute}";
     }
 
     internal static string GetHttpProtocolVersion(Version httpVersion)

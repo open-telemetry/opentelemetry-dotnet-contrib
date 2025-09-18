@@ -17,11 +17,6 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 internal static class ActivityHelper
 {
     /// <summary>
-    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
-    /// </summary>
-    internal const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
-
-    /// <summary>
     /// Key to store the state in HttpContext.
     /// </summary>
     internal const string ContextKey = "__AspnetOpenTelemetryInstrumentationContext__";
@@ -78,6 +73,7 @@ internal static class ActivityHelper
 
         var request = context.Request;
         var originalHttpMethod = request.HttpMethod;
+        var activityName = RequestDataHelper.GetActivityDisplayName(originalHttpMethod);
         RequestDataHelper.SetHttpMethodTag(ref tags, originalHttpMethod);
 
         var url = request.Url;
@@ -96,7 +92,7 @@ internal static class ActivityHelper
             tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
         }
 
-        var activity = AspNetSource.StartActivity(AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
+        var activity = AspNetSource.StartActivity(activityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
         if (activity != null)
         {
