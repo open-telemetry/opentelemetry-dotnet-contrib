@@ -141,7 +141,12 @@ public class SqlClientTests : IDisposable
         if (tracesEnabled)
         {
             tracerProviderBuilder
-                .AddSqlClientInstrumentation(options => options.RecordException = true)
+                .AddSqlClientInstrumentation(options =>
+                {
+#if NET
+                    options.RecordException = true;
+#endif
+                })
                 .AddInMemoryExporter(activities);
         }
 
@@ -337,7 +342,9 @@ public class SqlClientTests : IDisposable
             .SetSampler(sampler)
             .AddSqlClientInstrumentation(options =>
             {
+#if NET
                 options.RecordException = true;
+#endif
                 options.EmitOldAttributes = emitOldAttributes;
                 options.EmitNewAttributes = emitNewAttributes;
             })
