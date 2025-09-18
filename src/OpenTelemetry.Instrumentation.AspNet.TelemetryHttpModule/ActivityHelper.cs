@@ -24,7 +24,7 @@ internal static class ActivityHelper
     /// <summary>
     /// Key to store the state in HttpContext.
     /// </summary>
-    internal const string ContextKey = "__AspnetInstrumentationContext__";
+    internal const string ContextKey = "__AspnetOpenTelemetryInstrumentationContext__";
 
     /// <summary>
     /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
