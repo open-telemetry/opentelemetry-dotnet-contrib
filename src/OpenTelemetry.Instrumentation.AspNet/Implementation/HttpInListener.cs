@@ -166,7 +166,6 @@ internal sealed class HttpInListener : IDisposable
             this.requestDataHelper.SetActivityDisplayName(activity, originalHttpMethod);
 
             var url = request.Url;
-            activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
             activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
 
             var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);

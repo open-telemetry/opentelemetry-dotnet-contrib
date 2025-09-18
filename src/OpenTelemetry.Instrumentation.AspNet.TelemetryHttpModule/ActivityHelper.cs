@@ -82,6 +82,7 @@ internal static class ActivityHelper
 
         var url = request.Url;
         tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+        tags.Add(SemanticConventions.AttributeServerPort, url.Port);
 
         if (context.Request.Unvalidated?.Path is string path)
         {
