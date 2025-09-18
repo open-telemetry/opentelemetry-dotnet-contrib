@@ -179,12 +179,6 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetTag(SemanticConventions.AttributeUrlQuery, options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
             }
 
-            var userAgent = request.UserAgent;
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
-            }
-
             try
             {
                 options.EnrichWithHttpRequest?.Invoke(activity, request);
