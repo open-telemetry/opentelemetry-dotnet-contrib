@@ -111,12 +111,12 @@ function LockPullRequestAndPostNoticeToCreateReleaseTag {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName
   )
 
   $prViewResponse = gh pr view $pullRequestNumber --json mergeCommit,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
@@ -153,14 +153,14 @@ function CreateReleaseTagAndPostNoticeOnPullRequest {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName,
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName,
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
 
   $prViewResponse = gh pr view $pullRequestNumber --json mergeCommit,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
@@ -218,7 +218,7 @@ function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName,
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName,
     [Parameter(Mandatory=$true)][string]$commentUserName,
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
@@ -226,7 +226,7 @@ function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest {
 
   $prViewResponse = gh pr view $pullRequestNumber --json headRefName,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
