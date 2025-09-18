@@ -9,8 +9,10 @@ on:
         value: ${{ vars.AUTOMATION_USERNAME }}
       email:
         value: ${{ vars.AUTOMATION_EMAIL }}
+      application-name:
+        value: ${{ vars.AUTOMATION_APPLICATION_NAME }}
     secrets:
-      OTELBOT_DOTNET_PRIVATE_KEY:
+      OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY:
         required: false
 
 permissions:
@@ -25,9 +27,9 @@ jobs:
       enabled: ${{ steps.evaluate.outputs.enabled }}
 
     env:
-      OTELBOT_DOTNET_PRIVATE_KEY_EXISTS: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY != '' }}
+      OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY_EXISTS: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY != '' }}
 
     steps:
     - id: evaluate
       run: |
-        echo "enabled=${{ env.OTELBOT_DOTNET_PRIVATE_KEY_EXISTS == 'true' }}" >> "$GITHUB_OUTPUT"
+        echo "enabled=${{ env.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY_EXISTS == 'true' }}" >> "$GITHUB_OUTPUT"
