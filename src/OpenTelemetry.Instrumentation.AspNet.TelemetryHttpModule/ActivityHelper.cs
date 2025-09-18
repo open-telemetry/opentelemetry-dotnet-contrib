@@ -80,6 +80,9 @@ internal static class ActivityHelper
         var originalHttpMethod = request.HttpMethod;
         RequestDataHelper.SetHttpMethodTag(ref tags, originalHttpMethod);
 
+        var url = request.Url;
+        tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+
         if (context.Request.Unvalidated?.Path is string path)
         {
             tags.Add(SemanticConventions.AttributeUrlPath, path);
