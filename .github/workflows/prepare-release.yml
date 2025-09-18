@@ -83,7 +83,7 @@ jobs:
   automation:
     uses: ./.github/workflows/automation.yml
     secrets:
-      OTELBOT_DOTNET_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+      OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   prepare-release-pr:
     runs-on: ubuntu-22.04
@@ -93,11 +93,11 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
-        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
     - name: Check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -135,17 +135,17 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action == 'closed' &&
-      github.event.pull_request.user.login == 'otelbot[bot]' &&
+      github.event.pull_request.user.login == needs.automation.outputs.application-name &&
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.title, '[release] Prepare release ') &&
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
-        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
     - name: Check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -156,7 +156,7 @@ jobs:
       shell: pwsh
       env:
         GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
-        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        EXPECTED_PR_AUTHOR_USER_NAME: ${{ needs.automation.outputs.application-name }}
         ISSUE_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
@@ -164,7 +164,7 @@ jobs:
         LockPullRequestAndPostNoticeToCreateReleaseTag `
           -gitRepository ${env:GITHUB_REPOSITORY} `
           -pullRequestNumber ${env:ISSUE_NUMBER} `
-          -botUserName ${env:BOT_USER_NAME}
+          -expectedPrAuthorUserName ${env:EXPECTED_PR_AUTHOR_USER_NAME}
 
   create-release-tag-unlock-pr-post-notice:
     runs-on: ubuntu-22.04
@@ -175,18 +175,18 @@ jobs:
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
       github.event.issue.locked == true &&
-      github.event.comment.user.login != 'otelbot[bot]' &&
+      github.event.comment.user.login != needs.automation.outputs.application-name &&
       contains(github.event.comment.body, '/CreateReleaseTag') &&
       startsWith(github.event.issue.title, '[release] Prepare release ') &&
       github.event.issue.pull_request.merged_at &&
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
-        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
     - name: Check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -202,6 +202,7 @@ jobs:
         GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
         BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        EXPECTED_PR_AUTHOR_USER_NAME: ${{ needs.automation.outputs.application-name }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
       run: |
         Import-Module .\build\scripts\prepare-release.psm1
@@ -209,7 +210,7 @@ jobs:
         CreateReleaseTagAndPostNoticeOnPullRequest `
           -gitRepository ${env:GITHUB_REPOSITORY} `
           -pullRequestNumber ${env:ISSUE_NUMBER} `
-          -botUserName ${env:BOT_USER_NAME} `
+          -expectedPrAuthorUserName ${env:EXPECTED_PR_AUTHOR_USER_NAME} `
           -gitUserName ${env:BOT_USER_NAME} `
           -gitUserEmail ${env:BOT_USER_EMAIL}
 
@@ -222,18 +223,18 @@ jobs:
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
       github.event.issue.state == 'open' &&
-      github.event.comment.user.login != 'otelbot[bot]' &&
+      github.event.comment.user.login != needs.automation.outputs.application-name &&
       contains(github.event.comment.body, '/UpdateReleaseDates') &&
       startsWith(github.event.issue.title, '[release] Prepare release ') &&
       github.event.issue.pull_request.merged_at == null &&
       needs.automation.outputs.enabled
 
     steps:
-    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
-        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
     - name: Check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -249,6 +250,7 @@ jobs:
         GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
         BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
         BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        EXPECTED_PR_AUTHOR_USER_NAME: ${{ needs.automation.outputs.application-name }}
         COMMENT_USER_NAME: ${{ github.event.comment.user.login }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
       run: |
@@ -257,7 +259,7 @@ jobs:
         UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest `
           -gitRepository ${env:GITHUB_REPOSITORY} `
           -pullRequestNumber ${env:ISSUE_NUMBER} `
-          -botUserName ${env:BOT_USER_NAME} `
+          -expectedPrAuthorUserName ${env:EXPECTED_PR_AUTHOR_USER_NAME} `
           -commentUserName ${env:COMMENT_USER_NAME} `
           -gitUserName ${env:BOT_USER_NAME} `
           -gitUserEmail ${env:BOT_USER_EMAIL}
@@ -277,15 +279,15 @@ jobs:
         (github.event_name == 'issue_comment' &&
          github.event.issue.state == 'open' &&
          contains(github.event.comment.body, '/PrepareRelease') &&
-         github.event.comment.user.login != 'otelbot[bot]')
+         github.event.comment.user.login != needs.automation.outputs.application-name)
       )
 
     steps:
-    - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
       id: otelbot-token
       with:
-        app-id: ${{ vars.OTELBOT_DOTNET_APP_ID }}
-        private-key: ${{ secrets.OTELBOT_DOTNET_PRIVATE_KEY }}
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
     - name: Check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
