@@ -126,7 +126,7 @@ public class ActivityHelperTest : IDisposable
         {
             Assert.NotNull(Activity.Current);
             Assert.Equal(Activity.Current, a);
-            Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current.OperationName);
+            Assert.Equal("GET", Activity.Current.OperationName);
         });
         var context = HttpContextHelper.GetFakeHttpContextBase();
         using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
