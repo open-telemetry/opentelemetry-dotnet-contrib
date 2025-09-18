@@ -177,7 +177,7 @@ Released 2021-Oct-08
 
 * Adopted the donation
   [Microsoft.AspNet.TelemetryCorrelation](https://github.com/aspnet/Microsoft.AspNet.TelemetryCorrelation)
-  from [.NET Foundation](https://dotnetfoundation.org/)
+  from [.NET Foundation](https://dotnetfoundation.org/).
   ([#2223](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2223))
 
 * Renamed the module, refactored existing code
