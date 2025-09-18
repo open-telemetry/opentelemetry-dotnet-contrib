@@ -90,6 +90,12 @@ internal static class ActivityHelper
             tags.Add(SemanticConventions.AttributeUrlPath, path);
         }
 
+        var userAgent = request.UserAgent;
+        if (!string.IsNullOrEmpty(userAgent))
+        {
+            tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+        }
+
         var activity = AspNetSource.StartActivity(AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
 
         if (activity != null)
