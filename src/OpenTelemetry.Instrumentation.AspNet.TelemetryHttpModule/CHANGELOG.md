@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.2
+
+Released 2025-Sep-18
+
 * **Breaking Change**: Modified request lifecycle callbacks to always fire.
   This is required as part of making ASP.NET metrics generation
   independent from traces.
