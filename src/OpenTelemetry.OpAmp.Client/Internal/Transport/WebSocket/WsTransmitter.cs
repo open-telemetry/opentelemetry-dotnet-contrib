@@ -54,8 +54,10 @@ internal sealed class WsTransmitter
             // Copy the message
             Buffer.BlockCopy(messageBuffer, 0, buffer, headerSize, size);
 
-            while (!token.IsCancellationRequested)
+            while (true)
             {
+                token.ThrowIfCancellationRequested();
+
                 var count = buffer.Length - offset < BufferSize
                     ? buffer.Length - offset
                     : BufferSize;
