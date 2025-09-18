@@ -165,15 +165,13 @@ internal sealed class HttpInListener : IDisposable
             var originalHttpMethod = request.HttpMethod;
             this.requestDataHelper.SetActivityDisplayName(activity, originalHttpMethod);
 
-            var url = request.Url;
-            activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
-
             var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
             if (!string.IsNullOrEmpty(protocolVersion))
             {
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
             }
 
+            var url = request.Url;
             var query = url.Query;
             if (!string.IsNullOrEmpty(query))
             {
