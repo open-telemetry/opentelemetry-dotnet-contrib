@@ -31,10 +31,10 @@ internal class OpAmpClientEventSource : EventSource
     private const int EventIdFailedToSendHeartbeatMessage = 1_101;
     private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
 
-    [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header. Dropping the frame.", Level = EventLevel.Warning)]
-    public void InvalidWsFrame()
+    [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header: {0}. Dropping the frame.", Level = EventLevel.Warning)]
+    public void InvalidWsFrame(string errorMessage)
     {
-        this.WriteEvent(EventIdInvalidWsFrame);
+        this.WriteEvent(EventIdInvalidWsFrame, errorMessage);
     }
 
 
