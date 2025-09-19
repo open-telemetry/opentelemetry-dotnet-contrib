@@ -37,7 +37,6 @@ internal class OpAmpClientEventSource : EventSource
         this.WriteEvent(EventIdInvalidWsFrame, errorMessage);
     }
 
-
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]
     public void HeartbeatServiceStart()
     {
