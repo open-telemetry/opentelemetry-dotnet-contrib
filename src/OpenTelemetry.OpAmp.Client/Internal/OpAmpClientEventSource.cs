@@ -12,6 +12,7 @@ internal class OpAmpClientEventSource : EventSource
     public static OpAmpClientEventSource Log = new();
 
     // General events 1-499
+    private const int EventIdInvalidWsFrame = 1;
 
     // Service events 500-999
     private const int EventIdHeartbeatServiceStart = 500;
@@ -29,6 +30,13 @@ internal class OpAmpClientEventSource : EventSource
     private const int EventIdFailedToSendIdentificationMessage = 1_100;
     private const int EventIdFailedToSendHeartbeatMessage = 1_101;
     private const int EventIdFailedToSendAgentDisconnectMessage = 1_102;
+
+    [Event(EventIdInvalidWsFrame, Message = "Received invalid WebSocket frame header. Dropping the frame.", Level = EventLevel.Warning)]
+    public void InvalidWsFrame()
+    {
+        this.WriteEvent(EventIdInvalidWsFrame);
+    }
+
 
     [Event(EventIdHeartbeatServiceStart, Message = "Heartbeat service started.", Level = EventLevel.Informational)]
     public void HeartbeatServiceStart()
