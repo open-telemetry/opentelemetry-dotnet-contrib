@@ -32,7 +32,7 @@
     <MicrosoftNETTestSdkPkgVer>[17.14.1,18.0)</MicrosoftNETTestSdkPkgVer>
     <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
+    <SupportedNetTargets>net10.0;net9.0;net8.0</SupportedNetTargets>
     <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
     <XUnitPkgVer>[2.9.3,3.0)</XUnitPkgVer>
     <WiremockNetPkgVer>[1.7.0,2.0)</WiremockNetPkgVer>
