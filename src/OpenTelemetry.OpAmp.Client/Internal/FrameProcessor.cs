@@ -61,7 +61,7 @@ internal sealed class FrameProcessor
         {
             if (!OpAmpWsHeaderHelper.TryVerifyHeader(sequence, out headerSize, out string errorMessage))
             {
-                // TODO: log error message
+                OpAmpClientEventSource.Log.InvalidWsFrame(errorMessage);
 
                 return;
             }
