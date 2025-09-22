@@ -94,7 +94,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     [Parameter(Mandatory=$true)][string]$tag,
     [Parameter(Mandatory=$true)][string]$tagSha,
     [Parameter(Mandatory=$true)][string]$packagesUrl,
-    [Parameter(Mandatory=$true)][string]$botUserName
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName
   )
 
   $prListResponse = gh pr list --search $tagSha --state merged --json number,author,title,comments | ConvertFrom-Json
@@ -107,7 +107,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
 
   foreach ($pr in $prListResponse)
   {
-    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[release] Prepare release $tag")
+    if ($pr.author.login -ne $expectedPrAuthorUserName -or $pr.title -ne "[release] Prepare release $tag")
     {
       continue
     }
@@ -115,7 +115,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     $foundComment = $false
     foreach ($comment in $pr.comments)
     {
-      if ($comment.author.login -eq $botUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      if ($comment.author.login -eq $expectedPrAuthorUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
       {
         $foundComment = $true
         break
