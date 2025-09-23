@@ -1,5 +1,5 @@
 name: Release request
-title: "[release request] "
+title: "[release request] {Package Name} {Version}"
 description: Request a release for a component
 labels: ["release"]
 body:
