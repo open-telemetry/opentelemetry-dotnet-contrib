@@ -8,6 +8,7 @@ on:
       - 'Extensions.*-*'
       - 'Extensions-*'
       - 'Instrumentation.*-*'
+      - 'OpAmp.*-*'
       - 'PersistentStorage-*'
       - 'Resources.*-*'
       - 'Sampler.*-*'
