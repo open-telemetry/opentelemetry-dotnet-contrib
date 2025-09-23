@@ -26,6 +26,9 @@ jobs:
 
   build-pack-publish:
 
+    permissions:
+      id-token: write
+
     runs-on: windows-latest
 
     outputs:
@@ -106,11 +109,20 @@ jobs:
         shell: pwsh
         run: dotnet nuget push *.nupkg --api-key ${env:API_KEY} --skip-duplicate --source ${env:SOURCE}
 
+      - name: NuGet log in
+        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # v1.1.0
+        env:
+          NUGET_USER_EXISTS: ${{ secrets.NUGET_USER != '' }}
+        id: nuget-login
+        if: github.ref_type == 'tag' && env.NUGET_USER_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish to NuGet
         working-directory: ./artifacts/package/release
         env:
-          NUGET_TOKEN_EXISTS: ${{ secrets.NUGET_TOKEN != '' }}
-          API_KEY: ${{ secrets.NUGET_TOKEN }}
+          NUGET_TOKEN_EXISTS: ${{ steps.nuget-login.outputs.NUGET_API_KEY != '' }}
+          API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           SOURCE: https://api.nuget.org/v3/index.json
         if: github.ref_type == 'tag' && env.NUGET_TOKEN_EXISTS == 'true' # Skip NuGet publish for scheduled nightly builds or if run on a fork without the secret
         shell: pwsh
