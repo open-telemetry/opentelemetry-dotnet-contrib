@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Added support for the `host.arch` resource attribute in `HostDetector`, reporting the host architecture (e.g., `X64`, `Arm64`) using `System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture`.
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
