@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.3
+
+Released 2025-Sep-25
+
 * Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
   the `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS`
   environment variable. Not supported on .NET Framework.
