@@ -57,7 +57,7 @@ your application is running:
 - **HostDetector**:
   - `host.id` (when running on non-containerized systems)
   - `host.name`
-  - `host.arch` (the host architecture, e.g., `X64`, `Arm64`)
+  - `host.arch` (the host architecture, e.g., `X64`, `Arm64`). _This attribute is only supported on .NET 5+ and is not available on the .NET Framework._
 
 ## References
 
