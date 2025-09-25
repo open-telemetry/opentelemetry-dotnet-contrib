@@ -1,8 +1,8 @@
 # Host Resource Detectors
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status      |                                                                                |
+| ----------- | ------------------------------------------------------------------------------ |
+| Stability   | [Beta](../../README.md#beta)                                                   |
 | Code Owners | [@Kielek](https://github.com/Kielek), [@lachmatt](https://github.com/lachmatt) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Host)](https://www.nuget.org/packages/OpenTelemetry.Resources.Host)
@@ -54,8 +54,11 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **HostDetector**: `host.id` (when running on non-containerized systems), `host.name`.
+-   **HostDetector**:
+    -   `host.id` (when running on non-containerized systems)
+    -   `host.name`
+    -   `host.arch` (the host architecture, e.g., `X64`, `Arm64`)
 
 ## References
 
-- [OpenTelemetry Project](https://opentelemetry.io/)
+-   [OpenTelemetry Project](https://opentelemetry.io/)

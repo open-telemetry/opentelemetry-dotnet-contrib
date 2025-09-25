@@ -51,10 +51,18 @@ public class HostDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
+#if NET
+        Assert.Equal(3, resourceAttributes.Count);
+#else
         Assert.Equal(2, resourceAttributes.Count);
+#endif
 
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostName]);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+#if NET
+        Assert.NotEmpty(resourceAttributes["host.arch"]);
+        Assert.Equal(System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), resourceAttributes["host.arch"]);
+#endif
     }
 
 #if NET

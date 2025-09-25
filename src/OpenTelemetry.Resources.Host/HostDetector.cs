@@ -94,6 +94,14 @@ internal sealed class HostDetector : IResourceDetector
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
             }
+#if !NETFRAMEWORK
+            // Architecture is only supported in .NET 5+
+            var arch = RuntimeInformation.ProcessArchitecture.ToString();
+            if (arch != null && !string.IsNullOrEmpty(arch))
+            {
+                attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
+            }
+#endif
 
             return new Resource(attributes);
         }
