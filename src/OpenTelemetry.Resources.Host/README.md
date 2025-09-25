@@ -54,11 +54,11 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
--   **HostDetector**:
-    -   `host.id` (when running on non-containerized systems)
-    -   `host.name`
-    -   `host.arch` (the host architecture, e.g., `X64`, `Arm64`)
+- **HostDetector**:
+  - `host.id` (when running on non-containerized systems)
+  - `host.name`
+  - `host.arch` (the host architecture, e.g., `X64`, `Arm64`)
 
 ## References
 
--   [OpenTelemetry Project](https://opentelemetry.io/)
+- [OpenTelemetry Project](https://opentelemetry.io/)
