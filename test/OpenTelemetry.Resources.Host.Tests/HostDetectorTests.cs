@@ -61,7 +61,7 @@ public class HostDetectorTests
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
 #if NET
         Assert.NotEmpty(resourceAttributes["host.arch"]);
-        Assert.Equal(System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), resourceAttributes["host.arch"]);
+        Assert.Equal(RuntimeInformation.ProcessArchitecture.ToString(), resourceAttributes["host.arch"]);
 #endif
     }
 
