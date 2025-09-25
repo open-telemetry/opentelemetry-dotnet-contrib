@@ -84,7 +84,7 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var attributes = new List<KeyValuePair<string, object>>(2)
+            var attributes = new List<KeyValuePair<string, object>>(3)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             };
