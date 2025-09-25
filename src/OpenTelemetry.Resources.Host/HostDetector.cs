@@ -76,6 +76,28 @@ internal sealed class HostDetector : IResourceDetector
         this.getWindowsMachineId = getWindowsMachineId;
     }
 
+#if !NETFRAMEWORK
+    private static string MapArchitectureToOtel(Architecture arch)
+    {
+        return arch switch
+        {
+            Architecture.X86 => "x86",
+            Architecture.X64 => "x64",
+            Architecture.Arm => "arm32",
+            Architecture.Arm64 => "arm64",
+            Architecture.Wasm => "wasm",
+            Architecture.S390x => "s390x",
+            Architecture.LoongArch64 => "loongarch64",
+            Architecture.Armv6 => "armv6",
+            Architecture.Ppc64le => "ppc64",
+#if NET8_0_OR_GREATER
+            Architecture.RiscV64 => "riscv64",
+#endif
+            _ => arch.ToString().ToLowerInvariant(),
+        };
+    }
+#endif
+
     /// <summary>
     /// Detects the resource attributes from host.
     /// </summary>
@@ -88,19 +110,18 @@ internal sealed class HostDetector : IResourceDetector
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             };
+
             var machineId = this.GetMachineId();
 
             if (machineId != null && !string.IsNullOrEmpty(machineId))
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
             }
+
 #if !NETFRAMEWORK
-            // Architecture is only supported in .NET 5+
-            var arch = RuntimeInformation.ProcessArchitecture.ToString();
-            if (arch != null && !string.IsNullOrEmpty(arch))
-            {
-                attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
-            }
+            // Add host architecture attribute using OTEL semantic mapping
+            var arch = MapArchitectureToOtel(RuntimeInformation.ProcessArchitecture);
+            attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
 #endif
 
             return new Resource(attributes);
