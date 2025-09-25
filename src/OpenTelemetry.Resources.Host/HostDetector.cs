@@ -77,25 +77,22 @@ internal sealed class HostDetector : IResourceDetector
     }
 
 #if !NETFRAMEWORK
-    private static string MapArchitectureToOtel(Architecture arch)
+#pragma warning disable CA1308
+    // CA1308 wants ToUpper to be used instead of ToLowerInvariant() here
+    // but that is incorrect as we want ToLower per OTEL spec
+    public static string MapArchitectureToOtel(Architecture arch)
     {
         return arch switch
         {
-            Architecture.X86 => "x86",
             Architecture.X64 => "x64",
             Architecture.Arm => "arm32",
             Architecture.Arm64 => "arm64",
-            Architecture.Wasm => "wasm",
             Architecture.S390x => "s390x",
-            Architecture.LoongArch64 => "loongarch64",
-            Architecture.Armv6 => "armv6",
             Architecture.Ppc64le => "ppc64",
-#if NET8_0_OR_GREATER
-            Architecture.RiscV64 => "riscv64",
-#endif
             _ => arch.ToString().ToLowerInvariant(),
         };
     }
+#pragma warning restore CA1308
 #endif
 
     /// <summary>
