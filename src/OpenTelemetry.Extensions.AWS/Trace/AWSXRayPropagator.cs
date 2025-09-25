@@ -71,7 +71,7 @@ public class AWSXRayPropagator : TextMapPropagator
 
             var parentHeader = parentTraceHeader.First();
 
-            return !TryParseXRayTraceHeader(parentHeader, out var newActivityContext) ? context : new PropagationContext(newActivityContext, context.Baggage);
+            return !TryParseXRayTraceHeader(parentHeader, context, out var newActivityContext) ? context : new PropagationContext(newActivityContext, context.Baggage);
         }
         catch (Exception ex)
         {
@@ -146,7 +146,7 @@ public class AWSXRayPropagator : TextMapPropagator
         setter(carrier, AWSXRayTraceHeaderKey, sb.ToString());
     }
 
-    internal static bool TryParseXRayTraceHeader(string rawHeader, out ActivityContext activityContext)
+    internal static bool TryParseXRayTraceHeader(string rawHeader, PropagationContext context, out ActivityContext activityContext)
     {
         // from https://docs.aws.amazon.com/xray/latest/devguide/xray-concepts.html#xray-concepts-tracingheader
         // rawHeader format: Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1
@@ -223,7 +223,8 @@ public class AWSXRayPropagator : TextMapPropagator
         var activityParentId = ActivitySpanId.CreateFromString(parentId);
         var activityTraceOptions = traceOptions == SampledValue ? ActivityTraceFlags.Recorded : ActivityTraceFlags.None;
 
-        activityContext = new ActivityContext(activityTraceId, activityParentId, activityTraceOptions, isRemote: true);
+        // Include trace state previously set by other propagators
+        activityContext = new ActivityContext(activityTraceId, activityParentId, activityTraceOptions, context.ActivityContext.TraceState, isRemote: true);
 
         return true;
     }

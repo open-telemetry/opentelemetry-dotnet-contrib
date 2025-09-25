@@ -261,4 +261,19 @@ public class AWSXRayPropagatorTests
 
         Assert.Equal(new PropagationContext(activityContext, default), this.awsXRayPropagator.Extract(default, carrier, Getter));
     }
+
+    [Fact]
+    public void TestExtractTraceHeaderWithTraceState()
+    {
+        var carrier = new Dictionary<string, string>()
+        {
+            { AWSXRayTraceHeaderKey, "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1" },
+        };
+        var traceState = "key=val,foo=bar";
+        var inputContext = new PropagationContext(new ActivityContext(default, default, ActivityTraceFlags.None, traceState), default);
+
+        var extractedContext = this.awsXRayPropagator.Extract(inputContext, carrier, Getter);
+
+        Assert.Equal(traceState, extractedContext.ActivityContext.TraceState);
+    }
 }
