@@ -157,7 +157,7 @@ public class SqlClientTraceInstrumentationOptionsTests
             {
                 if (shouldEnrich)
                 {
-                    opt.Enrich = ActivityEnrichment;
+                    opt.EnrichWithSqlCommand = ActivityEnrichment;
                 }
             })
             .AddInMemoryExporter(activities)
@@ -241,19 +241,10 @@ public class SqlClientTraceInstrumentationOptionsTests
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
 
-    private static void ActivityEnrichment(Activity activity, string method, object obj)
+    private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
-
-        switch (method)
-        {
-            case "OnCustom":
-                Assert.True(obj is SqlCommand);
-                break;
-
-            default:
-                break;
-        }
+        Assert.IsType<SqlCommand>(obj);
     }
 
     private Activity[] RunCommandWithFilter(
