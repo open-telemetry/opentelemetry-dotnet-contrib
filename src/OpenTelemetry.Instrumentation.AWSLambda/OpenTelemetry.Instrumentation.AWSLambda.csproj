@@ -22,7 +22,11 @@
     <PackageReference Include="Amazon.Lambda.Core" />
     <PackageReference Include="Amazon.Lambda.SNSEvents" />
     <PackageReference Include="Amazon.Lambda.SQSEvents" />
-    <PackageReference Include="System.Text.Json" VersionOverride="[6.0.10,)" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <PackageReference Update="System.Text.Json" VersionOverride="[6.0.10,)" />
   </ItemGroup>
 
   <ItemGroup>

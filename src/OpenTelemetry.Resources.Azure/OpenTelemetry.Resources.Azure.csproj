@@ -18,6 +18,11 @@
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">
+    <PackageReference Include="System.Text.Encodings.Web" />
+    <PackageReference Update="System.Text.Json" VersionOverride="[4.7.2,)" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\Guard.cs" Link="Includes\Guard.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ResourceSemanticConventions.cs" Link="Includes\ResourceSemanticConventions.cs"/>
