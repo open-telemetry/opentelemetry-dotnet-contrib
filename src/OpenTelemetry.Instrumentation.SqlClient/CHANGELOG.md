@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.12.0-beta.3
+
+Released 2025-Sep-25
+
 * Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
   the `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS`
   environment variable. Not supported on .NET Framework.
@@ -15,6 +19,14 @@
 * **Breaking change**: The `SetDbStatementForText` property has been removed.
   Behaviors related to this option are now always enabled.
   ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
+
+* **Breaking change**: The `Enrich`, `Filter` and `RecordException` properties have
+  been removed for .NET Framework where they were non-functional.
+  ([#3079](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3079))
+
+* **Breaking change**: The `Enrich` property has been renamed to
+  `EnrichWithSqlCommand` and no longer passes an event name to the delegate.
+  ([#3080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3080))
 
 ## 1.12.0-beta.2
 

@@ -3,7 +3,9 @@
 
 using System.Data;
 using System.Diagnostics;
+#if NET
 using Microsoft.Data.SqlClient;
+#endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Internal;
@@ -155,7 +157,7 @@ public class SqlClientTraceInstrumentationOptionsTests
             {
                 if (shouldEnrich)
                 {
-                    opt.Enrich = ActivityEnrichment;
+                    opt.EnrichWithSqlCommand = ActivityEnrichment;
                 }
             })
             .AddInMemoryExporter(activities)
@@ -238,21 +240,11 @@ public class SqlClientTraceInstrumentationOptionsTests
         var options = new SqlClientTraceInstrumentationOptions(configuration);
         Assert.Equal(expected, options.SetDbQueryParameters);
     }
-#endif
 
-    private static void ActivityEnrichment(Activity activity, string method, object obj)
+    private static void ActivityEnrichment(Activity activity, object obj)
     {
         activity.SetTag("enriched", "yes");
-
-        switch (method)
-        {
-            case "OnCustom":
-                Assert.True(obj is SqlCommand);
-                break;
-
-            default:
-                break;
-        }
+        Assert.IsType<SqlCommand>(obj);
     }
 
     private Activity[] RunCommandWithFilter(
@@ -274,4 +266,5 @@ public class SqlClientTraceInstrumentationOptionsTests
 
         return [.. activities];
     }
+#endif
 }
