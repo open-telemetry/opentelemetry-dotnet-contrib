@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: This module is no longer responsible for creating activities.
+  The contract of `TelemetryHttpModuleOptions.OnRequestStartedCallback` was changed
+  to `Func<HttpContextBase, ActivityContext, Activity?>?`. It means that the consumer
+  is responsible for providing function returning `Activity`.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
 ## 1.12.0-beta.2
 
 Released 2025-Sep-18
