@@ -5,7 +5,6 @@
     <Description>OpenTelemetry Resource Detectors for Azure cloud environments.</Description>
     <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
     <MinVerTagPrefix>Resources.Azure-</MinVerTagPrefix>
-    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonMinimumOutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
