@@ -5,7 +5,6 @@
     <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
-    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
     <DefineConstants>INSTRUMENTATION_AWSLAMBDA;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
@@ -18,11 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.0" />
-    <PackageReference Include="Amazon.Lambda.ApplicationLoadBalancerEvents" Version="2.2.0" />
-    <PackageReference Include="Amazon.Lambda.Core" Version="2.2.0" />
-    <PackageReference Include="Amazon.Lambda.SNSEvents" Version="2.1.0" />
-    <PackageReference Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
+    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" />
+    <PackageReference Include="Amazon.Lambda.ApplicationLoadBalancerEvents" />
+    <PackageReference Include="Amazon.Lambda.Core" />
+    <PackageReference Include="Amazon.Lambda.SNSEvents" />
+    <PackageReference Include="Amazon.Lambda.SQSEvents" />
+    <PackageReference Include="System.Text.Json" VersionOverride="[6.0.10,)" />
   </ItemGroup>
 
   <ItemGroup>

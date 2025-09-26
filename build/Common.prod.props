@@ -21,9 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
+    <PackageReference Include="MinVer" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>

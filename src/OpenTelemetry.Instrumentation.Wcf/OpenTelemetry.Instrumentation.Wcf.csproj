@@ -15,18 +15,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardMinimumSupportedVersion)' OR '$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="4.7.1" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
-    <PackageReference Include="System.Drawing.Common" Version="4.7.2" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard' OR '$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,7 +5,6 @@
     <Description>OpenTelemetry Resource Detectors for Google Cloud Platform environments.</Description>
     <PackageTags>$(PackageTags);ResourceDetector</PackageTags>
     <MinVerTagPrefix>Resources.Gcp-</MinVerTagPrefix>
-    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonMinimumOutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -15,8 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="Google.Api.Gax" VersionOverride="[4.8.0,)" />
+    <PackageReference Include="OpenTelemetry" />
   </ItemGroup>
 
   <ItemGroup>

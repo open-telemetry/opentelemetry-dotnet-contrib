@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="$(RepoRoot)\src\OpenTelemetry.Exporter.Geneva\Common.GenevaExporter.props"/>
-
   <PropertyGroup>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);net48;net472;net471;net47;net462</TargetFrameworks>
@@ -10,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetPkgVer)" />
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
