@@ -17,12 +17,16 @@ public class ActivityHelperTest : IDisposable
     private const string BaggageHeaderName = "baggage";
     private const string BaggageInHeader = "TestKey1=123,TestKey2=456,TestKey1=789";
     private const string TestActivityName = "Activity.Test";
+    private const string TestActivitySourceName = "TestActivitySource";
+
+    private readonly ActivitySource testActivitySource = new(TestActivitySourceName);
     private readonly TextMapPropagator noopTextMapPropagator = new NoopTextMapPropagator();
     private ActivityListener? activitySourceListener;
 
     public void Dispose()
     {
         this.activitySourceListener?.Dispose();
+        this.testActivitySource?.Dispose();
     }
 
     [Fact]
@@ -57,7 +61,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
         rootActivity.AddTag("k1", "v1");
         rootActivity.AddTag("k2", "v2");
 
@@ -126,10 +130,10 @@ public class ActivityHelperTest : IDisposable
         {
             Assert.NotNull(Activity.Current);
             Assert.Equal(Activity.Current, a);
-            Assert.Equal("GET", Activity.Current.OperationName);
+            Assert.Equal("StartTestActivity", Activity.Current.OperationName);
         });
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
         rootActivity.AddTag("k1", "v1");
         rootActivity.AddTag("k2", "v2");
 
@@ -200,7 +204,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
 
         var child = new Activity("child").Start();
         new Activity("grandchild").Start();
@@ -234,7 +238,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
+        using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
         new Activity("child").Start();
 
         for (var i = 0; i < 2; i++)
@@ -264,7 +268,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null)!;
+        using var root = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity)!;
 
         for (var i = 0; i < 129; i++)
         {
@@ -316,7 +320,7 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContextBase(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new TraceContextPropagator(), context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new TraceContextPropagator(), context, this.StartTestActivity);
 
         Assert.NotNull(rootActivity);
         Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
@@ -342,7 +346,7 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContextBase(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new TraceContextPropagator(), context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new TraceContextPropagator(), context, this.StartTestActivity);
 
         Assert.NotNull(rootActivity);
         Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
@@ -368,7 +372,7 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContextBase(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, this.StartTestActivity);
 
         Assert.NotNull(rootActivity);
         Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
@@ -394,7 +398,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity);
 
         Assert.NotNull(rootActivity);
         Assert.False(string.IsNullOrEmpty(rootActivity.Id));
@@ -405,7 +409,7 @@ public class ActivityHelperTest : IDisposable
     {
         this.EnableListener();
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, null);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, this.StartTestActivity);
 
         Assert.NotNull(rootActivity);
         Assert.Same(rootActivity, ((ActivityHelper.ContextHolder)context.Items[ActivityHelper.ContextKey])?.Activity);
@@ -435,23 +439,27 @@ public class ActivityHelperTest : IDisposable
     public void Should_Handle_Activity_Events_In_Correct_Order()
     {
         var eventOrder = new List<string>();
-        const string ActivityOnStarted = "ActivityOnStarted";
-        const string ActivityOnStopped = "ActivityOnStarted";
-        const string OnStartCallback = "OnStartCallback";
-        const string OnStopCallback = "OnStopCallback";
+        const string activityOnStarted = nameof(activityOnStarted);
+        const string activityOnStopped = nameof(activityOnStopped);
+        const string onStartCallback = nameof(onStartCallback);
+        const string onStopCallback = nameof(onStopCallback);
 
-        this.EnableListener(_ => eventOrder.Add(ActivityOnStarted), _ => eventOrder.Add(ActivityOnStopped));
+        this.EnableListener(_ => eventOrder.Add(activityOnStarted), _ => eventOrder.Add(activityOnStopped));
 
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (_, _) => eventOrder.Add(OnStartCallback));
-        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (_, _) => eventOrder.Add(OnStopCallback));
-
-        var expectedOrder = new List<string>()
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (httpContext, activityContext) =>
         {
-            ActivityOnStarted,
-            OnStartCallback,
-            OnStopCallback,
-            ActivityOnStopped,
+            eventOrder.Add(onStartCallback);
+            return this.StartTestActivity(httpContext, activityContext);
+        });
+        ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (_, _) => eventOrder.Add(onStopCallback));
+
+        var expectedOrder = new List<string>
+        {
+            onStartCallback,
+            activityOnStarted,
+            onStopCallback,
+            activityOnStopped,
         };
 
         Assert.Equal(expectedOrder, eventOrder);
@@ -464,7 +472,12 @@ public class ActivityHelperTest : IDisposable
 
         var wasStopped = false;
         var context = HttpContextHelper.GetFakeHttpContextBase();
-        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
+        using var rootActivity = ActivityHelper.StartAspNetActivity(this.noopTextMapPropagator, context, (_, _) =>
+        {
+            var activity = this.testActivitySource.StartActivity();
+            wasStopped = (activity?.IsStopped ?? false) || wasStopped;
+            return activity;
+        });
         ActivityHelper.StopAspNetActivity(this.noopTextMapPropagator, rootActivity, context, (activity, _) => wasStopped = (activity?.IsStopped ?? false) || wasStopped);
 
         Assert.False(wasStopped);
@@ -476,7 +489,7 @@ public class ActivityHelperTest : IDisposable
 
         this.activitySourceListener = new ActivityListener
         {
-            ShouldListenTo = (activitySource) => activitySource.Name == ActivityHelper.AspNetSourceName,
+            ShouldListenTo = (activitySource) => activitySource.Name == TestActivitySourceName,
             ActivityStarted = (a) => onStarted?.Invoke(a),
             ActivityStopped = (a) => onStopped?.Invoke(a),
             Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
@@ -486,6 +499,11 @@ public class ActivityHelperTest : IDisposable
         };
 
         ActivitySource.AddActivityListener(this.activitySourceListener);
+    }
+
+    private Activity? StartTestActivity(HttpContextBase httpContext, ActivityContext activityContext)
+    {
+        return this.testActivitySource.StartActivity(ActivityKind.Server, activityContext);
     }
 
     private class TestHttpRequest : HttpRequestBase
