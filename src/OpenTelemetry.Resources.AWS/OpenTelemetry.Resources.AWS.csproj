@@ -6,7 +6,6 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>OpenTelemetry Resource Detectors for AWS ElasticBeanstalk, EC2, ECS, EKS.</Description>
     <MinVerTagPrefix>Resources.AWS-</MinVerTagPrefix>
-    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
     <DefineConstants>RESOURCES_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
@@ -15,11 +14,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'">
+    <PackageReference Update="System.Text.Json" VersionOverride="[6.0.10,)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
