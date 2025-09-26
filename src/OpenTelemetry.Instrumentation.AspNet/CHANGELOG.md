@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+* Following attributes are available while sampling:
+  * `http.request.method`,
+  * `server.address`,
+  * `server.port`,
+  * `url.scheme`,
+  * `url.path`,
+  * `user_agent.original`,
+  * `url.query`.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
 ## 1.12.0-beta.2
 
 Released 2025-Sep-18
