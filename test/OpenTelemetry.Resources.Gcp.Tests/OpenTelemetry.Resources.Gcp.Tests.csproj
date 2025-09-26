@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Api.Gax" Version="4.8.0" />
+    <PackageReference Include="Google.Api.Gax" />
   </ItemGroup>
 
   <ItemGroup>
