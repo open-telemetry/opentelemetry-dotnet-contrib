@@ -17,7 +17,8 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
-    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Text.Encodings.Web" />
+    <PackageReference Include="System.Text.Json" VersionOverride="[4.7.2,)" />
   </ItemGroup>
 
   <ItemGroup>
