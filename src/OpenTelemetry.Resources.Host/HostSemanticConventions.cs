@@ -7,4 +7,5 @@ internal static class HostSemanticConventions
 {
     public const string AttributeHostName = "host.name";
     public const string AttributeHostId = "host.id";
+    public const string AttributeHostArch = "host.arch";
 }
