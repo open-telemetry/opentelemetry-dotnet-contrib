@@ -6,10 +6,10 @@
   * `http.request.method`,
   * `server.address`,
   * `server.port`,
-  * `url.scheme`,
   * `url.path`,
-  * `user_agent.original`,
-  * `url.query`.
+  * `url.query`,
+  * `url.scheme`,
+  * `user_agent.original`.
   ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
 
 ## 1.12.0-beta.2
