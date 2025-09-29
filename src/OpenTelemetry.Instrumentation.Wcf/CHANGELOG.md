@@ -5,6 +5,11 @@
 * Added server instrumentation support for `RecordException` option.
   ([#2880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2880))
 
+* **Breaking changes** Adjust to breaking changes from
+  `OpenTelemetry.Instrumentation.AspNet` version `1.12.0-beta.3`.
+  Fixing span hierarchy when hosted in ASP.NET.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06
