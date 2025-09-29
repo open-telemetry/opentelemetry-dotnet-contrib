@@ -160,8 +160,7 @@ internal static class AspNetParentSpanCorrector
             [activityVariable],
             assignActivity,
             conditionalCall,
-            returnActivity
-        );
+            returnActivity);
 
         // Create the combined callback lambda
         var combinedCallbackLambda = Expression.Lambda(callbackType, methodBody, httpContextParam, activityContextParam);
