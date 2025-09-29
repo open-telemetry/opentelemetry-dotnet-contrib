@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* fix: ensure aws-xray-propagator maintains trace state
+  ([#3145](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3145))
+
 ## 1.12.1
 
 Released 2025-Sep-03
