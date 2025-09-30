@@ -704,11 +704,9 @@ internal static class SqlProcessor
             // Phase 1: Create all static instances.
             // We will compare the SQL we are parsing in lowercase, so we store these in lowercase also.
             AlterKeyword = new("alter", SqlKeyword.Alter, Unknown);
-            ClusteredKeyword = new("clustered", SqlKeyword.Clustered, [SqlKeyword.Unique]);
             CreateKeyword = new("create", SqlKeyword.Create, Unknown);
             DatabaseKeyword = new("database", SqlKeyword.Database, DdlKeywords);
             DeleteKeyword = new("delete", SqlKeyword.Delete, Unknown);
-            DistinctKeyword = new("distinct", SqlKeyword.Distinct, [SqlKeyword.Select]);
             DropKeyword = new("drop", SqlKeyword.Drop, Unknown);
             ExecKeyword = new("exec", SqlKeyword.Exec, Unknown);
             ExistsKeyword = new("exists", SqlKeyword.Exists);
@@ -719,7 +717,6 @@ internal static class SqlProcessor
             InsertKeyword = new("insert", SqlKeyword.Insert, Unknown);
             IntoKeyword = new("into", SqlKeyword.Into);
             JoinKeyword = new("join", SqlKeyword.Join);
-            NonClusteredKeyword = new("nonclustered", SqlKeyword.NonClustered, [SqlKeyword.Unique]);
             NotKeyword = new("not", SqlKeyword.Not);
             OnKeyword = new("on", SqlKeyword.On);
             ProcedureKeyword = new("procedure", SqlKeyword.Procedure, DdlKeywords);
@@ -730,7 +727,6 @@ internal static class SqlProcessor
             TableKeyword = new("table", SqlKeyword.Table, DdlKeywords);
             TriggerKeyword = new("trigger", SqlKeyword.Trigger, DdlKeywords);
             UnionKeyword = new("union", SqlKeyword.Union);
-            UniqueKeyword = new("unique", SqlKeyword.Unique, DdlKeywords);
             UnknownKeyword = new(string.Empty, SqlKeyword.Unknown);
             UpdateKeyword = new("update", SqlKeyword.Update, Unknown);
             UserKeyword = new("user", SqlKeyword.User, DdlKeywords);
@@ -743,9 +739,6 @@ internal static class SqlProcessor
             [
                 TableKeyword,
                 IndexKeyword,
-                UniqueKeyword,
-                ClusteredKeyword,
-                NonClusteredKeyword,
                 ViewKeyword,
                 ProcedureKeyword,
                 TriggerKeyword,
@@ -759,10 +752,8 @@ internal static class SqlProcessor
 
             // Phase 3: Wire follow relationships
             AlterKeyword.FollowedByKeywords = DdlSubKeywords;
-            ClusteredKeyword.FollowedByKeywords = [IndexKeyword];
             CreateKeyword.FollowedByKeywords = DdlSubKeywords;
             DatabaseKeyword.FollowedByKeywords = [IfKeyword];
-            DistinctKeyword.FollowedByKeywords = [FromKeyword];
             DropKeyword.FollowedByKeywords = DdlSubKeywords;
             FromKeyword.FollowedByKeywords = [JoinKeyword, UnionKeyword];
             FunctionKeyword.FollowedByKeywords = [IfKeyword];
@@ -770,18 +761,16 @@ internal static class SqlProcessor
             IndexKeyword.FollowedByKeywords = [OnKeyword, IfKeyword];
             InsertKeyword.FollowedByKeywords = [IntoKeyword];
             JoinKeyword.FollowedByKeywords = [OnKeyword];
-            NonClusteredKeyword.FollowedByKeywords = [IndexKeyword];
             NotKeyword.FollowedByKeywords = [ExistsKeyword];
             OnKeyword.FollowedByKeywords = [JoinKeyword];
             ProcedureKeyword.FollowedByKeywords = [IfKeyword];
             RoleKeyword.FollowedByKeywords = [IfKeyword];
             SchemaKeyword.FollowedByKeywords = [IfKeyword, UnionKeyword];
-            SelectKeyword.FollowedByKeywords = [FromKeyword, DistinctKeyword];
+            SelectKeyword.FollowedByKeywords = [FromKeyword];
             SequenceKeyword.FollowedByKeywords = [IfKeyword];
             TableKeyword.FollowedByKeywords = [IfKeyword];
             TriggerKeyword.FollowedByKeywords = [IfKeyword];
             UnionKeyword.FollowedByKeywords = [SelectKeyword];
-            UniqueKeyword.FollowedByKeywords = [IndexKeyword, ClusteredKeyword, NonClusteredKeyword];
             UserKeyword.FollowedByKeywords = [IfKeyword];
             ViewKeyword.FollowedByKeywords = [IfKeyword];
         }
@@ -799,15 +788,11 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo AlterKeyword { get; }
 
-        public static SqlKeywordInfo ClusteredKeyword { get; }
-
         public static SqlKeywordInfo CreateKeyword { get; }
 
         public static SqlKeywordInfo DatabaseKeyword { get; }
 
         public static SqlKeywordInfo DeleteKeyword { get; }
-
-        public static SqlKeywordInfo DistinctKeyword { get; }
 
         public static SqlKeywordInfo DropKeyword { get; }
 
@@ -829,8 +814,6 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo JoinKeyword { get; }
 
-        public static SqlKeywordInfo NonClusteredKeyword { get; }
-
         public static SqlKeywordInfo NotKeyword { get; }
 
         public static SqlKeywordInfo OnKeyword { get; }
@@ -850,8 +833,6 @@ internal static class SqlProcessor
         public static SqlKeywordInfo TriggerKeyword { get; }
 
         public static SqlKeywordInfo UnionKeyword { get; }
-
-        public static SqlKeywordInfo UniqueKeyword { get; }
 
         public static SqlKeywordInfo UnknownKeyword { get; }
 

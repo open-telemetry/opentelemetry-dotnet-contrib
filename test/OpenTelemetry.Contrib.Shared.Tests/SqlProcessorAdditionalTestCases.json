@@ -35,7 +35,7 @@
       "db.query.text": [
         "CREATE UNIQUE CLUSTERED INDEX IX_Employee_Email ON Employees (Email);"
       ],
-      "db.query.summary": "CREATE UNIQUE CLUSTERED INDEX IX_Employee_Email"
+      "db.query.summary": "CREATE INDEX IX_Employee_Email"
     }
   },
   {
@@ -48,7 +48,7 @@
       "db.query.text": [
         "CREATE UNIQUE INDEX IX_Employee_Email ON Employees (Email);"
       ],
-      "db.query.summary": "CREATE UNIQUE INDEX IX_Employee_Email"
+      "db.query.summary": "CREATE INDEX IX_Employee_Email"
     }
   },
   {
@@ -295,7 +295,7 @@
       "db.query.text": [
         "SELECT DISTINCT Department, COUNT(*) OVER (PARTITION BY Department) AS DeptCount FROM Employees;"
       ],
-      "db.query.summary": "SELECT DISTINCT Employees"
+      "db.query.summary": "SELECT Employees"
     }
   },
   {
