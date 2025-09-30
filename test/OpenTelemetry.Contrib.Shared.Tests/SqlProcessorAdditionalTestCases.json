@@ -61,7 +61,7 @@
       "db.query.text": [
         "SELECT DISTINCT Country FROM Countries"
       ],
-      "db.query.summary": "SELECT DISTINCT Countries"
+      "db.query.summary": "SELECT Countries"
     }
   },
   {
@@ -74,7 +74,7 @@
       "db.query.text": [
         "SELECT DISTINCT o.Id FROM Orders o JOIN Customers c ON o.CustomerId = c.Id"
       ],
-      "db.query.summary": "SELECT DISTINCT Orders Customers"
+      "db.query.summary": "SELECT Orders Customers"
     }
   },
   {
@@ -390,35 +390,35 @@
     }
   },
   {
-    "name": "create_sequence_tsql",
+    "name": "create_sequence",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "other_sql",
       "query": "CREATE SEQUENCE SalesSeq START WITH 1 INCREMENT BY 1;"
     },
     "expected": {
       "db.query.text": [
-        "CREATE SEQUENCE SalesSeq START WITH 1 INCREMENT BY 1;"
+        "CREATE SEQUENCE SalesSeq START WITH ? INCREMENT BY ?;"
       ],
       "db.query.summary": "CREATE SEQUENCE SalesSeq"
     }
   },
   {
-    "name": "alter_sequence_tsql",
+    "name": "alter_sequence",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "other_sql",
       "query": "ALTER SEQUENCE SalesSeq RESTART WITH 100;"
     },
     "expected": {
       "db.query.text": [
-        "ALTER SEQUENCE SalesSeq RESTART WITH 100;"
+        "ALTER SEQUENCE SalesSeq RESTART WITH ?;"
       ],
       "db.query.summary": "ALTER SEQUENCE SalesSeq"
     }
   },
   {
-    "name": "drop_sequence_tsql",
+    "name": "drop_sequence",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "other_sql",
       "query": "DROP SEQUENCE SalesSeq;"
     },
     "expected": {
@@ -431,7 +431,7 @@
   {
     "name": "create_function_tsql",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "microsoft.sql_server",
       "query": "CREATE FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a + @b; END;"
     },
     "expected": {
@@ -444,7 +444,7 @@
   {
     "name": "alter_function_tsql",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "microsoft.sql_server",
       "query": "ALTER FUNCTION dbo.GetTotal(@a INT, @b INT) RETURNS INT AS BEGIN RETURN @a * @b; END;"
     },
     "expected": {
@@ -457,7 +457,7 @@
   {
     "name": "drop_function_tsql",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "microsoft.sql_server",
       "query": "DROP FUNCTION dbo.GetTotal;"
     },
     "expected": {
@@ -559,14 +559,14 @@
     }
   },
   {
-    "name": "exec_sp_rename_table",
+    "name": "exec_sp_rename_table_tsql",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "microsoft.sql_server",
       "query": "EXEC sp_rename 'OldTable', 'NewTable';"
     },
     "expected": {
       "db.query.text": [
-        "EXEC sp_rename 'OldTable', 'NewTable';"
+        "EXEC sp_rename ?, ?;"
       ],
       "db.query.summary": "EXEC sp_rename"
     }
@@ -574,7 +574,7 @@
   {
     "name": "exec_stored_procedure_no_params",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "other_sql",
       "query": "EXEC GetAllEmployees;"
     },
     "expected": {
@@ -587,7 +587,7 @@
   {
     "name": "exec_stored_procedure_with_params",
     "input": {
-      "db.system.name": "mssql",
+      "db.system.name": "other_sql",
       "query": "EXEC GetEmployeeById @EmployeeId = 42;"
     },
     "expected": {
