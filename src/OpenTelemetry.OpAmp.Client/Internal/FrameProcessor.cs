@@ -3,7 +3,6 @@
 
 using System.Buffers;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Listeners;
@@ -14,7 +13,7 @@ namespace OpenTelemetry.OpAmp.Client.Internal;
 
 internal sealed class FrameProcessor
 {
-    private readonly ConcurrentDictionary<Type, ImmutableList<IOpAmpListener>> listeners = [];
+    private readonly ConcurrentDictionary<Type, IReadOnlyList<IOpAmpListener>> listeners = [];
 
     public void Subscribe<T>(IOpAmpListener<T> listener)
         where T : IOpAmpMessage
@@ -25,7 +24,13 @@ internal sealed class FrameProcessor
         this.listeners.AddOrUpdate(
             typeof(T),
             _ => [listener],
-            (_, list) => list.Add(listener));
+            (_, list) =>
+            {
+                var newList = new List<IOpAmpListener>(list.Count + 1);
+                newList.AddRange(list);
+                newList.Add(listener);
+                return newList;
+            });
     }
 
     public void Unsubscribe<T>(IOpAmpListener<T> listener)
@@ -35,15 +40,15 @@ internal sealed class FrameProcessor
 
         this.listeners.AddOrUpdate(
             typeof(T),
-            _ => ImmutableList<IOpAmpListener>.Empty,
+            _ => [],
             (_, list) =>
             {
                 if (list.Count == 1 && list[0] == listener)
                 {
-                    return ImmutableList<IOpAmpListener>.Empty;
+                    return [];
                 }
 
-                return list.Remove(listener);
+                return list.Where(x => x != listener).ToList();
             });
     }
 
