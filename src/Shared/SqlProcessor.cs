@@ -45,6 +45,7 @@ internal static class SqlProcessor
         SqlKeywordInfo.CreateKeyword,
         SqlKeywordInfo.AlterKeyword,
         SqlKeywordInfo.DropKeyword,
+        SqlKeywordInfo.ExecKeyword,
     ];
 
     // This is a special case used when handling sub-queries in parentheses.
@@ -68,6 +69,7 @@ internal static class SqlProcessor
         Delete,
         Distinct,
         Drop,
+        Exec,
         Exists,
         From,
         Function,
@@ -708,6 +710,7 @@ internal static class SqlProcessor
             DeleteKeyword = new("delete", SqlKeyword.Delete, Unknown);
             DistinctKeyword = new("distinct", SqlKeyword.Distinct, [SqlKeyword.Select]);
             DropKeyword = new("drop", SqlKeyword.Drop, Unknown);
+            ExecKeyword = new("exec", SqlKeyword.Exec, Unknown);
             ExistsKeyword = new("exists", SqlKeyword.Exists);
             FromKeyword = new("from", SqlKeyword.From);
             FunctionKeyword = new("function", SqlKeyword.Function, DdlKeywords);
@@ -808,6 +811,8 @@ internal static class SqlProcessor
 
         public static SqlKeywordInfo DropKeyword { get; }
 
+        public static SqlKeywordInfo ExecKeyword { get; }
+
         public static SqlKeywordInfo ExistsKeyword { get; }
 
         public static SqlKeywordInfo FromKeyword { get; }
@@ -867,6 +872,7 @@ internal static class SqlProcessor
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CaptureNextTokenInSummary(in ParseState state, SqlKeyword currentKeyword) => currentKeyword switch
         {
+            SqlKeyword.Exec => true,
             SqlKeyword.From => state.PreviousSummaryKeyword is SqlKeyword.Select or SqlKeyword.Distinct,
             SqlKeyword.Into => state.FirstSummaryKeyword is SqlKeyword.Insert,
             SqlKeyword.Join => state.FirstSummaryKeyword is SqlKeyword.Select or SqlKeyword.Join,

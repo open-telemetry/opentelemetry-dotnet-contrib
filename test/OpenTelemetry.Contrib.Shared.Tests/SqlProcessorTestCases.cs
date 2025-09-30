@@ -17,7 +17,7 @@ public static class SqlProcessorTestCases
         Converters = { new JsonStringEnumConverter() },
     };
 
-    private static readonly HashSet<string> DbSystemTestCasesToExecute = ["other_sql"];
+    private static readonly HashSet<string> DbSystemTestCasesToExecute = ["other_sql", "microsoft.sql_server"];
 
     public static TheoryData<TestCase> GetSemanticConventionsTestCases()
     {
