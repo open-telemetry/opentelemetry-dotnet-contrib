@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
 
 ## 1.11.0-beta.1
 
