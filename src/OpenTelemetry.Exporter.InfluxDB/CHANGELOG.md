@@ -7,8 +7,8 @@
   [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).
   ([#2202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2202))
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
 
 ## 1.0.0-alpha.4
 
