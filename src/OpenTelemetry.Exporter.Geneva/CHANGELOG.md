@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+
 ## 1.13.0-alpha.1
 
 Released 2025-Jun-07
@@ -11,6 +14,7 @@ Released 2025-Jun-07
   set using the `PrivatePreviewLogMessagePackStringSizeLimit=<CharCount>`
   connection string parameter.
   ([#2813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2813))
+
 * Add httpUrl for HTTP server spans mapped from multiple attributes.
   ([#2818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2818))
 
