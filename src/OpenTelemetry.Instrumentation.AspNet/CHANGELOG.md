@@ -16,7 +16,7 @@
   ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
 
 * Replace static routing tokens with actual values in the route template.
-  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3160))
+  ([#3160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3160))
 
 ## 1.12.0-beta.2
 
