@@ -46,7 +46,7 @@ public class BasicTests
         using var tracerProvider = tracerProviderBuilder.Build();
         using var meterProvider = meterProviderBuilder.Build();
 
-        HttpContext.Current = RouteTestHelper.BuildHttpContext("http://localhost", 0, null, "GET", null, null);
+        HttpContext.Current = RouteTestHelper.BuildHttpContext("http://localhost", 0, null, "GET");
         HttpContext.Current.Response.StatusCode = 200;
         var requestActivity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
         Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
