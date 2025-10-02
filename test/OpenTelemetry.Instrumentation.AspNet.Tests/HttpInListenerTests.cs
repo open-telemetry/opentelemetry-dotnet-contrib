@@ -26,25 +26,25 @@ public class HttpInListenerTests
     }
 
     [Theory]
-    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET")]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", true)]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", true)]
-    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=Redacted&baz=Redacted", null, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", true)]
-    [InlineData("https://localhost/", "https", "/", null, null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null, null, null, "HTTP")]
-    [InlineData("https://user:pass@localhost/", "https", "/", null, null, "localhost", 443, "GeT", "GET", "GeT", 0, null, null, null, "GET")] // Test URL sanitization
-    [InlineData("http://localhost:443/", "http", "/", null, null, "localhost", 443, "GET", "GET", null, 0, null, null, null, "GET")] // Test http over 443
-    [InlineData("https://localhost:80/", "https", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET")] // Test https over 80
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET")] // Test complex URL
-    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET")] // Test complex URL
-    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET")] // Test complex URL sanitization
-    [InlineData("http://localhost:80/Index", "http", "/Index", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "Home", "Index", "GET Home/Index/{id}")]
-    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", null, null, "HEAD about_attr_route/{customerId}")]
-    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "WeatherForecast", "Get", "GET api/WeatherForecast/{id}")]
-    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", null, null, "GET subroute/{customerId}")]
-    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 5, "subroute/{customerId}", null, null, "GET subroute/{customerId}")]
-    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", false, "/api/value")] // Request will be filtered
-    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", false, "{ThrowException}")] // Filter user code will throw an exception
-    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", false, null, true, "System.InvalidOperationException")] // Test RecordException option
+    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET")]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", "POST", true)]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=bar&baz=test", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", "POST", true)]
+    [InlineData("http://localhost/?foo=bar&baz=test", "http", "/", "foo=Redacted&baz=Redacted", null, "localhost", 80, "POST", "POST", null, 0, null, null, null, "POST", "POST", true)]
+    [InlineData("https://localhost/", "https", "/", null, null, "localhost", 443, "NonStandard", "_OTHER", "NonStandard", 0, null, null, null, "HTTP", "HTTP")]
+    [InlineData("https://user:pass@localhost/", "https", "/", null, null, "localhost", 443, "GeT", "GET", "GeT", 0, null, null, null, "GET", "GET")] // Test URL sanitization
+    [InlineData("http://localhost:443/", "http", "/", null, null, "localhost", 443, "GET", "GET", null, 0, null, null, null, "GET", "GET")] // Test http over 443
+    [InlineData("https://localhost:80/", "https", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET")] // Test https over 80
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET")] // Test complex URL
+    [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET")] // Test complex URL
+    [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET")] // Test complex URL sanitization
+    [InlineData("http://localhost:80/Index", "http", "/Index", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "Home", "Index", "GET", "GET Home/Index/{id}")]
+    [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", null, null, "HEAD", "HEAD about_attr_route/{customerId}")]
+    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "WeatherForecast", "Get", "GET", "GET api/WeatherForecast/{id}")]
+    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", null, null, "GET", "GET subroute/{customerId}")]
+    [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 5, "subroute/{customerId}", null, null, "GET", "GET subroute/{customerId}")]
+    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET", false, "/api/value")] // Request will be filtered
+    [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET", false, "{ThrowException}")] // Filter user code will throw an exception
+    [InlineData("http://localhost/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 0, null, null, null, "GET", "GET", false, null, true, "System.InvalidOperationException")] // Test RecordException option
     public void AspNetRequestsAreCollectedSuccessfully(
         string url,
         string expectedUrlScheme,
@@ -60,7 +60,8 @@ public class HttpInListenerTests
         string? routeTemplate,
         string? controller,
         string? action,
-        string expectedName,
+        string expectedNameAfterStart,
+        string expectedNameAfterStop,
         bool setStatusToErrorInEnrich = false,
         string? filter = null,
         bool recordException = false,
@@ -161,7 +162,7 @@ public class HttpInListenerTests
                     Assert.Single(inMemoryEventListener.Events, e => e.EventId == 2);
                 }
 
-                Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current!.OperationName);
+                Assert.Equal(expectedNameAfterStart, Activity.Current!.DisplayName);
 
                 if (recordException)
                 {
@@ -181,10 +182,9 @@ public class HttpInListenerTests
 
             var span = exportedItems[0];
 
-            Assert.Equal(ActivityHelper.AspNetActivityName, span.OperationName);
             Assert.NotEqual(TimeSpan.Zero, span.Duration);
 
-            Assert.Equal(expectedName, span.DisplayName);
+            Assert.Equal(expectedNameAfterStop, span.DisplayName);
             Assert.Equal(ActivityKind.Server, span.Kind);
             Assert.True(span.Duration != TimeSpan.Zero);
 

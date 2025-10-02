@@ -14,8 +14,8 @@
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2198))
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
-
 * Add support for FaaS resource attributes for Google Cloud Run.
   ([#2789](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2789))
+
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
