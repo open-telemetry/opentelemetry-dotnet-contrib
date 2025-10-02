@@ -531,8 +531,10 @@ function GetCoreDependenciesForProjects {
         $output = dotnet restore $project
 
         $projectDir = $project | Split-Path -Parent
+        $projectDirName = $projectDir | Split-Path -Leaf
+        $projectArtifactsDir = $projectDir | Split-Path -Parent | Split-Path -Parent | Join-Path -ChildPath "artifacts/obj/$projectDirName"
 
-        $content = (Get-Content "$projectDir/obj/project.assets.json" -Raw)
+        $content = (Get-Content "$projectArtifactsDir/project.assets.json" -Raw)
 
         $projectDependencies = @{}
 

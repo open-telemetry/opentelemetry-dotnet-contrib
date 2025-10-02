@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+
 * Added support for the `host.arch` resource attribute in `HostDetector`, reporting the host architecture (e.g., `X64`, `Arm64`). This feature is only supported on .NET 5+ and not on .NET Framework.
   ([#4137](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3147))
 
