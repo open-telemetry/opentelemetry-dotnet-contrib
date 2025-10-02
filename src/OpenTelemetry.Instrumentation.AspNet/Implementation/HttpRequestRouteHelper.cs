@@ -77,11 +77,7 @@ internal sealed class HttpRequestRouteHelper
             template = template.Replace($"{{{token}}}", string.Empty);
         }
 
-#pragma warning disable CA1308 // Normalize strings to uppercase
-        template = template
+        return template
             .TrimEnd('/'); // Normalizes endings
-#pragma warning restore CA1308 // Normalize strings to uppercase
-
-        return template;
     }
 }
