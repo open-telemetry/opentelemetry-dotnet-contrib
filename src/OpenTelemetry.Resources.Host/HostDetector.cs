@@ -85,6 +85,7 @@ internal sealed class HostDetector : IResourceDetector
             Architecture.X64 => "x64",
             Architecture.Arm => "arm32",
             Architecture.Arm64 => "arm64",
+#if NET
             Architecture.S390x => "s390x",
             Architecture.Armv6 => "arm32",
             Architecture.Ppc64le => "ppc64",
@@ -92,6 +93,7 @@ internal sealed class HostDetector : IResourceDetector
             // following architectures do not have a mapping in OTEL spec https://github.com/open-telemetry/semantic-conventions/blob/v1.37.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
+#endif
             _ => null,
         };
     }
