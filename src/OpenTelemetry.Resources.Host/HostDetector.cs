@@ -120,7 +120,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
 #if !NETFRAMEWORK
-            var arch = MapArchitectureToOtel(RuntimeInformation.ProcessArchitecture);
+            var arch = MapArchitectureToOtel(RuntimeInformation.OSArchitecture);
             if (arch != null)
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
