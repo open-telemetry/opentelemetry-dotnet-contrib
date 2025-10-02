@@ -151,7 +151,7 @@ internal static class RouteTestHelper
                 }
                 else
                 {
-                    // mismatch → bail out (route doesn’t match)
+                    // mismatch, bail out (route doesn’t match)
                     return;
                 }
             }
