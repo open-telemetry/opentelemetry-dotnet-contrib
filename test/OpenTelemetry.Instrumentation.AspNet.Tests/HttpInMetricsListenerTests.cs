@@ -12,25 +12,27 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 public class HttpInMetricsListenerTests
 {
     [Theory]
-    [InlineData("http://localhost/", 0, null, null, "http", "localhost", null, 80, 200)]
-    [InlineData("http://localhost/", 0, null, null, "http", null, null, null, 200, false)]
-    [InlineData("https://localhost/", 0, null, null, "https", "localhost", null, 443, 200)]
-    [InlineData("https://localhost/", 0, null, null, "https", null, null, null, 200, false)]
-    [InlineData("http://localhost/api/value", 0, null, null, "http", "localhost", null, 80, 200)]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 201)]
-    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 500)]
-    [InlineData("http://localhost:8080/api/value", 0, null, null, "http", "localhost", null, 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
+    [InlineData("http://localhost/", 0, null, null, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("http://localhost/", 0, null, null, null, null, "http", null, null, null, 200, false)]
+    [InlineData("https://localhost/", 0, null, null, null, null, "https", "localhost", null, 443, 200)]
+    [InlineData("https://localhost/", 0, null, null, null, null, "https", null, null, null, 200, false)]
+    [InlineData("http://localhost/api/values/5", 0, null, null, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("http://localhost/api/values/5", 1, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/values/5", 2, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 80, 201)]
+    [InlineData("http://localhost/api/values/5", 3, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/values/5", 4, "api/Values/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/values/5", 1, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 80, 500)]
+    [InlineData("http://localhost:8080/api/values/5", 0, null, null, null, null, "http", "localhost", null, 8080, 200)]
+    [InlineData("http://localhost:8080/api/values/5", 1, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/values/5", 3, "api/{controller}/{id}", "Values", "Get", "enrich", "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/values/5", 3, "api/{controller}/{id}", "Values", "Get", "throw", "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/values/5", 3, "api/{controller}/{id}", "Values", "Get", null, "http", "localhost", "api/Values/{id}", 8080, 200)]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
         string? routeTemplate,
+        string? controller,
+        string? action,
         string? enrichMode,
         string expectedScheme,
         string? expectedHost,
@@ -39,7 +41,7 @@ public class HttpInMetricsListenerTests
         int expectedStatus,
         bool enableServerAttributesForRequestDuration = true)
     {
-        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, "GET");
+        HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, "GET", controller, action);
         HttpContext.Current.Response.StatusCode = expectedStatus;
 
         var exportedItems = new List<Metric>();

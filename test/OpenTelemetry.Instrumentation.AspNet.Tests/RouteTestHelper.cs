@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Tests;
 
 internal static class RouteTestHelper
 {
-    public static HttpContext BuildHttpContext(string url, int routeType, string? routeTemplate, string requestMethod)
+    public static HttpContext BuildHttpContext(string url, int routeType, string? routeTemplate, string requestMethod, string? controller, string? action)
     {
         RouteData routeData;
         switch (routeType)
@@ -22,7 +22,8 @@ internal static class RouteTestHelper
             case 3: // Traditional WebAPI.
                 routeData = new RouteData
                 {
-                    Route = new Route(routeTemplate, null),
+                    Route = new Route(routeTemplate, new RouteValueDictionary(), null),
+                    Values = { { "controller", controller }, { "action", action } },
                 };
                 break;
             case 4: // Attribute routing WebAPI.
@@ -33,6 +34,7 @@ internal static class RouteTestHelper
                     {
                         Route = new
                         {
+                            Defaults = new RouteValueDictionary(),
                             RouteTemplate = routeTemplate,
                         },
                     },
@@ -50,6 +52,7 @@ internal static class RouteTestHelper
                     Route = new
                     {
                         RouteTemplate = routeTemplate,
+                        Defaults = new RouteValueDictionary(),
                         DataTokens = new Dictionary<string, object>
                         {
                             ["actions"] = new[]

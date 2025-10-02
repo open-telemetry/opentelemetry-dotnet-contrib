@@ -79,7 +79,6 @@ internal sealed class HttpRequestRouteHelper
 
 #pragma warning disable CA1308 // Normalize strings to uppercase
         template = template
-            .ToLowerInvariant() // Normalizes casing
             .TrimEnd('/'); // Normalizes endings
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
