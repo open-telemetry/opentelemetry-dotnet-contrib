@@ -20,9 +20,16 @@ internal static class RouteTestHelper
             case 1: // Traditional MVC.
             case 2: // Attribute routing MVC.
             case 3: // Traditional WebAPI.
+
+                var routeDefaults = new RouteValueDictionary()
+                {
+                    // This marks id parameter as optional.
+                    // Parameter name should match with the route template used in tests.
+                    ["id"] = new { },
+                };
                 routeData = new RouteData
                 {
-                    Route = new Route(routeTemplate, new RouteValueDictionary(), null),
+                    Route = new Route(routeTemplate, routeDefaults, null),
                     Values = { { "controller", controller }, { "action", action } },
                 };
                 break;
