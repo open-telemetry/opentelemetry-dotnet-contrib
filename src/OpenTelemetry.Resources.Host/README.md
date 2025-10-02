@@ -54,7 +54,10 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 The resource detectors will record the following metadata based on where
 your application is running:
 
-- **HostDetector**: `host.id` (when running on non-containerized systems), `host.name`.
+- **HostDetector**:
+  - `host.arch` (supported only on .NET),
+  - `host.id` (when running on non-containerized systems),
+  - `host.name`.
 
 ## References
 
