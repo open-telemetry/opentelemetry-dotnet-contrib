@@ -24,7 +24,7 @@
       Please sort alphabetically.
       Refer to https://docs.microsoft.com/nuget/concepts/package-versioning for semver syntax.
     -->
-    <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
+    <BenchmarkDotNetPkgVer>0.15.2</BenchmarkDotNetPkgVer>
     <GitHubActionsTestLoggerPkgVer>2.4.1</GitHubActionsTestLoggerPkgVer>
     <JunitXmlTestLoggerPkgVer>6.1.0</JunitXmlTestLoggerPkgVer>
     <MicrosoftExtensionsConfigurationJsonPkgVer>8.0.1</MicrosoftExtensionsConfigurationJsonPkgVer>
