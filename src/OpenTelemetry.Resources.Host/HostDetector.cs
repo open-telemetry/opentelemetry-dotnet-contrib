@@ -118,7 +118,6 @@ internal sealed class HostDetector : IResourceDetector
             }
 
 #if !NETFRAMEWORK
-            // Add host architecture attribute using OTEL semantic mapping
             var arch = MapArchitectureToOtel(RuntimeInformation.ProcessArchitecture);
             if (arch != null)
             {
