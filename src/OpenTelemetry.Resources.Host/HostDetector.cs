@@ -126,6 +126,9 @@ internal sealed class HostDetector : IResourceDetector
                 attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
             }
 #endif
+#if NET471_OR_GREATER
+#error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
+#endif
 
             return new Resource(attributes);
         }
