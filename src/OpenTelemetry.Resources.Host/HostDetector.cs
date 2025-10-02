@@ -77,22 +77,24 @@ internal sealed class HostDetector : IResourceDetector
     }
 
 #if !NETFRAMEWORK
-#pragma warning disable CA1308
-    // CA1308 wants ToUpper to be used instead of ToLowerInvariant() here
-    // but that is incorrect as we want ToLower per OTEL spec
-    public static string MapArchitectureToOtel(Architecture arch)
+    public static string? MapArchitectureToOtel(Architecture arch)
     {
         return arch switch
         {
+            Architecture.X86 => "x86",
             Architecture.X64 => "x64",
             Architecture.Arm => "arm32",
             Architecture.Arm64 => "arm64",
             Architecture.S390x => "s390x",
+            Architecture.Armv6 => "arm32",
             Architecture.Ppc64le => "ppc64",
-            _ => arch.ToString().ToLowerInvariant(),
+
+            // following architectures do not have a mapping in OTEL spec https://github.com/open-telemetry/semantic-conventions/blob/v1.37.0/docs/resource/host.md
+            Architecture.Wasm => null,
+            Architecture.LoongArch64 => null,
+            _ => null,
         };
     }
-#pragma warning restore CA1308
 #endif
 
     /// <summary>
@@ -118,7 +120,10 @@ internal sealed class HostDetector : IResourceDetector
 #if !NETFRAMEWORK
             // Add host architecture attribute using OTEL semantic mapping
             var arch = MapArchitectureToOtel(RuntimeInformation.ProcessArchitecture);
-            attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
+            if (arch != null)
+            {
+                attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
+            }
 #endif
 
             return new Resource(attributes);
