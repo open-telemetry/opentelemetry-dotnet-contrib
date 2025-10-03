@@ -23,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Core" Version="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SimpleNotificationService" Version="[4.0.0, 5.0.0)" />
-    <PackageReference Include="AWSSDK.SQS" Version="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.0, 5.0.0)" />
   </ItemGroup>
 
   <ItemGroup>

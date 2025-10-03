@@ -19,31 +19,17 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
-  <PropertyGroup Label="Package versions used in by test projects">
-    <!--
-      Please sort alphabetically.
-      Refer to https://docs.microsoft.com/nuget/concepts/package-versioning for semver syntax.
-    -->
-    <BenchmarkDotNetPkgVer>[0.13.12,0.14)</BenchmarkDotNetPkgVer>
-    <GitHubActionsTestLoggerPkgVer>2.4.1</GitHubActionsTestLoggerPkgVer>
-    <JunitXmlTestLoggerPkgVer>6.1.0</JunitXmlTestLoggerPkgVer>
-    <MicrosoftExtensionsConfigurationJsonPkgVer>8.0.1</MicrosoftExtensionsConfigurationJsonPkgVer>
-    <MicrosoftExtensionsHostingPkgVer>8.0.1</MicrosoftExtensionsHostingPkgVer>
-    <MicrosoftNETTestSdkPkgVer>[17.14.1,18.0)</MicrosoftNETTestSdkPkgVer>
-    <OpenTelemetryExporterInMemoryPkgVer>$(OpenTelemetryCoreLatestVersion)</OpenTelemetryExporterInMemoryPkgVer>
+  <PropertyGroup Label="Target frameworks used in by test projects">
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
-    <XUnitRunnerVisualStudioPkgVer>[2.8.2,3.0)</XUnitRunnerVisualStudioPkgVer>
-    <XUnitPkgVer>[2.9.3,3.0)</XUnitPkgVer>
-    <WiremockNetPkgVer>[1.7.0,2.0)</WiremockNetPkgVer>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
-    <PackageReference Include="GitHubActionsTestLogger" Version="$(GitHubActionsTestLoggerPkgVer)" />
-    <PackageReference Include="JunitXml.TestLogger" Version="$(JunitXmlTestLoggerPkgVer)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETTestSdkPkgVer)" />
-    <PackageReference Include="xunit" Version="$(XUnitPkgVer)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioPkgVer)" PrivateAssets="All" />
+    <PackageReference Include="GitHubActionsTestLogger" />
+    <PackageReference Include="JunitXml.TestLogger" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true' AND '$(SkipStrongNameValidation)' != 'true'">
