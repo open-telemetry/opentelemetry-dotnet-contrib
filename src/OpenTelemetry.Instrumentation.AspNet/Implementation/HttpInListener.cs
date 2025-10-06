@@ -32,9 +32,9 @@ internal sealed class HttpInListener : IDisposable
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    private static double CalculateDurationFromTimestamp(long begin)
     {
-        end ??= Stopwatch.GetTimestamp();
+        var end = Stopwatch.GetTimestamp();
         var delta = end - begin;
         var ticks = (long)(TimestampToTicks * delta);
         var duration = new TimeSpan(ticks);
