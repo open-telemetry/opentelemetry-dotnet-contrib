@@ -16,6 +16,7 @@ internal static class ActivityDateTimeHelper
 #pragma warning disable CA1823 // suppress unused field warning, as it's used to keep the timer alive
     private static readonly Timer SyncTimeUpdater = InitializeSyncTimer();
 #pragma warning restore CA1823
+    private static readonly double TickFrequency = (double)TimeSpan.TicksPerSecond / Stopwatch.Frequency;
 
     private static TimeSync timeSync = new();
 
@@ -31,8 +32,7 @@ internal static class ActivityDateTimeHelper
         var tmp = timeSync;
 
         // Timer ticks need to be converted to DateTime ticks
-        long dateTimeTicksDiff = (long)((Stopwatch.GetTimestamp() - tmp.SyncStopwatchTicks) * 10000000L /
-                                        (double)Stopwatch.Frequency);
+        long dateTimeTicksDiff = (long)((Stopwatch.GetTimestamp() - tmp.SyncStopwatchTicks) * TickFrequency);
 
         // DateTime.AddSeconds (or Milliseconds) rounds value to 1 ms, use AddTicks to prevent it
         return tmp.SyncUtcNow.AddTicks(dateTimeTicksDiff);
