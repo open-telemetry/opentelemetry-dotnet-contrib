@@ -60,7 +60,7 @@ internal static class ActivityDateTimeHelper
                 restoreFlow = true;
             }
 
-            timer = new Timer(s => { Sync(); }, null, 0, 7200000);
+            timer = new Timer(static _ => Sync(), null, 0, 7_200_000); // 2 hours
         }
         finally
         {
