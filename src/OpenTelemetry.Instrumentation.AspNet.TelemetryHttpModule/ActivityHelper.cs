@@ -120,7 +120,7 @@ internal static class ActivityHelper
         // Note that the activity must not be stopped before the callback is called.
         if (aspNetActivity.Duration == TimeSpan.Zero)
         {
-            aspNetActivity.SetEndTime(DateTime.UtcNow);
+            aspNetActivity.SetEndTime(ActivityDateTimeHelper.GetUtcNow());
         }
 
         try
