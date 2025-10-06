@@ -11,6 +11,9 @@
   responsible for providing function returning `Activity`.
   ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
 
+* Fixed an inaccurate span end of time.
+  ([#3171](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3171))
+
 ## 1.12.0-beta.2
 
 Released 2025-Sep-18
