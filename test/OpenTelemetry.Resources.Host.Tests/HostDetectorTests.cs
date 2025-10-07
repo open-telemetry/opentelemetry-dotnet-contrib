@@ -51,10 +51,20 @@ public class HostDetectorTests
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
 
+#if NET
+        Assert.Equal(3, resourceAttributes.Count);
+#else
         Assert.Equal(2, resourceAttributes.Count);
+#endif
 
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostName]);
         Assert.NotEmpty(resourceAttributes[HostSemanticConventions.AttributeHostId]);
+#if NET
+        Assert.NotEmpty(resourceAttributes["host.arch"]);
+#pragma warning disable CA1308 // Normalize strings to uppercase
+        Assert.Equal(RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(), resourceAttributes["host.arch"]);
+#pragma warning restore CA1308 // Normalize strings to uppercase
+#endif
     }
 
 #if NET

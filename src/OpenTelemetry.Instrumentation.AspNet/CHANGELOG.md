@@ -5,6 +5,16 @@
 * Updated OpenTelemetry core component version(s) to `1.13.0`.
   ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
 
+* Following attributes are available while sampling:
+  * `http.request.method`,
+  * `server.address`,
+  * `server.port`,
+  * `url.path`,
+  * `url.query`,
+  * `url.scheme`,
+  * `user_agent.original`.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
 ## 1.12.0-beta.2
 
 Released 2025-Sep-18

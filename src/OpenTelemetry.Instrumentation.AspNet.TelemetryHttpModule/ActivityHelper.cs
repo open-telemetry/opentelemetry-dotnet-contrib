@@ -6,8 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Web;
 using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
-using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AspNet;
 
@@ -17,30 +15,14 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 internal static class ActivityHelper
 {
     /// <summary>
-    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
-    /// </summary>
-    internal const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
-
-    /// <summary>
     /// Key to store the state in HttpContext.
     /// </summary>
     internal const string ContextKey = "__AspnetOpenTelemetryInstrumentationContext__";
-
-    /// <summary>
-    /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
-    /// </summary>
-    internal const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet";
 
     internal static readonly object StartedButNotSampledObj = new();
 
     private const string BaggageSlotName = "otel.baggage";
     private static readonly Func<HttpRequestBase, string, IEnumerable<string>> HttpRequestHeaderValuesGetter = (request, name) => request.Headers.GetValues(name);
-    private static readonly ActivitySource AspNetSource = new(
-        AspNetSourceName,
-        typeof(ActivityHelper).Assembly.GetPackageVersion());
-
-    [ThreadStatic]
-    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
@@ -69,29 +51,20 @@ internal static class ActivityHelper
     /// </summary>
     /// <param name="textMapPropagator"><see cref="TextMapPropagator"/>.</param>
     /// <param name="context"><see cref="HttpContextBase"/>.</param>
-    /// <param name="onRequestStartedCallback">Callback action.</param>
+    /// <param name="onRequestStartedCallback">Function creating activity.</param>
     /// <returns>New root activity.</returns>
-    public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContextBase context, Action<Activity?, HttpContextBase>? onRequestStartedCallback)
+    public static Activity? StartAspNetActivity(TextMapPropagator textMapPropagator, HttpContextBase context, Func<HttpContextBase, ActivityContext, Activity?>? onRequestStartedCallback)
     {
         var propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        KeyValuePair<string, object?>[]? tags;
-        if (context.Request?.Unvalidated?.Path is string path)
+        Activity? activity = null;
+        try
         {
-            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
-
-            tags[0] = new KeyValuePair<string, object?>(SemanticConventions.AttributeUrlPath, path);
+            activity = onRequestStartedCallback?.Invoke(context, propagationContext.ActivityContext);
         }
-        else
+        catch (Exception callbackEx)
         {
-            tags = null;
-        }
-
-        var activity = AspNetSource.StartActivity(AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
-
-        if (tags is not null)
-        {
-            tags[0] = default;
+            AspNetTelemetryEventSource.Log.CallbackException(activity, "Start", callbackEx);
         }
 
         if (activity != null)
@@ -107,20 +80,10 @@ internal static class ActivityHelper
                 context.Items[ContextKey] = new ContextHolder(activity);
             }
 
-            try
-            {
-                onRequestStartedCallback?.Invoke(activity, context);
-            }
-            catch (Exception callbackEx)
-            {
-                AspNetTelemetryEventSource.Log.CallbackException(activity, "OnStarted", callbackEx);
-            }
-
             AspNetTelemetryEventSource.Log.ActivityStarted(activity);
         }
         else
         {
-            onRequestStartedCallback?.Invoke(activity, context);
             context.Items[ContextKey] = StartedButNotSampledObj;
         }
 
@@ -157,7 +120,7 @@ internal static class ActivityHelper
         // Note that the activity must not be stopped before the callback is called.
         if (aspNetActivity.Duration == TimeSpan.Zero)
         {
-            aspNetActivity.SetEndTime(DateTime.UtcNow);
+            aspNetActivity.SetEndTime(ActivityDateTimeHelper.GetUtcNow());
         }
 
         try

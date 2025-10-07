@@ -5,7 +5,7 @@ OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.TelemetryHttpModule() -
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnExceptionCallback.get -> System.Action<System.Diagnostics.Activity?, System.Web.HttpContextBase!, System.Exception!>?
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnExceptionCallback.set -> void
-OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnRequestStartedCallback.get -> System.Action<System.Diagnostics.Activity?, System.Web.HttpContextBase!>?
+OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnRequestStartedCallback.get -> System.Func<System.Web.HttpContextBase!, System.Diagnostics.ActivityContext, System.Diagnostics.Activity?>?
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnRequestStartedCallback.set -> void
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnRequestStoppedCallback.get -> System.Action<System.Diagnostics.Activity?, System.Web.HttpContextBase!>?
 OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions.OnRequestStoppedCallback.set -> void

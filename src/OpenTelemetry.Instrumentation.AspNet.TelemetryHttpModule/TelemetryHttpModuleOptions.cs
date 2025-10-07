@@ -35,9 +35,10 @@ public class TelemetryHttpModuleOptions
     }
 
     /// <summary>
-    /// Gets or sets a callback action to be fired when a request is started.
+    /// Gets or sets a callback function to be fired when a request is started.
+    /// This function should return the <see cref="Activity"/> created to represent the request.
     /// </summary>
-    public Action<Activity?, HttpContextBase>? OnRequestStartedCallback { get; set; }
+    public Func<HttpContextBase, ActivityContext, Activity?>? OnRequestStartedCallback { get; set; }
 
     /// <summary>
     /// Gets or sets a callback action to be fired when a request is stopped.
