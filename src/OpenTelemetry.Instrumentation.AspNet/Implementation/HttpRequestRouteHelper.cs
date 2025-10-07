@@ -70,10 +70,14 @@ internal sealed class HttpRequestRouteHelper
         // Remove defaults with no values.
         var defaultKeys = route.Defaults.Keys;
         var valueKeys = routeData.Values.Keys;
-        var missingValueKeys = defaultKeys.Except(valueKeys);
 
-        foreach (var token in missingValueKeys)
+        foreach (var token in defaultKeys)
         {
+            if (valueKeys.Contains(token))
+            {
+                continue;
+            }
+
             template = template.Replace($"{{{token}}}", string.Empty);
         }
 
