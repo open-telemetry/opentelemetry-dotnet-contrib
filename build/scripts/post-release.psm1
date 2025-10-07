@@ -288,24 +288,24 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
 
   $tagPrefix = $match.Groups[1].Value
   $version = $match.Groups[2].Value
-  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+  $isPrerelease = $version.Contains('-')
 
   if ($tagPrefix.StartsWith('core-') -eq $true)
   {
     $changelogEntry = "Updated OpenTelemetry core component version(s) to"
     $propertyName = "OpenTelemetryCoreLatestVersion"
-    $propertyVersion = "[$version,2.0)"
+    $propertyVersion = $version
     if ($isPrerelease -eq $true)
     {
       $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
-      $propertyVersion = "[$version]"
+      $propertyVersion = "$version"
     }
   }
   elseif ($tagPrefix.StartsWith('coreunstable-') -eq $true)
   {
     $changelogEntry = "Updated OpenTelemetry core unstable component version(s) to"
     $propertyName = "OpenTelemetryCoreUnstableLatestVersion"
-    $propertyVersion = "[$version]"
+    $propertyVersion = "$version"
   }
   else
   {
@@ -331,9 +331,9 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
 
   $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
-  (Get-Content build/Common.props) `
+  (Get-Content Directory.Packages.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
-    Set-Content build/Common.props
+    Set-Content Directory.Packages.props
 
   $projectsAndDependenciesAfter = GetCoreDependenciesForProjects
 
@@ -380,7 +380,7 @@ Merge once packages are available on NuGet and the build passes.
 
 ## Changes
 
-* Sets ``$propertyName`` in ``Common.props`` to ``$version``.
+* Sets ``$propertyName`` in ``Directory.Packages.props`` to ``$version``.
 "@
 
   $createPullRequestResponse = gh pr create `

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Wiremock.Net" Version="$(WiremockNetPkgVer)" />
+    <PackageReference Include="Wiremock.Net" />
   </ItemGroup>
 
   <ItemGroup>
