@@ -49,7 +49,7 @@ public class TestAWSXRayRemoteSampler
         Assert.NotNull(xraySampler?.Client);
     }
 
-    [Fact(Skip = "Flaky test. Related issue: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1219")]
+    [Fact]
     public void TestSamplerUpdateAndSample()
     {
         // setup mock server

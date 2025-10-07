@@ -83,7 +83,7 @@ public class ActivityHelperTest : IDisposable
         await testTask;
     }
 
-    [Fact(Skip = "Temporarily disable until stable.")]
+    [Fact]
     public async Task Can_Restore_Baggage()
     {
         this.EnableListener();
