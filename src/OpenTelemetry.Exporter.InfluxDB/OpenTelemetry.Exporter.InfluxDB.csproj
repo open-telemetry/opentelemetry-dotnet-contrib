@@ -17,6 +17,10 @@
   <ItemGroup>
     <PackageReference Include="InfluxDB.Client" />
     <PackageReference Include="OpenTelemetry" />
+  </ItemGroup>
+
+  <!-- Upgrade transitive references to resolve NuGet Audit warnings -->
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
