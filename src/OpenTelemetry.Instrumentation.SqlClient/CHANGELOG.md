@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+
+## 1.12.0-beta.3
+
+Released 2025-Sep-25
+
 * Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
   the `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS`
   environment variable. Not supported on .NET Framework.
@@ -32,6 +39,7 @@ Released 2025-Jul-15
   `StoredProcedure` to conform to the new semantic conventions.
   This affects you if you have opted into the new conventions.
   ([#2800](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2800))
+
 * Add the `db.query.summary` attribute. This affects you if you have opted into
   the new conventions.
   ([#2811](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2811))
@@ -55,6 +63,7 @@ Released 2025-May-06
   connection's `DataSource` when used to populate the `server.address`
   attribute.
   ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+
 * Updates have been made to adhere to recent changes in the new semantic
   conventions. These affect you if you have opted in to the new conventions.
   When `CommandType` is `StoredProcedure`, the `db.stored_procedure.name` has

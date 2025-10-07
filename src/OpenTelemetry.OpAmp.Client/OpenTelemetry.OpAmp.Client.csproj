@@ -14,22 +14,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
-    <PackageReference Include="Grpc.Tools" Version="2.72.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Google.Protobuf" VersionOverride="[3.31.1,)" />
+    <PackageReference Include="Grpc.Tools" VersionOverride="[2.72.0,)" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- .NET Framework supporting packages -->
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'">
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-  </ItemGroup>
-
-  <!-- .NET Standard supporting packages -->
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardMinimumSupportedVersion)'">
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <PackageReference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>

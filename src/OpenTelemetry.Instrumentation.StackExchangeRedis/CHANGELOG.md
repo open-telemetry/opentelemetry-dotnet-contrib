@@ -32,6 +32,9 @@
   [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
  ([#3084](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3084))
 
+* Updated OpenTelemetry core component version(s) to `1.13.0`.
+  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+
 ## 1.12.0-beta.2
 
 Released 2025-Jul-28

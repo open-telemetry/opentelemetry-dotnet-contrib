@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project=".\Common.GenevaExporter.props"/>
-
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
     <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
@@ -17,13 +15,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry" Version="$(OTelSdkVersion)" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.0.0" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Note: Only include LinuxTracepoints-Net files for netfx targets -->
-    <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <Compile Remove="External\LinuxTracepoints-Net\**" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'" />
   </ItemGroup>
 
   <ItemGroup>

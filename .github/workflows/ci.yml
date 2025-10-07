@@ -48,7 +48,7 @@ jobs:
           extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '*/OpenTelemetry.Extensions.Enrichment.Tests/**', '!**/*.md']
           extensions-enrichment-aspnetcore: ['*/OpenTelemetry.Extensions.Enrichment.AspNetCore*/**', '!**/*.md']
           extensions-enrichment-http: ['*/OpenTelemetry.Extensions.Enrichment.Http*/**', '!**/*.md']
-          instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
+          instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule*/**', 'examples/AspNet/**', '!**/*.md']
           instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
           instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
