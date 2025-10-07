@@ -11,7 +11,14 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
-    <!-- We need the package reference to `System.Net.Http` to use `HttpClientHandler.ServerCertificateCustomValidationCallback` property -->
+    <!-- We need the package reference to `System.Net.Http` to use `HttpClientHandler.ServerCertificateCustomValidationCallback` property
+         for the net462 target. When .NET Framework 4.6.2 goes out of support in January 2027, we could switch to an assembly `Reference` instead.
+
+    For example:
+    <ItemGroup>
+      <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
+    </ItemGroup>
+    -->
     <PackageReference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
   </ItemGroup>
 
