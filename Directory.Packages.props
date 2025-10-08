@@ -133,7 +133,7 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
-    <PackageVersion Include="Wiremock.Net" Version="1.7.0" />
+    <PackageVersion Include="Wiremock.Net" Version="1.14.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="[2.8.2,)" />
   </ItemGroup>
