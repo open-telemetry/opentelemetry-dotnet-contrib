@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="CassandraCSharpDriver" />
     <!-- Override version to avoid https://github.com/advisories/GHSA-5crp-9r3c-p9vr -->
-    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.4" />
     <PackageReference Include="OpenTelemetry.Api" />
   </ItemGroup>
 
