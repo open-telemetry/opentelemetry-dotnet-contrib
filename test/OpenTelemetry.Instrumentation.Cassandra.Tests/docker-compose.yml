@@ -3,7 +3,7 @@
 #  opentelemetry>docker-compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml --project-directory=. up --exit-code-from=tests --build
 services:
   cassandra:
-    image: cassandra
+    image: cassandra:4.1@sha256:3654b1a7d070184307e1e14821ab6ec8ef7f5809eca9e7c5c2e1820e9324297a
     ports:
       - "9042:9042"
     healthcheck:
