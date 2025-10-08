@@ -23,9 +23,14 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard' OR '$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">
     <PackageReference Include="System.Security.Cryptography.Xml" />
     <PackageReference Include="System.ServiceModel.Primitives" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
+    <PackageReference Include="System.Security.Cryptography.Xml" VersionOverride="[8.0.2,)" />
+    <PackageReference Include="System.ServiceModel.Primitives" VersionOverride="[8.0.0,)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
