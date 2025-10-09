@@ -348,21 +348,19 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 {
                     case "service.name":
                         serviceName = resourceValue;
-                        break;
+                        continue;
                     case "service.instanceId":
                         serviceInstanceId = resourceValue;
-                        break;
+                        continue;
                     case "statusMessage":
                         // this has a special meaning in part C, so ignore it
                         break;
                 }
             }
-            else
-            {
-                // any resource attribute that's not a string or a mapped value will end up in part C,
-                // if there isn't another part C property with the same key
-                partCResourceAttributes[resourceAttribute.Key] = resourceAttribute.Value;
-            }
+
+            // any resource attribute that's not a string or a mapped value will end up in part C,
+            // if there isn't another part C property with the same key
+            partCResourceAttributes[resourceAttribute.Key] = resourceAttribute.Value;
         }
 
         MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
@@ -536,33 +534,33 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
 
-            foreach (ref readonly var entry in activity.EnumerateTagObjects())
+            if (hasEnvProperties)
             {
-                // if it is also a resource attribute, ignore the resource attribute
-                partCResourceAttributes.Remove(entry.Key);
-
-                // TODO: check name collision
-                if (this.DedicatedFields!.Contains(entry.Key))
+                foreach (ref readonly var entry in activity.EnumerateTagObjects())
                 {
-                    continue;
-                }
-                else
-                {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                    // if it is also a resource attribute, ignore the resource attribute
+                    partCResourceAttributes.Remove(entry.Key);
 
-                    envPropertiesCount += 1;
+                    // TODO: check name collision
+                    if (this.DedicatedFields!.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+
+                        envPropertiesCount += 1;
+                    }
                 }
             }
 
             foreach (var entry in partCResourceAttributes)
             {
-                if (!this.DedicatedFields!.Contains(entry.Key))
-                {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                    envPropertiesCount += 1;
-                }
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                envPropertiesCount += 1;
             }
 
             cntFields += 1;
