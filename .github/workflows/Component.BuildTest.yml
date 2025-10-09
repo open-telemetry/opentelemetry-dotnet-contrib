@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       os-list:
-        default: '[ "windows-latest", "ubuntu-22.04" ]'
+        default: '[ "windows-latest", "ubuntu-24.04" ]'
         required: false
         type: string
       tfm-list:
@@ -49,7 +49,7 @@ jobs:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}
         exclude:
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           version: net462
         - os: macos-latest
           version: net462

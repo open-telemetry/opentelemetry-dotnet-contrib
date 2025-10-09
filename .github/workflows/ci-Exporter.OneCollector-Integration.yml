@@ -28,10 +28,10 @@ jobs:
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ windows-latest, ubuntu-22.04 ]
+        os: [ windows-latest, ubuntu-24.04 ]
         version: [ net462, net8.0 ]
         exclude:
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           version: net462
 
     runs-on: ${{ matrix.os }}
