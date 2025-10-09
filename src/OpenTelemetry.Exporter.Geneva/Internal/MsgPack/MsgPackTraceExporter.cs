@@ -4,7 +4,6 @@
 #if NET
 using System.Collections.Frozen;
 #endif
-using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -57,7 +56,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     internal readonly ThreadLocal<byte[]> Buffer = new();
     internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
 
-    internal readonly ThreadLocal<Dictionary<string, object>> resourceAttributes = new();
+    internal readonly ThreadLocal<Dictionary<string, object>> ResourceAttributes = new();
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
@@ -263,6 +262,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             (this.dataTransport as IDisposable)?.Dispose();
             this.Buffer.Dispose();
             this.HttpUrlParts.Dispose();
+            this.ResourceAttributes.Dispose();
         }
         catch (Exception ex)
         {
@@ -335,11 +335,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         string? serviceName = null;
         string? serviceInstanceId = null;
-        if (this.resourceAttributes.Value == null)
+        if (this.ResourceAttributes.Value == null)
         {
-            this.resourceAttributes.Value = new();
+            this.ResourceAttributes.Value = new();
         }
-        var partCResourceAttributes = this.resourceAttributes.Value;
+
+        var partCResourceAttributes = this.ResourceAttributes.Value;
         partCResourceAttributes.Clear();
 
         foreach (var resourceAttribute in resource.Attributes)
@@ -376,6 +377,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         #endregion
 
         #region Part A - dt extension
+
         // Note: ToHexString returns the pre-calculated hex representation without allocation
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.TraceId, activity.Context.TraceId.ToHexString());
         cntFields += 1;
@@ -501,6 +503,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+
                 // because part B and C are not separated, we can't have part C fields with the same name as part B names
                 // so remove it if it exists
                 partCResourceAttributes.Remove(replacementKey);
@@ -579,6 +582,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                         envPropertiesCount += 1;
                     }
                 }
+
                 foreach (var entry in partCResourceAttributes)
                 {
                     // TODO: check name collision with renamed fields
