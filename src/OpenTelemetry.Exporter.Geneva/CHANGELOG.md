@@ -6,6 +6,7 @@
   ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 * Support for specifying resource attributes, including
   service.name, service.instanceId, and custom attributes.
+  ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
 
 ## 1.13.0-alpha.1
 
