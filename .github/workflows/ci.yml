@@ -695,7 +695,7 @@ jobs:
       verify-aot-compat
     ]
     if: always() && !cancelled()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Report CI status
       shell: bash
