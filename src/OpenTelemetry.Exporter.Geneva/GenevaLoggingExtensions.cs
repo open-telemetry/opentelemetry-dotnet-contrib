@@ -21,18 +21,29 @@ public static class GenevaLoggingExtensions
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
     /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
         this OpenTelemetryLoggerOptions options,
-        Action<GenevaExporterOptions>? configure)
+        Action<GenevaExporterOptions>? configure,
+        Func<GenevaExporterOptions, GenevaLogExporter>? buildGenevaExporter)
     {
         Guard.ThrowIfNull(options);
 
         var genevaOptions = new GenevaExporterOptions();
         configure?.Invoke(genevaOptions);
 
+        GenevaLogExporter exporter;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var exporter = new GenevaLogExporter(genevaOptions);
+        if (buildGenevaExporter != null)
+        {
+            exporter = buildGenevaExporter(genevaOptions);
+            Guard.ThrowIfNull(exporter);
+        }
+        else
+        {
+            exporter = new GenevaLogExporter(genevaOptions);
+        }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         bool enableAFDEnrichment = false;
@@ -67,6 +78,16 @@ public static class GenevaLoggingExtensions
     }
 
     /// <summary>
+    /// Adds <see cref="GenevaLogExporter"/> to the <see cref="OpenTelemetryLoggerOptions"/>.
+    /// </summary>
+    /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
+    public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
+        this OpenTelemetryLoggerOptions options,
+        Action<GenevaExporterOptions>? configure) => AddGenevaLogExporter(options, configure, null);
+
+    /// <summary>
     /// Adds <see cref="GenevaLogExporter"/> to the <see cref="LoggerProviderBuilder"/>.
     /// </summary>
     /// <param name="builder"><see cref="LoggerProviderBuilder"/> builder to use.</param>
@@ -93,7 +114,21 @@ public static class GenevaLoggingExtensions
     public static LoggerProviderBuilder AddGenevaLogExporter(
         this LoggerProviderBuilder builder,
         string? name,
-        Action<GenevaExporterOptions>? configureExporter)
+        Action<GenevaExporterOptions>? configureExporter) => AddGenevaLogExporter(builder, name, configureExporter, null);
+
+    /// <summary>
+    /// Adds <see cref="GenevaLogExporter"/> to the <see cref="LoggerProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="LoggerProviderBuilder"/> builder to use.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="configureExporter">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
+    /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
+    public static LoggerProviderBuilder AddGenevaLogExporter(
+        this LoggerProviderBuilder builder,
+        string? name,
+        Action<GenevaExporterOptions>? configureExporter,
+        Func<GenevaExporterOptions, GenevaLogExporter>? buildGenevaExporter)
     {
         var finalOptionsName = name ?? Options.Options.DefaultName;
 
@@ -138,18 +173,29 @@ public static class GenevaLoggingExtensions
 
             return BuildGenevaLogExporter(
                 batchExportLogRecordProcessorOptions,
-                exporterOptions);
+                exporterOptions,
+                buildGenevaExporter);
         });
     }
 
     internal static BaseProcessor<LogRecord> BuildGenevaLogExporter(
        BatchExportLogRecordProcessorOptions batchExportLogRecordProcessorOptions,
-       GenevaExporterOptions exporterOptions)
+       GenevaExporterOptions exporterOptions,
+       Func<GenevaExporterOptions, GenevaLogExporter>? buildGenevaExporter)
     {
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var exporter = new GenevaLogExporter(exporterOptions!);
+        GenevaLogExporter exporter;
+        if (buildGenevaExporter != null)
+        {
+            exporter = buildGenevaExporter(exporterOptions!);
+            Guard.ThrowIfNull(exporter);
+        }
+        else
+        {
+            exporter = new GenevaLogExporter(exporterOptions!);
+        }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         if (exporter.IsUsingUnixDomainSocket)
