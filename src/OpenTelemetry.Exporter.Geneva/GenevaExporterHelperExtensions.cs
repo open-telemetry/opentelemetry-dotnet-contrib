@@ -37,13 +37,25 @@ public static class GenevaExporterHelperExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
     /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddGenevaTraceExporter(
+        this TracerProviderBuilder builder,
+        string? name,
+        Action<GenevaExporterOptions>? configure) => AddGenevaTraceExporter(builder, name, configure, null);
+
+    /// <summary>
+    /// Adds <see cref="GenevaTraceExporter"/> to the <see cref="TracerProviderBuilder"/>.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
+    /// <param name="name">Optional name which is used when retrieving options.</param>
+    /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
     /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddGenevaTraceExporter(
         this TracerProviderBuilder builder,
         string? name,
         Action<GenevaExporterOptions>? configure,
-        Func<GenevaExporterOptions, GenevaTraceExporter>? buildGenevaExporter = null)
+        Func<GenevaExporterOptions, GenevaTraceExporter>? buildGenevaExporter)
     {
         Guard.ThrowIfNull(builder);
 
@@ -101,17 +113,17 @@ public static class GenevaExporterHelperExtensions
         Func<GenevaExporterOptions, GenevaTraceExporter>? buildGenevaExporter = null)
     {
         GenevaTraceExporter exporter;
+#pragma warning disable CA2000 // Dispose objects before losing scope
         if (buildGenevaExporter == null)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
             exporter = new GenevaTraceExporter(options);
-#pragma warning restore CA2000 // Dispose objects before losing scope
         }
         else
         {
             exporter = buildGenevaExporter(options);
             Guard.ThrowIfNull(exporter);
         }
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
         if (exporter.IsUsingUnixDomainSocket)
         {
