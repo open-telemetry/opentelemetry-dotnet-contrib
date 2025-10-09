@@ -18,7 +18,7 @@
     <PackageReference Include="Hangfire.Core" VersionOverride="[1.7.0,)" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <!-- Override version to avoid https://github.com/advisories/GHSA-5crp-9r3c-p9vr -->
-    <PackageReference Include="Newtonsoft.Json" VersionOverride="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" VersionOverride="[13.0.1,)" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 
