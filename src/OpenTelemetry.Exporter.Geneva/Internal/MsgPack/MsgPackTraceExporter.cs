@@ -326,12 +326,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             this.Buffer.Value = buffer;
         }
 
-        // service.name resource attribute -> cloud.role common schema -> env_cloud_role
-        // service.instance.id resource attribute -> cloud.roleInstance -> env_cloud_roleInstance
-        // any other resource attribute -> part C common schema -> ?
-        // TODO: determine whether other parts of resource need to go, as defined here: https://msazure.visualstudio.com/One/_git/CommonSchema?path=/v4.0/Mappings/OTelSemanticConvention.md&_a=preview
-        // common schema -> msgpack: https://msazure.visualstudio.com/One/_git/CommonSchema?path=/v4.0/Mappings/MessagePack-PA.md&_a=preview
-
         var cursor = this.bufferPrologue.Length;
         var cntFields = this.prepopulatedFieldsCount;
         var dtBegin = activity.StartTimeUtc;
@@ -362,12 +356,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                         continue;
                     case "statusMessage":
                         // this has a special meaning in part C, so ignore it
-                        break;
+                        continue;
                 }
             }
 
-            // any resource attribute that's not a string or a mapped value will end up in part C,
-            // if there isn't another part C property with the same key
+            // Any resource attribute that's not a string or a mapped value
+            // will end up in part C if there isn't another part C property with the same key.
+            // This dictionary to keep track of the remaining resource attributes may result in
+            // an allocation if the dictionary needs to expand, but we have to calculate
+            // the set difference between resource attribute values and tags.
             partCResourceAttributes[resourceAttribute.Key] = resourceAttribute.Value;
         }
 
@@ -379,6 +376,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         #endregion
 
         #region Part A - dt extension
+        // Note: ToHexString returns the pre-calculated hex representation without allocation
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.TraceId, activity.Context.TraceId.ToHexString());
         cntFields += 1;
 
@@ -504,7 +502,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
                 // because part B and C are not separated, we can't have part C fields with the same name as part B names
-                // do remove it if it exists
+                // so remove it if it exists
                 partCResourceAttributes.Remove(replacementKey);
             }
             else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
@@ -583,7 +581,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
                 foreach (var entry in partCResourceAttributes)
                 {
-                    // TODO: check name collision
+                    // TODO: check name collision with renamed fields
                     if (this.DedicatedFields!.Contains(entry.Key))
                     {
                         continue;
