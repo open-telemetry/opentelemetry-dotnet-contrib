@@ -17,8 +17,10 @@ using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
-public class GenevaTraceExporterTests
+public class GenevaTraceExporterTests : IDisposable
 {
+    private readonly Dictionary<string, Action<Dictionary<object, object>>> expectedMappingChecks = [];
+
     public GenevaTraceExporterTests()
     {
         Activity.DefaultIdFormat = ActivityIdFormat.W3C;
@@ -236,9 +238,6 @@ public class GenevaTraceExporterTests
             }
 
             using var exporter = new MsgPackTraceExporter(exporterOptions);
-
-            var dedicatedFields = exporter.DedicatedFields;
-            var CS40_PART_B_MAPPING = MsgPackTraceExporter.CS40_PART_B_MAPPING;
             var m_buffer = exporter.Buffer;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
@@ -246,9 +245,8 @@ public class GenevaTraceExporterTests
             // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
             // the ActivitySource used by other unit tests.
             var sourceName = GetTestMethodName();
-            Action<Dictionary<object, object>> customChecksForActivity = null;
 
-            Dictionary<string, object> resourceAttributes = new Dictionary<string, object?>
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttribute", "resourceValue" },
                 { "activityTag", "causes conflict" },
@@ -264,7 +262,10 @@ public class GenevaTraceExporterTests
             {
                 _ = exporter.SerializeActivity(activity, resource);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
-                this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+
+                Console.WriteLine(activity.OperationName);
+                Console.WriteLine(invocationCount + 1);
                 invocationCount++;
             };
             ActivitySource.AddActivityListener(listener);
@@ -282,6 +283,8 @@ public class GenevaTraceExporterTests
                 {
                     parentActivity.TraceStateString = "some=state";
                 }
+
+                this.ExpectSpanFromActivity(parentActivity, (mapping) => { });
 
                 var links = new[]
                 {
@@ -305,11 +308,41 @@ public class GenevaTraceExporterTests
 #pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
+
+                this.ExpectSpanFromActivity(activity, (mapping) =>
+                    {
+                        // Part A cloud extensions
+                        this.AssertMappingEntry(mapping, "env_cloud_role", "BusyWorker");
+                        this.AssertMappingEntry(mapping, "env_cloud_roleInstance", "CY1SCH030021417");
+
+                        Dictionary<object, object> userFieldsLocation;
+                        if (exporterOptions.CustomFields == null)
+                        {
+                            userFieldsLocation = mapping;
+                        }
+                        else
+                        {
+                            Assert.Contains("env_properties", mapping.Keys);
+                            userFieldsLocation = Assert.IsType<Dictionary<object, object>>(mapping["env_properties"]);
+                        }
+
+                        this.AssertMappingEntry(userFieldsLocation, "foo", 1);
+                        this.AssertMappingEntry(userFieldsLocation, "bar", 2);
+                        this.AssertMappingEntry(userFieldsLocation, "resourceAttribute", "resourceValue");
+
+                        // make sure that the tag value, "for resource attribute conflict test" is saved,
+                        // and not the resource value, "causes conflict" (tags have precedence over resource attributes)
+                        this.AssertMappingEntry(userFieldsLocation, "activityTag", "for resource attribute conflict test");
+
+                        // Note: links are checked in CheckSpanForActivity, so no need to do a custom check here
+                    });
             }
 
             using (var activity = source.StartActivity("TestActivityForSetStatusAPI"))
             {
                 activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
+
+                this.ExpectSpanFromActivity(activity, (_) => { });
             }
 
             // If the activity Status is set using both the OTel API and the .NET API, the `Status` and `StatusDescription` set by
@@ -320,10 +353,10 @@ public class GenevaTraceExporterTests
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
                 activity?.SetStatus(ActivityStatusCode.Error, description: "Error description from .NET API");
-                customChecksForActivity = mapping =>
+                this.ExpectSpanFromActivity(activity, (mapping) =>
                 {
-                    Assert.Equal("Error description from .NET API", mapping["statusMessage"]);
-                };
+                    this.AssertMappingEntry(mapping, "statusMessage", "Error description from .NET API");
+                });
             }
 
             Assert.Equal(4, invocationCount);
@@ -381,7 +414,7 @@ public class GenevaTraceExporterTests
             {
                 _ = exporter.SerializeActivity(activity, Resource.Empty);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
-                this.AssertHttpUrlForActivity(exporterOptions, fluentdData, activity);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
                 invocationCount++;
             };
             ActivitySource.AddActivityListener(listener);
@@ -404,9 +437,55 @@ public class GenevaTraceExporterTests
                     child.SetTag("http.request.method", "GET");
                     child.SetTag("url.full", "https://www.wikipedia.org/wiki/Rabbit?id=7");
                     child.SetTag("http.status_code", 404);
+
+                    this.ExpectSpanFromActivity(child, (mapping) =>
+                    {
+                        this.AssertMappingEntry(mapping, "kind", (byte)ActivityKind.Client);
+
+                        // For HTTP client spans, they might contain this attribute for URL:
+                        // Unstable HTTP semconv: http.url attribute.
+                        // Stable HTTP semconv: url.full attribute.
+                        // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
+                        Assert.DoesNotContain("http.url", mapping.Keys);
+                        Assert.DoesNotContain("url.full", mapping.Keys);
+
+                        this.AssertMappingEntry(mapping, "httpMethod", "GET");
+
+                        this.AssertMappingEntry(mapping, "httpUrl", "https://www.wikipedia.org/wiki/Rabbit?id=7");
+
+                        Assert.DoesNotContain("http.status_code", mapping.Keys);
+                        Assert.DoesNotContain("http.response.status_code", mapping.Keys);
+                        Assert.Equal(404, Convert.ToInt32(mapping["httpStatusCode"]));
+                    });
                 }
 
                 parent?.SetTag("http.response.status_code", 200);
+
+                this.ExpectSpanFromActivity(parent, (mapping) =>
+                {
+                    this.AssertMappingEntry(mapping, "kind", (byte)ActivityKind.Server);
+
+                    // For HTTP server spans, they might contain these attributes for URL:
+                    // Unstable HTTP semconv: Combination of http.scheme, net.host.name, net.host.port, and http.target attributes.
+                    // Stable HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query attributes.
+                    // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
+                    Assert.DoesNotContain("http.scheme", mapping.Keys);
+                    Assert.DoesNotContain("net.host.name", mapping.Keys);
+                    Assert.DoesNotContain("net.host.port", mapping.Keys);
+                    Assert.DoesNotContain("http.target", mapping.Keys);
+                    Assert.DoesNotContain("url.scheme", mapping.Keys);
+                    Assert.DoesNotContain("server.address", mapping.Keys);
+                    Assert.DoesNotContain("server.port", mapping.Keys);
+                    Assert.DoesNotContain("url.path", mapping.Keys);
+                    Assert.DoesNotContain("url.query", mapping.Keys);
+
+                    this.AssertMappingEntry(mapping, "httpMethod", "GET");
+                    this.AssertMappingEntry(mapping, "httpUrl", "https://localhost:443/wiki/Rabbit");
+
+                    Assert.DoesNotContain("http.status_code", mapping.Keys);
+                    Assert.DoesNotContain("http.response.status_code", mapping.Keys);
+                    Assert.Equal(200, Convert.ToInt32(mapping["httpStatusCode"]));
+                });
             }
 
             Assert.Equal(2, invocationCount);
@@ -450,7 +529,7 @@ public class GenevaTraceExporterTests
         }
         catch (SocketException ex)
         {
-            // There is no one to listent to the socket.
+            // There is no one to listen to the socket.
             Assert.Contains("Cannot assign requested address", ex.Message);
         }
 
@@ -577,10 +656,21 @@ public class GenevaTraceExporterTests
         using var activity = source.StartActivity("SayHello");
         activity?.SetTag("foo", 1);
         activity?.SetTag("bar", "Hello, World!");
-#pragma warning disable CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
-        activity?.SetTag("baz", new int[] { 1, 2, 3 });
-#pragma warning restore CA1861 // Prefer 'static readonly' fields over constant array arguments if the called method is called repeatedly and is not mutating the passed array
+        int[] expectedBaz = [1, 2, 3];
+        activity?.SetTag("baz", expectedBaz);
         activity?.SetStatus(ActivityStatusCode.Ok);
+
+        this.expectedMappingChecks[activity.OperationName] = (mapping) =>
+        {
+            Assert.Contains("foo", mapping.Keys);
+            Assert.Equivalent(1, mapping["foo"]);
+
+            Assert.Contains("bar", mapping.Keys);
+            Assert.Equivalent("Hello, World!", mapping["bar"]);
+
+            Assert.Contains("baz", mapping.Keys);
+            Assert.Equivalent(expectedBaz, mapping["bar"]);
+        };
     }
 
     [Fact]
@@ -692,11 +782,12 @@ public class GenevaTraceExporterTests
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
-        return callingMethodName;
+        // we have to add the .net version to avoid listening to another platform's test spans
+        return $"net{Environment.Version.ToString()}-{callingMethodName}";
     }
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-    private void AssertFluentdForwardModeForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, IReadOnlyDictionary<string, string> CS40_PART_B_MAPPING, ISet<string> dedicatedFields, Action<Dictionary<object, object>> customChecksForActivity)
+    private void CheckSpanForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity, ISet<string> dedicatedFields, Dictionary<string, object> resourceAttributes)
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         /* Fluentd Forward Mode:
@@ -734,35 +825,42 @@ public class GenevaTraceExporterTests
         var nameKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Name];
 
         // Check if the user has configured a custom table mapping
-        Assert.Equal(partAName, mapping[nameKey]);
+        this.AssertMappingEntry(mapping, nameKey, partAName);
 
         // TODO: Update this when we support multiple Schema formats
         var partAVer = "4.0";
         var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
-        Assert.Equal(partAVer, mapping[verKey]);
+        this.AssertMappingEntry(mapping, verKey, partAVer);
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
             var partAValue = item.Value as string;
             var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
-            Assert.Equal(partAValue, mapping[partAKey]);
+            this.AssertMappingEntry(mapping, partAKey, partAValue);
         }
 
         var timeKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Time];
         Assert.Equal(tsEnd, ((DateTime)mapping[timeKey]).Ticks);
 
-        // Part A dt extensions
-        Assert.Equal(activity.TraceId.ToString(), mapping["env_dt_traceId"]);
-        Assert.Equal(activity.SpanId.ToString(), mapping["env_dt_spanId"]);
-
         // Part A cloud extensions
-        Assert.Equal("BusyWorker", mapping["env_cloud_role"]);
-        Assert.Equal("CY1SCH030021417", mapping["env_cloud_roleInstance"]);
+        if (resourceAttributes.TryGetValue("service.name", out var expectedServiceName))
+        {
+            this.AssertMappingEntry(mapping, "env_cloud_role", expectedServiceName);
+        }
+
+        if (resourceAttributes.TryGetValue("service.instanceId", out var expectedInstanceId))
+        {
+            this.AssertMappingEntry(mapping, "env_cloud_roleInstance", expectedInstanceId);
+        }
+
+        // Part A dt extensions
+        this.AssertMappingEntry(mapping, "env_dt_traceId", activity.TraceId.ToString());
+        this.AssertMappingEntry(mapping, "env_dt_spanId", activity.SpanId.ToString());
 
         // Part B Span - required fields
-        Assert.Equal(activity.DisplayName, mapping["name"]);
-        Assert.Equal((byte)activity.Kind, mapping["kind"]);
-        Assert.Equal(activity.StartTimeUtc, mapping["startTime"]);
+        this.AssertMappingEntry(mapping, "name", activity.DisplayName);
+        this.AssertMappingEntry(mapping, "kind", (byte)activity.Kind);
+        this.AssertMappingEntry(mapping, "startTime", activity.StartTimeUtc);
 
 #pragma warning disable CS0618 // Type or member is obsolete
         var otelApiStatusCode = activity.GetStatus();
@@ -771,13 +869,13 @@ public class GenevaTraceExporterTests
         if (activity.Status == ActivityStatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
-            Assert.Equal(activity.StatusDescription, mapping["statusMessage"]);
+            this.AssertMappingEntry(mapping, "statusMessage", activity.StatusDescription);
         }
         else if (otelApiStatusCode.StatusCode == StatusCode.Error)
         {
             Assert.False((bool)mapping["success"]);
             var activityStatusDesc = otelApiStatusCode.Description;
-            Assert.Equal(activityStatusDesc, mapping["statusMessage"]);
+            this.AssertMappingEntry(mapping, "statusMessage", activityStatusDesc);
         }
         else
         {
@@ -787,31 +885,17 @@ public class GenevaTraceExporterTests
         // Part B Span optional fields and Part C fields
         if (activity.ParentSpanId != default)
         {
-            Assert.Equal(activity.ParentSpanId.ToHexString(), mapping["parentId"]);
+            this.AssertMappingEntry(mapping, "parentId", activity.ParentSpanId.ToHexString());
         }
 
         if (!exporterOptions.IncludeTraceStateForSpan || string.IsNullOrEmpty(activity.TraceStateString))
         {
-            Assert.Contains("traceState", mapping.Keys);
+            Assert.DoesNotContain("traceState", mapping.Keys);
         }
         else
         {
-            Assert.Equal(activity.TraceStateString, mapping["traceState"]);
+            this.AssertMappingEntry(mapping, "traceState", activity.TraceStateString);
         }
-
-        Assert.Contains("foo", mapping.Keys);
-        Assert.Equal(1, mapping["foo"]);
-
-        Assert.Contains("resourceAttribute", mapping.Keys);
-        Assert.Equal("resourceValue", mapping["resourceAttribute"]);
-
-        Assert.Contains("resourceAttribute", mapping.Keys);
-        Assert.Equal("resourceValue", mapping["resourceAttribute"]);
-
-        // make sure that the tag value, "for resource attribute conflict test" is saved,
-        // and not the resource value, "causes conflict" (tags have precedence over resource attributes)
-        Assert.Contains("activityTag", mapping.Keys);
-        Assert.Equal("for resource attribute conflict test", mapping["activityTag"]);
 
         #region Assert Activity Links
         if (activity.Links.Any())
@@ -844,9 +928,9 @@ public class GenevaTraceExporterTests
         var envPropertiesMapping = envProperties as IDictionary<object, object>;
         foreach (var tag in activity.TagObjects)
         {
-            if (CS40_PART_B_MAPPING.TryGetValue(tag.Key, out var replacementKey))
+            if (MsgPackTraceExporter.CS40_PART_B_MAPPING.TryGetValue(tag.Key, out var replacementKey))
             {
-                Assert.Equal(tag.Value.ToString(), mapping[replacementKey].ToString());
+                this.AssertMappingEntry(mapping, replacementKey, tag.Value);
             }
             else if (string.Equals(tag.Key, "otel.status_code", StringComparison.Ordinal))
             {
@@ -856,6 +940,11 @@ public class GenevaTraceExporterTests
             else if (string.Equals(tag.Key, "otel.status_description", StringComparison.Ordinal))
             {
                 // Status description check is already done when we check for "statusMessage" key in the mapping
+                continue;
+            }
+            else if (MsgPackTraceExporter.CS40_PART_B_HTTPURL_MAPPING.ContainsKey(tag.Key))
+            {
+                // Http url is already checked in the http span tests. Skip any http parts for now
                 continue;
             }
             else
@@ -873,75 +962,47 @@ public class GenevaTraceExporterTests
         }
         #endregion
 
-        // Epilouge
+        // Epilogue
         Assert.Equal("DateTime", timeFormat["TimeFormat"]);
 
-        customChecksForActivity?.Invoke(mapping);
+        if (this.expectedMappingChecks.TryGetValue(activity.OperationName, out var value))
+        {
+            value?.Invoke(mapping);
+            this.expectedMappingChecks.Remove(activity.OperationName);
+        }
     }
 
-    private void AssertHttpUrlForActivity(GenevaExporterOptions exporterOptions, object fluentdData, Activity activity)
+    private void AssertMappingEntry(Dictionary<object, object> mapping, object key, object value)
     {
-        /* Fluentd Forward Mode:
-        [
-            "Span",
-            [
-                [ <timestamp>, { "env_ver": "4.0", ... } ]
-            ],
-            { "TimeFormat": "DateTime" }
-        ]
-        */
+        Assert.Contains(key, mapping.Keys);
+        Assert.Equivalent(value, mapping[key]);
+    }
 
-        var signal = (fluentdData as object[])[0] as string;
-        var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
-        var timeStamp = (DateTime)(TimeStampAndMappings as object[])[0];
-        var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+    /// <summary>
+    /// Call this method to add a deferred check for an emitted span. This is useful to keep asserts near where activities are created.
+    ///
+    /// In order for this to work, CheckSpanForActivity must be called on the span.
+    /// Also, AssertAllExpectedSpansProcessed() needs to be run at the end of the test (automatically done by Dispose method).
+    /// </summary>
+    /// <param name="activity">The activity sent to the exporter.</param>
+    /// <param name="mappingCheck">A function which checks the fields in the resulting emitted span.</param>
+    private void ExpectSpanFromActivity(Activity activity, Action<Dictionary<object, object>> mappingCheck)
+    {
+        Assert.DoesNotContain(activity.OperationName, this.expectedMappingChecks);
+        this.expectedMappingChecks[activity.OperationName] = mappingCheck;
+    }
 
-        Assert.Equal((byte)activity.Kind, mapping["kind"]);
-        var tags = activity.TagObjects.ToDictionary(tag => tag.Key, tag => tag.Value);
-
-        if (activity.Kind == ActivityKind.Server)
+    /// <summary>
+    /// Run this when all spans are expected to have been processed.
+    /// Fails assertion if any checks on spans have not been performed.
+    /// </summary>
+    private void AssertAllExpectedSpansProcessed()
+    {
+        foreach (var entry in this.expectedMappingChecks)
         {
-            // For HTTP server spans, they might contain these attributes for URL:
-            // Unstable HTTP semconv: Combination of http.scheme, net.host.name, net.host.port, and http.target attributes.
-            // Stable HTTP semconv: Combination of url.scheme, server.address, server.port, url.path and url.query attributes.
-            // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
-            Assert.DoesNotContain("http.scheme", mapping.Keys);
-            Assert.DoesNotContain("net.host.name", mapping.Keys);
-            Assert.DoesNotContain("net.host.port", mapping.Keys);
-            Assert.DoesNotContain("http.target", mapping.Keys);
-            Assert.DoesNotContain("url.scheme", mapping.Keys);
-            Assert.DoesNotContain("server.address", mapping.Keys);
-            Assert.DoesNotContain("server.port", mapping.Keys);
-            Assert.DoesNotContain("url.path", mapping.Keys);
-            Assert.DoesNotContain("url.query", mapping.Keys);
-
-            Assert.Equal("GET", mapping["httpMethod"]);
-            Assert.Equal("https://localhost:443/wiki/Rabbit", mapping["httpUrl"]);
-
-            Assert.DoesNotContain("http.status_code", mapping.Keys);
-            Assert.DoesNotContain("http.response.status_code", mapping.Keys);
-            Assert.Equal(200, Convert.ToInt32(mapping["httpStatusCode"]));
-        }
-        else if (activity.Kind == ActivityKind.Client)
-        {
-            // For HTTP client spans, they might contain this attribute for URL:
-            // Unstable HTTP semconv: http.url attribute.
-            // Stable HTTP semconv: url.full attribute.
-            // They will be mapped to httpUrl by Geneva exporter in MsgPackTraceExporter.
-            Assert.DoesNotContain("http.url", mapping.Keys);
-            Assert.DoesNotContain("url.full", mapping.Keys);
-
-            Assert.Equal("GET", mapping["httpMethod"]);
-
-            Assert.Equal(tags["url.full"], mapping["httpUrl"]);
-
-            Assert.DoesNotContain("http.status_code", mapping.Keys);
-            Assert.DoesNotContain("http.response.status_code", mapping.Keys);
-            Assert.Equal(404, Convert.ToInt32(mapping["httpStatusCode"]));
-        }
-        else
-        {
-            throw new InvalidOperationException($"Unexpected ActivityKind: {activity.Kind}. Expected either Server or Client.");
+            Assert.Fail($"Expected to see a span with name {entry.Key}, but it was never emitted");
         }
     }
+
+    public void Dispose() => this.AssertAllExpectedSpansProcessed();
 }
