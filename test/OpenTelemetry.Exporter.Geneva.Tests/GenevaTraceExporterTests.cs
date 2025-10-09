@@ -63,8 +63,6 @@ public class GenevaTraceExporterTests
                 ConnectionString = "EtwSession=OpenTelemetry",
                 PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = (char)106,
                 },
             });
@@ -147,8 +145,6 @@ public class GenevaTraceExporterTests
                 options.ConnectionString = "EtwSession=OpenTelemetry";
                 options.PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 };
             })
@@ -205,8 +201,6 @@ public class GenevaTraceExporterTests
             {
                 PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 },
             };
@@ -268,7 +262,7 @@ public class GenevaTraceExporterTests
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                _ = exporter.SerializeActivity(activity, Resource.Empty);
+                _ = exporter.SerializeActivity(activity, resource);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                 invocationCount++;
@@ -763,7 +757,7 @@ public class GenevaTraceExporterTests
 
         // Part A cloud extensions
         Assert.Equal("BusyWorker", mapping["env_cloud_role"]);
-        Assert.Equal("CY1SCH030021417", mapping["env_cloud_instanceId"]);
+        Assert.Equal("CY1SCH030021417", mapping["env_cloud_roleInstance"]);
 
         // Part B Span - required fields
         Assert.Equal(activity.DisplayName, mapping["name"]);
