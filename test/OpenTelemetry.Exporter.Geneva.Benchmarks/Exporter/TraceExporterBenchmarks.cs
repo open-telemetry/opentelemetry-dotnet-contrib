@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 /*
@@ -90,13 +91,13 @@ public class TraceExporterBenchmarks
     [Benchmark]
     public void ExportActivity()
     {
-        this.exporter.Export(this.batch);
+        this.exporter.Export(this.batch, Resource.Empty);
     }
 
     [Benchmark]
     public void SerializeActivity()
     {
-        this.exporter.SerializeActivity(this.activity);
+        this.exporter.SerializeActivity(this.activity, Resource.Empty);
     }
 
     [Benchmark]

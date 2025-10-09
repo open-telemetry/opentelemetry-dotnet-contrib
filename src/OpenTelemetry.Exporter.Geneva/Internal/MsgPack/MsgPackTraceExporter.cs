@@ -335,7 +335,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
-        var dtEnd = new DateTime(tsEnd);
+        var dtEnd = new DateTime(tsEnd, DateTimeKind.Utc);
 
         string? serviceName = null;
         string? serviceInstanceId = null;
