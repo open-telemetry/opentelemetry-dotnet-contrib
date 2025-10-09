@@ -4,6 +4,8 @@
 
 * Updated OpenTelemetry core component version(s) to `1.13.1`.
   ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+* Support for specifying resource attributes, including
+  service.name, service.instanceId, and custom attributes.
 
 ## 1.13.0-alpha.1
 
