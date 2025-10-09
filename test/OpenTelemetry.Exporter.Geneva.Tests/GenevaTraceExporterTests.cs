@@ -254,6 +254,15 @@ public class GenevaTraceExporterTests
             var sourceName = GetTestMethodName();
             Action<Dictionary<object, object>> customChecksForActivity = null;
 
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object?>
+            {
+                { "resourceAttribute", "resourceValue" },
+                { "activityTag", "causes conflict" },
+                { "service.name", "BusyWorker" },
+                { "service.instanceId", "CY1SCH030021417" },
+            };
+            var resource = new Resource(resourceAttributes);
+
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
@@ -298,6 +307,7 @@ public class GenevaTraceExporterTests
                 activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                 activity?.SetTag("foo", 1);
                 activity?.SetTag("bar", 2);
+                activity?.SetTag("activityTag", "for resource attribute conflict test");
 #pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -487,8 +497,6 @@ public class GenevaTraceExporterTests
                     options.ConnectionString = "Endpoint=unix:" + path;
                     options.PrepopulatedFields = new Dictionary<string, object>
                     {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
                         ["cloud.roleVer"] = "9.0.15289.2",
                     };
                 })
@@ -502,8 +510,6 @@ public class GenevaTraceExporterTests
                 ConnectionString = "Endpoint=unix:" + path,
                 PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 },
             });
@@ -568,8 +574,6 @@ public class GenevaTraceExporterTests
                 options.ConnectionString = "EtwSession=OpenTelemetry;PrivatePreviewEnableTraceLoggingDynamic=true";
                 options.PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
                 };
             })
@@ -757,6 +761,10 @@ public class GenevaTraceExporterTests
         Assert.Equal(activity.TraceId.ToString(), mapping["env_dt_traceId"]);
         Assert.Equal(activity.SpanId.ToString(), mapping["env_dt_spanId"]);
 
+        // Part A cloud extensions
+        Assert.Equal("BusyWorker", mapping["env_cloud_role"]);
+        Assert.Equal("CY1SCH030021417", mapping["env_cloud_instanceId"]);
+
         // Part B Span - required fields
         Assert.Equal(activity.DisplayName, mapping["name"]);
         Assert.Equal((byte)activity.Kind, mapping["kind"]);
@@ -790,12 +798,26 @@ public class GenevaTraceExporterTests
 
         if (!exporterOptions.IncludeTraceStateForSpan || string.IsNullOrEmpty(activity.TraceStateString))
         {
-            Assert.False(mapping.ContainsKey("traceState"));
+            Assert.Contains("traceState", mapping.Keys);
         }
         else
         {
             Assert.Equal(activity.TraceStateString, mapping["traceState"]);
         }
+
+        Assert.Contains("foo", mapping.Keys);
+        Assert.Equal(1, mapping["foo"]);
+
+        Assert.Contains("resourceAttribute", mapping.Keys);
+        Assert.Equal("resourceValue", mapping["resourceAttribute"]);
+
+        Assert.Contains("resourceAttribute", mapping.Keys);
+        Assert.Equal("resourceValue", mapping["resourceAttribute"]);
+
+        // make sure that the tag value, "for resource attribute conflict test" is saved,
+        // and not the resource value, "causes conflict" (tags have precedence over resource attributes)
+        Assert.Contains("activityTag", mapping.Keys);
+        Assert.Equal("for resource attribute conflict test", mapping["activityTag"]);
 
         #region Assert Activity Links
         if (activity.Links.Any())
