@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -18,6 +19,8 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
     private readonly ExportActivityFunc exportActivity;
     private readonly IDisposable exporter;
+
+    private Resource? resource;
 
     private bool isDisposed;
 
@@ -82,12 +85,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
         }
     }
 
-    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch);
+    private delegate ExportResult ExportActivityFunc(in Batch<Activity> batch, Resource resource);
+
+    internal Resource Resource => this.resource ??= this.ParentProvider.GetResource();
 
     /// <inheritdoc/>
     public override ExportResult Export(in Batch<Activity> batch)
     {
-        return this.exportActivity(in batch);
+        return this.exportActivity(in batch, this.Resource);
     }
 
     /// <inheritdoc/>

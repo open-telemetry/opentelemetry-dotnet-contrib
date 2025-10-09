@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
@@ -258,7 +259,7 @@ public class GenevaTraceExporterTests
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                _ = exporter.SerializeActivity(activity);
+                _ = exporter.SerializeActivity(activity, Resource.Empty);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertFluentdForwardModeForActivity(exporterOptions, fluentdData, activity, CS40_PART_B_MAPPING, dedicatedFields, customChecksForActivity);
                 invocationCount++;
@@ -374,7 +375,7 @@ public class GenevaTraceExporterTests
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                _ = exporter.SerializeActivity(activity);
+                _ = exporter.SerializeActivity(activity, Resource.Empty);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.AssertHttpUrlForActivity(exporterOptions, fluentdData, activity);
                 invocationCount++;
@@ -513,7 +514,7 @@ public class GenevaTraceExporterTests
 
             using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
             {
-                messagePackDataSize = exporter.SerializeActivity(activity).Count;
+                messagePackDataSize = exporter.SerializeActivity(activity, Resource.Empty).Count;
             }
 
             // Read the data sent via socket.
@@ -527,7 +528,7 @@ public class GenevaTraceExporterTests
             var thread = new Thread(() =>
             {
                 using var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal);
-                messagePackDataSize = exporter.SerializeActivity(activity).Count;
+                messagePackDataSize = exporter.SerializeActivity(activity, Resource.Empty).Count;
             });
             thread.Start();
             thread.Join();

@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
@@ -215,7 +216,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
 
-    public ExportResult Export(in Batch<Activity> batch)
+    public ExportResult Export(in Batch<Activity> batch, Resource resource)
     {
         // Note: The MessagePackSerializer takes way less time / memory than creating the activity itself.
         //       This makes the short-circuit check less useful.
@@ -232,7 +233,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             try
             {
-                var data = this.SerializeActivity(activity);
+                var data = this.SerializeActivity(activity, resource);
 
                 this.dataTransport.Send(data.Array!, data.Count);
             }
@@ -313,7 +314,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return urlStringBuilder.ToString();
     }
 
-    internal ArraySegment<byte> SerializeActivity(Activity activity)
+    internal ArraySegment<byte> SerializeActivity(Activity activity, Resource resource)
     {
         var buffer = this.Buffer.Value;
         if (buffer == null)
@@ -323,6 +324,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             this.Buffer.Value = buffer;
         }
 
+        // service.name resource attribute -> cloud.role common schema -> env_cloud_role
+        // service.instance.id resource attribute -> cloud.roleInstance -> env_cloud_roleInstance
+        // any other resource attribute -> part C common schema -> ?
+        // TODO: determine whether other parts of resource need to go, as defined here: https://msazure.visualstudio.com/One/_git/CommonSchema?path=/v4.0/Mappings/OTelSemanticConvention.md&_a=preview
+        // common schema -> msgpack: https://msazure.visualstudio.com/One/_git/CommonSchema?path=/v4.0/Mappings/MessagePack-PA.md&_a=preview
+
         var cursor = this.bufferPrologue.Length;
         var cntFields = this.prepopulatedFieldsCount;
         var dtBegin = activity.StartTimeUtc;
@@ -330,24 +337,59 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var tsEnd = tsBegin + activity.Duration.Ticks;
         var dtEnd = new DateTime(tsEnd);
 
+        string? serviceName = null;
+        string? serviceInstanceId = null;
+        Dictionary<string, object> partCResourceAttributes = [];
+        foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
+        {
+            if (resourceAttribute.Value is string resourceValue)
+            {
+                switch (resourceAttribute.Key)
+                {
+                    case "service.name":
+                        serviceName = resourceValue;
+                        break;
+                    case "service.instanceId":
+                        serviceInstanceId = resourceValue;
+                        break;
+                    case "statusMessage":
+                        // this has a special meaning in part C, so ignore it
+                        break;
+                }
+            }
+            else
+            {
+                // any resource attribute that's not a string or a mapped value will end up in part C,
+                // if there isn't another part C property with the same key
+                partCResourceAttributes[resourceAttribute.Key] = resourceAttribute.Value;
+            }
+        }
+
         MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
 
         #region Part A - core envelope
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtEnd);
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Time, dtEnd);
         cntFields += 1;
         #endregion
 
         #region Part A - dt extension
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_traceId");
-
-        // Note: ToHexString returns the pre-calculated hex representation without allocation
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.TraceId.ToHexString());
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.TraceId, activity.Context.TraceId.ToHexString());
         cntFields += 1;
 
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_spanId");
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.SpanId.ToHexString());
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.SpanId, activity.Context.SpanId.ToHexString());
         cntFields += 1;
+        #endregion
+
+        #region Part A - cloud extension
+        if (!string.IsNullOrEmpty(serviceName))
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.Role, serviceName);
+        }
+
+        if (!string.IsNullOrEmpty(serviceInstanceId))
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.RoleInstance, serviceInstanceId);
+        }
         #endregion
 
         #region Part B Span - required fields
@@ -485,10 +527,10 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        if (hasEnvProperties)
+        if (hasEnvProperties || partCResourceAttributes.Count > 0)
         {
             // Iteration #2 - Get all "other" fields and collapse them into single field
-            // named "env_properties".
+            // named "env_properties" (Part C).
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
@@ -496,12 +538,26 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
             foreach (ref readonly var entry in activity.EnumerateTagObjects())
             {
+                // if it is also a resource attribute, ignore the resource attribute
+                partCResourceAttributes.Remove(entry.Key);
+
                 // TODO: check name collision
                 if (this.DedicatedFields!.Contains(entry.Key))
                 {
                     continue;
                 }
                 else
+                {
+                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+
+                    envPropertiesCount += 1;
+                }
+            }
+
+            foreach (var entry in partCResourceAttributes)
+            {
+                if (!this.DedicatedFields!.Contains(entry.Key))
                 {
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                     cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
