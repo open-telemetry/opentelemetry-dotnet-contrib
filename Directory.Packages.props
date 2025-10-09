@@ -127,7 +127,7 @@
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.3" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     <PackageVersion Include="System.Reactive.Core" Version="3.1.1" />
-    <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.7.1" />
+    <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="4.7.0" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.7.0" />
