@@ -37,11 +37,13 @@ public static class GenevaExporterHelperExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> builder to use.</param>
     /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
+    /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddGenevaTraceExporter(
         this TracerProviderBuilder builder,
         string? name,
-        Action<GenevaExporterOptions>? configure)
+        Action<GenevaExporterOptions>? configure,
+        Func<GenevaExporterOptions, GenevaTraceExporter>? buildGenevaExporter = null)
     {
         Guard.ThrowIfNull(builder);
 
@@ -88,17 +90,28 @@ public static class GenevaExporterHelperExtensions
 
             return BuildGenevaTraceExporter(
                 exporterOptions,
-                batchExportActivityProcessorOptions);
+                batchExportActivityProcessorOptions,
+                buildGenevaExporter);
         });
     }
 
     private static BaseProcessor<Activity> BuildGenevaTraceExporter(
         GenevaExporterOptions options,
-        BatchExportActivityProcessorOptions batchActivityExportProcessor)
+        BatchExportActivityProcessorOptions batchActivityExportProcessor,
+        Func<GenevaExporterOptions, GenevaTraceExporter>? buildGenevaExporter = null)
     {
+        GenevaTraceExporter exporter;
+        if (buildGenevaExporter == null)
+        {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var exporter = new GenevaTraceExporter(options);
+            exporter = new GenevaTraceExporter(options);
 #pragma warning restore CA2000 // Dispose objects before losing scope
+        }
+        else
+        {
+            exporter = buildGenevaExporter(options);
+            Guard.ThrowIfNull(exporter);
+        }
 
         if (exporter.IsUsingUnixDomainSocket)
         {
