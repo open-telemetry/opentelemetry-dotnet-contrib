@@ -94,9 +94,7 @@ public partial class GrpcTests : IDisposable
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
-#if NET
-    [Theory(Skip = "Skipping for .NET 6 and higher due to bug #3023")]
-#endif
+    [Theory]
     [InlineData(null)]
     [InlineData("true")]
     [InlineData("false")]
