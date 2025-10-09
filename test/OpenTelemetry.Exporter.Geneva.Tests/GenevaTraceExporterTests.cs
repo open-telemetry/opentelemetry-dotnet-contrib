@@ -921,6 +921,13 @@ public class GenevaTraceExporterTests : IDisposable
         #endregion
 
         #region Assert Activity Tags
+        if (exporterOptions.CustomFields == null)
+        {
+            // If custom fields is not specified, all fields are custom fields.
+            // Hence, nothing gets moved into env_properties.
+            Assert.DoesNotContain("env_properties", mapping);
+        }
+
         _ = mapping.TryGetValue("env_properties", out var envProperties);
         var envPropertiesMapping = envProperties as IDictionary<object, object>;
         foreach (var tag in activity.TagObjects)
@@ -949,11 +956,18 @@ public class GenevaTraceExporterTests : IDisposable
                 // If CustomFields are provided, dedicatedFields will be populated
                 if (exporterOptions.CustomFields == null || dedicatedFields.Contains(tag.Key))
                 {
+                    // If the field should be dedicated, it should be there, and nowhere else.
                     Assert.Equal(tag.Value.ToString(), mapping[tag.Key].ToString());
+                    if (envPropertiesMapping != null)
+                    {
+                        Assert.DoesNotContain(tag.Key, envPropertiesMapping.Keys);
+                    }
                 }
                 else
                 {
+                    // If the field should not be dedicated, it should be in env_properties, and nowhere else.
                     Assert.Equal(tag.Value.ToString(), envPropertiesMapping[tag.Key].ToString());
+                    Assert.DoesNotContain(tag.Key, mapping.Keys);
                 }
             }
         }
