@@ -782,8 +782,7 @@ public class GenevaTraceExporterTests : IDisposable
 
     private static string GetTestMethodName([CallerMemberName] string callingMethodName = "")
     {
-        // we have to add the .net version to avoid listening to another platform's test spans
-        return $"net{Environment.Version.ToString()}-{callingMethodName}";
+        return callingMethodName;
     }
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
