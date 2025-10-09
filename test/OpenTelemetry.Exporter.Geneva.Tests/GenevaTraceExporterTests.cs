@@ -626,6 +626,73 @@ public class GenevaTraceExporterTests
             .Build();
     }
 
+
+    private class MockGenevaTraceExporter : GenevaTraceExporter
+    {
+        private readonly Func<Batch<Activity>, ExportResult> onExportHandler;
+
+        public MockGenevaTraceExporter(GenevaExporterOptions options, Func<Batch<Activity>, ExportResult> onExportHandler)
+            : base(options)
+        {
+            this.onExportHandler = onExportHandler ?? throw new NullReferenceException(nameof(onExportHandler));
+        }
+
+        public override ExportResult Export(in Batch<Activity> batch) => this.onExportHandler(batch);
+    }
+
+    [Fact]
+    public void AddGenevaCustomExporterSupport()
+    {
+        // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+        // the ActivitySource used by other unit tests.
+        var sourceName = GetTestMethodName();
+
+        string connectionString;
+        string connectionStringForNamedOptions;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+            connectionStringForNamedOptions = "EtwSession=OpenTelemetry-NamedOptions";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            connectionString = "Endpoint=unix:" + path;
+            connectionStringForNamedOptions = "Endpoint=unix:" + path + "NamedOptions";
+        }
+
+        var isCustomExportCalled = false;
+        Batch<Activity> incomingBatch = default;
+        var mockGenevaExporter = new MockGenevaTraceExporter(
+            new() { ConnectionString = connectionString },
+            batch =>
+            {
+                isCustomExportCalled = true;
+                incomingBatch = batch;
+                return ExportResult.Success;
+            });
+
+        var builder = Sdk.CreateTracerProviderBuilder().AddSource(sourceName)
+            .AddGenevaTraceExporter("DefaultExporter", null, _ => mockGenevaExporter)
+            .Build();
+
+        var source = new ActivitySource(sourceName);
+
+        var activityName = "mock activity name";
+        using (var activity = source.StartActivity(activityName, ActivityKind.Internal))
+        {
+        }
+
+        builder.ForceFlush();
+
+        Assert.True(isCustomExportCalled);
+        Assert.NotEqual(default, incomingBatch);
+        Assert.Equal(1L, incomingBatch.Count);
+        var enumerator = incomingBatch.GetEnumerator();
+        enumerator.MoveNext();
+        Assert.Equal(activityName, enumerator.Current.OperationName);
+    }
+
     [Fact]
     public void AddGenevaBatchExportProcessorOptions()
     {
