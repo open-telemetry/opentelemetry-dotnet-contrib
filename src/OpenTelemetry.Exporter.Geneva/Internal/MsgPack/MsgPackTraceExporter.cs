@@ -4,6 +4,7 @@
 #if NET
 using System.Collections.Frozen;
 #endif
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -54,8 +55,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #endif
 
     internal readonly ThreadLocal<byte[]> Buffer = new();
-
     internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
+
+    internal readonly ThreadLocal<Dictionary<string, object>> resourceAttributes = new();
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
@@ -339,8 +341,14 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         string? serviceName = null;
         string? serviceInstanceId = null;
-        Dictionary<string, object> partCResourceAttributes = [];
-        foreach (KeyValuePair<string, object> resourceAttribute in resource.Attributes)
+        if (this.resourceAttributes.Value == null)
+        {
+            this.resourceAttributes.Value = new();
+        }
+        var partCResourceAttributes = this.resourceAttributes.Value;
+        partCResourceAttributes.Clear();
+
+        foreach (var resourceAttribute in resource.Attributes)
         {
             if (resourceAttribute.Value is string resourceValue)
             {
@@ -382,11 +390,13 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         if (!string.IsNullOrEmpty(serviceName))
         {
             cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.Role, serviceName);
+            cntFields += 1;
         }
 
         if (!string.IsNullOrEmpty(serviceInstanceId))
         {
             cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.RoleInstance, serviceInstanceId);
+            cntFields += 1;
         }
         #endregion
 
@@ -493,6 +503,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+                // because part B and C are not separated, we can't have part C fields with the same name as part B names
+                // do remove it if it exists
+                partCResourceAttributes.Remove(replacementKey);
             }
             else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
             {
@@ -502,6 +515,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                partCResourceAttributes.Remove(entry.Key);
             }
             else
             {
@@ -511,6 +525,20 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
             cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
             cntFields += 1;
+        }
+
+        foreach (var entry in partCResourceAttributes)
+        {
+            if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
+            {
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                cntFields += 1;
+            }
+            else
+            {
+                hasEnvProperties = true;
+            }
         }
 
         if (isServerActivity)
@@ -525,7 +553,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        if (hasEnvProperties || partCResourceAttributes.Count > 0)
+        if (hasEnvProperties)
         {
             // Iteration #2 - Get all "other" fields and collapse them into single field
             // named "env_properties" (Part C).
@@ -550,17 +578,23 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                     {
                         cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                         cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-
                         envPropertiesCount += 1;
                     }
                 }
-            }
-
-            foreach (var entry in partCResourceAttributes)
-            {
-                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                envPropertiesCount += 1;
+                foreach (var entry in partCResourceAttributes)
+                {
+                    // TODO: check name collision
+                    if (this.DedicatedFields!.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
+                    }
+                }
             }
 
             cntFields += 1;
