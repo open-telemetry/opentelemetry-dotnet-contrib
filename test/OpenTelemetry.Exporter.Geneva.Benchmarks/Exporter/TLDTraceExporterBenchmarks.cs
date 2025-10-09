@@ -5,6 +5,7 @@ using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 /*
@@ -84,7 +85,7 @@ public class TLDTraceExporterBenchmarks
     [Benchmark]
     public void MsgPack_SerializeActivity()
     {
-        this.msgPackExporter.SerializeActivity(this.activity!);
+        this.msgPackExporter.SerializeActivity(this.activity!, Resource.Empty);
     }
 
     [Benchmark]
@@ -96,13 +97,13 @@ public class TLDTraceExporterBenchmarks
     [Benchmark]
     public void MsgPack_ExportActivity()
     {
-        this.msgPackExporter.Export(this.batch);
+        this.msgPackExporter.Export(this.batch, Resource.Empty);
     }
 
     [Benchmark]
     public void TLD_ExportActivity()
     {
-        this.tldExporter.Export(this.batch);
+        this.tldExporter.Export(this.batch, Resource.Empty);
     }
 
     [GlobalCleanup]
