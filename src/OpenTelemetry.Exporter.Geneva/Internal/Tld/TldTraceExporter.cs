@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
@@ -110,7 +111,7 @@ internal sealed class TldTraceExporter : IDisposable
         this.shouldIncludeTraceState = options.IncludeTraceStateForSpan;
     }
 
-    public ExportResult Export(in Batch<Activity> batch)
+    public ExportResult Export(in Batch<Activity> batch, Resource resource)
     {
         if (this.eventProvider.IsEnabled())
         {
