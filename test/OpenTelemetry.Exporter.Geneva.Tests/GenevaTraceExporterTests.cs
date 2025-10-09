@@ -311,9 +311,7 @@ public class GenevaTraceExporterTests : IDisposable
 
                 this.ExpectSpanFromActivity(activity, (mapping) =>
                     {
-                        // Part A cloud extensions
-                        this.AssertMappingEntry(mapping, "env_cloud_role", "BusyWorker");
-                        this.AssertMappingEntry(mapping, "env_cloud_roleInstance", "CY1SCH030021417");
+                        // Part A cloud extensions are checked in CheckSpanForActivity, no need to check here
 
                         Dictionary<object, object> userFieldsLocation;
                         if (exporterOptions.CustomFields == null)
@@ -330,11 +328,11 @@ public class GenevaTraceExporterTests : IDisposable
                         this.AssertMappingEntry(userFieldsLocation, "bar", 2);
                         this.AssertMappingEntry(userFieldsLocation, "resourceAttribute", "resourceValue");
 
-                        // make sure that the tag value, "for resource attribute conflict test" is saved,
-                        // and not the resource value, "causes conflict" (tags have precedence over resource attributes)
+                        // make sure that the resource attribute value, "causes conflict", is overwritten
+                        // by tag value, "for resource attribute conflict test" (tags have precedence over resource attributes)
                         this.AssertMappingEntry(userFieldsLocation, "activityTag", "for resource attribute conflict test");
 
-                        // Note: links are checked in CheckSpanForActivity, so no need to do a custom check here
+                        // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
             }
 
