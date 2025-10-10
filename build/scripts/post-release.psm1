@@ -226,7 +226,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." 2>&1 | % ToString
+  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -360,7 +360,7 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
       throw 'git add failure'
   }
 
-  git commit -m "Update $propertyName in Common.props to $version." 2>&1 | % ToString
+  git commit -m "Update $propertyName in Common.props to $version." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -504,7 +504,7 @@ $entry = @"
 
   if ($changelogFilesUpdated -gt 0)
   {
-    git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+    git commit -m "Update CHANGELOGs for projects using $propertyName." -s 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'
@@ -582,7 +582,7 @@ function UpdateCommonPropsVersion {
         throw 'git add failure'
     }
 
-    git commit -m "Update $propertyDisplayName version in Common.props to $version." 2>&1 | % ToString
+    git commit -m "Update $propertyDisplayName version in Common.props to $version." -s 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'

@@ -85,7 +85,7 @@ Requested by: @$requestedByUserName
 ``/CreateReleaseTag``: Use after merging to push the release tag and trigger the job to create packages and push to NuGet [``approvers``, ``maintainers``]
 "@
 
-  git commit -a -m "Prepare repo to release $tag." 2>&1 | % ToString
+  git commit -a -m "Prepare repo to release $tag." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -300,7 +300,7 @@ Released $(Get-Date -UFormat '%Y-%b-%d')
     return
   }
 
-  git commit -a -m "Update CHANGELOG release dates for $tag." 2>&1 | % ToString
+  git commit -a -m "Update CHANGELOG release dates for $tag." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
