@@ -67,5 +67,7 @@ internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequ
 
     public UserAgentDetails UserAgentDetails => throw new NotImplementedException();
 
+    public AWSCredentials ExplicitAWSCredentials => throw new NotImplementedException();
+
     ISigner IRequestContext.Signer { get => this.Signer; set => throw new NotImplementedException(); }
 }

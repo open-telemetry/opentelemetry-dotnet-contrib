@@ -6,7 +6,8 @@
 
   <!-- OpenTelemetry packages -->
   <PropertyGroup>
-    <OpenTelemetryCoreLatestVersion>1.13.0</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreLatestVersion>1.13.1</OpenTelemetryCoreLatestVersion>
+    <OpenTelemetryCoreUnstableLatestVersion>1.13.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.12.0-beta.1</OpenTelemetryCoreLatestPrereleaseVersion>
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.12.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.12.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
@@ -85,12 +86,12 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.0" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.0" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.0" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.0" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.0.2" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.0" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.12.2" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.5.7" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.6.3" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.7.2" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.7" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.7.7" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
@@ -119,7 +120,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.0" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
-    <PackageVersion Include="MessagePack" Version="2.5.198" />
+    <PackageVersion Include="MessagePack" Version="3.1.4" />
     <PackageVersion Include="NEST" Version="7.9.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />

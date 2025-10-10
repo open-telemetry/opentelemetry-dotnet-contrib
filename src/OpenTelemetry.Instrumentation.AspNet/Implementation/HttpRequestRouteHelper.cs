@@ -42,9 +42,46 @@ internal sealed class HttpRequestRouteHelper
         else if (routeData.Route is Route route)
         {
             // MVC + WebAPI traditional routing & MVC attribute routing flow here.
-            template = route.Url;
+            template = PrepareRouteTemplate(route, routeData);
         }
 
         return template;
+    }
+
+    private static string PrepareRouteTemplate(Route route, RouteData routeData)
+    {
+        const string controllerToken = "controller";
+        const string actionToken = "action";
+
+        var template = route.Url;
+        var controller = (string)routeData.Values[controllerToken];
+        var action = (string)routeData.Values[actionToken];
+
+        if (!string.IsNullOrWhiteSpace(controller))
+        {
+            template = template.Replace($"{{{controllerToken}}}", controller);
+        }
+
+        if (!string.IsNullOrWhiteSpace(action))
+        {
+            template = template.Replace($"{{{actionToken}}}", action);
+        }
+
+        // Remove defaults with no values.
+        var defaultKeys = route.Defaults.Keys;
+        var valueKeys = routeData.Values.Keys;
+
+        foreach (var token in defaultKeys)
+        {
+            if (valueKeys.Contains(token))
+            {
+                continue;
+            }
+
+            template = template.Replace($"{{{token}}}", string.Empty);
+        }
+
+        return template
+            .TrimEnd('/'); // Normalizes endings
     }
 }
