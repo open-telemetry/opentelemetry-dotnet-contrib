@@ -1485,7 +1485,6 @@ public class GenevaLogExporterTests
     [Fact]
     public void AddGenevaCustomExporterSupportForOpenTelemetryLoggerOptions()
     {
-#if NET
         var connectionString = "EtwSession=OpenTelemetry";
 
         var isCustomExportCalled = false;
@@ -1525,7 +1524,6 @@ public class GenevaLogExporterTests
         enumerator.MoveNext();
         Assert.Equal(LogMessage, enumerator.Current.Body);
         Assert.Equal(logRecordList.Single().Body, enumerator.Current.Body);
-#endif
     }
 
     [Fact]
@@ -1555,7 +1553,6 @@ public class GenevaLogExporterTests
     [Fact]
     public void AddGenevaCustomExporterSupportForOpenTelemetryLoggerOptionsReturnsNull()
     {
-#if NET
         Assert.Throws<InvalidOperationException>(() => LoggerFactory.Create(builder => builder
             .AddOpenTelemetry(options =>
             {
@@ -1566,7 +1563,6 @@ public class GenevaLogExporterTests
                     },
                     _ => null);
             })));
-#endif
     }
 
     [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
