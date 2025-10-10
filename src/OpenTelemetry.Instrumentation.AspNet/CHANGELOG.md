@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
-
 * Following attributes are available while sampling:
   * `http.request.method`,
   * `server.address`,
@@ -17,6 +14,9 @@
 
 * Replace static routing tokens with actual values in the route template.
   ([#3160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3160))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.2
 

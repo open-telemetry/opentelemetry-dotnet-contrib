@@ -6,8 +6,8 @@
   ([#1936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1936),
    [#1940](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1940))
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.0.0-beta.6
 
