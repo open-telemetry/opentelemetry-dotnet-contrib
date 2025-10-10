@@ -8,11 +8,6 @@ namespace Examples.Wcf.Client;
 
 public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusServiceContract
 {
-    public StatusServiceClient(string name)
-        : base(name)
-    {
-    }
-
     public StatusServiceClient(Binding binding, EndpointAddress remoteAddress)
         : base(binding, remoteAddress)
     {
@@ -25,11 +20,5 @@ public class StatusServiceClient : ClientBase<IStatusServiceContract>, IStatusSe
     {
         ICommunicationObject communicationObject = this;
         return Task.Factory.FromAsync(communicationObject.BeginOpen, communicationObject.EndOpen, null);
-    }
-
-    public Task CloseAsync()
-    {
-        ICommunicationObject communicationObject = this;
-        return Task.Factory.FromAsync(communicationObject.BeginClose, communicationObject.EndClose, null);
     }
 }
