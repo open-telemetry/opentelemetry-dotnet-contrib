@@ -5,10 +5,10 @@
 * Updated OpenTelemetry core component version(s) to `1.13.0`.
   ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
 
-* Added GenevaTraceExporter customization availability for
-  AddGenevaTraceExporter extension and correspond GenevaLogExporter
-  customization availability for AddGenevaLogExporter.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+* Added `GenevaTraceExporter` customization availability for the
+  `AddGenevaTraceExporter()` extension and corresponding `GenevaLogExporter`
+  customization availability for `AddGenevaLogExporter()`.
+  ([#3213](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3213))
 
 ## 1.13.0-alpha.1
 

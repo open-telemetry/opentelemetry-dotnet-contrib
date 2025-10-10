@@ -1499,41 +1499,36 @@ public class GenevaLogExporterTests
                 return ExportResult.Success;
             });
         var logRecordList = new List<LogRecord>();
-        try
-        {
-            using var loggerFactory = LoggerFactory.Create(builder => builder
-                .AddOpenTelemetry(options =>
-                {
-                    options.AddGenevaLogExporter(
-                        options =>
-                        {
-                            options.ConnectionString = "PrivatePreviewEnableUserEvents=true";
-                        },
-                        _ => mockGenevaExporter);
-                    options.AddInMemoryExporter(logRecordList);
-                }));
 
-            // Uncomment this if testing manually with the perf tool.
-            // Console.WriteLine("------------- ready to write events -------------");
-            // Thread.Sleep(5000);
+        using var loggerFactory = LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(options =>
+            {
+                options.AddGenevaLogExporter(
+                    options =>
+                    {
+                        options.ConnectionString = "PrivatePreviewEnableUserEvents=true";
+                    },
+                    _ => mockGenevaExporter);
+                options.AddInMemoryExporter(logRecordList);
+            }));
 
-            // Emit a LogRecord and grab a copy of internal buffer for validation.
-            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+        // Uncomment this if testing manually with the perf tool.
+        // Console.WriteLine("------------- ready to write events -------------");
+        // Thread.Sleep(5000);
 
-            const string logmsg = "some logs";
-            logger.LogError(logmsg);
+        // Emit a LogRecord and grab a copy of internal buffer for validation.
+        var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-            Assert.True(isCustomExportCalled);
-            Assert.NotEqual(default, incomingBatch);
-            Assert.Equal(1L, incomingBatch.Count);
-            var enumerator = incomingBatch.GetEnumerator();
-            enumerator.MoveNext();
-            Assert.Equal(logmsg, enumerator.Current.Body);
-            Assert.Equal(logRecordList.Single().Body, enumerator.Current.Body);
-        }
-        finally
-        {
-        }
+        const string logmsg = "some logs";
+        logger.LogError(logmsg);
+
+        Assert.True(isCustomExportCalled);
+        Assert.NotEqual(default, incomingBatch);
+        Assert.Equal(1L, incomingBatch.Count);
+        var enumerator = incomingBatch.GetEnumerator();
+        enumerator.MoveNext();
+        Assert.Equal(logmsg, enumerator.Current.Body);
+        Assert.Equal(logRecordList.Single().Body, enumerator.Current.Body);
 #endif
     }
 
