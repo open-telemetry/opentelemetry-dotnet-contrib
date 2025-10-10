@@ -94,7 +94,7 @@
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
-    <PackageVersion Include="Google.Api.Gax" Version="4.8.0" />
+    <PackageVersion Include="Google.Api.Gax" Version="4.11.1" />
     <PackageVersion Include="Google.Protobuf" Version="3.32.1" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.71.0" />
@@ -128,8 +128,8 @@
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
-    <PackageVersion Include="System.ServiceModel.Http" Version="4.7.0" />
-    <PackageVersion Include="System.ServiceModel.NetTcp" Version="4.7.0" />
+    <PackageVersion Include="System.ServiceModel.Http" Version="8.1.2" />
+    <PackageVersion Include="System.ServiceModel.NetTcp" Version="8.1.2" />
     <PackageVersion Include="Testcontainers.MsSql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
