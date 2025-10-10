@@ -24,7 +24,12 @@ public class GenevaExporterOptions
     public string? ConnectionString { get; set; }
 
     /// <summary>
-    /// Gets or sets custom fields.
+    /// Gets or sets CustomFields.
+    ///
+    /// CustomFields specifies which user-defined fields should be made dedicated fields (ie., table columns) in Geneva.
+    ///
+    /// Any user-defined fields not in CustomFields are moved to the 'properties' column.
+    /// If CustomFields is not provided, all user-defined fields will be made into dedicated fields.
     /// </summary>
     public IEnumerable<string>? CustomFields { get; set; }
 
