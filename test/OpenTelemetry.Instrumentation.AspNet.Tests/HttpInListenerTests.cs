@@ -37,9 +37,11 @@ public class HttpInListenerTests
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaEnvVar, "localhost", 80, "GET", "GET", null, 0, null, "GET", "GET")] // Test complex URL
     [InlineData("https://localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=Redacted&q2=Redacted", null, "localhost", 80, "GET", "GET", null, 0, null, "GET", "GET")] // Test complex URL
     [InlineData("https://user:password@localhost:80/Home/Index.htm?q1=v1&q2=v2#FragmentName", "https", "/Home/Index.htm", "q1=v1&q2=v2", QueryRedactionDisableBehavior.DisableViaIConfiguration, "localhost", 80, "GET", "GET", null, 0, null, "GET", "GET")] // Test complex URL sanitization
-    [InlineData("http://localhost:80/Index", "http", "/Index", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET", "GET {controller}/{action}/{id}")]
+    [InlineData("http://localhost:80/", "http", "/", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET", "GET Home/Index")]
+    [InlineData("http://localhost:80/Home", "http", "/Home", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET", "GET Home/Index")]
+    [InlineData("http://localhost:80/Weather/Today/10", "http", "/Weather/Today/10", null, null, "localhost", 80, "GET", "GET", null, 1, "{controller}/{action}/{id}", "GET", "GET Weather/Today/{id}")]
     [InlineData("https://localhost:443/about_attr_route/10", "https", "/about_attr_route/10", null, null, "localhost", 443, "HEAD", "HEAD", null, 2, "about_attr_route/{customerId}", "HEAD", "HEAD about_attr_route/{customerId}")]
-    [InlineData("http://localhost:1880/api/weatherforecast", "http", "/api/weatherforecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET", "GET api/{controller}/{id}")]
+    [InlineData("http://localhost:1880/api/WeatherForecast", "http", "/api/WeatherForecast", null, null, "localhost", 1880, "GET", "GET", null, 3, "api/{controller}/{id}", "GET", "GET api/WeatherForecast")]
     [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 4, "subroute/{customerId}", "GET", "GET subroute/{customerId}")]
     [InlineData("https://localhost:1843/subroute/10", "https", "/subroute/10", null, null, "localhost", 1843, "GET", "GET", null, 5, "subroute/{customerId}", "GET", "GET subroute/{customerId}")]
     [InlineData("http://localhost/api/value", "http", "/api/value", null, null, "localhost", 80, "GET", "GET", null, 0, null, "GET", "GET", false, "/api/value")] // Request will be filtered
