@@ -354,13 +354,13 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     }
   }
 
-  git add build/Common.props 2>&1 | % ToString
+  git add Directory.Packages.props 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git add failure'
   }
 
-  git commit -m "Update $propertyName in Common.props to $version." -s 2>&1 | % ToString
+  git commit -m "Update $propertyName in Directory.Packages.props to $version." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
