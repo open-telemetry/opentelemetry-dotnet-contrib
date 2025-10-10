@@ -16,7 +16,6 @@ internal static class SqlProcessor
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
     private const char OpenParenChar = '(';
-    private const char CloseParenChar = ')';
     private const char DashChar = '-';
     private const char ForwardSlashChar = '/';
     private const char SingleQuoteChar = '\'';
