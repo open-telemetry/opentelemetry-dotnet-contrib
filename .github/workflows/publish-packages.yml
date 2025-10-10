@@ -83,7 +83,7 @@ jobs:
         run: dotnet restore ${env:PROJECT_PATH}
 
       - name: dotnet build ${{ steps.resolve-project.outputs.title }}
-        run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:Deterministic=true -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
+        run: dotnet build ${env:PROJECT_PATH} --configuration Release --no-restore -p:"BuildNumber=${env:GITHUB_RUN_NUMBER}"
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
         run: dotnet test ${env:PROJECT_PATH} --configuration Release --no-restore --no-build
