@@ -1469,17 +1469,17 @@ public class GenevaLogExporterTests
 
         var loggerFactory = s.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("TestLogger");
-        const string logmsg = "some logging";
-        logger.LogError(logmsg);
+        const string LogMessage = "some logging";
+        logger.LogError(LogMessage);
 
         loggerProvider.ForceFlush();
 
         Assert.True(isCustomExportCalled);
         Assert.NotEqual(default, incomingBatch);
         Assert.Equal(1L, incomingBatch.Count);
-        var enumerator = incomingBatch.GetEnumerator();
+        using var enumerator = incomingBatch.GetEnumerator();
         enumerator.MoveNext();
-        Assert.Equal(logmsg, enumerator.Current.Body);
+        Assert.Equal(LogMessage, enumerator.Current.Body);
     }
 
     [Fact]
@@ -1512,23 +1512,60 @@ public class GenevaLogExporterTests
                 options.AddInMemoryExporter(logRecordList);
             }));
 
-        // Uncomment this if testing manually with the perf tool.
-        // Console.WriteLine("------------- ready to write events -------------");
-        // Thread.Sleep(5000);
-
         // Emit a LogRecord and grab a copy of internal buffer for validation.
         var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-        const string logmsg = "some logs";
-        logger.LogError(logmsg);
+        const string LogMessage = "some logs";
+        logger.LogError(LogMessage);
 
         Assert.True(isCustomExportCalled);
         Assert.NotEqual(default, incomingBatch);
         Assert.Equal(1L, incomingBatch.Count);
-        var enumerator = incomingBatch.GetEnumerator();
+        using var enumerator = incomingBatch.GetEnumerator();
         enumerator.MoveNext();
-        Assert.Equal(logmsg, enumerator.Current.Body);
+        Assert.Equal(LogMessage, enumerator.Current.Body);
         Assert.Equal(logRecordList.Single().Body, enumerator.Current.Body);
+#endif
+    }
+
+    [Fact]
+    public void AddGenevaCustomExporterSupportForLoggerProviderBuilderReturnsNull()
+    {
+        var connectionString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "EtwSession=OpenTelemetry"
+            : "Endpoint=unix:" + GenerateTempFilePath();
+
+        var sp = new ServiceCollection();
+        sp.AddOpenTelemetry().WithLogging(builder => builder
+            .ConfigureServices(services =>
+            {
+                services.Configure<GenevaExporterOptions>(o =>
+                {
+                    o.ConnectionString = connectionString;
+                });
+                services.Configure<BatchExportLogRecordProcessorOptions>(o => o.ScheduledDelayMilliseconds = 100);
+            })
+            .AddGenevaLogExporter(null, null, _ => null));
+
+        var s = sp.BuildServiceProvider();
+
+        Assert.Throws<InvalidOperationException>(s.GetRequiredService<LoggerProvider>);
+    }
+
+    [Fact]
+    public void AddGenevaCustomExporterSupportForOpenTelemetryLoggerOptionsReturnsNull()
+    {
+#if NET
+        Assert.Throws<InvalidOperationException>(() => LoggerFactory.Create(builder => builder
+            .AddOpenTelemetry(options =>
+            {
+                options.AddGenevaLogExporter(
+                    options =>
+                    {
+                        options.ConnectionString = "PrivatePreviewEnableUserEvents=true";
+                    },
+                    _ => null);
+            })));
 #endif
     }
 

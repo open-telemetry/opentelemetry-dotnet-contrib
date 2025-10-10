@@ -674,9 +674,32 @@ public class GenevaTraceExporterTests
         Assert.True(isCustomExportCalled);
         Assert.NotEqual(default, incomingBatch);
         Assert.Equal(1L, incomingBatch.Count);
-        var enumerator = incomingBatch.GetEnumerator();
+        using var enumerator = incomingBatch.GetEnumerator();
         enumerator.MoveNext();
         Assert.Equal(activityName, enumerator.Current.OperationName);
+    }
+
+    [Fact]
+    public void AddGenevaCustomExporterSupportReturnNull()
+    {
+        // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+        // the ActivitySource used by other unit tests.
+        var sourceName = GetTestMethodName();
+
+        string connectionString;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            connectionString = "EtwSession=OpenTelemetry";
+        }
+        else
+        {
+            var path = GetRandomFilePath();
+            connectionString = "Endpoint=unix:" + path;
+        }
+
+        var builder = Sdk.CreateTracerProviderBuilder().AddGenevaTraceExporter("DefaultExporter", null, _ => null);
+
+        Assert.Throws<InvalidOperationException>(builder.Build);
     }
 
     [Fact]

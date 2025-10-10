@@ -21,9 +21,14 @@ public static class GenevaLoggingExtensions
     /// </summary>
     /// <param name="options"><see cref="OpenTelemetryLoggerOptions"/>.</param>
     /// <param name="configure">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
-    /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
+    /// <param name="buildGenevaExporter">Provider of customized GenevaTraceExporter.</param>
     /// <returns>The instance of <see cref="OpenTelemetryLoggerOptions"/> to chain the calls.</returns>
     public static OpenTelemetryLoggerOptions AddGenevaLogExporter(
+        this OpenTelemetryLoggerOptions options,
+        Action<GenevaExporterOptions>? configure,
+        Func<GenevaExporterOptions, GenevaLogExporter> buildGenevaExporter) => AddBasicGenevaLogExporter(options, configure, buildGenevaExporter);
+
+    private static OpenTelemetryLoggerOptions AddBasicGenevaLogExporter(
         this OpenTelemetryLoggerOptions options,
         Action<GenevaExporterOptions>? configure,
         Func<GenevaExporterOptions, GenevaLogExporter>? buildGenevaExporter)
@@ -35,14 +40,14 @@ public static class GenevaLoggingExtensions
 
         GenevaLogExporter exporter;
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        if (buildGenevaExporter != null)
+        if (buildGenevaExporter == null)
         {
-            exporter = buildGenevaExporter(genevaOptions);
-            Guard.ThrowIfNull(exporter);
+            exporter = new GenevaLogExporter(genevaOptions);
         }
         else
         {
-            exporter = new GenevaLogExporter(genevaOptions);
+            exporter = buildGenevaExporter(genevaOptions) ??
+                throw new InvalidOperationException($"Exporter provider cannot return null.");
         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
@@ -122,9 +127,15 @@ public static class GenevaLoggingExtensions
     /// <param name="builder"><see cref="LoggerProviderBuilder"/> builder to use.</param>
     /// <param name="name">Optional name which is used when retrieving options.</param>
     /// <param name="configureExporter">Optional callback action for configuring <see cref="GenevaExporterOptions"/>.</param>
-    /// <param name="buildGenevaExporter">Optional provider of customized GenevaTraceExporter.</param>
+    /// <param name="buildGenevaExporter">Provider of customized GenevaTraceExporter.</param>
     /// <returns>The instance of <see cref="LoggerProviderBuilder"/> to chain the calls.</returns>
     public static LoggerProviderBuilder AddGenevaLogExporter(
+        this LoggerProviderBuilder builder,
+        string? name,
+        Action<GenevaExporterOptions>? configureExporter,
+        Func<GenevaExporterOptions, GenevaLogExporter> buildGenevaExporter) => AddBasicGenevaLogExporter(builder, name, configureExporter, buildGenevaExporter);
+
+    private static LoggerProviderBuilder AddBasicGenevaLogExporter(
         this LoggerProviderBuilder builder,
         string? name,
         Action<GenevaExporterOptions>? configureExporter,
@@ -185,16 +196,16 @@ public static class GenevaLoggingExtensions
     {
         Debug.Assert(exporterOptions != null, "exporterOptions was null");
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
         GenevaLogExporter exporter;
-        if (buildGenevaExporter != null)
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        if (buildGenevaExporter == null)
         {
-            exporter = buildGenevaExporter(exporterOptions!);
-            Guard.ThrowIfNull(exporter);
+            exporter = new GenevaLogExporter(exporterOptions!);
         }
         else
         {
-            exporter = new GenevaLogExporter(exporterOptions!);
+            exporter = buildGenevaExporter(exporterOptions!) ??
+                throw new InvalidOperationException($"Exporter provider cannot return null.");
         }
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
