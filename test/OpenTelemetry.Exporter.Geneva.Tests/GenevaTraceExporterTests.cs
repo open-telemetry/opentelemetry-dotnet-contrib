@@ -626,20 +626,6 @@ public class GenevaTraceExporterTests
             .Build();
     }
 
-
-    private class MockGenevaTraceExporter : GenevaTraceExporter
-    {
-        private readonly Func<Batch<Activity>, ExportResult> onExportHandler;
-
-        public MockGenevaTraceExporter(GenevaExporterOptions options, Func<Batch<Activity>, ExportResult> onExportHandler)
-            : base(options)
-        {
-            this.onExportHandler = onExportHandler ?? throw new NullReferenceException(nameof(onExportHandler));
-        }
-
-        public override ExportResult Export(in Batch<Activity> batch) => this.onExportHandler(batch);
-    }
-
     [Fact]
     public void AddGenevaCustomExporterSupport()
     {
@@ -993,5 +979,18 @@ public class GenevaTraceExporterTests
         {
             throw new InvalidOperationException($"Unexpected ActivityKind: {activity.Kind}. Expected either Server or Client.");
         }
+    }
+
+    private class MockGenevaTraceExporter : GenevaTraceExporter
+    {
+        private readonly Func<Batch<Activity>, ExportResult> onExportHandler;
+
+        public MockGenevaTraceExporter(GenevaExporterOptions options, Func<Batch<Activity>, ExportResult> onExportHandler)
+            : base(options)
+        {
+            this.onExportHandler = onExportHandler ?? throw new NullReferenceException(nameof(onExportHandler));
+        }
+
+        public override ExportResult Export(in Batch<Activity> batch) => this.onExportHandler(batch);
     }
 }

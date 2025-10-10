@@ -1433,19 +1433,6 @@ public class GenevaLogExporterTests
         }
     }
 
-    private class MockGenevaLogExporter : GenevaLogExporter
-    {
-        private readonly Func<Batch<LogRecord>, ExportResult> onExportHandler;
-
-        public MockGenevaLogExporter(GenevaExporterOptions options, Func<Batch<LogRecord>, ExportResult> onExportHandler)
-            : base(options)
-        {
-            this.onExportHandler = onExportHandler ?? throw new NullReferenceException(nameof(onExportHandler));
-        }
-
-        public override ExportResult Export(in Batch<LogRecord> batch) => this.onExportHandler(batch);
-    }
-
     [Fact]
     public void AddGenevaCustomExporterSupportForLoggerProviderBuilder()
     {
@@ -1482,7 +1469,7 @@ public class GenevaLogExporterTests
 
         var loggerFactory = s.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger("TestLogger");
-        var logmsg = "some logging";
+        const string logmsg = "some logging";
         logger.LogError(logmsg);
 
         loggerProvider.ForceFlush();
@@ -1533,7 +1520,7 @@ public class GenevaLogExporterTests
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
 
-            var logmsg = "some logs";
+            const string logmsg = "some logs";
             logger.LogError(logmsg);
 
             Assert.True(isCustomExportCalled);
@@ -1778,5 +1765,18 @@ public class GenevaLogExporterTests
     // A custom exception class with non-ASCII character in the type name
     private class CustomException\u0418 : Exception
     {
+    }
+
+    private class MockGenevaLogExporter : GenevaLogExporter
+    {
+        private readonly Func<Batch<LogRecord>, ExportResult> onExportHandler;
+
+        public MockGenevaLogExporter(GenevaExporterOptions options, Func<Batch<LogRecord>, ExportResult> onExportHandler)
+            : base(options)
+        {
+            this.onExportHandler = onExportHandler ?? throw new NullReferenceException(nameof(onExportHandler));
+        }
+
+        public override ExportResult Export(in Batch<LogRecord> batch) => this.onExportHandler(batch);
     }
 }
