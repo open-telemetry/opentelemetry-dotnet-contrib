@@ -120,7 +120,7 @@
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.0" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
-    <PackageVersion Include="NEST" Version="7.9.0" />
+    <PackageVersion Include="NEST" Version="7.17.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
