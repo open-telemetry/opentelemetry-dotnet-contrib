@@ -774,5 +774,88 @@
       ],
       "db.query.summary": "SELECT Employees"
     }
+  },
+  {
+    "name": "in_clause_starting_with_negative_literal",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM table WHERE value IN (-123, .456, 'abc', 0.12, 1e10)"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM table WHERE value IN (?)",
+        "SELECT * FROM table WHERE value IN (?, ?, ?, ?, ?)"
+      ],
+      "db.query.summary": "SELECT table"
+    }
+  },
+  {
+    "name": "in_clause_starting_with_hex_literal",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM table WHERE value IN (0xAB, .456, 'abc', 0.12, 1e10)"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM table WHERE value IN (?)",
+        "SELECT * FROM table WHERE value IN (?, ?, ?, ?, ?)"
+      ],
+      "db.query.summary": "SELECT table"
+    }
+  },
+  {
+    "name": "in_clause_starting_with_string_literal",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM table WHERE value IN ('abc', 0xAB, .456, 0.12, 1e10)"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM table WHERE value IN (?)",
+        "SELECT * FROM table WHERE value IN (?, ?, ?, ?, ?)"
+      ],
+      "db.query.summary": "SELECT table"
+    }
+  },
+  {
+    "name": "malformed_in_clause",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM table WHERE value IN ('abc', 0xAB, .456,"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM table WHERE value IN (?, ?, ?,"
+      ],
+      "db.query.summary": "SELECT table"
+    }
+  },
+  {
+    "name": "malformed_alter_table_example_one",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER  TABLE MyTable ADD Name varchar(255) 'mypassword' 1234"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER  TABLE MyTable ADD Name varchar(255) ? ?",
+        "ALTER  TABLE MyTable ADD Name varchar(?) ? ?"
+      ],
+      "db.query.summary": "ALTER TABLE MyTable"
+    }
+  },
+  {
+    "name": "malformed_alter_table_example_two",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "ALTER  TABLE MyTable 'mypassword' ADD 123 Name varchar(255)"
+    },
+    "expected": {
+      "db.query.text": [
+        "ALTER  TABLE MyTable ? ADD ? Name varchar(255)",
+        "ALTER  TABLE MyTable ? ADD ? Name varchar(?)"
+      ],
+      "db.query.summary": "ALTER TABLE MyTable"
+    }
   }
 ]
