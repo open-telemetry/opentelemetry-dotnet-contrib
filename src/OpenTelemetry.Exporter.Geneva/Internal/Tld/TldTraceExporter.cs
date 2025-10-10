@@ -111,7 +111,7 @@ internal sealed class TldTraceExporter : IDisposable
         this.shouldIncludeTraceState = options.IncludeTraceStateForSpan;
     }
 
-    public ExportResult Export(in Batch<Activity> batch, Resource resource)
+    public ExportResult Export(in Batch<Activity> batch)
     {
         if (this.eventProvider.IsEnabled())
         {

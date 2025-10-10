@@ -237,15 +237,6 @@ public class GenevaTraceExporterTests : IDisposable
                 exporterOptions.IncludeTraceStateForSpan = true;
             }
 
-            using var exporter = new MsgPackTraceExporter(exporterOptions);
-            var m_buffer = exporter.Buffer;
-
-            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
-
-            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
-            // the ActivitySource used by other unit tests.
-            var sourceName = GetTestMethodName();
-
             Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttribute", "resourceValue" },
@@ -255,12 +246,21 @@ public class GenevaTraceExporterTests : IDisposable
             };
             var resource = new Resource(resourceAttributes);
 
+            using var exporter = new MsgPackTraceExporter(exporterOptions, resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
             using var listener = new ActivityListener();
             listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                _ = exporter.SerializeActivity(activity, resource);
+                _ = exporter.SerializeActivity(activity);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
 
@@ -395,7 +395,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            using var exporter = new MsgPackTraceExporter(exporterOptions);
+            using var exporter = new MsgPackTraceExporter(exporterOptions, Resource.Empty);
 
             var m_buffer = exporter.Buffer;
 
@@ -410,7 +410,7 @@ public class GenevaTraceExporterTests : IDisposable
             listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
             listener.ActivityStopped = (activity) =>
             {
-                _ = exporter.SerializeActivity(activity, Resource.Empty);
+                _ = exporter.SerializeActivity(activity);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
                 this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, []);
                 invocationCount++;
@@ -576,14 +576,16 @@ public class GenevaTraceExporterTests : IDisposable
             serverSocket.ReceiveTimeout = 10000;
 
             // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-            var exporter = new MsgPackTraceExporter(new GenevaExporterOptions
-            {
-                ConnectionString = "Endpoint=unix:" + path,
-                PrepopulatedFields = new Dictionary<string, object>
+            var exporter = new MsgPackTraceExporter(
+                new GenevaExporterOptions
                 {
-                    ["cloud.roleVer"] = "9.0.15289.2",
+                    ConnectionString = "Endpoint=unix:" + path,
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    },
                 },
-            });
+                Resource.Empty);
 
             // Emit trace and grab a copy of internal buffer for validation.
             var source = new ActivitySource(sourceName);
@@ -591,7 +593,7 @@ public class GenevaTraceExporterTests : IDisposable
 
             using (var activity = source.StartActivity("Foo", ActivityKind.Internal))
             {
-                messagePackDataSize = exporter.SerializeActivity(activity, Resource.Empty).Count;
+                messagePackDataSize = exporter.SerializeActivity(activity).Count;
             }
 
             // Read the data sent via socket.
@@ -605,7 +607,7 @@ public class GenevaTraceExporterTests : IDisposable
             var thread = new Thread(() =>
             {
                 using var activity = source.StartActivity("ActivityFromAnotherThread", ActivityKind.Internal);
-                messagePackDataSize = exporter.SerializeActivity(activity, Resource.Empty).Count;
+                messagePackDataSize = exporter.SerializeActivity(activity).Count;
             });
             thread.Start();
             thread.Join();

@@ -56,7 +56,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     internal readonly ThreadLocal<byte[]> Buffer = new();
     internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
 
-    internal readonly ThreadLocal<Dictionary<string, object>> ResourceAttributes = new();
+    internal readonly Resource Resource;
+
+    internal readonly ThreadLocal<Dictionary<string, object>> PartCResourceAttributes = new();
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
@@ -82,9 +84,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private bool isDisposed;
 
-    public MsgPackTraceExporter(GenevaExporterOptions options)
+    public MsgPackTraceExporter(GenevaExporterOptions options, Resource resource)
     {
         Guard.ThrowIfNull(options);
+        Guard.ThrowIfNull(resource);
+
+        this.Resource = resource;
 
         var partAName = "Span";
         if (options.TableNameMappings != null
@@ -217,7 +222,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal bool IsUsingUnixDomainSocket => this.dataTransport is UnixDomainSocketDataTransport;
 
-    public ExportResult Export(in Batch<Activity> batch, Resource resource)
+    public ExportResult Export(in Batch<Activity> batch)
     {
         // Note: The MessagePackSerializer takes way less time / memory than creating the activity itself.
         //       This makes the short-circuit check less useful.
@@ -234,7 +239,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         {
             try
             {
-                var data = this.SerializeActivity(activity, resource);
+                var data = this.SerializeActivity(activity);
 
                 this.dataTransport.Send(data.Array!, data.Count);
             }
@@ -262,7 +267,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             (this.dataTransport as IDisposable)?.Dispose();
             this.Buffer.Dispose();
             this.HttpUrlParts.Dispose();
-            this.ResourceAttributes.Dispose();
+            this.PartCResourceAttributes.Dispose();
         }
         catch (Exception ex)
         {
@@ -316,7 +321,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return urlStringBuilder.ToString();
     }
 
-    internal ArraySegment<byte> SerializeActivity(Activity activity, Resource resource)
+    internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
         if (buffer == null)
@@ -335,15 +340,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         string? serviceName = null;
         string? serviceInstanceId = null;
-        if (this.ResourceAttributes.Value == null)
+        if (this.PartCResourceAttributes.Value == null)
         {
-            this.ResourceAttributes.Value = new();
+            this.PartCResourceAttributes.Value = new();
         }
 
-        var partCResourceAttributes = this.ResourceAttributes.Value;
+        var partCResourceAttributes = this.PartCResourceAttributes.Value;
         partCResourceAttributes.Clear();
 
-        foreach (var resourceAttribute in resource.Attributes)
+        foreach (var resourceAttribute in Resource.Attributes)
         {
             if (resourceAttribute.Value is string resourceValue)
             {
