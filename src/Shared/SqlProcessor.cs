@@ -16,6 +16,7 @@ internal static class SqlProcessor
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
     private const char OpenParenChar = '(';
+    private const char CloseParenChar = ')';
     private const char DashChar = '-';
     private const char ForwardSlashChar = '/';
     private const char SingleQuoteChar = '\'';
@@ -252,6 +253,9 @@ internal static class SqlProcessor
         sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
         state.SanitizedPosition += length;
         state.ParsePosition += length;
+
+        // Note, for efficiency, we do not attempt to update the previous token start/end positions
+        // We no longer use these when in fast path mode.
     }
 
     private static void ParseNextToken(
@@ -365,6 +369,8 @@ internal static class SqlProcessor
                     state.CaptureNextTokenInSummary = SqlKeywordInfo.CaptureNextTokenInSummary(in state, potentialKeywordInfo.SqlKeyword);
                     state.PreviousParsedKeyword = potentialKeywordInfo;
                     state.ParsePosition += keywordLength;
+                    state.PreviousTokenStartPosition = start;
+                    state.PreviousTokenEndPosition = start + keywordLength;
 
                     // No further parsing needed for this token
                     return;
@@ -412,6 +418,8 @@ internal static class SqlProcessor
 
             state.ParsePosition = i;
             state.CaptureNextTokenInSummary = false;
+            state.PreviousTokenStartPosition = start;
+            state.PreviousTokenEndPosition = i;
         }
         else
         {
@@ -422,6 +430,8 @@ internal static class SqlProcessor
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
+
+            // We don't update previous token start/end positions for single-char tokens.
         }
     }
 
@@ -516,6 +526,11 @@ internal static class SqlProcessor
         var currentChar = sql[state.ParsePosition];
         if (currentChar == SingleQuoteChar)
         {
+            if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, state.ParsePosition))
+            {
+                return true;
+            }
+
             var rest = sql.Slice(state.ParsePosition + 1);
             while (!rest.IsEmpty)
             {
@@ -557,6 +572,11 @@ internal static class SqlProcessor
 
         if (ch == '0' && iPlusOne < length && (sql[iPlusOne] == 'x' || sql[iPlusOne] == 'X'))
         {
+            if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
+            {
+                return true;
+            }
+
             for (i += 2; i < length; ++i)
             {
                 ch = sql[i];
@@ -617,6 +637,11 @@ internal static class SqlProcessor
 
         if (IsAsciiDigit(currentChar))
         {
+            if (TrySanitizeLiteralsForInClause(sql, buffer, ref state, i))
+            {
+                return true;
+            }
+
             var exponentMatched = false;
             for (i += 1; i < length; ++i)
             {
@@ -657,6 +682,29 @@ internal static class SqlProcessor
         return false;
     }
 
+    private static bool TrySanitizeLiteralsForInClause(ReadOnlySpan<char> sql, Span<char> buffer, ref ParseState state, int parsePosition)
+    {
+        // Special case: We may be in an IN clause with a list of literals.
+        // If the previously sanitized character was '(' and the previous token was "IN", we can simplify the sanitization.
+        // In this case, we fast-path to the closing parenthesis and replace the entire contents with a single '?'.
+
+        if (state.SanitizedPosition > 0 && buffer[state.SanitizedPosition - 1] == OpenParenChar
+            && state.PreviousTokenEndPosition - state.PreviousTokenStartPosition == 2
+            && sql.Slice(state.PreviousTokenStartPosition, 2).Equals("in", StringComparison.OrdinalIgnoreCase))
+        {
+            var closingParenIndex = sql.Slice(parsePosition).IndexOf(CloseParenChar);
+
+            if (closingParenIndex > 0)
+            {
+                state.ParsePosition = parsePosition + closingParenIndex;
+                buffer[state.SanitizedPosition++] = SanitizationPlaceholder;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private ref struct ParseState
     {
         // ParseState intentionally uses public fields (not properties):
@@ -678,6 +726,10 @@ internal static class SqlProcessor
         public int ParsePosition; // 4 bytes
         public int SanitizedPosition; // 4 bytes
         public int SummaryPosition; // 4 bytes
+
+        // These track the start and end position of the previous (non-literal) token parsed.
+        public int PreviousTokenStartPosition; // 4 bytes
+        public int PreviousTokenEndPosition; // 4 bytes
 
         public bool CaptureNextTokenInSummary; // 1 byte
     }
