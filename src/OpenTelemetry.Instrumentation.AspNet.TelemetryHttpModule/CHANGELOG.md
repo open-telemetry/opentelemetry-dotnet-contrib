@@ -2,9 +2,6 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
-
 * **Breaking Change**: This module is no longer responsible for creating activities.
   The contract of `TelemetryHttpModuleOptions.OnRequestStartedCallback` was changed
   to `Func<HttpContextBase, ActivityContext, Activity?>?`. The consumer is now
@@ -13,6 +10,9 @@
 
 * Fixed an inaccurate span end of time.
   ([#3171](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3171))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.2
 
