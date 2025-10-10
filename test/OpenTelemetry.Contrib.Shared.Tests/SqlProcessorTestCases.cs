@@ -57,7 +57,7 @@ public static class SqlProcessorTestCases
             },
             Expected = new()
             {
-                SanitizedQueryText = ["ALTER  TABLE MyTable ADD Name varchar(255)"],
+                SanitizedQueryText = ["ALTER  TABLE MyTable ADD Name varchar(?)", "ALTER  TABLE MyTable ADD Name varchar(255)"],
                 Summary = "ALTER TABLE MyTable",
             },
         });

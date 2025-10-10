@@ -154,8 +154,9 @@ internal static class SqlProcessor
     private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
     {
         // We use a single buffer for both sanitized SQL and DB query summary.
-        // We rent a buffer twice the size of the input SQL to ensure we have enough space.
-        // The summary starts from the middle position of the rented buffer.
+        // We rent a buffer twice the size of the input SQL to ensure
+        // we have enough space for the sanitized SQL and summary. The summary starts
+        // from the middle position of the rented buffer.
         var rentedBuffer = ArrayPool<char>.Shared.Rent(sql.Length * 2);
 
         var buffer = rentedBuffer.AsSpan();
@@ -194,17 +195,37 @@ internal static class SqlProcessor
             }
         }
 
-        var summaryLength = Math.Min(state.SummaryPosition, MaxSummaryLength);
+        var summary = state.SummaryBuffer.Slice(0, state.SummaryPosition);
 
-        // Trim trailing space
-        if (summaryLength > 0 && state.SummaryBuffer[summaryLength - 1] == SpaceChar)
+        // If we have exceeded the max length for the summary, find the index of the last whitespace
+        // and trim the summary to that position. This avoids truncating within an operation name or target.
+        if (state.SummaryPosition > MaxSummaryLength)
         {
-            summaryLength -= 1;
+#if NET
+            var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceSearchValues);
+#else
+            var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
+#endif
+
+            summary = summary.Slice(0, indexOfLastWhitespace);
+        }
+
+        var summaryLength = summary.Length;
+
+        // Trim trailing whitespace
+        if (summaryLength > 0)
+        {
+            var lastChar = summary[summaryLength - 1];
+
+            if (lastChar == SpaceChar || lastChar == TabChar || lastChar == NewLineChar || lastChar == CarriageReturnChar)
+            {
+                summaryLength -= 1;
+            }
         }
 
         var sqlStatementInfo = new SqlStatementInfo(
             buffer.Slice(0, state.SanitizedPosition).ToString(),
-            state.SummaryBuffer.Slice(0, summaryLength).ToString());
+            summary.Slice(0, summaryLength).ToString());
 
         // We don't clear the buffer as we know the content has been sanitized
         ArrayPool<char>.Shared.Return(rentedBuffer);
@@ -575,31 +596,6 @@ internal static class SqlProcessor
         var currentChar = sql[i];
         var length = sql.Length;
         var iPlusOne = i + 1;
-
-        // If the digit follows an open bracket, check for a parenthesized digit sequence
-        if (i > 0 && sql[i - 1] == OpenParenChar
-            && IsAsciiDigit(currentChar))
-        {
-            int start = i;
-            int j = i;
-
-            // Scan until closing ')', ensure all are digits
-            while (j < length && IsAsciiDigit(sql[j]))
-            {
-                j++;
-            }
-
-            if (j < length && sql[j] == CloseParenChar)
-            {
-                // Copy the digits and the closing bracket to the buffer
-                sql.Slice(start, j - start + 1).CopyTo(buffer.Slice(state.SanitizedPosition));
-                state.SanitizedPosition += j - start + 1;
-                state.ParsePosition = j + 1;
-                return true;
-            }
-
-            // If not a valid parenthesized digit sequence, fall through to normal logic
-        }
 
         // Scan past leading sign
         if ((currentChar == '-' || currentChar == '+') && iPlusOne < length && (IsAsciiDigit(sql[iPlusOne]) || sql[iPlusOne] == DotChar))

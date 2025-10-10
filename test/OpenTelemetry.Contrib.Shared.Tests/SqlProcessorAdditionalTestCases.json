@@ -22,7 +22,7 @@
       "db.query.text": [
         "SELECT * FROM Vecnzotjejucwitzgrfifscuevittljlnrlpbruvkezeptqciyvbjhsytmbucbhwttidayecnthaztxbyppbyztcqccedeirgkxzrfezjxfwbtuqxeusroqgbvulgmsvnelovkxqsaqmlogomkhtjuirzhaocxlrmerihnmwaelullionarkmxwdamhduwrbooknqsnilurutgyerxphokeqnnoumbpcfjtmqrbpukjllofiwaltyoawkp o, OrderDetails od"
       ],
-      "db.query.summary": "SELECT Vecnzotjejucwitzgrfifscuevittljlnrlpbruvkezeptqciyvbjhsytmbucbhwttidayecnthaztxbyppbyztcqccedeirgkxzrfezjxfwbtuqxeusroqgbvulgmsvnelovkxqsaqmlogomkhtjuirzhaocxlrmerihnmwaelullionarkmxwdamhduwrbooknqsnilurutgyerxphokeqnnoumbpcfjtmqrbpukjllofiwaltyoaw"
+      "db.query.summary": "SELECT"
     }
   },
   {
@@ -85,6 +85,7 @@
     },
     "expected": {
       "db.query.text": [
+        "CREATE TABLE IF NOT EXISTS Users (Id INT PRIMARY KEY, Name NVARCHAR(?));",
         "CREATE TABLE IF NOT EXISTS Users (Id INT PRIMARY KEY, Name NVARCHAR(100));"
       ],
       "db.query.summary": "CREATE TABLE Users"
@@ -111,6 +112,7 @@
     },
     "expected": {
       "db.query.text": [
+        "ALTER TABLE Orders ADD COLUMN OrderStatus NVARCHAR(?);",
         "ALTER TABLE Orders ADD COLUMN OrderStatus NVARCHAR(50);"
       ],
       "db.query.summary": "ALTER TABLE Orders"
@@ -176,6 +178,7 @@
     },
     "expected": {
       "db.query.text": [
+        "ALTER PROCEDURE UpdateUserEmail @UserId INT, @Email NVARCHAR(?) AS UPDATE Users SET Email = @Email WHERE Id = @UserId;",
         "ALTER PROCEDURE UpdateUserEmail @UserId INT, @Email NVARCHAR(100) AS UPDATE Users SET Email = @Email WHERE Id = @UserId;"
       ],
       "db.query.summary": "ALTER PROCEDURE UpdateUserEmail"
@@ -241,6 +244,7 @@
     },
     "expected": {
       "db.query.text": [
+        "CREATE PROCEDURE AddEmployee @Name NVARCHAR(?), @Email NVARCHAR(?) AS INSERT INTO Employees (Name, Email) VALUES (@Name, @Email);",
         "CREATE PROCEDURE AddEmployee @Name NVARCHAR(100), @Email NVARCHAR(100) AS INSERT INTO Employees (Name, Email) VALUES (@Name, @Email);"
       ],
       "db.query.summary": "CREATE PROCEDURE AddEmployee"
@@ -267,6 +271,7 @@
     },
     "expected": {
       "db.query.text": [
+        "ALTER PROCEDURE UpdateEmployeeEmail @EmployeeId INT, @Email NVARCHAR(?) AS UPDATE Employees SET Email = @Email WHERE Id = @EmployeeId;",
         "ALTER PROCEDURE UpdateEmployeeEmail @EmployeeId INT, @Email NVARCHAR(100) AS UPDATE Employees SET Email = @Email WHERE Id = @EmployeeId;"
       ],
       "db.query.summary": "ALTER PROCEDURE UpdateEmployeeEmail"
@@ -595,6 +600,179 @@
         "EXEC GetEmployeeById @EmployeeId = ?;"
       ],
       "db.query.summary": "EXEC GetEmployeeById"
+    }
+  },
+  {
+    "name": "insert_values_parenthesized_number",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "INSERT INTO T (A) VALUES (123)"
+    },
+    "expected": {
+      "db.query.text": [
+        "INSERT INTO T (A) VALUES (?)"
+      ],
+      "db.query.summary": "INSERT T"
+    }
+  },
+  {
+    "name": "parenthesized_constant_select",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT (123) AS C;"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT (?) AS C;"
+      ],
+      "db.query.summary": "SELECT"
+    }
+  },
+  {
+    "name": "update_set_parenthesized_constant",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "UPDATE T SET A = (999);"
+    },
+    "expected": {
+      "db.query.text": [
+        "UPDATE T SET A = (?);"
+      ],
+      "db.query.summary": "UPDATE"
+    }
+  },
+  {
+    "name": "create_table_default_parenthesized_constant",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE TABLE T (A INT DEFAULT (123));"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TABLE T (A INT DEFAULT (?));"
+      ],
+      "db.query.summary": "CREATE TABLE T"
+    }
+  },
+  {
+    "name": "nested_parentheses_constant_select",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT ((123)) AS C;"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT ((?)) AS C;"
+      ],
+      "db.query.summary": "SELECT"
+    }
+  },
+  {
+    "name": "function_arg_parenthesized_constant",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT ABS((123));"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT ABS((?));"
+      ],
+      "db.query.summary": "SELECT"
+    }
+  },
+  {
+    "name": "between_parenthesized_constants",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM T WHERE Amount BETWEEN (10) AND (20);"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM T WHERE Amount BETWEEN (?) AND (?);"
+      ],
+      "db.query.summary": "SELECT T"
+    }
+  },
+  {
+    "name": "coalesce_first_arg_parenthesized_constant",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT * FROM T WHERE Id = COALESCE((123), 0);"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT * FROM T WHERE Id = COALESCE((?), ?);"
+      ],
+      "db.query.summary": "SELECT T"
+    }
+  },
+  {
+    "name": "cast_parenthesized_constant",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT CAST((123) AS INT);"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT CAST((?) AS INT);"
+      ],
+      "db.query.summary": "SELECT"
+    }
+  },
+  {
+    "name": "valid_type_length_specifiers_varchar_char",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "CREATE TABLE Table (Name VARCHAR(255), Code CHAR(10));"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TABLE Table (Name VARCHAR(?), Code CHAR(?));",
+        "CREATE TABLE Table (Name VARCHAR(255), Code CHAR(10));"
+      ],
+      "db.query.summary": "CREATE TABLE Table"
+    }
+  },
+  {
+    "name": "valid_type_length_specifiers_varbinary_datetime2_time",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "CREATE TABLE Table (Payload VARBINARY(16), EventTime DATETIME2(7), Duration TIME(7));"
+    },
+    "expected": {
+      "db.query.text": [
+        "CREATE TABLE Table (Payload VARBINARY(?), EventTime DATETIME2(?), Duration TIME(?));",
+        "CREATE TABLE Table (Payload VARBINARY(16), EventTime DATETIME2(7), Duration TIME(7));"
+      ],
+      "db.query.summary": "CREATE TABLE Table"
+    }
+  },
+  {
+    "name": "valid_top_with_parentheses",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT TOP (10) * FROM Employees"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT TOP (?) * FROM Employees",
+        "SELECT TOP (10) * FROM Employees"
+      ],
+      "db.query.summary": "SELECT Employees"
+    }
+  },
+  {
+    "name": "sanitized_top_without_parentheses",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "SELECT TOP 10 * FROM Employees"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT TOP ? * FROM Employees",
+        "SELECT TOP 10 * FROM Employees"
+      ],
+      "db.query.summary": "SELECT Employees"
     }
   }
 ]
