@@ -689,9 +689,17 @@ internal static class SqlProcessor
         // In this case, we fast-path to the closing parenthesis and replace the entire contents with a single '?'.
 
         if (state.SanitizedPosition > 0 && buffer[state.SanitizedPosition - 1] == OpenParenChar
-            && state.PreviousTokenEndPosition - state.PreviousTokenStartPosition == 2
-            && sql.Slice(state.PreviousTokenStartPosition, 2).Equals("in", StringComparison.OrdinalIgnoreCase))
+            && state.PreviousTokenEndPosition - state.PreviousTokenStartPosition == 2)
         {
+            // Check the token is actually "IN" (case-insensitive) to avoid false positives.
+            var firstChar = sql[state.PreviousTokenStartPosition];
+            var secondChar = sql[state.PreviousTokenStartPosition + 1];
+
+            if (!((firstChar == 'i' || firstChar == 'I') && (secondChar == 'n' || secondChar == 'N')))
+            {
+                return false;
+            }
+
             var closingParenIndex = sql.Slice(parsePosition).IndexOf(CloseParenChar);
 
             if (closingParenIndex > 0)
