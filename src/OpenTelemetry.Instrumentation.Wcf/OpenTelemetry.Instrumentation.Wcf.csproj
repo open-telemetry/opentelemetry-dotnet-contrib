@@ -33,10 +33,6 @@
     <PackageReference Include="System.ServiceModel.Primitives" VersionOverride="[8.0.0,)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
-    <PackageReference Include="System.Drawing.Common" />
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\AssemblyVersionExtensions.cs" Link="Includes\AssemblyVersionExtensions.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\ExceptionExtensions.cs" Link="Includes\ExceptionExtensions.cs" />
