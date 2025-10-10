@@ -28,8 +28,10 @@ internal static class SqlProcessor
 
     private static readonly ConcurrentDictionary<string, SqlStatementInfo> Cache = new();
 
+    private static readonly char[] WhitespaceChars = [SpaceChar, TabChar, CarriageReturnChar, NewLineChar];
+
 #if NET
-    private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
+    private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
 #endif
 
     // We can extend this in the future to include more keywords if needed.
@@ -203,7 +205,7 @@ internal static class SqlProcessor
 #if NET
             var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceSearchValues);
 #else
-            var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
+            var indexOfLastWhitespace = summary.Slice(0, MaxSummaryLength).LastIndexOfAny(WhitespaceChars);
 #endif
 
             summary = summary.Slice(0, indexOfLastWhitespace);
@@ -242,7 +244,7 @@ internal static class SqlProcessor
 #if NET
         var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceSearchValues);
 #else
-        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny([SpaceChar, TabChar, CarriageReturnChar, NewLineChar]);
+        var indexOfNextWhitespace = sql.Slice(start).IndexOfAny(WhitespaceChars);
 #endif
 
         var length = indexOfNextWhitespace >= 0 ? indexOfNextWhitespace : sql.Length - start;
