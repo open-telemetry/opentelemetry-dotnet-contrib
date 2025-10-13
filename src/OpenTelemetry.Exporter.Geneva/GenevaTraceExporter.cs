@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
@@ -19,8 +18,6 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
 
     private readonly ExportActivityFunc exportActivity;
     private readonly IDisposable exporter;
-
-    private Resource? resource;
 
     private bool isDisposed;
 

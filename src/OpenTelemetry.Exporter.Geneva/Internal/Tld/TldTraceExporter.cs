@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 

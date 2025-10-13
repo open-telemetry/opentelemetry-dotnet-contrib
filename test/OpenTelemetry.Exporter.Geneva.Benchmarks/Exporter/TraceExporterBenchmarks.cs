@@ -61,16 +61,18 @@ public class TraceExporterBenchmarks
         activityListener.Dispose();
         #endregion
 
-        this.exporter = new MsgPackTraceExporter(new GenevaExporterOptions
-        {
-            ConnectionString = "EtwSession=OpenTelemetry",
-            PrepopulatedFields = new Dictionary<string, object>
+        this.exporter = new MsgPackTraceExporter(
+            new GenevaExporterOptions
             {
-                ["cloud.role"] = "BusyWorker",
-                ["cloud.roleInstance"] = "CY1SCH030021417",
-                ["cloud.roleVer"] = "9.0.15289.2",
+                ConnectionString = "EtwSession=OpenTelemetry",
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                },
             },
-        });
+            Resource.Empty);
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())
@@ -91,13 +93,13 @@ public class TraceExporterBenchmarks
     [Benchmark]
     public void ExportActivity()
     {
-        this.exporter.Export(this.batch, Resource.Empty);
+        this.exporter.Export(this.batch);
     }
 
     [Benchmark]
     public void SerializeActivity()
     {
-        this.exporter.SerializeActivity(this.activity, Resource.Empty);
+        this.exporter.SerializeActivity(this.activity);
     }
 
     [Benchmark]
