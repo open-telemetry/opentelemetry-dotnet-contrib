@@ -546,7 +546,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
     }
 
-    [SkipUnlessPlatformMatchesFact(TestPlatform.OSX)]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux)]
     public void GenevaTraceExporter_Success_Linux()
     {
         var path = GetRandomFilePath();
