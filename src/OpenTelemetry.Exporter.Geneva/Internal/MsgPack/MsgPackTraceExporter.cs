@@ -348,7 +348,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var partCResourceAttributes = this.PartCResourceAttributes.Value;
         partCResourceAttributes.Clear();
 
-        foreach (var resourceAttribute in Resource.Attributes)
+        foreach (var resourceAttribute in this.Resource.Attributes)
         {
             if (resourceAttribute.Value is string resourceValue)
             {
