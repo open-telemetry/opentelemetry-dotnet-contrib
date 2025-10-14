@@ -68,10 +68,6 @@
     <None Include=".publicApi\**\PublicAPI.*.txt" Condition="'$(EnablePublicApi)' != 'false'" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(Deterministic)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-
   <Target Name="EnsurePackageValidationBaselineVersion"
           BeforeTargets="RunPackageValidation"
           Condition="'$(DisablePackageBaselineValidation)' != 'true' AND '$(PackageValidationBaselineVersion)' == '' AND '$(MinVerTagPrefix)' != 'coreunstable-'">

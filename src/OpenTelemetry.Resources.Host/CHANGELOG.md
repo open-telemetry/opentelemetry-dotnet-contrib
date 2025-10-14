@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-10
+
 * Added support for the `host.arch` resource attribute in `HostDetector`
   for .NET only.
   ([#3147](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3147))
