@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
 * Following attributes are available while sampling:
   * `http.request.method`,
   * `server.address`,
