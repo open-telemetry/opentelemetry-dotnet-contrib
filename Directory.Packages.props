@@ -109,12 +109,12 @@
     <PackageVersion Include="Microsoft.AspNet.WebApi.OwinSelfHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.AspNet.WebApi.WebHost" Version="5.3.0" />
     <PackageVersion Include="Microsoft.AspNet.WebPages" Version="3.3.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.20" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.20" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.20" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.21" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.20" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.21" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.21" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
@@ -139,9 +139,9 @@
     <PackageVersion Include="xunit.runner.visualstudio" Version="[2.8.2,)" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))" Label="Non-production packages, such as for examples and tests, for .NET 9">
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.9" />
-    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
-    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.9" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.10" />
+    <PackageVersion Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.10" />
+    <PackageVersion Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.10" />
   </ItemGroup>
 
 </Project>
