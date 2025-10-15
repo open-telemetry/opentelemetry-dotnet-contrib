@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
 * Added server instrumentation support for `RecordException` option.
   ([#2880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2880))
 
