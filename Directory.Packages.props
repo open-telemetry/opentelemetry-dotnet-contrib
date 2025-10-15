@@ -86,12 +86,12 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.12.2" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.5.7" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.6.3" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.7.2" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.7" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.7.7" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.12.4" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.5.9" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.6.5" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.7.4" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.8" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.7.10" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
