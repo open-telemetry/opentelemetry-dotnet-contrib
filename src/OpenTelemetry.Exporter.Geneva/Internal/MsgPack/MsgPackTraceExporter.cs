@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
@@ -53,8 +54,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 #endif
 
     internal readonly ThreadLocal<byte[]> Buffer = new();
-
     internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
+
+    internal readonly Resource Resource;
+
+    internal readonly ThreadLocal<Dictionary<string, object>> PartCResourceAttributes = new();
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
@@ -80,9 +84,12 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private bool isDisposed;
 
-    public MsgPackTraceExporter(GenevaExporterOptions options)
+    public MsgPackTraceExporter(GenevaExporterOptions options, Resource resource)
     {
         Guard.ThrowIfNull(options);
+        Guard.ThrowIfNull(resource);
+
+        this.Resource = resource;
 
         var partAName = "Span";
         if (options.TableNameMappings != null
@@ -260,6 +267,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             (this.dataTransport as IDisposable)?.Dispose();
             this.Buffer.Dispose();
             this.HttpUrlParts.Dispose();
+            this.PartCResourceAttributes.Dispose();
         }
         catch (Exception ex)
         {
@@ -328,26 +336,73 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
-        var dtEnd = new DateTime(tsEnd);
+        var dtEnd = new DateTime(tsEnd, DateTimeKind.Utc);
+
+        string? serviceName = null;
+        string? serviceInstanceId = null;
+        if (this.PartCResourceAttributes.Value == null)
+        {
+            this.PartCResourceAttributes.Value = new();
+        }
+
+        var partCResourceAttributes = this.PartCResourceAttributes.Value;
+        partCResourceAttributes.Clear();
+
+        foreach (var resourceAttribute in this.Resource.Attributes)
+        {
+            if (resourceAttribute.Value is string resourceValue)
+            {
+                switch (resourceAttribute.Key)
+                {
+                    case "service.name":
+                        serviceName = resourceValue;
+                        continue;
+                    case "service.instanceId":
+                        serviceInstanceId = resourceValue;
+                        continue;
+                    case "statusMessage":
+                        // this has a special meaning in part C, so ignore it
+                        continue;
+                }
+            }
+
+            // Any resource attribute that's not a string or a mapped value
+            // will end up in part C if there isn't another part C property with the same key.
+            // This dictionary to keep track of the remaining resource attributes may result in
+            // an allocation if the dictionary needs to expand, but we have to calculate
+            // the set difference between resource attribute values and tags.
+            partCResourceAttributes[resourceAttribute.Key] = resourceAttribute.Value;
+        }
 
         MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
 
         #region Part A - core envelope
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
-        cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, dtEnd);
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Time, dtEnd);
         cntFields += 1;
         #endregion
 
         #region Part A - dt extension
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_traceId");
 
         // Note: ToHexString returns the pre-calculated hex representation without allocation
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.TraceId.ToHexString());
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.TraceId, activity.Context.TraceId.ToHexString());
         cntFields += 1;
 
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_dt_spanId");
-        cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, activity.Context.SpanId.ToHexString());
+        cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Dt.SpanId, activity.Context.SpanId.ToHexString());
         cntFields += 1;
+        #endregion
+
+        #region Part A - cloud extension
+        if (!string.IsNullOrEmpty(serviceName))
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.Role, serviceName);
+            cntFields += 1;
+        }
+
+        if (!string.IsNullOrEmpty(serviceInstanceId))
+        {
+            cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Extensions.Cloud.RoleInstance, serviceInstanceId);
+            cntFields += 1;
+        }
         #endregion
 
         #region Part B Span - required fields
@@ -453,6 +508,10 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             if (CS40_PART_B_MAPPING.TryGetValue(entry.Key, out var replacementKey))
             {
                 cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, replacementKey);
+
+                // because part B and C are not separated, we can't have part C fields with the same name as part B names
+                // so remove it if it exists
+                partCResourceAttributes.Remove(replacementKey);
             }
             else if (IfTagMatchesStatusOrStatusDescription(entry, ref isStatusSuccess, ref statusDescription))
             {
@@ -462,6 +521,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             {
                 // TODO: the above null check can be optimized and avoided inside foreach.
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                partCResourceAttributes.Remove(entry.Key);
             }
             else
             {
@@ -471,6 +531,20 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
             cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
             cntFields += 1;
+        }
+
+        foreach (var entry in partCResourceAttributes)
+        {
+            if (this.CustomFields == null || this.CustomFields.Contains(entry.Key))
+            {
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                cntFields += 1;
+            }
+            else
+            {
+                hasEnvProperties = true;
+            }
         }
 
         if (isServerActivity)
@@ -488,24 +562,45 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         if (hasEnvProperties)
         {
             // Iteration #2 - Get all "other" fields and collapse them into single field
-            // named "env_properties".
+            // named "env_properties" (Part C).
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
 
-            foreach (ref readonly var entry in activity.EnumerateTagObjects())
+            if (hasEnvProperties)
             {
-                // TODO: check name collision
-                if (this.DedicatedFields!.Contains(entry.Key))
+                foreach (ref readonly var entry in activity.EnumerateTagObjects())
                 {
-                    continue;
+                    // if it is also a resource attribute, ignore the resource attribute
+                    partCResourceAttributes.Remove(entry.Key);
+
+                    // TODO: check name collision
+                    if (this.DedicatedFields!.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
+                    }
                 }
-                else
+
+                foreach (var entry in partCResourceAttributes)
                 {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                    envPropertiesCount += 1;
+                    // TODO: check name collision with renamed fields
+                    if (this.DedicatedFields!.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
+                    }
                 }
             }
 
