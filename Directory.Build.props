@@ -3,4 +3,11 @@
     <ArtifactsPath>$([System.IO.Path]::Combine('$(MSBuildThisFileDirectory)', 'artifacts'))</ArtifactsPath>
     <UseArtifactsOutput>true</UseArtifactsOutput>
   </PropertyGroup>
+  <!-- HACK Workaround for https://github.com/dotnet/sdk/issues/51265 -->
+  <PropertyGroup>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+  </PropertyGroup>
+  <ItemGroup>
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-5rrx-jjjq-q2r5" />
+  </ItemGroup>
 </Project>
