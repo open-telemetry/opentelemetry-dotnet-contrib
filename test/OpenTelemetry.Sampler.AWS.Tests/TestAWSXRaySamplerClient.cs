@@ -26,7 +26,11 @@ public class TestAWSXRaySamplerClient : IDisposable
         this.client.Dispose();
     }
 
+#if NETFRAMEWORK
+    [Fact (Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
+#else
     [Fact]
+#endif
     public async Task TestGetSamplingRules()
     {
         this.CreateResponse("/GetSamplingRules", "Data/GetSamplingRulesResponse.json");
@@ -74,7 +78,11 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Empty(rules[2].Attributes);
     }
 
+#if NETFRAMEWORK
+    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
+#else
     [Fact]
+#endif
     public async Task TestGetSamplingRulesMalformed()
     {
         this.mockServer
@@ -87,7 +95,11 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Empty(rules);
     }
 
+#if NETFRAMEWORK
+    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
+#else
     [Fact]
+#endif
     public async Task TestGetSamplingTargets()
     {
         var clock = new TestClock();
@@ -142,7 +154,11 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Equal("Unknown rule", targetsResponse.UnprocessedStatistics[0].Message);
     }
 
+#if NETFRAMEWORK
+    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
+#else
     [Fact]
+#endif
     public async Task TestGetSamplingTargetsWithMalformed()
     {
         var clock = new TestClock();
