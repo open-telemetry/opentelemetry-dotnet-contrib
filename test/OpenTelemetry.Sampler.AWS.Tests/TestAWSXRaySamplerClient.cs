@@ -27,7 +27,7 @@ public class TestAWSXRaySamplerClient : IDisposable
     }
 
 #if NETFRAMEWORK
-    [Fact (Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
+    [Fact(Skip = "Skip due to https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3243")]
 #else
     [Fact]
 #endif
