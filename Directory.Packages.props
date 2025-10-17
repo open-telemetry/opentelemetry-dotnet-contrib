@@ -135,6 +135,8 @@
     <PackageVersion Include="Testcontainers.MySql" Version="4.7.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
     <PackageVersion Include="Wiremock.Net" Version="1.14.0" />
+    <!-- Microsoft.AspNetCore.Server.Kestrel.Core is transitive dependency for Wiremock.Net. It is here to fix https://github.com/advisories/GHSA-5rrx-jjjq-q2r5 -->
+    <PackageVersion Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.6" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="[2.8.2,)" />
   </ItemGroup>
