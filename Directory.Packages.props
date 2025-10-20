@@ -25,7 +25,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Zipkin" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryInstrumentationHttpLatestStableVersion),2.0)" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryCoreUnstableLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="[$(OpenTelemetryInstrumentationAspNetCoreLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="[$(OpenTelemetryInstrumentationHttpLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="[$(OpenTelemetryInstrumentationRuntimeLatestStableVersion),2.0)" />
