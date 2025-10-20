@@ -25,6 +25,7 @@ internal static class AspNetParentSpanCorrector
 {
     private const string TelemetryHttpModuleTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
     private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
+    private const string AspNetInstrumentationTypeName = "OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentation, OpenTelemetry.Instrumentation.AspNet";
 
     private static readonly ReflectedInfo? ReflectedValues = Initialize();
     private static readonly PropertyFetcher<object> RequestFetcher = new("Request");
@@ -106,6 +107,11 @@ internal static class AspNetParentSpanCorrector
         var telemetryHttpModuleType = Type.GetType(TelemetryHttpModuleTypeName, true);
         var telemetryHttpModuleOptionsType = Type.GetType(TelemetryHttpModuleOptionsTypeName, true);
         var onRequestStartedProp = telemetryHttpModuleOptionsType?.GetProperty("OnRequestStartedCallback") ?? throw new NotSupportedException("TelemetryHttpModuleOptions.OnRequestStartedCallback property not found");
+
+        // ensure that HttpModuleTelemetry callbacks are initialized by the AspNet instrumentation
+        var aspNetInstrumentationType = Type.GetType(AspNetInstrumentationTypeName, true);
+        var aspNetInstrumentationInstance = aspNetInstrumentationType?.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+        _ = aspNetInstrumentationInstance?.GetValue(null);
 
         // Get the parameter types from the callback property type itself to avoid hardcoded type loading
         var callbackType = onRequestStartedProp.PropertyType;
