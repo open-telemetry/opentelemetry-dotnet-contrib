@@ -29,14 +29,13 @@ internal static class AspNetParentSpanCorrector
     private static readonly ReflectedInfo? ReflectedValues = Initialize();
     private static readonly PropertyFetcher<object> RequestFetcher = new("Request");
     private static readonly PropertyFetcher<NameValueCollection> HeadersFetcher = new("Headers");
-    private static bool isRegistered;
+    private static int isRegistered;
 
     public static void Register()
     {
-        if (!isRegistered && ReflectedValues != null)
+        if (Interlocked.CompareExchange(ref isRegistered, 1, 0) == 0)
         {
-            ReflectedValues.SubscribeToOnRequestStartedCallback();
-            isRegistered = true;
+            ReflectedValues?.SubscribeToOnRequestStartedCallback();
         }
     }
 
