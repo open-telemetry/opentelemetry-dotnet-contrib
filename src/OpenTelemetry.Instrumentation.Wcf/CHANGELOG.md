@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.2
+
+Released 2025-Oct-20
+
 * Fixes possible infinite recursion when WCF is hosted in ASP.NET.
   ([#3248](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3248))
 
