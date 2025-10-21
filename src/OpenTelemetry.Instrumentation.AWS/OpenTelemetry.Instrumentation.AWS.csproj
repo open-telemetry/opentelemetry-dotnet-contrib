@@ -11,6 +11,7 @@
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS client instrumentation for OpenTelemetry .NET.</Description>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
+    <SystemTextJsonMinimumRequiredPkgVer>$(SystemTextJsonLatestNet6OutOfBandPkgVer)</SystemTextJsonMinimumRequiredPkgVer>
     <DefineConstants>INSTRUMENTATION_AWS;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
@@ -25,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.Core" VersionOverride="[4.0.0, 5.0.0)" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" VersionOverride="[4.0.0, 5.0.0)" />
+    <PackageReference Include="AWSSDK.BedrockRuntime" VersionOverride="[4.0.0, 5.0.0)" />
     <PackageReference Include="AWSSDK.SQS" VersionOverride="[4.0.0, 5.0.0)" />
   </ItemGroup>
 
