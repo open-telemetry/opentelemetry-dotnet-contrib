@@ -45,4 +45,14 @@ public class HangfireInstrumentationOptions
     /// </list>
     /// </remarks>
     public Func<BackgroundJob, bool>? Filter { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to record queue latency metrics.
+    /// </summary>
+    /// <remarks>
+    /// When enabled, records the time jobs spend waiting in the queue before execution.
+    /// This requires an additional database call per job execution to retrieve the enqueue timestamp.
+    /// Default is <see langword="false"/> to avoid performance impact in high-throughput scenarios.
+    /// </remarks>
+    public bool RecordQueueLatency { get; set; }
 }

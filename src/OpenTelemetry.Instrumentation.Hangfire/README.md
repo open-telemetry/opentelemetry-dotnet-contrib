@@ -13,9 +13,13 @@ This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments
 [Hangfire](https://www.nuget.org/packages/Hangfire/)
-and collects telemetry about BackgroundJob.
+and collects traces and metrics about BackgroundJob executions.
 
 ## Steps to enable OpenTelemetry.Instrumentation.Hangfire
+
+> [!NOTE]
+> The following steps show how to enable **tracing**. For metrics, see the
+> [Metrics](#metrics) section below.
 
 ### Step 1: Install and configure Hangfire
 
@@ -160,7 +164,194 @@ using var tracerProvider = Sdk
     .Build();
 ```
 
+## Metrics
+
+This instrumentation library collects metrics following the OpenTelemetry
+[workflow semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md).
+In Hangfire, each background job execution is modeled as a **workflow task execution**.
+
+### Enabling Metrics
+
+Metrics are enabled by adding Hangfire instrumentation to the `MeterProviderBuilder`:
+
+```csharp
+using OpenTelemetry.Metrics;
+
+var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddHangfireInstrumentation()
+    .AddConsoleExporter()
+    .Build();
+```
+
+The above example also sets up the OpenTelemetry Console exporter, which requires
+adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
+
+### Enabling both Traces and Metrics
+
+To collect both traces and metrics from Hangfire:
+
+```csharp
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .AddHangfireInstrumentation()
+        .AddOtlpExporter())
+    .WithMetrics(metrics => metrics
+        .AddHangfireInstrumentation()
+        .AddOtlpExporter());
+```
+
+### Metrics Configuration
+
+The same `HangfireInstrumentationOptions` class is used to configure both tracing
+and metrics behavior.
+
+#### RecordQueueLatency
+
+By default, the instrumentation records only execution metrics. To also track how long
+jobs spend waiting in the queue before execution, enable the `RecordQueueLatency` option:
+
+```csharp
+var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.RecordQueueLatency = true;
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
+> [!WARNING]
+> Enabling `RecordQueueLatency` requires an additional database query per job execution
+> to retrieve the enqueue timestamp. In high-throughput scenarios, this may impact
+> performance.
+
+### Available Metrics
+
+The following metrics are emitted by this instrumentation:
+
+#### workflow.execution.count
+
+The number of task executions which have been initiated.
+
+| Units          | Instrument Type | Value Type |
+|----------------|-----------------|------------|
+| `{executions}` | Counter         | `Int64`    |
+
+**Attributes:**
+
+| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
+|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
+| `workflow.execution.outcome`  | string | The outcome of executing the task             | Required                 | `success`, `failure`    |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+
+¹ Required if and only if the task execution failed.
+
+#### workflow.execution.duration
+
+Duration of an execution grouped by task and result.
+
+| Units | Instrument Type | Value Type |
+|-------|-----------------|------------|
+| `s`   | Histogram       | `Double`   |
+
+**Attributes:**
+
+Uses the same attributes as `workflow.execution.count`.
+
+#### workflow.execution.status
+
+The number of actively running tasks grouped by task and the current state.
+
+| Units          | Instrument Type  | Value Type |
+|----------------|------------------|------------|
+| `{executions}` | UpDownCounter    | `Int64`    |
+
+> [!NOTE]
+> This metric tracks the current state of job executions. When a job transitions
+> to a new state, the previous state is decremented and the new state is incremented.
+
+**Attributes:**
+
+| Attribute                     | Type   | Description                                   | Requirement Level        | Values                                    |
+|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------------------------|
+| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`                     |
+| `workflow.execution.state`    | string | Current state of the execution                | Required                 | `pending`, `executing`, `completed`       |
+| `workflow.trigger.type`       | string | Type of trigger that initiated the execution  | Required                 | `api`, `cron`                             |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name                       |
+
+¹ Required if and only if the task execution failed.
+
+**Hangfire State Mapping:**
+
+Hangfire job states are mapped to workflow semantic convention states as follows:
+
+| Hangfire State                     | Workflow State |
+|------------------------------------|----------------|
+| Scheduled, Enqueued, Awaiting      | `pending`      |
+| Processing                         | `executing`    |
+| Succeeded, Failed, Deleted         | `completed`    |
+
+#### workflow.execution.errors
+
+The number of errors encountered in task executions.
+
+| Units     | Instrument Type | Value Type |
+|-----------|-----------------|------------|
+| `{error}` | Counter         | `Int64`    |
+
+**Attributes:**
+
+| Attribute                     | Type   | Description                                   | Requirement Level | Values                  |
+|-------------------------------|--------|-----------------------------------------------|-------------------|-------------------------|
+| `error.type`                  | string | The type of error that occurred               | Required          | Exception type name     |
+| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
+
+#### hangfire.queue.latency
+
+Time tasks spend waiting in queue before execution starts. This is a Hangfire-specific
+metric not part of the standard workflow conventions.
+
+| Units | Instrument Type | Value Type |
+|-------|-----------------|------------|
+| `s`   | Histogram       | `Double`   |
+
+> [!NOTE]
+> This metric is only recorded when `RecordQueueLatency` option is enabled.
+
+**Attributes:**
+
+| Attribute                     | Type   | Description                                   | Requirement Level | Values                  |
+|-------------------------------|--------|-----------------------------------------------|-------------------|-------------------------|
+| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
+
+### Semantic Conventions
+
+This instrumentation follows the OpenTelemetry semantic conventions for workflows:
+
+- **workflow.platform.name**: Always set to `"hangfire"`
+- **workflow.task.name**: Derived from the Hangfire job method (e.g., `ClassName.MethodName`)
+- **workflow.trigger.type**: Set to `"cron"` for recurring jobs, `"api"` for fire-and-forget,
+  scheduled, and continuation jobs
+- **workflow.execution.outcome**: Set to `"success"` when jobs complete without errors,
+  `"failure"` when an exception is thrown
+- **workflow.execution.state**: Maps Hangfire states to semantic convention states
+  (see table above)
+- **error.type**: Set to the full type name of the exception when a job fails
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Hangfire Project](https://www.hangfire.io/)
+* [OpenTelemetry Workflow Semantic Conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md)
