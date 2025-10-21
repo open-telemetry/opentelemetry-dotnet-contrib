@@ -160,6 +160,40 @@ if your queries and/or environment are appropriate for enabling this option.
 [`db.query.parameter.<key>`](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md#span-definition)
 attributes for each of the query parameters associated with a database command.
 
+## Activity Duration calculation
+
+`Activity.Duration` represents the time the underlying connection takes to
+execute the command/query. Completing the operation includes the time up to
+determining that the request was successful. It doesn't include the time spent
+reading the results from a query set (for example enumerating all the rows
+returned from an `IEnumerable`/`IQueryable`).
+
+This is illustrated by the code snippet below:
+
+```csharp
+var activities = new List<Activity>();
+
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddInMemoryExporter(activities)
+    .AddEntityFrameworkCoreInstrumentation()
+    .Build();
+
+var builder = new DbContextOptionsBuilder<ItemsContext>()
+    .UseSqlServer("...");
+
+await using var context = new ItemsContext(builder.Options);
+
+var stopwatch = Stopwatch.StartNew();
+
+await context.Items.ForEachAsync((_) => Thread.Sleep(1));
+
+stopwatch.Stop();
+
+// The activity duration should be much less than the total elapsed time
+// as the duration does not include time spent enumerating the query set.
+Assert.True(activity[^1].Duration < stopwatch.Elapsed);
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
