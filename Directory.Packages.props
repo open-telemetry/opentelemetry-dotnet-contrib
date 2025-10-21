@@ -12,6 +12,7 @@
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.12.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.12.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
     <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.12.0</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
+    <OpenTelemetryEnrichmentUnstableLatestVersion>1.13.0-beta.1</OpenTelemetryEnrichmentUnstableLatestVersion>
   </PropertyGroup>
 
   <ItemGroup Label="OpenTelemetry packages">
@@ -25,7 +26,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Zipkin" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryCoreLatestPrereleaseVersion),2.0)" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Enrichment" Version="[$(OpenTelemetryEnrichmentUnstableLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="[$(OpenTelemetryInstrumentationAspNetCoreLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="[$(OpenTelemetryInstrumentationHttpLatestStableVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="[$(OpenTelemetryInstrumentationRuntimeLatestStableVersion),2.0)" />
