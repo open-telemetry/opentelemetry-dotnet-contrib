@@ -17,7 +17,7 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Tests;
 [Collection("SqlClient")]
 public class SqlClientTraceInstrumentationOptionsTests
 {
-    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master";
+    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
 
     [Fact]
     public void ShouldEmitOldAttributesWhenStabilityOptInIsDatabaseDup()
