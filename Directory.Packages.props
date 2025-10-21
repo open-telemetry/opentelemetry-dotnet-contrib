@@ -22,7 +22,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.InMemory" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="[$(OpenTelemetryCoreLatestPrereleaseVersion),2.0)" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.HttpListener" Version="[$(OpenTelemetryCoreUnstableLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Exporter.Zipkin" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Propagators" Version="[$(OpenTelemetryCoreLatestVersion),2.0)" />
