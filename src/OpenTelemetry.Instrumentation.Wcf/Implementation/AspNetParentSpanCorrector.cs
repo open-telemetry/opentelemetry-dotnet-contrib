@@ -25,18 +25,18 @@ internal static class AspNetParentSpanCorrector
 {
     private const string TelemetryHttpModuleTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
     private const string TelemetryHttpModuleOptionsTypeName = "OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModuleOptions, OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule";
+    private const string AspNetInstrumentationTypeName = "OpenTelemetry.Instrumentation.AspNet.AspNetInstrumentation, OpenTelemetry.Instrumentation.AspNet";
 
     private static readonly ReflectedInfo? ReflectedValues = Initialize();
     private static readonly PropertyFetcher<object> RequestFetcher = new("Request");
     private static readonly PropertyFetcher<NameValueCollection> HeadersFetcher = new("Headers");
-    private static bool isRegistered;
+    private static int isRegistered;
 
     public static void Register()
     {
-        if (!isRegistered && ReflectedValues != null)
+        if (Interlocked.CompareExchange(ref isRegistered, 1, 0) == 0)
         {
-            ReflectedValues.SubscribeToOnRequestStartedCallback();
-            isRegistered = true;
+            ReflectedValues?.SubscribeToOnRequestStartedCallback();
         }
     }
 
@@ -108,6 +108,11 @@ internal static class AspNetParentSpanCorrector
         var telemetryHttpModuleOptionsType = Type.GetType(TelemetryHttpModuleOptionsTypeName, true);
         var onRequestStartedProp = telemetryHttpModuleOptionsType?.GetProperty("OnRequestStartedCallback") ?? throw new NotSupportedException("TelemetryHttpModuleOptions.OnRequestStartedCallback property not found");
 
+        // ensure that HttpModuleTelemetry callbacks are initialized by the AspNet instrumentation
+        var aspNetInstrumentationType = Type.GetType(AspNetInstrumentationTypeName, true);
+        var aspNetInstrumentationInstance = aspNetInstrumentationType?.GetField("Instance", BindingFlags.Static | BindingFlags.Public);
+        _ = aspNetInstrumentationInstance?.GetValue(null);
+
         // Get the parameter types from the callback property type itself to avoid hardcoded type loading
         var callbackType = onRequestStartedProp.PropertyType;
         var invokeMethod = callbackType.GetMethod("Invoke");
@@ -120,10 +125,16 @@ internal static class AspNetParentSpanCorrector
 
         // Get the existing callback value
         var options = Expression.Property(null, telemetryHttpModuleType, "Options");
-        var existingCallback = Expression.Property(options, onRequestStartedProp);
+
+        // Capture the existing callback as a constant value at lambda creation time
+        // This prevents infinite recursion by storing the original callback value before assignment
+        var captureCallback = Expression.Lambda<Func<object>>(
+            Expression.Convert(Expression.Property(options, onRequestStartedProp), typeof(object))).Compile();
+        var existingCallbackValue = captureCallback();
+        var existingCallback = Expression.Constant(existingCallbackValue, callbackType);
 
         // Create conditional logic: if existingCallback != null, call it, otherwise return null
-        var nullCheck = Expression.NotEqual(existingCallback, Expression.Constant(null, existingCallback.Type));
+        var nullCheck = Expression.NotEqual(existingCallback, Expression.Constant(null, callbackType));
 
         // Call existing callback if it exists
         var callExistingCallback = Expression.Call(
