@@ -204,6 +204,7 @@ public class GenevaTraceExporterTests : IDisposable
                 PrepopulatedFields = new Dictionary<string, object>
                 {
                     ["cloud.roleVer"] = "9.0.15289.2",
+                    ["resourceAndPrepopulated"] = "comes from prepopulated",
                 },
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -240,9 +241,9 @@ public class GenevaTraceExporterTests : IDisposable
             Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
             {
                 { "resourceAttribute", "resourceValue" },
-                { "activityTag", "causes conflict" },
                 { "service.name", "BusyWorker" },
                 { "service.instanceId", "CY1SCH030021417" },
+                { "resourceAndPrepopulated", "comes from resource" },
             };
             var resource = new Resource(resourceAttributes);
 
@@ -304,7 +305,6 @@ public class GenevaTraceExporterTests : IDisposable
                 activity?.SetTag("clientRequestId", "58a37988-2c05-427a-891f-5e0e1266fcc5");
                 activity?.SetTag("foo", 1);
                 activity?.SetTag("bar", 2);
-                activity?.SetTag("activityTag", "for resource attribute conflict test");
 #pragma warning disable CS0618 // Type or member is obsolete
                 activity?.SetStatus(Status.Error.WithDescription("Error description from OTel API"));
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -328,9 +328,17 @@ public class GenevaTraceExporterTests : IDisposable
                         this.AssertMappingEntry(userFieldsLocation, "bar", 2);
                         this.AssertMappingEntry(userFieldsLocation, "resourceAttribute", "resourceValue");
 
-                        // make sure that the resource attribute value, "causes conflict", is overwritten
-                        // by tag value, "for resource attribute conflict test" (tags have precedence over resource attributes)
-                        this.AssertMappingEntry(userFieldsLocation, "activityTag", "for resource attribute conflict test");
+                        // Prepopulated fields should take precedence over resource attributes, except when CustomFields is set,
+                        // in which case the resource attribute makes its way to env_properties, and the prepopulated field is a dedicated field.
+                        if (hasCustomFields)
+                        {
+                            this.AssertMappingEntry(userFieldsLocation, "resourceAndPrepopulated", "comes from resource");
+                            this.AssertMappingEntry(mapping, "resourceAndPrepopulated", "comes from prepopulated");
+                        }
+                        else
+                        {
+                            this.AssertMappingEntry(userFieldsLocation, "resourceAndPrepopulated", "comes from prepopulated");
+                        }
 
                         // Linked spans are checked in CheckSpanForActivity, so no need to do a custom check here
                     });
@@ -541,7 +549,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
         catch (SocketException ex)
         {
-            // There is no one to listent to the socket.
+            // There is no one to listen to the socket.
             Assert.Contains("Cannot assign requested address", ex.Message);
         }
     }
@@ -823,8 +831,8 @@ public class GenevaTraceExporterTests : IDisposable
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
+            var partAKey = MsgPackExporter.V40_PART_A_MAPPING.GetValueOrDefault(item.Key, item.Key);
             var partAValue = item.Value as string;
-            var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
             this.AssertMappingEntry(mapping, partAKey, partAValue);
         }
 
@@ -970,7 +978,18 @@ public class GenevaTraceExporterTests : IDisposable
 
         if (this.expectedMappingChecks.TryGetValue(activity.OperationName, out var value))
         {
-            value?.Invoke(mapping);
+            try
+            {
+                value?.Invoke(mapping);
+            }
+            catch
+            {
+                // If a check fails, don't bother to check future spans
+                // This helps the error message make more sense
+                this.expectedMappingChecks.Clear();
+                throw;
+            }
+
             this.expectedMappingChecks.Remove(activity.OperationName);
         }
     }
