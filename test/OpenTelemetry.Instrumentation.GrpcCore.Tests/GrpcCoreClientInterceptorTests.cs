@@ -204,12 +204,14 @@ public class GrpcCoreClientInterceptorTests
         callInvoker = callInvoker.Intercept(metadata =>
         {
             // This Func is called as part of an internal MetadataInjector interceptor created by gRPC Core.
-            Assert.NotNull(Activity.Current);
-            Assert.Equal(Activity.Current.Source, GrpcCoreInstrumentation.ActivitySource);
-            Assert.Equal(parentActivity.Id, Activity.Current.ParentId);
+            var activity = Activity.Current;
+
+            Assert.NotNull(activity);
+            Assert.Equal(activity.Source, GrpcCoreInstrumentation.ActivitySource);
+            Assert.Equal(parentActivity.Id, activity.ParentId);
 
             // Set a tag on the Activity and make sure we can see it afterwards
-            Activity.Current.SetTag("foo", "bar");
+            activity.SetTag("foo", "bar");
             return metadata;
         });
 
