@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
 * **Breaking change** Introduce `RedisInstrumentationContext` and use it
   as context for `Filter`
   ([#2977](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2977))
