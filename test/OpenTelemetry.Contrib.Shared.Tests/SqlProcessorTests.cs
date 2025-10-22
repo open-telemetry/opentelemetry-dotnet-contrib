@@ -21,7 +21,7 @@ public class SqlProcessorTests
     [MemberData(nameof(TestData))]
     public void TestGetSanitizedSql(SqlProcessorTestCases.TestCase testCase)
     {
-        this.output.WriteLine($"Running test case for query: {testCase.Input.Query}");
+        this.output.WriteLine($"Input: {testCase.Input.Query}");
 
         var sqlStatementInfo = SqlProcessor.GetSanitizedSql(testCase.Input.Query);
 
@@ -34,6 +34,9 @@ public class SqlProcessorTests
                 break;
             }
         }
+
+        this.output.WriteLine($"Sanitized: {sqlStatementInfo.SanitizedSql}");
+        this.output.WriteLine($"Summary: {sqlStatementInfo.DbQuerySummary}");
 
         Assert.True(
             succeeded,
