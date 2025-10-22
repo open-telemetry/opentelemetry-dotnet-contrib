@@ -95,7 +95,9 @@ public partial class GrpcTests : IDisposable
     }
 
 #if NET
-    [Theory(Skip = "Skipping for .NET 6 and higher due to bug #3023")]
+    [Theory(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778")]
+#else
+    [Theory]
 #endif
     [InlineData(null)]
     [InlineData("true")]
