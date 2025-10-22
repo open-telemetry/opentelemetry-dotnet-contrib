@@ -248,7 +248,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
     public void Should_NOT_Register_PendingDurationFilter_When_Disabled()
     {
         // Arrange
-        var options = new Trace.HangfireInstrumentationOptions
+        var options = new HangfireMetricsInstrumentationOptions
         {
             RecordQueueLatency = false,
         };
@@ -266,7 +266,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
     public void Should_Register_PendingDurationFilter_When_Enabled()
     {
         // Arrange
-        var options = new Trace.HangfireInstrumentationOptions
+        var options = new HangfireMetricsInstrumentationOptions
         {
             RecordQueueLatency = true,
         };

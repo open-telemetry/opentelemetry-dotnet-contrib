@@ -209,8 +209,8 @@ builder.Services.AddOpenTelemetry()
 
 ### Metrics Configuration
 
-The same `HangfireInstrumentationOptions` class is used to configure both tracing
-and metrics behavior.
+Metrics behavior is configured through the `HangfireMetricsInstrumentationOptions` class
+in the `OpenTelemetry.Metrics` namespace.
 
 #### RecordQueueLatency
 
@@ -236,6 +236,26 @@ execution time.
 > Enabling `RecordQueueLatency` requires an additional database query per job execution
 > to retrieve the enqueue timestamp. In high-throughput scenarios, this may impact
 > performance.
+
+> [!NOTE]
+> Add `using OpenTelemetry.Metrics;` to access `HangfireMetricsInstrumentationOptions`.
+
+#### DisplayNameFunc
+
+Metrics use the `DisplayNameFunc` from `HangfireMetricsInstrumentationOptions` to populate
+`workflow.task.name` and related attributes. By default, it calls `backgroundJob.Job.ToString()`,
+but you can provide your own formatter:
+
+```csharp
+var meterProvider = Sdk.CreateMeterProviderBuilder()
+    .AddHangfireInstrumentation(options =>
+    {
+        options.DisplayNameFunc = backgroundJob => $"{backgroundJob.Job.Type.Name}:{backgroundJob.Id}";
+    })
+    .AddConsoleExporter()
+    .Build();
+```
+
 
 ### Available Metrics
 

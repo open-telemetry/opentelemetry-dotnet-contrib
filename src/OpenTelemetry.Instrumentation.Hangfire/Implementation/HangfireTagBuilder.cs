@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using Hangfire.Common;
+using Hangfire;
 using Hangfire.Server;
 using Hangfire.States;
 
@@ -48,11 +48,11 @@ internal static class HangfireTagBuilder
     /// </summary>
     /// <param name="job">The Hangfire job.</param>
     /// <returns>Tag list with common job tags.</returns>
-    public static TagList BuildCommonTags(Job job)
+    public static TagList BuildCommonTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc)
     {
         var tags = new TagList
         {
-            GetTaskName(job),
+            GetTaskName(backgroundJob, displayNameFunc),
             GetPlatformName(),
         };
         return tags;
@@ -68,11 +68,11 @@ internal static class HangfireTagBuilder
     /// <param name="workflowState">The workflow state value.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
     /// <returns>Tag list suitable for workflow.execution.status metric.</returns>
-    public static TagList BuildStateTags(Job job, string workflowState, string? errorType)
+    public static TagList BuildStateTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, string workflowState, string? errorType)
     {
         var tags = new TagList
         {
-            GetTaskName(job),
+            GetTaskName(backgroundJob, displayNameFunc),
             GetPlatformName(),
             GetState(workflowState),
         };
@@ -125,11 +125,11 @@ internal static class HangfireTagBuilder
     /// <param name="exception">The exception, if any occurred.</param>
     /// <param name="workflowState">The workflow state value (typically "executing" for execution duration).</param>
     /// <returns>Tag list with execution result tags.</returns>
-    public static TagList BuildExecutionTags(Job job, Exception? exception, string workflowState)
+    public static TagList BuildExecutionTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception? exception, string workflowState)
     {
         var tags = new TagList
         {
-            GetTaskName(job),
+            GetTaskName(backgroundJob, displayNameFunc),
             GetPlatformName(),
             GetExecutionOutcome(exception),
             GetState(workflowState),
@@ -154,11 +154,11 @@ internal static class HangfireTagBuilder
     /// <param name="job">The Hangfire job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
     /// <returns>Tag list suitable for workflow.execution.count metric.</returns>
-    public static TagList BuildExecutionCountTags(Job job, Exception? exception)
+    public static TagList BuildExecutionCountTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception? exception)
     {
         var tags = new TagList
         {
-            GetTaskName(job),
+            GetTaskName(backgroundJob, displayNameFunc),
             GetPlatformName(),
             GetExecutionOutcome(exception),
         };
@@ -183,11 +183,11 @@ internal static class HangfireTagBuilder
     /// <param name="exception">The exception, if any occurred.</param>
     /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
     /// <returns>Tag list suitable for workflow.count metric.</returns>
-    public static TagList BuildWorkflowTags(Job job, Exception? exception, string? recurringJobId)
+    public static TagList BuildWorkflowTags(BackgroundJob job, Func<BackgroundJob, string> displayNameFunc, Exception? exception, string? recurringJobId)
     {
         var tags = new TagList
         {
-            GetDefinitionName(job),
+            GetDefinitionName(job, displayNameFunc),
             GetPlatformName(),
             GetWorkflowOutcome(exception),
             GetTriggerType(recurringJobId),
@@ -210,12 +210,12 @@ internal static class HangfireTagBuilder
     /// <param name="job">The Hangfire job.</param>
     /// <param name="exception">The exception that occurred.</param>
     /// <returns>Tag list with error tags.</returns>
-    public static TagList BuildErrorTags(Job job, Exception exception)
+    public static TagList BuildErrorTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception exception)
     {
         var tags = new TagList
         {
             GetErrorType(exception),
-            GetTaskName(job),
+            GetTaskName(backgroundJob, displayNameFunc),
             GetPlatformName(),
         };
 
@@ -223,11 +223,12 @@ internal static class HangfireTagBuilder
     }
 
     // Required workflow attributes
-    private static KeyValuePair<string, object?> GetTaskName(Job job) =>
-        new(TagWorkflowTaskName, job.ToString() ?? "unknown");
+    private static KeyValuePair<string, object?> GetTaskName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
+        new(TagWorkflowTaskName, displayNameFunc(backgroundJob));
 
-    private static KeyValuePair<string, object?> GetDefinitionName(Job job) =>
-        new(TagWorkflowDefinitionName, job.ToString() ?? "unknown");
+    private static KeyValuePair<string, object?> GetDefinitionName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
+        new(TagWorkflowDefinitionName, displayNameFunc(backgroundJob));
+
 
     private static KeyValuePair<string, object?> GetExecutionOutcome(Exception? exception) =>
         new(TagWorkflowExecutionOutcome, exception is null ? OutcomeSuccess : OutcomeFailure);

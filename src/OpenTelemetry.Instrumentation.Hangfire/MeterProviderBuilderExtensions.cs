@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Metrics;
 
@@ -27,11 +26,11 @@ public static class MeterProviderBuilderExtensions
     /// Enables Hangfire metrics instrumentation.
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
-    /// <param name="configure">Callback action for configuring <see cref="HangfireInstrumentationOptions"/>.</param>
+    /// <param name="configure">Callback action for configuring <see cref="HangfireMetricsInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddHangfireInstrumentation(
         this MeterProviderBuilder builder,
-        Action<HangfireInstrumentationOptions>? configure)
+        Action<HangfireMetricsInstrumentationOptions>? configure)
         => AddHangfireInstrumentation(builder, name: null, configure);
 
     /// <summary>
@@ -39,12 +38,12 @@ public static class MeterProviderBuilderExtensions
     /// </summary>
     /// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
     /// <param name="name">Name which is used when retrieving options.</param>
-    /// <param name="configure"><see cref="HangfireInstrumentationOptions"/> configuration options.</param>
+    /// <param name="configure"><see cref="HangfireMetricsInstrumentationOptions"/> configuration options.</param>
     /// <returns>The instance of <see cref="MeterProviderBuilder"/> to chain the calls.</returns>
     public static MeterProviderBuilder AddHangfireInstrumentation(
         this MeterProviderBuilder builder,
         string? name,
-        Action<HangfireInstrumentationOptions>? configure)
+        Action<HangfireMetricsInstrumentationOptions>? configure)
     {
         Guard.ThrowIfNull(builder);
 
@@ -59,7 +58,7 @@ public static class MeterProviderBuilderExtensions
 
         return builder.AddInstrumentation(sp =>
         {
-            var options = sp.GetRequiredService<IOptionsMonitor<HangfireInstrumentationOptions>>().Get(name);
+            var options = sp.GetRequiredService<IOptionsMonitor<HangfireMetricsInstrumentationOptions>>().Get(name);
             return new HangfireMetricsInstrumentation(options);
         });
     }
