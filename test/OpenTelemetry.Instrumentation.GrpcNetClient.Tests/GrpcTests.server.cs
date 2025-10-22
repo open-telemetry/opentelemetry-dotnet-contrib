@@ -141,8 +141,8 @@ public partial class GrpcTests : IDisposable
             client.SayHello(new HelloRequest(), headers);
 
             WaitForExporterToReceiveItems(exportedItems, 1);
-            Assert.Single(exportedItems);
-            var activity = exportedItems[0];
+
+            var activity = Assert.Single(exportedItems);
 
             Assert.Equal(ActivityKind.Server, activity.Kind);
 
@@ -194,11 +194,11 @@ public partial class GrpcTests : IDisposable
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
         // giving some breathing room for the End callback to complete.
-        var timeout = TimeSpan.FromSeconds(1);
+        var timeout = TimeSpan.FromSeconds(5);
         var satisfied = SpinWait.SpinUntil(
             () =>
             {
-                Thread.Sleep(10);
+                Thread.Sleep(25);
                 return itemsReceived.Count >= itemCount;
             },
             timeout);
