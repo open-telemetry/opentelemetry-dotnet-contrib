@@ -56,7 +56,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     internal readonly ThreadLocal<byte[]> Buffer = new();
     internal readonly ThreadLocal<object?[]> HttpUrlParts = new();
 
-
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
 
@@ -369,7 +368,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
         var dtEnd = new DateTime(tsEnd, DateTimeKind.Utc);
-
 
         MessagePackSerializer.WriteTimestamp96(buffer, this.timestampPatchIndex, tsEnd);
 
