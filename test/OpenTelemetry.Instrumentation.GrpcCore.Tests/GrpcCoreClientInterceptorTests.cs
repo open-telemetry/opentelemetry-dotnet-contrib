@@ -20,7 +20,7 @@ public class GrpcCoreClientInterceptorTests
     /// <summary>
     /// A bogus server uri.
     /// </summary>
-    private const string BogusServerUri = "dns:i.dont.exist:77923";
+    private const string BogusServerUri = "dns:i.do.not.exist:77923";
 
     /// <summary>
     /// The default metadata func.
@@ -32,34 +32,28 @@ public class GrpcCoreClientInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task AsyncUnarySuccess()
-    {
+    public async Task AsyncUnarySuccess() =>
         await TestHandlerSuccess(FoobarService.MakeUnaryAsyncRequest, DefaultMetadataFunc());
-    }
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the endpoint isn't there.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task AsyncUnaryUnavailable()
-    {
+    public async Task AsyncUnaryUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeUnaryAsyncRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
-    }
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the service returned an error.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task AsyncUnaryFail()
-    {
+    public async Task AsyncUnaryFail() =>
         await TestHandlerFailure(FoobarService.MakeUnaryAsyncRequest);
-    }
 
     /// <summary>
     /// Validates a failed AsyncUnary call because the client is disposed before completing the RPC.
@@ -80,34 +74,28 @@ public class GrpcCoreClientInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingSuccess()
-    {
+    public async Task ClientStreamingSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeClientStreamingRequest, DefaultMetadataFunc());
-    }
 
     /// <summary>
     /// Validates a failed ClientStreaming call when the service is unavailable.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingUnavailable()
-    {
+    public async Task ClientStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeClientStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
-    }
 
     /// <summary>
     /// Validates a failed ClientStreaming call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ClientStreamingFail()
-    {
+    public async Task ClientStreamingFail() =>
         await TestHandlerFailure(FoobarService.MakeClientStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed ClientStreaming call because the client is disposed before completing the RPC.
@@ -128,20 +116,16 @@ public class GrpcCoreClientInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingSuccess()
-    {
+    public async Task ServerStreamingSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeServerStreamingRequest, DefaultMetadataFunc());
-    }
 
     /// <summary>
     /// Validates a failed ServerStreaming call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task ServerStreamingFail()
-    {
+    public async Task ServerStreamingFail() =>
         await TestHandlerFailure(FoobarService.MakeServerStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed ServerStreaming call because the client is disposed before completing the RPC.
@@ -162,34 +146,28 @@ public class GrpcCoreClientInterceptorTests
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingSuccess()
-    {
+    public async Task DuplexStreamingSuccess() =>
         await TestHandlerSuccess(FoobarService.MakeDuplexStreamingRequest, DefaultMetadataFunc());
-    }
 
     /// <summary>
     /// Validates a failed DuplexStreaming call when the service is unavailable.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingUnavailable()
-    {
+    public async Task DuplexStreamingUnavailable() =>
         await TestHandlerFailure(
             FoobarService.MakeDuplexStreamingRequest,
             StatusCode.Unavailable,
             validateErrorDescription: false,
             BogusServerUri);
-    }
 
     /// <summary>
     /// Validates a failed DuplexStreaming call.
     /// </summary>
     /// <returns>A task.</returns>
     [Fact]
-    public async Task DuplexStreamingFail()
-    {
+    public async Task DuplexStreamingFail() =>
         await TestHandlerFailure(FoobarService.MakeDuplexStreamingRequest);
-    }
 
     /// <summary>
     /// Validates a failed DuplexStreaming call because the client is disposed before completing the RPC.
@@ -223,17 +201,17 @@ public class GrpcCoreClientInterceptorTests
         parentActivity.Start();
 
         // Order of interceptor invocation will be ClientTracingInterceptor -> MetadataInjector
-        callInvoker = callInvoker.Intercept(
-            metadata =>
-            {
-                // This Func is called as part of an internal MetadataInjector interceptor created by gRPC Core.
-                Assert.True(Activity.Current?.Source == GrpcCoreInstrumentation.ActivitySource);
-                Assert.Equal(parentActivity.Id, Activity.Current.ParentId);
+        callInvoker = callInvoker.Intercept(metadata =>
+        {
+            // This Func is called as part of an internal MetadataInjector interceptor created by gRPC Core.
+            Assert.NotNull(Activity.Current);
+            Assert.Equal(Activity.Current.Source, GrpcCoreInstrumentation.ActivitySource);
+            Assert.Equal(parentActivity.Id, Activity.Current.ParentId);
 
-                // Set a tag on the Activity and make sure we can see it afterwards
-                Activity.Current.SetTag("foo", "bar");
-                return metadata;
-            });
+            // Set a tag on the Activity and make sure we can see it afterwards
+            Activity.Current.SetTag("foo", "bar");
+            return metadata;
+        });
 
         var testTags = new TestActivityTags();
         var interceptorOptions = new ClientTracingInterceptorOptions { AdditionalTags = testTags.Tags };
@@ -316,8 +294,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.NotNull(activity);
         Assert.NotNull(activity.Tags);
 
-        // The activity was stopped
-        Assert.True(activity.Duration != default);
+        Assert.True(activity.IsStopped);
 
         // TagObjects contain non string values
         // Tags contains only string values
@@ -336,8 +313,8 @@ public class GrpcCoreClientInterceptorTests
         {
             // all methods accept a request and return a single response
             Assert.NotNull(activity.Events);
-            var requestMessage = activity.Events.FirstOrDefault(ae => ae.Name == FoobarService.DefaultRequestMessage.GetType().Name);
-            var responseMessage = activity.Events.FirstOrDefault(ae => ae.Name == FoobarService.DefaultResponseMessage.GetType().Name);
+            var requestMessage = activity.Events.FirstOrDefault(ae => ae.Name == nameof(FoobarRequest));
+            var responseMessage = activity.Events.FirstOrDefault(ae => ae.Name == nameof(FoobarResponse));
 
             static void ValidateCommonEventAttributes(ActivityEvent activityEvent)
             {
@@ -501,7 +478,7 @@ public class GrpcCoreClientInterceptorTests
             ]);
 
         using var activityListener = new InterceptorActivityListener(testTags);
-        await Assert.ThrowsAsync<RpcException>(async () => await clientRequestFunc(client, null).ConfigureAwait(false));
+        await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));
 
         var activity = activityListener.Activity;
         ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
