@@ -163,8 +163,8 @@ attributes for each of the query parameters associated with a database command.
 ## Activity Duration calculation
 
 `Activity.Duration` represents the time the underlying connection takes to
-execute the command/query. Completing the operation includes the time up to
-determining that the request was successful. It doesn't include the time spent
+execute the command or query, including the time needed to determine
+that the request was successful. **It does not** include the time spent
 reading the results from a query set (for example enumerating all the rows
 returned from an `IEnumerable`/`IQueryable`).
 
