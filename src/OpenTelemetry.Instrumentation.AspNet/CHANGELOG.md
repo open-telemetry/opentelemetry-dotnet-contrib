@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.2
+
+Released 2025-Oct-22
+
 * Improved performance of replacing static tokens with actual values
   in the route template.
   ([#3241](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3241))
