@@ -21,16 +21,46 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
 
     public void OnPerformed(PerformedContext performedContext)
     {
-        var executionTags = HangfireTagBuilder.BuildExecutionTags(performedContext.BackgroundJob.Job, performedContext.Exception);
+        // Get recurring job ID if this job was triggered by a recurring job
+        string? recurringJobId = null;
+        try
+        {
+            recurringJobId = performedContext.Connection.GetJobParameter(
+                performedContext.BackgroundJob.Id,
+                "RecurringJobId");
+        }
+        catch
+        {
+            // If we can't get the recurring job ID, treat it as a non-recurring job
+        }
 
-        HangfireMetrics.ExecutionCount.Add(1, executionTags);
+        // Record execution count (without state attribute per semantic conventions)
+        var countTags = HangfireTagBuilder.BuildExecutionCountTags(
+            performedContext.BackgroundJob.Job,
+            performedContext.Exception);
 
+        HangfireMetrics.ExecutionCount.Add(1, countTags);
+
+        // Record execution duration (with state="executing" to differentiate from pending phase)
         if (performedContext.Items.TryGetValue(StopwatchKey, out var stopwatchObj) && stopwatchObj is Stopwatch stopwatch)
         {
             stopwatch.Stop();
             var duration = stopwatch.Elapsed.TotalSeconds;
 
-            HangfireMetrics.ExecutionDuration.Record(duration, executionTags);
+            var durationTags = HangfireTagBuilder.BuildExecutionTags(
+                performedContext.BackgroundJob.Job,
+                performedContext.Exception,
+                workflowState: HangfireTagBuilder.StateExecuting);
+
+            HangfireMetrics.ExecutionDuration.Record(duration, durationTags);
         }
+
+        // Record workflow-level metrics (includes trigger type)
+        var workflowTags = HangfireTagBuilder.BuildWorkflowTags(
+            performedContext.BackgroundJob.Job,
+            performedContext.Exception,
+            recurringJobId);
+
+        HangfireMetrics.WorkflowCount.Add(1, workflowTags);
     }
 }

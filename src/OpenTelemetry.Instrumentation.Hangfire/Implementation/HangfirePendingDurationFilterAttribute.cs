@@ -9,13 +9,14 @@ using DateTime = System.DateTime;
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 /// <summary>
-/// Hangfire filter that records queue latency metrics.
+/// Hangfire filter that records workflow.execution.duration metric for the pending state.
 /// </summary>
 /// <remarks>
 /// This filter captures the EnqueuedAt timestamp when a job enters the Enqueued state
-/// and calculates queue latency when the job starts executing.
+/// and records workflow.execution.duration{state="pending"} when the job starts executing.
+/// This represents the time a job spent waiting in the queue before execution started.
 /// </remarks>
-internal sealed class HangfireQueueLatencyFilterAttribute : JobFilterAttribute, IServerFilter, IElectStateFilter
+internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribute, IServerFilter, IElectStateFilter
 {
     private const string EnqueuedAtParameter = "OpenTelemetry.EnqueuedAt";
 
@@ -52,10 +53,14 @@ internal sealed class HangfireQueueLatencyFilterAttribute : JobFilterAttribute, 
             if (!string.IsNullOrEmpty(enqueuedAtStr))
             {
                 var enqueuedAt = JobHelper.DeserializeDateTime(enqueuedAtStr);
-                var queueLatency = (DateTime.UtcNow - enqueuedAt).TotalSeconds;
+                var pendingDuration = (DateTime.UtcNow - enqueuedAt).TotalSeconds;
 
-                var tags = HangfireTagBuilder.BuildCommonTags(performingContext.BackgroundJob.Job);
-                HangfireMetrics.QueueLatency.Record(queueLatency, tags);
+                // Record workflow.execution.duration with state="pending"
+                var tags = HangfireTagBuilder.BuildExecutionTags(
+                    performingContext.BackgroundJob.Job,
+                    exception: null,
+                    workflowState: HangfireTagBuilder.StatePending);
+                HangfireMetrics.ExecutionDuration.Record(pendingDuration, tags);
             }
         }
         catch
@@ -66,6 +71,6 @@ internal sealed class HangfireQueueLatencyFilterAttribute : JobFilterAttribute, 
 
     public void OnPerformed(PerformedContext performedContext)
     {
-        // No-op: This filter only handles queue latency in OnPerforming
+        // No-op: This filter only handles pending state duration in OnPerforming
     }
 }

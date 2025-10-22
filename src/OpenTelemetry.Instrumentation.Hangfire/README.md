@@ -214,8 +214,9 @@ and metrics behavior.
 
 #### RecordQueueLatency
 
-By default, the instrumentation records only execution metrics. To also track how long
-jobs spend waiting in the queue before execution, enable the `RecordQueueLatency` option:
+By default, the instrumentation records only the execution phase duration (time spent
+actually running the job). To also track the pending phase duration (time spent waiting
+in the queue before execution), enable the `RecordQueueLatency` option:
 
 ```csharp
 var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -226,6 +227,10 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
     .AddConsoleExporter()
     .Build();
 ```
+
+When enabled, `workflow.execution.duration` is recorded with `workflow.execution.state="pending"`
+representing queue wait time, in addition to `workflow.execution.state="executing"` for actual
+execution time.
 
 > [!WARNING]
 > Enabling `RecordQueueLatency` requires an additional database query per job execution
@@ -244,6 +249,10 @@ The number of task executions which have been initiated.
 |----------------|-----------------|------------|
 | `{executions}` | Counter         | `Int64`    |
 
+> [!NOTE]
+> This metric does NOT include the `workflow.execution.state` attribute, as state differentiation
+> is not needed for counting completed executions.
+
 **Attributes:**
 
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
@@ -257,15 +266,31 @@ The number of task executions which have been initiated.
 
 #### workflow.execution.duration
 
-Duration of an execution grouped by task and result.
+Duration of an execution grouped by task, state, and result. Records duration for different
+execution phases:
+- **state=pending**: Time spent waiting in queue (only when `RecordQueueLatency` is enabled)
+- **state=executing**: Time spent in actual execution
 
 | Units | Instrument Type | Value Type |
 |-------|-----------------|------------|
 | `s`   | Histogram       | `Double`   |
 
+> [!NOTE]
+> The `workflow.execution.state` attribute is an extension to the current semantic conventions
+> to support measuring different execution phases (pending vs executing). This attribute is
+> being proposed for inclusion in the official semantic conventions.
+
 **Attributes:**
 
-Uses the same attributes as `workflow.execution.count`.
+| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
+|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
+| `workflow.execution.outcome`  | string | The outcome of executing the task             | Required                 | `success`, `failure`    |
+| `workflow.execution.state`    | string | The execution phase being measured            | Required                 | `pending`, `executing`  |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+
+¹ Required if and only if the task execution failed.
 
 #### workflow.execution.status
 
@@ -285,7 +310,6 @@ The number of actively running tasks grouped by task and the current state.
 |-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------------------------|
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`                     |
 | `workflow.execution.state`    | string | Current state of the execution                | Required                 | `pending`, `executing`, `completed`       |
-| `workflow.trigger.type`       | string | Type of trigger that initiated the execution  | Required                 | `api`, `cron`                             |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
 | `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name                       |
 
@@ -317,37 +341,40 @@ The number of errors encountered in task executions.
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
 
-#### hangfire.queue.latency
+#### workflow.count
 
-Time tasks spend waiting in queue before execution starts. This is a Hangfire-specific
-metric not part of the standard workflow conventions.
+The number of workflow instances which have been initiated. In Hangfire, this tracks
+individual job completions.
 
-| Units | Instrument Type | Value Type |
-|-------|-----------------|------------|
-| `s`   | Histogram       | `Double`   |
-
-> [!NOTE]
-> This metric is only recorded when `RecordQueueLatency` option is enabled.
+| Units          | Instrument Type | Value Type |
+|----------------|-----------------|------------|
+| `{workflows}`  | Counter         | `Int64`    |
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level | Values                  |
-|-------------------------------|--------|-----------------------------------------------|-------------------|-------------------------|
-| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
+| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
+|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`   |
+| `workflow.outcome`            | string | The outcome of the workflow                   | Required                 | `success`, `failure`    |
+| `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`           |
+| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+
+¹ Required if and only if the workflow execution failed.
 
 ### Semantic Conventions
 
 This instrumentation follows the OpenTelemetry semantic conventions for workflows:
 
 - **workflow.platform.name**: Always set to `"hangfire"`
-- **workflow.task.name**: Derived from the Hangfire job method (e.g., `ClassName.MethodName`)
+- **workflow.task.name** / **workflow.definition.name**: Derived from the Hangfire job method (e.g., `ClassName.MethodName`)
 - **workflow.trigger.type**: Set to `"cron"` for recurring jobs, `"api"` for fire-and-forget,
-  scheduled, and continuation jobs
-- **workflow.execution.outcome**: Set to `"success"` when jobs complete without errors,
+  scheduled, and continuation jobs. Only included on workflow-level metrics (`workflow.count`),
+  not on execution-level metrics (`workflow.execution.*`)
+- **workflow.execution.outcome** / **workflow.outcome**: Set to `"success"` when jobs complete without errors,
   `"failure"` when an exception is thrown
 - **workflow.execution.state**: Maps Hangfire states to semantic convention states
-  (see table above)
+  (see table above). Also used to distinguish between pending (queue wait) and executing (actual execution) phases in duration metrics
 - **error.type**: Set to the full type name of the exception when a job fails
 
 ## References

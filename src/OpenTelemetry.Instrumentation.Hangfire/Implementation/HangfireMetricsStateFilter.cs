@@ -21,12 +21,10 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
 
         var errorType = GetErrorTypeFromNewState(context.NewState);
-        var recurringJobId = GetRecurringJobId(context);
         var tags = HangfireTagBuilder.BuildStateTags(
             context.BackgroundJob.Job,
             workflowState,
-            errorType,
-            recurringJobId);
+            errorType);
 
         HangfireMetrics.ExecutionStatus.Add(1, tags);
     }
@@ -40,12 +38,10 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
 
         var errorType = GetErrorTypeFromOldState(context);
-        var recurringJobId = GetRecurringJobId(context);
         var tags = HangfireTagBuilder.BuildStateTags(
             context.BackgroundJob.Job,
             workflowState,
-            errorType,
-            recurringJobId);
+            errorType);
 
         HangfireMetrics.ExecutionStatus.Add(-1, tags);
     }
@@ -90,18 +86,5 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
 
         return null;
-    }
-
-    private static string? GetRecurringJobId(ApplyStateContext context)
-    {
-        try
-        {
-            return context.Connection.GetJobParameter(context.BackgroundJob.Id, "RecurringJobId");
-        }
-        catch
-        {
-            // Parameter doesn't exist or couldn't be retrieved
-            return null;
-        }
     }
 }

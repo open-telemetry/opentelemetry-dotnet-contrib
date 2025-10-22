@@ -19,10 +19,10 @@ internal sealed class HangfireMetricsInstrumentation : IDisposable
         this.AddFilter(new HangfireMetricsStateFilter());
         this.AddFilter(new HangfireMetricsErrorFilterAttribute());
 
-        // Only register queue latency filter if enabled (requires DB call per job)
+        // Only register pending duration filter if enabled (requires DB call per job)
         if (options.RecordQueueLatency)
         {
-            this.AddFilter(new HangfireQueueLatencyFilterAttribute());
+            this.AddFilter(new HangfirePendingDurationFilterAttribute());
         }
     }
 

@@ -17,7 +17,9 @@ internal static class HangfireTagBuilder
     // Tag name constants following OpenTelemetry workflow semantic conventions
     // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md
     internal const string TagWorkflowTaskName = "workflow.task.name";
+    internal const string TagWorkflowDefinitionName = "workflow.definition.name";
     internal const string TagWorkflowExecutionOutcome = "workflow.execution.outcome";
+    internal const string TagWorkflowOutcome = "workflow.outcome";
     internal const string TagWorkflowExecutionState = "workflow.execution.state";
     internal const string TagWorkflowPlatformName = "workflow.platform.name";
     internal const string TagWorkflowTriggerType = "workflow.trigger.type";
@@ -58,22 +60,21 @@ internal static class HangfireTagBuilder
 
     /// <summary>
     /// Creates a tag list representing workflow execution state transitions.
-    /// Includes required workflow.task.name, workflow.execution.state, and workflow.trigger.type tags,
+    /// Includes required workflow.task.name and workflow.execution.state tags,
     /// recommended workflow.platform.name, and conditionally required error.type.
+    /// Note: workflow.trigger.type is NOT included as it belongs to workflow-level metrics only.
     /// </summary>
     /// <param name="job">The Hangfire job.</param>
     /// <param name="workflowState">The workflow state value.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
-    /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
     /// <returns>Tag list suitable for workflow.execution.status metric.</returns>
-    public static TagList BuildStateTags(Job job, string workflowState, string? errorType, string? recurringJobId)
+    public static TagList BuildStateTags(Job job, string workflowState, string? errorType)
     {
         var tags = new TagList
         {
             GetTaskName(job),
             GetPlatformName(),
             GetState(workflowState),
-            GetTriggerType(recurringJobId),
         };
 
         if (!string.IsNullOrEmpty(errorType))
@@ -115,23 +116,84 @@ internal static class HangfireTagBuilder
 
     /// <summary>
     /// Creates a tag list with execution result tags following workflow semantic conventions.
-    /// Includes required attributes (workflow.task.name, workflow.execution.outcome),
+    /// Includes required attributes (workflow.task.name, workflow.execution.outcome, workflow.execution.state),
     /// recommended attributes (workflow.platform.name),
-    /// conditionally required attributes (error.type if failed)
+    /// conditionally required attributes (error.type if failed).
+    /// Note: workflow.trigger.type is NOT included as it belongs to workflow-level metrics only.
     /// </summary>
     /// <param name="job">The Hangfire job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
+    /// <param name="workflowState">The workflow state value (typically "executing" for execution duration).</param>
     /// <returns>Tag list with execution result tags.</returns>
-    public static TagList BuildExecutionTags(Job job, Exception? exception)
+    public static TagList BuildExecutionTags(Job job, Exception? exception, string workflowState)
     {
         var tags = new TagList
         {
             GetTaskName(job),
             GetPlatformName(),
-            GetOutcome(exception),
+            GetExecutionOutcome(exception),
+            GetState(workflowState),
         };
 
         // Conditionally Required: error.type (if and only if the task run failed)
+        if (exception is not null)
+        {
+            tags.Add(GetErrorType(exception));
+        }
+
+        return tags;
+    }
+
+    /// <summary>
+    /// Creates a tag list for workflow.execution.count metric following workflow semantic conventions.
+    /// Includes required attributes (workflow.task.name, workflow.execution.outcome),
+    /// recommended attributes (workflow.platform.name),
+    /// conditionally required attributes (error.type if failed).
+    /// Note: Does NOT include workflow.execution.state as it's not specified in semantic conventions for count metric.
+    /// </summary>
+    /// <param name="job">The Hangfire job.</param>
+    /// <param name="exception">The exception, if any occurred.</param>
+    /// <returns>Tag list suitable for workflow.execution.count metric.</returns>
+    public static TagList BuildExecutionCountTags(Job job, Exception? exception)
+    {
+        var tags = new TagList
+        {
+            GetTaskName(job),
+            GetPlatformName(),
+            GetExecutionOutcome(exception),
+        };
+
+        // Conditionally Required: error.type (if and only if the task run failed)
+        if (exception is not null)
+        {
+            tags.Add(GetErrorType(exception));
+        }
+
+        return tags;
+    }
+
+    /// <summary>
+    /// Creates a tag list for workflow-level metrics following workflow semantic conventions.
+    /// Includes required attributes (workflow.definition.name, workflow.outcome, workflow.trigger.type),
+    /// recommended attributes (workflow.platform.name),
+    /// conditionally required attributes (error.type if failed).
+    /// Used for workflow.count and other workflow-level (not execution-level) metrics.
+    /// </summary>
+    /// <param name="job">The Hangfire job.</param>
+    /// <param name="exception">The exception, if any occurred.</param>
+    /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
+    /// <returns>Tag list suitable for workflow.count metric.</returns>
+    public static TagList BuildWorkflowTags(Job job, Exception? exception, string? recurringJobId)
+    {
+        var tags = new TagList
+        {
+            GetDefinitionName(job),
+            GetPlatformName(),
+            GetWorkflowOutcome(exception),
+            GetTriggerType(recurringJobId),
+        };
+
+        // Conditionally Required: error.type (if and only if the workflow execution failed)
         if (exception is not null)
         {
             tags.Add(GetErrorType(exception));
@@ -164,8 +226,14 @@ internal static class HangfireTagBuilder
     private static KeyValuePair<string, object?> GetTaskName(Job job) =>
         new(TagWorkflowTaskName, job.ToString() ?? "unknown");
 
-    private static KeyValuePair<string, object?> GetOutcome(Exception? exception) =>
+    private static KeyValuePair<string, object?> GetDefinitionName(Job job) =>
+        new(TagWorkflowDefinitionName, job.ToString() ?? "unknown");
+
+    private static KeyValuePair<string, object?> GetExecutionOutcome(Exception? exception) =>
         new(TagWorkflowExecutionOutcome, exception is null ? OutcomeSuccess : OutcomeFailure);
+
+    private static KeyValuePair<string, object?> GetWorkflowOutcome(Exception? exception) =>
+        new(TagWorkflowOutcome, exception is null ? OutcomeSuccess : OutcomeFailure);
 
     private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId)
     {
@@ -191,9 +259,9 @@ internal static class HangfireTagBuilder
     {
         var loggedException = exception;
 
-        if (loggedException is JobPerformanceException pe)
+        if (loggedException is JobPerformanceException { InnerException: not null } pe)
         {
-            loggedException = pe.InnerException;
+            loggedException = pe.InnerException!;
         }
 
         return new KeyValuePair<string, object?>(TagErrorType, loggedException.GetType().FullName ?? loggedException.GetType().Name);

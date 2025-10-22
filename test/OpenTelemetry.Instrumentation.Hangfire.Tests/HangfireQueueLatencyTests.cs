@@ -20,7 +20,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
     }
 
     [Fact]
-    public async Task Should_NOT_Record_QueueLatency_Metric_By_Default()
+    public async Task Should_NOT_Record_PendingDuration_By_Default()
     {
         // Arrange
         var exportedItems = new List<Metric>();
@@ -35,13 +35,25 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        // Assert - Queue latency metric should NOT be present
-        var queueLatencyMetric = exportedItems.FirstOrDefault(m => m.Name == HangfireMetrics.QueueLatencyMetricName);
-        Assert.Null(queueLatencyMetric);
+        // Assert - workflow.execution.duration with state="pending" should NOT be present
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+
+        // Duration metric will exist (for state="executing"), but NOT for state="pending"
+        Assert.NotNull(durationMetric);
+        var metricPoints = durationMetric.ToMetricPointList();
+
+        // Ensure NO pending state metric point exists
+        var pendingPoints = metricPoints.Where(mp =>
+        {
+            var stateValue = mp.GetTagValue(HangfireTagBuilder.TagWorkflowExecutionState);
+            return stateValue != null && stateValue.Equals(HangfireTagBuilder.StatePending);
+        }).ToList();
+
+        Assert.Empty(pendingPoints);
     }
 
     [Fact]
-    public async Task Should_Record_QueueLatency_Metric_When_Enabled()
+    public async Task Should_Record_PendingDuration_When_RecordQueueLatency_Enabled()
     {
         // Arrange
         var exportedItems = new List<Metric>();
@@ -59,28 +71,33 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        // Assert - Queue latency metric should be present
-        var queueLatencyMetric = exportedItems.GetMetric(HangfireMetrics.QueueLatencyMetricName);
-        AssertUtils.AssertHasMetricPoints(queueLatencyMetric);
-        Assert.Equal("s", queueLatencyMetric!.Unit);
-        Assert.Equal(MetricType.Histogram, queueLatencyMetric.MetricType);
+        // Assert - workflow.execution.duration with state="pending" should be present
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        AssertUtils.AssertHasMetricPoints(durationMetric);
+        Assert.Equal("s", durationMetric!.Unit);
+        Assert.Equal(MetricType.Histogram, durationMetric.MetricType);
 
-        var metricPoints = queueLatencyMetric.ToMetricPointList();
-        var metricPoint = metricPoints.First();
+        var metricPoints = durationMetric.ToMetricPointList();
 
-        var count = metricPoint.GetHistogramCount();
-        var sum = metricPoint.GetHistogramSum();
+        // Find the pending state metric point
+        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        Assert.NotNull(pendingPoint);
 
-        Assert.True(count >= 1, $"Expected histogram count >= 1, got {count}");
-        Assert.True(sum >= 0, $"Expected queue latency sum >= 0, got {sum}");
+        var count = pendingPoint.Value.GetHistogramCount();
+        var sum = pendingPoint.Value.GetHistogramSum();
+
+        Assert.True(count >= 1, $"Expected histogram count >= 1 for pending state, got {count}");
+        Assert.True(sum >= 0, $"Expected histogram sum >= 0 for pending state, got {sum}");
 
         // Validate tags
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName);
+        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowTaskName);
+        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
     }
 
     [Fact]
-    public async Task Should_NOT_Record_QueueLatency_Metric_When_Explicitly_Disabled()
+    public async Task Should_NOT_Record_PendingDuration_When_Explicitly_Disabled()
     {
         // Arrange
         var exportedItems = new List<Metric>();
@@ -98,13 +115,25 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        // Assert - Queue latency metric should NOT be present
-        var queueLatencyMetric = exportedItems.FirstOrDefault(m => m.Name == HangfireMetrics.QueueLatencyMetricName);
-        Assert.Null(queueLatencyMetric);
+        // Assert - workflow.execution.duration with state="pending" should NOT be present
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+
+        // Duration metric will exist (for state="executing"), but NOT for state="pending"
+        Assert.NotNull(durationMetric);
+        var metricPoints = durationMetric.ToMetricPointList();
+
+        // Ensure NO pending state metric point exists
+        var pendingPoints = metricPoints.Where(mp =>
+        {
+            var stateValue = mp.GetTagValue(HangfireTagBuilder.TagWorkflowExecutionState);
+            return stateValue != null && stateValue.Equals(HangfireTagBuilder.StatePending);
+        }).ToList();
+
+        Assert.Empty(pendingPoints);
     }
 
     [Fact]
-    public async Task Should_Record_Accurate_QueueLatency_For_Retried_Job()
+    public async Task Should_Record_Both_Pending_And_Executing_Duration_When_Enabled()
     {
         // Arrange
         var exportedItems = new List<Metric>();
@@ -116,37 +145,69 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        // Act - Create a job that fails first, then gets retried
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
-
-        // Clear metrics from first execution
-        exportedItems.Clear();
-
-        // Manually requeue the job (simulating retry)
-        BackgroundJob.Requeue(jobId);
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
         await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         meterProvider.ForceFlush();
 
-        // Assert - Queue latency should reflect time since re-enqueue, not original creation
-        var queueLatencyMetric = exportedItems.GetMetric(HangfireMetrics.QueueLatencyMetricName);
-        AssertUtils.AssertHasMetricPoints(queueLatencyMetric);
+        // Assert - Both pending and executing durations should be recorded
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        AssertUtils.AssertHasMetricPoints(durationMetric);
 
-        var metricPoints = queueLatencyMetric!.ToMetricPointList();
-        if (metricPoints.Count != 0)
-        {
-            var metricPoint = metricPoints.First();
-            var sum = metricPoint.GetHistogramSum();
+        var metricPoints = durationMetric!.ToMetricPointList();
 
-            // Queue latency should be small (< 10 seconds) since we just re-enqueued
-            // If it used CreatedAt, it would be much larger
-            Assert.True(sum < 10, $"Expected queue latency < 10 seconds for retry, got {sum}");
-        }
+        // Verify pending state duration
+        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        Assert.NotNull(pendingPoint);
+        Assert.True(pendingPoint.Value.GetHistogramCount() >= 1);
+
+        // Verify executing state duration
+        var executingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting);
+        Assert.NotNull(executingPoint);
+        Assert.True(executingPoint.Value.GetHistogramCount() >= 1);
     }
 
     [Fact]
-    public async Task Should_Record_QueueLatency_For_Multiple_Jobs()
+    public async Task Should_Record_PendingDuration_For_Failed_Job()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation(options =>
+            {
+                options.RecordQueueLatency = true;
+            })
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+        meterProvider.ForceFlush();
+
+        // Assert - Pending duration should be recorded even for failed jobs
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        AssertUtils.AssertHasMetricPoints(durationMetric);
+
+        var metricPoints = durationMetric!.ToMetricPointList();
+
+        // Find pending state metric point (should have success outcome since pending phase succeeded)
+        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        Assert.NotNull(pendingPoint);
+
+        // Pending phase should be successful (job started executing)
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+
+        // Executing phase should have failure outcome
+        var executingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting);
+        Assert.NotNull(executingPoint);
+        AssertUtils.AssertHasTagValue(executingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeFailure);
+    }
+
+    [Fact]
+    public async Task Should_Record_PendingDuration_For_Multiple_Jobs()
     {
         // Arrange
         var exportedItems = new List<Metric>();
@@ -169,22 +230,22 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        // Assert - Queue latency metric should have multiple data points
-        var queueLatencyMetric = exportedItems.GetMetric(HangfireMetrics.QueueLatencyMetricName);
-        AssertUtils.AssertHasMetricPoints(queueLatencyMetric);
+        // Assert - Pending duration should be recorded for all jobs
+        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        AssertUtils.AssertHasMetricPoints(durationMetric);
 
-        var metricPoints = queueLatencyMetric!.ToMetricPointList();
-        Assert.NotEmpty(metricPoints);
+        var metricPoints = durationMetric!.ToMetricPointList();
 
-        // At least one metric point should exist (could be aggregated)
-        var metricPoint = metricPoints.First();
-        var count = metricPoint.GetHistogramCount();
+        // Find pending state metric point
+        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        Assert.NotNull(pendingPoint);
 
-        Assert.True(count >= 3, $"Expected at least 3 queue latency measurements, got {count}");
+        var count = pendingPoint.Value.GetHistogramCount();
+        Assert.True(count >= 3, $"Expected at least 3 pending duration measurements, got {count}");
     }
 
     [Fact]
-    public void Should_NOT_Register_QueueLatencyFilter_When_Disabled()
+    public void Should_NOT_Register_PendingDurationFilter_When_Disabled()
     {
         // Arrange
         var options = new Trace.HangfireInstrumentationOptions
@@ -195,16 +256,14 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         // Act
         using var instrumentation = new Implementation.HangfireMetricsInstrumentation(options);
 
-        var finalFilterCount = GlobalJobFilters.Filters.Count;
-
-        // Verify no HangfireQueueLatencyFilterAttribute is registered
-        var queueLatencyFilterExists = GlobalJobFilters.Filters
-            .Any(f => f.Instance is Implementation.HangfireQueueLatencyFilterAttribute);
-        Assert.False(queueLatencyFilterExists);
+        // Verify no HangfirePendingDurationFilterAttribute is registered
+        var pendingDurationFilterExists = GlobalJobFilters.Filters
+            .Any(f => f.Instance is Implementation.HangfirePendingDurationFilterAttribute);
+        Assert.False(pendingDurationFilterExists);
     }
 
     [Fact]
-    public void Should_Register_QueueLatencyFilter_When_Enabled()
+    public void Should_Register_PendingDurationFilter_When_Enabled()
     {
         // Arrange
         var options = new Trace.HangfireInstrumentationOptions
@@ -215,11 +274,9 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         // Act
         using var instrumentation = new Implementation.HangfireMetricsInstrumentation(options);
 
-        var finalFilterCount = GlobalJobFilters.Filters.Count;
-
-        // Verify HangfireQueueLatencyFilterAttribute IS registered
-        var queueLatencyFilterExists = GlobalJobFilters.Filters
-            .Any(f => f.Instance is Implementation.HangfireQueueLatencyFilterAttribute);
-        Assert.True(queueLatencyFilterExists);
+        // Verify HangfirePendingDurationFilterAttribute IS registered
+        var pendingDurationFilterExists = GlobalJobFilters.Filters
+            .Any(f => f.Instance is Implementation.HangfirePendingDurationFilterAttribute);
+        Assert.True(pendingDurationFilterExists);
     }
 }
