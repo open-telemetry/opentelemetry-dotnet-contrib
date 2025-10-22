@@ -50,7 +50,7 @@ to the application.
 
 > [!NOTE]
 > .NET 9 introduced built-in runtime metrics. As such, when applications target
-  .NET 9 or greater this package registers a `Meter` to receive the built-in
+  .NET 9 or greater this package instead registers a `Meter` to receive the built-in
   `System.Runtime` metrics. See the [.NET Runtime metrics documentation](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/built-in-metrics-runtime)
   for details of the metric and attribute names for the built-in metrics.
 
