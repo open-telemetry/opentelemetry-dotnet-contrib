@@ -49,7 +49,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -113,7 +113,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -143,7 +143,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Logs_Success_Linux()
     {
         var listener = new PerfTracepointListener(

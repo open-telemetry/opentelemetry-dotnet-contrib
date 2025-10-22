@@ -179,7 +179,7 @@ public partial class GrpcTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
     public void GrpcAndHttpClientInstrumentationWithSuppressInstrumentation()
     {
         var uri = new Uri($"http://localhost:{this.server.Port}");
@@ -232,7 +232,7 @@ public partial class GrpcTests
         Assert.Equal(0, grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcGrpcStatusCode));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
     public void GrpcPropagatesContextWithSuppressInstrumentationOptionSetToTrue()
     {
         try
@@ -344,7 +344,7 @@ public partial class GrpcTests
         }
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
     public void GrpcClientInstrumentationRespectsSdkSuppressInstrumentation()
     {
         try

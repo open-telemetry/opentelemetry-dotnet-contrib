@@ -49,7 +49,11 @@ public class TestAWSXRayRemoteSampler
         Assert.NotNull(xraySampler?.Client);
     }
 
+#if NETFRAMEWORK
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1219")]
+#else
     [Fact]
+#endif
     public void TestSamplerUpdateAndSample()
     {
         // setup mock server

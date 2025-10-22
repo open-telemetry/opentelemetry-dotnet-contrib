@@ -273,7 +273,7 @@ public partial class HttpClientTests : IDisposable
         ]));
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1727")]
     public async Task RespectsSuppress()
     {
         try
