@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Web;
 using System.Web.Routing;
 
@@ -42,9 +44,86 @@ internal sealed class HttpRequestRouteHelper
         else if (routeData.Route is Route route)
         {
             // MVC + WebAPI traditional routing & MVC attribute routing flow here.
-            template = route.Url;
+            template = PrepareRouteTemplate(route, routeData);
         }
 
         return template;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool CompareStringToSubstring(string example, string target, int start)
+    {
+        for (int i = 0; i < example.Length; i++)
+        {
+            if (target[start + 1 + i] != example[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static string PrepareRouteTemplate(Route route, RouteData routeData)
+    {
+        const string controllerToken = "controller";
+        const string actionToken = "action";
+
+        var template = route.Url;
+        var controller = (string)routeData.Values[controllerToken];
+        var action = (string)routeData.Values[actionToken];
+        var hasController = !string.IsNullOrWhiteSpace(controller);
+        var hasAction = !string.IsNullOrWhiteSpace(action);
+        var sb = new StringBuilder(template.Length);
+
+        int i = 0;
+        while (i < template.Length)
+        {
+            if (template[i] == '{')
+            {
+                int end = template.IndexOf('}', i + 1);
+                if (end != -1)
+                {
+                    if (hasController && CompareStringToSubstring(controllerToken, template, i))
+                    {
+                        sb.Append(controller);
+                    }
+                    else if (hasAction && CompareStringToSubstring(actionToken, template, i))
+                    {
+                        sb.Append(action);
+                    }
+                    else
+                    {
+                        var defaults = route.Defaults;
+                        var values = routeData.Values;
+                        var token = template.Substring(i + 1, end - i - 1);
+
+                        if (defaults.ContainsKey(token) && !values.ContainsKey(token))
+                        {
+                            // Ignore defaults with no values.
+                        }
+                        else
+                        {
+                            sb.Append('{').Append(token).Append('}');
+                        }
+                    }
+
+                    i = end + 1;
+                    continue;
+                }
+            }
+
+            sb.Append(template[i]);
+            i++;
+        }
+
+        // Normalizes endings by removing trailing slashes.
+        int len = sb.Length;
+        while (len > 0 && sb[len - 1] == '/')
+        {
+            len--;
+        }
+
+        return sb.ToString(0, len);
     }
 }

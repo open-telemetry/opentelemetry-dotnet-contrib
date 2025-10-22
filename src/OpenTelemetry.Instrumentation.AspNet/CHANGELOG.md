@@ -2,8 +2,17 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+## 1.13.0-beta.2
+
+Released 2025-Oct-22
+
+* Improved performance of replacing static tokens with actual values
+  in the route template.
+  ([#3241](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3241))
+
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
 
 * Following attributes are available while sampling:
   * `http.request.method`,
@@ -14,6 +23,12 @@
   * `url.scheme`,
   * `user_agent.original`.
   ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
+* Replace static routing tokens with actual values in the route template.
+  ([#3160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3160))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.2
 

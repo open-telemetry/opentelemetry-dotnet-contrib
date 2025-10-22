@@ -57,11 +57,13 @@ public partial class GrpcTests : IDisposable
         using var channel = GrpcChannel.ForAddress(uri);
         var client = new Greeter.GreeterClient(channel);
         var returnMsg = client.SayHello(new HelloRequest()).Message;
-        Assert.False(string.IsNullOrEmpty(returnMsg));
+
+        Assert.NotNull(returnMsg);
+        Assert.NotEmpty(returnMsg);
 
         WaitForExporterToReceiveItems(exportedItems, 1);
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(ActivityKind.Server, activity.Kind);
 
@@ -94,7 +96,11 @@ public partial class GrpcTests : IDisposable
         Assert.StartsWith("grpc-dotnet", activity.GetTagValue(SemanticConventions.AttributeUserAgentOriginal) as string);
     }
 
+#if NET
+    [Theory(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1778")]
+#else
     [Theory]
+#endif
     [InlineData(null)]
     [InlineData("true")]
     [InlineData("false")]
@@ -108,11 +114,11 @@ public partial class GrpcTests : IDisposable
             Sdk.SetDefaultTextMapPropagator(new Extensions.Propagators.B3Propagator());
             var exportedItems = new List<Activity>();
             var configuration = new ConfigurationBuilder()
-           .AddInMemoryCollection(new Dictionary<string, string?>
-           {
-               ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION"] = enableGrpcAspNetCoreSupport,
-           })
-           .Build();
+               .AddInMemoryCollection(new Dictionary<string, string?>
+               {
+                   ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION"] = enableGrpcAspNetCoreSupport,
+               })
+               .Build();
 
             using var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder()
                 .ConfigureServices(services => services.AddSingleton<IConfiguration>(configuration))
@@ -135,8 +141,8 @@ public partial class GrpcTests : IDisposable
             client.SayHello(new HelloRequest(), headers);
 
             WaitForExporterToReceiveItems(exportedItems, 1);
-            Assert.Single(exportedItems);
-            var activity = exportedItems[0];
+
+            var activity = Assert.Single(exportedItems);
 
             Assert.Equal(ActivityKind.Server, activity.Kind);
 
@@ -187,14 +193,17 @@ public partial class GrpcTests : IDisposable
     {
         // We need to let End callback execute as it is executed AFTER response was returned.
         // In unit tests environment there may be a lot of parallel unit tests executed, so
-        // giving some breezing room for the End callback to complete
-        Assert.True(SpinWait.SpinUntil(
+        // giving some breathing room for the End callback to complete.
+        var timeout = TimeSpan.FromSeconds(5);
+        var satisfied = SpinWait.SpinUntil(
             () =>
             {
-                Thread.Sleep(10);
+                Thread.Sleep(25);
                 return itemsReceived.Count >= itemCount;
             },
-            TimeSpan.FromSeconds(1)));
+            timeout);
+
+        Assert.True(satisfied, $"{itemCount} item(s) not received within {timeout}.");
     }
 }
 #endif

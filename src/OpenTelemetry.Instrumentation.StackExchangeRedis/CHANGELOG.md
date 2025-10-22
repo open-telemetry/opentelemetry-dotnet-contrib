@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
 * **Breaking change** Introduce `RedisInstrumentationContext` and use it
   as context for `Filter`
   ([#2977](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2977))
@@ -32,8 +36,8 @@
   [spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.28.0/docs/database/database-spans.md).
  ([#3084](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3084))
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.2
 

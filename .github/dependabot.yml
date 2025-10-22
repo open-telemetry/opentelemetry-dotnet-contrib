@@ -1,32 +1,10 @@
+# This file is retained solely for automated tooling to see we do automated
+# dependency updates as not all such scanners recognize the use of Renovate.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: yearly
     labels:
       - "infra"
-  - package-ecosystem: "docker"
-    directories: ["**/*"]
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-    labels:
-      - "infra"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"
-  - package-ecosystem: "dotnet-sdk"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-    labels:
-      - "infra"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-major"
-          - "version-update:semver-minor"

@@ -2,12 +2,16 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.13.0`.
-  ([#3158](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3158))
+## 1.13.0-beta.1
+
+Released 2025-Oct-10
 
 * Added support for the `host.arch` resource attribute in `HostDetector`
   for .NET only.
   ([#3147](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3147))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.1
 

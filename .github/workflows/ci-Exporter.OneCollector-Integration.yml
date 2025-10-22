@@ -18,38 +18,27 @@ jobs:
       ${{ github.event_name == 'pull_request_target' &&
       github.event.pull_request.head.repo.full_name != github.repository &&
       'external' || 'internal' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - run: echo ✓
 
   build-integration-test:
     needs: authorize
-
     strategy:
-      fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
+      fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-22.04 ]
+        os: [ windows-latest, ubuntu-24.04 ]
         version: [ net462, net8.0 ]
         exclude:
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           version: net462
-
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      with:
-        ref: ${{ github.event.pull_request.head.sha || github.ref }} # Run on the fork branch once approved
-
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
-
-    - name: dotnet restore Component.proj for OpenTelemetry.Exporter.OneCollector
-      run: dotnet restore build/Projects/Component.proj -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector
-
-    - name: dotnet build Component.proj for OpenTelemetry.Exporter.OneCollector
-      run: dotnet build build/Projects/Component.proj --configuration Release --no-restore -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector
-
-    - name: dotnet test Component.proj for OpenTelemetry.Exporter.OneCollector
-      run: dotnet test build/Projects/Component.proj --filter CategoryName=OneCollectorIntegrationTests --framework ${{ matrix.version }} --configuration Release --no-restore --no-build -p:BUILD_COMPONENT=OpenTelemetry.Exporter.OneCollector --logger:"console;verbosity=detailed"
-      env:
-        OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}
+    uses: ./.github/workflows/integration-test-reusable.yml
+    with:
+      component: OpenTelemetry.Exporter.OneCollector
+      os: ${{ matrix.os }}
+      version: ${{ matrix.version }}
+      test-filter: OneCollectorIntegrationTests
+      env-var-name: OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY
+      checkout-ref: refs/pull/${{ github.event.pull_request.number }}/merge
+    secrets:
+      instrumentation-key: ${{ secrets.OTEL_ONECOLLECTOR_INSTRUMENTATION_KEY }}

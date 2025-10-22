@@ -96,6 +96,8 @@ internal class TestRequest : IRequest
 
     public Version HttpProtocolVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+    public IAuthSchemeOption ChosenAuthScheme { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public void AddPathResource(string key, string value)
     {
         throw new NotImplementedException();
