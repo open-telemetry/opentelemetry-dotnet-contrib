@@ -1,4 +1,4 @@
-# Changelog - OpenTelemetry.Samplers.AWS
+# Changelog - OpenTelemetry.Sampler.AWS
 
 ## Unreleased
 
