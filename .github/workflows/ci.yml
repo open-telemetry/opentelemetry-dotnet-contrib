@@ -15,13 +15,6 @@ jobs:
   lint-misspell-sanitycheck:
     uses: ./.github/workflows/sanitycheck.yml
 
-  code-ql:
-    uses: ./.github/workflows/codeql-analysis-steps.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
   detect-changes:
     runs-on: windows-latest
     outputs:
@@ -82,6 +75,19 @@ jobs:
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS*/**', '!**/*.md']
           semanticconventions: ['*/OpenTelemetry.SemanticConventions*/**', '!**/*.md']
+
+  code-ql:
+    needs: detect-changes
+    if: |
+      github.event_name == 'push' ||
+      contains(needs.detect-changes.outputs.changes, 'build') ||
+      contains(needs.detect-changes.outputs.changes, 'code') ||
+      contains(needs.detect-changes.outputs.changes, 'yml')
+    uses: ./.github/workflows/codeql-analysis-steps.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
   lint-md:
     needs: detect-changes
