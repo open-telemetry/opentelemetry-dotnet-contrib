@@ -6,6 +6,7 @@ using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
@@ -70,21 +71,26 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     private static readonly string INVALID_SPAN_ID = default(ActivitySpanId).ToHexString();
 
-    private readonly Dictionary<string, object> resourceAttributeProperties = [];
-    private readonly byte[] bufferPrologue;
     private readonly byte[] bufferEpilogue;
-    private readonly ushort prepopulatedFieldsCount;
     private readonly int timestampPatchIndex;
     private readonly int mapSizePatchIndex;
     private readonly IDataTransport dataTransport;
     private readonly bool shouldIncludeTraceState;
+    private readonly Func<Resource> resourceProvider;
+    private readonly HashSet<string> prepopulatedFields;
+    private readonly Dictionary<string, object> propertiesEntries;
+
+    private bool prologueHasResourceAttributes;
+    private byte[] bufferPrologue;
 
     private bool isDisposed;
 
-    public MsgPackTraceExporter(GenevaExporterOptions options, Resource resource)
+    public MsgPackTraceExporter(GenevaExporterOptions options, Func<Resource> resourceProvider)
     {
         Guard.ThrowIfNull(options);
-        Guard.ThrowIfNull(resource);
+        Guard.ThrowIfNull(resourceProvider);
+
+        this.resourceProvider = resourceProvider;
 
         var partAName = "Span";
         if (options.TableNameMappings != null
@@ -192,56 +198,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
         this.mapSizePatchIndex = cursor - 2;
 
-        this.prepopulatedFieldsCount = 0;
-
         // TODO: Do we support PartB as well?
         // Part A - core envelope
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
-        this.prepopulatedFieldsCount += 1;
 
         foreach (var entry in options.PrepopulatedFields)
         {
             cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
-            this.prepopulatedFieldsCount += 1;
         }
 
-        foreach (var entry in resource.Attributes)
-        {
-            string key = entry.Key;
-            bool isDedicatedField = false;
-
-            if (entry.Value is string resourceValue)
-            {
-                switch (key)
-                {
-                    case "service.name":
-                        key = Schema.V40.PartA.Extensions.Cloud.Role;
-                        isDedicatedField = true;
-                        break;
-                    case "service.instanceId":
-                        key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                        isDedicatedField = true;
-                        break;
-                }
-            }
-
-            if (isDedicatedField || options.CustomFields == null || options.CustomFields.Contains(key))
-            {
-                if (options.PrepopulatedFields.ContainsKey(key))
-                {
-                    // pre-populated fields take priority over resource attributes.
-                    // TODO: log warning? error out?
-                    continue;
-                }
-
-                cursor = AddPartAField(buffer, cursor, key, entry.Value);
-                this.prepopulatedFieldsCount += 1;
-            }
-            else
-            {
-                this.resourceAttributeProperties.Add(key, entry.Value);
-            }
-        }
+        this.prepopulatedFields = [.. options.PrepopulatedFields.Keys];
+        this.propertiesEntries = [];
 
         this.bufferPrologue = new byte[cursor - 0];
         System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor - 0);
@@ -352,18 +319,70 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return urlStringBuilder.ToString();
     }
 
+    internal void ResourceAttributesToPrologue()
+    {
+        if (!this.prologueHasResourceAttributes)
+        {
+            this.prologueHasResourceAttributes = true;
+
+            var buffer = new byte[BUFFER_SIZE];
+            var cursor = 0;
+
+            foreach (var entry in this.resourceProvider().Attributes)
+            {
+                string key = entry.Key;
+                bool isDedicatedField = false;
+
+                if (entry.Value is string resourceValue)
+                {
+                    switch (key)
+                    {
+                        case "service.name":
+                            key = Schema.V40.PartA.Extensions.Cloud.Role;
+                            isDedicatedField = true;
+                            break;
+                        case "service.instanceId":
+                            key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                            isDedicatedField = true;
+                            break;
+                    }
+                }
+
+                if (isDedicatedField || this.CustomFields == null || this.CustomFields.Contains(key))
+                {
+                    if (this.prepopulatedFields.Contains(key))
+                    {
+                        // pre-populated fields take priority over resource attributes.
+                        // TODO: log warning? error out?
+                        continue;
+                    }
+
+                    cursor = AddPartAField(buffer, cursor, key, entry.Value);
+                    this.prepopulatedFields.Add(key);
+                }
+                else
+                {
+                    this.propertiesEntries.Add(key, entry.Value);
+                }
+            }
+            this.bufferPrologue = new byte[cursor];
+            System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
+        }
+    }
+
     internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
         if (buffer == null)
         {
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
+            this.ResourceAttributesToPrologue();
             System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
             this.Buffer.Value = buffer;
         }
 
         var cursor = this.bufferPrologue.Length;
-        var cntFields = this.prepopulatedFieldsCount;
+        var cntFields = (ushort)this.prepopulatedFields.Count;
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
         var tsEnd = tsBegin + activity.Duration.Ticks;
@@ -521,7 +540,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        if (hasEnvProperties || this.resourceAttributeProperties.Count > 0)
+        if (hasEnvProperties || this.propertiesEntries.Count > 0)
         {
             // Anything that's not a dedicated field gets put into a part C field called properties
             ushort envPropertiesCount = 0;
@@ -546,7 +565,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            foreach (var entry in this.resourceAttributeProperties)
+            foreach (var entry in this.propertiesEntries)
             {
                 cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
                 cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
