@@ -6,7 +6,6 @@ using System.Collections.Frozen;
 #endif
 using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenTelemetry.Exporter.Geneva.Transports;
@@ -80,7 +79,6 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     private readonly HashSet<string> prepopulatedFields;
     private readonly Dictionary<string, object> propertiesEntries;
 
-    private bool prologueHasResourceAttributes;
     private byte[] bufferPrologue;
 
     private bool isDisposed;
@@ -324,55 +322,50 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
     internal void ResourceAttributesToPrologue()
     {
-        if (!this.prologueHasResourceAttributes)
+        var buffer = new byte[BUFFER_SIZE];
+        System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
+        var cursor = this.bufferPrologue.Length;
+
+        foreach (var entry in this.resourceProvider().Attributes)
         {
-            this.prologueHasResourceAttributes = true;
+            string key = entry.Key;
+            bool isDedicatedField = false;
 
-            var buffer = new byte[BUFFER_SIZE];
-            System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
-            var cursor = this.bufferPrologue.Length;
-
-            foreach (var entry in this.resourceProvider().Attributes)
+            if (entry.Value is string resourceValue)
             {
-                string key = entry.Key;
-                bool isDedicatedField = false;
-
-                if (entry.Value is string resourceValue)
+                switch (key)
                 {
-                    switch (key)
-                    {
-                        case "service.name":
-                            key = Schema.V40.PartA.Extensions.Cloud.Role;
-                            isDedicatedField = true;
-                            break;
-                        case "service.instanceId":
-                            key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
-                            isDedicatedField = true;
-                            break;
-                    }
-                }
-
-                if (isDedicatedField || this.CustomFields == null || this.CustomFields.Contains(key))
-                {
-                    if (this.prepopulatedFields.Contains(key))
-                    {
-                        // pre-populated fields take priority over resource attributes.
-                        // TODO: log warning? error out?
-                        continue;
-                    }
-
-                    cursor = AddPartAField(buffer, cursor, key, entry.Value);
-                    this.prepopulatedFields.Add(key);
-                }
-                else
-                {
-                    this.propertiesEntries.Add(key, entry.Value);
+                    case "service.name":
+                        key = Schema.V40.PartA.Extensions.Cloud.Role;
+                        isDedicatedField = true;
+                        break;
+                    case "service.instanceId":
+                        key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                        isDedicatedField = true;
+                        break;
                 }
             }
 
-            this.bufferPrologue = new byte[cursor];
-            System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
+            if (isDedicatedField || this.CustomFields == null || this.CustomFields.Contains(key))
+            {
+                if (this.prepopulatedFields.Contains(key))
+                {
+                    // pre-populated fields take priority over resource attributes.
+                    // TODO: log warning? error out?
+                    continue;
+                }
+
+                cursor = AddPartAField(buffer, cursor, key, entry.Value);
+                this.prepopulatedFields.Add(key);
+            }
+            else
+            {
+                this.propertiesEntries.Add(key, entry.Value);
+            }
         }
+
+        this.bufferPrologue = new byte[cursor];
+        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)
