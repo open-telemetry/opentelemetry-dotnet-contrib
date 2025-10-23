@@ -320,12 +320,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         return urlStringBuilder.ToString();
     }
 
-    internal void ResourceAttributesToPrologue()
+    internal int AppendResourceAttributesToBuffer(byte[] buffer, int cursor)
     {
-        var buffer = new byte[BUFFER_SIZE];
-        System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
-        var cursor = this.bufferPrologue.Length;
-
         foreach (var entry in this.resourceProvider().Attributes)
         {
             string key = entry.Key;
@@ -364,22 +360,30 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             }
         }
 
-        this.bufferPrologue = new byte[cursor];
-        System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
+        return cursor;
     }
 
     internal ArraySegment<byte> SerializeActivity(Activity activity)
     {
         var buffer = this.Buffer.Value;
+        int cursor;
         if (buffer == null)
         {
             buffer = new byte[BUFFER_SIZE]; // TODO: handle OOM
-            this.ResourceAttributesToPrologue();
             System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
+
+            // Augment the prologue now that we have the resource attributes.
+            cursor = this.AppendResourceAttributesToBuffer(buffer, this.bufferPrologue.Length);
+            this.bufferPrologue = new byte[cursor];
+            System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
+
             this.Buffer.Value = buffer;
         }
+        else
+        {
+            cursor = this.bufferPrologue.Length;
+        }
 
-        var cursor = this.bufferPrologue.Length;
         var cntFields = (ushort)this.prepopulatedFields.Count;
         var dtBegin = activity.StartTimeUtc;
         var tsBegin = dtBegin.Ticks;
