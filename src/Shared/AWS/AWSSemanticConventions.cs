@@ -649,7 +649,6 @@ internal partial class AWSSemanticConventions
 
     private AWSSemanticConventionsBase GetSemanticConventionVersion()
     {
-#pragma warning disable IDE0066 // Convert switch statement to expression
         switch (this.semanticConventionVersion)
         {
             case SemanticConventionVersion.Latest:
@@ -665,6 +664,5 @@ internal partial class AWSSemanticConventions
                     (int)this.semanticConventionVersion,
                     typeof(SemanticConventionVersion));
         }
-#pragma warning restore IDE0066 // Convert switch statement to expression
     }
 }
