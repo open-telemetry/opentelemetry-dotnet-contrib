@@ -14,6 +14,16 @@ namespace OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 
 internal static class RouteAttributeHelper
 {
+    public static void AddRouteAttribute(this TagList tags, RouteEndpoint endpoint, HttpRequest request)
+    {
+        var routePattern = GetRoutePattern(endpoint.RoutePattern, request.RouteValues);
+
+        if (!string.IsNullOrEmpty(routePattern))
+        {
+            tags.Add(new KeyValuePair<string, object?>(SemanticConventions.AttributeHttpRoute, routePattern));
+        }
+    }
+
     public static void SetRouteAttributeTag(this Activity activity, RouteEndpoint endpoint, HttpRequest request)
     {
         var routePattern = GetRoutePattern(endpoint.RoutePattern, request.RouteValues);
@@ -29,15 +39,14 @@ internal static class RouteAttributeHelper
     {
         var sb = new StringBuilder();
 
-        for (var i = 0; i < routePattern.PathSegments.Count; i++)
+        foreach (var segment in routePattern.PathSegments)
         {
-            var segment = routePattern.PathSegments[i];
-
             foreach (var part in segment.Parts)
             {
                 if (part is RoutePatternLiteralPart literalPart)
                 {
                     sb.Append(literalPart.Content);
+                    sb.Append('/');
                 }
                 else if (part is RoutePatternParameterPart parameterPart)
                 {
@@ -50,30 +59,29 @@ internal static class RouteAttributeHelper
                             if (parameterValue != null)
                             {
                                 sb.Append(parameterValue);
+                                sb.Append('/');
                                 break;
                             }
 
                             goto default;
                         default:
-                            if (routeValues.ContainsKey(parameterPart.Name))
+                            if (!parameterPart.IsOptional ||
+                                (parameterPart.IsOptional && routeValues.ContainsKey(parameterPart.Name)))
                             {
                                 sb.Append('{');
                                 sb.Append(parameterPart.Name);
                                 sb.Append('}');
+                                sb.Append('/');
                             }
 
                             break;
                     }
                 }
             }
-
-            if (i < routePattern.PathSegments.Count - 1)
-            {
-                sb.Append('/');
-            }
         }
 
-        return sb.ToString();
+        // Remove the trailing '/'
+        return sb.ToString(0, sb.Length - 1);
     }
 }
 
