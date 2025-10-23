@@ -831,7 +831,11 @@ public class GenevaTraceExporterTests : IDisposable
 
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
-            var partAKey = MsgPackExporter.V40_PART_A_MAPPING.GetValueOrDefault(item.Key, item.Key);
+            if (!MsgPackExporter.V40_PART_A_MAPPING.TryGetValue(item.Key, out var partAKey))
+            {
+                partAKey = item.Key;
+            }
+
             var partAValue = item.Value as string;
             this.AssertMappingEntry(mapping, partAKey, partAValue);
         }
