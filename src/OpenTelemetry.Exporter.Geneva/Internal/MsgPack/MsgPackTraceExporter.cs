@@ -199,6 +199,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         this.mapSizePatchIndex = cursor - 2;
 
         this.prepopulatedFields = [];
+
         // TODO: Do we support PartB as well?
         // Part A - core envelope
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
