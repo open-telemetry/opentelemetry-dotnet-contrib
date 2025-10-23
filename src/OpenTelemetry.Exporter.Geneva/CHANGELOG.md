@@ -4,6 +4,10 @@
 
 ## 1.13.0
 
+Released 2025-Oct-23
+
+## 1.13.0
+
 Released 2025-Oct-13
 
 * Updated OpenTelemetry core component version(s) to `1.13.1`.
