@@ -72,7 +72,7 @@ public class TraceExporterBenchmarks
                     ["cloud.roleVer"] = "9.0.15289.2",
                 },
             },
-            Resource.Empty);
+            () => Resource.Empty);
 
         this.tracerProvider = Sdk.CreateTracerProviderBuilder()
             .SetSampler(new AlwaysOnSampler())

@@ -247,7 +247,7 @@ public class GenevaTraceExporterTests : IDisposable
             };
             var resource = new Resource(resourceAttributes);
 
-            using var exporter = new MsgPackTraceExporter(exporterOptions, resource);
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
             var m_buffer = exporter.Buffer;
 
             // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
@@ -403,7 +403,7 @@ public class GenevaTraceExporterTests : IDisposable
                 server.Listen(1);
             }
 
-            using var exporter = new MsgPackTraceExporter(exporterOptions, Resource.Empty);
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => Resource.Empty);
 
             var m_buffer = exporter.Buffer;
 
@@ -593,7 +593,7 @@ public class GenevaTraceExporterTests : IDisposable
                         ["cloud.roleVer"] = "9.0.15289.2",
                     },
                 },
-                Resource.Empty);
+                () => Resource.Empty);
 
             // Emit trace and grab a copy of internal buffer for validation.
             var source = new ActivitySource(sourceName);
