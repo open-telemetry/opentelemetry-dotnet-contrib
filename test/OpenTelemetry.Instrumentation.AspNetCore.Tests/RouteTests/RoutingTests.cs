@@ -52,7 +52,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
-        var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
+        var expectedHttpRoute = testCase.ExpectedHttpRoute ?? testCase.CurrentHttpRoute;
         Assert.Equal(expectedHttpRoute, activityHttpRoute);
 
         // Activity.DisplayName should be a combination of http.method + http.route attributes, see:
