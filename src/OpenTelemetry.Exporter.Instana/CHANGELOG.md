@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.4
+
+Released 2025-Oct-23
+
 * Drop support for .NET Framework 4.6.1.
   The lowest supported version is .NET Framework 4.6.2.
   ([#1050](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1050))
