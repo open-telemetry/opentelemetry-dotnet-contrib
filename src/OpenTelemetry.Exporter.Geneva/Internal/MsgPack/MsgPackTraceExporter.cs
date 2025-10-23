@@ -198,16 +198,18 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
         cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue); // Note: always use Map16 for perf consideration
         this.mapSizePatchIndex = cursor - 2;
 
+        this.prepopulatedFields = [];
         // TODO: Do we support PartB as well?
         // Part A - core envelope
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Name, partAName);
+        this.prepopulatedFields.Add(Schema.V40.PartA.Name);
 
         foreach (var entry in options.PrepopulatedFields)
         {
             cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
+            this.prepopulatedFields.Add(entry.Key);
         }
 
-        this.prepopulatedFields = [.. options.PrepopulatedFields.Keys];
         this.propertiesEntries = [];
 
         this.bufferPrologue = new byte[cursor - 0];
@@ -326,7 +328,8 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             this.prologueHasResourceAttributes = true;
 
             var buffer = new byte[BUFFER_SIZE];
-            var cursor = 0;
+            System.Buffer.BlockCopy(this.bufferPrologue, 0, buffer, 0, this.bufferPrologue.Length);
+            var cursor = this.bufferPrologue.Length;
 
             foreach (var entry in this.resourceProvider().Attributes)
             {
@@ -365,6 +368,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                     this.propertiesEntries.Add(key, entry.Value);
                 }
             }
+
             this.bufferPrologue = new byte[cursor];
             System.Buffer.BlockCopy(buffer, 0, this.bufferPrologue, 0, cursor);
         }

@@ -880,7 +880,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
         else
         {
-            Assert.True((bool)mapping["success"]);
+            AssertMappingEntry(mapping, "success", true);
         }
 
         // Part B Span optional fields and Part C fields
