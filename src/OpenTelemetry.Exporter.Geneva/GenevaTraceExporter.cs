@@ -66,7 +66,7 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
-        var resource = this.ParentProvider.GetResource();
+        var resource = connectionStringBuilder.HonorResourceAttributes ? this.ParentProvider.GetResource() : Resources.Resource.Empty;
 
         if (useMsgPackExporter)
         {
