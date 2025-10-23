@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.13.0-beta.2
+
+Released 2025-Oct-22
+
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
 * **Breaking Change**: This module is no longer responsible for creating activities.
   The contract of `TelemetryHttpModuleOptions.OnRequestStartedCallback` was changed
   to `Func<HttpContextBase, ActivityContext, Activity?>?`. The consumer is now

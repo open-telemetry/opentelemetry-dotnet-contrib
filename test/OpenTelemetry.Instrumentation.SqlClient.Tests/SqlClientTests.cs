@@ -20,7 +20,7 @@ public enum SqlClientLibrary
 [Collection("SqlClient")]
 public class SqlClientTests : IDisposable
 {
-    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master";
+    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
