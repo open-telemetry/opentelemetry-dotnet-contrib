@@ -874,13 +874,13 @@ public class GenevaTraceExporterTests : IDisposable
         }
         else if (otelApiStatusCode.StatusCode == StatusCode.Error)
         {
-            Assert.False((bool)mapping["success"]);
+            this.AssertMappingEntry(mapping, "success", false);
             var activityStatusDesc = otelApiStatusCode.Description;
             this.AssertMappingEntry(mapping, "statusMessage", activityStatusDesc);
         }
         else
         {
-            AssertMappingEntry(mapping, "success", true);
+            this.AssertMappingEntry(mapping, "success", true);
         }
 
         // Part B Span optional fields and Part C fields
