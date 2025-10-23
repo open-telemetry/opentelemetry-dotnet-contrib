@@ -5,6 +5,9 @@
 * Drop reference to `System.Collections.Immutable`.
   ([#3154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3154))
 
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
 ## 0.1.0-alpha.1
 
 Released 2025-Sep-23
