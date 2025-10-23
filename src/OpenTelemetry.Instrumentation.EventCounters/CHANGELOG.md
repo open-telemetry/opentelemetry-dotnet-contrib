@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-alpha.1
+
+Released 2025-Oct-23
+
 * `Meter.Version` is set to NuGet package version.
   ([#1624](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1624))
 

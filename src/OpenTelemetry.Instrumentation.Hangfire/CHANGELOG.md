@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-* Fix 'FailedToInjectActivityContext' when no ActivityContext exists.
+## 1.13.0-beta.1
+
+Released 2025-Oct-23
+
+* Fix `FailedToInjectActivityContext` when no `ActivityContext` exists.
   ([#2990](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2990))
 
 * Updated OpenTelemetry core component version(s) to `1.13.1`.
