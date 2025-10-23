@@ -76,7 +76,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     private readonly IDataTransport dataTransport;
     private readonly bool shouldIncludeTraceState;
     private readonly Func<Resource> resourceProvider;
-    private readonly HashSet<string> prepopulatedFields;
+    private readonly List<string> prepopulatedFields;
     private readonly Dictionary<string, object> propertiesEntries;
 
     private byte[] bufferPrologue;
