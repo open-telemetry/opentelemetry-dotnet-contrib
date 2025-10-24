@@ -29,6 +29,10 @@ internal abstract class MsgPackExporter
         // Part A Os extension
         [Schema.V40.PartA.Extensions.Os.Name] = "env_os_name",
         [Schema.V40.PartA.Extensions.Os.Ver] = "env_os_ver",
+
+        // Part A Dt extension
+        [Schema.V40.PartA.Extensions.Dt.TraceId] = "env_dt_traceId",
+        [Schema.V40.PartA.Extensions.Dt.SpanId] = "env_dt_spanId",
     };
 
 #if NET

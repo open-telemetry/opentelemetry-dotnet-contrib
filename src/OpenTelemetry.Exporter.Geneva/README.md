@@ -121,7 +121,8 @@ A list of fields which should be stored as individual table columns.
 #### `PrepopulatedFields` (optional)
 
 This is a collection of fields that will be applied to all the Logs and Traces
-sent through this exporter.
+sent through this exporter. If a field is present in both PrepopulatedFields and
+resource attributes, the field in PrepopulatedFields takes precedence.
 
 #### `IncludeTraceStateForSpan` (optional)
 
