@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0
+
+Released 2025-Oct-23
+
 * Set initial capacity for AWS Semantic Convention Attribute Builder
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
 
