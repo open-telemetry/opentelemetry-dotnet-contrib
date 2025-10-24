@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Hangfire;
+using Hangfire.States;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
 using OpenTelemetry.Instrumentation.Hangfire.Tests.Utils;
 using OpenTelemetry.Metrics;
@@ -36,7 +37,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var executionCountMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionCountMetricName);
+        var executionCountMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionCount);
         AssertUtils.AssertHasMetricPoints(executionCountMetric);
         Assert.Equal("{executions}", executionCountMetric!.Unit);
         Assert.Equal(MetricType.LongSum, executionCountMetric.MetricType);
@@ -47,9 +48,9 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
 
         // Validate tags
         var metricPoint = metricPoints.First();
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName);
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
         Assert.Equal("s", durationMetric!.Unit);
         Assert.Equal(MetricType.Histogram, durationMetric.MetricType);
@@ -84,12 +85,12 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         Assert.True(sum >= 0, $"Expected histogram sum >= 0, got {sum}");
 
         // Validate tags for successful execution
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName);
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
 
         // Error type should NOT be present for successful execution
-        AssertUtils.AssertHasNoTag(metricPoint, HangfireTagBuilder.TagErrorType);
+        AssertUtils.AssertHasNoTag(metricPoint, WorkflowAttributes.AttributeErrorType);
     }
 
     [Fact]
@@ -109,7 +110,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
 
         var metricPoints = durationMetric!.ToMetricPointList();
@@ -119,12 +120,12 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         Assert.True(count >= 1, $"Expected histogram count >= 1, got {count}");
 
         // Validate tags for failed execution
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName);
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeFailure);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Failure);
 
         // Error type is conditionally required for failed execution
-        AssertUtils.AssertTagContains(metricPoint, HangfireTagBuilder.TagErrorType, "Exception");
+        AssertUtils.AssertTagContains(metricPoint, WorkflowAttributes.AttributeErrorType, "Exception");
     }
 
     [Fact]
@@ -147,7 +148,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Should record workflow.execution.duration with state="pending"
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
         Assert.Equal("s", durationMetric!.Unit);
         Assert.Equal(MetricType.Histogram, durationMetric.MetricType);
@@ -155,7 +156,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         var metricPoints = durationMetric.ToMetricPointList();
 
         // Find the pending state metric point
-        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
         Assert.NotNull(pendingPoint);
 
         var count = pendingPoint.Value.GetHistogramCount();
@@ -165,9 +166,9 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         Assert.True(sum >= 0, $"Expected histogram sum >= 0 for pending state, got {sum}");
 
         // Validate tags
-        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowPlatformName);
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowTaskName);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
     }
 
     [Fact]
@@ -187,7 +188,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var statusMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionStatusMetricName);
+        var statusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
         AssertUtils.AssertHasMetricPoints(statusMetric);
         Assert.Equal(MetricType.LongSumNonMonotonic, statusMetric!.MetricType);
 
@@ -196,31 +197,31 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         // Verify all points have required tags
         foreach (var point in metricPoints)
         {
-            AssertUtils.AssertHasTag(point, HangfireTagBuilder.TagWorkflowTaskName);
-            AssertUtils.AssertHasTag(point, HangfireTagBuilder.TagWorkflowPlatformName);
-            AssertUtils.AssertHasTag(point, HangfireTagBuilder.TagWorkflowExecutionState);
+            AssertUtils.AssertHasTag(point, WorkflowAttributes.AttributeWorkflowTaskName);
+            AssertUtils.AssertHasTag(point, WorkflowAttributes.AttributeWorkflowPlatformName);
+            AssertUtils.AssertHasTag(point, WorkflowAttributes.AttributeWorkflowExecutionState);
 
             // Note: workflow.trigger.type should NOT be on execution-level metrics per semantic conventions
-            AssertUtils.AssertHasNoTag(point, HangfireTagBuilder.TagWorkflowTriggerType);
+            AssertUtils.AssertHasNoTag(point, WorkflowAttributes.AttributeWorkflowTriggerType);
         }
 
         // Verify state transitions balance out to final state
-        var pendingSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending)?.GetSumLong() ?? 0;
-        var executingSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting)?.GetSumLong() ?? 0;
-        var completedSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateCompleted)?.GetSumLong() ?? 0;
+        var pendingSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending)?.GetSumLong() ?? 0;
+        var executingSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing)?.GetSumLong() ?? 0;
+        var completedSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed)?.GetSumLong() ?? 0;
 
         Assert.Equal(0, pendingSum);
         Assert.Equal(0, executingSum);
         Assert.Equal(1, completedSum);
 
         // Verify completed state has correct attributes
-        var completedPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateCompleted);
+        var completedPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed);
         Assert.NotNull(completedPoint);
 
-        AssertUtils.AssertHasNoTag(completedPoint.Value, HangfireTagBuilder.TagErrorType);
+        AssertUtils.AssertHasNoTag(completedPoint.Value, WorkflowAttributes.AttributeErrorType);
 
         // Note: trigger.type should NOT be on execution-level metrics per semantic conventions
-        AssertUtils.AssertHasNoTag(completedPoint.Value, HangfireTagBuilder.TagWorkflowTriggerType);
+        AssertUtils.AssertHasNoTag(completedPoint.Value, WorkflowAttributes.AttributeWorkflowTriggerType);
     }
 
     [Fact]
@@ -240,30 +241,30 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var statusMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionStatusMetricName);
+        var statusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
         AssertUtils.AssertHasMetricPoints(statusMetric);
         Assert.Equal(MetricType.LongSumNonMonotonic, statusMetric!.MetricType);
 
         var metricPoints = statusMetric.ToMetricPointList();
 
         // Verify state transitions balance out to final state (completed with error)
-        var pendingSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending)?.GetSumLong() ?? 0;
-        var executingSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting)?.GetSumLong() ?? 0;
-        var completedSum = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateCompleted)?.GetSumLong() ?? 0;
+        var pendingSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending)?.GetSumLong() ?? 0;
+        var executingSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing)?.GetSumLong() ?? 0;
+        var completedSum = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed)?.GetSumLong() ?? 0;
 
         Assert.Equal(0, pendingSum);
         Assert.Equal(0, executingSum);
         Assert.Equal(1, completedSum);
 
         // Find the completed state metric point (should have error type for failed job)
-        var completedPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateCompleted);
+        var completedPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed);
         Assert.NotNull(completedPoint);
 
         // Verify error type is present and contains exception information
-        AssertUtils.AssertTagContains(completedPoint.Value, HangfireTagBuilder.TagErrorType, "Exception");
+        AssertUtils.AssertTagContains(completedPoint.Value, WorkflowAttributes.AttributeErrorType, "Exception");
 
         // Note: trigger.type should NOT be on execution-level metrics per semantic conventions
-        AssertUtils.AssertHasNoTag(completedPoint.Value, HangfireTagBuilder.TagWorkflowTriggerType);
+        AssertUtils.AssertHasNoTag(completedPoint.Value, WorkflowAttributes.AttributeWorkflowTriggerType);
     }
 
     [Fact]
@@ -291,13 +292,13 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - All metric types should be present
-        exportedItems.GetMetric(HangfireMetrics.ExecutionCountMetricName);
-        exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
-        exportedItems.GetMetric(HangfireMetrics.ExecutionStatusMetricName);
-        exportedItems.GetMetric(HangfireMetrics.WorkflowCountMetricName);
+        exportedItems.GetMetric(WorkflowMetricNames.ExecutionCount);
+        exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
+        exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
+        exportedItems.GetMetric(WorkflowMetricNames.WorkflowCount);
 
         // Verify execution.count has at least 3 executions
-        var executionCountMetric = exportedItems.First(m => m.Name == HangfireMetrics.ExecutionCountMetricName);
+        var executionCountMetric = exportedItems.First(m => m.Name == WorkflowMetricNames.ExecutionCount);
         var executionCountPoints = executionCountMetric.ToMetricPointList();
 
         var totalExecutions = executionCountPoints.Sum(mp => mp.GetSumLong());
@@ -325,11 +326,11 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var executionCountMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionCountMetricName);
+        var executionCountMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionCount);
         AssertUtils.AssertHasMetricPoints(executionCountMetric);
 
         var metricPoint = executionCountMetric!.ToMetricPointList().First();
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowTaskName, customName);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName, customName);
     }
 
     [Fact]
@@ -352,20 +353,20 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Check execution duration metric has both outcomes
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
 
         var metricPoints = durationMetric!.ToMetricPointList();
 
         // Verify success outcome exists without error type
-        var successPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+        var successPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
         Assert.NotNull(successPoint);
-        AssertUtils.AssertHasNoTag(successPoint.Value, HangfireTagBuilder.TagErrorType);
+        AssertUtils.AssertHasNoTag(successPoint.Value, WorkflowAttributes.AttributeErrorType);
 
         // Verify failure outcome exists with error type
-        var failurePoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeFailure);
+        var failurePoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Failure);
         Assert.NotNull(failurePoint);
-        AssertUtils.AssertHasTag(failurePoint.Value, HangfireTagBuilder.TagErrorType);
+        AssertUtils.AssertHasTag(failurePoint.Value, WorkflowAttributes.AttributeErrorType);
     }
 
     [Fact]
@@ -387,17 +388,17 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Check workflow.count metric has cron trigger type (NOT execution-level metrics)
-        var workflowCountMetric = exportedItems.GetMetric(HangfireMetrics.WorkflowCountMetricName);
+        var workflowCountMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowCount);
         AssertUtils.AssertHasMetricPoints(workflowCountMetric);
         var metricPoints = workflowCountMetric!.ToMetricPointList();
 
         // Find the workflow.count metric point
-        var workflowPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowTriggerType, HangfireTagBuilder.TriggerTypeCron);
+        var workflowPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Cron);
 
         Assert.NotNull(workflowPoint);
 
         // Verify trigger type is 'cron' for recurring jobs on workflow-level metric
-        AssertUtils.AssertHasTagValue(workflowPoint.Value, HangfireTagBuilder.TagWorkflowTriggerType, HangfireTagBuilder.TriggerTypeCron);
+        AssertUtils.AssertHasTagValue(workflowPoint.Value, WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Cron);
 
         // Cleanup
         RecurringJob.RemoveIfExists("test-recurring-job");
@@ -419,5 +420,147 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         // Assert - The meter should be registered and ready to emit metrics
         // We don't need to wait for job completion, just verify the provider was configured
         Assert.NotNull(meterProvider);
+    }
+
+    [Fact]
+    public async Task Should_Record_WorkflowStatus_For_Scheduled_Jobs()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act - Schedule a job for future execution
+        var jobId = BackgroundJob.Schedule<TestJob>(x => x.Execute(), TimeSpan.FromHours(1));
+
+        // Wait for job to reach scheduled state
+        await this.hangfireFixture.WaitJobInStateAsync(jobId, ScheduledState.StateName, 5);
+        meterProvider.ForceFlush();
+
+        // Assert - Scheduled jobs appear in workflow.status
+        var workflowStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowStatus);
+        AssertUtils.AssertHasMetricPoints(workflowStatusMetric);
+        Assert.Equal("{workflows}", workflowStatusMetric!.Unit);
+        Assert.Equal(MetricType.LongSumNonMonotonic, workflowStatusMetric.MetricType);
+
+        var metricPoints = workflowStatusMetric.ToMetricPointList();
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending);
+
+        Assert.NotNull(pendingPoint);
+        Assert.Equal(1, pendingPoint.Value.GetSumLong());
+
+        // Verify workflow-level tags (uses workflow.definition.name, workflow.state, workflow.trigger.type)
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowDefinitionName);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowState);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowTriggerType);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Schedule);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending);
+
+        // Scheduled jobs should NOT appear in execution.status (haven't entered execution pipeline yet)
+        var executionStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
+        if (executionStatusMetric != null)
+        {
+            var execPoints = executionStatusMetric.ToMetricPointList();
+            // Should have no execution state metrics for scheduled jobs (not in execution pipeline)
+            var execPendingPoint = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
+            Assert.Null(execPendingPoint);
+        }
+    }
+
+    [Fact]
+    public async Task Should_Track_Job_In_Both_Workflow_And_Execution_Metrics()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act - Schedule a job for immediate execution (1 second delay)
+        var jobId = BackgroundJob.Schedule<TestJob>(x => x.Execute(), TimeSpan.FromSeconds(1));
+
+        // Wait for job to complete full lifecycle
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 10);
+
+        meterProvider.ForceFlush();
+
+        // Assert - workflow.status should track full lifecycle (scheduled → enqueued → executing → completed)
+        var workflowStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowStatus);
+        AssertUtils.AssertHasMetricPoints(workflowStatusMetric);
+
+        var workflowPoints = workflowStatusMetric!.ToMetricPointList();
+
+        // Pending state transitions: +1 (scheduled) -1 (enqueued) +1 (enqueued) -1 (executing) = 0
+        var workflowPendingPoint = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending);
+        if (workflowPendingPoint != null)
+        {
+            Assert.Equal(0, workflowPendingPoint.Value.GetSumLong());
+        }
+
+        // Final workflow state should be completed (+1)
+        var workflowCompletedPoint = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Completed);
+        Assert.NotNull(workflowCompletedPoint);
+        Assert.Equal(1, workflowCompletedPoint.Value.GetSumLong());
+
+        // Assert - workflow.execution.status should also track lifecycle (enqueued → executing → completed)
+        // but NOT the scheduled phase
+        var executionStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
+        AssertUtils.AssertHasMetricPoints(executionStatusMetric);
+
+        var execPoints = executionStatusMetric!.ToMetricPointList();
+
+        // Execution pending: +1 (enqueued) -1 (executing) = 0
+        var execPendingPoint = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
+        if (execPendingPoint != null)
+        {
+            Assert.Equal(0, execPendingPoint.Value.GetSumLong());
+        }
+
+        // Final execution state should be completed (+1)
+        var execCompletedPoint = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed);
+        Assert.NotNull(execCompletedPoint);
+        Assert.Equal(1, execCompletedPoint.Value.GetSumLong());
+    }
+
+    [Fact]
+    public async Task Should_Track_FireAndForget_Job_In_Both_Metrics()
+    {
+        // Arrange
+        var exportedItems = new List<Metric>();
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddHangfireInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        // Act - Fire-and-forget job (goes straight to enqueued, no scheduled phase)
+        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 10);
+
+        meterProvider.ForceFlush();
+
+        // Assert - Should appear in BOTH workflow.status AND workflow.execution.status
+        var workflowStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowStatus);
+        AssertUtils.AssertHasMetricPoints(workflowStatusMetric);
+
+        var workflowPoints = workflowStatusMetric!.ToMetricPointList();
+        var workflowCompletedPoint = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Completed);
+        Assert.NotNull(workflowCompletedPoint);
+        Assert.Equal(1, workflowCompletedPoint.Value.GetSumLong());
+
+        // Also in execution.status
+        var executionStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
+        AssertUtils.AssertHasMetricPoints(executionStatusMetric);
+
+        var execPoints = executionStatusMetric!.ToMetricPointList();
+        var execCompletedPoint = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Completed);
+        Assert.NotNull(execCompletedPoint);
+        Assert.Equal(1, execCompletedPoint.Value.GetSumLong());
+
+        // Verify workflow.status uses trigger.type=api for fire-and-forget
+        var apiTriggerPoint = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Api);
+        Assert.NotNull(apiTriggerPoint);
     }
 }

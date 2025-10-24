@@ -36,7 +36,7 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var errorMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionErrorsMetricName);
+        var errorMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionErrors);
         AssertUtils.AssertHasMetricPoints(errorMetric);
         Assert.Equal("{error}", errorMetric!.Unit);
         Assert.Equal(MetricType.LongSum, errorMetric.MetricType);
@@ -48,11 +48,11 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         Assert.True(sum >= 1, $"Expected workflow.execution.errors sum >= 1, got {sum}");
 
         // Validate required tags
-        AssertUtils.AssertTagContains(metricPoint, HangfireTagBuilder.TagErrorType, "Exception");
-        AssertUtils.AssertTagContains(metricPoint, HangfireTagBuilder.TagWorkflowTaskName, "TestJob.ThrowException");
+        AssertUtils.AssertTagContains(metricPoint, WorkflowAttributes.AttributeErrorType, "Exception");
+        AssertUtils.AssertTagContains(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName, "TestJob.ThrowException");
 
         // Validate recommended tags
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName, HangfireTagBuilder.PlatformHangfire);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowPlatformName, WorkflowAttributes.WorkflowPlatformNameValues.Hangfire);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        AssertUtils.AssertMetricNotRecordedOrZero(exportedItems, HangfireMetrics.ExecutionErrorsMetricName);
+        AssertUtils.AssertMetricNotRecordedOrZero(exportedItems, WorkflowMetricNames.ExecutionErrors);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var errorMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionErrorsMetricName);
+        var errorMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionErrors);
         AssertUtils.AssertHasMetricPoints(errorMetric);
 
         var metricPoints = errorMetric!.ToMetricPointList();
@@ -124,13 +124,13 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var errorMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionErrorsMetricName);
+        var errorMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionErrors);
         AssertUtils.AssertHasMetricPoints(errorMetric);
         var metricPoints = errorMetric!.ToMetricPointList();
 
         // Should have at least 2 different metric points for different error types
         var distinctErrorTypes = metricPoints
-            .Select(mp => mp.GetTagValue(HangfireTagBuilder.TagErrorType))
+            .Select(mp => mp.GetTagValue(WorkflowAttributes.AttributeErrorType))
             .Distinct()
             .ToList();
 
@@ -161,7 +161,7 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - errors metric should only count the 2 failures
-        var errorMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionErrorsMetricName);
+        var errorMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionErrors);
         AssertUtils.AssertHasMetricPoints(errorMetric);
         var metricPoints = errorMetric!.ToMetricPointList();
 
@@ -171,7 +171,7 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         // All error metrics should have error.type tag
         foreach (var point in metricPoints)
         {
-            AssertUtils.AssertHasTag(point, HangfireTagBuilder.TagErrorType);
+            AssertUtils.AssertHasTag(point, WorkflowAttributes.AttributeErrorType);
         }
     }
 
@@ -192,17 +192,17 @@ public class HangfireMetricsErrorTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert
-        var errorMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionErrorsMetricName);
+        var errorMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionErrors);
         AssertUtils.AssertHasMetricPoints(errorMetric);
         var metricPoints = errorMetric!.ToMetricPointList();
 
         var metricPoint = metricPoints.First();
 
         // Required tags per semantic conventions
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagErrorType);
-        AssertUtils.AssertHasTag(metricPoint, HangfireTagBuilder.TagWorkflowTaskName);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeErrorType);
+        AssertUtils.AssertHasTag(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName);
 
         // Recommended tags per semantic conventions
-        AssertUtils.AssertHasTagValue(metricPoint, HangfireTagBuilder.TagWorkflowPlatformName, HangfireTagBuilder.PlatformHangfire);
+        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowPlatformName, WorkflowAttributes.WorkflowPlatformNameValues.Hangfire);
     }
 }

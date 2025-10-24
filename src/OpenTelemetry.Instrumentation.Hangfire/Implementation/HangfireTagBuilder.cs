@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using Hangfire;
 using Hangfire.Server;
-using Hangfire.States;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -14,32 +13,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal static class HangfireTagBuilder
 {
-    // Tag name constants following OpenTelemetry workflow semantic conventions
-    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md
-    internal const string TagWorkflowTaskName = "workflow.task.name";
-    internal const string TagWorkflowDefinitionName = "workflow.definition.name";
-    internal const string TagWorkflowExecutionOutcome = "workflow.execution.outcome";
-    internal const string TagWorkflowOutcome = "workflow.outcome";
-    internal const string TagWorkflowExecutionState = "workflow.execution.state";
-    internal const string TagWorkflowPlatformName = "workflow.platform.name";
-    internal const string TagWorkflowTriggerType = "workflow.trigger.type";
-    internal const string TagErrorType = "error.type";
-
-    // Outcome values per semantic conventions
-    internal const string OutcomeSuccess = "success";
-    internal const string OutcomeFailure = "failure";
-
-    // State values per semantic conventions
-    internal const string StatePending = "pending";
-    internal const string StateExecuting = "executing";
-    internal const string StateCompleted = "completed";
-
-    // Platform name constant
-    internal const string PlatformHangfire = "hangfire";
-
-    // Trigger type constants
-    internal const string TriggerTypeCron = "cron";
-    internal const string TriggerTypeApi = "api";
 
     /// <summary>
     /// Creates a tag list with common job metadata following workflow semantic conventions.
@@ -68,7 +41,7 @@ internal static class HangfireTagBuilder
     /// <param name="workflowState">The workflow state value.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
     /// <returns>Tag list suitable for workflow.execution.status metric.</returns>
-    public static TagList BuildStateTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, string workflowState, string? errorType)
+    public static TagList BuildExecutionstatusTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, string workflowState, string? errorType)
     {
         var tags = new TagList
         {
@@ -79,40 +52,12 @@ internal static class HangfireTagBuilder
 
         if (!string.IsNullOrEmpty(errorType))
         {
-            tags.Add(new KeyValuePair<string, object?>(TagErrorType, errorType));
+            tags.Add(new KeyValuePair<string, object?>(WorkflowAttributes.AttributeErrorType, errorType));
         }
 
         return tags;
     }
 
-    /// <summary>
-    /// Maps Hangfire state names to workflow semantic convention state values.
-    /// </summary>
-    /// <param name="hangfireState">Hangfire state name.</param>
-    /// <returns>Mapped workflow state value, or <see langword="null"/> if the state is not recognized.</returns>
-    public static string? MapWorkflowState(string? hangfireState)
-    {
-        if (hangfireState == ScheduledState.StateName ||
-            hangfireState == EnqueuedState.StateName ||
-            hangfireState == AwaitingState.StateName)
-        {
-            return StatePending;
-        }
-
-        if (hangfireState == ProcessingState.StateName)
-        {
-            return StateExecuting;
-        }
-
-        if (hangfireState == SucceededState.StateName ||
-            hangfireState == DeletedState.StateName ||
-            hangfireState == FailedState.StateName)
-        {
-            return StateCompleted;
-        }
-
-        return null;
-    }
 
     /// <summary>
     /// Creates a tag list with execution result tags following workflow semantic conventions.
@@ -203,6 +148,42 @@ internal static class HangfireTagBuilder
     }
 
     /// <summary>
+    /// Creates a tag list for workflow.status metric following workflow semantic conventions.
+    /// Includes required attributes (workflow.definition.name, workflow.state, workflow.trigger.type),
+    /// recommended attributes (workflow.platform.name),
+    /// conditionally required attributes (error.type if failed).
+    /// Used for tracking workflow state transitions (e.g., scheduled jobs).
+    /// </summary>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
+    /// <param name="displayNameFunc">Function to generate display name.</param>
+    /// <param name="workflowState">The workflow state value (e.g., "pending", "executing", "completed").</param>
+    /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
+    /// <param name="errorType">Optional error type to annotate failure states.</param>
+    /// <returns>Tag list suitable for workflow.status metric.</returns>
+    public static TagList BuildWorkflowStatusTags(
+        BackgroundJob backgroundJob,
+        Func<BackgroundJob, string> displayNameFunc,
+        string workflowState,
+        string? recurringJobId,
+        string? errorType)
+    {
+        var tags = new TagList
+        {
+            GetDefinitionName(backgroundJob, displayNameFunc),
+            GetPlatformName(),
+            new KeyValuePair<string, object?>(WorkflowAttributes.AttributeWorkflowState, workflowState),
+            GetTriggerType(recurringJobId, isScheduled: workflowState == WorkflowAttributes.WorkflowStateValues.Pending && string.IsNullOrEmpty(recurringJobId)),
+        };
+
+        if (!string.IsNullOrEmpty(errorType))
+        {
+            tags.Add(new KeyValuePair<string, object?>(WorkflowAttributes.AttributeErrorType, errorType));
+        }
+
+        return tags;
+    }
+
+    /// <summary>
     /// Creates a tag list for workflow.execution.errors metric following workflow semantic conventions.
     /// Includes required attributes (error.type, workflow.task.name),
     /// recommended attributes (workflow.platform.name).
@@ -224,36 +205,41 @@ internal static class HangfireTagBuilder
 
     // Required workflow attributes
     private static KeyValuePair<string, object?> GetTaskName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
-        new(TagWorkflowTaskName, displayNameFunc(backgroundJob));
+        new(WorkflowAttributes.AttributeWorkflowTaskName, displayNameFunc(backgroundJob));
 
     private static KeyValuePair<string, object?> GetDefinitionName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
-        new(TagWorkflowDefinitionName, displayNameFunc(backgroundJob));
-
+        new(WorkflowAttributes.AttributeWorkflowDefinitionName, displayNameFunc(backgroundJob));
 
     private static KeyValuePair<string, object?> GetExecutionOutcome(Exception? exception) =>
-        new(TagWorkflowExecutionOutcome, exception is null ? OutcomeSuccess : OutcomeFailure);
+        new(WorkflowAttributes.AttributeWorkflowExecutionOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
 
     private static KeyValuePair<string, object?> GetWorkflowOutcome(Exception? exception) =>
-        new(TagWorkflowOutcome, exception is null ? OutcomeSuccess : OutcomeFailure);
+        new(WorkflowAttributes.AttributeWorkflowOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
 
-    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId)
+    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, bool isScheduled = false)
     {
         // Check if job was triggered by a recurring job (cron)
         if (!string.IsNullOrEmpty(recurringJobId))
         {
-            return new(TagWorkflowTriggerType, TriggerTypeCron);
+            return new(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Cron);
         }
 
-        // Default to API trigger (fire-and-forget, scheduled, continuations)
-        return new(TagWorkflowTriggerType, TriggerTypeApi);
+        // Check if job is scheduled for future execution
+        if (isScheduled)
+        {
+            return new(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Schedule);
+        }
+
+        // Default to API trigger (fire-and-forget, continuations)
+        return new(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Api);
     }
 
     // Recommended workflow attributes
     private static KeyValuePair<string, object?> GetPlatformName() =>
-        new(TagWorkflowPlatformName, PlatformHangfire);
+        new(WorkflowAttributes.AttributeWorkflowPlatformName, WorkflowAttributes.WorkflowPlatformNameValues.Hangfire);
 
     private static KeyValuePair<string, object?> GetState(string workflowState) =>
-        new(TagWorkflowExecutionState, workflowState);
+        new(WorkflowAttributes.AttributeWorkflowExecutionState, workflowState);
 
     // Conditionally required workflow attributes
     private static KeyValuePair<string, object?> GetErrorType(Exception exception)
@@ -265,6 +251,6 @@ internal static class HangfireTagBuilder
             loggedException = pe.InnerException!;
         }
 
-        return new KeyValuePair<string, object?>(TagErrorType, loggedException.GetType().FullName ?? loggedException.GetType().Name);
+        return new KeyValuePair<string, object?>(WorkflowAttributes.AttributeErrorType, loggedException.GetType().FullName ?? loggedException.GetType().Name);
     }
 }

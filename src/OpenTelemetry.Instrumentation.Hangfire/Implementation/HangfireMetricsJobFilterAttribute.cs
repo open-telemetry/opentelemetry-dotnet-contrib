@@ -64,7 +64,7 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
                 backgroundJob,
                 displayNameFunc,
                 performedContext.Exception,
-                workflowState: HangfireTagBuilder.StateExecuting);
+                workflowState: WorkflowAttributes.WorkflowStateValues.Executing);
 
             HangfireMetrics.ExecutionDuration.Record(duration, durationTags);
         }

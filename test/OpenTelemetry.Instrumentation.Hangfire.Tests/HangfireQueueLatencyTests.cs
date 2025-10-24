@@ -36,7 +36,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - workflow.execution.duration with state="pending" should NOT be present
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
 
         // Duration metric will exist (for state="executing"), but NOT for state="pending"
         Assert.NotNull(durationMetric);
@@ -45,8 +45,8 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         // Ensure NO pending state metric point exists
         var pendingPoints = metricPoints.Where(mp =>
         {
-            var stateValue = mp.GetTagValue(HangfireTagBuilder.TagWorkflowExecutionState);
-            return stateValue != null && stateValue.Equals(HangfireTagBuilder.StatePending);
+            var stateValue = mp.GetTagValue(WorkflowAttributes.AttributeWorkflowExecutionState);
+            return stateValue != null && stateValue.Equals(WorkflowAttributes.WorkflowStateValues.Pending);
         }).ToList();
 
         Assert.Empty(pendingPoints);
@@ -72,7 +72,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - workflow.execution.duration with state="pending" should be present
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
         Assert.Equal("s", durationMetric!.Unit);
         Assert.Equal(MetricType.Histogram, durationMetric.MetricType);
@@ -80,7 +80,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         var metricPoints = durationMetric.ToMetricPointList();
 
         // Find the pending state metric point
-        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
         Assert.NotNull(pendingPoint);
 
         var count = pendingPoint.Value.GetHistogramCount();
@@ -90,10 +90,10 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         Assert.True(sum >= 0, $"Expected histogram sum >= 0 for pending state, got {sum}");
 
         // Validate tags
-        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowTaskName);
-        AssertUtils.AssertHasTag(pendingPoint.Value, HangfireTagBuilder.TagWorkflowPlatformName);
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowTaskName);
+        AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowPlatformName);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - workflow.execution.duration with state="pending" should NOT be present
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
 
         // Duration metric will exist (for state="executing"), but NOT for state="pending"
         Assert.NotNull(durationMetric);
@@ -125,8 +125,8 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         // Ensure NO pending state metric point exists
         var pendingPoints = metricPoints.Where(mp =>
         {
-            var stateValue = mp.GetTagValue(HangfireTagBuilder.TagWorkflowExecutionState);
-            return stateValue != null && stateValue.Equals(HangfireTagBuilder.StatePending);
+            var stateValue = mp.GetTagValue(WorkflowAttributes.AttributeWorkflowExecutionState);
+            return stateValue != null && stateValue.Equals(WorkflowAttributes.WorkflowStateValues.Pending);
         }).ToList();
 
         Assert.Empty(pendingPoints);
@@ -152,18 +152,18 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Both pending and executing durations should be recorded
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
 
         var metricPoints = durationMetric!.ToMetricPointList();
 
         // Verify pending state duration
-        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
         Assert.NotNull(pendingPoint);
         Assert.True(pendingPoint.Value.GetHistogramCount() >= 1);
 
         // Verify executing state duration
-        var executingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting);
+        var executingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing);
         Assert.NotNull(executingPoint);
         Assert.True(executingPoint.Value.GetHistogramCount() >= 1);
     }
@@ -188,22 +188,22 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Pending duration should be recorded even for failed jobs
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
 
         var metricPoints = durationMetric!.ToMetricPointList();
 
         // Find pending state metric point (should have success outcome since pending phase succeeded)
-        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
         Assert.NotNull(pendingPoint);
 
         // Pending phase should be successful (job started executing)
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeSuccess);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
 
         // Executing phase should have failure outcome
-        var executingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StateExecuting);
+        var executingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing);
         Assert.NotNull(executingPoint);
-        AssertUtils.AssertHasTagValue(executingPoint.Value, HangfireTagBuilder.TagWorkflowExecutionOutcome, HangfireTagBuilder.OutcomeFailure);
+        AssertUtils.AssertHasTagValue(executingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Failure);
     }
 
     [Fact]
@@ -231,13 +231,13 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         meterProvider.ForceFlush();
 
         // Assert - Pending duration should be recorded for all jobs
-        var durationMetric = exportedItems.GetMetric(HangfireMetrics.ExecutionDurationMetricName);
+        var durationMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionDuration);
         AssertUtils.AssertHasMetricPoints(durationMetric);
 
         var metricPoints = durationMetric!.ToMetricPointList();
 
         // Find pending state metric point
-        var pendingPoint = metricPoints.FindFirstWithTag(HangfireTagBuilder.TagWorkflowExecutionState, HangfireTagBuilder.StatePending);
+        var pendingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
         Assert.NotNull(pendingPoint);
 
         var count = pendingPoint.Value.GetHistogramCount();

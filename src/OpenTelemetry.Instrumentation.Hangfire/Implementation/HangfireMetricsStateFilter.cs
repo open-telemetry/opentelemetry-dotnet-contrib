@@ -13,49 +13,10 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplyStateFilter
 {
-    private readonly HangfireMetricsInstrumentationOptions options;
-
-#pragma warning disable CA1019 // Define accessors for attribute arguments
-    public HangfireMetricsStateFilter(HangfireMetricsInstrumentationOptions options)
-#pragma warning restore CA1019 // Define accessors for attribute arguments
+    private enum StateTransitionDirection
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
-    public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        var workflowState = HangfireTagBuilder.MapWorkflowState(context.NewState.Name);
-        if (workflowState == null)
-        {
-            return;
-        }
-
-        var errorType = GetErrorTypeFromNewState(context.NewState);
-        var tags = HangfireTagBuilder.BuildStateTags(
-            context.BackgroundJob,
-            this.options.DisplayNameFunc,
-            workflowState,
-            errorType);
-
-        HangfireMetrics.ExecutionStatus.Add(1, tags);
-    }
-
-    public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        var workflowState = HangfireTagBuilder.MapWorkflowState(context.OldStateName);
-        if (workflowState == null)
-        {
-            return;
-        }
-
-        var errorType = GetErrorTypeFromOldState(context);
-        var tags = HangfireTagBuilder.BuildStateTags(
-            context.BackgroundJob,
-            this.options.DisplayNameFunc,
-            workflowState,
-            errorType);
-
-        HangfireMetrics.ExecutionStatus.Add(-1, tags);
+        Applied,
+        Unapplied,
     }
 
     private static string? GetErrorTypeFromNewState(IState state)
@@ -65,7 +26,7 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
             return null;
         }
 
-        if (state is FailedState failedState && failedState.Exception != null)
+        if (state is FailedState { Exception: not null } failedState)
         {
             var exceptionType = failedState.Exception.GetType();
             return exceptionType.FullName ?? exceptionType.Name;
@@ -98,5 +59,106 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
 
         return null;
+    }
+
+    private static string? TryGetRecurringJobId(ApplyStateContext context)
+    {
+        try
+        {
+            return context.Connection.GetJobParameter(
+                context.BackgroundJob.Id,
+                "RecurringJobId");
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private readonly HangfireMetricsInstrumentationOptions options;
+
+#pragma warning disable CA1019 // Define accessors for attribute arguments
+    public HangfireMetricsStateFilter(HangfireMetricsInstrumentationOptions options)
+#pragma warning restore CA1019 // Define accessors for attribute arguments
+    {
+        this.options = options ?? throw new ArgumentNullException(nameof(options));
+    }
+
+    public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
+    {
+        this.RecordWorkflowStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Applied);
+        this.RecordExecutionStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Applied);
+    }
+
+    public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
+    {
+        this.RecordWorkflowStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Unapplied);
+        this.RecordExecutionStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Unapplied);
+    }
+
+    private void RecordWorkflowStateChange(
+        ApplyStateContext context,
+        string? oldStateName,
+        string? newStateName,
+        StateTransitionDirection direction)
+    {
+        var oldState = HangfireStateMapper.MapWorkflowState(oldStateName);
+        var newState = HangfireStateMapper.MapWorkflowState(newStateName);
+
+        // Determine which state to record based on transition direction
+        var stateToRecord = direction == StateTransitionDirection.Applied ? newState : oldState;
+
+        // Only record if semantic state actually changed
+        if (stateToRecord == null || oldState == newState)
+        {
+            return;
+        }
+
+        var recurringJobId = TryGetRecurringJobId(context);
+        var errorType = direction == StateTransitionDirection.Applied
+            ? GetErrorTypeFromNewState(context.NewState)
+            : GetErrorTypeFromOldState(context);
+
+        var tags = HangfireTagBuilder.BuildWorkflowStatusTags(
+            context.BackgroundJob,
+            this.options.DisplayNameFunc,
+            stateToRecord,
+            recurringJobId,
+            errorType);
+
+        var delta = direction == StateTransitionDirection.Applied ? 1 : -1;
+        HangfireMetrics.WorkflowStatus.Add(delta, tags);
+    }
+
+    private void RecordExecutionStateChange(
+        ApplyStateContext context,
+        string? oldStateName,
+        string? newStateName,
+        StateTransitionDirection direction)
+    {
+        var oldState = HangfireStateMapper.MapExecutionState(oldStateName);
+        var newState = HangfireStateMapper.MapExecutionState(newStateName);
+
+        // Determine which state to record based on transition direction
+        var stateToRecord = direction == StateTransitionDirection.Applied ? newState : oldState;
+
+        // Only record if semantic state actually changed
+        if (stateToRecord == null || oldState == newState)
+        {
+            return;
+        }
+
+        var errorType = direction == StateTransitionDirection.Applied
+            ? GetErrorTypeFromNewState(context.NewState)
+            : GetErrorTypeFromOldState(context);
+
+        var tags = HangfireTagBuilder.BuildExecutionstatusTags(
+            context.BackgroundJob,
+            this.options.DisplayNameFunc,
+            stateToRecord,
+            errorType);
+
+        var delta = direction == StateTransitionDirection.Applied ? 1 : -1;
+        HangfireMetrics.ExecutionStatus.Add(delta, tags);
     }
 }

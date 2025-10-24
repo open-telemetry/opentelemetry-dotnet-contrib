@@ -69,7 +69,7 @@ internal sealed class HangfirePendingDurationFilterAttribute : JobFilterAttribut
                     performingContext.BackgroundJob,
                     this.options.DisplayNameFunc,
                     exception: null,
-                    workflowState: HangfireTagBuilder.StatePending);
+                    workflowState: WorkflowAttributes.WorkflowStateValues.Pending);
                 HangfireMetrics.ExecutionDuration.Record(pendingDuration, tags);
             }
         }

@@ -64,6 +64,39 @@ public class HangfireFixture : IDisposable
         }
     }
 
+    /// <summary>
+    /// Waits for a Hangfire job to reach a specific state.
+    /// </summary>
+    /// <param name="jobId">The ID of the job to wait for.</param>
+    /// <param name="targetState">The target state to wait for (e.g., "Scheduled", "Enqueued").</param>
+    /// <param name="timeToWaitInSeconds">Maximum time to wait in seconds.</param>
+    /// <returns>A task that completes when the job reaches the target state or the timeout expires.</returns>
+    public async Task WaitJobInStateAsync(string jobId, string targetState, int timeToWaitInSeconds)
+    {
+        var timeout = TimeSpan.FromSeconds(timeToWaitInSeconds);
+        using var cts = new CancellationTokenSource(timeout);
+
+        while (!InState() && !cts.IsCancellationRequested)
+        {
+            await Task.Delay(100);
+        }
+
+        bool InState()
+        {
+            var jobDetails = this.MonitoringApi.JobDetails(jobId);
+
+            if (jobDetails == null)
+            {
+                return false;
+            }
+
+            // Copy the history to an array to avoid exception if the collection is modified while iterating
+            var history = jobDetails.History.ToArray();
+
+            return history.Any(h => h.StateName == targetState);
+        }
+    }
+
     public void Dispose()
     {
         this.Server.Dispose();
