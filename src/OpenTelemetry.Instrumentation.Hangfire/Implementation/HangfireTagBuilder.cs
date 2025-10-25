@@ -19,13 +19,13 @@ internal static class HangfireTagBuilder
     /// Includes required workflow.task.name and recommended workflow.platform.name.
     /// Also includes custom Hangfire-specific attributes (job.type, job.method).
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <returns>Tag list with common job tags.</returns>
-    public static TagList BuildCommonTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc)
+    public static TagList BuildCommonTags(BackgroundJob backgroundJob)
     {
         var tags = new TagList
         {
-            GetTaskName(backgroundJob, displayNameFunc),
+            GetTaskName(backgroundJob),
             GetPlatformName(),
         };
         return tags;
@@ -37,15 +37,15 @@ internal static class HangfireTagBuilder
     /// recommended workflow.platform.name, and conditionally required error.type.
     /// Note: workflow.trigger.type is NOT included as it belongs to workflow-level metrics only.
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="workflowState">The workflow state value.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
     /// <returns>Tag list suitable for workflow.execution.status metric.</returns>
-    public static TagList BuildExecutionstatusTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, string workflowState, string? errorType)
+    public static TagList BuildExecutionstatusTags(BackgroundJob backgroundJob, string workflowState, string? errorType)
     {
         var tags = new TagList
         {
-            GetTaskName(backgroundJob, displayNameFunc),
+            GetTaskName(backgroundJob),
             GetPlatformName(),
             GetState(workflowState),
         };
@@ -66,15 +66,15 @@ internal static class HangfireTagBuilder
     /// conditionally required attributes (error.type if failed).
     /// Note: workflow.trigger.type is NOT included as it belongs to workflow-level metrics only.
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
     /// <param name="workflowState">The workflow state value (typically "executing" for execution duration).</param>
     /// <returns>Tag list with execution result tags.</returns>
-    public static TagList BuildExecutionTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception? exception, string workflowState)
+    public static TagList BuildExecutionTags(BackgroundJob backgroundJob, Exception? exception, string workflowState)
     {
         var tags = new TagList
         {
-            GetTaskName(backgroundJob, displayNameFunc),
+            GetTaskName(backgroundJob),
             GetPlatformName(),
             GetExecutionOutcome(exception),
             GetState(workflowState),
@@ -96,14 +96,14 @@ internal static class HangfireTagBuilder
     /// conditionally required attributes (error.type if failed).
     /// Note: Does NOT include workflow.execution.state as it's not specified in semantic conventions for count metric.
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
     /// <returns>Tag list suitable for workflow.execution.count metric.</returns>
-    public static TagList BuildExecutionCountTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception? exception)
+    public static TagList BuildExecutionCountTags(BackgroundJob backgroundJob, Exception? exception)
     {
         var tags = new TagList
         {
-            GetTaskName(backgroundJob, displayNameFunc),
+            GetTaskName(backgroundJob),
             GetPlatformName(),
             GetExecutionOutcome(exception),
         };
@@ -124,15 +124,15 @@ internal static class HangfireTagBuilder
     /// conditionally required attributes (error.type if failed).
     /// Used for workflow.count and other workflow-level (not execution-level) metrics.
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
     /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
     /// <returns>Tag list suitable for workflow.count metric.</returns>
-    public static TagList BuildWorkflowTags(BackgroundJob job, Func<BackgroundJob, string> displayNameFunc, Exception? exception, string? recurringJobId)
+    public static TagList BuildWorkflowTags(BackgroundJob backgroundJob, Exception? exception, string? recurringJobId)
     {
         var tags = new TagList
         {
-            GetDefinitionName(job, displayNameFunc),
+            GetDefinitionName(backgroundJob),
             GetPlatformName(),
             GetWorkflowOutcome(exception),
             GetTriggerType(recurringJobId),
@@ -155,21 +155,19 @@ internal static class HangfireTagBuilder
     /// Used for tracking workflow state transitions (e.g., scheduled jobs).
     /// </summary>
     /// <param name="backgroundJob">The Hangfire background job.</param>
-    /// <param name="displayNameFunc">Function to generate display name.</param>
     /// <param name="workflowState">The workflow state value (e.g., "pending", "executing", "completed").</param>
     /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
     /// <returns>Tag list suitable for workflow.status metric.</returns>
     public static TagList BuildWorkflowStatusTags(
         BackgroundJob backgroundJob,
-        Func<BackgroundJob, string> displayNameFunc,
         string workflowState,
         string? recurringJobId,
         string? errorType)
     {
         var tags = new TagList
         {
-            GetDefinitionName(backgroundJob, displayNameFunc),
+            GetDefinitionName(backgroundJob),
             GetPlatformName(),
             new KeyValuePair<string, object?>(WorkflowAttributes.AttributeWorkflowState, workflowState),
             GetTriggerType(recurringJobId, isScheduled: workflowState == WorkflowAttributes.WorkflowStateValues.Pending && string.IsNullOrEmpty(recurringJobId)),
@@ -188,15 +186,15 @@ internal static class HangfireTagBuilder
     /// Includes required attributes (error.type, workflow.task.name),
     /// recommended attributes (workflow.platform.name).
     /// </summary>
-    /// <param name="job">The Hangfire job.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception that occurred.</param>
     /// <returns>Tag list with error tags.</returns>
-    public static TagList BuildErrorTags(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc, Exception exception)
+    public static TagList BuildErrorTags(BackgroundJob backgroundJob, Exception exception)
     {
         var tags = new TagList
         {
             GetErrorType(exception),
-            GetTaskName(backgroundJob, displayNameFunc),
+            GetTaskName(backgroundJob),
             GetPlatformName(),
         };
 
@@ -204,11 +202,11 @@ internal static class HangfireTagBuilder
     }
 
     // Required workflow attributes
-    private static KeyValuePair<string, object?> GetTaskName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
-        new(WorkflowAttributes.AttributeWorkflowTaskName, displayNameFunc(backgroundJob));
+    private static KeyValuePair<string, object?> GetTaskName(BackgroundJob backgroundJob) =>
+        new(WorkflowAttributes.AttributeWorkflowTaskName, backgroundJob.FormatJobName());
 
-    private static KeyValuePair<string, object?> GetDefinitionName(BackgroundJob backgroundJob, Func<BackgroundJob, string> displayNameFunc) =>
-        new(WorkflowAttributes.AttributeWorkflowDefinitionName, displayNameFunc(backgroundJob));
+    private static KeyValuePair<string, object?> GetDefinitionName(BackgroundJob backgroundJob) =>
+        new(WorkflowAttributes.AttributeWorkflowDefinitionName, backgroundJob.FormatJobName());
 
     private static KeyValuePair<string, object?> GetExecutionOutcome(Exception? exception) =>
         new(WorkflowAttributes.AttributeWorkflowExecutionOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);

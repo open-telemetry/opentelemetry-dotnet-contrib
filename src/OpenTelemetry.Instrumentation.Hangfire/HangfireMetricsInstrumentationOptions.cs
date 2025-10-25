@@ -21,13 +21,4 @@ public sealed class HangfireMetricsInstrumentationOptions
     /// When disabled, only execution duration (state="executing") is recorded.
     /// </remarks>
     public bool RecordQueueLatency { get; set; }
-
-    /// <summary>
-    /// Gets or sets a delegate used to format the job name for metrics.
-    /// </summary>
-    /// <remarks>
-    /// Defaults to <c>backgroundJob.Job.ToString()</c>.
-    /// </remarks>
-    public Func<BackgroundJob, string> DisplayNameFunc { get; set; } =
-        backgroundJob => backgroundJob.Job?.ToString() ?? "unknown";
 }

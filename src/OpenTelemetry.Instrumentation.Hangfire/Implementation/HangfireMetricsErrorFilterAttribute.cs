@@ -32,7 +32,6 @@ internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, 
         {
             var errorTags = HangfireTagBuilder.BuildErrorTags(
                 performedContext.BackgroundJob,
-                this.options.DisplayNameFunc,
                 performedContext.Exception);
 
             HangfireMetrics.ExecutionErrors.Add(1, errorTags);

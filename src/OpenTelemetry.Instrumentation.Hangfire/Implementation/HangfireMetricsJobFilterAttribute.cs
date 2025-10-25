@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using Hangfire.Common;
 using Hangfire.Server;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -14,14 +13,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IServerFilter
 {
     private const string StopwatchKey = "OpenTelemetry.Metrics.Stopwatch";
-    private readonly HangfireMetricsInstrumentationOptions options;
-
-#pragma warning disable CA1019 // Define accessors for attribute arguments
-    public HangfireMetricsJobFilterAttribute(HangfireMetricsInstrumentationOptions options)
-#pragma warning restore CA1019 // Define accessors for attribute arguments
-    {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-    }
 
     public void OnPerforming(PerformingContext performingContext)
     {
@@ -44,12 +35,10 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
         }
 
         var backgroundJob = performedContext.BackgroundJob;
-        var displayNameFunc = this.options.DisplayNameFunc;
 
         // Record execution count (without state attribute per semantic conventions)
         var countTags = HangfireTagBuilder.BuildExecutionCountTags(
             backgroundJob,
-            displayNameFunc,
             performedContext.Exception);
 
         HangfireMetrics.ExecutionCount.Add(1, countTags);
@@ -62,7 +51,6 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
 
             var durationTags = HangfireTagBuilder.BuildExecutionTags(
                 backgroundJob,
-                displayNameFunc,
                 performedContext.Exception,
                 workflowState: WorkflowAttributes.WorkflowStateValues.Executing);
 
@@ -72,7 +60,6 @@ internal sealed class HangfireMetricsJobFilterAttribute : JobFilterAttribute, IS
         // Record workflow-level metrics (includes trigger type)
         var workflowTags = HangfireTagBuilder.BuildWorkflowTags(
             backgroundJob,
-            displayNameFunc,
             performedContext.Exception,
             recurringJobId);
 

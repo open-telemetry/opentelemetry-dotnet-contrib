@@ -306,34 +306,6 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
     }
 
     [Fact]
-    public async Task Should_Use_Custom_DisplayName_For_Metrics()
-    {
-        // Arrange
-        const string customName = "CustomJobName";
-        var exportedItems = new List<Metric>();
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddHangfireInstrumentation(options =>
-            {
-                options.DisplayNameFunc = _ => customName;
-            })
-            .AddInMemoryExporter(exportedItems)
-            .Build();
-
-        // Act
-        var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
-
-        meterProvider.ForceFlush();
-
-        // Assert
-        var executionCountMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionCount);
-        AssertUtils.AssertHasMetricPoints(executionCountMetric);
-
-        var metricPoint = executionCountMetric!.ToMetricPointList().First();
-        AssertUtils.AssertHasTagValue(metricPoint, WorkflowAttributes.AttributeWorkflowTaskName, customName);
-    }
-
-    [Fact]
     public async Task Should_Track_Success_And_Failure_Outcomes_Separately()
     {
         // Arrange

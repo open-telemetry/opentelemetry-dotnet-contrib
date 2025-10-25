@@ -4,7 +4,6 @@
 using Hangfire.Common;
 using Hangfire.States;
 using Hangfire.Storage;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -75,15 +74,6 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
     }
 
-    private readonly HangfireMetricsInstrumentationOptions options;
-
-#pragma warning disable CA1019 // Define accessors for attribute arguments
-    public HangfireMetricsStateFilter(HangfireMetricsInstrumentationOptions options)
-#pragma warning restore CA1019 // Define accessors for attribute arguments
-    {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
     public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
         this.RecordWorkflowStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Applied);
@@ -121,7 +111,6 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
 
         var tags = HangfireTagBuilder.BuildWorkflowStatusTags(
             context.BackgroundJob,
-            this.options.DisplayNameFunc,
             stateToRecord,
             recurringJobId,
             errorType);
@@ -154,7 +143,6 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
 
         var tags = HangfireTagBuilder.BuildExecutionstatusTags(
             context.BackgroundJob,
-            this.options.DisplayNameFunc,
             stateToRecord,
             errorType);
 

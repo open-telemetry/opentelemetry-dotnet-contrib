@@ -15,14 +15,14 @@ internal sealed class HangfireMetricsInstrumentation : IDisposable
 
     public HangfireMetricsInstrumentation(HangfireMetricsInstrumentationOptions options)
     {
-        this.AddFilter(new HangfireMetricsJobFilterAttribute(options));
-        this.AddFilter(new HangfireMetricsStateFilter(options));
+        this.AddFilter(new HangfireMetricsJobFilterAttribute());
+        this.AddFilter(new HangfireMetricsStateFilter());
         this.AddFilter(new HangfireMetricsErrorFilterAttribute(options));
 
         // Only register pending duration filter if enabled (requires DB call per job)
         if (options.RecordQueueLatency)
         {
-            this.AddFilter(new HangfirePendingDurationFilterAttribute(options));
+            this.AddFilter(new HangfirePendingDurationFilterAttribute());
         }
     }
 
