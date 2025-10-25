@@ -5,6 +5,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Hangfire.States;
 using Hangfire.Storage;
+using Xunit;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 
@@ -23,7 +24,14 @@ public class HangfireFixture : IDisposable
             GlobalJobFilters.Filters.Remove(retryFilter.Instance);
         }
 
-        this.Server = new BackgroundJobServer();
+        // Configure server with faster schedule polling for tests
+        // Default is 15 seconds, which is too slow for test scenarios
+        var options = new BackgroundJobServerOptions
+        {
+            SchedulePollingInterval = TimeSpan.FromMilliseconds(100)
+        };
+
+        this.Server = new BackgroundJobServer(options);
         this.MonitoringApi = JobStorage.Current.GetMonitoringApi();
     }
 
@@ -44,10 +52,13 @@ public class HangfireFixture : IDisposable
 
         string[] terminalStates = [SucceededState.StateName, FailedState.StateName, DeletedState.StateName];
 
-        while (!Completed() && !cts.IsCancellationRequested)
+        while (!cts.IsCancellationRequested)
         {
-            await Task.Delay(500);
+            if (Completed()) return;
+            await Task.Delay(50, cts.Token);
         }
+
+        Assert.Fail("Timeout");
 
         bool Completed()
         {
