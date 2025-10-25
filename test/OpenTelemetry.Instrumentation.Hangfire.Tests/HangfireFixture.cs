@@ -3,6 +3,7 @@
 
 using Hangfire;
 using Hangfire.MemoryStorage;
+using Hangfire.States;
 using Hangfire.Storage;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
@@ -31,17 +32,17 @@ public class HangfireFixture : IDisposable
     public IMonitoringApi MonitoringApi { get; }
 
     /// <summary>
-    /// Waits for a Hangfire job to be processed (complete processing state).
+    /// Waits for a Hangfire job to be processed (reach a terminal state).
     /// </summary>
     /// <param name="jobId">The ID of the job to wait for.</param>
     /// <param name="timeToWaitInSeconds">Maximum time to wait in seconds.</param>
-    /// <returns>A task that completes when the job is processed or the timeout expires.</returns>
+    /// <returns>A task that completes when the job reaches a terminal state or the timeout expires.</returns>
     public async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
     {
         var timeout = TimeSpan.FromSeconds(timeToWaitInSeconds);
         using var cts = new CancellationTokenSource(timeout);
 
-        string[] states = ["Enqueued", "Processing"];
+        string[] terminalStates = [SucceededState.StateName, FailedState.StateName, DeletedState.StateName];
 
         while (!Completed() && !cts.IsCancellationRequested)
         {
@@ -60,7 +61,7 @@ public class HangfireFixture : IDisposable
             // Copy the history to an array to avoid exception if the collection is modified while iterating
             var history = jobDetails.History.ToArray();
 
-            return !history.All(h => states.Contains(h.StateName));
+            return history.Any(h => terminalStates.Contains(h.StateName));
         }
     }
 
