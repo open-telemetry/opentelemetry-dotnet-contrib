@@ -6,7 +6,7 @@
     "path": "/",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/Default/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/Default"
   },
   {
     "name": "Non-default action with route parameter and query string",
@@ -15,7 +15,7 @@
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}"
   },
   {
     "name": "Non-default action with query string",
@@ -24,7 +24,7 @@
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
-    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id?}"
+    "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter"
   },
   {
     "name": "Not Found (404)",
@@ -42,7 +42,7 @@
     "path": "/SomePath/SomeString/2",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "SomePath/{id}/{num:int}"
+    "expectedHttpRoute": "SomePath/{id}/{num}"
   },
   {
     "name": "Path that does not match parameter constraint",
@@ -60,7 +60,7 @@
     "path": "/MyArea",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/Default/{id?}"
+    "expectedHttpRoute": "MyArea/ControllerForMyArea/Default"
   },
   {
     "name": "Area using `area:exists`, non-default action",
@@ -69,7 +69,7 @@
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
     "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
-    "expectedHttpRoute": "{area:exists}/ControllerForMyArea/NonDefault/{id?}"
+    "expectedHttpRoute": "MyArea/ControllerForMyArea/NonDefault"
   },
   {
     "name": "Area w/o `area:exists`, default controller/action",
@@ -78,7 +78,7 @@
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
     "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id?}"
+    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id}"
   },
   {
     "name": "Default action",
