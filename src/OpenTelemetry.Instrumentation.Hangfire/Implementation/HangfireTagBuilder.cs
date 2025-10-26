@@ -170,7 +170,7 @@ internal static class HangfireTagBuilder
             GetDefinitionName(backgroundJob),
             GetPlatformName(),
             new KeyValuePair<string, object?>(WorkflowAttributes.AttributeWorkflowState, workflowState),
-            GetTriggerType(recurringJobId, isScheduled: workflowState == WorkflowAttributes.WorkflowStateValues.Pending && string.IsNullOrEmpty(recurringJobId)),
+            GetTriggerType(recurringJobId, workflowState),
         };
 
         if (!string.IsNullOrEmpty(errorType))
