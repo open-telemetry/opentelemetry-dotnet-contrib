@@ -13,7 +13,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal static class HangfireTagBuilder
 {
-
     /// <summary>
     /// Creates a tag list with common job metadata following workflow semantic conventions.
     /// Includes required workflow.task.name and recommended workflow.platform.name.
@@ -186,15 +185,14 @@ internal static class HangfireTagBuilder
     /// Includes required attributes (error.type, workflow.task.name),
     /// recommended attributes (workflow.platform.name).
     /// </summary>
-    /// <param name="backgroundJob">The Hangfire background job.</param>
-    /// <param name="exception">The exception that occurred.</param>
+    /// <param name="performedContext">The Hangfire context.</param>
     /// <returns>Tag list with error tags.</returns>
-    public static TagList BuildErrorTags(BackgroundJob backgroundJob, Exception exception)
+    public static TagList BuildErrorTags(PerformedContext performedContext)
     {
         var tags = new TagList
         {
-            GetErrorType(exception),
-            GetTaskName(backgroundJob),
+            GetErrorType(performedContext.Exception),
+            GetTaskName(performedContext.BackgroundJob),
             GetPlatformName(),
         };
 
@@ -214,7 +212,7 @@ internal static class HangfireTagBuilder
     private static KeyValuePair<string, object?> GetWorkflowOutcome(Exception? exception) =>
         new(WorkflowAttributes.AttributeWorkflowOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
 
-    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, WorkflowAttributes.WorkflowStateValues? workflowState = null)
+    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, string? workflowState = null)
     {
         // Check if job was triggered by a recurring job (cron)
         if (!string.IsNullOrEmpty(recurringJobId))
