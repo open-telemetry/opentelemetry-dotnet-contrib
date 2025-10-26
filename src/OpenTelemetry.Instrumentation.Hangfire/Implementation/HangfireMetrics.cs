@@ -27,9 +27,9 @@ internal static class HangfireMetrics
     /// Counter for the number of task executions which have been initiated.
     /// Follows OpenTelemetry workflow semantic conventions.
     /// </summary>
-    public static readonly Counter<long> ExecutionCount =
+    public static readonly Counter<long> ExecutionOutcome =
         Meter.CreateCounter<long>(
-            WorkflowMetricNames.ExecutionCount,
+            WorkflowMetricNames.ExecutionOutcome,
             unit: "{executions}",
             description: "The number of task executions which have been initiated.");
 
@@ -71,9 +71,9 @@ internal static class HangfireMetrics
     /// Follows OpenTelemetry workflow semantic conventions.
     /// In Hangfire, this tracks individual job completions. For batch workflows, this would track batch completion.
     /// </summary>
-    public static readonly Counter<long> WorkflowCount =
+    public static readonly Counter<long> WorkflowOutcome =
         Meter.CreateCounter<long>(
-            WorkflowMetricNames.WorkflowCount,
+            WorkflowMetricNames.WorkflowOutcome,
             unit: "{workflows}",
             description: "The number of workflow instances which have been initiated.");
 

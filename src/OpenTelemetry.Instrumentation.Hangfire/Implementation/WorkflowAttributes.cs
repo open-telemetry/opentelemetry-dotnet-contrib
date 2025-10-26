@@ -24,14 +24,14 @@ internal static class WorkflowAttributes
     public const string AttributeWorkflowDefinitionName = "workflow.definition.name";
 
     /// <summary>
-    /// The outcome of executing the task.
+    /// The result of executing the task.
     /// </summary>
-    public const string AttributeWorkflowExecutionOutcome = "workflow.execution.outcome";
+    public const string AttributeWorkflowExecutionResult = "workflow.execution.result";
 
     /// <summary>
     /// The result of a workflow run.
     /// </summary>
-    public const string AttributeWorkflowOutcome = "workflow.outcome";
+    public const string AttributeWorkflowResult = "workflow.result";
 
     /// <summary>
     /// The execution state.
@@ -61,9 +61,9 @@ internal static class WorkflowAttributes
     // ===== Attribute Value Constants =====
 
     /// <summary>
-    /// Values for workflow.execution.outcome and workflow.outcome attributes.
+    /// Values for workflow.execution.result and workflow.result attributes.
     /// </summary>
-    public static class WorkflowOutcomeValues
+    public static class WorkflowResultValues
     {
         /// <summary>
         /// The execution/workflow finished successfully.
@@ -117,11 +117,6 @@ internal static class WorkflowAttributes
         /// The finalizing state spans from when execution has finished and covers cleanup of resources, etc.
         /// </summary>
         public const string Finalizing = "finalizing";
-
-        /// <summary>
-        /// The completed state spans from when the workflow/execution has finished finalizing (eg. cleanup of resources).
-        /// </summary>
-        public const string Completed = "completed";
     }
 
     /// <summary>

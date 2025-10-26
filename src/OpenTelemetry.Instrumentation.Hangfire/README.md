@@ -269,18 +269,18 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
 The following metrics are emitted by this instrumentation:
 
 **Execution-level metrics** track jobs that have entered the execution pipeline:
-- `workflow.execution.count` - Counter for completed executions
+- `workflow.execution.outcome` - Counter for completed executions
 - `workflow.execution.duration` - Histogram for execution duration (pending and executing phases)
 - `workflow.execution.status` - UpDownCounter for current execution state
 - `workflow.execution.errors` - Counter for execution errors
 
 **Workflow-level metrics** track the complete job lifecycle:
-- `workflow.count` - Counter for completed workflows
+- `workflow.outcome` - Counter for completed workflows
 - `workflow.status` - UpDownCounter for current workflow state (including scheduled jobs)
 
 ---
 
-#### workflow.execution.count
+#### workflow.execution.outcome
 
 The number of task executions which have been initiated.
 
@@ -297,7 +297,7 @@ The number of task executions which have been initiated.
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
 |-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.execution.outcome`  | string | The outcome of executing the task             | Required                 | `success`, `failure`    |
+| `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
 | `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
 
@@ -324,7 +324,7 @@ execution phases:
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
 |-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.execution.outcome`  | string | The outcome of executing the task             | Required                 | `success`, `failure`    |
+| `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.execution.state`    | string | The execution phase being measured            | Required                 | `pending`, `executing`  |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
 | `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
@@ -380,7 +380,7 @@ The number of errors encountered in task executions.
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
 
-#### workflow.count
+#### workflow.outcome
 
 The number of workflow instances which have been initiated. In Hangfire, this tracks
 individual job completions.
@@ -394,7 +394,7 @@ individual job completions.
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
 |-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
 | `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.outcome`            | string | The outcome of the workflow                   | Required                 | `success`, `failure`    |
+| `workflow.result`             | string | The result of the workflow                    | Required                 | `success`, `failure`    |
 | `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule` |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
 | `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
@@ -461,13 +461,13 @@ This instrumentation follows the OpenTelemetry semantic conventions for workflow
 - **workflow.platform.name**: Always set to `"hangfire"`
 - **workflow.task.name** / **workflow.definition.name**: Derived from the Hangfire job method (e.g., `ClassName.MethodName`)
   - `workflow.task.name` is used for execution-level metrics (`workflow.execution.*`)
-  - `workflow.definition.name` is used for workflow-level metrics (`workflow.count`, `workflow.status`)
+  - `workflow.definition.name` is used for workflow-level metrics (`workflow.outcome`, `workflow.status`)
 - **workflow.trigger.type**: Identifies how the job was initiated
   - `"cron"` for recurring jobs
   - `"schedule"` for delayed jobs (scheduled for future execution)
   - `"api"` for fire-and-forget and continuation jobs
-  - Only included on workflow-level metrics (`workflow.count`, `workflow.status`), not on execution-level metrics (`workflow.execution.*`)
-- **workflow.execution.outcome** / **workflow.outcome**: Set to `"success"` when jobs complete without errors,
+  - Only included on workflow-level metrics (`workflow.outcome`, `workflow.status`), not on execution-level metrics (`workflow.execution.*`)
+- **workflow.execution.result** / **workflow.result**: Set to `"success"` when jobs complete without errors,
   `"failure"` when an exception is thrown
 - **workflow.execution.state** / **workflow.state**: Maps Hangfire states to semantic convention states
   - `workflow.execution.state` tracks execution pipeline states (used in `workflow.execution.status`, `workflow.execution.duration`)
@@ -479,7 +479,7 @@ This instrumentation follows the OpenTelemetry semantic conventions for workflow
 
 The instrumentation distinguishes between **workflow-level** and **execution-level** metrics:
 
-**Workflow-level metrics** (`workflow.count`, `workflow.status`):
+**Workflow-level metrics** (`workflow.outcome`, `workflow.status`):
 - Track the complete lifecycle of jobs, including pre-execution states (e.g., scheduled)
 - Use `workflow.definition.name`, `workflow.state`, and `workflow.trigger.type`
 - Provide visibility into all jobs regardless of execution status

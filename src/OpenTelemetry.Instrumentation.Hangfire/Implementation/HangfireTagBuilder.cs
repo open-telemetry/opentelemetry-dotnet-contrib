@@ -60,7 +60,7 @@ internal static class HangfireTagBuilder
 
     /// <summary>
     /// Creates a tag list with execution result tags following workflow semantic conventions.
-    /// Includes required attributes (workflow.task.name, workflow.execution.outcome, workflow.execution.state),
+    /// Includes required attributes (workflow.task.name, workflow.execution.result, workflow.execution.state),
     /// recommended attributes (workflow.platform.name),
     /// conditionally required attributes (error.type if failed).
     /// Note: workflow.trigger.type is NOT included as it belongs to workflow-level metrics only.
@@ -75,7 +75,7 @@ internal static class HangfireTagBuilder
         {
             GetTaskName(backgroundJob),
             GetPlatformName(),
-            GetExecutionOutcome(exception),
+            GetExecutionResult(exception),
             GetState(workflowState),
         };
 
@@ -89,22 +89,22 @@ internal static class HangfireTagBuilder
     }
 
     /// <summary>
-    /// Creates a tag list for workflow.execution.count metric following workflow semantic conventions.
-    /// Includes required attributes (workflow.task.name, workflow.execution.outcome),
+    /// Creates a tag list for workflow.execution.outcome metric following workflow semantic conventions.
+    /// Includes required attributes (workflow.task.name, workflow.execution.result),
     /// recommended attributes (workflow.platform.name),
     /// conditionally required attributes (error.type if failed).
-    /// Note: Does NOT include workflow.execution.state as it's not specified in semantic conventions for count metric.
+    /// Note: Does NOT include workflow.execution.state as it's not specified in semantic conventions for outcome metric.
     /// </summary>
     /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
-    /// <returns>Tag list suitable for workflow.execution.count metric.</returns>
+    /// <returns>Tag list suitable for workflow.execution.outcome metric.</returns>
     public static TagList BuildExecutionCountTags(BackgroundJob backgroundJob, Exception? exception)
     {
         var tags = new TagList
         {
             GetTaskName(backgroundJob),
             GetPlatformName(),
-            GetExecutionOutcome(exception),
+            GetExecutionResult(exception),
         };
 
         // Conditionally Required: error.type (if and only if the task run failed)
@@ -118,22 +118,22 @@ internal static class HangfireTagBuilder
 
     /// <summary>
     /// Creates a tag list for workflow-level metrics following workflow semantic conventions.
-    /// Includes required attributes (workflow.definition.name, workflow.outcome, workflow.trigger.type),
+    /// Includes required attributes (workflow.definition.name, workflow.result, workflow.trigger.type),
     /// recommended attributes (workflow.platform.name),
     /// conditionally required attributes (error.type if failed).
-    /// Used for workflow.count and other workflow-level (not execution-level) metrics.
+    /// Used for workflow.outcome and other workflow-level (not execution-level) metrics.
     /// </summary>
     /// <param name="backgroundJob">The Hangfire background job.</param>
     /// <param name="exception">The exception, if any occurred.</param>
     /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
-    /// <returns>Tag list suitable for workflow.count metric.</returns>
+    /// <returns>Tag list suitable for workflow.outcome metric.</returns>
     public static TagList BuildWorkflowTags(BackgroundJob backgroundJob, Exception? exception, string? recurringJobId)
     {
         var tags = new TagList
         {
             GetDefinitionName(backgroundJob),
             GetPlatformName(),
-            GetWorkflowOutcome(exception),
+            GetWorkflowResult(exception),
             GetTriggerType(recurringJobId),
         };
 
@@ -154,7 +154,7 @@ internal static class HangfireTagBuilder
     /// Used for tracking workflow state transitions (e.g., scheduled jobs).
     /// </summary>
     /// <param name="backgroundJob">The Hangfire background job.</param>
-    /// <param name="workflowState">The workflow state value (e.g., "pending", "executing", "completed").</param>
+    /// <param name="workflowState">The workflow state value (e.g., "pending", "executing", "finalizing").</param>
     /// <param name="recurringJobId">Optional recurring job ID if this job was triggered by a recurring job.</param>
     /// <param name="errorType">Optional error type to annotate failure states.</param>
     /// <returns>Tag list suitable for workflow.status metric.</returns>
@@ -206,11 +206,11 @@ internal static class HangfireTagBuilder
     private static KeyValuePair<string, object?> GetDefinitionName(BackgroundJob backgroundJob) =>
         new(WorkflowAttributes.AttributeWorkflowDefinitionName, backgroundJob.FormatJobName());
 
-    private static KeyValuePair<string, object?> GetExecutionOutcome(Exception? exception) =>
-        new(WorkflowAttributes.AttributeWorkflowExecutionOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
+    private static KeyValuePair<string, object?> GetExecutionResult(Exception? exception) =>
+        new(WorkflowAttributes.AttributeWorkflowExecutionResult, exception is null ? WorkflowAttributes.WorkflowResultValues.Success : WorkflowAttributes.WorkflowResultValues.Failure);
 
-    private static KeyValuePair<string, object?> GetWorkflowOutcome(Exception? exception) =>
-        new(WorkflowAttributes.AttributeWorkflowOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
+    private static KeyValuePair<string, object?> GetWorkflowResult(Exception? exception) =>
+        new(WorkflowAttributes.AttributeWorkflowResult, exception is null ? WorkflowAttributes.WorkflowResultValues.Success : WorkflowAttributes.WorkflowResultValues.Failure);
 
     private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, string? workflowState = null)
     {

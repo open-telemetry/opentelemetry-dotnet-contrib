@@ -93,7 +93,7 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowTaskName);
         AssertUtils.AssertHasTag(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowPlatformName);
         AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionResult, WorkflowAttributes.WorkflowResultValues.Success);
     }
 
     [Fact]
@@ -198,12 +198,12 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         Assert.NotNull(pendingPoint);
 
         // Pending phase should be successful (job started executing)
-        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Success);
+        AssertUtils.AssertHasTagValue(pendingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionResult, WorkflowAttributes.WorkflowResultValues.Success);
 
-        // Executing phase should have failure outcome
+        // Executing phase should have failure result
         var executingPoint = metricPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing);
         Assert.NotNull(executingPoint);
-        AssertUtils.AssertHasTagValue(executingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionOutcome, WorkflowAttributes.WorkflowOutcomeValues.Failure);
+        AssertUtils.AssertHasTagValue(executingPoint.Value, WorkflowAttributes.AttributeWorkflowExecutionResult, WorkflowAttributes.WorkflowResultValues.Failure);
     }
 
     [Fact]

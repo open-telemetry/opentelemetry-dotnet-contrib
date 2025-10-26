@@ -14,7 +14,7 @@ internal static class WorkflowMetricNames
     /// <summary>
     /// The number of task executions which have been initiated.
     /// </summary>
-    public const string ExecutionCount = "workflow.execution.count";
+    public const string ExecutionOutcome = "workflow.execution.outcome";
 
     /// <summary>
     /// Duration of an execution grouped by task, type and result.
@@ -34,7 +34,7 @@ internal static class WorkflowMetricNames
     /// <summary>
     /// The number of workflow instances which have been initiated.
     /// </summary>
-    public const string WorkflowCount = "workflow.count";
+    public const string WorkflowOutcome = "workflow.outcome";
 
     /// <summary>
     /// The number of actively running workflows grouped by definition and the current state.
