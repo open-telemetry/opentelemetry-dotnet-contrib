@@ -82,8 +82,8 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
 
     public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
     {
-        this.RecordWorkflowStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Unapplied);
-        this.RecordExecutionStateChange(context, context.OldStateName, context.NewState.Name, StateTransitionDirection.Unapplied);
+        this.RecordWorkflowStateChange(context, StateTransitionDirection.Unapplied);
+        this.RecordExecutionStateChange(context, StateTransitionDirection.Unapplied);
     }
 
     private void RecordWorkflowStateChange(
