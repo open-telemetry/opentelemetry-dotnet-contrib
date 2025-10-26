@@ -21,9 +21,7 @@ internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, 
     {
         if (performedContext.Exception != null)
         {
-            var errorTags = HangfireTagBuilder.BuildErrorTags(
-                performedContext.BackgroundJob,
-                performedContext.Exception);
+            var errorTags = HangfireTagBuilder.BuildErrorTags(performedContext);
 
             HangfireMetrics.ExecutionErrors.Add(1, errorTags);
         }
