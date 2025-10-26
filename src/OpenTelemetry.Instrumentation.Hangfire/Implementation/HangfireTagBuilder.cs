@@ -214,7 +214,7 @@ internal static class HangfireTagBuilder
     private static KeyValuePair<string, object?> GetWorkflowOutcome(Exception? exception) =>
         new(WorkflowAttributes.AttributeWorkflowOutcome, exception is null ? WorkflowAttributes.WorkflowOutcomeValues.Success : WorkflowAttributes.WorkflowOutcomeValues.Failure);
 
-    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, bool isScheduled = false)
+    private static KeyValuePair<string, object?> GetTriggerType(string? recurringJobId, WorkflowAttributes.WorkflowStateValues? workflowState = null)
     {
         // Check if job was triggered by a recurring job (cron)
         if (!string.IsNullOrEmpty(recurringJobId))
@@ -223,7 +223,7 @@ internal static class HangfireTagBuilder
         }
 
         // Check if job is scheduled for future execution
-        if (isScheduled)
+        if (workflowState == WorkflowAttributes.WorkflowStateValues.Pending)
         {
             return new(WorkflowAttributes.AttributeWorkflowTriggerType, WorkflowAttributes.WorkflowTriggerTypeValues.Schedule);
         }
