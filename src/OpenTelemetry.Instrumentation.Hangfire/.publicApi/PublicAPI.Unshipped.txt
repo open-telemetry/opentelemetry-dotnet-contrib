@@ -12,8 +12,6 @@ static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddHangfireInstrumen
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddHangfireInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions
-OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.DisplayNameFunc.get -> System.Func<Hangfire.BackgroundJob!, string!>!
-OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.DisplayNameFunc.set -> void
 OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.HangfireMetricsInstrumentationOptions() -> void
 OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.RecordQueueLatency.get -> bool
 OpenTelemetry.Metrics.HangfireMetricsInstrumentationOptions.RecordQueueLatency.set -> void

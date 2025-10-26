@@ -247,23 +247,6 @@ execution time.
 > [!NOTE]
 > Add `using OpenTelemetry.Metrics;` to access `HangfireMetricsInstrumentationOptions`.
 
-#### DisplayNameFunc
-
-Metrics use the `DisplayNameFunc` from `HangfireMetricsInstrumentationOptions` to populate
-`workflow.task.name` and related attributes. By default, it calls `backgroundJob.Job.ToString()`,
-but you can provide your own formatter:
-
-```csharp
-var meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddHangfireInstrumentation(options =>
-    {
-        options.DisplayNameFunc = backgroundJob => $"{backgroundJob.Job.Type.Name}:{backgroundJob.Id}";
-    })
-    .AddConsoleExporter()
-    .Build();
-```
-
-
 ### Available Metrics
 
 The following metrics are emitted by this instrumentation:
