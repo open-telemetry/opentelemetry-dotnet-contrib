@@ -119,12 +119,10 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
 
     private void RecordExecutionStateChange(
         ApplyStateContext context,
-        string? oldStateName,
-        string? newStateName,
         StateTransitionDirection direction)
     {
-        var oldState = HangfireStateMapper.MapExecutionState(oldStateName);
-        var newState = HangfireStateMapper.MapExecutionState(newStateName);
+        var oldState = HangfireStateMapper.MapExecutionState(context.OldStateName);
+        var newState = HangfireStateMapper.MapExecutionState(context.NewState.Name);
 
         // Determine which state to record based on transition direction
         var stateToRecord = direction == StateTransitionDirection.Applied ? newState : oldState;
