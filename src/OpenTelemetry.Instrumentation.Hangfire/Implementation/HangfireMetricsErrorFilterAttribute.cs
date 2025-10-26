@@ -13,15 +13,6 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 /// </summary>
 internal sealed class HangfireMetricsErrorFilterAttribute : JobFilterAttribute, IServerFilter
 {
-    private readonly HangfireMetricsInstrumentationOptions options;
-
-#pragma warning disable CA1019 // Define accessors for attribute arguments
-    public HangfireMetricsErrorFilterAttribute(HangfireMetricsInstrumentationOptions options)
-#pragma warning restore CA1019 // Define accessors for attribute arguments
-    {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
     public void OnPerforming(PerformingContext performingContext)
     {
     }
