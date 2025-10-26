@@ -17,7 +17,7 @@ internal sealed class HangfireMetricsInstrumentation : IDisposable
     {
         this.AddFilter(new HangfireMetricsJobFilterAttribute());
         this.AddFilter(new HangfireMetricsStateFilter());
-        this.AddFilter(new HangfireMetricsErrorFilterAttribute(options));
+        this.AddFilter(new HangfireMetricsErrorFilterAttribute());
 
         // Only register pending duration filter if enabled (requires DB call per job)
         if (options.RecordQueueLatency)
