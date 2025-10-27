@@ -17,6 +17,7 @@ components:
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
     - normj
+    - lukeina2z
   src/OpenTelemetry.Extensions.Enrichment/:
     - evgenyfedorov2
     - dariusclay
@@ -30,10 +31,12 @@ components:
     - srprash
     - normj
     - muhammad-othman
+    - lukeina2z
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
     - normj
+    - lukeina2z
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ConfluentKafka/:
@@ -71,6 +74,7 @@ components:
   src/OpenTelemetry.Resources.AWS/:
     - srprash
     - normj
+    - lukeina2z
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.Container/:
@@ -92,6 +96,7 @@ components:
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
     - normj
+    - lukeina2z
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17
@@ -114,6 +119,7 @@ components:
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
     - normj
+    - lukeina2z
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - evgenyfedorov2
     - dariusclay
@@ -127,10 +133,12 @@ components:
     - srprash
     - normj
     - muhammad-othman
+    - lukeina2z
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
     - normj
+    - lukeina2z
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
@@ -164,6 +172,7 @@ components:
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
     - normj
+    - lukeina2z
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.Container.Tests/:
@@ -182,3 +191,4 @@ components:
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
     - normj
+    - lukeina2z
