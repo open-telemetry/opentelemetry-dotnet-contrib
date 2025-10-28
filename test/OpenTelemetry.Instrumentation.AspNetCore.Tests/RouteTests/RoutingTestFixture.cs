@@ -73,7 +73,7 @@ public class RoutingTestFixture : IAsyncLifetime
     private void GenerateReadme()
     {
         var sb = new StringBuilder();
-        sb.AppendLine("<!-- markdownlint-disable MD031 MD033 -->");
+        sb.AppendLine("<!-- markdownlint-disable MD022 MD024 MD031 MD033 -->");
         sb.AppendLine();
         sb.AppendLine($"# Test results for ASP.NET Core {Environment.Version.Major}");
         sb.AppendLine();

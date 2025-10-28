@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD031 MD033 -->
+<!-- markdownlint-disable MD022 MD024 MD031 MD033 -->
 
 # Test results for ASP.NET Core 9
 
