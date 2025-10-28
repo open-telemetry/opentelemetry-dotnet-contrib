@@ -41,7 +41,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         var flushAction = new Action(() => tracerProvider.ForceFlush());
         var result = await TryWaitUntilAny(exportedActivities, flushAction);
-        Assert.True(result, "No activites were collected");
+        Assert.True(result, "No activities were collected");
 
         var activity = Assert.Single(exportedActivities);
 
@@ -125,7 +125,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
     private static async Task<bool> TryWaitUntilAny<T>(ICollection<T> collection, Action reflush, Func<T, bool>? filter = null)
     {
-        // flush and see if data is immidiately available
+        // flush and see if data is immediately available
         reflush();
 
         for (var i = 0; i < 10; i++)
