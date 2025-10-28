@@ -477,4 +477,3 @@ The instrumentation distinguishes between **workflow-level** and **execution-lev
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Hangfire Project](https://www.hangfire.io/)
-* [OpenTelemetry Workflow Semantic Conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md)
