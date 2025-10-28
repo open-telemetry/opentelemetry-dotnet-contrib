@@ -73,6 +73,8 @@ public class RoutingTestFixture : IAsyncLifetime
     private void GenerateReadme()
     {
         var sb = new StringBuilder();
+        sb.AppendLine("<!-- markdownlint-disable MD031 MD033 -->");
+        sb.AppendLine();
         sb.AppendLine($"# Test results for ASP.NET Core {Environment.Version.Major}");
         sb.AppendLine();
 
@@ -128,10 +130,9 @@ public class RoutingTestFixture : IAsyncLifetime
     {
         foreach (var result in testResults)
         {
-            sb.AppendLine();
+            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
             sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
             sb.AppendLine();
-            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
             sb.AppendLine("```json");
             sb.AppendLine(result.ToString());
             sb.AppendLine("```");
