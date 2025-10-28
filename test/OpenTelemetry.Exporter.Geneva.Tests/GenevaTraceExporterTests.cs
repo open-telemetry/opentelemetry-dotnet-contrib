@@ -381,6 +381,82 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     [Fact]
+    public void GenevaTraceExporter_Prepopulated_Overwrites_Resource()
+    {
+        var path = string.Empty;
+        Socket server = null;
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions
+            {
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                    ["cloud.role"] = "prepopulated role",
+                    ["cloud.roleInstance"] = "prepopulated role instance",
+                },
+            };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GetRandomFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            Dictionary<string, object> resourceAttributes = new Dictionary<string, object>
+            {
+                { "service.name", "resource role" },
+                { "service.instanceId", "resource role instance" },
+            };
+            var resource = new Resource(resourceAttributes);
+
+            using var exporter = new MsgPackTraceExporter(exporterOptions, () => resource);
+            var m_buffer = exporter.Buffer;
+
+            // Add an ActivityListener to serialize the activity and assert that it was valid on ActivityStopped event
+
+            // Set the ActivitySourceName to the unique value of the test method name to avoid interference with
+            // the ActivitySource used by other unit tests.
+            var sourceName = GetTestMethodName();
+
+            using var listener = new ActivityListener();
+            listener.ShouldListenTo = (activitySource) => activitySource.Name == sourceName;
+            listener.Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllDataAndRecorded;
+            listener.ActivityStopped = (activity) =>
+            {
+                _ = exporter.SerializeActivity(activity);
+                var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+                this.CheckSpanForActivity(exporterOptions, fluentdData, activity, exporter.DedicatedFields, resourceAttributes);
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            using var source = new ActivitySource(sourceName);
+            using (var activity = source.StartActivity("Activity"))
+            {
+                this.ExpectSpanFromActivity(activity, (mapping) => { });
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Fact]
     public void GenevaTraceExporter_ServerSpan_HttpUrl_Success()
     {
         var path = string.Empty;
@@ -844,12 +920,14 @@ public class GenevaTraceExporterTests : IDisposable
         Assert.Equal(tsEnd, ((DateTime)mapping[timeKey]).Ticks);
 
         // Part A cloud extensions
-        if (resourceAttributes.TryGetValue("service.name", out var expectedServiceName))
+        if (resourceAttributes.TryGetValue("service.name", out var expectedServiceName)
+            && !exporterOptions.PrepopulatedFields.ContainsKey("cloud.role"))
         {
             this.AssertMappingEntry(mapping, "env_cloud_role", expectedServiceName);
         }
 
-        if (resourceAttributes.TryGetValue("service.instanceId", out var expectedInstanceId))
+        if (resourceAttributes.TryGetValue("service.instanceId", out var expectedInstanceId)
+            && !exporterOptions.PrepopulatedFields.ContainsKey("cloud.roleInstance"))
         {
             this.AssertMappingEntry(mapping, "env_cloud_roleInstance", expectedInstanceId);
         }
