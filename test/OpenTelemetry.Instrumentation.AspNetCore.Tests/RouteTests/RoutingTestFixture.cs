@@ -15,7 +15,8 @@ public class RoutingTestFixture : IAsyncLifetime
     private static readonly HttpClient HttpClient = new();
     private readonly Dictionary<TestApplicationScenario, WebApplication> apps = [];
     private readonly RouteInfoDiagnosticObserver diagnostics = new();
-    private readonly List<RoutingTestResult> testResults = [];
+    private readonly List<ActivityRoutingTestResult> activityTestResults = [];
+    private readonly List<MetricRoutingTestResult> metricsTestResults = [];
 
     public RoutingTestFixture()
     {
@@ -60,9 +61,14 @@ public class RoutingTestFixture : IAsyncLifetime
         await HttpClient.GetAsync(new Uri(url));
     }
 
-    internal void AddTestResult(RoutingTestResult result)
+    internal void AddActivityTestResult(ActivityRoutingTestResult result)
     {
-        this.testResults.Add(result);
+        this.activityTestResults.Add(result);
+    }
+
+    internal void AddMetricsTestResult(MetricRoutingTestResult result)
+    {
+        this.metricsTestResults.Add(result);
     }
 
     private void GenerateReadme()
@@ -70,26 +76,23 @@ public class RoutingTestFixture : IAsyncLifetime
         var sb = new StringBuilder();
         sb.AppendLine($"# Test results for ASP.NET Core {Environment.Version.Major}");
         sb.AppendLine();
+
+        // Append tracing header
+        sb.AppendLine("## Tracing");
+        sb.AppendLine();
         sb.AppendLine("| http.route | App | Test Name |");
         sb.AppendLine("| - | - | - |");
 
-        for (var i = 0; i < this.testResults.Count; ++i)
-        {
-            var result = this.testResults[i];
-            var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
-            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}]({GenerateLinkFragment(result.TestCase.TestApplicationScenario, result.TestCase.Name)}) |");
-        }
+        this.AppendTestResults(sb, this.activityTestResults);
 
-        for (var i = 0; i < this.testResults.Count; ++i)
-        {
-            var result = this.testResults[i];
-            sb.AppendLine();
-            sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
-            sb.AppendLine();
-            sb.AppendLine("```json");
-            sb.AppendLine(result.ToString());
-            sb.AppendLine("```");
-        }
+        // Append metrics header
+        sb.AppendLine();
+        sb.AppendLine("## Metrics");
+        sb.AppendLine();
+        sb.AppendLine("| http.route | App | Test Name |");
+        sb.AppendLine("| - | - | - |");
+
+        this.AppendTestResults(sb, this.metricsTestResults);
 
         string routeTestsPath =
             typeof(TestApplicationFactory).Assembly
@@ -99,6 +102,27 @@ public class RoutingTestFixture : IAsyncLifetime
 
         var readmeFileName = $"README.net{Environment.Version.Major}.0.md";
         File.WriteAllText(Path.Combine(routeTestsPath, readmeFileName), sb.ToString());
+    }
+
+    private void AppendTestResults(StringBuilder sb, IReadOnlyCollection<RoutingTestResult> testResults)
+    {
+        for (var i = 0; i < testResults.Count; ++i)
+        {
+            var result = testResults.ElementAt(i);
+            var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
+            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}]({GenerateLinkFragment(result.TestCase.TestApplicationScenario, result.TestCase.Name)}) |");
+        }
+
+        for (var i = 0; i < testResults.Count; ++i)
+        {
+            var result = testResults.ElementAt(i);
+            sb.AppendLine();
+            sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
+            sb.AppendLine();
+            sb.AppendLine("```json");
+            sb.AppendLine(result.ToString());
+            sb.AppendLine("```");
+        }
 
         // Generates a link fragment that should comply with markdownlint rule MD051
         // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md

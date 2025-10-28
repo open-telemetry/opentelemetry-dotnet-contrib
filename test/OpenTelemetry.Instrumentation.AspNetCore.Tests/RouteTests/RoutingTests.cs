@@ -18,8 +18,6 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
     private const string HttpRoute = "http.route";
 
     private readonly RoutingTestFixture fixture;
-    private readonly List<Activity> exportedActivities = [];
-    private readonly List<Metric> exportedMetrics = [];
 
     public RoutingTests(RoutingTestFixture fixture)
     {
@@ -30,57 +28,32 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task TestHttpRoute(TestCase testCase)
+    public async Task TestHttpRoute_Traces(TestCase testCase)
     {
+        List<Activity> exportedActivities = [];
+
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAspNetCoreInstrumentation()
-            .AddInMemoryExporter(this.exportedActivities)
-            .Build()!;
-
-        using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddAspNetCoreInstrumentation()
-            .AddInMemoryExporter(this.exportedMetrics)
+            .AddInMemoryExporter(exportedActivities)
             .Build()!;
 
         await this.fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
 
-        for (var i = 0; i < 10; i++)
-        {
-            if (this.exportedActivities.Count > 0)
-            {
-                break;
-            }
+        var flushAction = new Action(() => tracerProvider.ForceFlush());
+        var result = await TryWaitUntilAny(exportedActivities, flushAction);
+        Assert.True(result, "No activites were collected");
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
-        }
-
-        meterProvider.ForceFlush();
-
-        var durationMetric = this.exportedMetrics.Single(x => x.Name is "http.server.request.duration" or "http.server.duration");
-        var metricPoints = new List<MetricPoint>();
-        foreach (var mp in durationMetric.GetMetricPoints())
-        {
-            metricPoints.Add(mp);
-        }
-
-        var activity = Assert.Single(this.exportedActivities);
-        var metricPoint = Assert.Single(metricPoints);
+        var activity = Assert.Single(exportedActivities);
 
         GetTagsFromActivity(activity, out var activityHttpStatusCode, out var activityHttpMethod, out var activityHttpRoute);
-        GetTagsFromMetricPoint(metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
 
         Assert.Equal(testCase.ExpectedStatusCode, activityHttpStatusCode);
-        Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
         Assert.Equal(testCase.HttpMethod, activityHttpMethod);
-        Assert.Equal(testCase.HttpMethod, metricHttpMethod);
 
         // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
         // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
         var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
         Assert.Equal(expectedHttpRoute, activityHttpRoute);
-
-        var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
-        Assert.Equal(expectedMetricRoute, metricHttpRoute);
 
         // Activity.DisplayName should be a combination of http.method + http.route attributes, see:
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/http/http-spans.md#name
@@ -90,17 +63,100 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         Assert.Equal(expectedActivityDisplayName, activity.DisplayName);
 
-        var testResult = new RoutingTestResult
+        var testResult = new ActivityRoutingTestResult
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
             ActivityDisplayName = activity.DisplayName,
             ActivityHttpRoute = activityHttpRoute,
+            TestCase = testCase,
+            RouteInfo = RouteInfo.Current,
+        };
+
+        this.fixture.AddActivityTestResult(testResult);
+    }
+
+    [Theory]
+    [MemberData(nameof(TestData))]
+    public async Task TestHttpRoute_Metrics(TestCase testCase)
+    {
+        List<Metric> exportedMetrics = [];
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddAspNetCoreInstrumentation()
+            .AddInMemoryExporter(exportedMetrics)
+            .Build()!;
+
+        await this.fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
+
+        var filter = new Func<Metric, bool>(x =>
+            x.Name is "http.server.request.duration" or "http.server.duration");
+        var flushAction = new Action(() => meterProvider.ForceFlush());
+        var result = await TryWaitUntilAny(exportedMetrics, flushAction, filter);
+        Assert.True(result, "No metrics were collected");
+
+        var durationMetric = exportedMetrics.Single(filter);
+        var metricPoints = new List<MetricPoint>();
+        foreach (var mp in durationMetric.GetMetricPoints())
+        {
+            metricPoints.Add(mp);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        GetTagsFromMetricPoint(metricPoint, out var metricHttpStatusCode, out var metricHttpMethod, out var metricHttpRoute);
+
+        Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
+        Assert.Equal(testCase.HttpMethod, metricHttpMethod);
+
+        // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
+        // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
+        var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
+        var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
+        Assert.Equal(expectedMetricRoute, metricHttpRoute);
+
+        var testResult = new MetricRoutingTestResult
+        {
+            IdealHttpRoute = testCase.ExpectedHttpRoute,
             MetricHttpRoute = metricHttpRoute,
             TestCase = testCase,
             RouteInfo = RouteInfo.Current,
         };
 
-        this.fixture.AddTestResult(testResult);
+        this.fixture.AddMetricsTestResult(testResult);
+    }
+
+    private static async Task<bool> TryWaitUntilAny<T>(ICollection<T> collection, Action reflush, Func<T, bool>? filter = null)
+    {
+        // flush and see if data is immidiately available
+        reflush();
+
+        for (var i = 0; i < 10; i++)
+        {
+            if (collection.Count > 0)
+            {
+                // nothing to filter
+                if (filter == null)
+                {
+                    return true;
+                }
+
+                foreach (var item in collection)
+                {
+                    // filter is defined and succeeds fiding elements
+                    if (filter(item))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            reflush();
+
+            // Add time to process the flush
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        return false;
     }
 
     private static void GetTagsFromActivity(Activity activity, out int httpStatusCode, out string httpMethod, out string? httpRoute)

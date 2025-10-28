@@ -7,25 +7,38 @@ using RouteTests.TestApplication;
 
 namespace RouteTests;
 
-internal class RoutingTestResult
+internal abstract class RoutingTestResult
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
+    internal static readonly JsonSerializerOptions JsonSerializerOptions = new() { WriteIndented = true };
 
     public string? IdealHttpRoute { get; set; }
-
-    public string ActivityDisplayName { get; set; } = string.Empty;
-
-    public string? ActivityHttpRoute { get; set; }
-
-    public string? MetricHttpRoute { get; set; }
 
     public RouteInfo RouteInfo { get; set; } = new();
 
     [JsonIgnore]
     public TestCase TestCase { get; set; } = new();
+}
+
+#pragma warning disable SA1402 // File may only contain a single type
+internal class MetricRoutingTestResult : RoutingTestResult
+{
+    public string? MetricHttpRoute { get; set; }
 
     public override string ToString()
     {
         return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 }
+
+internal class ActivityRoutingTestResult : RoutingTestResult
+{
+    public string ActivityDisplayName { get; set; } = string.Empty;
+
+    public string? ActivityHttpRoute { get; set; }
+
+    public override string ToString()
+    {
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+    }
+}
+#pragma warning restore SA1402 // File may only contain a single type
