@@ -63,12 +63,11 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         Assert.Equal(expectedActivityDisplayName, activity.DisplayName);
 
-        var testResult = new ActivityRoutingTestResult
+        var testResult = new ActivityRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
             ActivityDisplayName = activity.DisplayName,
             ActivityHttpRoute = activityHttpRoute,
-            TestCase = testCase,
             RouteInfo = RouteInfo.Current,
         };
 
@@ -114,11 +113,10 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
         Assert.Equal(expectedMetricRoute, metricHttpRoute);
 
-        var testResult = new MetricRoutingTestResult
+        var testResult = new MetricRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
             MetricHttpRoute = metricHttpRoute,
-            TestCase = testCase,
             RouteInfo = RouteInfo.Current,
         };
 

@@ -4,30 +4,62 @@
 
 | http.route | App | Test Name |
 | - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#conventionalrouting-non-default-action-with-query-string) |
-| :green_heart: | ConventionalRouting | [Not Found (404)](#conventionalrouting-not-found-404) |
-| :green_heart: | ConventionalRouting | [Route template with parameter constraint](#conventionalrouting-route-template-with-parameter-constraint) |
-| :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#conventionalrouting-path-that-does-not-match-parameter-constraint) |
-| :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#conventionalrouting-area-using-areaexists-default-controlleraction) |
-| :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#conventionalrouting-area-wo-areaexists-default-controlleraction) |
-| :green_heart: | AttributeRouting | [Default action](#attributerouting-default-action) |
-| :green_heart: | AttributeRouting | [Action without parameter](#attributerouting-action-without-parameter) |
-| :green_heart: | AttributeRouting | [Action with parameter](#attributerouting-action-with-parameter) |
-| :green_heart: | AttributeRouting | [Action with parameter before action name in template](#attributerouting-action-with-parameter-before-action-name-in-template) |
-| :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :broken_heart: | RazorPages | [Root path](#razorpages-root-path) |
-| :broken_heart: | RazorPages | [Index page](#razorpages-index-page) |
-| :broken_heart: | RazorPages | [Throws exception](#razorpages-throws-exception) |
-| :green_heart: | RazorPages | [Static content](#razorpages-static-content) |
-| :green_heart: | MinimalApi | [Action without parameter](#minimalapi-action-without-parameter) |
-| :green_heart: | MinimalApi | [Action with parameter](#minimalapi-action-with-parameter) |
-| :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#minimalapi-action-without-parameter-mapgroup) |
-| :green_heart: | MinimalApi | [Action with parameter (MapGroup)](#minimalapi-action-with-parameter-mapgroup) |
-| :green_heart: | ExceptionMiddleware | [Exception Handled by Exception Handler Middleware](#exceptionmiddleware-exception-handled-by-exception-handler-middleware) |
+| :broken_heart: | ConventionalRouting | [Root path](#activity__conventionalrouting-root-path) |
+| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :broken_heart: | ConventionalRouting | [Non-default action with query string](#activity__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Not Found (404)](#activity__conventionalrouting-not-found-404) |
+| :green_heart: | ConventionalRouting | [Route template with parameter constraint](#activity__conventionalrouting-route-template-with-parameter-constraint) |
+| :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#activity__conventionalrouting-path-that-does-not-match-parameter-constraint) |
+| :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#activity__conventionalrouting-area-using-areaexists-default-controlleraction) |
+| :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#activity__conventionalrouting-area-using-areaexists-non-default-action) |
+| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#activity__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | AttributeRouting | [Default action](#activity__attributerouting-default-action) |
+| :green_heart: | AttributeRouting | [Action without parameter](#activity__attributerouting-action-without-parameter) |
+| :green_heart: | AttributeRouting | [Action with parameter](#activity__attributerouting-action-with-parameter) |
+| :green_heart: | AttributeRouting | [Action with parameter before action name in template](#activity__attributerouting-action-with-parameter-before-action-name-in-template) |
+| :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#activity__attributerouting-action-invoked-resulting-in-400-bad-request) |
+| :broken_heart: | RazorPages | [Root path](#activity__razorpages-root-path) |
+| :broken_heart: | RazorPages | [Index page](#activity__razorpages-index-page) |
+| :broken_heart: | RazorPages | [Throws exception](#activity__razorpages-throws-exception) |
+| :green_heart: | RazorPages | [Static content](#activity__razorpages-static-content) |
+| :green_heart: | MinimalApi | [Action without parameter](#activity__minimalapi-action-without-parameter) |
+| :green_heart: | MinimalApi | [Action with parameter](#activity__minimalapi-action-with-parameter) |
+| :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#activity__minimalapi-action-without-parameter-mapgroup) |
+| :green_heart: | MinimalApi | [Action with parameter (MapGroup)](#activity__minimalapi-action-with-parameter-mapgroup) |
+| :green_heart: | ExceptionMiddleware | [Exception Handled by Exception Handler Middleware](#activity__exceptionmiddleware-exception-handled-by-exception-handler-middleware) |
 
+## Metrics
+
+| http.route | App | Test Name |
+| - | - | - |
+| :broken_heart: | ConventionalRouting | [Root path](#metrics__conventionalrouting-root-path) |
+| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
+| :broken_heart: | ConventionalRouting | [Non-default action with query string](#metrics__conventionalrouting-non-default-action-with-query-string) |
+| :green_heart: | ConventionalRouting | [Not Found (404)](#metrics__conventionalrouting-not-found-404) |
+| :green_heart: | ConventionalRouting | [Route template with parameter constraint](#metrics__conventionalrouting-route-template-with-parameter-constraint) |
+| :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#metrics__conventionalrouting-path-that-does-not-match-parameter-constraint) |
+| :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#metrics__conventionalrouting-area-using-areaexists-default-controlleraction) |
+| :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#metrics__conventionalrouting-area-using-areaexists-non-default-action) |
+| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#metrics__conventionalrouting-area-wo-areaexists-default-controlleraction) |
+| :green_heart: | AttributeRouting | [Default action](#metrics__attributerouting-default-action) |
+| :green_heart: | AttributeRouting | [Action without parameter](#metrics__attributerouting-action-without-parameter) |
+| :green_heart: | AttributeRouting | [Action with parameter](#metrics__attributerouting-action-with-parameter) |
+| :green_heart: | AttributeRouting | [Action with parameter before action name in template](#metrics__attributerouting-action-with-parameter-before-action-name-in-template) |
+| :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#metrics__attributerouting-action-invoked-resulting-in-400-bad-request) |
+| :broken_heart: | RazorPages | [Root path](#metrics__razorpages-root-path) |
+| :broken_heart: | RazorPages | [Index page](#metrics__razorpages-index-page) |
+| :broken_heart: | RazorPages | [Throws exception](#metrics__razorpages-throws-exception) |
+| :green_heart: | RazorPages | [Static content](#metrics__razorpages-static-content) |
+| :green_heart: | MinimalApi | [Action without parameter](#metrics__minimalapi-action-without-parameter) |
+| :green_heart: | MinimalApi | [Action with parameter](#metrics__minimalapi-action-with-parameter) |
+| :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#metrics__minimalapi-action-without-parameter-mapgroup) |
+| :green_heart: | MinimalApi | [Action with parameter (MapGroup)](#metrics__minimalapi-action-with-parameter-mapgroup) |
+| :green_heart: | ExceptionMiddleware | [Exception Handled by Exception Handler Middleware](#metrics__exceptionmiddleware-exception-handled-by-exception-handler-middleware) |
+
+## Tracing tests details
+
+
+<a name="activity__conventionalrouting-root-path"></a>
 ## ConventionalRouting: Root path
 
 ```json
@@ -57,6 +89,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ## ConventionalRouting: Non-default action with route parameter and query string
 
 ```json
@@ -90,6 +123,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-non-default-action-with-query-string"></a>
 ## ConventionalRouting: Non-default action with query string
 
 ```json
@@ -122,6 +156,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-not-found-404"></a>
 ## ConventionalRouting: Not Found (404)
 
 ```json
@@ -140,6 +175,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-route-template-with-parameter-constraint"></a>
 ## ConventionalRouting: Route template with parameter constraint
 
 ```json
@@ -174,6 +210,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ## ConventionalRouting: Path that does not match parameter constraint
 
 ```json
@@ -192,6 +229,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area using `area:exists`, default controller/action
 
 ```json
@@ -222,6 +260,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ## ConventionalRouting: Area using `area:exists`, non-default action
 
 ```json
@@ -252,6 +291,7 @@
 }
 ```
 
+<a name="activity__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area w/o `area:exists`, default controller/action
 
 ```json
@@ -282,6 +322,7 @@
 }
 ```
 
+<a name="activity__attributerouting-default-action"></a>
 ## AttributeRouting: Default action
 
 ```json
@@ -311,6 +352,7 @@
 }
 ```
 
+<a name="activity__attributerouting-action-without-parameter"></a>
 ## AttributeRouting: Action without parameter
 
 ```json
@@ -340,6 +382,7 @@
 }
 ```
 
+<a name="activity__attributerouting-action-with-parameter"></a>
 ## AttributeRouting: Action with parameter
 
 ```json
@@ -372,6 +415,7 @@
 }
 ```
 
+<a name="activity__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ## AttributeRouting: Action with parameter before action name in template
 
 ```json
@@ -404,6 +448,7 @@
 }
 ```
 
+<a name="activity__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ## AttributeRouting: Action invoked resulting in 400 Bad Request
 
 ```json
@@ -436,6 +481,7 @@
 }
 ```
 
+<a name="activity__razorpages-root-path"></a>
 ## RazorPages: Root path
 
 ```json
@@ -464,6 +510,7 @@
 }
 ```
 
+<a name="activity__razorpages-index-page"></a>
 ## RazorPages: Index page
 
 ```json
@@ -492,6 +539,7 @@
 }
 ```
 
+<a name="activity__razorpages-throws-exception"></a>
 ## RazorPages: Throws exception
 
 ```json
@@ -520,6 +568,7 @@
 }
 ```
 
+<a name="activity__razorpages-static-content"></a>
 ## RazorPages: Static content
 
 ```json
@@ -538,6 +587,7 @@
 }
 ```
 
+<a name="activity__minimalapi-action-without-parameter"></a>
 ## MinimalApi: Action without parameter
 
 ```json
@@ -556,6 +606,7 @@
 }
 ```
 
+<a name="activity__minimalapi-action-with-parameter"></a>
 ## MinimalApi: Action with parameter
 
 ```json
@@ -576,6 +627,7 @@
 }
 ```
 
+<a name="activity__minimalapi-action-without-parameter-mapgroup"></a>
 ## MinimalApi: Action without parameter (MapGroup)
 
 ```json
@@ -594,6 +646,7 @@
 }
 ```
 
+<a name="activity__minimalapi-action-with-parameter-mapgroup"></a>
 ## MinimalApi: Action with parameter (MapGroup)
 
 ```json
@@ -614,6 +667,7 @@
 }
 ```
 
+<a name="activity__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ## ExceptionMiddleware: Exception Handled by Exception Handler Middleware
 
 ```json
@@ -632,34 +686,10 @@
 }
 ```
 
-## Metrics
+## Metrics tests details
 
-| http.route | App | Test Name |
-| - | - | - |
-| :broken_heart: | ConventionalRouting | [Root path](#conventionalrouting-root-path) |
-| :broken_heart: | ConventionalRouting | [Non-default action with route parameter and query string](#conventionalrouting-non-default-action-with-route-parameter-and-query-string) |
-| :broken_heart: | ConventionalRouting | [Non-default action with query string](#conventionalrouting-non-default-action-with-query-string) |
-| :green_heart: | ConventionalRouting | [Not Found (404)](#conventionalrouting-not-found-404) |
-| :green_heart: | ConventionalRouting | [Route template with parameter constraint](#conventionalrouting-route-template-with-parameter-constraint) |
-| :green_heart: | ConventionalRouting | [Path that does not match parameter constraint](#conventionalrouting-path-that-does-not-match-parameter-constraint) |
-| :broken_heart: | ConventionalRouting | [Area using `area:exists`, default controller/action](#conventionalrouting-area-using-areaexists-default-controlleraction) |
-| :broken_heart: | ConventionalRouting | [Area using `area:exists`, non-default action](#conventionalrouting-area-using-areaexists-non-default-action) |
-| :broken_heart: | ConventionalRouting | [Area w/o `area:exists`, default controller/action](#conventionalrouting-area-wo-areaexists-default-controlleraction) |
-| :green_heart: | AttributeRouting | [Default action](#attributerouting-default-action) |
-| :green_heart: | AttributeRouting | [Action without parameter](#attributerouting-action-without-parameter) |
-| :green_heart: | AttributeRouting | [Action with parameter](#attributerouting-action-with-parameter) |
-| :green_heart: | AttributeRouting | [Action with parameter before action name in template](#attributerouting-action-with-parameter-before-action-name-in-template) |
-| :green_heart: | AttributeRouting | [Action invoked resulting in 400 Bad Request](#attributerouting-action-invoked-resulting-in-400-bad-request) |
-| :broken_heart: | RazorPages | [Root path](#razorpages-root-path) |
-| :broken_heart: | RazorPages | [Index page](#razorpages-index-page) |
-| :broken_heart: | RazorPages | [Throws exception](#razorpages-throws-exception) |
-| :green_heart: | RazorPages | [Static content](#razorpages-static-content) |
-| :green_heart: | MinimalApi | [Action without parameter](#minimalapi-action-without-parameter) |
-| :green_heart: | MinimalApi | [Action with parameter](#minimalapi-action-with-parameter) |
-| :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#minimalapi-action-without-parameter-mapgroup) |
-| :green_heart: | MinimalApi | [Action with parameter (MapGroup)](#minimalapi-action-with-parameter-mapgroup) |
-| :green_heart: | ExceptionMiddleware | [Exception Handled by Exception Handler Middleware](#exceptionmiddleware-exception-handled-by-exception-handler-middleware) |
 
+<a name="metrics__conventionalrouting-root-path"></a>
 ## ConventionalRouting: Root path
 
 ```json
@@ -688,6 +718,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ## ConventionalRouting: Non-default action with route parameter and query string
 
 ```json
@@ -720,6 +751,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-non-default-action-with-query-string"></a>
 ## ConventionalRouting: Non-default action with query string
 
 ```json
@@ -751,6 +783,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-not-found-404"></a>
 ## ConventionalRouting: Not Found (404)
 
 ```json
@@ -768,6 +801,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-route-template-with-parameter-constraint"></a>
 ## ConventionalRouting: Route template with parameter constraint
 
 ```json
@@ -801,6 +835,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ## ConventionalRouting: Path that does not match parameter constraint
 
 ```json
@@ -818,6 +853,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area using `area:exists`, default controller/action
 
 ```json
@@ -847,6 +883,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ## ConventionalRouting: Area using `area:exists`, non-default action
 
 ```json
@@ -876,6 +913,7 @@
 }
 ```
 
+<a name="metrics__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area w/o `area:exists`, default controller/action
 
 ```json
@@ -905,6 +943,7 @@
 }
 ```
 
+<a name="metrics__attributerouting-default-action"></a>
 ## AttributeRouting: Default action
 
 ```json
@@ -933,6 +972,7 @@
 }
 ```
 
+<a name="metrics__attributerouting-action-without-parameter"></a>
 ## AttributeRouting: Action without parameter
 
 ```json
@@ -961,6 +1001,7 @@
 }
 ```
 
+<a name="metrics__attributerouting-action-with-parameter"></a>
 ## AttributeRouting: Action with parameter
 
 ```json
@@ -992,6 +1033,7 @@
 }
 ```
 
+<a name="metrics__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ## AttributeRouting: Action with parameter before action name in template
 
 ```json
@@ -1023,6 +1065,7 @@
 }
 ```
 
+<a name="metrics__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ## AttributeRouting: Action invoked resulting in 400 Bad Request
 
 ```json
@@ -1054,6 +1097,7 @@
 }
 ```
 
+<a name="metrics__razorpages-root-path"></a>
 ## RazorPages: Root path
 
 ```json
@@ -1081,6 +1125,7 @@
 }
 ```
 
+<a name="metrics__razorpages-index-page"></a>
 ## RazorPages: Index page
 
 ```json
@@ -1108,6 +1153,7 @@
 }
 ```
 
+<a name="metrics__razorpages-throws-exception"></a>
 ## RazorPages: Throws exception
 
 ```json
@@ -1135,6 +1181,7 @@
 }
 ```
 
+<a name="metrics__razorpages-static-content"></a>
 ## RazorPages: Static content
 
 ```json
@@ -1152,6 +1199,7 @@
 }
 ```
 
+<a name="metrics__minimalapi-action-without-parameter"></a>
 ## MinimalApi: Action without parameter
 
 ```json
@@ -1169,6 +1217,7 @@
 }
 ```
 
+<a name="metrics__minimalapi-action-with-parameter"></a>
 ## MinimalApi: Action with parameter
 
 ```json
@@ -1188,6 +1237,7 @@
 }
 ```
 
+<a name="metrics__minimalapi-action-without-parameter-mapgroup"></a>
 ## MinimalApi: Action without parameter (MapGroup)
 
 ```json
@@ -1205,6 +1255,7 @@
 }
 ```
 
+<a name="metrics__minimalapi-action-with-parameter-mapgroup"></a>
 ## MinimalApi: Action with parameter (MapGroup)
 
 ```json
@@ -1224,6 +1275,7 @@
 }
 ```
 
+<a name="metrics__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ## ExceptionMiddleware: Exception Handled by Exception Handler Middleware
 
 ```json

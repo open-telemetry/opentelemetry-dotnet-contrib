@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
@@ -94,6 +93,18 @@ public class RoutingTestFixture : IAsyncLifetime
 
         this.AppendTestResults(sb, this.metricsTestResults);
 
+        sb.AppendLine();
+        sb.AppendLine("## Tracing tests details");
+        sb.AppendLine();
+
+        this.AppendJsonResults(sb, this.activityTestResults);
+
+        sb.AppendLine();
+        sb.AppendLine("## Metrics tests details");
+        sb.AppendLine();
+
+        this.AppendJsonResults(sb, this.metricsTestResults);
+
         string routeTestsPath =
             typeof(TestApplicationFactory).Assembly
             .GetCustomAttributes()
@@ -106,38 +117,24 @@ public class RoutingTestFixture : IAsyncLifetime
 
     private void AppendTestResults(StringBuilder sb, IReadOnlyCollection<RoutingTestResult> testResults)
     {
-        for (var i = 0; i < testResults.Count; ++i)
+        foreach (var result in testResults)
         {
-            var result = testResults.ElementAt(i);
             var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
-            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}]({GenerateLinkFragment(result.TestCase.TestApplicationScenario, result.TestCase.Name)}) |");
+            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}](#{result.DetailsAnchor}) |");
         }
+    }
 
-        for (var i = 0; i < testResults.Count; ++i)
+    private void AppendJsonResults(StringBuilder sb, IReadOnlyCollection<RoutingTestResult> testResults)
+    {
+        foreach (var result in testResults)
         {
-            var result = testResults.ElementAt(i);
             sb.AppendLine();
+            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
             sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
             sb.AppendLine();
             sb.AppendLine("```json");
             sb.AppendLine(result.ToString());
             sb.AppendLine("```");
-        }
-
-        // Generates a link fragment that should comply with markdownlint rule MD051
-        // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md
-        static string GenerateLinkFragment(TestApplicationScenario scenario, string name)
-        {
-            var chars = name.ToCharArray()
-                .Where(c => (!char.IsPunctuation(c) && c != '`') || c == '-')
-                .Select(c => c switch
-                {
-                    '-' or ' ' => '-',
-                    _ => char.ToLower(c, CultureInfo.InvariantCulture),
-                })
-                .ToArray();
-
-            return $"#{scenario.ToString().ToLower(CultureInfo.CurrentCulture)}-{new string(chars)}";
         }
     }
 }
