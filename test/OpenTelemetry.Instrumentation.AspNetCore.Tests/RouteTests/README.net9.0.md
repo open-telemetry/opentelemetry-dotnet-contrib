@@ -59,9 +59,9 @@
 ## Tracing tests details
 
 
-<a name="activity__conventionalrouting-root-path"></a>
 ## ConventionalRouting: Root path
 
+<a name="activity__conventionalrouting-root-path"></a>
 ```json
 {
   "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -89,9 +89,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ## ConventionalRouting: Non-default action with route parameter and query string
 
+<a name="activity__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ```json
 {
   "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -123,9 +123,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-non-default-action-with-query-string"></a>
 ## ConventionalRouting: Non-default action with query string
 
+<a name="activity__conventionalrouting-non-default-action-with-query-string"></a>
 ```json
 {
   "ActivityDisplayName": "GET {controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -156,9 +156,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-not-found-404"></a>
 ## ConventionalRouting: Not Found (404)
 
+<a name="activity__conventionalrouting-not-found-404"></a>
 ```json
 {
   "ActivityDisplayName": "GET",
@@ -175,9 +175,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-route-template-with-parameter-constraint"></a>
 ## ConventionalRouting: Route template with parameter constraint
 
+<a name="activity__conventionalrouting-route-template-with-parameter-constraint"></a>
 ```json
 {
   "ActivityDisplayName": "GET SomePath/{id}/{num:int}",
@@ -210,9 +210,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ## ConventionalRouting: Path that does not match parameter constraint
 
+<a name="activity__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ```json
 {
   "ActivityDisplayName": "GET",
@@ -229,9 +229,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area using `area:exists`, default controller/action
 
+<a name="activity__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ```json
 {
   "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
@@ -260,9 +260,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ## ConventionalRouting: Area using `area:exists`, non-default action
 
+<a name="activity__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ```json
 {
   "ActivityDisplayName": "GET {area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
@@ -291,9 +291,9 @@
 }
 ```
 
-<a name="activity__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area w/o `area:exists`, default controller/action
 
+<a name="activity__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ```json
 {
   "ActivityDisplayName": "GET SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
@@ -322,9 +322,9 @@
 }
 ```
 
-<a name="activity__attributerouting-default-action"></a>
 ## AttributeRouting: Default action
 
+<a name="activity__attributerouting-default-action"></a>
 ```json
 {
   "ActivityDisplayName": "GET AttributeRoute",
@@ -352,9 +352,9 @@
 }
 ```
 
-<a name="activity__attributerouting-action-without-parameter"></a>
 ## AttributeRouting: Action without parameter
 
+<a name="activity__attributerouting-action-without-parameter"></a>
 ```json
 {
   "ActivityDisplayName": "GET AttributeRoute/Get",
@@ -382,9 +382,9 @@
 }
 ```
 
-<a name="activity__attributerouting-action-with-parameter"></a>
 ## AttributeRouting: Action with parameter
 
+<a name="activity__attributerouting-action-with-parameter"></a>
 ```json
 {
   "ActivityDisplayName": "GET AttributeRoute/Get/{id}",
@@ -415,9 +415,9 @@
 }
 ```
 
-<a name="activity__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ## AttributeRouting: Action with parameter before action name in template
 
+<a name="activity__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ```json
 {
   "ActivityDisplayName": "GET AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
@@ -448,9 +448,9 @@
 }
 ```
 
-<a name="activity__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ## AttributeRouting: Action invoked resulting in 400 Bad Request
 
+<a name="activity__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ```json
 {
   "ActivityDisplayName": "GET AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
@@ -481,9 +481,9 @@
 }
 ```
 
-<a name="activity__razorpages-root-path"></a>
 ## RazorPages: Root path
 
+<a name="activity__razorpages-root-path"></a>
 ```json
 {
   "ActivityDisplayName": "GET",
@@ -510,9 +510,9 @@
 }
 ```
 
-<a name="activity__razorpages-index-page"></a>
 ## RazorPages: Index page
 
+<a name="activity__razorpages-index-page"></a>
 ```json
 {
   "ActivityDisplayName": "GET Index",
@@ -539,9 +539,9 @@
 }
 ```
 
-<a name="activity__razorpages-throws-exception"></a>
 ## RazorPages: Throws exception
 
+<a name="activity__razorpages-throws-exception"></a>
 ```json
 {
   "ActivityDisplayName": "GET PageThatThrowsException",
@@ -568,9 +568,9 @@
 }
 ```
 
-<a name="activity__razorpages-static-content"></a>
 ## RazorPages: Static content
 
+<a name="activity__razorpages-static-content"></a>
 ```json
 {
   "ActivityDisplayName": "GET",
@@ -587,9 +587,9 @@
 }
 ```
 
-<a name="activity__minimalapi-action-without-parameter"></a>
 ## MinimalApi: Action without parameter
 
+<a name="activity__minimalapi-action-without-parameter"></a>
 ```json
 {
   "ActivityDisplayName": "GET /MinimalApi",
@@ -606,9 +606,9 @@
 }
 ```
 
-<a name="activity__minimalapi-action-with-parameter"></a>
 ## MinimalApi: Action with parameter
 
+<a name="activity__minimalapi-action-with-parameter"></a>
 ```json
 {
   "ActivityDisplayName": "GET /MinimalApi/{id}",
@@ -627,9 +627,9 @@
 }
 ```
 
-<a name="activity__minimalapi-action-without-parameter-mapgroup"></a>
 ## MinimalApi: Action without parameter (MapGroup)
 
+<a name="activity__minimalapi-action-without-parameter-mapgroup"></a>
 ```json
 {
   "ActivityDisplayName": "GET /MinimalApiUsingMapGroup/",
@@ -646,9 +646,9 @@
 }
 ```
 
-<a name="activity__minimalapi-action-with-parameter-mapgroup"></a>
 ## MinimalApi: Action with parameter (MapGroup)
 
+<a name="activity__minimalapi-action-with-parameter-mapgroup"></a>
 ```json
 {
   "ActivityDisplayName": "GET /MinimalApiUsingMapGroup/{id}",
@@ -667,9 +667,9 @@
 }
 ```
 
-<a name="activity__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ## ExceptionMiddleware: Exception Handled by Exception Handler Middleware
 
+<a name="activity__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ```json
 {
   "ActivityDisplayName": "GET /Exception",
@@ -689,9 +689,9 @@
 ## Metrics tests details
 
 
-<a name="metrics__conventionalrouting-root-path"></a>
 ## ConventionalRouting: Root path
 
+<a name="metrics__conventionalrouting-root-path"></a>
 ```json
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -718,9 +718,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ## ConventionalRouting: Non-default action with route parameter and query string
 
+<a name="metrics__conventionalrouting-non-default-action-with-route-parameter-and-query-string"></a>
 ```json
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -751,9 +751,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-non-default-action-with-query-string"></a>
 ## ConventionalRouting: Non-default action with query string
 
+<a name="metrics__conventionalrouting-non-default-action-with-query-string"></a>
 ```json
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
@@ -783,9 +783,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-not-found-404"></a>
 ## ConventionalRouting: Not Found (404)
 
+<a name="metrics__conventionalrouting-not-found-404"></a>
 ```json
 {
   "MetricHttpRoute": "",
@@ -801,9 +801,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-route-template-with-parameter-constraint"></a>
 ## ConventionalRouting: Route template with parameter constraint
 
+<a name="metrics__conventionalrouting-route-template-with-parameter-constraint"></a>
 ```json
 {
   "MetricHttpRoute": "SomePath/{id}/{num:int}",
@@ -835,9 +835,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ## ConventionalRouting: Path that does not match parameter constraint
 
+<a name="metrics__conventionalrouting-path-that-does-not-match-parameter-constraint"></a>
 ```json
 {
   "MetricHttpRoute": "",
@@ -853,9 +853,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area using `area:exists`, default controller/action
 
+<a name="metrics__conventionalrouting-area-using-areaexists-default-controlleraction"></a>
 ```json
 {
   "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
@@ -883,9 +883,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ## ConventionalRouting: Area using `area:exists`, non-default action
 
+<a name="metrics__conventionalrouting-area-using-areaexists-non-default-action"></a>
 ```json
 {
   "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
@@ -913,9 +913,9 @@
 }
 ```
 
-<a name="metrics__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ## ConventionalRouting: Area w/o `area:exists`, default controller/action
 
+<a name="metrics__conventionalrouting-area-wo-areaexists-default-controlleraction"></a>
 ```json
 {
   "MetricHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
@@ -943,9 +943,9 @@
 }
 ```
 
-<a name="metrics__attributerouting-default-action"></a>
 ## AttributeRouting: Default action
 
+<a name="metrics__attributerouting-default-action"></a>
 ```json
 {
   "MetricHttpRoute": "AttributeRoute",
@@ -972,9 +972,9 @@
 }
 ```
 
-<a name="metrics__attributerouting-action-without-parameter"></a>
 ## AttributeRouting: Action without parameter
 
+<a name="metrics__attributerouting-action-without-parameter"></a>
 ```json
 {
   "MetricHttpRoute": "AttributeRoute/Get",
@@ -1001,9 +1001,9 @@
 }
 ```
 
-<a name="metrics__attributerouting-action-with-parameter"></a>
 ## AttributeRouting: Action with parameter
 
+<a name="metrics__attributerouting-action-with-parameter"></a>
 ```json
 {
   "MetricHttpRoute": "AttributeRoute/Get/{id}",
@@ -1033,9 +1033,9 @@
 }
 ```
 
-<a name="metrics__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ## AttributeRouting: Action with parameter before action name in template
 
+<a name="metrics__attributerouting-action-with-parameter-before-action-name-in-template"></a>
 ```json
 {
   "MetricHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
@@ -1065,9 +1065,9 @@
 }
 ```
 
-<a name="metrics__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ## AttributeRouting: Action invoked resulting in 400 Bad Request
 
+<a name="metrics__attributerouting-action-invoked-resulting-in-400-bad-request"></a>
 ```json
 {
   "MetricHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
@@ -1097,9 +1097,9 @@
 }
 ```
 
-<a name="metrics__razorpages-root-path"></a>
 ## RazorPages: Root path
 
+<a name="metrics__razorpages-root-path"></a>
 ```json
 {
   "MetricHttpRoute": "",
@@ -1125,9 +1125,9 @@
 }
 ```
 
-<a name="metrics__razorpages-index-page"></a>
 ## RazorPages: Index page
 
+<a name="metrics__razorpages-index-page"></a>
 ```json
 {
   "MetricHttpRoute": "Index",
@@ -1153,9 +1153,9 @@
 }
 ```
 
-<a name="metrics__razorpages-throws-exception"></a>
 ## RazorPages: Throws exception
 
+<a name="metrics__razorpages-throws-exception"></a>
 ```json
 {
   "MetricHttpRoute": "PageThatThrowsException",
@@ -1181,9 +1181,9 @@
 }
 ```
 
-<a name="metrics__razorpages-static-content"></a>
 ## RazorPages: Static content
 
+<a name="metrics__razorpages-static-content"></a>
 ```json
 {
   "MetricHttpRoute": "",
@@ -1199,9 +1199,9 @@
 }
 ```
 
-<a name="metrics__minimalapi-action-without-parameter"></a>
 ## MinimalApi: Action without parameter
 
+<a name="metrics__minimalapi-action-without-parameter"></a>
 ```json
 {
   "MetricHttpRoute": "/MinimalApi",
@@ -1217,9 +1217,9 @@
 }
 ```
 
-<a name="metrics__minimalapi-action-with-parameter"></a>
 ## MinimalApi: Action with parameter
 
+<a name="metrics__minimalapi-action-with-parameter"></a>
 ```json
 {
   "MetricHttpRoute": "/MinimalApi/{id}",
@@ -1237,9 +1237,9 @@
 }
 ```
 
-<a name="metrics__minimalapi-action-without-parameter-mapgroup"></a>
 ## MinimalApi: Action without parameter (MapGroup)
 
+<a name="metrics__minimalapi-action-without-parameter-mapgroup"></a>
 ```json
 {
   "MetricHttpRoute": "/MinimalApiUsingMapGroup/",
@@ -1255,9 +1255,9 @@
 }
 ```
 
-<a name="metrics__minimalapi-action-with-parameter-mapgroup"></a>
 ## MinimalApi: Action with parameter (MapGroup)
 
+<a name="metrics__minimalapi-action-with-parameter-mapgroup"></a>
 ```json
 {
   "MetricHttpRoute": "/MinimalApiUsingMapGroup/{id}",
@@ -1275,9 +1275,9 @@
 }
 ```
 
-<a name="metrics__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ## ExceptionMiddleware: Exception Handled by Exception Handler Middleware
 
+<a name="metrics__exceptionmiddleware-exception-handled-by-exception-handler-middleware"></a>
 ```json
 {
   "MetricHttpRoute": "/Exception",

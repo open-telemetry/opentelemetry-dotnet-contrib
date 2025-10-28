@@ -129,9 +129,9 @@ public class RoutingTestFixture : IAsyncLifetime
         foreach (var result in testResults)
         {
             sb.AppendLine();
-            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
             sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
             sb.AppendLine();
+            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
             sb.AppendLine("```json");
             sb.AppendLine(result.ToString());
             sb.AppendLine("```");
