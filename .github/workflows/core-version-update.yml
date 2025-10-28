@@ -14,35 +14,45 @@ permissions:
 jobs:
   automation:
     uses: ./.github/workflows/automation.yml
-    secrets: inherit
+    secrets:
+      OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
   core-version-update:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     needs: automation
 
     if: needs.automation.outputs.enabled
 
-    env:
-      GH_TOKEN: ${{ secrets[needs.automation.outputs.token-secret-name] }}
-
     steps:
+    - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+      id: otelbot-token
+      with:
+        app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
+        private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
+
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         ref: ${{ github.event.repository.default_branch }}
-        token: ${{ secrets[needs.automation.outputs.token-secret-name] }}
+        token: ${{ steps.otelbot-token.outputs.token }}
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
 
     - name: Create GitHub Pull Request to update core version in props and update CHANGELOGs in projects
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ steps.otelbot-token.outputs.token }}
+        BOT_USER_EMAIL: ${{ needs.automation.outputs.email }}
+        BOT_USER_NAME: ${{ needs.automation.outputs.username }}
+        TARGET_BRANCH: ${{ github.event.repository.default_branch }}
+        TAG: ${{ inputs.tag }}
       run: |
         Import-Module .\build\scripts\post-release.psm1
 
         CreateOpenTelemetryCoreLatestVersionUpdatePullRequest `
-          -gitRepository '${{ github.repository }}' `
-          -tag '${{ inputs.tag }}' `
-          -targetBranch '${{ github.event.repository.default_branch }}' `
-          -gitUserName '${{ needs.automation.outputs.username }}' `
-          -gitUserEmail '${{ needs.automation.outputs.email }}'
+          -gitRepository ${env:GITHUB_REPOSITORY} `
+          -tag ${env:TAG} `
+          -targetBranch ${env:TARGET_BRANCH} `
+          -gitUserName ${env:BOT_USER_NAME} `
+          -gitUserEmail ${env:BOT_USER_EMAIL}

@@ -16,17 +16,27 @@ components:
     - mikegoldsmith
   src/OpenTelemetry.Extensions.AWS/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z
   src/OpenTelemetry.Extensions.Enrichment/:
     - evgenyfedorov2
+    - dariusclay
+  src/OpenTelemetry.Extensions.Enrichment.AspNetCore/:
+    - evgenyfedorov2
+    - dariusclay
+  src/OpenTelemetry.Extensions.Enrichment.Http/:
+    - evgenyfedorov2
+    - dariusclay
   src/OpenTelemetry.Instrumentation.AWS/:
     - srprash
-    - ppittle
+    - normj
     - muhammad-othman
+    - lukeina2z
   src/OpenTelemetry.Instrumentation.AWSLambda/:
     - rypdal
     - Oberon00
-    - ppittle
+    - normj
+    - lukeina2z
   src/OpenTelemetry.Instrumentation.Cassandra/:
     - xsoheilalizadeh
   src/OpenTelemetry.Instrumentation.ConfluentKafka/:
@@ -63,7 +73,8 @@ components:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.AWS/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z
   src/OpenTelemetry.Resources.Azure/:
     - rajkumar-rangaraj
   src/OpenTelemetry.Resources.Container/:
@@ -84,7 +95,8 @@ components:
     - matt-hensley
   src/OpenTelemetry.Sampler.AWS/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17
@@ -106,17 +118,27 @@ components:
     - mikegoldsmith
   test/OpenTelemetry.Extensions.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z
   test/OpenTelemetry.Extensions.Enrichment.Tests/:
     - evgenyfedorov2
+    - dariusclay
+  test/OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests/:
+    - evgenyfedorov2
+    - dariusclay
+  test/OpenTelemetry.Extensions.Enrichment.Http.Tests/:
+    - evgenyfedorov2
+    - dariusclay
   test/OpenTelemetry.Instrumentation.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
     - muhammad-othman
+    - lukeina2z
   test/OpenTelemetry.Instrumentation.AWSLambda.Tests/:
     - rypdal
     - Oberon00
-    - ppittle
+    - normj
+    - lukeina2z
   test/OpenTelemetry.Instrumentation.Cassandra.Tests/:
     - xsoheilalizadeh
   test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/:
@@ -149,7 +171,8 @@ components:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z
   test/OpenTelemetry.Resources.Azure.Tests/:
     - rajkumar-rangaraj
   test/OpenTelemetry.Resources.Container.Tests/:
@@ -167,4 +190,5 @@ components:
     - matt-hensley
   test/OpenTelemetry.Sampler.AWS.Tests/:
     - srprash
-    - ppittle
+    - normj
+    - lukeina2z

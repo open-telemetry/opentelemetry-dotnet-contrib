@@ -8,7 +8,7 @@ namespace OpenTelemetry.Instrumentation.AspNet.Implementation;
 
 internal static class RequestDataHelperExtensions
 {
-    public static string GetHttpProtocolVersion(HttpRequest request)
+    public static string GetHttpProtocolVersion(HttpRequestBase request)
     {
         return RequestDataHelper.GetHttpProtocolVersion(request.ServerVariables["SERVER_PROTOCOL"]);
     }

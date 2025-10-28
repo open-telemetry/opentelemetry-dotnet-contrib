@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.5
+
+Released 2025-Oct-23
+
 * Added a direct reference to `System.Text.Json` at `8.0.5` for the
   `netstandard2.0` target in response to
   [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).
   ([#2202](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2202))
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.0.0-alpha.4
 

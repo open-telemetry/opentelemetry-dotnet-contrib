@@ -29,6 +29,231 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         this.Seed();
     }
 
+    public static TheoryData<string, string, string> DbSystemTestCases()
+    {
+        var testCases = new TheoryData<string, string, string>()
+        {
+            { "Microsoft.EntityFrameworkCore.Cosmos", "cosmosdb", "azure.cosmosdb" },
+            { "MongoDB.EntityFrameworkCore", "mongodb", "mongodb" },
+        };
+
+        // Couchbase
+        string[] names =
+        [
+            "Couchbase.EntityFrameworkCore",
+            "Couchbase.EntityFrameworkCore.Storage.Internal",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "couchbase", "couchbase");
+        }
+
+        // DB2
+        names =
+        [
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "db2", "ibm.db2");
+        }
+
+        // Firebird
+        names =
+        [
+            "FirebirdSql.Data.FirebirdClient.FbCommand",
+            "FirebirdSql.EntityFrameworkCore.Firebird",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "firebird", "firebirdsql");
+        }
+
+        // Microsoft SQL Server
+        names =
+        [
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "mssql", "microsoft.sql_server");
+        }
+
+        // MySQL
+        names =
+        [
+            "Devart.Data.MySql.Entity.EFCore",
+            "Devart.Data.MySql.MySqlCommand",
+            "MySql.Data.EntityFrameworkCore",
+            "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
+            "Pomelo.EntityFrameworkCore.MySql",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "mysql", "mysql");
+        }
+
+        // Oracle Database
+        names =
+        [
+            "Devart.Data.Oracle.Entity.EFCore",
+            "Devart.Data.Oracle.OracleCommand",
+            "Oracle.EntityFrameworkCore",
+            "Oracle.ManagedDataAccess.Client.OracleCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "oracle", "oracle.db");
+        }
+
+        // PostgreSQL
+        names =
+        [
+            "Devart.Data.PostgreSql.Entity.EFCore",
+            "Devart.Data.PostgreSql.PgSqlCommand",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Npgsql.NpgsqlCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "postgresql", "postgresql");
+        }
+
+        // SQLite
+        names =
+        [
+            "Devart.Data.SQLite.Entity.EFCore",
+            "Microsoft.Data.Sqlite.SqliteCommand",
+            "Microsoft.EntityFrameworkCore.Sqlite",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "sqlite", "sqlite");
+        }
+
+        // Spanner
+        names =
+        [
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "spanner", "gcp.spanner");
+        }
+
+        // Teradata
+        names =
+        [
+            "Teradata.Client.Provider.TdCommand",
+            "Teradata.EntityFrameworkCore",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "teradata", "teradata");
+        }
+
+        // Unknown providers
+        names =
+        [
+            "foo",
+            "Contoso.BusinessLogic.DataAccess.Command",
+        ];
+
+        foreach (string name in names)
+        {
+            testCases.Add(name, "other_sql", "other_sql");
+        }
+
+        return testCases;
+    }
+
+    public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
+    {
+        // Get all the possible names and assume they are false
+        var values = DbSystemTestCases().ToDictionary((k) => (string)k[0], (v) => false);
+
+        // Override specific entries to be true
+        string[] supported =
+        [
+            "Devart.Data.MySql.Entity.EFCore",
+            "Devart.Data.MySql.MySqlCommand",
+            "Devart.Data.Oracle.Entity.EFCore",
+            "Devart.Data.Oracle.OracleCommand",
+            "Devart.Data.PostgreSql.Entity.EFCore",
+            "Devart.Data.PostgreSql.PgSqlCommand",
+            "Devart.Data.SQLite.Entity.EFCore",
+            "FirebirdSql.Data.FirebirdClient.FbCommand",
+            "FirebirdSql.EntityFrameworkCore.Firebird",
+            "Google.Cloud.EntityFrameworkCore.Spanner",
+            "Google.Cloud.Spanner.Data.SpannerCommand",
+            "IBM.EntityFrameworkCore",
+            "IBM.EntityFrameworkCore-lnx",
+            "IBM.EntityFrameworkCore-osx",
+            "Microsoft.Data.SqlClient.SqlCommand",
+            "Microsoft.Data.Sqlite.SqliteCommand",
+            "Microsoft.EntityFrameworkCore.Sqlite",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+            "MySql.Data.EntityFrameworkCore",
+            "MySql.Data.MySqlClient.MySqlCommand",
+            "MySql.EntityFrameworkCore",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Npgsql.NpgsqlCommand",
+            "Oracle.EntityFrameworkCore",
+            "Oracle.ManagedDataAccess.Client.OracleCommand",
+            "Pomelo.EntityFrameworkCore.MySql",
+            "Teradata.Client.Provider.TdCommand",
+            "Teradata.EntityFrameworkCore",
+        ];
+
+        foreach (var name in supported)
+        {
+            values[name] = true;
+        }
+
+        var testCases = new TheoryData<string, bool>();
+
+        foreach ((var name, var expected) in values)
+        {
+            testCases.Add(name, expected);
+        }
+
+        return testCases;
+    }
+
+    [Theory]
+    [MemberData(nameof(DbSystemTestCases))]
+    public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
+    {
+        (var actualDbSystem, var actualDbSystemName) = EntityFrameworkDiagnosticListener.GetDbSystemNames(name);
+
+        Assert.Equal(expectedDbSystem, actualDbSystem);
+        Assert.Equal(expectedDbSystemName, actualDbSystemName);
+    }
+
+    [Theory]
+    [MemberData(nameof(IsSqlLikeProviderTestCases))]
+    public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
+    {
+        var actual = EntityFrameworkDiagnosticListener.IsSqlLikeProvider(name);
+
+        Assert.Equal(expected, actual);
+    }
+
     [Fact]
     public void EntityFrameworkContextEventsInstrumentedTest()
     {
@@ -266,19 +491,21 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         Assert.Equal(altDisplayName ?? "main", activity.DisplayName);
 
         Assert.Equal(ActivityKind.Client, activity.Kind);
-        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbSystem).Value);
+        Assert.Equal("sqlite", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbSystem).Value);
 
         // TBD: SqlLite not setting the DataSource so it doesn't get set.
-        Assert.DoesNotContain(activity.Tags, t => t.Key == EntityFrameworkDiagnosticListener.AttributePeerService);
+        Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
+        Assert.DoesNotContain(activity.Tags, t => t.Key == "server.address");
+        Assert.DoesNotContain(activity.Tags, t => t.Key == "server.port");
 
         if (!emitNewAttributes)
         {
-            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbName).Value);
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbName).Value);
         }
 
         if (emitNewAttributes)
         {
-            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == EntityFrameworkDiagnosticListener.AttributeDbNamespace).Value);
+            Assert.Equal(altDisplayName ?? "main", activity.Tags.FirstOrDefault(t => t.Key == SemanticConventions.AttributeDbNamespace).Value);
         }
 
         if (!isError)

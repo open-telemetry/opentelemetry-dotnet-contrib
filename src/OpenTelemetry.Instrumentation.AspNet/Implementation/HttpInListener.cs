@@ -20,28 +20,28 @@ internal sealed class HttpInListener : IDisposable
     {
         TelemetryHttpModule.Options.TextMapPropagator = Propagators.DefaultTextMapPropagator;
 
-        TelemetryHttpModule.Options.OnRequestStartedCallback += this.OnStartActivity;
+        TelemetryHttpModule.Options.OnRequestStartedCallback += this.StartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback += this.OnStopActivity;
         TelemetryHttpModule.Options.OnExceptionCallback += this.OnException;
     }
 
     public void Dispose()
     {
-        TelemetryHttpModule.Options.OnRequestStartedCallback -= this.OnStartActivity;
+        TelemetryHttpModule.Options.OnRequestStartedCallback -= this.StartActivity;
         TelemetryHttpModule.Options.OnRequestStoppedCallback -= this.OnStopActivity;
         TelemetryHttpModule.Options.OnExceptionCallback -= this.OnException;
     }
 
-    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    private static double CalculateDurationFromTimestamp(long begin)
     {
-        end ??= Stopwatch.GetTimestamp();
+        var end = Stopwatch.GetTimestamp();
         var delta = end - begin;
         var ticks = (long)(TimestampToTicks * delta);
         var duration = new TimeSpan(ticks);
         return duration.TotalSeconds;
     }
 
-    private void RecordDuration(Activity? activity, HttpContext context, Exception? exception = null)
+    private void RecordDuration(Activity? activity, HttpContextBase context, Exception? exception = null)
     {
         if (AspNetInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
@@ -94,11 +94,11 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
         }
 
-        if (options.Enrich is not null)
+        if (options.EnrichWithHttpContext is not null)
         {
             try
             {
-                options.Enrich(context, ref tags);
+                options.EnrichWithHttpContext(context, ref tags);
             }
             catch (Exception ex)
             {
@@ -111,7 +111,7 @@ internal sealed class HttpInListener : IDisposable
         AspNetInstrumentation.HttpServerDuration.Record(duration, tags);
     }
 
-    private void OnStartActivity(Activity? activity, HttpContext context)
+    private Activity? StartActivity(HttpContextBase context, ActivityContext activityContext)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -122,16 +122,47 @@ internal sealed class HttpInListener : IDisposable
                 this.beginTimestamp.Value = Stopwatch.GetTimestamp();
             }
 
-            return;
+            return null;
         }
+
+        TagList tags = default;
+
+        var request = context.Request;
+        var originalHttpMethod = request.HttpMethod;
+        var activityName = this.requestDataHelper.GetActivityDisplayName(originalHttpMethod);
+        this.requestDataHelper.SetHttpMethodTag(ref tags, originalHttpMethod);
+
+        var url = request.Url;
+        tags.Add(SemanticConventions.AttributeServerAddress, url.Host);
+        tags.Add(SemanticConventions.AttributeServerPort, url.Port);
+        tags.Add(SemanticConventions.AttributeUrlScheme, url.Scheme);
+
+        if (context.Request.Unvalidated?.Path is string path)
+        {
+            tags.Add(SemanticConventions.AttributeUrlPath, path);
+        }
+
+        var userAgent = request.UserAgent;
+        if (!string.IsNullOrEmpty(userAgent))
+        {
+            tags.Add(SemanticConventions.AttributeUserAgentOriginal, userAgent);
+        }
+
+        var query = url.Query;
+        var options = AspNetInstrumentation.Instance.TraceOptions;
+        if (!string.IsNullOrEmpty(query))
+        {
+            var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
+            tags.Add(SemanticConventions.AttributeUrlQuery, options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
+        }
+
+        var activity = AspNetInstrumentation.ActivitySource.StartActivity(activityName, ActivityKind.Server, activityContext, tags);
 
         if (activity == null)
         {
-            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.OnStartActivity));
-            return;
+            AspNetInstrumentationEventSource.Log.NullActivity(nameof(this.StartActivity));
+            return null;
         }
-
-        var options = AspNetInstrumentation.Instance.TraceOptions;
 
         if (activity.IsAllDataRequested)
         {
@@ -148,7 +179,7 @@ internal sealed class HttpInListener : IDisposable
                     AspNetInstrumentationEventSource.Log.RequestIsFilteredOut(activity.OperationName);
                     activity.IsAllDataRequested = false;
                     activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-                    return;
+                    return activity;
                 }
             }
             catch (Exception ex)
@@ -156,39 +187,13 @@ internal sealed class HttpInListener : IDisposable
                 AspNetInstrumentationEventSource.Log.RequestFilterException(activity.OperationName, ex);
                 activity.IsAllDataRequested = false;
                 activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-                return;
+                return activity;
             }
-
-            var request = context.Request;
-
-            // see the spec https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md
-            var originalHttpMethod = request.HttpMethod;
-            this.requestDataHelper.SetActivityDisplayName(activity, originalHttpMethod);
-
-            var url = request.Url;
-            activity.SetTag(SemanticConventions.AttributeServerAddress, url.Host);
-            activity.SetTag(SemanticConventions.AttributeServerPort, url.Port);
-            activity.SetTag(SemanticConventions.AttributeUrlScheme, url.Scheme);
-
-            this.requestDataHelper.SetHttpMethodTag(activity, originalHttpMethod);
 
             var protocolVersion = RequestDataHelperExtensions.GetHttpProtocolVersion(request);
             if (!string.IsNullOrEmpty(protocolVersion))
             {
                 activity.SetTag(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
-            }
-
-            var query = url.Query;
-            if (!string.IsNullOrEmpty(query))
-            {
-                var queryString = query.StartsWith("?", StringComparison.Ordinal) ? query.Substring(1) : query;
-                activity.SetTag(SemanticConventions.AttributeUrlQuery, options.DisableUrlQueryRedaction ? queryString : RedactionHelper.GetRedactedQueryString(queryString));
-            }
-
-            var userAgent = request.UserAgent;
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                activity.SetTag(SemanticConventions.AttributeUserAgentOriginal, userAgent);
             }
 
             try
@@ -200,9 +205,11 @@ internal sealed class HttpInListener : IDisposable
                 AspNetInstrumentationEventSource.Log.EnrichmentException("OnStartActivity", ex);
             }
         }
+
+        return activity;
     }
 
-    private void OnStopActivity(Activity? activity, HttpContext context)
+    private void OnStopActivity(Activity? activity, HttpContextBase context)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {
@@ -252,7 +259,7 @@ internal sealed class HttpInListener : IDisposable
         this.RecordDuration(activity, context);
     }
 
-    private void OnException(Activity? activity, HttpContext context, Exception exception)
+    private void OnException(Activity? activity, HttpContextBase context, Exception exception)
     {
         if (AspNetInstrumentation.Instance.HandleManager.TracingHandles == 0)
         {

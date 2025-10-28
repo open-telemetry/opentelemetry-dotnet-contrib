@@ -20,7 +20,7 @@ public enum SqlClientLibrary
 [Collection("SqlClient")]
 public class SqlClientTests : IDisposable
 {
-    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master";
+    private const string TestConnectionString = "Data Source=(localdb)\\MSSQLLocalDB;Database=master;Encrypt=True;TrustServerCertificate=True";
 
     public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
 
@@ -143,8 +143,9 @@ public class SqlClientTests : IDisposable
             tracerProviderBuilder
                 .AddSqlClientInstrumentation(options =>
                 {
-                    options.SetDbStatementForText = true;
+#if NET
                     options.RecordException = true;
+#endif
                 })
                 .AddInMemoryExporter(activities);
         }
@@ -323,7 +324,11 @@ public class SqlClientTests : IDisposable
         }
     }
 
-    private void RunSqlClientTestCase(SqlClientTestCase testCase, SqlClientLibrary library, bool emitOldAttributes = false, bool emitNewAttributes = true)
+    private void RunSqlClientTestCase(
+        SqlClientTestCase testCase,
+        SqlClientLibrary library,
+        bool emitOldAttributes = false,
+        bool emitNewAttributes = true)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -337,8 +342,9 @@ public class SqlClientTests : IDisposable
             .SetSampler(sampler)
             .AddSqlClientInstrumentation(options =>
             {
-                options.SetDbStatementForText = true;
+#if NET
                 options.RecordException = true;
+#endif
                 options.EmitOldAttributes = emitOldAttributes;
                 options.EmitNewAttributes = emitNewAttributes;
             })
@@ -350,7 +356,12 @@ public class SqlClientTests : IDisposable
             .AddInMemoryExporter(metrics)
             .Build();
 
-        MockCommandExecutor.ExecuteCommand(testCase.Input.ConnectionString, testCase.Input.CommandType, testCase.Input.CommandText, testCase.Expected.ErrorType != null, library);
+        MockCommandExecutor.ExecuteCommand(
+            testCase.Input.ConnectionString,
+            testCase.Input.CommandType,
+            testCase.Input.CommandText,
+            testCase.Expected.ErrorType != null,
+            library);
 
         traceProvider.ForceFlush();
         meterProvider.ForceFlush();

@@ -17,6 +17,7 @@
 mono_crash.*
 
 # Build results
+[Aa]rtifacts/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -438,3 +439,10 @@ $RECYCLE.BIN/
 
 # Test results
 TestResults/
+
+# Ignore everything in BenchmarkResults (including subfolders)
+test/**/BenchmarkResults/**
+# Do NOT ignore the results directory
+!test/**/BenchmarkResults/results/
+# Do NOT ignore files ending with -report-github.md anywhere under BenchmarkResults
+!test/**/BenchmarkResults/results/*-report-github.md

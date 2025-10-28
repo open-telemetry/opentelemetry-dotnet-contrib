@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using OpenTelemetry.Internal;
@@ -13,16 +12,6 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 public class TelemetryHttpModule : IHttpModule
 {
-    /// <summary>
-    /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
-    /// </summary>
-    public const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet.Telemetry";
-
-    /// <summary>
-    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
-    /// </summary>
-    public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
-
     // ServerVariable set only on rewritten HttpContext by URL Rewrite module.
     private const string UrlRewriteRewrittenRequest = "IIS_WasUrlRewritten";
 
@@ -67,13 +56,13 @@ public class TelemetryHttpModule : IHttpModule
     private void Application_BeginRequest(object sender, EventArgs e)
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_BeginRequest");
-        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, ((HttpApplication)sender).Context, Options.OnRequestStartedCallback);
+        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, new HttpContextWrapper(((HttpApplication)sender).Context), Options.OnRequestStartedCallback);
     }
 
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-        ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
+        ActivityHelper.RestoreContextIfNeeded(new HttpContextWrapper(context.ApplicationInstance.Context));
         step();
     }
 
@@ -82,7 +71,7 @@ public class TelemetryHttpModule : IHttpModule
         AspNetTelemetryEventSource.Log.TraceCallback("Application_EndRequest");
         var trackActivity = true;
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
         {
@@ -114,7 +103,7 @@ public class TelemetryHttpModule : IHttpModule
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_Error");
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         var exception = context.Error;
         if (exception != null)

@@ -94,7 +94,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     [Parameter(Mandatory=$true)][string]$tag,
     [Parameter(Mandatory=$true)][string]$tagSha,
     [Parameter(Mandatory=$true)][string]$packagesUrl,
-    [Parameter(Mandatory=$true)][string]$botUserName
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName
   )
 
   $prListResponse = gh pr list --search $tagSha --state merged --json number,author,title,comments | ConvertFrom-Json
@@ -107,7 +107,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
 
   foreach ($pr in $prListResponse)
   {
-    if ($pr.author.login -ne $botUserName -or $pr.title -ne "[release] Prepare release $tag")
+    if ($pr.author.login -ne $expectedPrAuthorUserName -or $pr.title -ne "[release] Prepare release $tag")
     {
       continue
     }
@@ -115,7 +115,7 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     $foundComment = $false
     foreach ($comment in $pr.comments)
     {
-      if ($comment.author.login -eq $botUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      if ($comment.author.login -eq $expectedPrAuthorUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
       {
         $foundComment = $true
         break
@@ -163,7 +163,7 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
   $tagPrefix = $match.Groups[1].Value
   $version = $match.Groups[2].Value
 
-  $branch="release/post-stable-${tag}-update"
+  $branch="otelbot/post-stable-${tag}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
@@ -226,11 +226,16 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." 2>&1 | % ToString
+  git commit -m "Update PackageValidationBaselineVersion in $tagPrefix projects to $version." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
   }
+
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.AspNetCore-' -propertyDisplayName 'OpenTelemetryInstrumentationAspNetCoreLatestStableVersion'
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Http-' -propertyDisplayName 'OpenTelemetryInstrumentationHttpLatestStableVersion'
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Instrumentation.Runtime-' -propertyDisplayName 'OpenTelemetryInstrumentationRuntimeLatestStableVersion'
+  UpdateCommonPropsVersion -tagPrefix $tagPrefix -version $version -propertyName 'Extensions.Enrichment-' -propertyDisplayName 'OpenTelemetryEnrichmentUnstableLatestVersion'
 
   git push -u origin $branch 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
@@ -248,6 +253,14 @@ Merge once packages are available on NuGet and the build passes.
 
 * Sets ``PackageValidationBaselineVersion`` in ``$tagPrefix`` projects to ``$version``.
 "@
+
+  if ($tagPrefix -eq 'Instrumentation.AspNetCore-' -and $version -match '^[01]\.')
+  {
+    $body +=
+@"
+* Sets ``OpenTelemetryInstrumentationAspNetCoreLatestStableVersion`` in Common.props to version ``$version``.
+"@
+  }
 
   gh pr create `
     --title "[release] $tagPrefix stable release $version updates" `
@@ -277,31 +290,31 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
 
   $tagPrefix = $match.Groups[1].Value
   $version = $match.Groups[2].Value
-  $isPrerelease = ($version.Contains('-alpha.') -or $version.Contains('-beta.') -or $version.Contains('-rc.'))
+  $isPrerelease = $version.Contains('-')
 
   if ($tagPrefix.StartsWith('core-') -eq $true)
   {
     $changelogEntry = "Updated OpenTelemetry core component version(s) to"
     $propertyName = "OpenTelemetryCoreLatestVersion"
-    $propertyVersion = "[$version,2.0)"
+    $propertyVersion = $version
     if ($isPrerelease -eq $true)
     {
       $propertyName = "OpenTelemetryCoreLatestPrereleaseVersion"
-      $propertyVersion = "[$version]"
+      $propertyVersion = "$version"
     }
   }
   elseif ($tagPrefix.StartsWith('coreunstable-') -eq $true)
   {
     $changelogEntry = "Updated OpenTelemetry core unstable component version(s) to"
     $propertyName = "OpenTelemetryCoreUnstableLatestVersion"
-    $propertyVersion = "[$version]"
+    $propertyVersion = "$version"
   }
   else
   {
     Return
   }
 
-  $branch="release/post-core-${version}-update"
+  $branch="otelbot/post-core-${version}-update"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
@@ -320,9 +333,9 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
 
   $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
-  (Get-Content build/Common.props) `
+  (Get-Content Directory.Packages.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
-    Set-Content build/Common.props
+    Set-Content Directory.Packages.props
 
   $projectsAndDependenciesAfter = GetCoreDependenciesForProjects
 
@@ -343,13 +356,13 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     }
   }
 
-  git add build/Common.props 2>&1 | % ToString
+  git add Directory.Packages.props 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git add failure'
   }
 
-  git commit -m "Update $propertyName in Common.props to $version." 2>&1 | % ToString
+  git commit -m "Update $propertyName in Directory.Packages.props to $version." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -369,7 +382,7 @@ Merge once packages are available on NuGet and the build passes.
 
 ## Changes
 
-* Sets ``$propertyName`` in ``Common.props`` to ``$version``.
+* Sets ``$propertyName`` in ``Directory.Packages.props`` to ``$version``.
 "@
 
   $createPullRequestResponse = gh pr create `
@@ -493,7 +506,7 @@ $entry = @"
 
   if ($changelogFilesUpdated -gt 0)
   {
-    git commit -m "Update CHANGELOGs for projects using $propertyName." 2>&1 | % ToString
+    git commit -m "Update CHANGELOGs for projects using $propertyName." -s 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'
@@ -520,8 +533,10 @@ function GetCoreDependenciesForProjects {
         $output = dotnet restore $project
 
         $projectDir = $project | Split-Path -Parent
+        $projectDirName = $projectDir | Split-Path -Leaf
+        $projectArtifactsDir = $projectDir | Split-Path -Parent | Split-Path -Parent | Join-Path -ChildPath "artifacts/obj/$projectDirName"
 
-        $content = (Get-Content "$projectDir/obj/project.assets.json" -Raw)
+        $content = (Get-Content "$projectArtifactsDir/project.assets.json" -Raw)
 
         $projectDependencies = @{}
 
@@ -546,4 +561,33 @@ function GetCoreDependenciesForProjects {
     }
 
     return $projectsAndDependencies
+}
+
+function UpdateCommonPropsVersion {
+  param(
+    [Parameter(Mandatory=$true)][string]$tagPrefix,
+    [Parameter(Mandatory=$true)][string]$version,
+    [Parameter(Mandatory=$true)][string]$propertyName,
+    [Parameter(Mandatory=$true)][string]$propertyDisplayName
+  )
+
+  if ($tagPrefix -eq $propertyName -and $version -match '^[01]\.')
+  {
+    (Get-Content Directory.Packages.props -Raw) `
+      -replace "<$propertyDisplayName>.*<\/$propertyDisplayName>",
+               "<$propertyDisplayName>$version</$propertyDisplayName>" |
+      Set-Content Directory.Packages.props
+
+    git add Directory.Packages.props 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git add failure'
+    }
+
+    git commit -m "Update $propertyDisplayName version in Common.props to $version." -s 2>&1 | % ToString
+    if ($LASTEXITCODE -gt 0)
+    {
+        throw 'git commit failure'
+    }
+  }
 }

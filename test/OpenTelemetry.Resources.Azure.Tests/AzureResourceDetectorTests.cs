@@ -58,7 +58,6 @@ public class AzureResourceDetectorTests : IDisposable
                 Name = ResourceSemanticConventions.AttributeHostName,
                 OsType = ResourceSemanticConventions.AttributeOsType,
                 ResourceId = ResourceSemanticConventions.AttributeCloudResourceId,
-                Sku = ResourceAttributeConstants.AzureVmSku,
                 Version = ResourceSemanticConventions.AttributeOsVersion,
                 VmSize = ResourceSemanticConventions.AttributeHostType,
                 VmScaleSetName = ResourceAttributeConstants.AzureVmScaleSetName,

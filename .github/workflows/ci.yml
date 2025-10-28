@@ -1,6 +1,8 @@
 name: Build
 
 on:
+  merge_group:
+    types: [ checks_requested ]
   push:
     branches: [ 'main' ]
   pull_request:
@@ -12,6 +14,13 @@ permissions:
 jobs:
   lint-misspell-sanitycheck:
     uses: ./.github/workflows/sanitycheck.yml
+
+  code-ql:
+    uses: ./.github/workflows/codeql-analysis-steps.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
   detect-changes:
     runs-on: windows-latest
@@ -30,7 +39,7 @@ jobs:
           yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props', 'global.json']
           shared: ['src/Shared/**', 'test/Shared/**']
-          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
+          contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**', 'test/OpenTelemetry.Contrib.Shared.Benchmarks/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
@@ -38,8 +47,10 @@ jobs:
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           extensions: ['*/OpenTelemetry.Extensions/**', '*/OpenTelemetry.Extensions.Tests/**', '!**/*.md']
-          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment*/**', '!**/*.md']
-          instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule.*/**', 'examples/AspNet/**', '!**/*.md']
+          extensions-enrichment: ['*/OpenTelemetry.Extensions.Enrichment/**', '*/OpenTelemetry.Extensions.Enrichment.Tests/**', '!**/*.md']
+          extensions-enrichment-aspnetcore: ['*/OpenTelemetry.Extensions.Enrichment.AspNetCore*/**', '!**/*.md']
+          extensions-enrichment-http: ['*/OpenTelemetry.Extensions.Enrichment.Http*/**', '!**/*.md']
+          instrumentation-aspnet: ['*/OpenTelemetry.Instrumentation.AspNet/**', '*/OpenTelemetry.Instrumentation.AspNet.Tests/**', '*/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule*/**', 'examples/AspNet/**', '!**/*.md']
           instrumentation-aspnetcore: ['*/OpenTelemetry.Instrumentation.AspNetCore*/**', '!**/*.md']
           instrumentation-aws: ['*/OpenTelemetry.Extensions.AWS*/**', '*/OpenTelemetry.Instrumentation.AWS*/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
@@ -172,6 +183,28 @@ jobs:
     with:
       project-name: OpenTelemetry.Extensions.Enrichment
       code-cov-name: Extensions.Enrichment
+
+  build-test-extensions-enrichment-aspnetcore:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Extensions.Enrichment.AspNetCore]
+      code-cov-name: Extensions.Enrichment.AspNetCore
+
+  build-test-extensions-enrichment-http:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-http')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Extensions.Enrichment.Http]
+      code-cov-name: Extensions.Enrichment.Http
 
   build-test-instrumentation-aspnet:
     needs: detect-changes
@@ -506,7 +539,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
-      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
 
   build-test-resources-operatingsystem:
     needs: detect-changes
@@ -518,7 +551,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.OperatingSystem]
       code-cov-name: Resources.OperatingSystem
-      os-list: '[ "windows-latest", "ubuntu-22.04", "macos-latest" ]'
+      os-list: '[ "windows-latest", "ubuntu-24.04", "macos-latest" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -584,6 +617,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'exporter-onecollector')
       || contains(needs.detect-changes.outputs.changes, 'extensions')
       || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment')
+      || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-aspnetcore')
+      || contains(needs.detect-changes.outputs.changes, 'extensions-enrichment-http')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
@@ -594,7 +629,6 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-servicefabricremoting')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-sqlclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-stackexchangeredis')
-      || contains(needs.detect-changes.outputs.changes, 'opamp-client')
       || contains(needs.detect-changes.outputs.changes, 'resources-aws')
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
@@ -612,6 +646,7 @@ jobs:
   build-test:
     needs: [
       lint-misspell-sanitycheck,
+      code-ql,
       detect-changes,
       lint-md,
       lint-yml,
@@ -623,6 +658,8 @@ jobs:
       build-test-exporter-onecollector,
       build-test-extensions,
       build-test-extensions-enrichment,
+      build-test-extensions-enrichment-aspnetcore,
+      build-test-extensions-enrichment-http,
       build-test-instrumentation-aspnet,
       build-test-instrumentation-aspnetcore,
       build-test-instrumentation-aws,
@@ -660,7 +697,17 @@ jobs:
       verify-aot-compat
     ]
     if: always() && !cancelled()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-    - run: |
-          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi
+    - name: Report CI status
+      shell: bash
+      env:
+        CI_SUCCESS: ${{ !contains(needs.*.result, 'failure') }}
+      run: |
+        if [ "${CI_SUCCESS}" == "true" ]
+        then
+          echo 'Build complete ✓'
+        else
+          echo 'Build failed ✗'
+          exit 1
+        fi

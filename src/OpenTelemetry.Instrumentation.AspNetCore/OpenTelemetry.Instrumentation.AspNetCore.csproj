@@ -6,7 +6,7 @@
     <Description>ASP.NET Core instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNetCore</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNetCore-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.12.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.13.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,18 +31,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="[2.1.1,6.0)" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="[2.1.1,6.0)" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationPkgVer)" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="$(MicrosoftExtensionsOptionsPkgVer)" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.2" />
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" VersionOverride="[2.1.1,6.0)" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" VersionOverride="[2.1.1,6.0)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="System.Text.Encodings.Web" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETCoreApp'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

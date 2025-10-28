@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Internal;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 
@@ -16,14 +17,6 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandExecuting = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuting";
     internal const string EntityFrameworkCoreCommandExecuted = "Microsoft.EntityFrameworkCore.Database.Command.CommandExecuted";
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
-
-    internal const string AttributePeerService = "peer.service";
-    internal const string AttributeServerAddress = "server.address";
-    internal const string AttributeDbSystem = "db.system";
-    internal const string AttributeDbName = "db.name";
-    internal const string AttributeDbNamespace = "db.namespace";
-    internal const string AttributeDbStatement = "db.statement";
-    internal const string AttributeDbQueryText = "db.query.text";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
     internal static readonly string ActivitySourceName = Assembly.GetName().Name;
@@ -94,95 +87,26 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             providerOrCommandName = command.GetType().FullName;
                         }
 
-                        switch (providerOrCommandName)
-                        {
-                            case "Microsoft.EntityFrameworkCore.SqlServer":
-                            case "Microsoft.Data.SqlClient.SqlCommand":
-                                activity.AddTag(AttributeDbSystem, "mssql");
-                                break;
-                            case "Microsoft.EntityFrameworkCore.Cosmos":
-                                activity.AddTag(AttributeDbSystem, "cosmosdb");
-                                break;
-                            case "Microsoft.Data.Sqlite.SqliteCommand":
-                            case "Microsoft.EntityFrameworkCore.Sqlite":
-                            case "Devart.Data.SQLite.Entity.EFCore":
-                                activity.AddTag(AttributeDbSystem, "sqlite");
-                                break;
-                            case "MySql.Data.EntityFrameworkCore":
-                            case "MySql.Data.MySqlClient.MySqlCommand":
-                            case "Pomelo.EntityFrameworkCore.MySql":
-                            case "Devart.Data.MySql.Entity.EFCore":
-                            case "Devart.Data.MySql.MySqlCommand":
-                                activity.AddTag(AttributeDbSystem, "mysql");
-                                break;
-                            case "Npgsql.EntityFrameworkCore.PostgreSQL":
-                            case "Npgsql.NpgsqlCommand":
-                            case "Devart.Data.PostgreSql.Entity.EFCore":
-                            case "Devart.Data.PostgreSql.PgSqlCommand":
-                                activity.AddTag(AttributeDbSystem, "postgresql");
-                                break;
-                            case "Oracle.EntityFrameworkCore":
-                            case "Oracle.ManagedDataAccess.Client.OracleCommand":
-                            case "Devart.Data.Oracle.Entity.EFCore":
-                            case "Devart.Data.Oracle.OracleCommand":
-                                activity.AddTag(AttributeDbSystem, "oracle");
-                                break;
-                            case "Microsoft.EntityFrameworkCore.InMemory":
-                                activity.AddTag(AttributeDbSystem, "efcoreinmemory");
-                                break;
-                            case "FirebirdSql.Data.FirebirdClient.FbCommand":
-                            case "FirebirdSql.EntityFrameworkCore.Firebird":
-                                activity.AddTag(AttributeDbSystem, "firebird");
-                                break;
-                            case "FileContextCore":
-                                activity.AddTag(AttributeDbSystem, "filecontextcore");
-                                break;
-                            case "EntityFrameworkCore.SqlServerCompact35":
-                            case "EntityFrameworkCore.SqlServerCompact40":
-                            case "System.Data.SqlServerCe.SqlCeCommand":
-                                activity.AddTag(AttributeDbSystem, "mssqlcompact");
-                                break;
-                            case "EntityFrameworkCore.OpenEdge":
-                                activity.AddTag(AttributeDbSystem, "openedge");
-                                break;
-                            case "EntityFrameworkCore.Jet":
-                            case "EntityFrameworkCore.Jet.Data.JetCommand":
-                                activity.AddTag(AttributeDbSystem, "jet");
-                                break;
-                            case "Google.Cloud.EntityFrameworkCore.Spanner":
-                            case "Google.Cloud.Spanner.Data.SpannerCommand":
-                                activity.AddTag(AttributeDbSystem, "spanner");
-                                break;
-                            case "Teradata.Client.Provider.TdCommand":
-                            case "Teradata.EntityFrameworkCore":
-                                activity.AddTag(AttributeDbSystem, "teradata");
-                                break;
-                            case "EFCore.Snowflake":
-                            case "EFCore.Snowflake.Storage":
-                            case "EFCore.Snowflake.Storage.Internal":
-                                activity.AddTag(AttributeDbSystem, "snowflake");
-                                break;
-                            default:
-                                activity.AddTag(AttributeDbSystem, "other_sql");
-                                activity.AddTag("ef.provider", providerOrCommandName);
-                                break;
-                        }
+                        this.AddDbSystemNameTag(activity, providerOrCommandName);
 
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
                         if (!string.IsNullOrEmpty(dataSource))
                         {
-                            activity.AddTag(AttributeServerAddress, dataSource);
+                            var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
+
+                            var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
+                            if (!string.IsNullOrEmpty(serverAddress))
+                            {
+                                this.AddTag(activity, ("peer.service", SemanticConventions.AttributeServerAddress), serverAddress);
+
+                                if (this.options.EmitNewAttributes && connectionDetails.Port is { } port)
+                                {
+                                    activity.AddTag(SemanticConventions.AttributeServerPort, port);
+                                }
+                            }
                         }
 
-                        if (this.options.EmitOldAttributes)
-                        {
-                            activity.AddTag(AttributeDbName, database);
-                        }
-
-                        if (this.options.EmitNewAttributes)
-                        {
-                            activity.AddTag(AttributeDbNamespace, database);
-                        }
+                        this.AddTag(activity, (SemanticConventions.AttributeDbName, SemanticConventions.AttributeDbNamespace), database);
                     }
                 }
 
@@ -204,11 +128,10 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                     if (activity.IsAllDataRequested)
                     {
                         var command = this.commandFetcher.Fetch(payload);
+                        string? providerName = null;
 
                         try
                         {
-                            string? providerName = null;
-
                             if (this.dbContextFetcher.Fetch(payload) is { } dbContext)
                             {
                                 var dbContextDatabase = this.dbContextDatabaseFetcher.Fetch(dbContext);
@@ -231,45 +154,38 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                             return;
                         }
 
+                        if (this.options.EmitNewAttributes && this.options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
+                        }
+
                         if (this.commandTypeFetcher.Fetch(command) is CommandType commandType)
                         {
                             var commandText = this.commandTextFetcher.Fetch(command);
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (this.options.SetDbStatementForStoredProcedure)
-                                    {
-                                        if (this.options.EmitOldAttributes)
-                                        {
-                                            activity.AddTag(AttributeDbStatement, commandText);
-                                        }
-
-                                        if (this.options.EmitNewAttributes)
-                                        {
-                                            activity.AddTag(AttributeDbQueryText, commandText);
-                                        }
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
+                                        activity,
+                                        commandText,
+                                        this.options.EmitOldAttributes,
+                                        this.options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.Text:
-                                    if (this.options.SetDbStatementForText)
-                                    {
-                                        if (this.options.EmitOldAttributes)
-                                        {
-                                            activity.AddTag(AttributeDbStatement, commandText);
-                                        }
+                                    // Only SQL-like providers support sanitization as we are not
+                                    // able to sanitize arbitrary commands for other query dialects.
+                                    bool sanitizeQuery = IsSqlLikeProvider(providerName);
 
-                                        if (this.options.EmitNewAttributes)
-                                        {
-                                            activity.AddTag(AttributeDbQueryText, commandText);
-                                        }
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                        activity,
+                                        commandText,
+                                        this.options.EmitOldAttributes,
+                                        this.options.EmitNewAttributes,
+                                        sanitizeQuery);
                                     break;
 
                                 case CommandType.TableDirect:
-                                    break;
                                 default:
                                     break;
                             }
@@ -352,5 +268,164 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
             default:
                 break;
         }
+    }
+
+    /// <summary>
+    /// Gets the <c>db.system</c> and <c>db.system.name</c> values to use for the given provider or command name.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// A tuple containing the respective <c>db.system</c> and <c>db.system.name</c> values.
+    /// </returns>
+    internal static (string Old, string New) GetDbSystemNames(string? providerOrCommandName) =>
+        //// "${Attribute} has the following list of well-known values. If one of them applies, then the respective value MUST be used"
+        providerOrCommandName switch
+        {
+            //// These names are defined in the Semantic Conventions
+            "Microsoft.Data.SqlClient.SqlCommand" or
+            "Microsoft.EntityFrameworkCore.SqlServer"
+                => (DbSystems.Mssql, DbSystemNames.MicrosoftSqlServer),
+            "Microsoft.EntityFrameworkCore.Cosmos"
+                => (DbSystems.Cosmosdb, DbSystemNames.AzureCosmosDb),
+            "Devart.Data.SQLite.Entity.EFCore" or
+            "Microsoft.Data.Sqlite.SqliteCommand" or
+            "Microsoft.EntityFrameworkCore.Sqlite"
+                => (DbSystems.Sqlite, DbSystemNames.Sqlite),
+            "Devart.Data.MySql.Entity.EFCore" or
+            "Devart.Data.MySql.MySqlCommand" or
+            "MySql.Data.EntityFrameworkCore" or
+            "MySql.Data.MySqlClient.MySqlCommand" or
+            "MySql.EntityFrameworkCore" or
+            "Pomelo.EntityFrameworkCore.MySql"
+                => (DbSystems.Mysql, DbSystemNames.Mysql),
+            "Npgsql.EntityFrameworkCore.PostgreSQL" or
+            "Npgsql.NpgsqlCommand" or
+            "Devart.Data.PostgreSql.Entity.EFCore" or
+            "Devart.Data.PostgreSql.PgSqlCommand"
+                => (DbSystems.Postgresql, DbSystemNames.Postgresql),
+            "Oracle.EntityFrameworkCore" or
+            "Oracle.ManagedDataAccess.Client.OracleCommand" or
+            "Devart.Data.Oracle.Entity.EFCore" or
+            "Devart.Data.Oracle.OracleCommand"
+                => (DbSystems.Oracle, DbSystemNames.OracleDb),
+            "FirebirdSql.Data.FirebirdClient.FbCommand" or
+            "FirebirdSql.EntityFrameworkCore.Firebird"
+                => (DbSystems.Firebird, DbSystemNames.Firebirdsql),
+            "Google.Cloud.EntityFrameworkCore.Spanner" or
+            "Google.Cloud.Spanner.Data.SpannerCommand"
+                => (DbSystems.Spanner, DbSystemNames.GcpSpanner),
+            "Teradata.Client.Provider.TdCommand" or
+            "Teradata.EntityFrameworkCore"
+                => (DbSystems.Teradata, DbSystemNames.Teradata),
+            "MongoDB.EntityFrameworkCore"
+                => (DbSystems.Mongodb, DbSystemNames.Mongodb),
+            "Couchbase.EntityFrameworkCore" or
+            "Couchbase.EntityFrameworkCore.Storage.Internal"
+                => (DbSystems.Couchbase, DbSystemNames.Couchbase),
+            "IBM.EntityFrameworkCore" or
+            "IBM.EntityFrameworkCore-lnx" or
+            "IBM.EntityFrameworkCore-osx"
+                => (DbSystems.Db2, DbSystemNames.IbmDb2),
+            //// Otherwise use the fallback defined in the Semantic Conventions
+            _ => (DbSystems.OtherSql, DbSystemNames.OtherSql),
+        };
+
+    /// <summary>
+    /// Returns whether the given provider or command name is SQL-like.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// <see langword="true"/> if the provider or command name is SQL-like; otherwise, <see langword="false"/>.
+    /// </returns>
+    internal static bool IsSqlLikeProvider(string? providerOrCommandName)
+    {
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+
+        return dbSystemName switch
+        {
+            DbSystemNames.Firebirdsql or
+            DbSystemNames.GcpSpanner or
+            DbSystemNames.IbmDb2 or
+            DbSystemNames.MicrosoftSqlServer or
+            DbSystemNames.Mysql or
+            DbSystemNames.OracleDb or
+            DbSystemNames.Postgresql or
+            DbSystemNames.Sqlite or
+            DbSystemNames.Teradata
+              => true,
+            _ => false,
+        };
+    }
+
+    private void AddTag(Activity activity, (string Old, string New) attributes, string? value)
+        => this.AddTag(activity, attributes, (value, value));
+
+    private void AddTag(Activity activity, (string Old, string New) attributes, (string? Old, string? New) values)
+    {
+        if (this.options.EmitOldAttributes)
+        {
+            activity.AddTag(attributes.Old, values.Old);
+        }
+
+        if (this.options.EmitNewAttributes)
+        {
+            activity.AddTag(attributes.New, values.New);
+        }
+    }
+
+    private void AddDbSystemNameTag(Activity activity, string? providerOrCommandName)
+    {
+        var values = GetDbSystemNames(providerOrCommandName);
+
+        // Custom tag for backwards compatibility only
+        if (this.options.EmitOldAttributes && (values == (DbSystems.OtherSql, DbSystemNames.OtherSql)))
+        {
+            activity.AddTag("ef.provider", providerOrCommandName);
+        }
+
+        this.AddTag(activity, (SemanticConventions.AttributeDbSystem, SemanticConventions.AttributeDbSystemName), values);
+    }
+
+    // v1.36.0 database conventions:
+    // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
+
+    /// <summary>
+    /// Known (and used) values for the <c>db.system.name</c> attributes.
+    /// </summary>
+    private static class DbSystemNames
+    {
+        public const string OtherSql = "other_sql";
+        public const string AzureCosmosDb = "azure.cosmosdb";
+        public const string Couchbase = "couchbase";
+        public const string Firebirdsql = "firebirdsql";
+        public const string GcpSpanner = "gcp.spanner";
+        public const string IbmDb2 = "ibm.db2";
+        public const string MicrosoftSqlServer = "microsoft.sql_server";
+        public const string Mongodb = "mongodb";
+        public const string Mysql = "mysql";
+        public const string OracleDb = "oracle.db";
+        public const string Postgresql = "postgresql";
+        public const string Sqlite = "sqlite";
+        public const string Teradata = "teradata";
+    }
+
+    /// <summary>
+    /// Known (and used) values for the <c>db.system</c> attributes.
+    /// </summary>
+    private static class DbSystems
+    {
+        public const string OtherSql = "other_sql";
+        public const string Cosmosdb = "cosmosdb";
+        public const string Couchbase = "couchbase";
+        public const string Db2 = "db2";
+        public const string Firebird = "firebird";
+        public const string Mongodb = "mongodb";
+        public const string Mssql = "mssql";
+        public const string Mysql = "mysql";
+        public const string Oracle = "oracle";
+        public const string Postgresql = "postgresql";
+        public const string Spanner = "spanner";
+        public const string Sqlite = "sqlite";
+        public const string Teradata = "teradata";
     }
 }

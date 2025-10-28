@@ -13,7 +13,6 @@
     <Copyright>Copyright The OpenTelemetry Authors</Copyright>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)/OpenTelemetryContrib.prod.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);1573;1712</NoWarn>
-    <PackageOutputPath Condition="$(Build_ArtifactStagingDirectory) != ''">$(Build_ArtifactStagingDirectory)</PackageOutputPath>
     <!--<MinVerVerbosity>detailed</MinVerVerbosity>-->
     <PackageTags>Observability;OpenTelemetry;Monitoring;Telemetry</PackageTags>
     <EnablePackageValidation Condition="'$(EnablePackageValidation)' == ''">false</EnablePackageValidation>
@@ -22,9 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="$(MinVerPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubPkgVer)" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(MicrosoftPublicApiAnalyzersPkgVer)" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" Condition="'$(EnablePublicApi)' != 'false'" />
+    <PackageReference Include="MinVer" PrivateAssets="All" Condition="'$(IntegrationBuild)' != 'true'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,10 +68,6 @@
     <None Include=".publicApi\**\PublicAPI.*.txt" Condition="'$(EnablePublicApi)' != 'false'" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(Deterministic)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-
   <Target Name="EnsurePackageValidationBaselineVersion"
           BeforeTargets="RunPackageValidation"
           Condition="'$(DisablePackageBaselineValidation)' != 'true' AND '$(PackageValidationBaselineVersion)' == '' AND '$(MinVerTagPrefix)' != 'coreunstable-'">
@@ -87,6 +81,7 @@
       <!-- Note: This resolves all the PublicApiAnalyzers files which are actually used by the analyzer -->
       <AdditionalFiles Include=".publicApi\PublicAPI.*.txt" />
       <AdditionalFiles Include=".publicApi\$(TargetFramework)\PublicAPI.*.txt" />
+      <AdditionalFiles Include=".publicApi\$([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)'))\PublicAPI.*.txt" />
     </ItemGroup>
   </Target>
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OpenTelemetry.Internal;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using StackExchange.Redis;
@@ -74,18 +75,36 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("EVAL", exportedItems[0].DisplayName);
         Assert.Equal("EVAL redis.call('set', ARGV[1], ARGV[2])", exportedItems[0].GetTagValue(SemanticConventions.AttributeDbStatement));
 
-        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
-        VerifyActivityData(exportedItems[3], false, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[1], false, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[2], true, connection.GetEndPoints()[0], true);
+        VerifyOldActivityData(exportedItems[3], false, connection.GetEndPoints()[0], true);
         VerifySamplingParameters(sampler.LatestSamplingParameters);
     }
 
     [Trait("CategoryName", "RedisIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
-    [InlineData("value1", null)]
-    [InlineData("value1", "serviceKey")]
-    public void SuccessfulCommandTest(string value, string? serviceKey)
+    [InlineData("value1", null, true, false)]
+    [InlineData("value1", null, false, true)]
+    [InlineData("value1", null, true, true)]
+
+    [InlineData("value1", "serviceKey", true, false)]
+    [InlineData("value1", "serviceKey", false, true)]
+    [InlineData("value1", "serviceKey", true, true)]
+
+    public void SuccessfulCommandTest(
+        string value,
+        string? serviceKey,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
     {
+        using var scope = SemanticConventionScope.Get(
+            (emitOldAttributes, emitNewAttributes) switch
+            {
+                (true, true) => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe,
+                (false, true) => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New,
+                _ => DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Old,
+            });
+
         var connectionOptions = new ConfigurationOptions
         {
             AbortOnConnectFail = true,
@@ -115,7 +134,10 @@ public class StackExchangeRedisCallsInstrumentationTests
             })
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(null, null, serviceKey, c => c.SetVerboseDatabaseStatements = false)
+            .AddRedisInstrumentation(null, null, serviceKey, c =>
+            {
+                c.SetVerboseDatabaseStatements = false;
+            })
             .Build())
         {
             Assert.NotNull(connection);
@@ -136,9 +158,22 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         Assert.Equal(2, exportedItems.Count);
 
-        VerifyActivityData(exportedItems[0], true, connection.GetEndPoints()[0], false);
-        VerifyActivityData(exportedItems[1], false, connection.GetEndPoints()[0], false);
-        VerifySamplingParameters(sampler.LatestSamplingParameters);
+        var endpoint = connection.GetEndPoints()[0];
+
+        if (emitOldAttributes)
+        {
+            VerifyOldActivityData(exportedItems[0], true, endpoint, setCommandKey: false);
+            VerifyOldActivityData(exportedItems[1], false, endpoint, setCommandKey: false);
+            VerifySamplingParameters(sampler.LatestSamplingParameters);
+        }
+
+        if (emitNewAttributes)
+        {
+            VerifyNewActivityData(exportedItems[0], true, endpoint);
+            VerifyNewActivityData(exportedItems[1], false, endpoint);
+
+            // TODO VerifySamplingParameters(sampler.LatestSamplingParameters);
+        }
     }
 
     [Fact]
@@ -184,9 +219,9 @@ public class StackExchangeRedisCallsInstrumentationTests
         var builder = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(exportedItems)
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
+            .AddRedisInstrumentation(c => c.Enrich = (activity, context) =>
             {
-                if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
+                if (context.ProfiledCommand.ElapsedTime < TimeSpan.FromMilliseconds(100))
                 {
                     activity.AddTag("is_fast", true);
                 }
@@ -367,9 +402,9 @@ public class StackExchangeRedisCallsInstrumentationTests
 
         var builder = Sdk.CreateTracerProviderBuilder()
             .SetSampler(sampler)
-            .AddRedisInstrumentation(c => c.Enrich = (activity, command) =>
+            .AddRedisInstrumentation(c => c.Enrich = (activity, context) =>
             {
-                if (command.ElapsedTime < TimeSpan.FromMilliseconds(100))
+                if (context.ProfiledCommand.ElapsedTime < TimeSpan.FromMilliseconds(100))
                 {
                     activity.AddTag("is_fast", true);
                 }
@@ -414,7 +449,7 @@ public class StackExchangeRedisCallsInstrumentationTests
             .AddInMemoryExporter(exportedItems)
             .AddRedisInstrumentation(connection, options =>
             {
-                options.Filter = command => !string.Equals(command.Command, "GET", StringComparison.OrdinalIgnoreCase);
+                options.Filter = context => !string.Equals(context.ProfiledCommand.Command, "GET", StringComparison.OrdinalIgnoreCase);
             })
             .Build())
         {
@@ -426,7 +461,7 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("SET", exportedItems[0].DisplayName);
     }
 
-    private static void VerifyActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
+    private static void VerifyOldActivityData(Activity activity, bool isSet, EndPoint endPoint, bool setCommandKey = false)
     {
         if (isSet)
         {
@@ -457,10 +492,40 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
         Assert.Equal(0, activity.GetTagValue(StackExchangeRedisConnectionInstrumentation.RedisDatabaseIndexKeyName));
 
+        VerifyEndPoint(activity, endPoint);
+    }
+
+    private static void VerifyNewActivityData(Activity activity, bool isSet, EndPoint endPoint)
+    {
+        var displayName = "SETEX";
+        var dbOperationName = "SETEX";
+        var dbQueryText = "SETEX key1";
+
+        if (!isSet)
+        {
+            displayName = "GET";
+            dbOperationName = "GET";
+            dbQueryText = "GET key1";
+        }
+
+        Assert.Equal(displayName, activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        Assert.Equal("redis", activity.GetTagValue(SemanticConventions.AttributeDbSystemName));
+        Assert.Equal("0", activity.GetTagValue(SemanticConventions.AttributeDbNamespace));
+        Assert.Equal(dbOperationName, activity.GetTagValue(SemanticConventions.AttributeDbOperationName));
+        Assert.Equal(dbQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+
+        VerifyEndPoint(activity, endPoint);
+    }
+
+    private static void VerifyEndPoint(Activity activity, EndPoint endPoint)
+    {
         if (endPoint is IPEndPoint ipEndPoint)
         {
             Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeServerAddress));
             Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeServerPort));
+            Assert.Equal(ipEndPoint.Address.ToString(), activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress));
+            Assert.Equal(ipEndPoint.Port, activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort));
         }
         else if (endPoint is DnsEndPoint dnsEndPoint)
         {
@@ -482,5 +547,29 @@ public class StackExchangeRedisCallsInstrumentationTests
             samplingParameters.Tags,
             kvp => kvp.Key == SemanticConventions.AttributeDbSystem
                    && (string?)kvp.Value == "redis");
+    }
+
+    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    {
+        private const string ConventionsOptIn = DatabaseSemanticConventionHelper.SemanticConventionOptInKeyName;
+
+        public static SemanticConventionScope Get(DatabaseSemanticConventionHelper.DatabaseSemanticConvention convention)
+        {
+            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
+            var value = convention switch
+            {
+                DatabaseSemanticConventionHelper.DatabaseSemanticConvention.Dupe => "database/dup",
+                DatabaseSemanticConventionHelper.DatabaseSemanticConvention.New => "database",
+                _ => string.Empty,
+            };
+
+            Environment.SetEnvironmentVariable(
+                ConventionsOptIn,
+                value);
+
+            return new SemanticConventionScope(previous);
+        }
+
+        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
     }
 }

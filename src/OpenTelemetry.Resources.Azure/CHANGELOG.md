@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
+* Removed azure.vm.sku attribute from Azure VM resource detector.
+  ([#2979](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2979))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
 ## 1.12.0-beta.1
 
 Released 2025-May-06

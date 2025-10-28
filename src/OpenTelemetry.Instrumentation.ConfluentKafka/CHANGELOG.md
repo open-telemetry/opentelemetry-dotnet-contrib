@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.3
+
+Released 2025-Oct-23
+
 * Drop support for .NET 6 as this target is no longer supported
   and add .NET Standard 2.0 target.
   ([#2142](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2142))
@@ -17,11 +21,11 @@
   to set default explicit buckets following the [OpenTelemetry Specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/messaging/messaging-metrics.md).
   ([#2430](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2430))
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
-
 * Rethrow exception on consume and process.
   ([#2847](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2847))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 0.1.0-alpha.2
 

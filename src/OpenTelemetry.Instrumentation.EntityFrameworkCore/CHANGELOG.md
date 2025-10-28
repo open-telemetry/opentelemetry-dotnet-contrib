@@ -2,9 +2,52 @@
 
 ## Unreleased
 
-* Added support for detecting Snowflake for the `db.system` attribute
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
+* Added support for detecting Snowflake for the `db.system`/`db.system.name` attributes
   when using `EFCore.Snowflake`.
   ([#2980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2980))
+
+* Fix `db.system.name` values to follow new database semantic conventions when opted
+  into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
+  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))
+
+* Add the `server.port` resource attribute when following the new database semantic
+  conventions when opted into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment
+  variable.
+  ([#3011](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3011))
+
+* Extend `db.system.name` values to identity additional providers related to Couchbase,
+  DB2, MongoDB, MySQL, Oracle, PostgreSQL and SQLite.
+  ([#3025](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3025))
+
+* Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
+  the `OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS`
+  environment variable.
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015),
+  [#3081](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3081))
+
+* Add the `db.query.summary` attribute and use it for the trace span name when opted
+  into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
+  ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
+
+* The `db.statement` and `db.query.text` attributes are now sanitized when using
+  specific SQL-like EFCore providers.
+  ([#3022](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3022))
+
+* **Breaking change**: The `SetDbStatementForStoredProcedure` and
+  `SetDbStatementForText` properties have been removed. Behaviors related to this
+  option are now always enabled.
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
+
+* **Breaking change**: `db.system.name` now only sets names that are explicitly
+  defined in the Semantic Conventions for databases.
+  ([#3075](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3075))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.12.0-beta.2
 

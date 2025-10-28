@@ -17,6 +17,12 @@
     <NuGetAuditLevel>low</NuGetAuditLevel>
   </PropertyGroup>
 
+  <!-- Set properties to enable deterministic builds -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild>$([MSBuild]::ValueOrDefault('$(CI)', 'false'))</ContinuousIntegrationBuild>
+    <Deterministic>$([MSBuild]::ValueOrDefault('$(Deterministic)', 'true'))</Deterministic>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
     <StrongNamePublicKey>002400000480000094000000060200000024000052534131000400000100010051c1562a090fb0c9f391012a32198b5e5d9a60e9b80fa2d7b434c9e5ccb7259bd606e66f9660676afc6692b8cdc6793d190904551d2103b7b22fa636dcbb8208839785ba402ea08fc00c8f1500ccef28bbf599aa64ffb1e1d5dc1bf3420a3777badfe697856e9d52070a50c3ea5821c80bef17ca3acffa28f89dd413f096f898</StrongNamePublicKey>
   </PropertyGroup>
@@ -38,43 +44,12 @@
     <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Label="Package versions used in this repository">
-    <!--
-      Please sort alphabetically.
-      Refer to https://docs.microsoft.com/en-us/nuget/concepts/package-versioning for semver syntax.
-    -->
-    <MinVerPkgVer>[6.0.0,7.0)</MinVerPkgVer>
-    <MicrosoftAspNetCoreSignalRClientPkgVer>[9.0.0,)</MicrosoftAspNetCoreSignalRClientPkgVer>
-    <MicrosoftExtensionsHostingAbstractionsPkgVer>[2.1.0,5.0)</MicrosoftExtensionsHostingAbstractionsPkgVer>
-    <MicrosoftExtensionsConfigurationPkgVer>[9.0.0,)</MicrosoftExtensionsConfigurationPkgVer>
-    <MicrosoftExtensionsOptionsPkgVer>[9.0.0,)</MicrosoftExtensionsOptionsPkgVer>
-    <MicrosoftNETFrameworkReferenceAssembliesPkgVer>[1.0.3,2.0)</MicrosoftNETFrameworkReferenceAssembliesPkgVer>
-    <MicrosoftOwinPkgVer>[4.2.2,5.0)</MicrosoftOwinPkgVer>
-    <MicrosoftPublicApiAnalyzersPkgVer>[4.14.0]</MicrosoftPublicApiAnalyzersPkgVer>
-    <MicrosoftSourceLinkGitHubPkgVer>[8.0.0,9.0)</MicrosoftSourceLinkGitHubPkgVer>
-    <OpenTelemetryCoreUnstableLatestVersion>[1.12.0-beta.1]</OpenTelemetryCoreUnstableLatestVersion>
-    <OpenTelemetryCoreLatestVersion>[1.12.0,2.0)</OpenTelemetryCoreLatestVersion>
-    <OpenTelemetryCoreLatestPrereleaseVersion>[1.11.0-rc.1]</OpenTelemetryCoreLatestPrereleaseVersion>
-    <StackExchangeRedisPkgVer>[2.6.122,3.0)</StackExchangeRedisPkgVer>
-    <ConfluentKafkaPkgVer>[2.4.0,3.0)</ConfluentKafkaPkgVer>
-    <CassandraCSharpDriverPkgVer>[3.17.0,4.0)</CassandraCSharpDriverPkgVer>
-    <StyleCopAnalyzersPkgVer>[1.2.0-beta.556,2.0)</StyleCopAnalyzersPkgVer>
-    <SystemNetHttp>[4.3.4,)</SystemNetHttp>
-    <SystemReflectionEmitLightweightPkgVer>[4.7.0,)</SystemReflectionEmitLightweightPkgVer>
-
-    <!-- Note: Special handling is performed for System.Text.Json. -->
-    <SystemTextEncodingsWebMinimumOutOfBandPkgVer>[4.7.2,)</SystemTextEncodingsWebMinimumOutOfBandPkgVer>
-    <SystemTextJsonMinimumOutOfBandPkgVer>[4.7.2,)</SystemTextJsonMinimumOutOfBandPkgVer>
-    <SystemTextJsonLatestNet6OutOfBandPkgVer>[6.0.10,)</SystemTextJsonLatestNet6OutOfBandPkgVer>
-    <SystemTextJsonLatestNet8OutOfBandPkgVer>[8.0.5,)</SystemTextJsonLatestNet8OutOfBandPkgVer>
-  </PropertyGroup>
-
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesPkgVer)" PrivateAssets="All" />
-    <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersPkgVer)" Condition="'$(SkipAnalysis)'!='true'" PrivateAssets="All" />
-  </ItemGroup>
+  <PropertyGroup Condition="$(OpenTelemetryCoreLatestVersion.Contains('-'))">
+    <DefineConstants>$(DefineConstants);EXPOSE_EXPERIMENTAL_FEATURES</DefineConstants>
+  </PropertyGroup>
+
 </Project>

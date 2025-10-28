@@ -41,6 +41,7 @@ public static class MessageAttributes
     /// <summary>
     /// Deprecated, use <c>rpc.message.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>rpc.message.type</c>.")]
     public static class MessageTypeValues
     {
         /// <summary>

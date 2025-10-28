@@ -5,8 +5,11 @@
 * Set initial capacity for AWS Semantic Convention Attribute Builder
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
 
-* Updated OpenTelemetry core component version(s) to `1.12.0`.
-  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+* Suppress OTel HTTP instrumentation in AWS Resource Detector
+  ([#3044](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3044))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.11.1
 

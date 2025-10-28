@@ -3,7 +3,7 @@
 
 namespace OpenTelemetry.Instrumentation;
 
-internal struct SqlStatementInfo
+internal readonly struct SqlStatementInfo
 {
     public SqlStatementInfo(string sanitizedSql, string dbQuerySummaryText)
     {

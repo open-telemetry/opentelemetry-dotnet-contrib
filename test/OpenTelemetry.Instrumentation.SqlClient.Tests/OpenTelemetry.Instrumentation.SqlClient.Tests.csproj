@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\ActivityHelperExtensions.cs" Link="Includes\ActivityHelperExtensions.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformTheoryAttribute.cs" Link="Includes\EnabledOnDockerPlatformTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
@@ -16,15 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-    <PackageReference Include="Testcontainers.MsSql" Version="3.10.0" />
-    <PackageReference Include="Testcontainers.SqlEdge" Version="3.10.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-
-    <!-- System.Runtime.Caching is indirect reference through Microsoft.Data.SqlClient package. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-qj66-m88j-hmgj -->
-    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
-    <!-- System.Text.Json is indirect reference through Testcontainers packages. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-8g4q-xg66-9fp4 -->
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Testcontainers.MsSql" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,10 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="SqlClientTestCases.json">
-      <LogicalName>SqlClientTestCases.json</LogicalName>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="SqlClientTestCases.json" LogicalName="SqlClientTestCases.json" CopyToOutputDirectory="Always" />
+    <EmbeddedResource Include="sqlserver.Dockerfile" LogicalName="sqlserver.Dockerfile" />
   </ItemGroup>
 
 </Project>

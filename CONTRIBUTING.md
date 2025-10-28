@@ -225,7 +225,7 @@ for help writing your component.
 When contributing a new project you are expected to assign either yourself or
 someone else who would take ownership of the component you are contributing. The
 owner should at least be an [OpenTelemetry
-Member](https://github.com/open-telemetry/community/blob/main/community-membership.md#member)
+Member](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#member)
 and be member of [@open-telemetry/dotnet-contrib-contributors](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-contributors)
 to be eligible to assigned as component owner.
 This is required to ensure that reviews can be automatically requested from
@@ -249,20 +249,22 @@ shipped through CI.
   SDK](https://www.nuget.org/packages/OpenTelemetry) or the [OpenTelemetry
   API](https://www.nuget.org/packages/OpenTelemetry.Api) Include the necessary
   package in your project. You can choose the version that you want to depend
-  on. Usually, it is a good idea to use the latest stable version. For example:
+  on. Usually, it is a good idea to use the latest stable version. This is defined
+  centrally using [Central Package Management](https://learn.microsoft.com/nuget/consume-packages/central-package-management).
+  For example:
 
    ```xml
    <ItemGroup>
-       <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestVersion)" />
+       <PackageReference Include="OpenTelemetry" />
    </ItemGroup>
    ```
 
 * If your component relies on new features not yet part of the stable release,
-  you can refer to the latest pre-release version.
+  you can refer to the latest pre-release version and override the version.
 
    ```xml
    <ItemGroup>
-       <PackageReference Include="OpenTelemetry" Version="$(OpenTelemetryCoreLatestPrereleaseVersion)" />
+       <PackageReference Include="OpenTelemetry" VersionOverride="..." />
    </ItemGroup>
    ```
 
