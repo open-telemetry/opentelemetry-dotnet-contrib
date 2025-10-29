@@ -327,7 +327,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     }
 
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                    cursor = SerializeValueWithLimitIfString(buffer, cursor, entry.Value);
                     cntFields += 1;
                 }
             }
@@ -529,6 +529,17 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                 stateData.EnvPropertiesCount += 1;
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int SerializeValueWithLimitIfString(byte[] buffer, int cursor, object? value)
+    {
+        if (value is string stringValue)
+        {
+            return MessagePackSerializer.SerializeUnicodeString(buffer, cursor, stringValue, this.stringFieldSizeLimitCharCount);
+        }
+
+        return MessagePackSerializer.Serialize(buffer, cursor, value);
     }
 
     private sealed class SerializationDataForScopes
