@@ -327,7 +327,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
                     }
 
                     cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
-                    cursor = SerializeValueWithLimitIfString(buffer, cursor, entry.Value);
+                    cursor = this.SerializeValueWithLimitIfString(buffer, cursor, entry.Value);
                     cntFields += 1;
                 }
             }
@@ -532,7 +532,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int SerializeValueWithLimitIfString(byte[] buffer, int cursor, object? value)
+    private int SerializeValueWithLimitIfString(byte[] buffer, int cursor, object? value)
     {
         if (value is string stringValue)
         {
