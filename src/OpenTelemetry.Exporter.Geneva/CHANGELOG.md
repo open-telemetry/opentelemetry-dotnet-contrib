@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.1
+
+Released 2025-Oct-29
+
 * Support for specifying resource attributes, including
   `service.name`, `service.instanceId`, and custom attributes.
   ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
