@@ -4,7 +4,7 @@
 
 ## 1.13.0
 
-Released 2025-Oct-23
+Released 2025-Oct-29
 
 ## 1.12.1
 
