@@ -34,6 +34,16 @@ public class GenevaExporterOptions
     public IEnumerable<string>? CustomFields { get; set; }
 
     /// <summary>
+    /// Gets or sets WantedResourceAttributes.
+    ///
+    /// WantedResourceAttributes specifies which resource attribute fields should be sent to Geneva.
+    ///
+    /// Any resource attributes not in WantedResourceAttributes are ignored.
+    /// If WantedResourceAttributes is not provided, all resource attributes will be sent to Geneva.
+    /// </summary>
+    public IEnumerable<string>? WantedResourceAttributes { get; set; }
+
+    /// <summary>
     /// Gets or sets the exception stack trace export mode.
     /// </summary>
     public ExceptionStackExportMode ExceptionStackExportMode { get; set; }
