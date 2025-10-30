@@ -72,6 +72,51 @@ public static class GcpAttributes
     public const string AttributeGcpApphubWorkloadId = "gcp.apphub.workload.id";
 
     /// <summary>
+    /// The container within GCP where the AppHub destination application is defined.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationApplicationContainer = "gcp.apphub_destination.application.container";
+
+    /// <summary>
+    /// The name of the destination application as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationApplicationId = "gcp.apphub_destination.application.id";
+
+    /// <summary>
+    /// The GCP zone or region where the destination application is defined.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationApplicationLocation = "gcp.apphub_destination.application.location";
+
+    /// <summary>
+    /// Criticality of a destination workload indicates its importance to the business as specified in <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">AppHub type enum</a>.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationServiceCriticalityType = "gcp.apphub_destination.service.criticality_type";
+
+    /// <summary>
+    /// Software lifecycle stage of a destination service as defined <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">AppHub environment type</a>.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationServiceEnvironmentType = "gcp.apphub_destination.service.environment_type";
+
+    /// <summary>
+    /// The name of the destination service as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationServiceId = "gcp.apphub_destination.service.id";
+
+    /// <summary>
+    /// Criticality of a destination workload indicates its importance to the business as specified in <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">AppHub type enum</a>.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationWorkloadCriticalityType = "gcp.apphub_destination.workload.criticality_type";
+
+    /// <summary>
+    /// Environment of a destination workload is the stage of a software lifecycle as provided in the <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">AppHub environment type</a>.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationWorkloadEnvironmentType = "gcp.apphub_destination.workload.environment_type";
+
+    /// <summary>
+    /// The name of the destination workload as configured in AppHub.
+    /// </summary>
+    public const string AttributeGcpApphubDestinationWorkloadId = "gcp.apphub_destination.workload.id";
+
+    /// <summary>
     /// Identifies the Google Cloud service for which the official client library is intended.
     /// </summary>
     /// <remarks>
@@ -181,6 +226,110 @@ public static class GcpAttributes
     /// Environment of a workload is the stage of a software lifecycle.
     /// </summary>
     public static class GcpApphubWorkloadEnvironmentTypeValues
+    {
+        /// <summary>
+        /// Production environment.
+        /// </summary>
+        public const string Production = "PRODUCTION";
+
+        /// <summary>
+        /// Staging environment.
+        /// </summary>
+        public const string Staging = "STAGING";
+
+        /// <summary>
+        /// Test environment.
+        /// </summary>
+        public const string Test = "TEST";
+
+        /// <summary>
+        /// Development environment.
+        /// </summary>
+        public const string Development = "DEVELOPMENT";
+    }
+
+    /// <summary>
+    /// Criticality of a destination workload indicates its importance to the business as specified in <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">AppHub type enum</a>.
+    /// </summary>
+    public static class GcpApphubDestinationServiceCriticalityTypeValues
+    {
+        /// <summary>
+        /// Mission critical service.
+        /// </summary>
+        public const string MissionCritical = "MISSION_CRITICAL";
+
+        /// <summary>
+        /// High impact.
+        /// </summary>
+        public const string High = "HIGH";
+
+        /// <summary>
+        /// Medium impact.
+        /// </summary>
+        public const string Medium = "MEDIUM";
+
+        /// <summary>
+        /// Low impact.
+        /// </summary>
+        public const string Low = "LOW";
+    }
+
+    /// <summary>
+    /// Software lifecycle stage of a destination service as defined <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">AppHub environment type</a>.
+    /// </summary>
+    public static class GcpApphubDestinationServiceEnvironmentTypeValues
+    {
+        /// <summary>
+        /// Production environment.
+        /// </summary>
+        public const string Production = "PRODUCTION";
+
+        /// <summary>
+        /// Staging environment.
+        /// </summary>
+        public const string Staging = "STAGING";
+
+        /// <summary>
+        /// Test environment.
+        /// </summary>
+        public const string Test = "TEST";
+
+        /// <summary>
+        /// Development environment.
+        /// </summary>
+        public const string Development = "DEVELOPMENT";
+    }
+
+    /// <summary>
+    /// Criticality of a destination workload indicates its importance to the business as specified in <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type">AppHub type enum</a>.
+    /// </summary>
+    public static class GcpApphubDestinationWorkloadCriticalityTypeValues
+    {
+        /// <summary>
+        /// Mission critical service.
+        /// </summary>
+        public const string MissionCritical = "MISSION_CRITICAL";
+
+        /// <summary>
+        /// High impact.
+        /// </summary>
+        public const string High = "HIGH";
+
+        /// <summary>
+        /// Medium impact.
+        /// </summary>
+        public const string Medium = "MEDIUM";
+
+        /// <summary>
+        /// Low impact.
+        /// </summary>
+        public const string Low = "LOW";
+    }
+
+    /// <summary>
+    /// Environment of a destination workload is the stage of a software lifecycle as provided in the <a href="https://cloud.google.com/app-hub/docs/reference/rest/v1/Attributes#type_1">AppHub environment type</a>.
+    /// </summary>
+    public static class GcpApphubDestinationWorkloadEnvironmentTypeValues
     {
         /// <summary>
         /// Production environment.

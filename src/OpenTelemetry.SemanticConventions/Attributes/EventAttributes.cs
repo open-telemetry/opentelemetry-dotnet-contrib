@@ -17,6 +17,6 @@ public static class EventAttributes
     /// <summary>
     /// Identifies the class / type of event.
     /// </summary>
-    [Obsolete("Replaced by EventName top-level field on the LogRecord.")]
+    [Obsolete("The value of this attribute MUST now be set as the value of the EventName field on the LogRecord to indicate that the LogRecord represents an Event.")]
     public const string AttributeEventName = "event.name";
 }

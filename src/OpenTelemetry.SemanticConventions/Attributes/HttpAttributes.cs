@@ -26,9 +26,9 @@ public static class HttpAttributes
     public const string AttributeHttpConnectionState = "http.connection.state";
 
     /// <summary>
-    /// Deprecated, use <c>network.protocol.name</c> instead.
+    /// Deprecated, use <c>network.protocol.name</c> and <c>network.protocol.version</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+    [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
     public const string AttributeHttpFlavor = "http.flavor";
 
     /// <summary>
@@ -77,8 +77,9 @@ public static class HttpAttributes
     /// </summary>
     /// <remarks>
     /// HTTP request method value SHOULD be "known" to the instrumentation.
-    /// By default, this convention defines "known" methods as the ones listed in <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-methods">RFC9110</a>
-    /// and the PATCH method defined in <a href="https://www.rfc-editor.org/rfc/rfc5789.html">RFC5789</a>.
+    /// By default, this convention defines "known" methods as the ones listed in <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-methods">RFC9110</a>,
+    /// the PATCH method defined in <a href="https://www.rfc-editor.org/rfc/rfc5789.html">RFC5789</a>
+    /// and the QUERY method defined in <a href="https://datatracker.ietf.org/doc/draft-ietf-httpbis-safe-method-w-body/?include_text=1">httpbis-safe-method-w-body</a>.
     /// <p>
     /// If the HTTP request method is not known to instrumentation, it MUST set the <c>http.request.method</c> attribute to <c>_OTHER</c>.
     /// <p>
@@ -174,11 +175,19 @@ public static class HttpAttributes
     public const string AttributeHttpResponseContentLengthUncompressed = "http.response_content_length_uncompressed";
 
     /// <summary>
-    /// The matched route, that is, the path template in the format used by the respective server framework.
+    /// The matched route template for the request. This MUST be low-cardinality and include all static path segments, with dynamic path segments represented with placeholders.
     /// </summary>
     /// <remarks>
     /// MUST NOT be populated when this is not supported by the HTTP server framework as the route attribute should have low-cardinality and the URI path can NOT substitute it.
     /// SHOULD include the <a href="/docs/http/http-spans.md#http-server-definitions">application root</a> if there is one.
+    /// <p>
+    /// A static path segment is a part of the route template with a fixed, low-cardinality value. This includes literal strings like <c>/users/</c> and placeholders that
+    /// are constrained to a finite, predefined set of values, e.g. <c>{controller}</c> or <c>{action}</c>.
+    /// <p>
+    /// A dynamic path segment is a placeholder for a value that can have high cardinality and is not constrained to a predefined list like static path segments.
+    /// <p>
+    /// Instrumentations SHOULD use routing information provided by the corresponding web framework. They SHOULD pick the most precise source of routing information and MAY
+    /// support custom route formatting. Instrumentations SHOULD document the format and the API used to obtain the route string.
     /// </remarks>
     public const string AttributeHttpRoute = "http.route";
 
@@ -235,45 +244,45 @@ public static class HttpAttributes
     }
 
     /// <summary>
-    /// Deprecated, use <c>network.protocol.name</c> instead.
+    /// Deprecated, use <c>network.protocol.name</c> and <c>network.protocol.version</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+    [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
     public static class HttpFlavorValues
     {
         /// <summary>
         /// HTTP/1.0.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http10 = "1.0";
 
         /// <summary>
         /// HTTP/1.1.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http11 = "1.1";
 
         /// <summary>
         /// HTTP/2.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http20 = "2.0";
 
         /// <summary>
         /// HTTP/3.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http30 = "3.0";
 
         /// <summary>
         /// SPDY protocol.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Spdy = "SPDY";
 
         /// <summary>
         /// QUIC protocol.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Quic = "QUIC";
     }
 
@@ -326,6 +335,11 @@ public static class HttpAttributes
         /// TRACE method.
         /// </summary>
         public const string Trace = "TRACE";
+
+        /// <summary>
+        /// QUERY method.
+        /// </summary>
+        public const string Query = "QUERY";
 
         /// <summary>
         /// Any HTTP method that the instrumentation has no prior knowledge of.

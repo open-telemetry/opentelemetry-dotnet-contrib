@@ -49,6 +49,34 @@ public static class GenAiAttributes
     public const string AttributeGenAiDataSourceId = "gen_ai.data_source.id";
 
     /// <summary>
+    /// The number of dimensions the resulting output embeddings should have.
+    /// </summary>
+    public const string AttributeGenAiEmbeddingsDimensionCount = "gen_ai.embeddings.dimension.count";
+
+    /// <summary>
+    /// A free-form explanation for the assigned score provided by the evaluator.
+    /// </summary>
+    public const string AttributeGenAiEvaluationExplanation = "gen_ai.evaluation.explanation";
+
+    /// <summary>
+    /// The name of the evaluation metric used for the GenAI response.
+    /// </summary>
+    public const string AttributeGenAiEvaluationName = "gen_ai.evaluation.name";
+
+    /// <summary>
+    /// Human readable label for evaluation.
+    /// </summary>
+    /// <remarks>
+    /// This attribute provides a human-readable interpretation of the evaluation score produced by an evaluator. For example, a score value of 1 could mean "relevant" in one evaluation system and "not relevant" in another, depending on the scoring range and evaluator. The label SHOULD have low cardinality. Possible values depend on the evaluation metric and evaluator used; implementations SHOULD document the possible values.
+    /// </remarks>
+    public const string AttributeGenAiEvaluationScoreLabel = "gen_ai.evaluation.score.label";
+
+    /// <summary>
+    /// The evaluation score returned by the evaluator.
+    /// </summary>
+    public const string AttributeGenAiEvaluationScoreValue = "gen_ai.evaluation.score.value";
+
+    /// <summary>
     /// The chat history provided to the model as an input.
     /// </summary>
     /// <remarks>
@@ -286,9 +314,53 @@ public static class GenAiAttributes
     public const string AttributeGenAiTokenType = "gen_ai.token.type";
 
     /// <summary>
+    /// Parameters passed to the tool call.
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// This attribute may contain sensitive information.</blockquote>
+    /// <p>
+    /// It's expected to be an object - in case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// </remarks>
+    public const string AttributeGenAiToolCallArguments = "gen_ai.tool.call.arguments";
+
+    /// <summary>
     /// The tool call identifier.
     /// </summary>
     public const string AttributeGenAiToolCallId = "gen_ai.tool.call.id";
+
+    /// <summary>
+    /// The result returned by the tool call (if any and if execution was successful).
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// This attribute may contain sensitive information.</blockquote>
+    /// <p>
+    /// It's expected to be an object - in case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// </remarks>
+    public const string AttributeGenAiToolCallResult = "gen_ai.tool.call.result";
+
+    /// <summary>
+    /// The list of source system tool definitions available to the GenAI agent or model.
+    /// </summary>
+    /// <remarks>
+    /// The value of this attribute matches source system tool definition format.
+    /// <p>
+    /// It's expected to be an array of objects where each object represents a tool definition. In case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an array. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// <p>
+    /// Since this attribute could be large, it's NOT RECOMMENDED to populate
+    /// it by default. Instrumentations MAY provide a way to enable
+    /// populating this attribute.
+    /// </remarks>
+    public const string AttributeGenAiToolDefinitions = "gen_ai.tool.definitions";
 
     /// <summary>
     /// The tool description.
