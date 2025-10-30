@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Add WithResourceAttributes to filter resource attributes to send to Geneva
+  ([#3367](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3367))
 
 ## 1.14.0
 
