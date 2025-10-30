@@ -9,6 +9,7 @@ Released 2025-Oct-29
 * Support for specifying resource attributes, including
   `service.name`, `service.instanceId`, and custom attributes.
   ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
+  * Add WantedResourceAttributes to filter resource attributes to send to Geneva
 * Allow custom string size limit in custom fields.
   ([#3360](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3360))
 
