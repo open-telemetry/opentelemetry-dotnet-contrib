@@ -857,5 +857,31 @@
       ],
       "db.query.summary": "ALTER TABLE MyTable"
     }
+  },
+  {
+    "name": "query_with_german_characters",
+    "input": {
+      "db.system.name": "microsoft.sql_server",
+      "query": "DECLARE @__geräteIds_0 nvarchar(4000) = N'[1,2,3]';\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint '$') AS [g]\n)"
+    },
+    "expected": {
+      "db.query.text": [
+        "DECLARE @__geräteIds_0 nvarchar(?) = N?;\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint ?) AS [g]\n)"
+      ],
+      "db.query.summary": "SELECT Tests"
+    }
+  },
+  {
+    "name": "cross_join_comma_separated_syntax_followed_by_composite_group_by",
+    "input": {
+      "db.system.name": "other_sql",
+      "query": "SELECT a, b FROM TableA, TableB GROUP BY a, b"
+    },
+    "expected": {
+      "db.query.text": [
+        "SELECT a, b FROM TableA, TableB GROUP BY a, b"
+      ],
+      "db.query.summary": "SELECT TableA TableB"
+    }
   }
 ]
