@@ -118,6 +118,13 @@ A list of fields which should be stored as individual table columns.
 * If null, all fields will be stored as individual columns.
 * If non-null, only those fields named in the list will be stored as individual columns.
 
+#### `WantedResourceAttributes` (optional)
+
+A list of resource attribute keys which should be sent to Geneva.
+
+* If null, all resource attributes will be stored.
+* If non-null, only those resource attributes named in the list will be stored.
+
 #### `PrepopulatedFields` (optional)
 
 This is a collection of fields that will be applied to all the Logs and Traces

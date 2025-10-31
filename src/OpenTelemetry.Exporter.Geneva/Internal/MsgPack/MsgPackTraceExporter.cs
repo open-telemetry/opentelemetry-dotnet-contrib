@@ -58,11 +58,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
 #if NET
     internal readonly FrozenSet<string>? CustomFields;
-
+    internal readonly FrozenSet<string>? WantedResourceAttributes;
     internal readonly FrozenSet<string>? DedicatedFields;
 #else
     internal readonly HashSet<string>? CustomFields;
-
+    internal readonly HashSet<string>? WantedResourceAttributes;
     internal readonly HashSet<string>? DedicatedFields;
 #endif
 
@@ -165,6 +165,15 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             this.DedicatedFields = dedicatedFields.ToFrozenSet(StringComparer.Ordinal);
 #else
             this.DedicatedFields = dedicatedFields;
+#endif
+        }
+
+        if (options.WantedResourceAttributes != null)
+        {
+#if NET
+            this.WantedResourceAttributes = options.WantedResourceAttributes.ToFrozenSet(StringComparer.Ordinal);
+#else
+            this.WantedResourceAttributes = [.. options.WantedResourceAttributes];
 #endif
         }
 
@@ -340,6 +349,11 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                         isDedicatedField = true;
                         break;
                 }
+            }
+
+            if (this.WantedResourceAttributes != null && !this.WantedResourceAttributes.Contains(entry.Key))
+            {
+                continue;
             }
 
             if (isDedicatedField || this.CustomFields == null || this.CustomFields.Contains(key))
