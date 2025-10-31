@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
@@ -15,7 +14,8 @@ public class RoutingTestFixture : IAsyncLifetime
     private static readonly HttpClient HttpClient = new();
     private readonly Dictionary<TestApplicationScenario, WebApplication> apps = [];
     private readonly RouteInfoDiagnosticObserver diagnostics = new();
-    private readonly List<RoutingTestResult> testResults = [];
+    private readonly List<ActivityRoutingTestResult> activityTestResults = [];
+    private readonly List<MetricRoutingTestResult> metricsTestResults = [];
 
     public RoutingTestFixture()
     {
@@ -60,36 +60,52 @@ public class RoutingTestFixture : IAsyncLifetime
         await HttpClient.GetAsync(new Uri(url));
     }
 
-    internal void AddTestResult(RoutingTestResult result)
+    internal void AddActivityTestResult(ActivityRoutingTestResult result)
     {
-        this.testResults.Add(result);
+        this.activityTestResults.Add(result);
+    }
+
+    internal void AddMetricsTestResult(MetricRoutingTestResult result)
+    {
+        this.metricsTestResults.Add(result);
     }
 
     private void GenerateReadme()
     {
         var sb = new StringBuilder();
+        sb.AppendLine("<!-- markdownlint-disable MD022 MD024 MD031 MD033 -->");
+        sb.AppendLine();
         sb.AppendLine($"# Test results for ASP.NET Core {Environment.Version.Major}");
+        sb.AppendLine();
+
+        // Append tracing header
+        sb.AppendLine("## Tracing");
         sb.AppendLine();
         sb.AppendLine("| http.route | App | Test Name |");
         sb.AppendLine("| - | - | - |");
 
-        for (var i = 0; i < this.testResults.Count; ++i)
-        {
-            var result = this.testResults[i];
-            var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
-            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}]({GenerateLinkFragment(result.TestCase.TestApplicationScenario, result.TestCase.Name)}) |");
-        }
+        this.AppendTestResults(sb, this.activityTestResults);
 
-        for (var i = 0; i < this.testResults.Count; ++i)
-        {
-            var result = this.testResults[i];
-            sb.AppendLine();
-            sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
-            sb.AppendLine();
-            sb.AppendLine("```json");
-            sb.AppendLine(result.ToString());
-            sb.AppendLine("```");
-        }
+        // Append metrics header
+        sb.AppendLine();
+        sb.AppendLine("## Metrics");
+        sb.AppendLine();
+        sb.AppendLine("| http.route | App | Test Name |");
+        sb.AppendLine("| - | - | - |");
+
+        this.AppendTestResults(sb, this.metricsTestResults);
+
+        sb.AppendLine();
+        sb.AppendLine("## Tracing tests details");
+        sb.AppendLine();
+
+        this.AppendJsonResults(sb, this.activityTestResults);
+
+        sb.AppendLine();
+        sb.AppendLine("## Metrics tests details");
+        sb.AppendLine();
+
+        this.AppendJsonResults(sb, this.metricsTestResults);
 
         string routeTestsPath =
             typeof(TestApplicationFactory).Assembly
@@ -99,21 +115,27 @@ public class RoutingTestFixture : IAsyncLifetime
 
         var readmeFileName = $"README.net{Environment.Version.Major}.0.md";
         File.WriteAllText(Path.Combine(routeTestsPath, readmeFileName), sb.ToString());
+    }
 
-        // Generates a link fragment that should comply with markdownlint rule MD051
-        // https://github.com/DavidAnson/markdownlint/blob/main/doc/md051.md
-        static string GenerateLinkFragment(TestApplicationScenario scenario, string name)
+    private void AppendTestResults(StringBuilder sb, IReadOnlyCollection<RoutingTestResult> testResults)
+    {
+        foreach (var result in testResults)
         {
-            var chars = name.ToCharArray()
-                .Where(c => (!char.IsPunctuation(c) && c != '`') || c == '-')
-                .Select(c => c switch
-                {
-                    '-' or ' ' => '-',
-                    _ => char.ToLower(c, CultureInfo.InvariantCulture),
-                })
-                .ToArray();
+            var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
+            sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}](#{result.DetailsAnchor}) |");
+        }
+    }
 
-            return $"#{scenario.ToString().ToLower(CultureInfo.CurrentCulture)}-{new string(chars)}";
+    private void AppendJsonResults(StringBuilder sb, IReadOnlyCollection<RoutingTestResult> testResults)
+    {
+        foreach (var result in testResults)
+        {
+            sb.AppendLine($"<a name=\"{result.DetailsAnchor}\"></a>");
+            sb.AppendLine($"## {result.TestCase.TestApplicationScenario}: {result.TestCase.Name}");
+            sb.AppendLine();
+            sb.AppendLine("```json");
+            sb.AppendLine(result.ToString());
+            sb.AppendLine("```");
         }
     }
 }
