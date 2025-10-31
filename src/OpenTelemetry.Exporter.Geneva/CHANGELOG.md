@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
 ## 1.13.1
 
 Released 2025-Oct-29
