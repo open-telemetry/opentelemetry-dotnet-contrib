@@ -859,7 +859,7 @@
     }
   },
   {
-    "name": "query_with_german_characters",
+    "name": "query_with_diacritic_characters",
     "input": {
       "db.system.name": "microsoft.sql_server",
       "query": "DECLARE @__geräteIds_0 nvarchar(4000) = N'[1,2,3]';\n\nSELECT [t].[Id]\nFROM [Tests] AS [t]\nWHERE [t].[Id] IN (\n\tSELECT [g].[value]\n\tFROM OPENJSON(@__geräteIds_0) WITH ([value] bigint '$') AS [g]\n)"
