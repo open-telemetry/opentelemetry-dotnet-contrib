@@ -162,7 +162,7 @@ public sealed class EntityFrameworkIntegrationTests :
         using var scope = SemanticConventionScope.Get(useNewConventions);
 
         var activities = new List<Activity>();
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using (Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation()
             .AddEntityFrameworkCoreInstrumentation(options => options.Filter = ActivityFilter)

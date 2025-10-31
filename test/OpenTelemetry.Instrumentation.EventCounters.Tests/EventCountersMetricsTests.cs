@@ -220,7 +220,7 @@ public class EventCountersMetricsTests
                 Thread.Sleep(100);
                 meterProvider.ForceFlush();
                 metric = exportedItems.FirstOrDefault(x => x.Name == expectedInstrumentName);
-                return metric != null && GetActualValue(metric) != 0;
+                return metric != null && Math.Abs(GetActualValue(metric)) > double.Epsilon;
             },
             10_000);
 
