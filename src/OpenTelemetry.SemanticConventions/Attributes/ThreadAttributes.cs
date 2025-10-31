@@ -17,10 +17,33 @@ public static class ThreadAttributes
     /// <summary>
     /// Current "managed" thread ID (as opposed to OS thread ID).
     /// </summary>
+    /// <remarks>
+    /// Examples of where the value can be extracted from:
+    /// <p>
+    /// | Language or platform  | Source |
+    /// | --- | --- |
+    /// | JVM | <c>Thread.currentThread().threadId()</c> |
+    /// | .NET | <c>Thread.CurrentThread.ManagedThreadId</c> |
+    /// | Python | <c>threading.current_thread().ident</c> |
+    /// | Ruby | <c>Thread.current.object_id</c> |
+    /// | C++ | <c>std::this_thread::get_id()</c> |
+    /// | Erlang | <c>erlang:self()</c> |.
+    /// </remarks>
     public const string AttributeThreadId = "thread.id";
 
     /// <summary>
     /// Current thread name.
     /// </summary>
+    /// <remarks>
+    /// Examples of where the value can be extracted from:
+    /// <p>
+    /// | Language or platform  | Source |
+    /// | --- | --- |
+    /// | JVM | <c>Thread.currentThread().getName()</c> |
+    /// | .NET | <c>Thread.CurrentThread.Name</c> |
+    /// | Python | <c>threading.current_thread().name</c> |
+    /// | Ruby | <c>Thread.current.name</c> |
+    /// | Erlang | <c>erlang:process_info(self(), registered_name)</c> |.
+    /// </remarks>
     public const string AttributeThreadName = "thread.name";
 }

@@ -39,7 +39,7 @@ public static class EnduserAttributes
     /// <summary>
     /// Deprecated, use <c>user.roles</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>user.roles</c>.")]
+    [Obsolete("Use <c>user.roles</c> instead.")]
     public const string AttributeEnduserRole = "enduser.role";
 
     /// <summary>

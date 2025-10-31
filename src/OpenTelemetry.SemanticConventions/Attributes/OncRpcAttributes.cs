@@ -12,18 +12,25 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class DnsAttributes
+public static class OncRpcAttributes
 {
     /// <summary>
-    /// The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+    /// ONC/Sun RPC procedure name.
     /// </summary>
-    public const string AttributeDnsAnswers = "dns.answers";
+    public const string AttributeOncRpcProcedureName = "onc_rpc.procedure.name";
 
     /// <summary>
-    /// The name being queried.
+    /// ONC/Sun RPC procedure number.
     /// </summary>
-    /// <remarks>
-    /// The name represents the queried domain name as it appears in the DNS query without any additional normalization.
-    /// </remarks>
-    public const string AttributeDnsQuestionName = "dns.question.name";
+    public const string AttributeOncRpcProcedureNumber = "onc_rpc.procedure.number";
+
+    /// <summary>
+    /// ONC/Sun RPC program name.
+    /// </summary>
+    public const string AttributeOncRpcProgramName = "onc_rpc.program.name";
+
+    /// <summary>
+    /// ONC/Sun RPC program version.
+    /// </summary>
+    public const string AttributeOncRpcVersion = "onc_rpc.version";
 }

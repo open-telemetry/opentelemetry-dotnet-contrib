@@ -12,18 +12,15 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class DnsAttributes
+public static class OpenshiftAttributes
 {
     /// <summary>
-    /// The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+    /// The name of the cluster quota.
     /// </summary>
-    public const string AttributeDnsAnswers = "dns.answers";
+    public const string AttributeOpenshiftClusterquotaName = "openshift.clusterquota.name";
 
     /// <summary>
-    /// The name being queried.
+    /// The UID of the cluster quota.
     /// </summary>
-    /// <remarks>
-    /// The name represents the queried domain name as it appears in the DNS query without any additional normalization.
-    /// </remarks>
-    public const string AttributeDnsQuestionName = "dns.question.name";
+    public const string AttributeOpenshiftClusterquotaUid = "openshift.clusterquota.uid";
 }
