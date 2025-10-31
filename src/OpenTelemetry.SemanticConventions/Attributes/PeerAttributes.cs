@@ -17,5 +17,12 @@ public static class PeerAttributes
     /// <summary>
     /// The <a href="/docs/resource/README.md#service"><c>service.name</c></a> of the remote service. SHOULD be equal to the actual <c>service.name</c> resource attribute of the remote service if any.
     /// </summary>
+    /// <remarks>
+    /// Examples of <c>peer.service</c> that users may specify:
+    /// <ul>
+    ///   <li>A Redis cache of auth tokens as <c>peer.service="AuthTokenCache"</c>.</li>
+    ///   <li>A gRPC service <c>rpc.service="io.opentelemetry.AuthService"</c> may be hosted in both a gateway, <c>peer.service="ExternalApiService"</c> and a backend, <c>peer.service="AuthService"</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributePeerService = "peer.service";
 }

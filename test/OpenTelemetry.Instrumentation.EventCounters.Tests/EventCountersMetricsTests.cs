@@ -9,7 +9,7 @@ namespace OpenTelemetry.Instrumentation.EventCounters.Tests;
 
 public class EventCountersMetricsTests
 {
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void EventCounter()
     {
         // Arrange
@@ -35,7 +35,7 @@ public class EventCountersMetricsTests
         Assert.Equal(1997.0202, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void IncrementingEventCounter()
     {
         // Arrange
@@ -63,7 +63,7 @@ public class EventCountersMetricsTests
         Assert.Equal(3, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void PollingCounter()
     {
         // Arrange
@@ -89,7 +89,7 @@ public class EventCountersMetricsTests
         Assert.Equal(10, GetActualValue(metric));
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void IncrementingPollingCounter()
     {
         // Arrange
@@ -163,7 +163,7 @@ public class EventCountersMetricsTests
         Assert.Equal(1, GetActualValue(metric));
     }
 
-    [Fact(Skip = "This test should properly validate no metrics are exported from event counters with invalid names (too long)")]
+    [Fact]
     public async Task InstrumentNameTooLong()
     {
         // Arrange

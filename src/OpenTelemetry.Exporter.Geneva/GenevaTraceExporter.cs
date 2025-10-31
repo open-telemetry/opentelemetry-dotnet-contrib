@@ -66,9 +66,14 @@ public class GenevaTraceExporter : GenevaBaseExporter<Activity>
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
+        Resources.Resource ResourceProvider()
+        {
+            return connectionStringBuilder.HonorResourceAttributes ? this.ParentProvider.GetResource() : Resources.Resource.Empty;
+        }
+
         if (useMsgPackExporter)
         {
-            var msgPackTraceExporter = new MsgPackTraceExporter(options);
+            var msgPackTraceExporter = new MsgPackTraceExporter(options, ResourceProvider);
             this.IsUsingUnixDomainSocket = msgPackTraceExporter.IsUsingUnixDomainSocket;
             this.exportActivity = msgPackTraceExporter.Export;
             this.exporter = msgPackTraceExporter;

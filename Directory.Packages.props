@@ -91,12 +91,12 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.13.1" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.5.10" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.6.6" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.7.5" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.7.13" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.13.3" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.5.12" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.8" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.2" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.9" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
@@ -105,7 +105,7 @@
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.71.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.72.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.76.0" />
     <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
     <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.10" />
@@ -136,9 +136,9 @@
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="8.1.2" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="8.1.2" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.0" />
-    <PackageVersion Include="Testcontainers.MySql" Version="4.8.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.8.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.1" />
+    <PackageVersion Include="Testcontainers.MySql" Version="4.8.1" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.8.1" />
     <PackageVersion Include="Wiremock.Net" Version="1.15.0" />
     <!-- Microsoft.AspNetCore.Server.Kestrel.Core is transitive dependency for Wiremock.Net. It is here to fix https://github.com/advisories/GHSA-5rrx-jjjq-q2r5 -->
     <PackageVersion Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.6" />

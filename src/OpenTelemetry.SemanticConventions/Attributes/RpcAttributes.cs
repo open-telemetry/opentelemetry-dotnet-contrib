@@ -116,19 +116,13 @@ public static class RpcAttributes
     public const string AttributeRpcMessageUncompressedSize = "rpc.message.uncompressed_size";
 
     /// <summary>
-    /// The name of the (logical) method being called, must be equal to the $method part in the span name.
+    /// This is the logical name of the method from the RPC interface perspective.
     /// </summary>
-    /// <remarks>
-    /// This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The <c>code.function.name</c> attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
-    /// </remarks>
     public const string AttributeRpcMethod = "rpc.method";
 
     /// <summary>
     /// The full (logical) name of the service being called, including its package name, if applicable.
     /// </summary>
-    /// <remarks>
-    /// This is the logical name of the service from the RPC interface perspective, which can be different from the name of any implementing class. The <c>code.namespace</c> attribute may be used to store the latter (despite the attribute name, it may include a class name; e.g., class with method actually executing the call on the server side, RPC client stub class on the client side).
-    /// </remarks>
     public const string AttributeRpcService = "rpc.service";
 
     /// <summary>
@@ -358,5 +352,15 @@ public static class RpcAttributes
         /// Connect RPC.
         /// </summary>
         public const string ConnectRpc = "connect_rpc";
+
+        /// <summary>
+        /// <a href="https://datatracker.ietf.org/doc/html/rfc5531">ONC RPC (Sun RPC)</a>.
+        /// </summary>
+        public const string OncRpc = "onc_rpc";
+
+        /// <summary>
+        /// JSON-RPC.
+        /// </summary>
+        public const string Jsonrpc = "jsonrpc";
     }
 }

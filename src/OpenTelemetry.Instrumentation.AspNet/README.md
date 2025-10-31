@@ -2,7 +2,7 @@
 
 | Status      |           |
 | ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Stability   | [Release candidate](../../README.md#release-candidate) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
@@ -12,7 +12,7 @@
 This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
-collect metrics and traces about incoming web requests.
+collects metrics and traces about incoming web requests.
 
 > [!NOTE]
 > This package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
@@ -36,8 +36,8 @@ dotnet add package OpenTelemetry.Instrumentation.AspNet
 `OpenTelemetry.Instrumentation.AspNet` requires adding an additional HttpModule
 to your web server. This additional HttpModule is shipped as part of
 [`OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
-which is implicitly brought by `OpenTelemetry.Instrumentation.AspNet`. The
-following shows changes required to your `Web.config` when using IIS web server.
+which is implicitly referenced by `OpenTelemetry.Instrumentation.AspNet`. The
+following shows the changes required to your `Web.config` when using IIS web server.
 
 ```xml
 <system.webServer>
@@ -146,7 +146,7 @@ data collection for anything NOT recorded by the sampler. The sampler approach
 will reduce the impact on the process being instrumented for all filtered
 requests.
 
-This instrumentation by default collects all the incoming http requests. It
+This instrumentation by default collects all incoming HTTP requests. It
 allows filtering of requests by using the `Filter` function in
 `AspNetTraceInstrumentationOptions`. This defines the condition for allowable
 requests. The Filter receives the `HttpContextBase` of the incoming request, and
@@ -173,7 +173,7 @@ This instrumentation library provides `EnrichWithHttpRequest`,
 `EnrichWithHttpResponse` and `EnrichWithException` options that can be used to
 enrich the activity with additional information from the raw `HttpRequestBase`,
 `HttpResponseBase` and `Exception` objects respectively. These actions are called
-only when `activity.IsAllDataRequested` is `true`. It contains the activity
+only when `activity.IsAllDataRequested` is `true`. They contain the activity
 itself (which can be enriched) and the actual raw object.
 
 The following code snippet shows how to enrich the activity using all 3
@@ -202,10 +202,11 @@ this.tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
-[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor),
+[Processor](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/docs/trace/extending-the-sdk/README.md#processor)
 is the general extensibility point to add additional properties to any activity.
-The `Enrich` option is specific to this instrumentation, and is provided to get
-access to `HttpRequestBase` and `HttpResponseBase`.
+The `EnrichWithHttpRequest`, `EnrichWithHttpResponse`, and `EnrichWithException`
+options are specific to this instrumentation, and are provided to get
+access to `HttpRequestBase`, `HttpResponseBase`, and `Exception` respectively.
 
 ### RecordException
 
@@ -221,13 +222,13 @@ This instrumentation can be configured to change the default behavior by using
 ### Metric Enrich
 
 This option allows one to enrich the metric with additional information from
-the `HttpContextBase`. The `Enrich` action is always called unless the metric was
-filtered. The callback allows for modifying the tag list. If the callback
-throws an exception the metric will still be recorded.
+the `HttpContextBase`. The `EnrichWithHttpContext` action is always called
+unless the metric was filtered. The callback allows for modifying the tag list.
+If the callback throws an exception the metric will still be recorded.
 
 ```csharp
 this.meterProvider = Sdk.CreateMeterProviderBuilder()
-    .AddAspNetInstrumentation(options => options.Enrich =
+    .AddAspNetInstrumentation(options => options.EnrichWithHttpContext =
         (HttpContextBase context, ref TagList tags) =>
     {
         // Add request content type to the metric tags.

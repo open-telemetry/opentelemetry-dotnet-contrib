@@ -12,18 +12,15 @@ namespace OpenTelemetry.SemanticConventions;
 /// <summary>
 /// Constants for semantic attribute names outlined by the OpenTelemetry specifications.
 /// </summary>
-public static class DnsAttributes
+public static class NfsAttributes
 {
     /// <summary>
-    /// The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+    /// NFSv4+ operation name.
     /// </summary>
-    public const string AttributeDnsAnswers = "dns.answers";
+    public const string AttributeNfsOperationName = "nfs.operation.name";
 
     /// <summary>
-    /// The name being queried.
+    /// Linux: one of "hit" (NFSD_STATS_RC_HITS), "miss" (NFSD_STATS_RC_MISSES), or "nocache" (NFSD_STATS_RC_NOCACHE -- uncacheable).
     /// </summary>
-    /// <remarks>
-    /// The name represents the queried domain name as it appears in the DNS query without any additional normalization.
-    /// </remarks>
-    public const string AttributeDnsQuestionName = "dns.question.name";
+    public const string AttributeNfsServerRepcacheStatus = "nfs.server.repcache.status";
 }

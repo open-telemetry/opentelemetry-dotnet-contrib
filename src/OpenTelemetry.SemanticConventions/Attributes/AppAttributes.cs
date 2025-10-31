@@ -73,6 +73,22 @@ public static class AppAttributes
     public const string AttributeAppScreenCoordinateY = "app.screen.coordinate.y";
 
     /// <summary>
+    /// An identifier that uniquely differentiates this screen from other screens in the same application.
+    /// </summary>
+    /// <remarks>
+    /// A screen represents only the part of the device display drawn by the app. It typically contains multiple widgets or UI components and is larger in scope than individual widgets. Multiple screens can coexist on the same display simultaneously (e.g., split view on tablets).
+    /// </remarks>
+    public const string AttributeAppScreenId = "app.screen.id";
+
+    /// <summary>
+    /// The name of an application screen.
+    /// </summary>
+    /// <remarks>
+    /// A screen represents only the part of the device display drawn by the app. It typically contains multiple widgets or UI components and is larger in scope than individual widgets. Multiple screens can coexist on the same display simultaneously (e.g., split view on tablets).
+    /// </remarks>
+    public const string AttributeAppScreenName = "app.screen.name";
+
+    /// <summary>
     /// An identifier that uniquely differentiates this widget from other widgets in the same application.
     /// </summary>
     /// <remarks>
