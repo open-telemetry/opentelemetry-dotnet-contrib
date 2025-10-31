@@ -334,6 +334,113 @@ internal partial class AWSSemanticConventions
         /// </summary>
         public virtual string AttributeAWSBedrock => string.Empty;
 
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSSQSQueueName => string.Empty;
+
+        /// <summary>
+        /// The S3 bucket name the request refers to. Corresponds to the <c>--bucket</c> parameter of the <a href="https://docs.aws.amazon.com/cli/latest/reference/s3api/index.html">S3 API</a> operations.
+        /// </summary>
+        /// <remarks>
+        /// The <c>bucket</c> attribute is applicable to all S3 operations that reference a bucket, i.e. that require the bucket name as a mandatory parameter.
+        /// This applies to almost all S3 operations except <c>list-buckets</c>.
+        /// </remarks>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsS3Bucket
+        /// </remarks>
+        public virtual string AttributeAwsS3Bucket => string.Empty;
+
+        /// <summary>
+        /// The name of the AWS Kinesis <a href="https://docs.aws.amazon.com/streams/latest/dev/introduction.html">stream</a> the request refers to. Corresponds to the <c>--stream-name</c> parameter of the Kinesis <a href="https://docs.aws.amazon.com/cli/latest/reference/kinesis/describe-stream.html">describe-stream</a> operation.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsKinesisStreamName
+        /// </remarks>
+        public virtual string AttributeAwsKinesisStreamName => string.Empty;
+
+        /// <summary>
+        /// The AWS request ID as returned in the response headers <c>x-amzn-requestid</c>, <c>x-amzn-request-id</c> or <c>x-amz-request-id</c>.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAWSRequestId
+        /// </remarks>
+        public virtual string AttributeAwsRequestId => string.Empty;
+
+        /// <summary>
+        /// The UUID of the <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html">AWS Lambda EvenSource Mapping</a>. An event source is mapped to a lambda function. It's contents are read by Lambda and used to trigger a function. This isn't available in the lambda execution context or the lambda runtime environtment. This is going to be populated by the AWS SDK for each language when that UUID is present. Some of these operations are Create/Delete/Get/List/Update EventSourceMapping.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsLambdaResourceMappingId
+        /// </remarks>
+        public virtual string AttributeAwsLambdaResourceMappingId => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSLambdaFunctionName => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSKinesisStreamArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSDynamoTableArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSBedrockGuardrailArn => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSAuthRegion => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSAuthAccessKey => string.Empty;
+
+        /// <summary>
+        /// Not yet incorporated in Semantic Conventions repository.
+        /// </summary>
+        public virtual string AttributeAWSLambdaFunctionArn => string.Empty;
+
+        /// <summary>
+        /// The ARN of the Secret stored in the Secrets Mangger.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsSecretsmanagerSecretArn
+        /// </remarks>
+        public virtual string AttributeAwsSecretsmanagerSecretArn => string.Empty;
+
+        /// <summary>
+        /// The ARN of the AWS SNS Topic. An Amazon SNS <a href="https://docs.aws.amazon.com/sns/latest/dg/sns-create-topic.html">topic</a> is a logical access point that acts as a communication channel.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsSecretsmanagerSecretArn
+        /// </remarks>
+        public virtual string AttributeAwsSnsTopicArn => string.Empty;
+
+        /// <summary>
+        /// The ARN of the AWS Step Functions Activity.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsSecretsmanagerSecretArn
+        /// </remarks>
+        public virtual string AttributeAwsStepFunctionsActivityArn => string.Empty;
+
+        /// <summary>
+        /// The ARN of the AWS Step Functions State Machine.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsSecretsmanagerSecretArn
+        /// </remarks>
+        public virtual string AttributeAwsStepFunctionsStateMachineArn => string.Empty;
         #endregion
 
         #region FAAS Attributes
@@ -485,6 +592,53 @@ internal partial class AWSSemanticConventions
         /// </remarks>
         public virtual string AttributeGenAiSystem => string.Empty;
 
+        /// <summary>
+        /// The top_p sampling setting for the GenAI request.
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiTopP
+        /// </remarks>
+        public virtual string AttributeGenAiTopP => string.Empty;
+
+        /// <summary>
+        /// The temperature setting for the GenAI request.
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiTemperature
+        /// </remarks>
+        public virtual string AttributeGenAiTemperature => string.Empty;
+
+        /// <summary>
+        /// The maximum number of tokens the model generates for a request.
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiMaxTokens
+        /// </remarks>
+        public virtual string AttributeGenAiMaxTokens => string.Empty;
+
+        /// <summary>
+        /// The number of tokens used in the GenAI input (prompt).
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiInputTokens
+        /// </remarks>
+        public virtual string AttributeGenAiInputTokens => string.Empty;
+
+        /// <summary>
+        /// The number of tokens used in the GenAI response (completion).
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiOutputTokens
+        /// </remarks>
+        public virtual string AttributeGenAiOutputTokens => string.Empty;
+
+        /// <summary>
+        /// Array of reasons the model stopped generating tokens, corresponding to each generation received.
+        /// </summary>
+        /// <remarks>
+        /// GenAiAttributes.AttributeGenAiFinishReasons
+        /// </remarks>
+        public virtual string AttributeGenAiFinishReasons => string.Empty;
         #endregion
 
         #region HOST Attributes
@@ -584,6 +738,25 @@ internal partial class AWSSemanticConventions
         /// HttpAttributes.AttributeHttpRequestMethod
         /// </remarks>
         public virtual string AttributeHttpRequestMethod => string.Empty;
+
+        /// <summary>
+        /// The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always,
+        /// present as the Content-Length header. For requests using transport encoding, this should be the compressed size.
+        /// </summary>
+        /// <remarks>
+        /// HttpAttributes.AttributeHttpResponseContentLength
+        /// </remarks>
+        [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
+        public virtual string AttributeHttpResponseContentLength => string.Empty;
+
+        /// <summary>
+        /// The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always,
+        /// present as the Content-Length header. For requests using transport encoding, this should be the compressed size.
+        /// </summary>
+        /// <remarks>
+        /// HttpAttributes.AttributeHttpResponseHeaderContentLength
+        /// </remarks>
+        public virtual string AttributeHttpResponseHeaderContentLength => string.Empty;
 
         #endregion
 
