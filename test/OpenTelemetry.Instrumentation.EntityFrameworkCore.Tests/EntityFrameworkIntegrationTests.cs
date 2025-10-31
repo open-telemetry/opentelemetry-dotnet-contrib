@@ -162,25 +162,26 @@ public sealed class EntityFrameworkIntegrationTests :
         using var scope = SemanticConventionScope.Get(useNewConventions);
 
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+        using (Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
             .AddSqlClientInstrumentation()
             .AddEntityFrameworkCoreInstrumentation(options => options.Filter = ActivityFilter)
-            .Build();
-
-        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
-
-        this.ConfigureProvider(provider, optionsBuilder);
-
-        await using var context = new ItemsContext(optionsBuilder.Options);
-
-        try
+            .Build())
         {
-            await context.Database.ExecuteSqlRawAsync(commandText);
-        }
-        catch
-        {
-            // Ignore
+            var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+
+            this.ConfigureProvider(provider, optionsBuilder);
+
+            await using var context = new ItemsContext(optionsBuilder.Options);
+
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(commandText);
+            }
+            catch
+            {
+                // Ignore
+            }
         }
 
         Assert.NotEmpty(activities);
