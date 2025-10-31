@@ -762,7 +762,7 @@ internal static class SqlProcessor
 
         /// <summary>
         /// Will be set if a keyword has been matched by the parser.
-        /// Not all keywords are neccessarily matched.
+        /// Not all keywords are necessarily matched.
         /// </summary>
         public SqlKeywordInfo? PreviousParsedKeyword; // 8 bytes (reference type)
 
