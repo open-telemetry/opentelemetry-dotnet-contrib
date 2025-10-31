@@ -2,7 +2,7 @@
 
 | Status      |           |
 | ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Stability   | [Release candidate](../../README.md#release-candidate) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)

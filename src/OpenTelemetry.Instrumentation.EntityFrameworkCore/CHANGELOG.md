@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
 * Added support for detecting Snowflake for the `db.system`/`db.system.name` attributes
   when using `EFCore.Snowflake`.
   ([#2980](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2980))

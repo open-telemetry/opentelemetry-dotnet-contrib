@@ -5,6 +5,7 @@ using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 /*
@@ -58,16 +59,18 @@ public class TLDTraceExporterBenchmarks
             this.activity.SetStatus(ActivityStatusCode.Error);
         }
 
-        this.msgPackExporter = new MsgPackTraceExporter(new GenevaExporterOptions
-        {
-            ConnectionString = "EtwSession=OpenTelemetry",
-            PrepopulatedFields = new Dictionary<string, object>
+        this.msgPackExporter = new MsgPackTraceExporter(
+            new GenevaExporterOptions
             {
-                ["cloud.role"] = "BusyWorker",
-                ["cloud.roleInstance"] = "CY1SCH030021417",
-                ["cloud.roleVer"] = "9.0.15289.2",
+                ConnectionString = "EtwSession=OpenTelemetry",
+                PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
+                },
             },
-        });
+            () => Resource.Empty);
 
         this.tldExporter = new TldTraceExporter(new GenevaExporterOptions()
         {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-beta.3
+
+Released 2025-Oct-23
+
 * Updated CassandraCSharpDriver to `3.17.0`.
   ([#2836](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2836))
 

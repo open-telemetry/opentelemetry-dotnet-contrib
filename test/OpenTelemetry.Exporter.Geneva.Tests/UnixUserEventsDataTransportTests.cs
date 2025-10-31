@@ -49,7 +49,7 @@ public class UnixUserEventsDataTransportTests
         this.testOutputHelper = testOutputHelper;
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true, Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Enabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -78,9 +78,7 @@ public class UnixUserEventsDataTransportTests
                 this.testOutputHelper.WriteLine(string.Join(", ", e.Select(kvp => $"{kvp.Key}={kvp.Value}")));
             }
 
-            Assert.Single(listener.Events);
-
-            var @event = listener.Events[0];
+            var @event = Assert.Single(listener.Events);
 
             Assert.EndsWith($" ({MetricUnixUserEventsDataTransport.MetricsProtocol})", @event["protocol"]);
             Assert.Equal(MetricUnixUserEventsDataTransport.MetricsVersion, @event["version"]);
@@ -113,7 +111,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true, Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Disabled_Success_Linux()
     {
         EnsureUserEventsEnabled();
@@ -143,7 +141,7 @@ public class UnixUserEventsDataTransportTests
         }
     }
 
-    [Fact(Skip = "This would fail on Ubuntu. Skipping for now. See issue: #2326.")]
+    [SkipUnlessPlatformMatchesFact(TestPlatform.Linux, requireElevatedProcess: true, Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2326")]
     public void UserEvents_Logs_Success_Linux()
     {
         var listener = new PerfTracepointListener(

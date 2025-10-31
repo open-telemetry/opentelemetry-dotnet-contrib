@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0
+
+Released 2025-Oct-22
+
 * Do not change activity status set by EnrichWithHttpWebResponse on .NET Framework.
   ([#2988](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2988))
 

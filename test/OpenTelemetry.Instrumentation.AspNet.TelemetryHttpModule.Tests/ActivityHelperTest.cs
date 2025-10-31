@@ -83,7 +83,7 @@ public class ActivityHelperTest : IDisposable
         await testTask;
     }
 
-    [Fact(Skip = "Temporarily disable until stable.")]
+    [Fact(Skip = "https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3302")]
     public async Task Can_Restore_Baggage()
     {
         this.EnableListener();
@@ -94,8 +94,9 @@ public class ActivityHelperTest : IDisposable
         };
 
         var context = HttpContextHelper.GetFakeHttpContextBase(headers: requestHeaders);
-        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, null)!;
+        using var rootActivity = ActivityHelper.StartAspNetActivity(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]), context, null);
 
+        Assert.NotNull(rootActivity);
         rootActivity.AddTag("k1", "v1");
         rootActivity.AddTag("k2", "v2");
 

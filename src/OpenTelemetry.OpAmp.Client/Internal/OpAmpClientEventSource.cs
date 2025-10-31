@@ -125,7 +125,7 @@ internal class OpAmpClientEventSource : EventSource
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.FailedToSendIdentificationMessage(ex.ToInvariantString());
+            this.FailedToSendHeartbeatMessage(ex.ToInvariantString());
         }
     }
 

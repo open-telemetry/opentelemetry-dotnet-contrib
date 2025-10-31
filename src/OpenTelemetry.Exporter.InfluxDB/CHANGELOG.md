@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.5
+
+Released 2025-Oct-23
+
 * Added a direct reference to `System.Text.Json` at `8.0.5` for the
   `netstandard2.0` target in response to
   [CVE-2024-43485](https://github.com/advisories/GHSA-8g4q-xg66-9fp4).

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.13.0
+
+Released 2025-Oct-22
+
 * Added support for listening to ASP.NET Core Blazor activities.
   Configurable with the
   `AspNetCoreTraceInstrumentationOptions.EnableRazorComponentsSupport`

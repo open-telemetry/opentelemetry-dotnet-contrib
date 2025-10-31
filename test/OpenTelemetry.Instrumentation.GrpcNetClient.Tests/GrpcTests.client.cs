@@ -333,9 +333,7 @@ public partial class GrpcTests
             var clientActivity = exportedItems.Single(activity => activity.OperationName == OperationNameGrpcOut);
 
             Assert.Equal(clientActivity.ParentSpanId, parentActivity.SpanId);
-
-            // Propagator is not called
-            Assert.False(isPropagatorCalled);
+            Assert.False(isPropagatorCalled, "Propagator was called.");
         }
         finally
         {
@@ -385,7 +383,7 @@ public partial class GrpcTests
             // If suppressed, activity is not emitted and
             // propagation is also not performed.
             Assert.Single(exportedItems);
-            Assert.False(isPropagatorCalled);
+            Assert.False(isPropagatorCalled, "Propagator was called.");
         }
         finally
         {

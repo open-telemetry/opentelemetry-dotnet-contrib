@@ -114,7 +114,7 @@ public class FileBlobTests
         Assert.False(testFile.Exists);
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void FileBlobTests_DeleteFailsAfterLeaseIsExpired()
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
@@ -143,7 +143,7 @@ public class FileBlobTests
         testDirectory.Delete(true);
     }
 
-    [Fact(Skip = "Unstable")]
+    [Fact]
     public void FileBlobTests_LeaseTimeIsUpdatedWhenLeasingAlreadyLeasedFile()
     {
         var testFile = new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
