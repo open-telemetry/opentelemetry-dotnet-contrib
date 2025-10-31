@@ -55,5 +55,5 @@ internal static class ResourceSemanticConventions
     public const string AttributeOsType = "os.type";
     public const string AttributeOsVersion = "os.version";
 
-    public const string AttributeDeploymentEnvironment = "deployment.environment";
+    public const string AttributeDeploymentEnvironmentName = "deployment.environment.name";
 }

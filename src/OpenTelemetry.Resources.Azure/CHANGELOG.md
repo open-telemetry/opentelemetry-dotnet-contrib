@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Renamed `deployment.environment` attribute to `deployment.environment.name`
+  in Azure App Service Resource Detector.
+  ([#3366](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3366))
+
 ## 1.13.0-beta.1
 
 Released 2025-Oct-22
