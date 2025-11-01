@@ -82,7 +82,7 @@ internal sealed class StackExchangeRedisConnectionInstrumentation : IDisposable
             var parent = Activity.Current;
 
             // If no parent use the default session.
-            if (parent == null || parent.IdFormat != ActivityIdFormat.W3C)
+            if (parent == null || parent.IdFormat != ActivityIdFormat.W3C || Sdk.SuppressInstrumentation)
             {
                 return this.defaultSession;
             }

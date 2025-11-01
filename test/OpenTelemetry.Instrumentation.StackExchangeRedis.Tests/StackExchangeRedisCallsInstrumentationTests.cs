@@ -199,6 +199,43 @@ public class StackExchangeRedisCallsInstrumentationTests
         Assert.Equal(second, third);
     }
 
+    [Fact]
+    public void ProfilerSessionUsesTheSameDefaultWhenSuppressInstrumentationScopeHasBegan()
+    {
+        var connectionOptions = new ConfigurationOptions
+        {
+            AbortOnConnectFail = false,
+            ConnectRetry = 0,
+            ConnectTimeout = 1_000,
+        };
+        connectionOptions.EndPoints.Add("localhost:6379");
+
+        var connection = ConnectionMultiplexer.Connect(connectionOptions);
+
+        using var instrumentation = new StackExchangeRedisConnectionInstrumentation(connection, name: null, new StackExchangeRedisInstrumentationOptions());
+        var profilerFactory = instrumentation.GetProfilerSessionsFactory();
+        var first = profilerFactory();
+
+        // start a root level activity
+        using var rootActivity = new Activity("Parent")
+            .SetParentId(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded)
+            .Start();
+
+        Assert.NotNull(rootActivity.Id);
+
+        // get an initial profiler from root activity
+        Activity.Current = rootActivity;
+        var second = profilerFactory();
+        ProfilingSession? third;
+        using (SuppressInstrumentationScope.Begin())
+        {
+            third = profilerFactory();
+        }
+
+        Assert.NotEqual(first, second);
+        Assert.Equal(first, third);
+    }
+
     [Trait("CategoryName", "RedisIntegrationTests")]
     [SkipUnlessEnvVarFoundTheory(RedisEndPointEnvVarName)]
     [InlineData("value1")]
