@@ -51,11 +51,6 @@ flags:
     paths:
       - src/OpenTelemetry.Exporter.OneCollector
 
-  unittests-Exporter.Stackdriver:
-    carryforward: true
-    paths:
-      - src/OpenTelemetry.Exporter.Stackdriver
-
   unittests-Extensions:
     carryforward: true
     paths:
@@ -65,6 +60,16 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Extensions.Enrichment
+
+  unittests-Extensions.Enrichment.AspNetCore:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.Enrichment.AspNetCore
+
+  unittests-Extensions.Enrichment.Http:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Extensions.Enrichment.Http
 
   unittests-Instrumentation.AspNet:
     carryforward: true
@@ -169,6 +174,11 @@ flags:
     carryforward: true
     paths:
       - src/OpenTelemetry.Instrumentation.Wcf
+
+  unittests-OpAmp.Client:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.OpAmp.Client
 
   unittests-PersistentStorage:
     carryforward: true

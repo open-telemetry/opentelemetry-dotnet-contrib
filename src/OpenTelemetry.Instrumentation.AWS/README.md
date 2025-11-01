@@ -1,9 +1,9 @@
 # AWS SDK client instrumentation for OpenTelemetry
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@srprash](https://github.com/srprash), [@ppittle](https://github.com/ppittle)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Stable](../../README.md#stable) |
+| Code Owners | [@srprash](https://github.com/srprash), [@normj](https://github.com/normj), [@lukeina2z](https://github.com/lukeina2z) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWS)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWS)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AWS)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWS)

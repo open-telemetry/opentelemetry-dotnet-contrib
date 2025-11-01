@@ -3,23 +3,19 @@ name: Lint - dotnet format
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   run-dotnet-format:
     runs-on: windows-latest
 
     steps:
     - name: check out code
-      uses: actions/checkout@v4
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
-
-    - name: dotnet restore
-      run: dotnet restore
-
-    - name: Protobuf compile
-      run: dotnet build -t:Protobuf_Compile --no-restore
-      continue-on-error: true # Note: Projects without Grpc.Tools won't have the Protobuf_Compile target which generates an error
+    - name: Setup .NET
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
 
     - name: dotnet format
-      run: dotnet format opentelemetry-dotnet-contrib.sln --no-restore --verify-no-changes
+      run: dotnet format opentelemetry-dotnet-contrib.sln --verify-no-changes

@@ -1,9 +1,9 @@
 # AWS OTel .NET SDK for Lambda
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@ppittle](https://github.com/ppittle)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Stable](../../README.md#stable) |
+| Code Owners | [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@normj](https://github.com/normj), [@lukeina2z](https://github.com/lukeina2z) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)

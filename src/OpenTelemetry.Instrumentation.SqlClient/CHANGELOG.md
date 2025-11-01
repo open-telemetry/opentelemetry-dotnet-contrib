@@ -2,6 +2,86 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-22
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.3
+
+Released 2025-Sep-25
+
+* Add `db.query.parameter.<key>` attribute(s) to query spans if opted into using
+  the `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS`
+  environment variable. Not supported on .NET Framework.
+  ([#3015](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3015),
+  [#3081](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3081))
+
+* Fix activities not being stopped on .NET Framework when using a global activity
+  listener.
+  ([#3041](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3041))
+
+* **Breaking change**: The `SetDbStatementForText` property has been removed.
+  Behaviors related to this option are now always enabled.
+  ([#3072](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3072))
+
+* **Breaking change**: The `Enrich`, `Filter` and `RecordException` properties have
+  been removed for .NET Framework where they were non-functional.
+  ([#3079](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3079))
+
+* **Breaking change**: The `Enrich` property has been renamed to
+  `EnrichWithSqlCommand` and no longer passes an event name to the delegate.
+  ([#3080](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3080))
+
+## 1.12.0-beta.2
+
+Released 2025-Jul-15
+
+* Add the `db.operation.name` attribute when `CommandType` is
+  `StoredProcedure` to conform to the new semantic conventions.
+  This affects you if you have opted into the new conventions.
+  ([#2800](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2800))
+
+* Add the `db.query.summary` attribute. This affects you if you have opted into
+  the new conventions.
+  ([#2811](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2811))
+
+* Added `OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION`
+  environment variable to propagate trace context to SQL Server databases.
+  This will remain experimental while the [specification](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/sql-server.md#context-propagation)
+  remains in development.
+  It is now only available on .NET 8 and newer.
+  ([#2709](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2709))
+
+  > Propagate `traceparent` information to SQL Server databases
+    (see [SET CONTEXT_INFO](https://learn.microsoft.com/en-us/sql/t-sql/statements/set-context-info-transact-sql?view=sql-server-ver16)).
+    Note that this option incurs an additional round-trip to the database.
+
+## 1.12.0-beta.1
+
+Released 2025-May-06
+
+* Fix issue where IPv6 addresses were improperly parsed from the the
+  connection's `DataSource` when used to populate the `server.address`
+  attribute.
+  ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+
+* Updates have been made to adhere to recent changes in the new semantic
+  conventions. These affect you if you have opted in to the new conventions.
+  When `CommandType` is `StoredProcedure`, the `db.stored_procedure.name` has
+  been added and the `db.query.text`, `db.operation.name`, and
+  `db.collection.name` attributes have been removed.
+  ([#2693](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2693))
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
+* Fixes an issue that throws `IndexOutOfRangeException` in `SqlProcessor` when the
+  SQL statement ends with the beginning of a keyword such as `UPDATE`.
+  ([#2674](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2674))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05

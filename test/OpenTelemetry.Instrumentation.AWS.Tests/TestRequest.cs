@@ -4,6 +4,7 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.Endpoints;
+using Amazon.Runtime.EventStreams;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.Runtime.Internal.Util;
@@ -69,8 +70,6 @@ internal class TestRequest : IRequest
 
     public string CanonicalResourcePrefix { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-    public bool UseSigV4 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
     public SignatureVersion SignatureVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public string AuthenticationRegion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -88,6 +87,16 @@ internal class TestRequest : IRequest
     public CompressionEncodingAlgorithm CompressionAlgorithm { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public ChecksumData ChecksumData { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public IEventStreamPublisher EventStreamPublisher { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public IHttpRequestStreamPublisher HttpRequestStreamPublisher { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public DateTime? SignedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public Version HttpProtocolVersion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public IAuthSchemeOption ChosenAuthScheme { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
     public void AddPathResource(string key, string value)
     {

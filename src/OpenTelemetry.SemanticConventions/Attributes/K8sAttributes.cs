@@ -64,6 +64,44 @@ public static class K8sAttributes
     public const string AttributeK8sContainerStatusLastTerminatedReason = "k8s.container.status.last_terminated_reason";
 
     /// <summary>
+    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
+    /// </summary>
+    public const string AttributeK8sContainerStatusReason = "k8s.container.status.reason";
+
+    /// <summary>
+    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstate-v1-core">K8s ContainerState</a>.
+    /// </summary>
+    public const string AttributeK8sContainerStatusState = "k8s.container.status.state";
+
+    /// <summary>
+    /// The cronjob annotation placed on the CronJob, the <c><key></c> being the annotation name, the value being the annotation value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>retries</c> with value <c>4</c> SHOULD be recorded as the
+    /// <c>k8s.cronjob.annotation.retries</c> attribute with value <c>"4"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.cronjob.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sCronjobAnnotationTemplate = "k8s.cronjob.annotation";
+
+    /// <summary>
+    /// The label placed on the CronJob, the <c><key></c> being the label name, the value being the label value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>type</c> with value <c>weekly</c> SHOULD be recorded as the
+    /// <c>k8s.cronjob.label.type</c> attribute with value <c>"weekly"</c>.</li>
+    ///   <li>A label <c>automated</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.cronjob.label.automated</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sCronjobLabelTemplate = "k8s.cronjob.label";
+
+    /// <summary>
     /// The name of the CronJob.
     /// </summary>
     public const string AttributeK8sCronjobName = "k8s.cronjob.name";
@@ -72,6 +110,34 @@ public static class K8sAttributes
     /// The UID of the CronJob.
     /// </summary>
     public const string AttributeK8sCronjobUid = "k8s.cronjob.uid";
+
+    /// <summary>
+    /// The annotation placed on the DaemonSet, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    /// as the <c>k8s.daemonset.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.daemonset.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sDaemonsetAnnotationTemplate = "k8s.daemonset.annotation";
+
+    /// <summary>
+    /// The label placed on the DaemonSet, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>app</c> with value <c>guestbook</c> SHOULD be recorded
+    /// as the <c>k8s.daemonset.label.app</c> attribute with value <c>"guestbook"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.daemonset.label.injected</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sDaemonsetLabelTemplate = "k8s.daemonset.label";
 
     /// <summary>
     /// The name of the DaemonSet.
@@ -84,6 +150,34 @@ public static class K8sAttributes
     public const string AttributeK8sDaemonsetUid = "k8s.daemonset.uid";
 
     /// <summary>
+    /// The annotation placed on the Deployment, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    /// as the <c>k8s.deployment.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.deployment.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sDeploymentAnnotationTemplate = "k8s.deployment.annotation";
+
+    /// <summary>
+    /// The label placed on the Deployment, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    /// as the <c>k8s.deployment.label.app</c> attribute with value <c>"guestbook"</c>.</li>
+    ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.deployment.label.injected</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sDeploymentLabelTemplate = "k8s.deployment.label";
+
+    /// <summary>
     /// The name of the Deployment.
     /// </summary>
     public const string AttributeK8sDeploymentName = "k8s.deployment.name";
@@ -94,14 +188,79 @@ public static class K8sAttributes
     public const string AttributeK8sDeploymentUid = "k8s.deployment.uid";
 
     /// <summary>
+    /// The type of metric source for the horizontal pod autoscaler.
+    /// </summary>
+    /// <remarks>
+    /// This attribute reflects the <c>type</c> field of spec.metrics[] in the HPA.
+    /// </remarks>
+    public const string AttributeK8sHpaMetricType = "k8s.hpa.metric.type";
+
+    /// <summary>
     /// The name of the horizontal pod autoscaler.
     /// </summary>
     public const string AttributeK8sHpaName = "k8s.hpa.name";
 
     /// <summary>
+    /// The API version of the target resource to scale for the HorizontalPodAutoscaler.
+    /// </summary>
+    /// <remarks>
+    /// This maps to the <c>apiVersion</c> field in the <c>scaleTargetRef</c> of the HPA spec.
+    /// </remarks>
+    public const string AttributeK8sHpaScaletargetrefApiVersion = "k8s.hpa.scaletargetref.api_version";
+
+    /// <summary>
+    /// The kind of the target resource to scale for the HorizontalPodAutoscaler.
+    /// </summary>
+    /// <remarks>
+    /// This maps to the <c>kind</c> field in the <c>scaleTargetRef</c> of the HPA spec.
+    /// </remarks>
+    public const string AttributeK8sHpaScaletargetrefKind = "k8s.hpa.scaletargetref.kind";
+
+    /// <summary>
+    /// The name of the target resource to scale for the HorizontalPodAutoscaler.
+    /// </summary>
+    /// <remarks>
+    /// This maps to the <c>name</c> field in the <c>scaleTargetRef</c> of the HPA spec.
+    /// </remarks>
+    public const string AttributeK8sHpaScaletargetrefName = "k8s.hpa.scaletargetref.name";
+
+    /// <summary>
     /// The UID of the horizontal pod autoscaler.
     /// </summary>
     public const string AttributeK8sHpaUid = "k8s.hpa.uid";
+
+    /// <summary>
+    /// The size (identifier) of the K8s huge page.
+    /// </summary>
+    public const string AttributeK8sHugepageSize = "k8s.hugepage.size";
+
+    /// <summary>
+    /// The annotation placed on the Job, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>number</c> with value <c>1</c> SHOULD be recorded
+    /// as the <c>k8s.job.annotation.number</c> attribute with value <c>"1"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.job.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sJobAnnotationTemplate = "k8s.job.annotation";
+
+    /// <summary>
+    /// The label placed on the Job, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>jobtype</c> with value <c>ci</c> SHOULD be recorded
+    /// as the <c>k8s.job.label.jobtype</c> attribute with value <c>"ci"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.job.label.automated</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sJobLabelTemplate = "k8s.job.label";
 
     /// <summary>
     /// The name of the Job.
@@ -112,6 +271,34 @@ public static class K8sAttributes
     /// The UID of the Job.
     /// </summary>
     public const string AttributeK8sJobUid = "k8s.job.uid";
+
+    /// <summary>
+    /// The annotation placed on the Namespace, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>ttl</c> with value <c>0</c> SHOULD be recorded
+    /// as the <c>k8s.namespace.annotation.ttl</c> attribute with value <c>"0"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.namespace.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNamespaceAnnotationTemplate = "k8s.namespace.annotation";
+
+    /// <summary>
+    /// The label placed on the Namespace, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>kubernetes.io/metadata.name</c> with value <c>default</c> SHOULD be recorded
+    /// as the <c>k8s.namespace.label.kubernetes.io/metadata.name</c> attribute with value <c>"default"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.namespace.label.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNamespaceLabelTemplate = "k8s.namespace.label";
 
     /// <summary>
     /// The name of the namespace that the pod is running in.
@@ -128,6 +315,59 @@ public static class K8sAttributes
     public const string AttributeK8sNamespacePhase = "k8s.namespace.phase";
 
     /// <summary>
+    /// The annotation placed on the Node, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>node.alpha.kubernetes.io/ttl</c> with value <c>0</c> SHOULD be recorded as
+    /// the <c>k8s.node.annotation.node.alpha.kubernetes.io/ttl</c> attribute with value <c>"0"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.node.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNodeAnnotationTemplate = "k8s.node.annotation";
+
+    /// <summary>
+    /// The status of the condition, one of True, False, Unknown.
+    /// </summary>
+    /// <remarks>
+    /// This attribute aligns with the <c>status</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#nodecondition-v1-core">NodeCondition</a>.
+    /// </remarks>
+    public const string AttributeK8sNodeConditionStatus = "k8s.node.condition.status";
+
+    /// <summary>
+    /// The condition type of a K8s Node.
+    /// </summary>
+    /// <remarks>
+    /// K8s Node conditions as described
+    /// by <a href="https://v1-32.docs.kubernetes.io/docs/reference/node/node-status/#condition">K8s documentation</a>.
+    /// <p>
+    /// This attribute aligns with the <c>type</c> field of the
+    /// <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#nodecondition-v1-core">NodeCondition</a>
+    /// <p>
+    /// The set of possible values is not limited to those listed here. Managed Kubernetes environments,
+    /// or custom controllers MAY introduce additional node condition types.
+    /// When this occurs, the exact value as reported by the Kubernetes API SHOULD be used.
+    /// </remarks>
+    public const string AttributeK8sNodeConditionType = "k8s.node.condition.type";
+
+    /// <summary>
+    /// The label placed on the Node, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>kubernetes.io/arch</c> with value <c>arm64</c> SHOULD be recorded
+    /// as the <c>k8s.node.label.kubernetes.io/arch</c> attribute with value <c>"arm64"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.node.label.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sNodeLabelTemplate = "k8s.node.label";
+
+    /// <summary>
     /// The name of the Node.
     /// </summary>
     public const string AttributeK8sNodeName = "k8s.node.name";
@@ -138,13 +378,35 @@ public static class K8sAttributes
     public const string AttributeK8sNodeUid = "k8s.node.uid";
 
     /// <summary>
-    /// The annotation key-value pairs placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value.
+    /// The annotation placed on the Pod, the <c><key></c> being the annotation name, the value being the annotation value.
     /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>An annotation <c>kubernetes.io/enforce-mountable-secrets</c> with value <c>true</c> SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets</c> attribute with value <c>"true"</c>.</li>
+    ///   <li>An annotation <c>mycompany.io/arch</c> with value <c>x64</c> SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.mycompany.io/arch</c> attribute with value <c>"x64"</c>.</li>
+    ///   <li>An annotation <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.pod.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeK8sPodAnnotationTemplate = "k8s.pod.annotation";
 
     /// <summary>
-    /// The label key-value pairs placed on the Pod, the <c><key></c> being the label name, the value being the label value.
+    /// The label placed on the Pod, the <c><key></c> being the label name, the value being the label value.
     /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>app</c> with value <c>my-app</c> SHOULD be recorded as
+    /// the <c>k8s.pod.label.app</c> attribute with value <c>"my-app"</c>.</li>
+    ///   <li>A label <c>mycompany.io/arch</c> with value <c>x64</c> SHOULD be recorded as
+    /// the <c>k8s.pod.label.mycompany.io/arch</c> attribute with value <c>"x64"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.pod.label.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeK8sPodLabelTemplate = "k8s.pod.label";
 
     /// <summary>
@@ -159,9 +421,47 @@ public static class K8sAttributes
     public const string AttributeK8sPodName = "k8s.pod.name";
 
     /// <summary>
+    /// The phase for the pod. Corresponds to the <c>phase</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public const string AttributeK8sPodStatusPhase = "k8s.pod.status.phase";
+
+    /// <summary>
+    /// The reason for the pod state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public const string AttributeK8sPodStatusReason = "k8s.pod.status.reason";
+
+    /// <summary>
     /// The UID of the Pod.
     /// </summary>
     public const string AttributeK8sPodUid = "k8s.pod.uid";
+
+    /// <summary>
+    /// The annotation placed on the ReplicaSet, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    /// as the <c>k8s.replicaset.annotation.replicas</c> attribute with value <c>"0"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.replicaset.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sReplicasetAnnotationTemplate = "k8s.replicaset.annotation";
+
+    /// <summary>
+    /// The label placed on the ReplicaSet, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>app</c> with value <c>guestbook</c> SHOULD be recorded
+    /// as the <c>k8s.replicaset.label.app</c> attribute with value <c>"guestbook"</c>.</li>
+    ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.replicaset.label.injected</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sReplicasetLabelTemplate = "k8s.replicaset.label";
 
     /// <summary>
     /// The name of the ReplicaSet.
@@ -189,9 +489,45 @@ public static class K8sAttributes
     public const string AttributeK8sResourcequotaName = "k8s.resourcequota.name";
 
     /// <summary>
+    /// The name of the K8s resource a resource quota defines.
+    /// </summary>
+    /// <remarks>
+    /// The value for this attribute can be either the full <c>count/<resource>[.<group>]</c> string (e.g., count/deployments.apps, count/pods), or, for certain core Kubernetes resources, just the resource name (e.g., pods, services, configmaps). Both forms are supported by Kubernetes for object count quotas. See <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/#quota-on-object-count">Kubernetes Resource Quotas documentation</a> for more details.
+    /// </remarks>
+    public const string AttributeK8sResourcequotaResourceName = "k8s.resourcequota.resource_name";
+
+    /// <summary>
     /// The UID of the resource quota.
     /// </summary>
     public const string AttributeK8sResourcequotaUid = "k8s.resourcequota.uid";
+
+    /// <summary>
+    /// The annotation placed on the StatefulSet, the <c><key></c> being the annotation name, the value being the annotation value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>1</c> SHOULD be recorded
+    /// as the <c>k8s.statefulset.annotation.replicas</c> attribute with value <c>"1"</c>.</li>
+    ///   <li>A label <c>data</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.statefulset.annotation.data</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sStatefulsetAnnotationTemplate = "k8s.statefulset.annotation";
+
+    /// <summary>
+    /// The label placed on the StatefulSet, the <c><key></c> being the label name, the value being the label value, even if the value is empty.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>A label <c>replicas</c> with value <c>0</c> SHOULD be recorded
+    /// as the <c>k8s.statefulset.label.app</c> attribute with value <c>"guestbook"</c>.</li>
+    ///   <li>A label <c>injected</c> with empty string value SHOULD be recorded as
+    /// the <c>k8s.statefulset.label.injected</c> attribute with value <c>""</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeK8sStatefulsetLabelTemplate = "k8s.statefulset.label";
 
     /// <summary>
     /// The name of the StatefulSet.
@@ -204,6 +540,11 @@ public static class K8sAttributes
     public const string AttributeK8sStatefulsetUid = "k8s.statefulset.uid";
 
     /// <summary>
+    /// The name of K8s <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#storageclass-v1-storage-k8s-io">StorageClass</a> object.
+    /// </summary>
+    public const string AttributeK8sStorageclassName = "k8s.storageclass.name";
+
+    /// <summary>
     /// The name of the K8s volume.
     /// </summary>
     public const string AttributeK8sVolumeName = "k8s.volume.name";
@@ -212,6 +553,78 @@ public static class K8sAttributes
     /// The type of the K8s volume.
     /// </summary>
     public const string AttributeK8sVolumeType = "k8s.volume.type";
+
+    /// <summary>
+    /// The reason for the container state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstatewaiting-v1-core">K8s ContainerStateWaiting</a> or <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstateterminated-v1-core">K8s ContainerStateTerminated</a>.
+    /// </summary>
+    public static class K8sContainerStatusReasonValues
+    {
+        /// <summary>
+        /// The container is being created.
+        /// </summary>
+        public const string ContainerCreating = "ContainerCreating";
+
+        /// <summary>
+        /// The container is in a crash loop back off state.
+        /// </summary>
+        public const string CrashLoopBackOff = "CrashLoopBackOff";
+
+        /// <summary>
+        /// There was an error creating the container configuration.
+        /// </summary>
+        public const string CreateContainerConfigError = "CreateContainerConfigError";
+
+        /// <summary>
+        /// There was an error pulling the container image.
+        /// </summary>
+        public const string ErrImagePull = "ErrImagePull";
+
+        /// <summary>
+        /// The container image pull is in back off state.
+        /// </summary>
+        public const string ImagePullBackOff = "ImagePullBackOff";
+
+        /// <summary>
+        /// The container was killed due to out of memory.
+        /// </summary>
+        public const string OomKilled = "OOMKilled";
+
+        /// <summary>
+        /// The container has completed execution.
+        /// </summary>
+        public const string Completed = "Completed";
+
+        /// <summary>
+        /// There was an error with the container.
+        /// </summary>
+        public const string Error = "Error";
+
+        /// <summary>
+        /// The container cannot run.
+        /// </summary>
+        public const string ContainerCannotRun = "ContainerCannotRun";
+    }
+
+    /// <summary>
+    /// The state of the container. <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#containerstate-v1-core">K8s ContainerState</a>.
+    /// </summary>
+    public static class K8sContainerStatusStateValues
+    {
+        /// <summary>
+        /// The container has terminated.
+        /// </summary>
+        public const string Terminated = "terminated";
+
+        /// <summary>
+        /// The container is running.
+        /// </summary>
+        public const string Running = "running";
+
+        /// <summary>
+        /// The container is waiting.
+        /// </summary>
+        public const string Waiting = "waiting";
+    }
 
     /// <summary>
     /// The phase of the K8s namespace.
@@ -227,6 +640,120 @@ public static class K8sAttributes
         /// Terminating namespace phase as described by <a href="https://pkg.go.dev/k8s.io/api@v0.31.3/core/v1#NamespacePhase">K8s API</a>.
         /// </summary>
         public const string Terminating = "terminating";
+    }
+
+    /// <summary>
+    /// The status of the condition, one of True, False, Unknown.
+    /// </summary>
+    public static class K8sNodeConditionStatusValues
+    {
+        /// <summary>
+        /// condition_true.
+        /// </summary>
+        public const string ConditionTrue = "true";
+
+        /// <summary>
+        /// condition_false.
+        /// </summary>
+        public const string ConditionFalse = "false";
+
+        /// <summary>
+        /// condition_unknown.
+        /// </summary>
+        public const string ConditionUnknown = "unknown";
+    }
+
+    /// <summary>
+    /// The condition type of a K8s Node.
+    /// </summary>
+    public static class K8sNodeConditionTypeValues
+    {
+        /// <summary>
+        /// The node is healthy and ready to accept pods.
+        /// </summary>
+        public const string Ready = "Ready";
+
+        /// <summary>
+        /// Pressure exists on the disk size—that is, if the disk capacity is low.
+        /// </summary>
+        public const string DiskPressure = "DiskPressure";
+
+        /// <summary>
+        /// Pressure exists on the node memory—that is, if the node memory is low.
+        /// </summary>
+        public const string MemoryPressure = "MemoryPressure";
+
+        /// <summary>
+        /// Pressure exists on the processes—that is, if there are too many processes on the node.
+        /// </summary>
+        public const string PidPressure = "PIDPressure";
+
+        /// <summary>
+        /// The network for the node is not correctly configured.
+        /// </summary>
+        public const string NetworkUnavailable = "NetworkUnavailable";
+    }
+
+    /// <summary>
+    /// The phase for the pod. Corresponds to the <c>phase</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public static class K8sPodStatusPhaseValues
+    {
+        /// <summary>
+        /// The pod has been accepted by the system, but one or more of the containers has not been started. This includes time before being bound to a node, as well as time spent pulling images onto the host.
+        /// </summary>
+        public const string Pending = "Pending";
+
+        /// <summary>
+        /// The pod has been bound to a node and all of the containers have been started. At least one container is still running or is in the process of being restarted.
+        /// </summary>
+        public const string Running = "Running";
+
+        /// <summary>
+        /// All containers in the pod have voluntarily terminated with a container exit code of 0, and the system is not going to restart any of these containers.
+        /// </summary>
+        public const string Succeeded = "Succeeded";
+
+        /// <summary>
+        /// All containers in the pod have terminated, and at least one container has terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+        /// </summary>
+        public const string Failed = "Failed";
+
+        /// <summary>
+        /// For some reason the state of the pod could not be obtained, typically due to an error in communicating with the host of the pod.
+        /// </summary>
+        public const string Unknown = "Unknown";
+    }
+
+    /// <summary>
+    /// The reason for the pod state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public static class K8sPodStatusReasonValues
+    {
+        /// <summary>
+        /// The pod is evicted.
+        /// </summary>
+        public const string Evicted = "Evicted";
+
+        /// <summary>
+        /// The pod is in a status because of its node affinity.
+        /// </summary>
+        public const string NodeAffinity = "NodeAffinity";
+
+        /// <summary>
+        /// The reason on a pod when its state cannot be confirmed as kubelet is unresponsive on the node it is (was) running.
+        /// </summary>
+        public const string NodeLost = "NodeLost";
+
+        /// <summary>
+        /// The node is shutdown.
+        /// </summary>
+        public const string Shutdown = "Shutdown";
+
+        /// <summary>
+        /// The pod was rejected admission to the node because of an error during admission that could not be categorized.
+        /// </summary>
+        public const string UnexpectedAdmissionError = "UnexpectedAdmissionError";
     }
 
     /// <summary>

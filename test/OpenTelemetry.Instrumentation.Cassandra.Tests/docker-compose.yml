@@ -1,11 +1,9 @@
-# Start a redis container and then run OpenTelemetry redis integration tests.
+# Start a Cassandra container and then run OpenTelemetry Cassandra integration tests.
 # This should be run from the root of the repo:
 #  opentelemetry>docker-compose --file=test/OpenTelemetry.Instrumentation.Cassandra.Tests/docker-compose.yml --project-directory=. up --exit-code-from=tests --build
-version: '3.7'
-
 services:
   cassandra:
-    image: cassandra
+    image: cassandra:5.0@sha256:8b55dd41d5d1220e11eb8cf80f26ab655c21f7cf271ca4a7577c1da7d9221624
     ports:
       - "9042:9042"
     healthcheck:

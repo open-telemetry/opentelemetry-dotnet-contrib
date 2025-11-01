@@ -124,7 +124,8 @@ internal sealed class SqlEventSourceListener : EventListener
                 (https://github.com/dotnet/SqlClient/blob/f4568ce68da21db3fe88c0e72e1287368aaa1dc8/src/Microsoft.Data.SqlClient/netcore/src/Microsoft/Data/SqlClient/SqlCommand.cs#L6641)
          */
 
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
+            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -156,16 +157,22 @@ internal sealed class SqlEventSourceListener : EventListener
         if (activity.IsAllDataRequested)
         {
             var commandText = (string)eventData.Payload[3];
-            if (!string.IsNullOrEmpty(commandText) && options.SetDbStatementForText)
+            if (!string.IsNullOrEmpty(commandText))
             {
+                var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
                 if (options.EmitOldAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
+                    activity.SetTag(SemanticConventions.AttributeDbStatement, sqlStatementInfo.SanitizedSql);
                 }
 
                 if (options.EmitNewAttributes)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, sqlStatementInfo.SanitizedSql);
+                    if (!string.IsNullOrEmpty(sqlStatementInfo.DbQuerySummary))
+                    {
+                        activity.SetTag(SemanticConventions.AttributeDbQuerySummary, sqlStatementInfo.DbQuerySummary);
+                        activity.DisplayName = sqlStatementInfo.DbQuerySummary;
+                    }
                 }
             }
         }
@@ -180,7 +187,9 @@ internal sealed class SqlEventSourceListener : EventListener
             [2] -> SqlExceptionNumber
          */
 
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
+        var handleManager = SqlClientInstrumentation.Instance.HandleManager;
+
+        if (handleManager.TracingHandles == 0 && handleManager.MetricHandles == 0)
         {
             return;
         }
@@ -191,21 +200,22 @@ internal sealed class SqlEventSourceListener : EventListener
             return;
         }
 
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles != 0)
-        {
-            this.RecordDuration(null, eventData);
-            return;
-        }
+        var currentActivity = Activity.Current;
 
-        var activity = Activity.Current;
-        if (activity?.Source != SqlActivitySourceHelper.ActivitySource)
-        {
-            return;
-        }
+        // Ensure any activity that may exist due to ActivitySource.AddActivityListener()
+        // is stopped regardless of whether we're doing metrics and/or tracing.
+        // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/3033.
+        var sqlActivity = currentActivity?.Source == SqlActivitySourceHelper.ActivitySource ? currentActivity : null;
+
+        // If we're only collecting metrics, then we don't want to modify the activity
+        var traceActivity =
+            handleManager.TracingHandles == 0 && handleManager.MetricHandles != 0 ?
+            null :
+            sqlActivity;
 
         try
         {
-            if (activity.IsAllDataRequested)
+            if (traceActivity?.IsAllDataRequested is true)
             {
                 var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
 
@@ -213,27 +223,28 @@ internal sealed class SqlEventSourceListener : EventListener
                 {
                     if (errorNumber != null && exceptionType != null)
                     {
-                        activity.SetStatus(ActivityStatusCode.Error, errorNumber);
-                        activity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
-                        activity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
+                        traceActivity.SetStatus(ActivityStatusCode.Error, errorNumber);
+                        traceActivity.SetTag(SemanticConventions.AttributeDbResponseStatusCode, errorNumber);
+                        traceActivity.SetTag(SemanticConventions.AttributeErrorType, exceptionType);
                     }
                     else
                     {
-                        activity.SetStatus(ActivityStatusCode.Error, "Unknown Sql failure.");
+                        traceActivity.SetStatus(ActivityStatusCode.Error, "Unknown Sql failure.");
                     }
                 }
             }
         }
         finally
         {
-            activity.Stop();
-            this.RecordDuration(activity, eventData);
+            // If there's a SQL activity, stop it before recording the duration.
+            sqlActivity?.Stop();
+            this.RecordDuration(traceActivity, eventData);
         }
     }
 
     private void RecordDuration(Activity? activity, EventWrittenEventArgs eventData)
     {
-        if (SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -253,7 +264,17 @@ internal sealed class SqlEventSourceListener : EventListener
         }
         else
         {
-            tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDatabaseSystemName);
+            var options = SqlClientInstrumentation.TracingOptions;
+
+            if (options.EmitOldAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbSystem, SqlActivitySourceHelper.MicrosoftSqlServerDbSystem);
+            }
+
+            if (options.EmitNewAttributes)
+            {
+                tags.Add(SemanticConventions.AttributeDbSystemName, SqlActivitySourceHelper.MicrosoftSqlServerDbSystemName);
+            }
 
             var (hasError, errorNumber, exceptionType) = ExtractErrorFromEvent(eventData);
 

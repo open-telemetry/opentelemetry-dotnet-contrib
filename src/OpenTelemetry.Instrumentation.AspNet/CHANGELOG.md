@@ -2,6 +2,72 @@
 
 ## Unreleased
 
+## 1.13.0-rc.1
+
+Released 2025-Oct-28
+
+## 1.13.0-beta.2
+
+Released 2025-Oct-22
+
+* Improved performance of replacing static tokens with actual values
+  in the route template.
+  ([#3241](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3241))
+
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
+* Following attributes are available while sampling:
+  * `http.request.method`,
+  * `server.address`,
+  * `server.port`,
+  * `url.path`,
+  * `url.query`,
+  * `url.scheme`,
+  * `user_agent.original`.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
+* Replace static routing tokens with actual values in the route template.
+  ([#3160](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3160))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.2
+
+Released 2025-Sep-18
+
+* **Breaking Change**: Renamed `MeterProviderBuilderExtensions` and
+  `TracerProviderBuilderExtensions` to
+  `AspNetInstrumentationMeterProviderBuilderExtensions`
+  and `AspNetInstrumentationTracerProviderBuilderExtensions` respectively.
+  ([#2910](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2910))
+
+* **Breaking Change**: Made metrics generation independent from traces.
+  Tracing must no longer be enabled to calculate metrics. A compatible version
+  of `OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule` is required.
+  ([#2970](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2970))
+
+* **Breaking Change**: Metrics related option renamed:
+  * delegate `AspNetMetricsInstrumentationOptions.EnrichFunc` to
+    `AspNetMetricsInstrumentationOptions.EnrichWithHttpContextAction`,
+  * property `AspNetMetricsInstrumentationOptions.Enrich` to
+    `AspNetMetricsInstrumentationOptions.EnrichWithHttpContext`.
+  ([#3070](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3070))
+
+* **Breaking Change**: Change in public API contract.
+  All usages of `HttpRequest`, `HttpResponse` and `HttpContext` replaced by
+ `HttpRequestBase`, `HttpResponseBase` and `HttpContextBase` respectively.
+  ([#3110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3110))
+
+## 1.12.0-beta.1
+
+Released 2025-May-05
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05

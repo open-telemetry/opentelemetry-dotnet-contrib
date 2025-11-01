@@ -19,6 +19,7 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_TRANSPORT_ERROR = 7; // Transport error
     private const int EVENT_ID_TRANSPORT_EXCEPTION = 8; // Transport exception
     private const int EVENT_ID_TRANSPORT_INFO = 9; // Transport info
+    private const int EVENT_ID_AFD_CORRELATION_ID = 10; // Failed to get AFD correlation ID
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -87,6 +88,16 @@ internal sealed class ExporterEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void FailedToGetAFDCorrelationId(Exception ex)
+    {
+        if (Log.IsEnabled(EventLevel.Error, EventKeywords.All))
+        {
+            // TODO: Do not hit ETW size limit even for external library exception stack.
+            this.FailedToGetAFDCorrelationId(ex.ToInvariantString());
+        }
+    }
+
     [Event(EVENT_ID_TRACE, Message = "Exporter failed to send trace data. Exception: {0}", Level = EventLevel.Error)]
     public void FailedToSendTraceData(string error)
     {
@@ -139,5 +150,11 @@ internal sealed class ExporterEventSource : EventSource
     public void TransportInformation(string transportType, string error)
     {
         this.WriteEvent(EVENT_ID_TRANSPORT_INFO, transportType, error);
+    }
+
+    [Event(EVENT_ID_AFD_CORRELATION_ID, Message = "Failed to get AFD correlation ID. Exception: {0}", Level = EventLevel.Error)]
+    public void FailedToGetAFDCorrelationId(string error)
+    {
+        this.WriteEvent(EVENT_ID_AFD_CORRELATION_ID, error);
     }
 }

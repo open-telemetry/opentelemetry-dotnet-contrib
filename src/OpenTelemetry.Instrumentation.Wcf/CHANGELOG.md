@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.13.0-beta.2
+
+Released 2025-Oct-20
+
+* Fixes possible infinite recursion when WCF is hosted in ASP.NET.
+  ([#3248](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3248))
+
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
+* Added server instrumentation support for `RecordException` option.
+  ([#2880](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2880))
+
+* **Breaking changes** Adjust to breaking changes from
+  `OpenTelemetry.Instrumentation.AspNet` version `1.13.0-beta.1`.
+  Fixing span hierarchy when hosted in ASP.NET.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.1
+
+Released 2025-May-06
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
+* Preservers `IsReadOnly` state of instrumented HTTP Headers.
+  ([#2716](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2716))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05

@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Reflection;
 using System.Web;
 using OpenTelemetry.Internal;
@@ -13,28 +12,18 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 /// </summary>
 public class TelemetryHttpModule : IHttpModule
 {
-    /// <summary>
-    /// OpenTelemetry.Instrumentation.AspNet <see cref="ActivitySource"/> name.
-    /// </summary>
-    public const string AspNetSourceName = "OpenTelemetry.Instrumentation.AspNet.Telemetry";
-
-    /// <summary>
-    /// <see cref="Activity.OperationName"/> for OpenTelemetry.Instrumentation.AspNet created <see cref="Activity"/> objects.
-    /// </summary>
-    public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
-
     // ServerVariable set only on rewritten HttpContext by URL Rewrite module.
-    private const string URLRewriteRewrittenRequest = "IIS_WasUrlRewritten";
+    private const string UrlRewriteRewrittenRequest = "IIS_WasUrlRewritten";
 
     // ServerVariable set on every request if URL module is registered in HttpModule pipeline.
-    private const string URLRewriteModuleVersion = "IIS_UrlRewriteModule";
+    private const string UrlRewriteModuleVersion = "IIS_UrlRewriteModule";
 
-    private static readonly MethodInfo OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
+    private static readonly MethodInfo? OnExecuteRequestStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
 
     /// <summary>
     /// Gets the <see cref="TelemetryHttpModuleOptions"/> applied to requests processed by the handler.
     /// </summary>
-    public static TelemetryHttpModuleOptions Options { get; } = new TelemetryHttpModuleOptions();
+    public static TelemetryHttpModuleOptions Options { get; } = new();
 
     /// <inheritdoc />
     public void Dispose()
@@ -67,13 +56,13 @@ public class TelemetryHttpModule : IHttpModule
     private void Application_BeginRequest(object sender, EventArgs e)
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_BeginRequest");
-        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, ((HttpApplication)sender).Context, Options.OnRequestStartedCallback);
+        ActivityHelper.StartAspNetActivity(Options.TextMapPropagator, new HttpContextWrapper(((HttpApplication)sender).Context), Options.OnRequestStartedCallback);
     }
 
     private void OnExecuteRequestStep(HttpContextBase context, Action step)
     {
         // Called only on 4.7.1+ runtimes
-        ActivityHelper.RestoreContextIfNeeded(context.ApplicationInstance.Context);
+        ActivityHelper.RestoreContextIfNeeded(new HttpContextWrapper(context.ApplicationInstance.Context));
         step();
     }
 
@@ -82,7 +71,7 @@ public class TelemetryHttpModule : IHttpModule
         AspNetTelemetryEventSource.Log.TraceCallback("Application_EndRequest");
         var trackActivity = true;
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         if (!ActivityHelper.HasStarted(context, out var aspNetActivity))
         {
@@ -93,7 +82,7 @@ public class TelemetryHttpModule : IHttpModule
             // Do not create activity for parent request. Parent request has IIS_UrlRewriteModule ServerVariable with success response code.
             // Child request contains an additional ServerVariable named - IIS_WasUrlRewritten.
             // Track failed response activity: Different modules in the pipeline has ability to end the response. For example, authentication module could set HTTP 401 in OnBeginRequest and end the response.
-            if (context.Request.ServerVariables != null && context.Request.ServerVariables[URLRewriteRewrittenRequest] == null && context.Request.ServerVariables[URLRewriteModuleVersion] != null && context.Response.StatusCode == 200)
+            if (context.Request.ServerVariables != null && context.Request.ServerVariables[UrlRewriteRewrittenRequest] == null && context.Request.ServerVariables[UrlRewriteModuleVersion] != null && context.Response.StatusCode == 200)
             {
                 trackActivity = false;
             }
@@ -114,7 +103,7 @@ public class TelemetryHttpModule : IHttpModule
     {
         AspNetTelemetryEventSource.Log.TraceCallback("Application_Error");
 
-        var context = ((HttpApplication)sender).Context;
+        var context = new HttpContextWrapper(((HttpApplication)sender).Context);
 
         var exception = context.Error;
         if (exception != null)

@@ -1,95 +1,35 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.External;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal sealed class TldLogExporter : TldExporter, IDisposable
+internal sealed class TldLogExporter : TldLogCommon, IDisposable
 {
-    private const int MaxSanitizedEventNameLength = 50;
-
     // TODO: Is using a single ThreadLocal a better idea?
     private static readonly ThreadLocal<EventBuilder> EventBuilder = new();
-    private static readonly ThreadLocal<List<KeyValuePair<string, object?>>> EnvProperties = new();
-    private static readonly ThreadLocal<KeyValuePair<string, object>[]> PartCFields = new(); // This is used to temporarily store the PartC fields from tags
     private static readonly Action<LogRecordScope, TldLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
-    private static readonly string[] LogLevels =
-    [
-        "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None"
-    ];
 
-    private readonly ThreadLocal<SerializationDataForScopes> serializationData = new(); // This is used for Scopes
-    private readonly byte partAFieldsCount = 1; // At least one field: time
-    private readonly bool shouldPassThruTableMappings;
-    private readonly string defaultEventName = "Log";
-    private readonly HashSet<string>? customFields;
-    private readonly Dictionary<string, string>? tableMappings;
     private readonly Tuple<byte[], byte[]>? repeatedPartAFields;
-    private readonly ExceptionStackExportMode exceptionStackExportMode;
     private readonly EventProvider eventProvider;
 
     private bool isDisposed;
 
     public TldLogExporter(GenevaExporterOptions options)
+        : base(options)
     {
         Guard.ThrowIfNull(options);
 
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
         this.eventProvider = new EventProvider(connectionStringBuilder.EtwSession);
 
-        this.exceptionStackExportMode = options.ExceptionStackExportMode;
-
-        // TODO: Validate mappings for reserved tablenames etc.
-        if (options.TableNameMappings != null)
-        {
-            var tempTableMappings = new Dictionary<string, string>(options.TableNameMappings.Count, StringComparer.Ordinal);
-            foreach (var kv in options.TableNameMappings)
-            {
-                if (kv.Key == "*")
-                {
-                    if (kv.Value == "*")
-                    {
-                        this.shouldPassThruTableMappings = true;
-                    }
-                    else
-                    {
-                        this.defaultEventName = kv.Value;
-                    }
-                }
-                else
-                {
-                    tempTableMappings[kv.Key] = kv.Value;
-                }
-            }
-
-            this.tableMappings = tempTableMappings;
-        }
-
-        // TODO: Validate custom fields (reserved name? etc).
-        if (options.CustomFields != null)
-        {
-            var customFields = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var name in options.CustomFields)
-            {
-                customFields.Add(name);
-            }
-
-            this.customFields = customFields;
-        }
-
         if (options.PrepopulatedFields != null)
         {
-            var prePopulatedFieldsCount = (byte)(options.PrepopulatedFields.Count - 1); // PrepopulatedFields option has the key ".ver" added to it which is not needed for TLD
-            this.partAFieldsCount += prePopulatedFieldsCount;
-
             var eb = EventBuilder.Value ??= new EventBuilder(UncheckedASCIIEncoding.SharedInstance);
 
             eb.Reset("_"); // EventName does not matter here as we only need the serialized key-value pairs
@@ -104,9 +44,9 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                     continue;
                 }
 
-                V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
+                TldExporter.V40_PART_A_TLD_MAPPING.TryGetValue(key, out var replacementKey);
                 var keyToSerialize = replacementKey ?? key;
-                Serialize(eb, keyToSerialize, value);
+                TldExporter.Serialize(eb, keyToSerialize, value);
 
                 this.repeatedPartAFields = eb.GetRawFields();
             }
@@ -129,7 +69,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    ExporterEventSource.Log.FailedToSendTraceData(ex); // TODO: preallocate exception or no exception
+                    ExporterEventSource.Log.FailedToSendLogData(ex); // TODO: preallocate exception or no exception
                     result = ExportResult.Failure;
                 }
             }
@@ -138,27 +78,6 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         }
 
         return ExportResult.Failure;
-    }
-
-    public void Dispose()
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        try
-        {
-            // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
-            this.eventProvider.Dispose();
-            this.serializationData?.Dispose();
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("TldLogExporter Dispose failed.", ex);
-        }
-
-        this.isDisposed = true;
     }
 
     internal EventBuilder SerializeLogRecord(LogRecord logRecord)
@@ -257,7 +176,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 // 2. Trim smarter, by trimming the middle of stack, an
                 // keep top and bottom.
                 var exceptionStack = logRecord.Exception.ToInvariantString();
-                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, StringLengthLimit));
+                eb.AddCountedAnsiString("ext_ex_stack", exceptionStack, Encoding.UTF8, 0, Math.Min(exceptionStack.Length, TldExporter.StringLengthLimit));
                 partAFieldsCount++;
             }
             else if (this.exceptionStackExportMode == ExceptionStackExportMode.ExportAsStackTraceString)
@@ -265,7 +184,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
                 var stackTrace = logRecord.Exception.StackTrace;
                 if (stackTrace != null)
                 {
-                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, StringLengthLimit));
+                    eb.AddCountedAnsiString("ext_ex_stack", stackTrace, Encoding.UTF8, 0, Math.Min(stackTrace.Length, TldExporter.StringLengthLimit));
                     partAFieldsCount++;
                 }
             }
@@ -391,7 +310,7 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
 
             for (var i = 0; i < partCFieldsCountFromState; i++)
             {
-                Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
+                TldExporter.Serialize(eb, kvpArrayForPartCFields[i].Key, kvpArrayForPartCFields[i].Value);
             }
 
             if (hasEnvProperties == 1)
@@ -408,125 +327,37 @@ internal sealed class TldLogExporter : TldExporter, IDisposable
         return eb;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte GetSeverityNumber(LogLevel logLevel)
+    protected override void Dispose(bool disposing)
     {
-        // Maps the Ilogger LogLevel to OpenTelemetry logging level.
-        // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/logs/data-model.md#mapping-of-severitynumber
-        // TODO: for improving perf simply do ((int)loglevel * 4) + 1
-        // or ((int)logLevel << 2) + 1
-        return logLevel switch
+        if (!this.isDisposed)
         {
-            LogLevel.Trace => 1,
-            LogLevel.Debug => 5,
-            LogLevel.Information => 9,
-            LogLevel.Warning => 13,
-            LogLevel.Error => 17,
-            LogLevel.Critical => 21,
-
-            // we reach default only for LogLevel.None
-            // but that is filtered out anyway.
-            // should we throw here then?
-            LogLevel.None => 1,
-            _ => 1,
-        };
-    }
-
-    // This method would map the logger category to a table name which only contains alphanumeric values with the following additions:
-    // Any character that is not allowed will be removed.
-    // If the resulting string is longer than 50 characters, only the first 50 characters will be taken.
-    // If the first character in the resulting string is a lower-case alphabet, it will be converted to the corresponding upper-case.
-    // If the resulting string still does not comply with Rule, the category name will not be serialized.
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetSanitizedCategoryName(string categoryName)
-    {
-        var validNameLength = 0;
-        Span<char> result = stackalloc char[MaxSanitizedEventNameLength];
-
-        // Special treatment for the first character.
-        var firstChar = categoryName[0];
-        if (firstChar is >= 'A' and <= 'Z')
-        {
-            result[0] = firstChar;
-            ++validNameLength;
-        }
-        else if (firstChar is >= 'a' and <= 'z')
-        {
-            // If the first character in the resulting string is a lower-case alphabet,
-            // it will be converted to the corresponding upper-case.
-            result[0] = (char)(firstChar - 32);
-            ++validNameLength;
-        }
-        else
-        {
-            // Not a valid name.
-            return string.Empty;
-        }
-
-        for (var i = 1; i < categoryName.Length; i++)
-        {
-            if (validNameLength == MaxSanitizedEventNameLength)
+            if (disposing)
             {
-                break;
+                // Dispose managed resources specific to TldLogExporter
+                try
+                {
+                    // DO NOT Dispose eventBuilder, keyValuePairs, and partCFields as they are static
+                    this.eventProvider.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    ExporterEventSource.Log.ExporterException("TldLogExporter Dispose failed.", ex);
+                }
             }
 
-            var cur = categoryName[i];
-            if (cur is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))
-            {
-                result[validNameLength] = cur;
-                ++validNameLength;
-            }
+            // Dispose unmanaged resources specific to TldLogExporter
+
+            this.isDisposed = true;
         }
 
-        return result.Slice(0, validNameLength).ToString();
+        base.Dispose(disposing);
     }
 
     private static void OnProcessScopeForIndividualColumns(LogRecordScope scope, TldLogExporter state)
-    {
-        Debug.Assert(state.serializationData.Value != null, "state.serializationData was null");
-        Debug.Assert(PartCFields.Value != null, "PartCFields.Value was null");
-
-        var stateData = state.serializationData.Value!;
-        var customFields = state.customFields;
-        var kvpArrayForPartCFields = PartCFields.Value!;
-
-        List<KeyValuePair<string, object?>>? envPropertiesList = null;
-
-        foreach (var scopeItem in scope)
-        {
-            if (string.IsNullOrEmpty(scopeItem.Key) || scopeItem.Key == "{OriginalFormat}")
-            {
-                continue;
-            }
-
-            if (customFields == null || customFields.Contains(scopeItem.Key))
-            {
-                if (scopeItem.Value != null)
-                {
-                    kvpArrayForPartCFields[stateData.PartCFieldsCountFromState] = new(scopeItem.Key, scopeItem.Value);
-                    stateData.PartCFieldsCountFromState++;
-                }
-            }
-            else
-            {
-                if (stateData.HasEnvProperties == 0)
-                {
-                    stateData.HasEnvProperties = 1;
-
-                    envPropertiesList = EnvProperties.Value ??= [];
-
-                    envPropertiesList.Clear();
-                }
-
-                // TODO: This could lead to unbounded memory usage.
-                envPropertiesList!.Add(new(scopeItem.Key, scopeItem.Value));
-            }
-        }
-    }
-
-    private sealed class SerializationDataForScopes
-    {
-        public byte HasEnvProperties;
-        public byte PartCFieldsCountFromState;
-    }
+        => OnProcessScopeForIndividualColumns(
+            scope,
+            state.serializationData.Value!,
+            state.customFields,
+            PartCFields.Value!,
+            EnvProperties.Value);
 }

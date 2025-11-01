@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Runtime.InteropServices;
+#if NET
+using OpenTelemetry.Exporter.Geneva.EventHeader;
+#endif
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Tld;
 using OpenTelemetry.Internal;
@@ -31,6 +34,25 @@ public class GenevaLogExporter : GenevaBaseExporter<LogRecord>
 
         bool useMsgPackExporter;
         var connectionStringBuilder = new ConnectionStringBuilder(options.ConnectionString);
+
+        if (connectionStringBuilder.PrivatePreviewEnableUserEvents)
+        {
+#if NET
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
+            }
+
+            var eventHeaderLogExporter = new EventHeaderLogExporter(options);
+            this.IsUsingUnixDomainSocket = false;
+            this.exportLogRecord = eventHeaderLogExporter.Export;
+            this.exporter = eventHeaderLogExporter;
+            return;
+#else
+            throw new ArgumentException("Exporting data in user_events is only supported for .NET 8 or later on Linux.");
+#endif
+        }
+
         switch (connectionStringBuilder.Protocol)
         {
             case TransportProtocol.Etw:

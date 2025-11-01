@@ -2,11 +2,30 @@
 
 ## Unreleased
 
+## 1.13.0
+
+Released 2025-Oct-29
+
+## 1.12.1
+
+Released 2025-Sep-03
+
+* Add `faas.instance` and `faas.max_memory` resource/span attributes.
+  ([#2928](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2928))
+
+## 1.12.0
+
+Released 2025-May-06
+
+## 1.11.3
+
+Released 2025-May-01
+
 ## 1.11.2
 
 Released 2025-Mar-18
 
-* Set itinital capacity for AWS Semantic Convention Attribute Builder
+* Set initial capacity for AWS Semantic Convention Attribute Builder.
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
 
 ## 1.11.1

@@ -17,6 +17,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.logical_number</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.logical_number</c>.")]
     public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
 
     /// <summary>
@@ -58,7 +59,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>network.connection.state</c> instead.
     /// </summary>
-    [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+    [Obsolete("Replaced by <c>network.connection.state</c>.")]
     public const string AttributeSystemNetworkState = "system.network.state";
 
     /// <summary>
@@ -67,29 +68,37 @@ public static class SystemAttributes
     public const string AttributeSystemPagingDirection = "system.paging.direction";
 
     /// <summary>
+    /// The paging fault type.
+    /// </summary>
+    public const string AttributeSystemPagingFaultType = "system.paging.fault.type";
+
+    /// <summary>
     /// The memory paging state.
     /// </summary>
     public const string AttributeSystemPagingState = "system.paging.state";
 
     /// <summary>
-    /// The memory paging type.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public const string AttributeSystemPagingType = "system.paging.type";
 
     /// <summary>
-    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public const string AttributeSystemProcessStatus = "system.process.status";
 
     /// <summary>
-    /// Deprecated, use <c>system.process.status</c> instead.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>system.process.status</c>.")]
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public const string AttributeSystemProcessesStatus = "system.processes.status";
 
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>.")]
     public static class SystemCpuStateValues
     {
         /// <summary>
@@ -198,7 +207,7 @@ public static class SystemAttributes
     public static class SystemMemoryStateValues
     {
         /// <summary>
-        /// used.
+        /// Actual used virtual memory in bytes.
         /// </summary>
         public const string Used = "used";
 
@@ -226,78 +235,79 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>network.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>network.connection.state</c>.")]
     public static class SystemNetworkStateValues
     {
         /// <summary>
         /// close.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Close = "close";
 
         /// <summary>
         /// close_wait.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string CloseWait = "close_wait";
 
         /// <summary>
         /// closing.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Closing = "closing";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// established.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Established = "established";
 
         /// <summary>
         /// fin_wait_1.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait1 = "fin_wait_1";
 
         /// <summary>
         /// fin_wait_2.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait2 = "fin_wait_2";
 
         /// <summary>
         /// last_ack.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string LastAck = "last_ack";
 
         /// <summary>
         /// listen.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Listen = "listen";
 
         /// <summary>
         /// syn_recv.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynRecv = "syn_recv";
 
         /// <summary>
         /// syn_sent.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynSent = "syn_sent";
 
         /// <summary>
         /// time_wait.
         /// </summary>
-        [Obsolete("Removed, report network connection state with <c>network.connection.state</c> attribute.")]
+        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string TimeWait = "time_wait";
     }
 
@@ -318,6 +328,22 @@ public static class SystemAttributes
     }
 
     /// <summary>
+    /// The paging fault type.
+    /// </summary>
+    public static class SystemPagingFaultTypeValues
+    {
+        /// <summary>
+        /// major.
+        /// </summary>
+        public const string Major = "major";
+
+        /// <summary>
+        /// minor.
+        /// </summary>
+        public const string Minor = "minor";
+    }
+
+    /// <summary>
     /// The memory paging state.
     /// </summary>
     public static class SystemPagingStateValues
@@ -334,74 +360,83 @@ public static class SystemAttributes
     }
 
     /// <summary>
-    /// The memory paging type.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public static class SystemPagingTypeValues
     {
         /// <summary>
         /// major.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
     }
 
     /// <summary>
-    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public static class SystemProcessStatusValues
     {
         /// <summary>
         /// running.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 
     /// <summary>
-    /// Deprecated, use <c>system.process.status</c> instead.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public static class SystemProcessesStatusValues
     {
         /// <summary>
         /// running.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 }

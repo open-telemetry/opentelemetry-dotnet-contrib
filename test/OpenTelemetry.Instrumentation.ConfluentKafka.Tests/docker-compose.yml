@@ -1,11 +1,9 @@
 # Start a kafka container and then run OpenTelemetry ConfluentKafka integration tests.
 # This should be run from the root of the repo:
 #  opentelemetry>docker-compose --file=test/OpenTelemetry.Instrumentation.ConfluentKafka.Tests/docker-compose.yml --project-directory=. up --exit-code-from=tests --build
-version: '3.7'
-
 services:
   kafka:
-    image: confluentinc/confluent-local
+    image: confluentinc/confluent-local:8.1.0@sha256:c1b7c09c58b506052ac6287f0dfc6aaedae8facd4e456e829b4f91dba5f33763
     environment:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_LISTENERS: PLAINTEXT://localhost:29092,CONTROLLER://localhost:29093,PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT_INTERNAL://kafka:9093

@@ -2,6 +2,61 @@
 
 ## Unreleased
 
+## 1.13.1
+
+Released 2025-Oct-29
+
+* Support for specifying resource attributes, including
+  `service.name`, `service.instanceId`, and custom attributes.
+  ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
+* Allow custom string size limit in custom fields.
+  ([#3360](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3360))
+
+## 1.13.0
+
+Released 2025-Oct-13
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.13.0-alpha.1
+
+Released 2025-Jun-07
+
+* **Experimental**: Added an option for configuring a custom string size limit in
+  the MessagePack serializer. The maximum string length, in characters, can be
+  set using the `PrivatePreviewLogMessagePackStringSizeLimit=<CharCount>`
+  connection string parameter.
+  ([#2813](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2813))
+
+* Add httpUrl for HTTP server spans mapped from multiple attributes.
+  ([#2818](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2818))
+
+## 1.12.0
+
+Released 2025-May-06
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
+## 1.11.3
+
+Released 2025-Apr-22
+
+* Fixed an issue where accessing an unset `AFDCorrelationId` in `RuntimeContext`
+  would throw unhandled exceptions.
+  ([#2708](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2708))
+
+## 1.11.2
+
+Released 2025-Apr-16
+
+* Added support for enriching logs with `AFDCorrelationId` when present in
+  `RuntimeContext`. This can be enabled via the
+  `PrivatePreviewEnableAFDCorrelationIdEnrichment=true` connection string
+  parameter.
+  ([#2698](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2698))
+
 ## 1.11.1
 
 Released 2025-Mar-05

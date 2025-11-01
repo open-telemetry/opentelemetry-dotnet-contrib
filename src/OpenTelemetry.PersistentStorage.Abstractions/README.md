@@ -1,9 +1,9 @@
 # Persistent Storage Abstractions
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [Stable](../../README.md#stable)|
-| Code Owners   |  [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Stable](../../README.md#stable) |
+| Code Owners | [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj/) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.PersistentStorage.Abstractions)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.Abstractions)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.PersistentStorage.Abstractions)](https://www.nuget.org/packages/OpenTelemetry.PersistentStorage.Abstractions)

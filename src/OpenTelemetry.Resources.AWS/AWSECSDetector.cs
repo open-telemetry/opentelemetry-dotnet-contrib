@@ -11,7 +11,7 @@ namespace OpenTelemetry.Resources.AWS;
 /// <summary>
 /// Resource detector for application running in AWS ECS.
 /// </summary>
-internal sealed class AWSECSDetector : IResourceDetector
+internal sealed partial class AWSECSDetector : IResourceDetector
 {
     private const string AWSECSMetadataPath = "/proc/self/cgroup";
     private const string AWSECSMetadataURLKey = "ECS_CONTAINER_METADATA_URI";
@@ -98,6 +98,7 @@ internal sealed class AWSECSDetector : IResourceDetector
             return;
         }
 
+        using var scope = SuppressInstrumentationScope.Begin();
         using var httpClientHandler = new HttpClientHandler();
         var metadataV4ContainerResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(metadataV4Url, HttpMethod.Get, null, httpClientHandler));
         var metadataV4TaskResponse = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync($"{metadataV4Url.TrimEnd('/')}/task", HttpMethod.Get, null, httpClientHandler));
@@ -122,7 +123,6 @@ internal sealed class AWSECSDetector : IResourceDetector
         if (!clusterArn.StartsWith("arn:", StringComparison.Ordinal))
         {
             var baseArn = containerArn.Substring(containerArn.LastIndexOf(':'));
-#pragma warning restore CA1865 // Use string.LastIndexOf(char) instead of string.LastIndexOf(string) when you have string with a single char
         }
 
         resourceAttributes
@@ -183,8 +183,7 @@ internal sealed class AWSECSDetector : IResourceDetector
         {
             if (containerResponse.RootElement.TryGetProperty("LogOptions", out var logOptionsElement))
             {
-                var regex = new Regex(@"arn:aws:ecs:([^:]+):([^:]+):.*");
-                var match = regex.Match(containerArn);
+                var match = ArnRegex().Match(containerArn);
 
                 if (!match.Success)
                 {
@@ -210,5 +209,8 @@ internal sealed class AWSECSDetector : IResourceDetector
             }
         }
     }
+
+    [GeneratedRegex(@"arn:aws:ecs:([^:]+):([^:]+):.*")]
+    private static partial Regex ArnRegex();
 }
 #endif

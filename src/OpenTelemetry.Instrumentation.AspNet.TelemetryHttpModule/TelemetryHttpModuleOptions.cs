@@ -35,18 +35,19 @@ public class TelemetryHttpModuleOptions
     }
 
     /// <summary>
-    /// Gets or sets a callback action to be fired when a request is started.
+    /// Gets or sets a callback function to be fired when a request is started.
+    /// This function should return the <see cref="Activity"/> created to represent the request.
     /// </summary>
-    public Action<Activity, HttpContext>? OnRequestStartedCallback { get; set; }
+    public Func<HttpContextBase, ActivityContext, Activity?>? OnRequestStartedCallback { get; set; }
 
     /// <summary>
     /// Gets or sets a callback action to be fired when a request is stopped.
     /// </summary>
-    public Action<Activity, HttpContext>? OnRequestStoppedCallback { get; set; }
+    public Action<Activity?, HttpContextBase>? OnRequestStoppedCallback { get; set; }
 
     /// <summary>
     /// Gets or sets a callback action to be fired when an unhandled
     /// exception is thrown processing a request.
     /// </summary>
-    public Action<Activity, HttpContext, Exception>? OnExceptionCallback { get; set; }
+    public Action<Activity?, HttpContextBase, Exception>? OnExceptionCallback { get; set; }
 }

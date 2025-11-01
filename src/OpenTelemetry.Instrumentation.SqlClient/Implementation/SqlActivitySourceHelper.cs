@@ -15,7 +15,8 @@ namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
 /// </summary>
 internal sealed class SqlActivitySourceHelper
 {
-    public const string MicrosoftSqlServerDatabaseSystemName = "mssql";
+    public const string MicrosoftSqlServerDbSystemName = "microsoft.sql_server";
+    public const string MicrosoftSqlServerDbSystem = "mssql";
 
     public static readonly Assembly Assembly = typeof(SqlActivitySourceHelper).Assembly;
     public static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -34,10 +35,12 @@ internal sealed class SqlActivitySourceHelper
     internal static readonly string[] SharedTagNames =
     [
         SemanticConventions.AttributeDbSystem,
-        SemanticConventions.AttributeDbCollectionName,
+        SemanticConventions.AttributeDbSystemName,
         SemanticConventions.AttributeDbNamespace,
-        SemanticConventions.AttributeDbResponseStatusCode,
         SemanticConventions.AttributeDbOperationName,
+        SemanticConventions.AttributeDbStoredProcedureName,
+        SemanticConventions.AttributeDbQuerySummary,
+        SemanticConventions.AttributeDbResponseStatusCode,
         SemanticConventions.AttributeErrorType,
         SemanticConventions.AttributeServerPort,
         SemanticConventions.AttributeServerAddress,
@@ -45,46 +48,63 @@ internal sealed class SqlActivitySourceHelper
 
     public static TagList GetTagListFromConnectionInfo(string? dataSource, string? databaseName, SqlClientTraceInstrumentationOptions options, out string activityName)
     {
-        activityName = MicrosoftSqlServerDatabaseSystemName;
+        activityName = options.EmitNewAttributes
+            ? MicrosoftSqlServerDbSystemName
+            : MicrosoftSqlServerDbSystem;
 
-        var tags = new TagList
+        TagList tags = default;
+
+        if (options.EmitOldAttributes)
         {
-            { SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDatabaseSystemName },
-        };
+            tags.Add(SemanticConventions.AttributeDbSystem, MicrosoftSqlServerDbSystem);
+        }
+
+        if (options.EmitNewAttributes)
+        {
+            tags.Add(SemanticConventions.AttributeDbSystemName, MicrosoftSqlServerDbSystemName);
+        }
 
         if (dataSource != null)
         {
             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
-            if (options.EmitOldAttributes && !string.IsNullOrEmpty(databaseName))
+            if (!string.IsNullOrEmpty(databaseName))
             {
-                tags.Add(SemanticConventions.AttributeDbName, databaseName);
-                activityName = databaseName!;
-            }
+                if (options.EmitOldAttributes)
+                {
+                    tags.Add(SemanticConventions.AttributeDbName, databaseName);
+                    activityName = databaseName!;
+                }
 
-            if (options.EmitNewAttributes && !string.IsNullOrEmpty(databaseName))
-            {
-                var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
-                    ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
-                    : databaseName!;
-                tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
-                activityName = dbNamespace;
+                if (options.EmitNewAttributes)
+                {
+                    var dbNamespace = !string.IsNullOrEmpty(connectionDetails.InstanceName)
+                        ? $"{connectionDetails.InstanceName}.{databaseName}" // TODO: Refactor SqlConnectionDetails to include database to avoid string allocation here.
+                        : databaseName!;
+                    tags.Add(SemanticConventions.AttributeDbNamespace, dbNamespace);
+                    activityName = dbNamespace;
+                }
             }
 
             var serverAddress = connectionDetails.ServerHostName ?? connectionDetails.ServerIpAddress;
             if (!string.IsNullOrEmpty(serverAddress))
             {
                 tags.Add(SemanticConventions.AttributeServerAddress, serverAddress);
-                if (connectionDetails.Port.HasValue)
+                if (connectionDetails.Port is { } port)
                 {
-                    tags.Add(SemanticConventions.AttributeServerPort, connectionDetails.Port);
+                    tags.Add(SemanticConventions.AttributeServerPort, port);
                 }
 
-                if (activityName == MicrosoftSqlServerDatabaseSystemName)
+                if (activityName == MicrosoftSqlServerDbSystem || activityName == MicrosoftSqlServerDbSystemName)
                 {
-                    activityName = connectionDetails.Port.HasValue
-                        ? $"{serverAddress}:{connectionDetails.Port}" // TODO: Another opportunity to refactor SqlConnectionDetails
-                        : serverAddress!;
+                    if (connectionDetails.Port is { } portNumber)
+                    {
+                        activityName = $"{serverAddress}:{portNumber}"; // TODO: Another opportunity to refactor SqlConnectionDetails
+                    }
+                    else
+                    {
+                        activityName = serverAddress!;
+                    }
                 }
             }
 
@@ -111,13 +131,18 @@ internal sealed class SqlActivitySourceHelper
         return tags;
     }
 
-    internal static double CalculateDurationFromTimestamp(long begin, long? end = null)
+    internal static double CalculateDurationFromTimestamp(long begin)
     {
-        end ??= Stopwatch.GetTimestamp();
+#if NET
+        var duration = Stopwatch.GetElapsedTime(begin);
+#else
+        var end = Stopwatch.GetTimestamp();
         var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
         var delta = end - begin;
         var ticks = (long)(timestampToTicks * delta);
         var duration = new TimeSpan(ticks);
+#endif
+
         return duration.TotalSeconds;
     }
 }

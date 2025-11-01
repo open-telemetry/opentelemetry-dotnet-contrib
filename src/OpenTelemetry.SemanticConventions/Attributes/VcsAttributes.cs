@@ -35,6 +35,16 @@ public static class VcsAttributes
     public const string AttributeVcsLineChangeType = "vcs.line_change.type";
 
     /// <summary>
+    /// The group owner within the version control system.
+    /// </summary>
+    public const string AttributeVcsOwnerName = "vcs.owner.name";
+
+    /// <summary>
+    /// The name of the version control system provider.
+    /// </summary>
+    public const string AttributeVcsProviderName = "vcs.provider.name";
+
+    /// <summary>
     /// The name of the <a href="https://git-scm.com/docs/gitglossary#def_ref">reference</a> such as <strong>branch</strong> or <strong>tag</strong> in the repository.
     /// </summary>
     /// <remarks>
@@ -118,13 +128,13 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.change.id</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.change.id</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.change.id</c>.")]
     public const string AttributeVcsRepositoryChangeId = "vcs.repository.change.id";
 
     /// <summary>
     /// Deprecated, use <c>vcs.change.title</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.change.title</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.change.title</c>.")]
     public const string AttributeVcsRepositoryChangeTitle = "vcs.repository.change.title";
 
     /// <summary>
@@ -140,23 +150,23 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.name</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.name</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.name</c>.")]
     public const string AttributeVcsRepositoryRefName = "vcs.repository.ref.name";
 
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.revision</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.revision</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.revision</c>.")]
     public const string AttributeVcsRepositoryRefRevision = "vcs.repository.ref.revision";
 
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.type</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+    [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
     public const string AttributeVcsRepositoryRefType = "vcs.repository.ref.type";
 
     /// <summary>
-    /// The <a href="https://support.google.com/webmasters/answer/10347851?hl=en#:~:text=A%20canonical%20URL%20is%20the,Google%20chooses%20one%20as%20canonical.">canonical URL</a> of the repository providing the complete HTTP(S) address in order to locate and identify the repository through a browser.
+    /// The <a href="https://support.google.com/webmasters/answer/10347851">canonical URL</a> of the repository providing the complete HTTP(S) address in order to locate and identify the repository through a browser.
     /// </summary>
     /// <remarks>
     /// In Git Version Control Systems, the canonical URL SHOULD NOT include
@@ -212,6 +222,37 @@ public static class VcsAttributes
     }
 
     /// <summary>
+    /// The name of the version control system provider.
+    /// </summary>
+    public static class VcsProviderNameValues
+    {
+        /// <summary>
+        /// <a href="https://github.com">GitHub</a>.
+        /// </summary>
+        public const string Github = "github";
+
+        /// <summary>
+        /// <a href="https://gitlab.com">GitLab</a>.
+        /// </summary>
+        public const string Gitlab = "gitlab";
+
+        /// <summary>
+        /// Deprecated, use <c>gitea</c> instead.
+        /// </summary>
+        public const string Gittea = "gittea";
+
+        /// <summary>
+        /// <a href="https://gitea.io">Gitea</a>.
+        /// </summary>
+        public const string Gitea = "gitea";
+
+        /// <summary>
+        /// <a href="https://bitbucket.org">Bitbucket</a>.
+        /// </summary>
+        public const string Bitbucket = "bitbucket";
+    }
+
+    /// <summary>
     /// The type of the <a href="https://git-scm.com/docs/gitglossary#def_ref">reference</a> in the repository.
     /// </summary>
     public static class VcsRefBaseTypeValues
@@ -262,18 +303,19 @@ public static class VcsAttributes
     /// <summary>
     /// Deprecated, use <c>vcs.ref.head.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
     public static class VcsRepositoryRefTypeValues
     {
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddefbranchabranch">branch</a>.
         /// </summary>
-        [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Branch = "branch";
 
         /// <summary>
         /// <a href="https://git-scm.com/docs/gitglossary#Documentation/gitglossary.txt-aiddeftagatag">tag</a>.
         /// </summary>
-        [Obsolete("Deprecated, use <c>vcs.ref.head.type</c> instead.")]
+        [Obsolete("Replaced by <c>vcs.ref.head.type</c>.")]
         public const string Tag = "tag";
     }
 

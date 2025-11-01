@@ -36,6 +36,68 @@ public static class GenAiAttributes
     public const string AttributeGenAiCompletion = "gen_ai.completion";
 
     /// <summary>
+    /// The unique identifier for a conversation (session, thread), used to store and correlate messages within this conversation.
+    /// </summary>
+    public const string AttributeGenAiConversationId = "gen_ai.conversation.id";
+
+    /// <summary>
+    /// The data source identifier.
+    /// </summary>
+    /// <remarks>
+    /// Data sources are used by AI agents and RAG applications to store grounding data. A data source may be an external database, object store, document collection, website, or any other storage system used by the GenAI agent or application. The <c>gen_ai.data_source.id</c> SHOULD match the identifier used by the GenAI system rather than a name specific to the external storage, such as a database or object store. Semantic conventions referencing <c>gen_ai.data_source.id</c> MAY also leverage additional attributes, such as <c>db.*</c>, to further identify and describe the data source.
+    /// </remarks>
+    public const string AttributeGenAiDataSourceId = "gen_ai.data_source.id";
+
+    /// <summary>
+    /// The number of dimensions the resulting output embeddings should have.
+    /// </summary>
+    public const string AttributeGenAiEmbeddingsDimensionCount = "gen_ai.embeddings.dimension.count";
+
+    /// <summary>
+    /// A free-form explanation for the assigned score provided by the evaluator.
+    /// </summary>
+    public const string AttributeGenAiEvaluationExplanation = "gen_ai.evaluation.explanation";
+
+    /// <summary>
+    /// The name of the evaluation metric used for the GenAI response.
+    /// </summary>
+    public const string AttributeGenAiEvaluationName = "gen_ai.evaluation.name";
+
+    /// <summary>
+    /// Human readable label for evaluation.
+    /// </summary>
+    /// <remarks>
+    /// This attribute provides a human-readable interpretation of the evaluation score produced by an evaluator. For example, a score value of 1 could mean "relevant" in one evaluation system and "not relevant" in another, depending on the scoring range and evaluator. The label SHOULD have low cardinality. Possible values depend on the evaluation metric and evaluator used; implementations SHOULD document the possible values.
+    /// </remarks>
+    public const string AttributeGenAiEvaluationScoreLabel = "gen_ai.evaluation.score.label";
+
+    /// <summary>
+    /// The evaluation score returned by the evaluator.
+    /// </summary>
+    public const string AttributeGenAiEvaluationScoreValue = "gen_ai.evaluation.score.value";
+
+    /// <summary>
+    /// The chat history provided to the model as an input.
+    /// </summary>
+    /// <remarks>
+    /// Instrumentations MUST follow <a href="/docs/gen-ai/gen-ai-input-messages.json">Input messages JSON schema</a>.
+    /// When the attribute is recorded on events, it MUST be recorded in structured
+    /// form. When recorded on spans, it MAY be recorded as a JSON string if structured
+    /// format is not supported and SHOULD be recorded in structured form otherwise.
+    /// <p>
+    /// Messages MUST be provided in the order they were sent to the model.
+    /// Instrumentations MAY provide a way for users to filter or truncate
+    /// input messages.
+    /// <blockquote>
+    /// [!Warning]
+    /// This attribute is likely to contain sensitive information including user/PII data.</blockquote>
+    /// <p>
+    /// See <a href="/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
+    /// section for more details.
+    /// </remarks>
+    public const string AttributeGenAiInputMessages = "gen_ai.input.messages";
+
+    /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
     [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
@@ -44,22 +106,25 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.request.seed</c>.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.request.seed</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.request.seed</c>.")]
     public const string AttributeGenAiOpenaiRequestSeed = "gen_ai.openai.request.seed";
 
     /// <summary>
-    /// The service tier requested. May be a specific tier, default, or auto.
+    /// Deprecated, use <c>openai.request.service_tier</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
     public const string AttributeGenAiOpenaiRequestServiceTier = "gen_ai.openai.request.service_tier";
 
     /// <summary>
-    /// The service tier used for the response.
+    /// Deprecated, use <c>openai.response.service_tier</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>openai.response.service_tier</c>.")]
     public const string AttributeGenAiOpenaiResponseServiceTier = "gen_ai.openai.response.service_tier";
 
     /// <summary>
-    /// A fingerprint to track any eventual change in the Generative AI environment.
+    /// Deprecated, use <c>openai.response.system_fingerprint</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>openai.response.system_fingerprint</c>.")]
     public const string AttributeGenAiOpenaiResponseSystemFingerprint = "gen_ai.openai.response.system_fingerprint";
 
     /// <summary>
@@ -69,6 +134,32 @@ public static class GenAiAttributes
     /// If one of the predefined values applies, but specific system uses a different name it's RECOMMENDED to document it in the semantic conventions for specific GenAI system and use system-specific name in the instrumentation. If a different name is not documented, instrumentation libraries SHOULD use applicable predefined value.
     /// </remarks>
     public const string AttributeGenAiOperationName = "gen_ai.operation.name";
+
+    /// <summary>
+    /// Messages returned by the model where each message represents a specific model response (choice, candidate).
+    /// </summary>
+    /// <remarks>
+    /// Instrumentations MUST follow <a href="/docs/gen-ai/gen-ai-output-messages.json">Output messages JSON schema</a>
+    /// <p>
+    /// Each message represents a single output choice/candidate generated by
+    /// the model. Each message corresponds to exactly one generation
+    /// (choice/candidate) and vice versa - one choice cannot be split across
+    /// multiple messages or one message cannot contain parts from multiple choices.
+    /// <p>
+    /// When the attribute is recorded on events, it MUST be recorded in structured
+    /// form. When recorded on spans, it MAY be recorded as a JSON string if structured
+    /// format is not supported and SHOULD be recorded in structured form otherwise.
+    /// <p>
+    /// Instrumentations MAY provide a way for users to filter or truncate
+    /// output messages.
+    /// <blockquote>
+    /// [!Warning]
+    /// This attribute is likely to contain sensitive information including user/PII data.</blockquote>
+    /// <p>
+    /// See <a href="/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
+    /// section for more details.
+    /// </remarks>
+    public const string AttributeGenAiOutputMessages = "gen_ai.output.messages";
 
     /// <summary>
     /// Represents the content type requested by the client.
@@ -85,6 +176,31 @@ public static class GenAiAttributes
     /// </summary>
     [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeGenAiPrompt = "gen_ai.prompt";
+
+    /// <summary>
+    /// The Generative AI provider as identified by the client or server instrumentation.
+    /// </summary>
+    /// <remarks>
+    /// The attribute SHOULD be set based on the instrumentation's best
+    /// knowledge and may differ from the actual model provider.
+    /// <p>
+    /// Multiple providers, including Azure OpenAI, Gemini, and AI hosting platforms
+    /// are accessible using the OpenAI REST API and corresponding client libraries,
+    /// but may proxy or host models from different providers.
+    /// <p>
+    /// The <c>gen_ai.request.model</c>, <c>gen_ai.response.model</c>, and <c>server.address</c>
+    /// attributes may help identify the actual system in use.
+    /// <p>
+    /// The <c>gen_ai.provider.name</c> attribute acts as a discriminator that
+    /// identifies the GenAI telemetry format flavor specific to that provider
+    /// within GenAI semantic conventions.
+    /// It SHOULD be set consistently with provider-specific attributes and signals.
+    /// For example, GenAI spans, metrics, and events related to AWS Bedrock
+    /// should have the <c>gen_ai.provider.name</c> set to <c>aws.bedrock</c> and include
+    /// applicable <c>aws.bedrock.*</c> attributes and are not expected to include
+    /// <c>openai.*</c> attributes.
+    /// </remarks>
+    public const string AttributeGenAiProviderName = "gen_ai.provider.name";
 
     /// <summary>
     /// The target number of candidate completions to return.
@@ -160,22 +276,37 @@ public static class GenAiAttributes
     public const string AttributeGenAiResponseModel = "gen_ai.response.model";
 
     /// <summary>
-    /// The Generative AI product as identified by the client or server instrumentation.
+    /// Deprecated, use <c>gen_ai.provider.name</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+    public const string AttributeGenAiSystem = "gen_ai.system";
+
+    /// <summary>
+    /// The system message or instructions provided to the GenAI model separately from the chat history.
     /// </summary>
     /// <remarks>
-    /// The <c>gen_ai.system</c> describes a family of GenAI models with specific model identified
-    /// by <c>gen_ai.request.model</c> and <c>gen_ai.response.model</c> attributes.
+    /// This attribute SHOULD be used when the corresponding provider or API
+    /// allows to provide system instructions or messages separately from the
+    /// chat history.
     /// <p>
-    /// The actual GenAI product may differ from the one identified by the client.
-    /// Multiple systems, including Azure OpenAI and Gemini, are accessible by OpenAI client
-    /// libraries. In such cases, the <c>gen_ai.system</c> is set to <c>openai</c> based on the
-    /// instrumentation's best knowledge, instead of the actual system. The <c>server.address</c>
-    /// attribute may help identify the actual system in use for <c>openai</c>.
+    /// Instructions that are part of the chat history SHOULD be recorded in
+    /// <c>gen_ai.input.messages</c> attribute instead.
     /// <p>
-    /// For custom model, a custom friendly name SHOULD be used.
-    /// If none of these options apply, the <c>gen_ai.system</c> SHOULD be set to <c>_OTHER</c>.
+    /// Instrumentations MUST follow <a href="/docs/gen-ai/gen-ai-system-instructions.json">System instructions JSON schema</a>.
+    /// <p>
+    /// When recorded on spans, it MAY be recorded as a JSON string if structured
+    /// format is not supported and SHOULD be recorded in structured form otherwise.
+    /// <p>
+    /// Instrumentations MAY provide a way for users to filter or truncate
+    /// system instructions.
+    /// <blockquote>
+    /// [!Warning]
+    /// This attribute may contain sensitive information.</blockquote>
+    /// <p>
+    /// See <a href="/docs/gen-ai/gen-ai-spans.md#recording-content-on-attributes">Recording content on attributes</a>
+    /// section for more details.
     /// </remarks>
-    public const string AttributeGenAiSystem = "gen_ai.system";
+    public const string AttributeGenAiSystemInstructions = "gen_ai.system_instructions";
 
     /// <summary>
     /// The type of token being counted.
@@ -183,9 +314,58 @@ public static class GenAiAttributes
     public const string AttributeGenAiTokenType = "gen_ai.token.type";
 
     /// <summary>
+    /// Parameters passed to the tool call.
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// This attribute may contain sensitive information.</blockquote>
+    /// <p>
+    /// It's expected to be an object - in case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// </remarks>
+    public const string AttributeGenAiToolCallArguments = "gen_ai.tool.call.arguments";
+
+    /// <summary>
     /// The tool call identifier.
     /// </summary>
     public const string AttributeGenAiToolCallId = "gen_ai.tool.call.id";
+
+    /// <summary>
+    /// The result returned by the tool call (if any and if execution was successful).
+    /// </summary>
+    /// <remarks>
+    /// <blockquote>
+    /// [!WARNING]
+    /// This attribute may contain sensitive information.</blockquote>
+    /// <p>
+    /// It's expected to be an object - in case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an object. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// </remarks>
+    public const string AttributeGenAiToolCallResult = "gen_ai.tool.call.result";
+
+    /// <summary>
+    /// The list of source system tool definitions available to the GenAI agent or model.
+    /// </summary>
+    /// <remarks>
+    /// The value of this attribute matches source system tool definition format.
+    /// <p>
+    /// It's expected to be an array of objects where each object represents a tool definition. In case a serialized string is available
+    /// to the instrumentation, the instrumentation SHOULD do the best effort to
+    /// deserialize it to an array. When recorded on spans, it MAY be recorded as a JSON string if structured format is not supported and SHOULD be recorded in structured form otherwise.
+    /// <p>
+    /// Since this attribute could be large, it's NOT RECOMMENDED to populate
+    /// it by default. Instrumentations MAY provide a way to enable
+    /// populating this attribute.
+    /// </remarks>
+    public const string AttributeGenAiToolDefinitions = "gen_ai.tool.definitions";
+
+    /// <summary>
+    /// The tool description.
+    /// </summary>
+    public const string AttributeGenAiToolDescription = "gen_ai.tool.description";
 
     /// <summary>
     /// Name of the tool utilized by the agent.
@@ -207,7 +387,7 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.output_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.output_tokens</c>.")]
     public const string AttributeGenAiUsageCompletionTokens = "gen_ai.usage.completion_tokens";
 
     /// <summary>
@@ -223,12 +403,13 @@ public static class GenAiAttributes
     /// <summary>
     /// Deprecated, use <c>gen_ai.usage.input_tokens</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c> attribute.")]
+    [Obsolete("Replaced by <c>gen_ai.usage.input_tokens</c>.")]
     public const string AttributeGenAiUsagePromptTokens = "gen_ai.usage.prompt_tokens";
 
     /// <summary>
     /// Deprecated, use <c>gen_ai.output.type</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
     public static class GenAiOpenaiRequestResponseFormatValues
     {
         /// <summary>
@@ -251,18 +432,21 @@ public static class GenAiAttributes
     }
 
     /// <summary>
-    /// The service tier requested. May be a specific tier, default, or auto.
+    /// Deprecated, use <c>openai.request.service_tier</c>.
     /// </summary>
+    [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
     public static class GenAiOpenaiRequestServiceTierValues
     {
         /// <summary>
         /// The system will utilize scale tier credits until they are exhausted.
         /// </summary>
+        [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
         public const string Auto = "auto";
 
         /// <summary>
         /// The system will utilize the default scale tier.
         /// </summary>
+        [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
         public const string Default = "default";
     }
 
@@ -275,6 +459,11 @@ public static class GenAiAttributes
         /// Chat completion operation such as <a href="https://platform.openai.com/docs/api-reference/chat">OpenAI Chat API</a>.
         /// </summary>
         public const string Chat = "chat";
+
+        /// <summary>
+        /// Multimodal content generation operation such as <a href="https://ai.google.dev/api/generate-content">Gemini Generate Content</a>.
+        /// </summary>
+        public const string GenerateContent = "generate_content";
 
         /// <summary>
         /// Text completions operation such as <a href="https://platform.openai.com/docs/api-reference/completions">OpenAI Completions API (Legacy)</a>.
@@ -290,6 +479,11 @@ public static class GenAiAttributes
         /// Create GenAI agent.
         /// </summary>
         public const string CreateAgent = "create_agent";
+
+        /// <summary>
+        /// Invoke GenAI agent.
+        /// </summary>
+        public const string InvokeAgent = "invoke_agent";
 
         /// <summary>
         /// Execute a tool.
@@ -324,78 +518,204 @@ public static class GenAiAttributes
     }
 
     /// <summary>
-    /// The Generative AI product as identified by the client or server instrumentation.
+    /// The Generative AI provider as identified by the client or server instrumentation.
     /// </summary>
-    public static class GenAiSystemValues
+    public static class GenAiProviderNameValues
     {
         /// <summary>
-        /// OpenAI.
+        /// <a href="https://openai.com/">OpenAI</a>.
         /// </summary>
         public const string Openai = "openai";
 
         /// <summary>
-        /// Vertex AI.
+        /// Any Google generative AI endpoint.
         /// </summary>
-        public const string VertexAi = "vertex_ai";
+        public const string GcpGenAi = "gcp.gen_ai";
 
         /// <summary>
-        /// Gemini.
+        /// <a href="https://cloud.google.com/vertex-ai">Vertex AI</a>.
         /// </summary>
-        public const string Gemini = "gemini";
+        public const string GcpVertexAi = "gcp.vertex_ai";
 
         /// <summary>
-        /// Anthropic.
+        /// <a href="https://cloud.google.com/products/gemini">Gemini</a>.
+        /// </summary>
+        public const string GcpGemini = "gcp.gemini";
+
+        /// <summary>
+        /// <a href="https://www.anthropic.com/">Anthropic</a>.
         /// </summary>
         public const string Anthropic = "anthropic";
 
         /// <summary>
-        /// Cohere.
+        /// <a href="https://cohere.com/">Cohere</a>.
         /// </summary>
         public const string Cohere = "cohere";
 
         /// <summary>
         /// Azure AI Inference.
         /// </summary>
+        public const string AzureAiInference = "azure.ai.inference";
+
+        /// <summary>
+        /// <a href="https://azure.microsoft.com/products/ai-services/openai-service/">Azure OpenAI</a>.
+        /// </summary>
+        public const string AzureAiOpenai = "azure.ai.openai";
+
+        /// <summary>
+        /// <a href="https://www.ibm.com/products/watsonx-ai">IBM Watsonx AI</a>.
+        /// </summary>
+        public const string IbmWatsonxAi = "ibm.watsonx.ai";
+
+        /// <summary>
+        /// <a href="https://aws.amazon.com/bedrock">AWS Bedrock</a>.
+        /// </summary>
+        public const string AwsBedrock = "aws.bedrock";
+
+        /// <summary>
+        /// <a href="https://www.perplexity.ai/">Perplexity</a>.
+        /// </summary>
+        public const string Perplexity = "perplexity";
+
+        /// <summary>
+        /// <a href="https://x.ai/">xAI</a>.
+        /// </summary>
+        public const string XAi = "x_ai";
+
+        /// <summary>
+        /// <a href="https://www.deepseek.com/">DeepSeek</a>.
+        /// </summary>
+        public const string Deepseek = "deepseek";
+
+        /// <summary>
+        /// <a href="https://groq.com/">Groq</a>.
+        /// </summary>
+        public const string Groq = "groq";
+
+        /// <summary>
+        /// <a href="https://mistral.ai/">Mistral AI</a>.
+        /// </summary>
+        public const string MistralAi = "mistral_ai";
+    }
+
+    /// <summary>
+    /// Deprecated, use <c>gen_ai.provider.name</c> instead.
+    /// </summary>
+    [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+    public static class GenAiSystemValues
+    {
+        /// <summary>
+        /// OpenAI.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string Openai = "openai";
+
+        /// <summary>
+        /// Any Google generative AI endpoint.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string GcpGenAi = "gcp.gen_ai";
+
+        /// <summary>
+        /// Vertex AI.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string GcpVertexAi = "gcp.vertex_ai";
+
+        /// <summary>
+        /// Gemini.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string GcpGemini = "gcp.gemini";
+
+        /// <summary>
+        /// Vertex AI.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string VertexAi = "vertex_ai";
+
+        /// <summary>
+        /// Gemini.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string Gemini = "gemini";
+
+        /// <summary>
+        /// Anthropic.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string Anthropic = "anthropic";
+
+        /// <summary>
+        /// Cohere.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string Cohere = "cohere";
+
+        /// <summary>
+        /// Azure AI Inference.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AzAiInference = "az.ai.inference";
 
         /// <summary>
         /// Azure OpenAI.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AzAiOpenai = "az.ai.openai";
+
+        /// <summary>
+        /// Azure AI Inference.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string AzureAiInference = "azure.ai.inference";
+
+        /// <summary>
+        /// Azure OpenAI.
+        /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        public const string AzureAiOpenai = "azure.ai.openai";
 
         /// <summary>
         /// IBM Watsonx AI.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string IbmWatsonxAi = "ibm.watsonx.ai";
 
         /// <summary>
         /// AWS Bedrock.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AwsBedrock = "aws.bedrock";
 
         /// <summary>
         /// Perplexity.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Perplexity = "perplexity";
 
         /// <summary>
         /// xAI.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Xai = "xai";
 
         /// <summary>
         /// DeepSeek.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Deepseek = "deepseek";
 
         /// <summary>
         /// Groq.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Groq = "groq";
 
         /// <summary>
         /// Mistral AI.
         /// </summary>
+        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string MistralAi = "mistral_ai";
     }
 

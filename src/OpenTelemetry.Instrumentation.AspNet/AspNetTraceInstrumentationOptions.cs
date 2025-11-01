@@ -37,8 +37,8 @@ public class AspNetTraceInstrumentationOptions
     }
 
     /// <summary>
-    /// Gets or sets a filter callback function that determines on a per
-    /// request basis whether or not to collect telemetry.
+    /// Gets or sets a filter callback function that determines on a per-request
+    /// basis whether to collect telemetry.
     /// </summary>
     /// <remarks>
     /// The filter callback receives the <see cref="HttpContext"/> for the
@@ -50,7 +50,7 @@ public class AspNetTraceInstrumentationOptions
     /// exception the request is filtered out (NOT collected).</item>
     /// </list>
     /// </remarks>
-    public Func<HttpContext, bool>? Filter { get; set; }
+    public Func<HttpContextBase, bool>? Filter { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an Activity.
@@ -59,7 +59,7 @@ public class AspNetTraceInstrumentationOptions
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
     /// <para><see cref="HttpRequest"/>: the HttpRequest object from which additional information can be extracted to enrich the activity.</para>
     /// </remarks>
-    public Action<Activity, HttpRequest>? EnrichWithHttpRequest { get; set; }
+    public Action<Activity, HttpRequestBase>? EnrichWithHttpRequest { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an Activity.
@@ -68,7 +68,7 @@ public class AspNetTraceInstrumentationOptions
     /// <para><see cref="Activity"/>: the activity being enriched.</para>
     /// <para><see cref="HttpResponse"/>: the HttpResponse object from which additional information can be extracted to enrich the activity.</para>
     /// </remarks>
-    public Action<Activity, HttpResponse>? EnrichWithHttpResponse { get; set; }
+    public Action<Activity, HttpResponseBase>? EnrichWithHttpResponse { get; set; }
 
     /// <summary>
     /// Gets or sets an action to enrich an Activity.
@@ -83,7 +83,7 @@ public class AspNetTraceInstrumentationOptions
     /// Gets or sets a value indicating whether the exception will be recorded as ActivityEvent or not.
     /// </summary>
     /// <remarks>
-    /// See: <see href="https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md"/>.
+    /// See: <see href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.
     /// </remarks>
     public bool RecordException { get; set; }
 

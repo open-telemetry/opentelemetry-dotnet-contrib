@@ -1,9 +1,9 @@
 # WCF Instrumentation for OpenTelemetry .NET
 
-| Status        |           |
-| ------------- |-----------|
-| Stability     |  [RC](../../README.md#rc)|
-| Code Owners   |  [@codeblanch](https://github.com/codeblanch)|
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Beta](../../README.md#beta) |
+| Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Wcf)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Wcf/)
@@ -19,6 +19,16 @@ Other configurations may work as well but have not been tested.
   * Encrypted and unencrypted transports
   * Streamed and buffered transfer modes
   * Signed and unsigned messages
+
+> [!CAUTION]
+> This component is based on the OpenTelemetry semantic conventions for
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md).
+> These conventions are
+> [in Development](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
+> and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
+> Until a [stable
+> version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
+> is released, there can be breaking changes.
 
 ## Installation
 
@@ -233,8 +243,8 @@ This instrumentation can be configured to change the default behavior by using
 
 This instrumentation automatically sets Activity Status to Error if an unhandled
 exception is thrown. Additionally, `RecordException` feature may be turned on,
-to store the exception to the Activity itself as ActivityEvent. `RecordException`
-is available only on the client side.
+to store the exception to the Activity itself as ActivityEvent. This feature
+applies both on instrumented servers and clients.
 
 ## References
 

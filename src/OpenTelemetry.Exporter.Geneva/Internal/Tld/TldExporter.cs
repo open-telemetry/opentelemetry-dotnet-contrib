@@ -9,7 +9,7 @@ using OpenTelemetry.Exporter.Geneva.External;
 
 namespace OpenTelemetry.Exporter.Geneva.Tld;
 
-internal abstract class TldExporter
+internal static class TldExporter
 {
     internal const int StringLengthLimit = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
     internal static readonly IReadOnlyDictionary<string, string> V40_PART_A_TLD_MAPPING = new Dictionary<string, string>
@@ -34,7 +34,7 @@ internal abstract class TldExporter
     };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Serialize(EventBuilder eb, string key, object value)
+    public static void Serialize(EventBuilder eb, string key, object value)
     {
         Debug.Assert(value != null, "value was null");
 

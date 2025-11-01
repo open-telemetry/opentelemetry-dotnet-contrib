@@ -5,6 +5,7 @@
     <Description>dotnet process instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);process</PackageTags>
     <MinVerTagPrefix>Instrumentation.Process-</MinVerTagPrefix>
+    <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -14,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api" Version="$(OpenTelemetryCoreLatestVersion)" />
+    <PackageReference Include="OpenTelemetry.Api" />
   </ItemGroup>
 
   <ItemGroup>

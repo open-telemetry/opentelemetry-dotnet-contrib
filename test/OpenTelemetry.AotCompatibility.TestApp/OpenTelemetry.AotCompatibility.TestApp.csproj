@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- System.Private.Uri is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-5f2m-466j-3848 -->
-    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
+    <PackageReference Include="System.Private.Uri" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +27,8 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Exporter.OneCollector" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment.AspNetCore" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Extensions.Enrichment.Http" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AspNetCore" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWS" />
     <TrimmerRootAssembly Include="OpenTelemetry.Instrumentation.AWSLambda" />
@@ -47,6 +49,13 @@
 
     <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Path="$(RepoRoot)\src\%(Identity)\%(Identity).csproj" />
     <ProjectReference Include="@(TrimmerRootAssembly->'%(Path)')" />
+
+    <!-- Exclude projects that are transitively referenced by
+      OpenTelemetry.Extensions.Enrichment.AspNetCore and OpenTelemetry.Extensions.Enrichment.Http:
+    -->
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Extensions.Enrichment\OpenTelemetry.Extensions.Enrichment.csproj"/>
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.AspNetCore\OpenTelemetry.Instrumentation.AspNetCore.csproj"/>
+    <ProjectReference Remove="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Http\OpenTelemetry.Instrumentation.Http.csproj"/>
   </ItemGroup>
 
 </Project>

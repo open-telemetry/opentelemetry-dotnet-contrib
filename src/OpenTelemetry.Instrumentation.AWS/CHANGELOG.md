@@ -2,11 +2,34 @@
 
 ## Unreleased
 
+## 1.13.0
+
+Released 2025-Oct-29
+
+## 1.12.1
+
+Released 2025-Sep-03
+
+## 1.12.0
+
+Released 2025-May-06
+
+* BREAKING: Update AWSSDK dependencies to v4.
+  ([#2720](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2720))
+
+## 1.11.3
+
+Released 2025-May-01
+
+* Update package references to AWS SDK to indicate that this library is not
+  compatible with AWS SDK v4.
+   ([#2726](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2726))
+
 ## 1.11.2
 
 Released 2025-Mar-18
 
-* Set itinital capacity for AWS Semantic Convention Attribute Builder
+* Set initial capacity for AWS Semantic Convention Attribute Builder
   ([#2653](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2653))
 
 ## 1.11.1

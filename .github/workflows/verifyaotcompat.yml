@@ -3,21 +3,24 @@ name: Publish & Verify AOT Compatibility
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   run-verify-aot-compat:
 
     strategy:
       fail-fast: false # ensures the entire test matrix is run, even if one permutation fails
       matrix:
-        os: [ ubuntu-22.04, windows-latest ]
+        os: [ ubuntu-24.04, windows-latest ]
         version: [ net8.0, net9.0 ]
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
 
     - name: publish AOT testApp, assert static analysis warning count, and run the app
       shell: pwsh

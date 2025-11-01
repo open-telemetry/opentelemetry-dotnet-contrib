@@ -14,22 +14,19 @@
     <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="/Includes/SkipUnlessEnvVarFoundTheoryAttribute.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestEventListener.cs" Link="/Includes/TestEventListener.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\TestHttpServer.cs" Link="/Includes/TestHttpServer.cs" />
-    <Compile Include="$(RepoRoot)\src\Shared\SpanAttributeConstants.cs" Link="Includes\SpanAttributeConstants.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="$(OpenTelemetryExporterInMemoryPkgVer)" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonLatestNet8OutOfBandPkgVer)" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'">
+    <PackageReference Include="System.Text.Json" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Net.Http" Condition="'$(TargetFramework)' == '$(NetFrameworkMinimumSupportedVersion)'" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="http-out-test-cases.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="http-out-test-cases.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

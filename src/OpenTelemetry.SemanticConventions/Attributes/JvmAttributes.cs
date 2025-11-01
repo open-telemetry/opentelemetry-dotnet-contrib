@@ -31,6 +31,14 @@ public static class JvmAttributes
     public const string AttributeJvmGcAction = "jvm.gc.action";
 
     /// <summary>
+    /// Name of the garbage collector cause.
+    /// </summary>
+    /// <remarks>
+    /// Garbage collector cause is generally obtained via <a href="https://docs.oracle.com/en/java/javase/11/docs/api/jdk.management/com/sun/management/GarbageCollectionNotificationInfo.html#getGcCause()">GarbageCollectionNotificationInfo#getGcCause()</a>.
+    /// </remarks>
+    public const string AttributeJvmGcCause = "jvm.gc.cause";
+
+    /// <summary>
     /// Name of the garbage collector.
     /// </summary>
     /// <remarks>

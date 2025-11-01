@@ -86,7 +86,8 @@ public static class DbAttributes
     /// without attempting to do any case normalization.
     /// <p>
     /// The collection name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// when the database system supports cross-table queries in non-batch operations.
+    /// when the database system supports query text with multiple collections
+    /// in non-batch operations.
     /// <p>
     /// For batch operations, if the individual operations are known to have the same
     /// collection name then that collection name SHOULD be used.
@@ -126,7 +127,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbCosmosdbOperationType = "db.cosmosdb.operation_type";
 
     /// <summary>
@@ -150,7 +151,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.response.status_code</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.response.status_code</c>.")]
+    [Obsolete("Use <c>db.response.status_code</c> instead.")]
     public const string AttributeDbCosmosdbStatusCode = "db.cosmosdb.status_code";
 
     /// <summary>
@@ -180,13 +181,13 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.
     /// </summary>
-    [Obsolete("Deprecated, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.")]
+    [Obsolete("Removed, no general replacement at this time. For Elasticsearch, use <c>db.elasticsearch.node.name</c> instead.")]
     public const string AttributeDbInstanceId = "db.instance.id";
 
     /// <summary>
     /// Removed, no replacement at this time.
     /// </summary>
-    [Obsolete("Removed as not used.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbJdbcDriverClassname = "db.jdbc.driver_classname";
 
     /// <summary>
@@ -198,7 +199,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, SQL Server instance is now populated as a part of <c>db.namespace</c> attribute.
     /// </summary>
-    [Obsolete("Deprecated, no replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbMssqlInstanceName = "db.mssql.instance_name";
 
     /// <summary>
@@ -211,7 +212,7 @@ public static class DbAttributes
     /// The name of the database, fully qualified within the server address and port.
     /// </summary>
     /// <remarks>
-    /// If a database system has multiple namespace components, they SHOULD be concatenated (potentially using database system specific conventions) from most general to most specific namespace component, and more specific namespaces SHOULD NOT be captured without the more general namespaces, to ensure that "startswith" queries for the more general namespaces will be valid.
+    /// If a database system has multiple namespace components, they SHOULD be concatenated from the most general to the most specific namespace component, using <c>|</c> as a separator between the components. Any missing components (and their associated separators) SHOULD be omitted.
     /// Semantic conventions for individual database systems SHOULD document what <c>db.namespace</c> means in the context of that system.
     /// It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
     /// </remarks>
@@ -239,7 +240,11 @@ public static class DbAttributes
     /// without attempting to do any case normalization.
     /// <p>
     /// The operation name SHOULD NOT be extracted from <c>db.query.text</c>,
-    /// when the database system supports cross-table queries in non-batch operations.
+    /// when the database system supports query text with multiple operations
+    /// in non-batch operations.
+    /// <p>
+    /// If spaces can occur in the operation name, multiple consecutive spaces
+    /// SHOULD be normalized to a single space.
     /// <p>
     /// For batch operations, if the individual operations are known to have the same operation name
     /// then that operation name SHOULD be used prepended by <c>BATCH </c>,
@@ -252,23 +257,52 @@ public static class DbAttributes
     /// A database operation parameter, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
     /// </summary>
     /// <remarks>
-    /// If a parameter has no name and instead is referenced only by index, then <c><key></c> SHOULD be the 0-based index.
-    /// If <c>db.query.text</c> is also captured, then <c>db.operation.parameter.<key></c> SHOULD match up with the parameterized placeholders present in <c>db.query.text</c>.
+    /// For example, a client-side maximum number of rows to read from the database
+    /// MAY be recorded as the <c>db.operation.parameter.max_rows</c> attribute.
+    /// <p>
+    /// <c>db.query.text</c> parameters SHOULD be captured using <c>db.query.parameter.<key></c>
+    /// instead of <c>db.operation.parameter.<key></c>.
     /// </remarks>
     public const string AttributeDbOperationParameterTemplate = "db.operation.parameter";
 
     /// <summary>
-    /// A query parameter used in <c>db.query.text</c>, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
+    /// A database query parameter, with <c><key></c> being the parameter name, and the attribute value being a string representation of the parameter value.
     /// </summary>
-    [Obsolete("Replaced by <c>db.operation.parameter</c>.")]
+    /// <remarks>
+    /// If a query parameter has no name and instead is referenced only by index,
+    /// then <c><key></c> SHOULD be the 0-based index.
+    /// <p>
+    /// <c>db.query.parameter.<key></c> SHOULD match
+    /// up with the parameterized placeholders present in <c>db.query.text</c>.
+    /// <p>
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
+    /// <p>
+    /// <c>db.query.parameter.<key></c> SHOULD NOT be captured on batch operations.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>For a query <c>SELECT * FROM users where username =  %s</c> with the parameter <c>"jdoe"</c>,
+    /// the attribute <c>db.query.parameter.0</c> SHOULD be set to <c>"jdoe"</c>.</li>
+    ///   <li>For a query <c>"SELECT * FROM users WHERE username = %(userName)s;</c> with parameter
+    /// <c>userName = "jdoe"</c>, the attribute <c>db.query.parameter.userName</c> SHOULD be set to <c>"jdoe"</c>.</li>
+    /// </ul>
+    /// </remarks>
     public const string AttributeDbQueryParameterTemplate = "db.query.parameter";
 
     /// <summary>
-    /// Low cardinality representation of a database query text.
+    /// Low cardinality summary of a database query.
     /// </summary>
     /// <remarks>
-    /// <c>db.query.summary</c> provides static summary of the query text. It describes a class of database queries and is useful as a grouping key, especially when analyzing telemetry for database calls involving complex queries.
-    /// Summary may be available to the instrumentation through instrumentation hooks or other means. If it is not available, instrumentations that support query parsing SHOULD generate a summary following <a href="../database/database-spans.md#generating-a-summary-of-the-query-text">Generating query summary</a> section.
+    /// The query summary describes a class of database queries and is useful
+    /// as a grouping key, especially when analyzing telemetry for database
+    /// calls involving complex queries.
+    /// <p>
+    /// Summary may be available to the instrumentation through
+    /// instrumentation hooks or other means. If it is not available, instrumentations
+    /// that support query parsing SHOULD generate a summary following
+    /// <a href="/docs/database/database-spans.md#generating-a-summary-of-the-query">Generating query summary</a>
+    /// section.
     /// </remarks>
     public const string AttributeDbQuerySummary = "db.query.summary";
 
@@ -276,16 +310,16 @@ public static class DbAttributes
     /// The database query being executed.
     /// </summary>
     /// <remarks>
-    /// For sanitization see <a href="../database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
+    /// For sanitization see <a href="/docs/database/database-spans.md#sanitization-of-dbquerytext">Sanitization of <c>db.query.text</c></a>.
     /// For batch operations, if the individual operations are known to have the same query text then that query text SHOULD be used, otherwise all of the individual query texts SHOULD be concatenated with separator <c>; </c> or some other database system specific separator if more applicable.
-    /// Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
+    /// Parameterized query text SHOULD NOT be sanitized. Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
     /// </remarks>
     public const string AttributeDbQueryText = "db.query.text";
 
     /// <summary>
     /// Deprecated, use <c>db.namespace</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.namespace</c>.")]
+    [Obsolete("Uncategorized.")]
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
 
     /// <summary>
@@ -305,7 +339,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.collection.name</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.collection.name</c>.")]
+    [Obsolete("Replaced by <c>db.collection.name</c>, but only if not extracting the value from <c>db.query.text</c>.")]
     public const string AttributeDbSqlTable = "db.sql.table";
 
     /// <summary>
@@ -313,6 +347,18 @@ public static class DbAttributes
     /// </summary>
     [Obsolete("Replaced by <c>db.query.text</c>.")]
     public const string AttributeDbStatement = "db.statement";
+
+    /// <summary>
+    /// The name of a stored procedure within the database.
+    /// </summary>
+    /// <remarks>
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
+    /// <p>
+    /// For batch operations, if the individual operations are known to have the same
+    /// stored procedure name then that stored procedure name SHOULD be used.
+    /// </remarks>
+    public const string AttributeDbStoredProcedureName = "db.stored_procedure.name";
 
     /// <summary>
     /// Deprecated, use <c>db.system.name</c> instead.
@@ -331,12 +377,13 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
-    [Obsolete("No replacement at this time.")]
+    [Obsolete("Removed, no replacement at this time.")]
     public const string AttributeDbUser = "db.user";
 
     /// <summary>
     /// Deprecated, use <c>cassandra.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cassandra.consistency.level</c>.")]
     public static class DbCassandraConsistencyLevelValues
     {
         /// <summary>
@@ -425,6 +472,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.client.connection.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.client.connection.state</c>.")]
     public static class DbClientConnectionsStateValues
     {
         /// <summary>
@@ -443,6 +491,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>azure.cosmosdb.connection.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.connection.mode</c>.")]
     public static class DbCosmosdbConnectionModeValues
     {
         /// <summary>
@@ -461,6 +510,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>cosmosdb.consistency.level</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>azure.cosmosdb.consistency.level</c>.")]
     public static class DbCosmosdbConsistencyLevelValues
     {
         /// <summary>
@@ -497,102 +547,104 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, no replacement at this time.
     /// </summary>
+    [Obsolete("Removed, no replacement at this time.")]
     public static class DbCosmosdbOperationTypeValues
     {
         /// <summary>
         /// batch.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Batch = "batch";
 
         /// <summary>
         /// create.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Create = "create";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// execute.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Execute = "execute";
 
         /// <summary>
         /// execute_javascript.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string ExecuteJavascript = "execute_javascript";
 
         /// <summary>
         /// invalid.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Invalid = "invalid";
 
         /// <summary>
         /// head.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Head = "head";
 
         /// <summary>
         /// head_feed.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string HeadFeed = "head_feed";
 
         /// <summary>
         /// patch.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Patch = "patch";
 
         /// <summary>
         /// query.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Query = "query";
 
         /// <summary>
         /// query_plan.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string QueryPlan = "query_plan";
 
         /// <summary>
         /// read.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Read = "read";
 
         /// <summary>
         /// read_feed.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string ReadFeed = "read_feed";
 
         /// <summary>
         /// replace.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Replace = "replace";
 
         /// <summary>
         /// upsert.
         /// </summary>
-        [Obsolete("No replacement at this time.")]
+        [Obsolete("Removed, no replacement at this time.")]
         public const string Upsert = "upsert";
     }
 
     /// <summary>
     /// Deprecated, use <c>db.system.name</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>db.system.name</c>.")]
     public static class DbSystemValues
     {
         /// <summary>
@@ -782,7 +834,7 @@ public static class DbAttributes
         public const string Interbase = "interbase";
 
         /// <summary>
-        /// MariaDB (This value has stability level RELEASE CANDIDATE).
+        /// MariaDB.
         /// </summary>
         [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mariadb = "mariadb";
@@ -806,7 +858,7 @@ public static class DbAttributes
         public const string Mongodb = "mongodb";
 
         /// <summary>
-        /// Microsoft SQL Server (This value has stability level RELEASE CANDIDATE).
+        /// Microsoft SQL Server.
         /// </summary>
         [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mssql = "mssql";
@@ -818,7 +870,7 @@ public static class DbAttributes
         public const string Mssqlcompact = "mssqlcompact";
 
         /// <summary>
-        /// MySQL (This value has stability level RELEASE CANDIDATE).
+        /// MySQL.
         /// </summary>
         [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Mysql = "mysql";
@@ -860,7 +912,7 @@ public static class DbAttributes
         public const string Pointbase = "pointbase";
 
         /// <summary>
-        /// PostgreSQL (This value has stability level RELEASE CANDIDATE).
+        /// PostgreSQL.
         /// </summary>
         [Obsolete("Replaced by <c>db.system.name</c>.")]
         public const string Postgresql = "postgresql";

@@ -101,18 +101,6 @@ public partial class HttpWebRequestTests
 
             if (!tc.SpanAttributes.TryGetValue(tag.Key, out var value))
             {
-                if (tag.Key == SpanAttributeConstants.StatusCodeKey)
-                {
-                    Assert.Equal(tc.SpanStatus, tagValue);
-                    continue;
-                }
-
-                if (tag.Key == SpanAttributeConstants.StatusDescriptionKey)
-                {
-                    Assert.Null(tagValue);
-                    continue;
-                }
-
                 if (tag.Key == SemanticConventions.AttributeErrorType)
                 {
                     // TODO: Add validation for error.type in test cases.

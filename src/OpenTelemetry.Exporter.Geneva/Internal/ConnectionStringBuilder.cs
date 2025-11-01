@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 
@@ -74,6 +75,42 @@ internal sealed class ConnectionStringBuilder
 
     public bool PrivatePreviewEnableOtlpProtobufEncoding => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableOtlpProtobufEncoding), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+    public bool PrivatePreviewEnableUserEvents => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableUserEvents), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+    public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+    public bool HonorResourceAttributes => this.parts.TryGetValue(nameof(this.HonorResourceAttributes), out var value)
+                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
+
+    public int PrivatePreviewLogMessagePackStringSizeLimit
+    {
+        get
+        {
+            if (!this.parts.TryGetValue(nameof(this.PrivatePreviewLogMessagePackStringSizeLimit), out var value))
+            {
+                return MessagePackSerializer.DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT;
+            }
+
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sizeLimit))
+            {
+                throw new ArgumentException(
+                    $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} is malformed.",
+                    nameof(this.PrivatePreviewLogMessagePackStringSizeLimit));
+            }
+
+            if (sizeLimit <= 0 || sizeLimit > MsgPackLogExporter.BUFFER_SIZE)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(this.PrivatePreviewLogMessagePackStringSizeLimit),
+                    $"{nameof(this.PrivatePreviewLogMessagePackStringSizeLimit)} should be greater than zero and less than or equal to {MsgPackLogExporter.BUFFER_SIZE} characters.");
+            }
+
+            return sizeLimit;
+        }
+    }
 
     public string Endpoint
     {

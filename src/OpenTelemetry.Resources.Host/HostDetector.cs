@@ -76,6 +76,29 @@ internal sealed class HostDetector : IResourceDetector
         this.getWindowsMachineId = getWindowsMachineId;
     }
 
+#if !NETFRAMEWORK
+    public static string? MapArchitectureToOtel(Architecture arch)
+    {
+        return arch switch
+        {
+            Architecture.X86 => "x86",
+            Architecture.X64 => "x64",
+            Architecture.Arm => "arm32",
+            Architecture.Arm64 => "arm64",
+#if NET
+            Architecture.S390x => "s390x",
+            Architecture.Armv6 => "arm32",
+            Architecture.Ppc64le => "ppc64",
+
+            // following architectures do not have a mapping in OTEL spec https://github.com/open-telemetry/semantic-conventions/blob/v1.37.0/docs/resource/host.md
+            Architecture.Wasm => null,
+            Architecture.LoongArch64 => null,
+#endif
+            _ => null,
+        };
+    }
+#endif
+
     /// <summary>
     /// Detects the resource attributes from host.
     /// </summary>
@@ -84,16 +107,28 @@ internal sealed class HostDetector : IResourceDetector
     {
         try
         {
-            var attributes = new List<KeyValuePair<string, object>>(2)
+            var attributes = new List<KeyValuePair<string, object>>(3)
             {
                 new(HostSemanticConventions.AttributeHostName, Environment.MachineName),
             };
+
             var machineId = this.GetMachineId();
 
             if (machineId != null && !string.IsNullOrEmpty(machineId))
             {
                 attributes.Add(new(HostSemanticConventions.AttributeHostId, machineId));
             }
+
+#if !NETFRAMEWORK
+            var arch = MapArchitectureToOtel(RuntimeInformation.OSArchitecture);
+            if (arch != null)
+            {
+                attributes.Add(new(HostSemanticConventions.AttributeHostArch, arch));
+            }
+#endif
+#if NET471_OR_GREATER
+#error Architecture is available in .NET Framework 4.7.1+, enable it when we move to that as minimum supported version
+#endif
 
             return new Resource(attributes);
         }

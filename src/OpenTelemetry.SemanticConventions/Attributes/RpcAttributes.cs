@@ -23,7 +23,11 @@ public static class RpcAttributes
     /// Connect request metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// the <c>rpc.connect_rpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
     /// </remarks>
     public const string AttributeRpcConnectRpcRequestMetadataTemplate = "rpc.connect_rpc.request.metadata";
 
@@ -31,7 +35,11 @@ public static class RpcAttributes
     /// Connect response metadata, <c><key></c> being the normalized Connect Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>"attribute_value"</c> SHOULD be recorded as
+    /// the <c>rpc.connect_rpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
     /// </remarks>
     public const string AttributeRpcConnectRpcResponseMetadataTemplate = "rpc.connect_rpc.response.metadata";
 
@@ -39,7 +47,11 @@ public static class RpcAttributes
     /// gRPC request metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["1.2.3.4", "1.2.3.5"]</c> SHOULD be recorded as
+    /// <c>rpc.grpc.request.metadata.my-custom-key</c> attribute with value <c>["1.2.3.4", "1.2.3.5"]</c>.
     /// </remarks>
     public const string AttributeRpcGrpcRequestMetadataTemplate = "rpc.grpc.request.metadata";
 
@@ -47,7 +59,11 @@ public static class RpcAttributes
     /// gRPC response metadata, <c><key></c> being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which metadata values are to be captured.
+    /// Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// For example, a property <c>my-custom-key</c> with value <c>["attribute_value"]</c> SHOULD be recorded as
+    /// the <c>rpc.grpc.response.metadata.my-custom-key</c> attribute with value <c>["attribute_value"]</c>.
     /// </remarks>
     public const string AttributeRpcGrpcResponseMetadataTemplate = "rpc.grpc.response.metadata";
 
@@ -100,19 +116,13 @@ public static class RpcAttributes
     public const string AttributeRpcMessageUncompressedSize = "rpc.message.uncompressed_size";
 
     /// <summary>
-    /// The name of the (logical) method being called, must be equal to the $method part in the span name.
+    /// This is the logical name of the method from the RPC interface perspective.
     /// </summary>
-    /// <remarks>
-    /// This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The <c>code.function.name</c> attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
-    /// </remarks>
     public const string AttributeRpcMethod = "rpc.method";
 
     /// <summary>
     /// The full (logical) name of the service being called, including its package name, if applicable.
     /// </summary>
-    /// <remarks>
-    /// This is the logical name of the service from the RPC interface perspective, which can be different from the name of any implementing class. The <c>code.namespace</c> attribute may be used to store the latter (despite the attribute name, it may include a class name; e.g., class with method actually executing the call on the server side, RPC client stub class on the client side).
-    /// </remarks>
     public const string AttributeRpcService = "rpc.service";
 
     /// <summary>
@@ -342,5 +352,15 @@ public static class RpcAttributes
         /// Connect RPC.
         /// </summary>
         public const string ConnectRpc = "connect_rpc";
+
+        /// <summary>
+        /// <a href="https://datatracker.ietf.org/doc/html/rfc5531">ONC RPC (Sun RPC)</a>.
+        /// </summary>
+        public const string OncRpc = "onc_rpc";
+
+        /// <summary>
+        /// JSON-RPC.
+        /// </summary>
+        public const string Jsonrpc = "jsonrpc";
     }
 }

@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		.markdownlint.yaml = .markdownlint.yaml
 		CODEOWNERS = CODEOWNERS
 		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		global.json = global.json
 		LICENSE.TXT = LICENSE.TXT
 		NuGet.config = NuGet.config
@@ -117,10 +119,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "owin", "owin", "{8D11A34C-D0EF-4DE1-8230-32168E67044D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Examples.Owin", "examples\owin\Examples.Owin.csproj", "{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stackdriver", "src\OpenTelemetry.Exporter.Stackdriver\OpenTelemetry.Exporter.Stackdriver.csproj", "{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Exporter.Stackdriver.Tests", "test\OpenTelemetry.Exporter.Stackdriver.Tests\OpenTelemetry.Exporter.Stackdriver.Tests.csproj", "{8DABC11A-624E-4554-ACA4-D5B80146B9C6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ElasticsearchClient", "src\OpenTelemetry.Instrumentation.ElasticsearchClient\OpenTelemetry.Instrumentation.ElasticsearchClient.csproj", "{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}"
 EndProject
@@ -238,6 +236,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "enrichment", "enrichment", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}"
 	ProjectSection(SolutionItems) = preProject
+		src\Shared\ActivityHelperExtensions.cs = src\Shared\ActivityHelperExtensions.cs
 		src\Shared\ActivityInstrumentationHelper.cs = src\Shared\ActivityInstrumentationHelper.cs
 		src\Shared\AssemblyVersionExtensions.cs = src\Shared\AssemblyVersionExtensions.cs
 		src\Shared\DatabaseSemanticConventionHelper.cs = src\Shared\DatabaseSemanticConventionHelper.cs
@@ -247,20 +246,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1FCC8E
 		src\Shared\GrpcStatusCanonicalCode.cs = src\Shared\GrpcStatusCanonicalCode.cs
 		src\Shared\GrpcTagHelper.cs = src\Shared\GrpcTagHelper.cs
 		src\Shared\Guard.cs = src\Shared\Guard.cs
+		src\Shared\HttpRequestMessageContextPropagation.cs = src\Shared\HttpRequestMessageContextPropagation.cs
+		src\Shared\InstrumentationHandleManager.cs = src\Shared\InstrumentationHandleManager.cs
 		src\Shared\IServerCertificateValidationEventSource.cs = src\Shared\IServerCertificateValidationEventSource.cs
 		src\Shared\IsExternalInit.cs = src\Shared\IsExternalInit.cs
 		src\Shared\ListenerHandler.cs = src\Shared\ListenerHandler.cs
+		src\Shared\Lock.cs = src\Shared\Lock.cs
 		src\Shared\MultiTypePropertyFetcher.cs = src\Shared\MultiTypePropertyFetcher.cs
 		src\Shared\NullableAttributes.cs = src\Shared\NullableAttributes.cs
 		src\Shared\PropertyFetcher.cs = src\Shared\PropertyFetcher.cs
 		src\Shared\RedactionHelper.cs = src\Shared\RedactionHelper.cs
+		src\Shared\RequestDataHelper.cs = src\Shared\RequestDataHelper.cs
 		src\Shared\ResourceSemanticConventions.cs = src\Shared\ResourceSemanticConventions.cs
 		src\Shared\SemanticConventions.cs = src\Shared\SemanticConventions.cs
 		src\Shared\ServerCertificateValidationHandler.cs = src\Shared\ServerCertificateValidationHandler.cs
 		src\Shared\ServerCertificateValidationProvider.cs = src\Shared\ServerCertificateValidationProvider.cs
 		src\Shared\SpanAttributeConstants.cs = src\Shared\SpanAttributeConstants.cs
 		src\Shared\SpanHelper.cs = src\Shared\SpanHelper.cs
+		src\Shared\SqlConnectionDetails.cs = src\Shared\SqlConnectionDetails.cs
+		src\Shared\SqlParameterProcessor.cs = src\Shared\SqlParameterProcessor.cs
 		src\Shared\SqlProcessor.cs = src\Shared\SqlProcessor.cs
+		src\Shared\SqlStatementInfo.cs = src\Shared\SqlStatementInfo.cs
 		src\Shared\UriHelper.cs = src\Shared\UriHelper.cs
 	EndProjectSection
 EndProject
@@ -372,6 +378,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{70CA77
 		test\Shared\TestHttpServer.cs = test\Shared\TestHttpServer.cs
 		test\Shared\TestSampler.cs = test\Shared\TestSampler.cs
 		test\Shared\TestTextMapPropagator.cs = test\Shared\TestTextMapPropagator.cs
+		test\Shared\TestWebSocketServer.cs = test\Shared\TestWebSocketServer.cs
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{45D29DAA-0DB9-4808-B879-1AECC37EF366}"
@@ -404,6 +411,50 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting", "src\OpenTelemetry.Instrumentation.ServiceFabricRemoting\OpenTelemetry.Instrumentation.ServiceFabricRemoting.csproj", "{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests", "test\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests\OpenTelemetry.Instrumentation.ServiceFabricRemoting.Tests.csproj", "{00C9F0B8-3D51-483C-821A-5889B38A144C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client", "src\OpenTelemetry.OpAmp.Client\OpenTelemetry.OpAmp.Client.csproj", "{B5AF4876-3970-4686-A4A9-4EA369843F1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.OpAmp.Client.Tests", "test\OpenTelemetry.OpAmp.Client.Tests\OpenTelemetry.OpAmp.Client.Tests.csproj", "{044B896A-FDC6-422F-B349-483BDE19F685}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Contrib.Shared.Benchmarks", "test\OpenTelemetry.Contrib.Shared.Benchmarks\OpenTelemetry.Contrib.Shared.Benchmarks.csproj", "{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AWS", "AWS", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\AWS\AWSSemanticConventions.Base.cs = src\Shared\AWS\AWSSemanticConventions.Base.cs
+		src\Shared\AWS\AWSSemanticConventions.cs = src\Shared\AWS\AWSSemanticConventions.cs
+		src\Shared\AWS\AWSSemanticConventions.Legacy.cs = src\Shared\AWS\AWSSemanticConventions.Legacy.cs
+		src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.28.0.cs
+		src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs = src\Shared\AWS\AWSSemanticConventions.v1.29.0.cs
+		src\Shared\AWS\SemanticConventionVersion.cs = src\Shared\AWS\SemanticConventionVersion.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.AspNetCore", "src\OpenTelemetry.Extensions.Enrichment.AspNetCore\OpenTelemetry.Extensions.Enrichment.AspNetCore.csproj", "{EB5F0E63-61E3-43AE-A383-48EA7878DA29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests", "test\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests\OpenTelemetry.Extensions.Enrichment.AspNetCore.Tests.csproj", "{14D441DE-5C76-7700-152E-7E8E01E5CA19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.Http", "src\OpenTelemetry.Extensions.Enrichment.Http\OpenTelemetry.Extensions.Enrichment.Http.csproj", "{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTelemetry.Extensions.Enrichment.Http.Tests", "test\OpenTelemetry.Extensions.Enrichment.Http.Tests\OpenTelemetry.Extensions.Enrichment.Http.Tests.csproj", "{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{BF37C97A-2DF5-4F56-9489-4C7F5FCE3D30}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\Configuration\IConfigurationExtensionsLogger.cs = src\Shared\Configuration\IConfigurationExtensionsLogger.cs
+		src\Shared\Configuration\OpenTelemetryConfigurationExtensions.cs = src\Shared\Configuration\OpenTelemetryConfigurationExtensions.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EnvironmentVariables", "EnvironmentVariables", "{340BF6EF-AF29-49ED-9025-4F0909394762}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationProvider.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationProvider.cs
+		src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationSource.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesConfigurationSource.cs
+		src\Shared\EnvironmentVariables\EnvironmentVariablesExtensions.cs = src\Shared\EnvironmentVariables\EnvironmentVariablesExtensions.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Options", "Options", "{92CF142D-488B-4E47-AACB-8D21C6E338BC}"
+	ProjectSection(SolutionItems) = preProject
+		src\Shared\Options\DelegatingOptionsFactory.cs = src\Shared\Options\DelegatingOptionsFactory.cs
+		src\Shared\Options\DelegatingOptionsFactoryServiceCollectionExtensions.cs = src\Shared\Options\DelegatingOptionsFactoryServiceCollectionExtensions.cs
+		src\Shared\Options\SingletonOptionsManager.cs = src\Shared\Options\SingletonOptionsManager.cs
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -467,14 +518,6 @@ Global
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8DABC11A-624E-4554-ACA4-D5B80146B9C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -835,6 +878,34 @@ Global
 		{00C9F0B8-3D51-483C-821A-5889B38A144C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00C9F0B8-3D51-483C-821A-5889B38A144C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00C9F0B8-3D51-483C-821A-5889B38A144C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5AF4876-3970-4686-A4A9-4EA369843F1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5AF4876-3970-4686-A4A9-4EA369843F1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5AF4876-3970-4686-A4A9-4EA369843F1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5AF4876-3970-4686-A4A9-4EA369843F1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{044B896A-FDC6-422F-B349-483BDE19F685}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{044B896A-FDC6-422F-B349-483BDE19F685}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{044B896A-FDC6-422F-B349-483BDE19F685}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{044B896A-FDC6-422F-B349-483BDE19F685}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14D441DE-5C76-7700-152E-7E8E01E5CA19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14D441DE-5C76-7700-152E-7E8E01E5CA19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14D441DE-5C76-7700-152E-7E8E01E5CA19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14D441DE-5C76-7700-152E-7E8E01E5CA19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -860,8 +931,6 @@ Global
 		{37564EE6-F0A4-4F40-BB13-0BBFAC7F7F28} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{8D11A34C-D0EF-4DE1-8230-32168E67044D} = {B75EE478-97F7-4E9F-9A5A-DB3D0988EDEA}
 		{6B3AA3F2-89A7-433F-918A-1E5E6AAF8423} = {8D11A34C-D0EF-4DE1-8230-32168E67044D}
-		{8A25B43D-BBB2-40FF-B0EB-33AACCD15AD7} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
-		{8DABC11A-624E-4554-ACA4-D5B80146B9C6} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{96F5B85B-402B-4DFB-AF31-33D5A2EBE35B} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{970B604C-C57F-4767-A080-67976E69F76E} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
 		{D4468444-69EF-4BF3-B13F-61F4AB728813} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
@@ -963,6 +1032,17 @@ Global
 		{9B994669-E839-4C42-A0F1-DF9DD058C1DC} = {3A464E7A-42F3-44B0-B8D7-80521A7704A6}
 		{91BA4FF0-50BC-49D0-976B-CBC9E5FE8337} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
 		{00C9F0B8-3D51-483C-821A-5889B38A144C} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{B5AF4876-3970-4686-A4A9-4EA369843F1F} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{044B896A-FDC6-422F-B349-483BDE19F685} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{4B1A2D22-C3EE-341A-D4AC-8B32F0F093FC} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
+		{EB5F0E63-61E3-43AE-A383-48EA7878DA29} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{14D441DE-5C76-7700-152E-7E8E01E5CA19} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{85FCA45B-53B0-E1F2-7A29-16A6480E49E1} = {22DF5DC0-1290-4E83-A9D8-6BB7DE3B3E63}
+		{C3BEA811-A022-4ED7-A58E-D9B0ECDC9B53} = {2097345F-4DD3-477D-BC54-A922F9B2B402}
+		{BF37C97A-2DF5-4F56-9489-4C7F5FCE3D30} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
+		{340BF6EF-AF29-49ED-9025-4F0909394762} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
+		{92CF142D-488B-4E47-AACB-8D21C6E338BC} = {1FCC8EEC-9E75-4FEA-AFCF-363DD33FF0B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B0816796-CDB3-47D7-8C3C-946434DE3B66}

@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using Amazon.Runtime;
+using Amazon.Runtime.Identity;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.Runtime.Internal.Transform;
+using Amazon.Runtime.Internal.UserAgent;
 using Amazon.Runtime.Internal.Util;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests;
@@ -58,4 +60,14 @@ internal class TestRequestContext(AmazonWebServiceRequest originalRequest, IRequ
     public Guid InvocationId => throw new NotImplementedException();
 
     public IDictionary<string, object> ContextAttributes { get; } = new Dictionary<string, object>();
+
+    public BaseIdentity Identity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public IHttpRequestStreamHandle RequestStreamHandle { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public UserAgentDetails UserAgentDetails => throw new NotImplementedException();
+
+    public AWSCredentials ExplicitAWSCredentials => throw new NotImplementedException();
+
+    ISigner IRequestContext.Signer { get => this.Signer; set => throw new NotImplementedException(); }
 }

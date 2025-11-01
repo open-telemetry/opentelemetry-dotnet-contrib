@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.AspNet;
 internal sealed class AspNetTelemetryEventSource : EventSource
 {
     /// <summary>
-    /// Instance of the PlatformEventSource class.
+    /// Instance of the AspNetTelemetryEventSource class.
     /// </summary>
     public static readonly AspNetTelemetryEventSource Log = new();
 
@@ -46,20 +46,20 @@ internal sealed class AspNetTelemetryEventSource : EventSource
     }
 
     [NonEvent]
-    public void ActivityException(Activity activity, Exception ex)
+    public void ActivityException(Activity? activity, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.ActivityException(activity.Id, ex.ToInvariantString());
+            this.ActivityException(activity?.Id, ex.ToInvariantString());
         }
     }
 
     [NonEvent]
-    public void CallbackException(Activity activity, string eventName, Exception ex)
+    public void CallbackException(Activity? activity, string eventName, Exception ex)
     {
         if (this.IsEnabled(EventLevel.Error, EventKeywords.All))
         {
-            this.CallbackException(activity.Id, eventName, ex.ToInvariantString());
+            this.CallbackException(activity?.Id, eventName, ex.ToInvariantString());
         }
     }
 

@@ -28,19 +28,19 @@ public static class ProcessAttributes
     public const string AttributeProcessCommand = "process.command";
 
     /// <summary>
-    /// All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from <c>proc/[pid]/cmdline</c>. For libc-based executables, this would be the full argv vector passed to <c>main</c>.
+    /// All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from <c>proc/[pid]/cmdline</c>. For libc-based executables, this would be the full argv vector passed to <c>main</c>. SHOULD NOT be collected by default unless there is sanitization that excludes sensitive data.
     /// </summary>
     public const string AttributeProcessCommandArgs = "process.command_args";
 
     /// <summary>
-    /// The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of <c>GetCommandLineW</c>. Do not set this if you have to assemble it just for monitoring; use <c>process.command_args</c> instead.
+    /// The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of <c>GetCommandLineW</c>. Do not set this if you have to assemble it just for monitoring; use <c>process.command_args</c> instead. SHOULD NOT be collected by default unless there is sanitization that excludes sensitive data.
     /// </summary>
     public const string AttributeProcessCommandLine = "process.command_line";
 
     /// <summary>
     /// Specifies whether the context switches for this data point were voluntary or involuntary.
     /// </summary>
-    public const string AttributeProcessContextSwitchType = "process.context_switch_type";
+    public const string AttributeProcessContextSwitchType = "process.context_switch.type";
 
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
@@ -52,6 +52,21 @@ public static class ProcessAttributes
     /// The date and time the process was created, in ISO 8601 format.
     /// </summary>
     public const string AttributeProcessCreationTime = "process.creation.time";
+
+    /// <summary>
+    /// Process environment variables, <c><key></c> being the environment variable name, the value being the environment variable value.
+    /// </summary>
+    /// <remarks>
+    /// Examples:
+    /// <ul>
+    ///   <li>an environment variable <c>USER</c> with value <c>"ubuntu"</c> SHOULD be recorded
+    /// as the <c>process.environment_variable.USER</c> attribute with value <c>"ubuntu"</c>.</li>
+    ///   <li>an environment variable <c>PATH</c> with value <c>"/usr/local/bin:/usr/bin"</c>
+    /// SHOULD be recorded as the <c>process.environment_variable.PATH</c> attribute
+    /// with value <c>"/usr/local/bin:/usr/bin"</c>.</li>
+    /// </ul>
+    /// </remarks>
+    public const string AttributeProcessEnvironmentVariableTemplate = "process.environment_variable";
 
     /// <summary>
     /// The GNU build ID as found in the <c>.note.gnu.build-id</c> ELF section (hex string).
@@ -118,8 +133,9 @@ public static class ProcessAttributes
     public const string AttributeProcessOwner = "process.owner";
 
     /// <summary>
-    /// The type of page fault for this data point. Type <c>major</c> is for major/hard page faults, and <c>minor</c> is for minor/soft page faults.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public const string AttributeProcessPagingFaultType = "process.paging.fault_type";
 
     /// <summary>
@@ -173,6 +189,11 @@ public static class ProcessAttributes
     public const string AttributeProcessSessionLeaderPid = "process.session_leader.pid";
 
     /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public const string AttributeProcessState = "process.state";
+
+    /// <summary>
     /// Process title (proctitle).
     /// </summary>
     /// <remarks>
@@ -222,6 +243,7 @@ public static class ProcessAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.mode</c>.")]
     public static class ProcessCpuStateValues
     {
         /// <summary>
@@ -244,18 +266,47 @@ public static class ProcessAttributes
     }
 
     /// <summary>
-    /// The type of page fault for this data point. Type <c>major</c> is for major/hard page faults, and <c>minor</c> is for minor/soft page faults.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public static class ProcessPagingFaultTypeValues
     {
         /// <summary>
         /// major.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
+    }
+
+    /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public static class ProcessStateValues
+    {
+        /// <summary>
+        /// running.
+        /// </summary>
+        public const string Running = "running";
+
+        /// <summary>
+        /// sleeping.
+        /// </summary>
+        public const string Sleeping = "sleeping";
+
+        /// <summary>
+        /// stopped.
+        /// </summary>
+        public const string Stopped = "stopped";
+
+        /// <summary>
+        /// defunct.
+        /// </summary>
+        public const string Defunct = "defunct";
     }
 }

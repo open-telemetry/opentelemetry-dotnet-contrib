@@ -28,7 +28,7 @@ function CreatePullRequestToUpdateChangelogsAndPublicApis {
 
   $minVerTagPrefix = $match.Groups[1].Value
   $tag="${minVerTagPrefix}${version}"
-  $branch="release/prepare-${tag}-release"
+  $branch="otelbot/prepare-${tag}-release"
 
   if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
   {
@@ -85,7 +85,7 @@ Requested by: @$requestedByUserName
 ``/CreateReleaseTag``: Use after merging to push the release tag and trigger the job to create packages and push to NuGet [``approvers``, ``maintainers``]
 "@
 
-  git commit -a -m "Prepare repo to release $tag." 2>&1 | % ToString
+  git commit -a -m "Prepare repo to release $tag." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'
@@ -111,12 +111,12 @@ function LockPullRequestAndPostNoticeToCreateReleaseTag {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName
   )
 
   $prViewResponse = gh pr view $pullRequestNumber --json mergeCommit,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
@@ -153,14 +153,14 @@ function CreateReleaseTagAndPostNoticeOnPullRequest {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName,
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName,
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
   )
 
   $prViewResponse = gh pr view $pullRequestNumber --json mergeCommit,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
@@ -218,7 +218,7 @@ function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest {
   param(
     [Parameter(Mandatory=$true)][string]$gitRepository,
     [Parameter(Mandatory=$true)][string]$pullRequestNumber,
-    [Parameter(Mandatory=$true)][string]$botUserName,
+    [Parameter(Mandatory=$true)][string]$expectedPrAuthorUserName,
     [Parameter(Mandatory=$true)][string]$commentUserName,
     [Parameter()][string]$gitUserName,
     [Parameter()][string]$gitUserEmail
@@ -226,7 +226,7 @@ function UpdateChangelogReleaseDatesAndPostNoticeOnPullRequest {
 
   $prViewResponse = gh pr view $pullRequestNumber --json headRefName,author,title | ConvertFrom-Json
 
-  if ($prViewResponse.author.login -ne $botUserName)
+  if ($prViewResponse.author.login -ne $expectedPrAuthorUserName)
   {
       throw 'PR author was unexpected'
   }
@@ -300,7 +300,7 @@ Released $(Get-Date -UFormat '%Y-%b-%d')
     return
   }
 
-  git commit -a -m "Update CHANGELOG release dates for $tag." 2>&1 | % ToString
+  git commit -a -m "Update CHANGELOG release dates for $tag." -s 2>&1 | % ToString
   if ($LASTEXITCODE -gt 0)
   {
       throw 'git commit failure'

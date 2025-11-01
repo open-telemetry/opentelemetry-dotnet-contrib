@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-20
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.1
+
+Released 2025-Sep-10
+
+* **Breaking change**: Renamed some extension methods from `AddTraceEnricher*()`
+  to `TryAddTraceEnricer*()` pattern to more accurately reflect their behavior of
+  only adding the enricher if it hasn't already been added.
+  ([#3085](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3085))
+
+## 1.12.0-alpha.1
+
+Released 2025-Aug-18
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
 ## 0.1.0-alpha.2
 
 Released 2025-Mar-05

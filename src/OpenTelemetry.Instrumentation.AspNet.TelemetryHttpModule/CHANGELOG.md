@@ -2,6 +2,60 @@
 
 ## Unreleased
 
+## 1.13.0-rc.1
+
+Released 2025-Oct-28
+
+## 1.13.0-beta.2
+
+Released 2025-Oct-22
+
+## 1.13.0-beta.1
+
+Released 2025-Oct-15
+
+* **Breaking Change**: This module is no longer responsible for creating activities.
+  The contract of `TelemetryHttpModuleOptions.OnRequestStartedCallback` was changed
+  to `Func<HttpContextBase, ActivityContext, Activity?>?`. The consumer is now
+  responsible for providing function returning `Activity`.
+  ([#3151](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3151))
+
+* Fixed an inaccurate span end of time.
+  ([#3171](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3171))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.2
+
+Released 2025-Sep-18
+
+* **Breaking Change**: Modified request lifecycle callbacks to always fire.
+  This is required as part of making ASP.NET metrics generation
+  independent from traces.
+  ([#2970](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2970))
+
+* **Breaking Change**: Activity source name changed from
+  `OpenTelemetry.Instrumentation.AspNet.Telemetry` to
+  `OpenTelemetry.Instrumentation.AspNet`.
+  ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
+
+* **Breaking Change**: Following constants was removed from the public API
+  * `TelemetryHttpModule.AspNetActivityName`,
+  * `TelemetryHttpModule.AspNetSourceName`.
+  ([#3071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3071))
+
+* **Breaking Change**: Change in public API contract.
+  All usages of `HttpContext` replaced by `HttpContextBase`.
+  ([#3110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3110))
+
+## 1.12.0-beta.1
+
+Released 2025-May-05
+
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
+
 ## 1.11.0-beta.2
 
 Released 2025-Mar-05
@@ -92,7 +146,7 @@ Released 2023-Feb-27
 
 Released 2022-Nov-28
 
-* Restore Activity.Current before all IIS Lifecycle events
+* Restore Activity.Current before all IIS Lifecycle events.
   ([#761](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/761))
 
 ## 1.0.0-rc9.6
@@ -147,7 +201,7 @@ Released 2021-Oct-08
 
 * Adopted the donation
   [Microsoft.AspNet.TelemetryCorrelation](https://github.com/aspnet/Microsoft.AspNet.TelemetryCorrelation)
-  from [.NET Foundation](https://dotnetfoundation.org/)
+  from [.NET Foundation](https://dotnetfoundation.org/).
   ([#2223](https://github.com/open-telemetry/opentelemetry-dotnet/pull/2223))
 
 * Renamed the module, refactored existing code

@@ -26,9 +26,9 @@ public static class HttpAttributes
     public const string AttributeHttpConnectionState = "http.connection.state";
 
     /// <summary>
-    /// Deprecated, use <c>network.protocol.name</c> instead.
+    /// Deprecated, use <c>network.protocol.name</c> and <c>network.protocol.version</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+    [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
     public const string AttributeHttpFlavor = "http.flavor";
 
     /// <summary>
@@ -52,9 +52,23 @@ public static class HttpAttributes
     /// HTTP request headers, <c><key></c> being the normalized HTTP Header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured. Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-    /// The <c>User-Agent</c> header is already captured in the <c>user_agent.original</c> attribute. Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
-    /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
+    /// The <c>User-Agent</c> header is already captured in the <c>user_agent.original</c> attribute.
+    /// Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of strings
+    /// or a single-item array containing a possibly comma-concatenated string, depending on the way
+    /// the HTTP library provides access to headers.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>A header <c>Content-Type: application/json</c> SHOULD be recorded as the <c>http.request.header.content-type</c>
+    /// attribute with value <c>["application/json"]</c>.</li>
+    ///   <li>A header <c>X-Forwarded-For: 1.2.3.4, 1.2.3.5</c> SHOULD be recorded as the <c>http.request.header.x-forwarded-for</c>
+    /// attribute with value <c>["1.2.3.4", "1.2.3.5"]</c> or <c>["1.2.3.4, 1.2.3.5"]</c> depending on the HTTP library.</li>
+    /// </ul>
     /// </remarks>
     public const string AttributeHttpRequestHeaderTemplate = "http.request.header";
 
@@ -63,8 +77,9 @@ public static class HttpAttributes
     /// </summary>
     /// <remarks>
     /// HTTP request method value SHOULD be "known" to the instrumentation.
-    /// By default, this convention defines "known" methods as the ones listed in <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-methods">RFC9110</a>
-    /// and the PATCH method defined in <a href="https://www.rfc-editor.org/rfc/rfc5789.html">RFC5789</a>.
+    /// By default, this convention defines "known" methods as the ones listed in <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-methods">RFC9110</a>,
+    /// the PATCH method defined in <a href="https://www.rfc-editor.org/rfc/rfc5789.html">RFC5789</a>
+    /// and the QUERY method defined in <a href="https://datatracker.ietf.org/doc/draft-ietf-httpbis-safe-method-w-body/?include_text=1">httpbis-safe-method-w-body</a>.
     /// <p>
     /// If the HTTP request method is not known to instrumentation, it MUST set the <c>http.request.method</c> attribute to <c>_OTHER</c>.
     /// <p>
@@ -98,9 +113,9 @@ public static class HttpAttributes
     public const string AttributeHttpRequestSize = "http.request.size";
 
     /// <summary>
-    /// Deprecated, use <c>http.request.header.<key></c> instead.
+    /// Deprecated, use <c>http.request.header.content-length</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.request.header.<key></c>.")]
+    [Obsolete("Replaced by <c>http.request.header.content-length</c>.")]
     public const string AttributeHttpRequestContentLength = "http.request_content_length";
 
     /// <summary>
@@ -118,9 +133,22 @@ public static class HttpAttributes
     /// HTTP response headers, <c><key></c> being the normalized HTTP Header name (lowercase), the value being the header values.
     /// </summary>
     /// <remarks>
-    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured. Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// Instrumentations SHOULD require an explicit configuration of which headers are to be captured.
+    /// Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+    /// <p>
     /// Users MAY explicitly configure instrumentations to capture them even though it is not recommended.
-    /// The attribute value MUST consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+    /// <p>
+    /// The attribute value MUST consist of either multiple header values as an array of strings
+    /// or a single-item array containing a possibly comma-concatenated string, depending on the way
+    /// the HTTP library provides access to headers.
+    /// <p>
+    /// Examples:
+    /// <ul>
+    ///   <li>A header <c>Content-Type: application/json</c> header SHOULD be recorded as the <c>http.request.response.content-type</c>
+    /// attribute with value <c>["application/json"]</c>.</li>
+    ///   <li>A header <c>My-custom-header: abc, def</c> header SHOULD be recorded as the <c>http.response.header.my-custom-header</c>
+    /// attribute with value <c>["abc", "def"]</c> or <c>["abc, def"]</c> depending on the HTTP library.</li>
+    /// </ul>
     /// </remarks>
     public const string AttributeHttpResponseHeaderTemplate = "http.response.header";
 
@@ -135,30 +163,38 @@ public static class HttpAttributes
     public const string AttributeHttpResponseStatusCode = "http.response.status_code";
 
     /// <summary>
-    /// Deprecated, use <c>http.response.header.<key></c> instead.
+    /// Deprecated, use <c>http.response.header.content-length</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>http.response.header.<key></c>.")]
+    [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
     public const string AttributeHttpResponseContentLength = "http.response_content_length";
 
     /// <summary>
     /// Deprecated, use <c>http.response.body.size</c> instead.
     /// </summary>
-    [Obsolete("Replace by <c>http.response.body.size</c>.")]
+    [Obsolete("Replaced by <c>http.response.body.size</c>.")]
     public const string AttributeHttpResponseContentLengthUncompressed = "http.response_content_length_uncompressed";
 
     /// <summary>
-    /// The matched route, that is, the path template in the format used by the respective server framework.
+    /// The matched route template for the request. This MUST be low-cardinality and include all static path segments, with dynamic path segments represented with placeholders.
     /// </summary>
     /// <remarks>
     /// MUST NOT be populated when this is not supported by the HTTP server framework as the route attribute should have low-cardinality and the URI path can NOT substitute it.
     /// SHOULD include the <a href="/docs/http/http-spans.md#http-server-definitions">application root</a> if there is one.
+    /// <p>
+    /// A static path segment is a part of the route template with a fixed, low-cardinality value. This includes literal strings like <c>/users/</c> and placeholders that
+    /// are constrained to a finite, predefined set of values, e.g. <c>{controller}</c> or <c>{action}</c>.
+    /// <p>
+    /// A dynamic path segment is a placeholder for a value that can have high cardinality and is not constrained to a predefined list like static path segments.
+    /// <p>
+    /// Instrumentations SHOULD use routing information provided by the corresponding web framework. They SHOULD pick the most precise source of routing information and MAY
+    /// support custom route formatting. Instrumentations SHOULD document the format and the API used to obtain the route string.
     /// </remarks>
     public const string AttributeHttpRoute = "http.route";
 
     /// <summary>
     /// Deprecated, use <c>url.scheme</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>url.scheme</c> instead.")]
+    [Obsolete("Replaced by <c>url.scheme</c>.")]
     public const string AttributeHttpScheme = "http.scheme";
 
     /// <summary>
@@ -176,7 +212,7 @@ public static class HttpAttributes
     /// <summary>
     /// Deprecated, use <c>url.path</c> and <c>url.query</c> instead.
     /// </summary>
-    [Obsolete("Split to <c>url.path</c> and `url.query.")]
+    [Obsolete("Split to <c>url.path</c> and <c>url.query</c>.")]
     public const string AttributeHttpTarget = "http.target";
 
     /// <summary>
@@ -208,44 +244,45 @@ public static class HttpAttributes
     }
 
     /// <summary>
-    /// Deprecated, use <c>network.protocol.name</c> instead.
+    /// Deprecated, use <c>network.protocol.name</c> and <c>network.protocol.version</c> instead.
     /// </summary>
+    [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
     public static class HttpFlavorValues
     {
         /// <summary>
         /// HTTP/1.0.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http10 = "1.0";
 
         /// <summary>
         /// HTTP/1.1.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http11 = "1.1";
 
         /// <summary>
         /// HTTP/2.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http20 = "2.0";
 
         /// <summary>
         /// HTTP/3.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Http30 = "3.0";
 
         /// <summary>
         /// SPDY protocol.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Spdy = "SPDY";
 
         /// <summary>
         /// QUIC protocol.
         /// </summary>
-        [Obsolete("Replaced by <c>network.protocol.name</c>.")]
+        [Obsolete("Split into <c>network.protocol.name</c> and <c>network.protocol.version</c>.")]
         public const string Quic = "QUIC";
     }
 
@@ -298,6 +335,11 @@ public static class HttpAttributes
         /// TRACE method.
         /// </summary>
         public const string Trace = "TRACE";
+
+        /// <summary>
+        /// QUERY method.
+        /// </summary>
+        public const string Query = "QUERY";
 
         /// <summary>
         /// Any HTTP method that the instrumentation has no prior knowledge of.

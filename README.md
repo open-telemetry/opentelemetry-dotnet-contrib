@@ -3,6 +3,11 @@
 [![Slack](https://img.shields.io/badge/slack-@cncf/otel/dotnet-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C01N3BC2W7Q)
 [![Build](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/actions/workflows/ci.yml)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/open-telemetry/opentelemetry-dotnet-contrib/badge)](https://scorecard.dev/viewer/?uri=github.com/open-telemetry/opentelemetry-dotnet-contrib)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10370/badge)](https://www.bestpractices.dev/projects/10370)
+[![FOSSA License Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fopen-telemetry%2Fopentelemetry-dotnet-contrib.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fopen-telemetry%2Fopentelemetry-dotnet-contrib?ref=badge_shield&issueType=license)
+[![FOSSA Security Status](https://app.fossa.com/api/projects/custom%2B162%2Fgithub.com%2Fopen-telemetry%2Fopentelemetry-dotnet-contrib.svg?type=shield&issueType=security)](https://app.fossa.com/projects/custom%2B162%2Fgithub.com%2Fopen-telemetry%2Fopentelemetry-dotnet-contrib?ref=badge_shield&issueType=security)
+
 This project is intended to provide helpful libraries and standalone
 OpenTelemetry-based utilities that don't fit the express scope of the
 [OpenTelemetry .NET](https://github.com/open-telemetry/opentelemetry-dotnet) or
@@ -71,7 +76,6 @@ component's `Readme.md` file.
 [@open-telemetry/dotnet-contrib-triagers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-triagers):
 
 * [Martin Thwaites](https://github.com/martinjt), Honeycomb
-* [Timothy "Mothra" Lee](https://github.com/TimothyMothra), Microsoft
 
 *Find more about the triager role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#triager).*
@@ -80,7 +84,8 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 
 [@open-telemetry/dotnet-contrib-approvers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-approvers):
 
-There are no approvers today.
+* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
+* [Timothy "Mothra" Lee](https://github.com/TimothyMothra)
 
 *Find more about the approver role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).*
@@ -90,22 +95,22 @@ repository](https://github.com/open-telemetry/community/blob/main/guides/contrib
 [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers):
 
 * [Alan West](https://github.com/alanwest), New Relic
-* [Mikel Blanchard](https://github.com/CodeBlanch), Microsoft
+* [Martin Costello](https://github.com/martincostello), Grafana Labs
 * [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
 * [Rajkumar Rangaraj](https://github.com/rajkumar-rangaraj), Microsoft
 
 *Find more about the maintainer role in [community
 repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).*
 
-### Emeritus
-
-[Emeritus Maintainer/Approver/Triager](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager):
+### Emeritus Maintainer/Approver/Triager
 
 * [Cijo Thomas](https://github.com/cijothomas)
 * [Prashant Srivastava](https://github.com/srprash)
 * [Sergey Kanzhelev](https://github.com/SergeyKanzhelev)
 * [Utkarsh Umesan Pillai](https://github.com/utpilla)
 * [Vishwesh Bankwar](https://github.com/vishweshbankwar)
+
+For more information about the emeritus role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
 
 Even though, anybody can contribute, there are benefits of being a member of our
 community. See to the [community membership

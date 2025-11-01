@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Web;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AspNet.Tests;
@@ -17,17 +16,17 @@ public class HttpInMetricsListenerTests
     [InlineData("http://localhost/", 0, null, null, "http", null, null, null, 200, false)]
     [InlineData("https://localhost/", 0, null, null, "https", "localhost", null, 443, 200)]
     [InlineData("https://localhost/", 0, null, null, "https", null, null, null, 200, false)]
-    [InlineData("http://localhost/api/value", 0, null, null, "http", "localhost", null, 80, 200)]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 2, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 201)]
-    [InlineData("http://localhost/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 4, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 200)]
-    [InlineData("http://localhost/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 80, 500)]
-    [InlineData("http://localhost:8080/api/value", 0, null, null, "http", "localhost", null, 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 1, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "enrich", "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", "throw", "http", "localhost", "{controller}/{action}", 8080, 200)]
-    [InlineData("http://localhost:8080/api/value", 3, "{controller}/{action}", null, "http", "localhost", "{controller}/{action}", 8080, 200)]
+    [InlineData("http://localhost/api/Values/5", 0, null, null, "http", "localhost", null, 80, 200)]
+    [InlineData("http://localhost/api/Values/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/Values/5", 2, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 201)]
+    [InlineData("http://localhost/api/Values/5", 3, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/Values/5", 4, "api/Values/{id}", null, "http", "localhost", "api/Values/{id}", 80, 200)]
+    [InlineData("http://localhost/api/Values/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 80, 500)]
+    [InlineData("http://localhost:8080/api/Values/5", 0, null, null, "http", "localhost", null, 8080, 200)]
+    [InlineData("http://localhost:8080/api/Values/5", 1, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/Values/5", 3, "api/{controller}/{id}", "enrich", "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/Values/5", 3, "api/{controller}/{id}", "throw", "http", "localhost", "api/Values/{id}", 8080, 200)]
+    [InlineData("http://localhost:8080/api/Values/5", 3, "api/{controller}/{id}", null, "http", "localhost", "api/Values/{id}", 8080, 200)]
     public void AspNetMetricTagsAreCollectedSuccessfully(
         string url,
         int routeType,
@@ -40,20 +39,8 @@ public class HttpInMetricsListenerTests
         int expectedStatus,
         bool enableServerAttributesForRequestDuration = true)
     {
-        double duration = 0;
         HttpContext.Current = RouteTestHelper.BuildHttpContext(url, routeType, routeTemplate, "GET");
         HttpContext.Current.Response.StatusCode = expectedStatus;
-
-        // This is to enable activity creation
-        // as it is created using ActivitySource inside TelemetryHttpModule
-        // TODO: This should not be needed once the dependency on activity is removed from metrics
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddAspNetInstrumentation(opts => opts.EnrichWithHttpResponse
-                = (activity, response) =>
-                {
-                    duration = activity.Duration.TotalSeconds;
-                })
-            .Build();
 
         var exportedItems = new List<Metric>();
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -61,7 +48,7 @@ public class HttpInMetricsListenerTests
             {
                 options.EnableServerAttributesForRequestDuration = enableServerAttributesForRequestDuration;
 
-                options.Enrich += (HttpContext context, ref TagList tags) =>
+                options.EnrichWithHttpContext += (HttpContextBase context, ref TagList tags) =>
                 {
                     if (enrichMode == "throw")
                     {
@@ -77,9 +64,9 @@ public class HttpInMetricsListenerTests
             .AddInMemoryExporter(exportedItems)
             .Build();
 
-        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStartedCallback);
+        var activity = ActivityHelper.StartAspNetActivity(Propagators.DefaultTextMapPropagator, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStartedCallback);
         Thread.Sleep(1); // Make sure duration is always greater than 0 to avoid flakiness.
-        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, HttpContext.Current, TelemetryHttpModule.Options.OnRequestStoppedCallback);
+        ActivityHelper.StopAspNetActivity(Propagators.DefaultTextMapPropagator, activity, new HttpContextWrapper(HttpContext.Current), TelemetryHttpModule.Options.OnRequestStoppedCallback);
 
         meterProvider.ForceFlush();
 
@@ -102,8 +89,7 @@ public class HttpInMetricsListenerTests
         Assert.Equal("http.server.request.duration", exportedItems[0].Name);
         Assert.Equal("s", exportedItems[0].Unit);
         Assert.Equal(1L, count);
-        Assert.Equal(duration, sum);
-        Assert.True(duration > 0, "Metric duration should be set.");
+        Assert.True(sum > 0, "Metric sum (duration) should be greater than 0.");
 
         var expectedTagCount = 3;
 

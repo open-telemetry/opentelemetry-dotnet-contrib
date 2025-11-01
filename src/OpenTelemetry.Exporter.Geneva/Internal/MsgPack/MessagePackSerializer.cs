@@ -43,12 +43,13 @@ internal static class MessagePackSerializer
     public const byte MAP32 = 0xDF;
     public const byte EXT_DATE_TIME = 0xFF;
 
+    internal const int DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
+
     private const int LIMIT_MIN_FIX_NEGATIVE_INT = -32;
     private const int LIMIT_MAX_FIX_STRING_LENGTH_IN_BYTES = 31;
     private const int LIMIT_MAX_STR8_LENGTH_IN_BYTES = (1 << 8) - 1; // str8 stores 2^8 - 1 bytes
     private const int LIMIT_MAX_FIX_MAP_COUNT = 15;
     private const int LIMIT_MAX_FIX_ARRAY_LENGTH = 15;
-    private const int STRING_SIZE_LIMIT_CHAR_COUNT = (1 << 14) - 1; // 16 * 1024 - 1 = 16383
 
 #if NET
     private const int MAX_STACK_ALLOC_SIZE_IN_BYTES = 256;
@@ -331,7 +332,7 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value)
+    public static int SerializeAsciiString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         if (value == null)
         {
@@ -375,14 +376,14 @@ internal static class MessagePackSerializer
         }
 
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.ASCII.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.ASCII.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
+            cb = Encoding.ASCII.GetBytes(value, 0, stringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 
@@ -401,26 +402,26 @@ internal static class MessagePackSerializer
 #if NET
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
-        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan());
+        return value == null ? SerializeNull(buffer, cursor) : SerializeUnicodeString(buffer, cursor, value.AsSpan(), stringSizeLimitCharCount);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, ReadOnlySpan<char> value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         var start = cursor;
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value.Slice(0, cch), buffer.AsSpan(cursor));
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value.Slice(0, STRING_SIZE_LIMIT_CHAR_COUNT - 3), buffer.AsSpan(cursor));
+            cb = Encoding.UTF8.GetBytes(value.Slice(0, stringSizeLimitCharCount - 3), buffer.AsSpan(cursor));
             cursor += cb;
             cb += 3;
 
@@ -439,7 +440,7 @@ internal static class MessagePackSerializer
 #else
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value)
+    public static int SerializeUnicodeString(byte[] buffer, int cursor, string? value, int stringSizeLimitCharCount = DEFAULT_STRING_SIZE_LIMIT_CHAR_COUNT)
     {
         if (value == null)
         {
@@ -450,14 +451,14 @@ internal static class MessagePackSerializer
         var cch = value.Length;
         int cb;
         cursor += 3;
-        if (cch <= STRING_SIZE_LIMIT_CHAR_COUNT)
+        if (cch <= stringSizeLimitCharCount)
         {
             cb = Encoding.UTF8.GetBytes(value, 0, cch, buffer, cursor);
             cursor += cb;
         }
         else
         {
-            cb = Encoding.UTF8.GetBytes(value, 0, STRING_SIZE_LIMIT_CHAR_COUNT - 3, buffer, cursor);
+            cb = Encoding.UTF8.GetBytes(value, 0, stringSizeLimitCharCount - 3, buffer, cursor);
             cursor += cb;
             cb += 3;
 

@@ -35,13 +35,34 @@ public static class GenevaLoggingExtensions
         var exporter = new GenevaLogExporter(genevaOptions);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
+        bool enableAFDEnrichment = false;
+        if (!string.IsNullOrEmpty(genevaOptions.ConnectionString))
+        {
+            var connectionStringBuilder = new ConnectionStringBuilder(genevaOptions.ConnectionString);
+            enableAFDEnrichment = connectionStringBuilder.PrivatePreviewEnableAFDCorrelationIdEnrichment;
+        }
+
         if (exporter.IsUsingUnixDomainSocket)
         {
-            return options.AddProcessor(sp => new BatchLogRecordExportProcessor(exporter));
+            return enableAFDEnrichment
+                ? options.AddProcessor(sp =>
+                                new CompositeProcessor<LogRecord>(
+                                [
+                                    new AFDCorrelationIdLogProcessor(),
+                                    new BatchLogRecordExportProcessor(exporter),
+                                ]))
+                : options.AddProcessor(sp => new BatchLogRecordExportProcessor(exporter));
         }
         else
         {
-            return options.AddProcessor(sp => new ReentrantExportProcessor<LogRecord>(exporter));
+            return enableAFDEnrichment
+                ? options.AddProcessor(sp =>
+                                new CompositeProcessor<LogRecord>(
+                                [
+                                    new AFDCorrelationIdLogProcessor(),
+                                    new ReentrantExportProcessor<LogRecord>(exporter),
+                                ]))
+                : options.AddProcessor(sp => new ReentrantExportProcessor<LogRecord>(exporter));
         }
     }
 

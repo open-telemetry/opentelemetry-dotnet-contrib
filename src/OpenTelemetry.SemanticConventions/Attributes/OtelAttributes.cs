@@ -49,9 +49,19 @@ public static class OtelAttributes
     public const string AttributeOtelScopeName = "otel.scope.name";
 
     /// <summary>
+    /// The schema URL of the instrumentation scope.
+    /// </summary>
+    public const string AttributeOtelScopeSchemaUrl = "otel.scope.schema_url";
+
+    /// <summary>
     /// The version of the instrumentation scope - (<c>InstrumentationScope.Version</c> in OTLP).
     /// </summary>
     public const string AttributeOtelScopeVersion = "otel.scope.version";
+
+    /// <summary>
+    /// Determines whether the span has a parent span, and if so, <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">whether it is a remote parent</a>.
+    /// </summary>
+    public const string AttributeOtelSpanParentOrigin = "otel.span.parent.origin";
 
     /// <summary>
     /// The result value of the sampler for this span.
@@ -74,14 +84,24 @@ public static class OtelAttributes
     public static class OtelComponentTypeValues
     {
         /// <summary>
-        /// The builtin SDK Batching Span Processor.
+        /// The builtin SDK batching span processor.
         /// </summary>
         public const string BatchingSpanProcessor = "batching_span_processor";
 
         /// <summary>
-        /// The builtin SDK Simple Span Processor.
+        /// The builtin SDK simple span processor.
         /// </summary>
         public const string SimpleSpanProcessor = "simple_span_processor";
+
+        /// <summary>
+        /// The builtin SDK batching log record processor.
+        /// </summary>
+        public const string BatchingLogProcessor = "batching_log_processor";
+
+        /// <summary>
+        /// The builtin SDK simple log record processor.
+        /// </summary>
+        public const string SimpleLogProcessor = "simple_log_processor";
 
         /// <summary>
         /// OTLP span exporter over gRPC with protobuf serialization.
@@ -97,6 +117,72 @@ public static class OtelAttributes
         /// OTLP span exporter over HTTP with JSON serialization.
         /// </summary>
         public const string OtlpHttpJsonSpanExporter = "otlp_http_json_span_exporter";
+
+        /// <summary>
+        /// Zipkin span exporter over HTTP.
+        /// </summary>
+        public const string ZipkinHttpSpanExporter = "zipkin_http_span_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over gRPC with protobuf serialization.
+        /// </summary>
+        public const string OtlpGrpcLogExporter = "otlp_grpc_log_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over HTTP with protobuf serialization.
+        /// </summary>
+        public const string OtlpHttpLogExporter = "otlp_http_log_exporter";
+
+        /// <summary>
+        /// OTLP log record exporter over HTTP with JSON serialization.
+        /// </summary>
+        public const string OtlpHttpJsonLogExporter = "otlp_http_json_log_exporter";
+
+        /// <summary>
+        /// The builtin SDK periodically exporting metric reader.
+        /// </summary>
+        public const string PeriodicMetricReader = "periodic_metric_reader";
+
+        /// <summary>
+        /// OTLP metric exporter over gRPC with protobuf serialization.
+        /// </summary>
+        public const string OtlpGrpcMetricExporter = "otlp_grpc_metric_exporter";
+
+        /// <summary>
+        /// OTLP metric exporter over HTTP with protobuf serialization.
+        /// </summary>
+        public const string OtlpHttpMetricExporter = "otlp_http_metric_exporter";
+
+        /// <summary>
+        /// OTLP metric exporter over HTTP with JSON serialization.
+        /// </summary>
+        public const string OtlpHttpJsonMetricExporter = "otlp_http_json_metric_exporter";
+
+        /// <summary>
+        /// Prometheus metric exporter over HTTP with the default text-based format.
+        /// </summary>
+        public const string PrometheusHttpTextMetricExporter = "prometheus_http_text_metric_exporter";
+    }
+
+    /// <summary>
+    /// Determines whether the span has a parent span, and if so, <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">whether it is a remote parent</a>.
+    /// </summary>
+    public static class OtelSpanParentOriginValues
+    {
+        /// <summary>
+        /// The span does not have a parent, it is a root span.
+        /// </summary>
+        public const string None = "none";
+
+        /// <summary>
+        /// The span has a parent and the parent's span context <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">isRemote()</a> is false.
+        /// </summary>
+        public const string Local = "local";
+
+        /// <summary>
+        /// The span has a parent and the parent's span context <a href="https://opentelemetry.io/docs/specs/otel/trace/api/#isremote">isRemote()</a> is true.
+        /// </summary>
+        public const string Remote = "remote";
     }
 
     /// <summary>

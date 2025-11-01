@@ -5,6 +5,7 @@
 #pragma warning disable SA1402 // File may only contain a single type
 
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using Xunit;
 
 namespace OpenTelemetry.Tests;
@@ -21,14 +22,25 @@ internal sealed class TestPlatformHelpers
 {
     public static bool IsProcessElevated(TestPlatform platform)
     {
-        if (platform != TestPlatform.Linux)
+        switch (platform)
         {
-            // TODO: Add support for this check on other platforms as needed.
-            throw new NotImplementedException();
-        }
+            case TestPlatform.Linux:
+                var userId = SystemNativeUnix.GetEUid();
+                return userId == 0;
 
-        var userId = SystemNativeUnix.GetEUid();
-        return userId == 0;
+            case TestPlatform.Windows:
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    using var identity = WindowsIdentity.GetCurrent();
+                    return new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator);
+                }
+
+                return false;
+
+            // TODO: Add support for this check on other platforms as needed.
+            default:
+                throw new NotSupportedException($"TestPlatform '{platform}' is not supported for elevation check.");
+        }
     }
 
     // From: https://github.com/dotnet/corefx/blob/v2.2.8/src/Common/src/Interop/Unix/System.Native/Interop.GetEUid.cs

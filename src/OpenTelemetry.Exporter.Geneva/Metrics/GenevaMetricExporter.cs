@@ -68,7 +68,7 @@ public partial class GenevaMetricExporter : BaseExporter<Metric>
             }
             else
             {
-#if NET6_0_OR_GREATER
+#if NET
                 transport = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? MetricUnixUserEventsDataTransport.Instance
                     : MetricWindowsEventTracingDataTransport.Instance;

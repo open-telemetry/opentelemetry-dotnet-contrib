@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       os-list:
-        default: '[ "windows-latest", "ubuntu-22.04" ]'
+        default: '[ "windows-latest", "ubuntu-24.04" ]'
         required: false
         type: string
       tfm-list:
@@ -37,6 +37,9 @@ on:
         required: false
         type: boolean
 
+permissions:
+  contents: read
+
 jobs:
   build-test:
 
@@ -46,7 +49,7 @@ jobs:
         os: ${{ fromJSON(inputs.os-list) }}
         version: ${{ fromJSON(inputs.tfm-list) }}
         exclude:
-        - os: ubuntu-22.04
+        - os: ubuntu-24.04
           version: net462
         - os: macos-latest
           version: net462
@@ -54,7 +57,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
         # Note: By default GitHub only fetches 1 commit. MinVer needs to find
         # the version tag which is typically NOT on the first commit so we
@@ -84,12 +87,28 @@ jobs:
         echo "title=$title" >> $env:GITHUB_OUTPUT
         echo "project=$project" >> $env:GITHUB_OUTPUT
 
+        $artifactName = $component
+        if ([string]::IsNullOrEmpty($artifactName)) {
+          $artifactName = $title
+          if ($artifactName.EndsWith(".proj")) {
+            $artifactName = $artifactName.Substring(0, $artifactName.Length - 5)
+          }
+        }
+
+        echo "name=$artifactName" >> $env:GITHUB_OUTPUT
+
         # Note: BUILD_COMPONENT envvar tells Component.proj what to build. Only
         # used if $project ends up Component.proj.
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v4
+    - name: Setup previous .NET runtimes
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+      with:
+        dotnet-version: |
+          8.0.x
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
@@ -109,6 +128,8 @@ jobs:
         --no-restore
         --no-build
         --logger:"console;verbosity=detailed"
+        --logger:"GitHubActions;report-warnings=false"
+        --logger:"junit;LogFilePath=TestResults/junit.xml"
         --filter "${{ inputs.test-case-filter }}"
         -- RunConfiguration.DisableAppDomain=true
         ${{ inputs.test-require-elevated && matrix.os != 'windows-latest' && '&& sudo chmod a+rw ./TestResults' || '' }}
@@ -127,7 +148,7 @@ jobs:
 
     - name: Upload code coverage ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
       if: ${{ inputs.run-tests && hashFiles('./TestResults/Cobertura.xml') != '' }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
       continue-on-error: true # Note: Don't fail for upload failures
       env:
         OS: ${{ matrix.os }}
@@ -140,3 +161,21 @@ jobs:
         flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
         name: Code Coverage for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
         codecov_yml_path: .github/codecov.yml
+
+    - name: Upload test results  ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
+      if: ${{ !cancelled() && inputs.run-tests && hashFiles('./**/TestResults/junit.xml') != '' }}
+      uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+      with:
+        env_vars: OS,TFM,FILTER
+        flags: ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }}
+        name: Test results for ${{ inputs.code-cov-prefix }}-${{ inputs.code-cov-name }} on [${{ matrix.os }}.${{ matrix.version }}]
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
+      if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
+      with:
+        name: ${{ steps.resolve-project.outputs.name }}-packages
+        path: ./artifacts/package/release
+        if-no-files-found: error

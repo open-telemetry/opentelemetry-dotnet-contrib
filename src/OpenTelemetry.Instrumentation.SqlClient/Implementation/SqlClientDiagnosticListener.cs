@@ -8,6 +8,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Globalization;
+#if NET
+using System.Text;
+#endif
+using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.SqlClient.Implementation;
@@ -25,6 +29,11 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public const string SqlDataWriteCommandError = "System.Data.SqlClient.WriteCommandError";
     public const string SqlMicrosoftWriteCommandError = "Microsoft.Data.SqlClient.WriteCommandError";
+
+#if NET
+    private const string ContextInfoParameterName = "@opentelemetry_traceparent";
+    private const string SetContextSql = $"set context_info {ContextInfoParameterName}";
+#endif
 
     private readonly PropertyFetcher<object> commandFetcher = new("Command");
     private readonly PropertyFetcher<object> connectionFetcher = new("Connection");
@@ -45,7 +54,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override void OnEventWritten(string name, object? payload)
     {
-        if (SqlClientInstrumentation.TracingHandles == 0 && SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.TracingHandles == 0
+            && SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -63,6 +73,15 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         SqlClientInstrumentationEventSource.Log.NullPayload(nameof(SqlClientDiagnosticListener), name);
                         return;
                     }
+
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
 
                     _ = this.connectionFetcher.TryFetch(command, out var connection);
                     _ = this.databaseFetcher.TryFetch(connection, out var databaseName);
@@ -82,10 +101,33 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                         return;
                     }
 
+#if NET
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, Connection.State: ConnectionState.Open } iDbCommand)
+                    {
+                        var setContextCommand = iDbCommand.Connection.CreateCommand();
+                        setContextCommand.Transaction = iDbCommand.Transaction;
+                        setContextCommand.CommandText = SetContextSql;
+                        setContextCommand.CommandType = CommandType.Text;
+                        var parameter = setContextCommand.CreateParameter();
+                        parameter.ParameterName = ContextInfoParameterName;
+
+                        var tracedflags = (activity.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0 ? "01" : "00";
+                        var traceparent = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-{tracedflags}";
+
+                        parameter.DbType = DbType.Binary;
+                        parameter.Value = Encoding.UTF8.GetBytes(traceparent);
+                        setContextCommand.Parameters.Add(parameter);
+
+                        setContextCommand.ExecuteNonQuery();
+                    }
+#endif
+
                     if (activity.IsAllDataRequested)
                     {
                         try
                         {
+#if !NETFRAMEWORK
                             if (options.Filter?.Invoke(command) == false)
                             {
                                 SqlClientInstrumentationEventSource.Log.CommandIsFilteredOut(activity.OperationName);
@@ -93,6 +135,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                 activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                                 return;
                             }
+#endif
                         }
                         catch (Exception ex)
                         {
@@ -102,58 +145,48 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             return;
                         }
 
+                        if (options.EmitNewAttributes && options.SetDbQueryParameters)
+                        {
+                            SqlParameterProcessor.AddQueryParameters(activity, command);
+                        }
+
                         if (this.commandTypeFetcher.TryFetch(command, out var commandType) &&
                             this.commandTextFetcher.TryFetch(command, out var commandText))
                         {
                             switch (commandType)
                             {
                                 case CommandType.StoredProcedure:
-                                    if (options.EmitOldAttributes)
-                                    {
-                                        activity.SetTag(SemanticConventions.AttributeDbStatement, commandText);
-                                    }
-
-                                    if (options.EmitNewAttributes)
-                                    {
-                                        activity.SetTag(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                                        activity.SetTag(SemanticConventions.AttributeDbCollectionName, commandText);
-                                        activity.SetTag(SemanticConventions.AttributeDbQueryText, commandText);
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForStoredProcedure(
+                                        activity,
+                                        commandText,
+                                        options.EmitOldAttributes,
+                                        options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.Text:
-                                    if (options.SetDbStatementForText)
-                                    {
-                                        var sanitizedSql = SqlProcessor.GetSanitizedSql(commandText);
-                                        if (options.EmitOldAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbStatement, sanitizedSql);
-                                        }
-
-                                        if (options.EmitNewAttributes)
-                                        {
-                                            activity.SetTag(SemanticConventions.AttributeDbQueryText, sanitizedSql);
-                                        }
-                                    }
-
+                                    DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
+                                        activity,
+                                        commandText,
+                                        options.EmitOldAttributes,
+                                        options.EmitNewAttributes);
                                     break;
 
                                 case CommandType.TableDirect:
-                                    break;
                                 default:
                                     break;
                             }
                         }
 
+#if !NETFRAMEWORK
                         try
                         {
-                            options.Enrich?.Invoke(activity, "OnCustom", command);
+                            options.EnrichWithSqlCommand?.Invoke(activity, command);
                         }
                         catch (Exception ex)
                         {
                             SqlClientInstrumentationEventSource.Log.EnrichmentException(ex);
                         }
+#endif
                     }
                 }
 
@@ -161,6 +194,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataAfterExecuteCommand:
             case SqlMicrosoftAfterExecuteCommand:
                 {
+                    _ = this.commandFetcher.TryFetch(payload, out var command);
+
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
@@ -182,6 +226,17 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             case SqlDataWriteCommandError:
             case SqlMicrosoftWriteCommandError:
                 {
+                    _ = this.commandFetcher.TryFetch(payload, out var command);
+
+#if NET
+                    // skip if this is an injected query
+                    if (options.EnableTraceContextPropagation &&
+                        command is IDbCommand { CommandType: CommandType.Text, CommandText: SetContextSql })
+                    {
+                        return;
+                    }
+#endif
+
                     if (activity == null)
                     {
                         SqlClientInstrumentationEventSource.Log.NullActivity(name);
@@ -210,10 +265,12 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
                                 activity.SetStatus(ActivityStatusCode.Error, exception.Message);
 
+#if !NETFRAMEWORK
                                 if (options.RecordException)
                                 {
                                     activity.AddException(exception);
                                 }
+#endif
                             }
                             else
                             {
@@ -236,7 +293,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private void RecordDuration(Activity? activity, object? payload, bool hasError = false)
     {
-        if (SqlClientInstrumentation.MetricHandles == 0)
+        if (SqlClientInstrumentation.Instance.HandleManager.MetricHandles == 0)
         {
             return;
         }
@@ -278,8 +335,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 {
                     if (this.commandTextFetcher.TryFetch(command, out var commandText))
                     {
-                        tags.Add(SemanticConventions.AttributeDbOperationName, "EXECUTE");
-                        tags.Add(SemanticConventions.AttributeDbCollectionName, commandText);
+                        tags.Add(SemanticConventions.AttributeDbStoredProcedureName, commandText);
                     }
                 }
             }

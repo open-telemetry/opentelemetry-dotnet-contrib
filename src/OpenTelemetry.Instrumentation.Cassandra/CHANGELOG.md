@@ -2,8 +2,15 @@
 
 ## Unreleased
 
-* Updated OpenTelemetry core component version(s) to `1.11.2`.
-  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+## 1.0.0-beta.3
+
+Released 2025-Oct-23
+
+* Updated CassandraCSharpDriver to `3.17.0`.
+  ([#2836](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2836))
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
 
 ## 1.0.0-beta.2
 

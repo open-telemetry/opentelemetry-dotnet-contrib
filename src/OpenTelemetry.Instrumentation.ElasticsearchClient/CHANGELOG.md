@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.13.0-beta.1
+
+Released 2025-Oct-23
+
+* Updated OpenTelemetry core component version(s) to `1.13.1`.
+  ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
+
+## 1.12.0-beta.1
+
+Released 2025-Jul-30
+
 * Span status is set based on [semantic convention for client spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.24.0/docs/http/http-spans.md#status).
   ([#1538](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1538))
 
@@ -17,8 +28,8 @@
   [CVE-2024-43485](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-43485).
   ([#2198](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2198))
 
-* Updated OpenTelemetry core component version(s) to `1.11.2`.
-  ([#2582](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2582))
+* Updated OpenTelemetry core component version(s) to `1.12.0`.
+  ([#2725](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2725))
 
 ## 1.0.0-beta.5
 

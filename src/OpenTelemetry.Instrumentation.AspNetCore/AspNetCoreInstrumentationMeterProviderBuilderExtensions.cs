@@ -43,12 +43,25 @@ public static class AspNetCoreInstrumentationMeterProviderBuilderExtensions
 
     internal static MeterProviderBuilder ConfigureMeters(this MeterProviderBuilder builder)
     {
-        return builder
-             .AddMeter("Microsoft.AspNetCore.Hosting")
-             .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-             .AddMeter("Microsoft.AspNetCore.Http.Connections")
-             .AddMeter("Microsoft.AspNetCore.Routing")
-             .AddMeter("Microsoft.AspNetCore.Diagnostics")
-             .AddMeter("Microsoft.AspNetCore.RateLimiting");
+        // There is no cost to listen for meters that aren't used. For example, listening for Kestrel meter in an app that doesn't use Kestrel is fine.
+        // Listen for all built-in ASP.NET Core meters so metrics automatically light up depending on what an app does.
+        var builtInAspNetCoreMeters = new[]
+        {
+            "Microsoft.AspNetCore.Hosting",
+            "Microsoft.AspNetCore.Server.Kestrel",
+            "Microsoft.AspNetCore.Http.Connections",
+            "Microsoft.AspNetCore.Routing",
+            "Microsoft.AspNetCore.Diagnostics",
+            "Microsoft.AspNetCore.RateLimiting",
+            "Microsoft.AspNetCore.Components",
+            "Microsoft.AspNetCore.Components.Server.Circuits",
+            "Microsoft.AspNetCore.Components.Lifecycle",
+            "Microsoft.AspNetCore.Authorization",
+            "Microsoft.AspNetCore.Authentication",
+            "Microsoft.AspNetCore.Identity",
+            "Microsoft.AspNetCore.MemoryPool",
+        };
+
+        return builder.AddMeter(builtInAspNetCoreMeters);
     }
 }

@@ -8,6 +8,7 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <MinVerTagPrefix>PersistentStorage-</MinVerTagPrefix>
     <PackageValidationBaselineVersion>1.0.1</PackageValidationBaselineVersion>
+    <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 
   <ItemGroup>

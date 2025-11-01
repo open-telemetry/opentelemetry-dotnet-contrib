@@ -11,7 +11,7 @@ internal static class SemanticConventions
 {
     // The set of constants matches the specification as of this commit.
     // https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions
-    // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md
+    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public const string AttributeNetTransport = "net.transport";
     public const string AttributeNetPeerIp = "net.peer.ip";
@@ -48,6 +48,7 @@ internal static class SemanticConventions
     public const string AttributeDbJdbcDriverClassName = "db.jdbc.driver_classname";
     public const string AttributeDbName = "db.name";
     public const string AttributeDbStatement = "db.statement";
+    public const string AttributeDbSystem = "db.system";
     public const string AttributeDbOperation = "db.operation";
     public const string AttributeDbInstance = "db.instance";
     public const string AttributeDbCassandraKeyspace = "db.cassandra.keyspace";
@@ -138,16 +139,17 @@ internal static class SemanticConventions
     public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
     public const string AttributeMessagingKafkaMessageOffset = "messaging.kafka.message.offset";
 
-    // New database conventions as of commit:
-    // https://github.com/open-telemetry/semantic-conventions/blob/25f74191d749645fdd5ec42ae661438cf2c1cf51/docs/database/database-spans.md#common-attributes
-    public const string AttributeDbSystem = "db.system";
+    // v1.36.0 database conventions:
+    // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
     public const string AttributeDbCollectionName = "db.collection.name";
-    public const string AttributeDbNamespace = "db.namespace";
     public const string AttributeDbOperationName = "db.operation.name";
+    public const string AttributeDbSystemName = "db.system.name";
+    public const string AttributeDbNamespace = "db.namespace";
     public const string AttributeDbResponseStatusCode = "db.response.status_code";
     public const string AttributeDbOperationBatchSize = "db.operation.batch.size";
     public const string AttributeDbQuerySummary = "db.query.summary";
     public const string AttributeDbQueryText = "db.query.text";
+    public const string AttributeDbStoredProcedureName = "db.stored_procedure.name";
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
