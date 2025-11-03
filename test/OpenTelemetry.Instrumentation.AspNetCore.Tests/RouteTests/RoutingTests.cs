@@ -140,7 +140,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
                 foreach (var item in collection)
                 {
-                    // filter is defined and succeeds fiding elements
+                    // filter is defined and succeeds finding elements
                     if (filter(item))
                     {
                         return true;
