@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix diacritic identifier parsing hang and improve FROM clause parsing.
+([#3368](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3368))
+
 ## 1.13.0-beta.1
 
 Released 2025-Oct-22
