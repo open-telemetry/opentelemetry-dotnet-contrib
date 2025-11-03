@@ -42,7 +42,7 @@ internal abstract class RoutingTestResult
             })
             .ToArray();
 
-        return $"{this.anchorPrefix}__{this.TestCase.TestApplicationScenario.ToString().ToLower(CultureInfo.CurrentCulture)}-{new string(chars)}";
+        return $"{this.anchorPrefix}__{this.TestCase.TestApplicationScenario.ToString().ToLowerInvariant()}-{new string(chars)}";
     }
 }
 
