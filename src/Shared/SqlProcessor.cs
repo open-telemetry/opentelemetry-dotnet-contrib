@@ -38,8 +38,9 @@ internal static class SqlProcessor
 
     // This is not an exhaustive list but covers the majority of common reserved SQL keywords that may follow a FROM clause.
     // This is used when determining if the previous token is a keyword in order to identify the end of a comma separated FROM clause.
+    // NOTE: These are ordered so that more likely keywords appear first to shorten the comparison loop.
     private static readonly string[] FromClauseReservedKeywords = [
-        "AS", "JOIN", "CROSS", "WHERE", "BY", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "WITH", "PIVOT", "UNPIVOT"
+        "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT"
     ];
 
     // We can extend this in the future to include more keywords if needed.
@@ -417,22 +418,11 @@ internal static class SqlProcessor
                 {
                     foreach (var reservedKeyword in FromClauseReservedKeywords)
                     {
-                        if (tokenSpan.Length == reservedKeyword.Length)
+                        if (IsCaseInsensitiveMatch(tokenSpan, reservedKeyword))
                         {
-                            var isMatch = true;
-                            for (var charPos = 0; charPos < tokenSpan.Length; charPos++)
-                            {
-                                if ((tokenSpan[charPos] | 0x20) != (reservedKeyword.AsSpan()[charPos] | 0x20))
-                                {
-                                    isMatch = false;
-                                    break;
-                                }
-                            }
-
-                            if (isMatch)
-                            {
-                                state.InFromClause = false;
-                            }
+                            // We've matched a reserved keyword so are no longer in the FROM clause.
+                            state.InFromClause = false;
+                            break;
                         }
                     }
                 }
@@ -468,6 +458,27 @@ internal static class SqlProcessor
             state.ParsePosition++;
 
             // NOTE: We don't update previous token start/end positions for single-char tokens.
+        }
+
+        static bool IsCaseInsensitiveMatch(ReadOnlySpan<char> tokenSpan, string reservedKeyword)
+        {
+            if (tokenSpan.Length != reservedKeyword.Length)
+            {
+                return false;
+            }
+
+            var reservedKeywordSpan = reservedKeyword.AsSpan();
+            var isMatch = true;
+            for (var charPos = 0; charPos < tokenSpan.Length; charPos++)
+            {
+                if ((tokenSpan[charPos] | 0x20) != (reservedKeywordSpan[charPos] | 0x20))
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            return isMatch;
         }
     }
 
