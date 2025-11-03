@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.2
+
+Released 2025-Nov-03
+
 * Drop reference to `System.Collections.Immutable`.
   ([#3154](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3154))
 
