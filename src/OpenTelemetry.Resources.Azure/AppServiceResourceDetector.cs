@@ -13,7 +13,7 @@ internal sealed class AppServiceResourceDetector : IResourceDetector
     internal static readonly IReadOnlyDictionary<string, string> AppServiceResourceAttributes = new Dictionary<string, string>
     {
         { ResourceSemanticConventions.AttributeCloudRegion, ResourceAttributeConstants.AppServiceRegionNameEnvVar },
-        { ResourceSemanticConventions.AttributeDeploymentEnvironment, ResourceAttributeConstants.AppServiceSlotNameEnvVar },
+        { ResourceSemanticConventions.AttributeDeploymentEnvironmentName, ResourceAttributeConstants.AppServiceSlotNameEnvVar },
         { ResourceSemanticConventions.AttributeHostId, ResourceAttributeConstants.AppServiceHostNameEnvVar },
         { ResourceSemanticConventions.AttributeServiceInstance, ResourceAttributeConstants.AppServiceInstanceIdEnvVar },
         { ResourceAttributeConstants.AzureAppServiceStamp, ResourceAttributeConstants.AppServiceStampNameEnvVar },
