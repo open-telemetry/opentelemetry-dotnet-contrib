@@ -468,17 +468,16 @@ internal static class SqlProcessor
             }
 
             var reservedKeywordSpan = reservedKeyword.AsSpan();
-            var isMatch = true;
+
             for (var charPos = 0; charPos < tokenSpan.Length; charPos++)
             {
                 if ((tokenSpan[charPos] | 0x20) != (reservedKeywordSpan[charPos] | 0x20))
                 {
-                    isMatch = false;
-                    break;
+                    return false;
                 }
             }
 
-            return isMatch;
+            return true;
         }
     }
 
