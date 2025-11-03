@@ -39,7 +39,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         await this.fixture.MakeRequest(testCase.TestApplicationScenario, testCase.Path);
 
-        var flushAction = new Action(() => tracerProvider.ForceFlush());
+        Action flushAction = () => tracerProvider.ForceFlush();
         var result = await TryWaitUntilAny(exportedActivities, flushAction);
         Assert.True(result, "No activities were collected");
 
