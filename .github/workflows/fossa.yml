@@ -11,6 +11,7 @@ permissions:
 jobs:
   fossa:
     runs-on: ubuntu-latest
+    if: github.event.repository.fork == false
     env:
       FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
     steps:
