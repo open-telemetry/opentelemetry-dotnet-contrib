@@ -123,10 +123,10 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         this.fixture.AddMetricsTestResult(testResult);
     }
 
-    private static async Task<bool> TryWaitUntilAny<T>(ICollection<T> collection, Action reflush, Func<T, bool>? filter = null)
+    private static async Task<bool> TryWaitUntilAny<T>(ICollection<T> collection, Action flush, Func<T, bool>? filter = null)
     {
         // flush and see if data is immediately available
-        reflush();
+        flush();
 
         for (var i = 0; i < 10; i++)
         {
@@ -148,10 +148,11 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
                 }
             }
 
-            reflush();
+            // reflush and try again
+            flush();
 
             // Add time to process the flush
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
         }
 
         return false;
