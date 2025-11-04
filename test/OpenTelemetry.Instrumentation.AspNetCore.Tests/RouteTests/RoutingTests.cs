@@ -67,7 +67,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         var testResult = new ActivityRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
-            IdeaHttpRouteMatch = idealHttpRouteMatch,
+            IdealHttpRouteMatch = idealHttpRouteMatch,
             ActivityDisplayName = activity.DisplayName,
             ActivityHttpRoute = activityHttpRoute,
             RouteInfo = RouteInfo.Current,
@@ -118,7 +118,7 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         var testResult = new MetricRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
-            IdeaHttpRouteMatch = idealHttpRouteMatch,
+            IdealHttpRouteMatch = idealHttpRouteMatch,
             MetricHttpRoute = metricHttpRoute,
             RouteInfo = RouteInfo.Current,
         };

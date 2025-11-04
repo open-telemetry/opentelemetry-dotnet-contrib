@@ -68,7 +68,7 @@
   "ActivityDisplayName": "GET ConventionalRoute/Default",
   "ActivityHttpRoute": "ConventionalRoute/Default",
   "IdealHttpRoute": "ConventionalRoute/Default",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
@@ -98,7 +98,7 @@
   "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter/{id}",
   "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
@@ -132,7 +132,7 @@
   "ActivityDisplayName": "GET ConventionalRoute/ActionWithStringParameter",
   "ActivityHttpRoute": "ConventionalRoute/ActionWithStringParameter",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
@@ -165,7 +165,7 @@
   "ActivityDisplayName": "GET",
   "ActivityHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/NotFound",
@@ -184,7 +184,7 @@
   "ActivityDisplayName": "GET SomePath/{id}/{num}",
   "ActivityHttpRoute": "SomePath/{id}/{num}",
   "IdealHttpRoute": "SomePath/{id}/{num}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePath/SomeString/2",
@@ -219,7 +219,7 @@
   "ActivityDisplayName": "GET",
   "ActivityHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePath/SomeString/NotAnInt",
@@ -238,7 +238,7 @@
   "ActivityDisplayName": "GET MyArea/ControllerForMyArea/Default",
   "ActivityHttpRoute": "MyArea/ControllerForMyArea/Default",
   "IdealHttpRoute": "MyArea/ControllerForMyArea/Default",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea",
@@ -269,7 +269,7 @@
   "ActivityDisplayName": "GET MyArea/ControllerForMyArea/NonDefault",
   "ActivityHttpRoute": "MyArea/ControllerForMyArea/NonDefault",
   "IdealHttpRoute": "MyArea/ControllerForMyArea/NonDefault",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
@@ -300,7 +300,7 @@
   "ActivityDisplayName": "GET SomePrefix/AnotherArea/Index",
   "ActivityHttpRoute": "SomePrefix/AnotherArea/Index",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
@@ -331,7 +331,7 @@
   "ActivityDisplayName": "GET AttributeRoute",
   "ActivityHttpRoute": "AttributeRoute",
   "IdealHttpRoute": "AttributeRoute",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute",
@@ -361,7 +361,7 @@
   "ActivityDisplayName": "GET AttributeRoute/Get",
   "ActivityHttpRoute": "AttributeRoute/Get",
   "IdealHttpRoute": "AttributeRoute/Get",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get",
@@ -391,7 +391,7 @@
   "ActivityDisplayName": "GET AttributeRoute/Get/{id}",
   "ActivityHttpRoute": "AttributeRoute/Get/{id}",
   "IdealHttpRoute": "AttributeRoute/Get/{id}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get/12",
@@ -424,7 +424,7 @@
   "ActivityDisplayName": "GET AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "ActivityHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "IdealHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/12/GetWithActionNameInDifferentSpotInTemplate",
@@ -457,7 +457,7 @@
   "ActivityDisplayName": "GET AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "ActivityHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "IdealHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/NotAnInt/GetWithActionNameInDifferentSpotInTemplate",
@@ -490,7 +490,7 @@
   "ActivityDisplayName": "GET Index",
   "ActivityHttpRoute": "Index",
   "IdealHttpRoute": "Index",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
@@ -519,7 +519,7 @@
   "ActivityDisplayName": "GET Index",
   "ActivityHttpRoute": "Index",
   "IdealHttpRoute": "Index",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/Index",
@@ -548,7 +548,7 @@
   "ActivityDisplayName": "GET PageThatThrowsException",
   "ActivityHttpRoute": "PageThatThrowsException",
   "IdealHttpRoute": "PageThatThrowsException",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/PageThatThrowsException",
@@ -577,7 +577,7 @@
   "ActivityDisplayName": "GET",
   "ActivityHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/js/site.js",
@@ -596,7 +596,7 @@
   "ActivityDisplayName": "GET MinimalApi",
   "ActivityHttpRoute": "MinimalApi",
   "IdealHttpRoute": "MinimalApi",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApi",
@@ -615,7 +615,7 @@
   "ActivityDisplayName": "GET MinimalApi/{id}",
   "ActivityHttpRoute": "MinimalApi/{id}",
   "IdealHttpRoute": "MinimalApi/{id}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApi/123",
@@ -636,7 +636,7 @@
   "ActivityDisplayName": "GET MinimalApiUsingMapGroup",
   "ActivityHttpRoute": "MinimalApiUsingMapGroup",
   "IdealHttpRoute": "MinimalApiUsingMapGroup",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApiUsingMapGroup",
@@ -655,7 +655,7 @@
   "ActivityDisplayName": "GET MinimalApiUsingMapGroup/{id}",
   "ActivityHttpRoute": "MinimalApiUsingMapGroup/{id}",
   "IdealHttpRoute": "MinimalApiUsingMapGroup/{id}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApiUsingMapGroup/123",
@@ -676,7 +676,7 @@
   "ActivityDisplayName": "GET Exception",
   "ActivityHttpRoute": "Exception",
   "IdealHttpRoute": "Exception",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/Exception",
@@ -697,7 +697,7 @@
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
   "IdealHttpRoute": "ConventionalRoute/Default",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
@@ -726,7 +726,7 @@
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
@@ -759,7 +759,7 @@
 {
   "MetricHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
   "IdealHttpRoute": "ConventionalRoute/ActionWithStringParameter",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/ActionWithStringParameter?num=3",
@@ -791,7 +791,7 @@
 {
   "MetricHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/ConventionalRoute/NotFound",
@@ -809,7 +809,7 @@
 {
   "MetricHttpRoute": "SomePath/{id}/{num:int}",
   "IdealHttpRoute": "SomePath/{id}/{num}",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePath/SomeString/2",
@@ -843,7 +843,7 @@
 {
   "MetricHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePath/SomeString/NotAnInt",
@@ -861,7 +861,7 @@
 {
   "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
   "IdealHttpRoute": "MyArea/ControllerForMyArea/Default",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea",
@@ -891,7 +891,7 @@
 {
   "MetricHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
   "IdealHttpRoute": "MyArea/ControllerForMyArea/NonDefault",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MyArea/ControllerForMyArea/NonDefault",
@@ -921,7 +921,7 @@
 {
   "MetricHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
   "IdealHttpRoute": "SomePrefix/AnotherArea/Index",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/SomePrefix",
@@ -951,7 +951,7 @@
 {
   "MetricHttpRoute": "AttributeRoute",
   "IdealHttpRoute": "AttributeRoute",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute",
@@ -980,7 +980,7 @@
 {
   "MetricHttpRoute": "AttributeRoute/Get",
   "IdealHttpRoute": "AttributeRoute/Get",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get",
@@ -1009,7 +1009,7 @@
 {
   "MetricHttpRoute": "AttributeRoute/Get/{id}",
   "IdealHttpRoute": "AttributeRoute/Get/{id}",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/Get/12",
@@ -1041,7 +1041,7 @@
 {
   "MetricHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "IdealHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/12/GetWithActionNameInDifferentSpotInTemplate",
@@ -1073,7 +1073,7 @@
 {
   "MetricHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
   "IdealHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/AttributeRoute/NotAnInt/GetWithActionNameInDifferentSpotInTemplate",
@@ -1105,7 +1105,7 @@
 {
   "MetricHttpRoute": "",
   "IdealHttpRoute": "Index",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/",
@@ -1133,7 +1133,7 @@
 {
   "MetricHttpRoute": "Index",
   "IdealHttpRoute": "Index",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/Index",
@@ -1161,7 +1161,7 @@
 {
   "MetricHttpRoute": "PageThatThrowsException",
   "IdealHttpRoute": "PageThatThrowsException",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/PageThatThrowsException",
@@ -1189,7 +1189,7 @@
 {
   "MetricHttpRoute": "",
   "IdealHttpRoute": "",
-  "IdeaHttpRouteMatch": true,
+  "IdealHttpRouteMatch": true,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/js/site.js",
@@ -1207,7 +1207,7 @@
 {
   "MetricHttpRoute": "/MinimalApi",
   "IdealHttpRoute": "MinimalApi",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApi",
@@ -1225,7 +1225,7 @@
 {
   "MetricHttpRoute": "/MinimalApi/{id}",
   "IdealHttpRoute": "MinimalApi/{id}",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApi/123",
@@ -1245,7 +1245,7 @@
 {
   "MetricHttpRoute": "/MinimalApiUsingMapGroup/",
   "IdealHttpRoute": "MinimalApiUsingMapGroup",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApiUsingMapGroup",
@@ -1263,7 +1263,7 @@
 {
   "MetricHttpRoute": "/MinimalApiUsingMapGroup/{id}",
   "IdealHttpRoute": "MinimalApiUsingMapGroup/{id}",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/MinimalApiUsingMapGroup/123",
@@ -1283,7 +1283,7 @@
 {
   "MetricHttpRoute": "/Exception",
   "IdealHttpRoute": "Exception",
-  "IdeaHttpRouteMatch": false,
+  "IdealHttpRouteMatch": false,
   "RouteInfo": {
     "HttpMethod": "GET",
     "Path": "/Exception",
