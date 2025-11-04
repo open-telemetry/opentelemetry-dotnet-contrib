@@ -40,9 +40,9 @@ internal static class RouteAttributeHelper
         if (routePattern.PathSegments.Count == 0)
         {
             // RazorPage default route
-            if (routePattern.Defaults.ContainsKey("page"))
+            if (routePattern.Defaults.TryGetValue("page", out var pageValue))
             {
-                return routePattern.Defaults["page"]?.ToString()?.Trim('/')
+                return pageValue?.ToString()?.Trim('/')
                     ?? string.Empty;
             }
 
