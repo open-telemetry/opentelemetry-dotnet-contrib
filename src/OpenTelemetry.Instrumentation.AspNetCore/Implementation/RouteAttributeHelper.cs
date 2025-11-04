@@ -37,6 +37,18 @@ internal static class RouteAttributeHelper
 
     private static string GetRoutePattern(RoutePattern routePattern, RouteValueDictionary routeValues)
     {
+        if (routePattern.PathSegments.Count == 0)
+        {
+            // RazorPage default route
+            if (routePattern.Defaults.ContainsKey("page"))
+            {
+                return routePattern.Defaults["page"]?.ToString()?.Trim('/')
+                    ?? string.Empty;
+            }
+
+            return string.Empty;
+        }
+
         var sb = new StringBuilder();
 
         foreach (var segment in routePattern.PathSegments)

@@ -78,7 +78,7 @@
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
     "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
-    "expectedHttpRoute": "SomePrefix/AnotherArea/Index/{id}"
+    "expectedHttpRoute": "SomePrefix/AnotherArea/Index"
   },
   {
     "name": "Default action",
@@ -133,7 +133,7 @@
     "path": "/",
     "expectedStatusCode": 200,
     "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index"
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Index page",
@@ -142,7 +142,7 @@
     "path": "/Index",
     "expectedStatusCode": 200,
     "currentHttpRoute": "Index",
-    "expectedHttpRoute": "/Index"
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Throws exception",
@@ -151,7 +151,7 @@
     "path": "/PageThatThrowsException",
     "expectedStatusCode": 500,
     "currentHttpRoute": "PageThatThrowsException",
-    "expectedHttpRoute": "/PageThatThrowsException"
+    "expectedHttpRoute": "PageThatThrowsException"
   },
   {
     "name": "Static content",
@@ -169,7 +169,7 @@
     "path": "/MinimalApi",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApi"
+    "expectedHttpRoute": "MinimalApi"
   },
   {
     "name": "Action with parameter",
@@ -178,7 +178,7 @@
     "path": "/MinimalApi/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApi/{id}"
+    "expectedHttpRoute": "MinimalApi/{id}"
   },
   {
     "name": "Action without parameter (MapGroup)",
@@ -188,7 +188,7 @@
     "path": "/MinimalApiUsingMapGroup",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApiUsingMapGroup/"
+    "expectedHttpRoute": "MinimalApiUsingMapGroup"
   },
   {
     "name": "Action with parameter (MapGroup)",
@@ -198,7 +198,7 @@
     "path": "/MinimalApiUsingMapGroup/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/MinimalApiUsingMapGroup/{id}"
+    "expectedHttpRoute": "MinimalApiUsingMapGroup/{id}"
   },
   {
     "name": "Exception Handled by Exception Handler Middleware",
@@ -207,6 +207,6 @@
     "path": "/Exception",
     "expectedStatusCode": 500,
     "currentHttpRoute": null,
-    "expectedHttpRoute": "/Exception"
+    "expectedHttpRoute": "Exception"
   }
 ]
