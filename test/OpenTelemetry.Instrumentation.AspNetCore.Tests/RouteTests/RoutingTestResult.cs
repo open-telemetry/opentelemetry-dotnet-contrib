@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using RouteTests.TestApplication;
@@ -38,11 +37,13 @@ internal abstract class RoutingTestResult
             .Select(c => c switch
             {
                 '-' or ' ' => '-',
-                _ => char.ToLower(c, CultureInfo.InvariantCulture),
+                _ => char.ToLowerInvariant(c),
             })
             .ToArray();
 
+#pragma warning disable CA1308 // Normalize strings to uppercase
         return $"{this.anchorPrefix}__{this.TestCase.TestApplicationScenario.ToString().ToLowerInvariant()}-{new string(chars)}";
+#pragma warning restore CA1308 // Normalize strings to uppercase
     }
 }
 
