@@ -1,6 +1,8 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.ComponentModel;
+
 namespace OpenTelemetry.Resources.Process;
 
 /// <summary>
@@ -15,11 +17,16 @@ internal sealed class ProcessDetector : IResourceDetector
     public Resource Detect()
     {
         using var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+        if (currentProcess.HasExited)
+        {
+            return Resource.Empty;
+        }
+
         var attributes = new List<KeyValuePair<string, object>>(9)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
-            new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? string.Empty),
             new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.MainWindowTitle),
             new(ProcessSemanticConventions.AttributeProcessWorkingDir, Environment.CurrentDirectory),
 
@@ -33,6 +40,15 @@ internal sealed class ProcessDetector : IResourceDetector
             new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
         };
 #endif
+
+        try
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? DateTime.Now.ToString("O")));
+        }
+        catch (Win32Exception)
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, DateTime.Now.ToString("O")));
+        }
 
         return new Resource(attributes);
     }
