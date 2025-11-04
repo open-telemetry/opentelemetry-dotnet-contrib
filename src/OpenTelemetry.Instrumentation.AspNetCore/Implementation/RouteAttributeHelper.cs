@@ -67,8 +67,7 @@ internal static class RouteAttributeHelper
                         case "area":
                         case "controller":
                         case "action":
-                            routePattern.RequiredValues.TryGetValue(parameterPart.Name, out var parameterValue);
-                            if (parameterValue != null)
+                            if (routePattern.RequiredValues.TryGetValue(parameterPart.Name, out var parameterValue) && parameterValue != null)
                             {
                                 sb.Append(parameterValue);
                                 sb.Append('/');
