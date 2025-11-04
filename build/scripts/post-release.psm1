@@ -113,9 +113,19 @@ function TryPostPackagesReadyNoticeOnPrepareReleasePullRequest {
     }
 
     $foundComment = $false
+
+    $expectedCommentAuthorLogin = $expectedPrAuthorUserName
+
+    # The GitHub API requires bot users to be prefixed with "app/" when querying issues/PRs, but the login in the
+    # response for comments does not include the "app/" prefix, so we need to trim it off here to find the comment.
+    if ($expectedCommentAuthorLogin.StartsWith("app/"))
+    {
+      $expectedCommentAuthorLogin = $expectedCommentAuthorLogin.Substring(4)
+    }
+
     foreach ($comment in $pr.comments)
     {
-      if ($comment.author.login -eq $expectedPrAuthorUserName -and $comment.body.StartsWith("I just pushed the [$tag]"))
+      if ($comment.author.login -eq $expectedCommentAuthorLogin -and $comment.body.StartsWith("I just pushed the [$tag]"))
       {
         $foundComment = $true
         break
