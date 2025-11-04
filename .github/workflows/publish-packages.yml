@@ -98,7 +98,9 @@ jobs:
             !./artifacts/bin/*/**/OpenTelemetry.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.dll
             !./artifacts/bin/*/**/OpenTelemetry.Api.ProviderBuilderExtensions.dll
+            !./artifacts/bin/*Benchmarks*/**/*
             !./artifacts/bin/*Example*/**/*
+            !./artifacts/bin/*Stress*/**/*
             !./artifacts/bin/*Test*/**/*
 
       - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
