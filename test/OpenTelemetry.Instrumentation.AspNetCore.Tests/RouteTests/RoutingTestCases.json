@@ -5,7 +5,7 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "ConventionalRoute/Default"
   },
   {
@@ -14,7 +14,7 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}"
   },
   {
@@ -23,7 +23,7 @@
     "httpMethod": "GET",
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter"
   },
   {
@@ -59,7 +59,7 @@
     "httpMethod": "GET",
     "path": "/MyArea",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "MyArea/ControllerForMyArea/Default"
   },
   {
@@ -68,7 +68,7 @@
     "httpMethod": "GET",
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "MyArea/ControllerForMyArea/NonDefault"
   },
   {
@@ -77,7 +77,7 @@
     "httpMethod": "GET",
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "SomePrefix/AnotherArea/Index"
   },
   {
@@ -132,7 +132,7 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "Index"
   },
   {
@@ -141,7 +141,7 @@
     "httpMethod": "GET",
     "path": "/Index",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "Index",
+    "currentHttpRoute": null,
     "expectedHttpRoute": "Index"
   },
   {
