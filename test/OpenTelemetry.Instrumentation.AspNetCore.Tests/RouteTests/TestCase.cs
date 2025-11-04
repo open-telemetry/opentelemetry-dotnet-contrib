@@ -25,7 +25,7 @@ public class TestCase
 
     public string? CurrentHttpRoute { get; set; }
 
-    public string? ExpectedMetricRoute { get; set; }
+    public string? CurrentMetricRoute { get; set; }
 
     public override string ToString()
     {

@@ -50,8 +50,6 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         Assert.Equal(testCase.ExpectedStatusCode, activityHttpStatusCode);
         Assert.Equal(testCase.HttpMethod, activityHttpMethod);
 
-        // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
-        // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
         var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
         Assert.Equal(expectedHttpRoute, activityHttpRoute);
 
@@ -63,9 +61,13 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
 
         Assert.Equal(expectedActivityDisplayName, activity.DisplayName);
 
+        var idealHttpRouteMatch = testCase.CurrentHttpRoute == null ||
+            testCase.CurrentMetricRoute == testCase.ExpectedHttpRoute;
+
         var testResult = new ActivityRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
+            IdeaHttpRouteMatch = idealHttpRouteMatch,
             ActivityDisplayName = activity.DisplayName,
             ActivityHttpRoute = activityHttpRoute,
             RouteInfo = RouteInfo.Current,
@@ -107,15 +109,16 @@ public class RoutingTests : IClassFixture<RoutingTestFixture>
         Assert.Equal(testCase.ExpectedStatusCode, metricHttpStatusCode);
         Assert.Equal(testCase.HttpMethod, metricHttpMethod);
 
-        // TODO: The CurrentHttpRoute property will go away. They only serve to capture status quo.
-        // If CurrentHttpRoute is null, then that means we already conform to the correct behavior.
-        var expectedHttpRoute = testCase.CurrentHttpRoute ?? testCase.ExpectedHttpRoute;
-        var expectedMetricRoute = testCase.ExpectedMetricRoute ?? expectedHttpRoute;
+        var expectedMetricRoute = testCase.CurrentMetricRoute ?? testCase.ExpectedHttpRoute;
         Assert.Equal(expectedMetricRoute, metricHttpRoute);
+
+        var idealHttpRouteMatch = testCase.CurrentMetricRoute == null ||
+            testCase.CurrentMetricRoute == testCase.ExpectedHttpRoute;
 
         var testResult = new MetricRoutingTestResult(testCase)
         {
             IdealHttpRoute = testCase.ExpectedHttpRoute,
+            IdeaHttpRouteMatch = idealHttpRouteMatch,
             MetricHttpRoute = metricHttpRoute,
             RouteInfo = RouteInfo.Current,
         };

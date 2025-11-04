@@ -22,6 +22,8 @@ internal abstract class RoutingTestResult
 
     public string? IdealHttpRoute { get; set; }
 
+    public bool IdeaHttpRouteMatch { get; set; }
+
     public RouteInfo RouteInfo { get; set; } = new();
 
     [JsonIgnore]

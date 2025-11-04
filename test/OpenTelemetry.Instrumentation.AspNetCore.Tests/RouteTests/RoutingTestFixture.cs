@@ -121,7 +121,7 @@ public class RoutingTestFixture : IAsyncLifetime
     {
         foreach (var result in testResults)
         {
-            var emoji = result.TestCase.CurrentHttpRoute == null ? ":green_heart:" : ":broken_heart:";
+            var emoji = result.IdeaHttpRouteMatch ? ":green_heart:" : ":broken_heart:";
             sb.AppendLine($"| {emoji} | {result.TestCase.TestApplicationScenario} | [{result.TestCase.Name}](#{result.DetailsAnchor}) |");
         }
     }

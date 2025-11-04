@@ -6,6 +6,7 @@
     "path": "/",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "expectedHttpRoute": "ConventionalRoute/Default"
   },
   {
@@ -15,6 +16,7 @@
     "path": "/ConventionalRoute/ActionWithStringParameter/2?num=3",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter/{id}"
   },
   {
@@ -24,6 +26,7 @@
     "path": "/ConventionalRoute/ActionWithStringParameter?num=3",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "{controller=ConventionalRoute}/{action=Default}/{id?}",
     "expectedHttpRoute": "ConventionalRoute/ActionWithStringParameter"
   },
   {
@@ -33,6 +36,7 @@
     "path": "/ConventionalRoute/NotFound",
     "expectedStatusCode": 404,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -42,6 +46,7 @@
     "path": "/SomePath/SomeString/2",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "SomePath/{id}/{num:int}",
     "expectedHttpRoute": "SomePath/{id}/{num}"
   },
   {
@@ -51,6 +56,7 @@
     "path": "/SomePath/SomeString/NotAnInt",
     "expectedStatusCode": 404,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -60,6 +66,7 @@
     "path": "/MyArea",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
     "expectedHttpRoute": "MyArea/ControllerForMyArea/Default"
   },
   {
@@ -69,6 +76,7 @@
     "path": "/MyArea/ControllerForMyArea/NonDefault",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "{area:exists}/{controller=ControllerForMyArea}/{action=Default}/{id?}",
     "expectedHttpRoute": "MyArea/ControllerForMyArea/NonDefault"
   },
   {
@@ -78,6 +86,7 @@
     "path": "/SomePrefix",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "SomePrefix/{controller=AnotherArea}/{action=Index}/{id?}",
     "expectedHttpRoute": "SomePrefix/AnotherArea/Index"
   },
   {
@@ -87,6 +96,7 @@
     "path": "/AttributeRoute",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute"
   },
   {
@@ -96,6 +106,7 @@
     "path": "/AttributeRoute/Get",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/Get"
   },
   {
@@ -105,6 +116,7 @@
     "path": "/AttributeRoute/Get/12",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/Get/{id}"
   },
   {
@@ -114,6 +126,7 @@
     "path": "/AttributeRoute/12/GetWithActionNameInDifferentSpotInTemplate",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate"
   },
   {
@@ -123,6 +136,7 @@
     "path": "/AttributeRoute/NotAnInt/GetWithActionNameInDifferentSpotInTemplate",
     "expectedStatusCode": 400,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "AttributeRoute/{id}/GetWithActionNameInDifferentSpotInTemplate"
   },
   {
@@ -133,6 +147,7 @@
     "path": "/",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "",
     "expectedHttpRoute": "Index"
   },
   {
@@ -142,6 +157,7 @@
     "path": "/Index",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "Index"
   },
   {
@@ -150,7 +166,8 @@
     "httpMethod": "GET",
     "path": "/PageThatThrowsException",
     "expectedStatusCode": 500,
-    "currentHttpRoute": "PageThatThrowsException",
+    "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": "PageThatThrowsException"
   },
   {
@@ -160,6 +177,7 @@
     "path": "/js/site.js",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": null,
     "expectedHttpRoute": ""
   },
   {
@@ -169,6 +187,7 @@
     "path": "/MinimalApi",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "/MinimalApi",
     "expectedHttpRoute": "MinimalApi"
   },
   {
@@ -178,6 +197,7 @@
     "path": "/MinimalApi/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "/MinimalApi/{id}",
     "expectedHttpRoute": "MinimalApi/{id}"
   },
   {
@@ -188,6 +208,7 @@
     "path": "/MinimalApiUsingMapGroup",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "/MinimalApiUsingMapGroup/",
     "expectedHttpRoute": "MinimalApiUsingMapGroup"
   },
   {
@@ -198,6 +219,7 @@
     "path": "/MinimalApiUsingMapGroup/123",
     "expectedStatusCode": 200,
     "currentHttpRoute": null,
+    "currentMetricRoute": "/MinimalApiUsingMapGroup/{id}",
     "expectedHttpRoute": "MinimalApiUsingMapGroup/{id}"
   },
   {
@@ -207,6 +229,7 @@
     "path": "/Exception",
     "expectedStatusCode": 500,
     "currentHttpRoute": null,
+    "currentMetricRoute": "/Exception",
     "expectedHttpRoute": "Exception"
   }
 ]
