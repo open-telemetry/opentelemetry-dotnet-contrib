@@ -95,6 +95,7 @@ jobs:
         with:
           subject-path: |
             ./artifacts/bin/*/release_*/OpenTelemetry*.dll
+            !./artifacts/bin/*Tests/**/*
 
       - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
         shell: pwsh
