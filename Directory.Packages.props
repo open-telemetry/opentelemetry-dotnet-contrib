@@ -97,7 +97,7 @@
     <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.9" />
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.3" />
     <PackageVersion Include="AWSSDK.S3" Version="4.0.9.1" />
-    <PackageVersion Include="BenchmarkDotNet" Version="0.15.5" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="Google.Api.Gax" Version="4.12.1" />
