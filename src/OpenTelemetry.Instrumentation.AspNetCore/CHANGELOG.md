@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixes an issue where `http.route` attribute reported only a plain route template for some routing options.
+  Therefore, the HTTP span display name has been also changed to a more meaningful value.
+  ([#3338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3338))
+  
+
 ## 1.13.0
 
 Released 2025-Oct-22
