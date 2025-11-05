@@ -30,7 +30,7 @@ internal class AWSServiceHelper
                 .AddAttributeAwsStepFunctionsStateMachineArn("StateMachineArn")
                 .AddAttributeAwsLambdaResourceMappingId("UUID")
                 .AddAttributeAWSLambdaFunctionName("FunctionName")
-                .AddAttributeAWSKinesisStreamArn("StreamArn")
+                .AddAttributeAWSKinesisStreamArn("StreamARN")
                 .AddAttributeAWSDynamoTableArn("TableArn")
                 .AddAttributeAWSBedrockGuardrailArn("GuardrailArn")
                 .Build();
@@ -44,7 +44,7 @@ internal class AWSServiceHelper
         { AWSServiceType.BedrockAgentRuntimeService, ["AgentId", "KnowledgeBaseId"] },
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
         { AWSServiceType.S3Service, ["BucketName"] },
-        { AWSServiceType.KinesisService, ["StreamName", "StreamArn"] },
+        { AWSServiceType.KinesisService, ["StreamName", "StreamARN"] },
         { AWSServiceType.LambdaService, ["UUID", "FunctionName"] },
         { AWSServiceType.SecretsManagerService, ["SecretId"] },
         { AWSServiceType.SNSService, ["TopicArn"] },
