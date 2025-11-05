@@ -28,6 +28,8 @@ jobs:
   build-pack-publish:
 
     permissions:
+      attestations: write
+      contents: read
       id-token: write
 
     runs-on: windows-latest
@@ -87,6 +89,19 @@ jobs:
 
       - name: dotnet test ${{ steps.resolve-project.outputs.title }}
         run: dotnet test ${env:PROJECT_PATH} --configuration Release --no-restore --no-build
+
+      - name: Create GitHub attestations for DLLs
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+        with:
+          subject-path: |
+            ./artifacts/bin/*/release_*/OpenTelemetry*.dll
+            !./artifacts/bin/*/**/OpenTelemetry.dll
+            !./artifacts/bin/*/**/OpenTelemetry.Api.dll
+            !./artifacts/bin/*/**/OpenTelemetry.Api.ProviderBuilderExtensions.dll
+            !./artifacts/bin/*/**/*Benchmark*.dll
+            !./artifacts/bin/*/**/*Example*.dll
+            !./artifacts/bin/*/**/*Stress*.dll
+            !./artifacts/bin/*/**/*Test*.dll
 
       - name: dotnet pack ${{ steps.resolve-project.outputs.title }}
         shell: pwsh
