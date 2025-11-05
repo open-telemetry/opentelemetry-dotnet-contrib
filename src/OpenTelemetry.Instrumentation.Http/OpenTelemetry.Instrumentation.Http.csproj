@@ -32,8 +32,7 @@
     <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Options" />
-    <!-- TODO Revert version override for .NET 10 GA -->
-    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" VersionOverride="[$(OpenTelemetryCoreLatestPrereleaseVersion),2.0)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 
 </Project>
