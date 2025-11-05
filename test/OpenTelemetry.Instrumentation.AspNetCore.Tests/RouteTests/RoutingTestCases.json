@@ -157,9 +157,9 @@
     "httpMethod": "GET",
     "path": "/",
     "expectedStatusCode": 200,
-    "currentHttpRoute": "",
-    "expectedHttpRoute": "/Index",
-    "expectedMetricRoute": "/"
+    "currentHttpRoute": null,
+    "currentMetricRoute": "/",
+    "expectedHttpRoute": "Index"
   },
   {
     "name": "Index page",
