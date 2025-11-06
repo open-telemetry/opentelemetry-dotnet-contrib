@@ -15,6 +15,13 @@ which instruments
 [Microsoft.EntityFrameworkCore](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore)
 and collects traces about outgoing requests.
 
+> [!IMPORTANT]
+> EF Core Instrumentation only currently supports tracing for relational
+> databases such as Microsoft SQL Server or PostgreSQL.
+>
+> It does not currently support NoSQL databases such as
+> [Azure Cosmos DB](https://learn.microsoft.com/ef/core/providers/cosmos/).
+
 **Note: This component is based on the OpenTelemetry semantic conventions for
 [metrics](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-metrics.md)
 and
