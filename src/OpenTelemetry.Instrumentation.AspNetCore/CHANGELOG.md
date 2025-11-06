@@ -6,8 +6,8 @@
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
 
 * Fixes an issue where the http.route attribute on HTTP server spans reported
-  only a plain route template for some routing options. Therefore, the HTTP server span
-  display name has also been changed to a more meaningful value.
+  only a plain route template for some routing options. Therefore, the HTTP
+  server span display name has also been changed to a more meaningful value.
   ([#3338](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3338))
 
 ## 1.13.0
