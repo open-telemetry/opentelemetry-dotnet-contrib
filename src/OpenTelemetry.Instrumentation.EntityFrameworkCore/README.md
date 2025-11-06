@@ -16,8 +16,8 @@ which instruments
 and collects traces about outgoing requests.
 
 > [!IMPORTANT]
-> EF Core Instrumentation only currently supports tracing for relational
-> databases such as Microsoft SQL Server or PostgreSQL.
+> Entity Framework Core Instrumentation only currently supports tracing for
+> relational databases such as Microsoft SQL Server or PostgreSQL.
 >
 > It does not currently support NoSQL databases such as
 > [Azure Cosmos DB](https://learn.microsoft.com/ef/core/providers/cosmos/).
