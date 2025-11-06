@@ -12,6 +12,7 @@ using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
@@ -32,14 +33,18 @@ public sealed class EntityFrameworkIntegrationTests :
     private readonly PostgresIntegrationTestsFixture postgresFixture;
     private readonly SqlClientIntegrationTestsFixture sqlServerFixture;
 
+    private readonly ITestOutputHelper outputHelper;
+
     public EntityFrameworkIntegrationTests(
         MySqlIntegrationTestsFixture mySqlFixture,
         PostgresIntegrationTestsFixture postgresFixture,
-        SqlClientIntegrationTestsFixture fixture)
+        SqlClientIntegrationTestsFixture fixture,
+        ITestOutputHelper outputHelper)
     {
         this.mySqlFixture = mySqlFixture;
         this.postgresFixture = postgresFixture;
         this.sqlServerFixture = fixture;
+        this.outputHelper = outputHelper;
     }
 
     public static TheoryData<string, string, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
@@ -80,7 +85,7 @@ public sealed class EntityFrameworkIntegrationTests :
         return testCases;
     }
 
-    public static TheoryData<string, bool, bool, Type, string, string> DataContextTestCases()
+    public static TheoryData<string, bool, bool, Type, string, string> RelationalDataContextTestCases()
     {
         (string, Type, string, string)[] providers =
         [
@@ -224,8 +229,8 @@ public sealed class EntityFrameworkIntegrationTests :
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [MemberData(nameof(DataContextTestCases))]
-    public async Task TracesDataContext(
+    [MemberData(nameof(RelationalDataContextTestCases))]
+    public async Task TracesDataContextRelational(
         string provider,
         bool shouldEnrich,
         bool useNewConventions,
@@ -442,6 +447,10 @@ public sealed class EntityFrameworkIntegrationTests :
 
     private void ConfigureProvider(string provider, DbContextOptionsBuilder<ItemsContext> builder)
     {
+        builder.LogTo(this.outputHelper.WriteLine, Microsoft.Extensions.Logging.LogLevel.Trace)
+               .EnableSensitiveDataLogging()
+               .EnableDetailedErrors();
+
         switch (provider)
         {
             case MySqlProvider:
