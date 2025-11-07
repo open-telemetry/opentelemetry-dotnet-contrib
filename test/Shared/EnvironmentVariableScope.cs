@@ -6,6 +6,7 @@ namespace OpenTelemetry;
 internal sealed class EnvironmentVariableScope : IDisposable
 {
     private readonly Dictionary<string, string?> originalEnvironment = [];
+    private bool disposed;
 
     private EnvironmentVariableScope(params ReadOnlySpan<(string Name, string? Value)> environment)
     {
@@ -27,9 +28,14 @@ internal sealed class EnvironmentVariableScope : IDisposable
 
     public void Dispose()
     {
-        foreach (var pair in this.originalEnvironment)
+        if (!this.disposed)
         {
-            Environment.SetEnvironmentVariable(pair.Key, pair.Value);
+            foreach (var pair in this.originalEnvironment)
+            {
+                Environment.SetEnvironmentVariable(pair.Key, pair.Value);
+            }
+
+            this.disposed = true;
         }
     }
 }
