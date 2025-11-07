@@ -40,10 +40,6 @@ internal class AWSLambdaUtils
 
     internal static ActivityContext GetXRayParentContext()
     {
-        // Currently get trace header from Lambda runtime environment variable
-        // https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime
-        // TODO: Add steps to extract trace header from http header
-
         var tracerHeaderValue = LambdaTraceProvider.CurrentTraceId;
         if (tracerHeaderValue == null)
         {
