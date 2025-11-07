@@ -4,7 +4,7 @@
 
 * Add support for .NET 10.0.
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
-* Implement AWS Lambda detector (https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3410)
+* Implement AWS Lambda detector ([#3411](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3411))
 
 ## 1.13.0
 
