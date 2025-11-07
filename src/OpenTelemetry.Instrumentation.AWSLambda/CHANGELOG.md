@@ -4,6 +4,7 @@
 
 * Add support for .NET 10.0.
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+* Rework internal logic for determining the trace id created by AWS Lambda.
 
 ## 1.13.0
 
