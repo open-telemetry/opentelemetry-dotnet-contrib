@@ -506,21 +506,9 @@ public sealed class EntityFrameworkIntegrationTests :
         public required string System { get; init; }
     }
 
-    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    private sealed class SemanticConventionScope
     {
-        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
-
-        public static SemanticConventionScope Get(bool useNewConventions)
-        {
-            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
-
-            Environment.SetEnvironmentVariable(
-                ConventionsOptIn,
-                useNewConventions ? "database" : string.Empty);
-
-            return new SemanticConventionScope(previous);
-        }
-
-        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
+        public static IDisposable Get(bool useNewConventions)
+            => EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", useNewConventions ? "database" : string.Empty);
     }
 }
