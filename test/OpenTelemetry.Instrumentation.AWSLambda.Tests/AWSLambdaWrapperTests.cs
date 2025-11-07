@@ -203,7 +203,7 @@ public class AWSLambdaWrapperTests : IDisposable
                        .AddInMemoryExporter(exportedItems)
                        .Build()!)
             {
-                var result = AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
+                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext);
                 var resource = tracerProvider.GetResource();
                 this.AssertResourceAttributes(resource);
             }
@@ -218,12 +218,12 @@ public class AWSLambdaWrapperTests : IDisposable
         using (EnvironmentVariableScope.Create("_X_AMZN_TRACE_ID", null))
         {
             Activity? activity = null;
-            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                       .AddAWSLambdaConfigurations(opt =>
-                       {
-                           opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
-                       })
-                       .Build())
+            using (Sdk.CreateTracerProviderBuilder()
+                      .AddAWSLambdaConfigurations(opt =>
+                      {
+                          opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                      })
+                      .Build())
             {
                 activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
             }
@@ -239,9 +239,9 @@ public class AWSLambdaWrapperTests : IDisposable
         {
             Activity? activity = null;
 
-            using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                       .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
-                       .Build())
+            using (Sdk.CreateTracerProviderBuilder()
+                      .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
+                      .Build())
             {
                 activity = AWSLambdaWrapper.OnFunctionStart("test-input", new SampleLambdaContext());
             }
@@ -258,9 +258,9 @@ public class AWSLambdaWrapperTests : IDisposable
         AWSLambdaWrapper.ResetColdStart();
         Activity? activity = null;
 
-        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
-                   .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
-                   .Build())
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddAWSLambdaConfigurations(c => c.DisableAwsXRayContextExtraction = true)
+                  .Build())
         {
             for (var i = 1; i <= invocationsCount; i++)
             {
