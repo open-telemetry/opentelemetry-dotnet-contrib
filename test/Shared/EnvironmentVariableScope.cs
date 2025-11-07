@@ -7,7 +7,7 @@ internal sealed class EnvironmentVariableScope : IDisposable
 {
     private readonly Dictionary<string, string?> originalEnvironment = [];
 
-    private EnvironmentVariableScope(params Span<(string Name, string? Value)> environment)
+    private EnvironmentVariableScope(params ReadOnlySpan<(string Name, string? Value)> environment)
     {
         foreach (var (name, value) in environment)
         {
@@ -19,7 +19,7 @@ internal sealed class EnvironmentVariableScope : IDisposable
     public static IDisposable Create(string name, string? value)
         => Create((name, value));
 
-    public static IDisposable Create(params Span<(string Name, string? Value)> environment)
+    public static IDisposable Create(params ReadOnlySpan<(string Name, string? Value)> environment)
         => new EnvironmentVariableScope(environment);
 
     public static IDisposable Create(IDictionary<string, string?> environment)
