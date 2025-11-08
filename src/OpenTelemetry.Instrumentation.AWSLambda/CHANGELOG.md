@@ -4,7 +4,7 @@
 
 * Add support for .NET 10.0.
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
-* Rework internal logic for determining the trace id created by AWS Lambda.
+* Update Amazon.Lambda.Core dependency from 2.2.0 to 2.8.0 which reworks the internal logic for determining the trace id created by AWS Lambda.
   ([#3410](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3410))
 
 ## 1.13.0
