@@ -1,9 +1,9 @@
 # Kusto Instrumentation for OpenTelemetry
 
-| Status      |                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------ |
-| Stability   | [Alpha](../../README.md#alpha)                                                                               |
-| Code Owners | [@MattKotsenas](https://github.com/MattKotsenas), [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj) |
+| Status      |                                                                        |
+| ----------- | ---------------------------------------------------------------------- |
+| Stability   | [Alpha](../../README.md#alpha)                                         |
+| Code Owners | [@MattKotsenas](https://github.com/MattKotsenas)                       |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
@@ -14,9 +14,44 @@ This is an
 which instruments Azure Data Explorer (Kusto) client libraries
 and collects telemetry about Kusto operations.
 
+## Steps to enable OpenTelemetry.Instrumentation.Kusto
+
+### Step 1: Install Package
+
+Add a reference to the
+[`OpenTelemetry.Instrumentation.Kusto`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
+package. Also, add any other instrumentations & exporters you will need.
+
+```shell
+dotnet add package OpenTelemetry.Instrumentation.Kusto
+```
+
+### Step 2: Enable Kusto Instrumentation at application startup
+
+Kusto instrumentation must be enabled at application startup.
+
+The following example demonstrates adding Kusto instrumentation to a
+console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Console)
+to the application.
+
+```csharp
+using OpenTelemetry.Trace;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddKustoInstrumentation()
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
-* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-spans.md)
-* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.40.0/docs/db/database-metrics.md)
