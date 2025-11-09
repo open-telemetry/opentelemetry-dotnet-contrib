@@ -24,7 +24,6 @@ public class KustoInstrumentationTests
         var builder = Sdk.CreateTracerProviderBuilder();
         var options = new KustoInstrumentationOptions
         {
-            EnableTracing = true,
         };
 
         var actual = builder.AddKustoInstrumentation(options);

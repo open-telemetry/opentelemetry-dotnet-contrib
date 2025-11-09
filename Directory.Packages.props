@@ -83,6 +83,7 @@
     <PackageVersion Include="Confluent.Kafka" Version="[2.4.0,)" />
     <PackageVersion Include="Grpc.Core.Api" Version="[2.46.6,)" />
     <PackageVersion Include="InfluxDB.Client" Version="[4.18.0,)" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="[14.0.2,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[7.1.2448,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Services.Remoting" Version="[7.1.2448,)" />
     <PackageVersion Include="Quartz" Version="[3.6.3,)" />

@@ -1,8 +1,6 @@
 #nullable enable
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions
-OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.EnableTracing.get -> bool
-OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.EnableTracing.set -> void
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.KustoInstrumentationOptions() -> void
-OpenTelemetry.Instrumentation.Kusto.TracerProviderBuilderExtensions
-static OpenTelemetry.Instrumentation.Kusto.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
-static OpenTelemetry.Instrumentation.Kusto.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions! options) -> OpenTelemetry.Trace.TracerProviderBuilder!
+OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions! options) -> OpenTelemetry.Trace.TracerProviderBuilder!

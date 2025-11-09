@@ -141,6 +141,7 @@ internal static class SemanticConventions
 
     // v1.36.0 database conventions:
     // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database
+    public const string AttributeDbClientOperationDuration = "db.client.operation.duration";
     public const string AttributeDbCollectionName = "db.collection.name";
     public const string AttributeDbOperationName = "db.operation.name";
     public const string AttributeDbSystemName = "db.system.name";
