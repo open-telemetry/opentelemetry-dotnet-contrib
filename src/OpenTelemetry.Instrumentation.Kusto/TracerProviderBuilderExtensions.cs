@@ -41,6 +41,8 @@ public static class TracerProviderBuilderExtensions
         Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
         KustoUtils.TraceSourceManager.AddTraceListener(new KustoListener(), startupDone: true);
 
+        builder.AddSource(KustoListener.ActivitySourceName);
+
         return builder;
     }
 }
