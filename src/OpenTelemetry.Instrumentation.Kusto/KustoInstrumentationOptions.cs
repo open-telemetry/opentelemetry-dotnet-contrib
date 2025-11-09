@@ -8,8 +8,7 @@ namespace OpenTelemetry.Instrumentation.Kusto;
 /// </summary>
 public class KustoInstrumentationOptions
 {
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable tracing.
-    /// </summary>
-    public bool EnableTracing { get; set; } = true;
+    // TODO: Add flag for query text tracing
+
+    // TODO: Add flag for query parameter tracing
 }

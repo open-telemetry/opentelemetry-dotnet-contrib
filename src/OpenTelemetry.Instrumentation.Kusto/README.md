@@ -1,8 +1,8 @@
 # Kusto Instrumentation for OpenTelemetry
 
-| Status      |                                                                        |
-| ----------- | ---------------------------------------------------------------------- |
-| Stability   | [Alpha](../../README.md#alpha)                                         |
+| Status      |           |
+| ----------- | --------- |
+| Stability   | [Alpha](../../README.md#alpha) |
 | Code Owners | [@MattKotsenas](https://github.com/MattKotsenas)                       |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)

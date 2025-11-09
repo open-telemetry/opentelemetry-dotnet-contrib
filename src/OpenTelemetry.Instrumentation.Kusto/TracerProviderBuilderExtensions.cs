@@ -1,10 +1,12 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using OpenTelemetry.Instrumentation.Kusto;
+using OpenTelemetry.Instrumentation.Kusto.Implementation;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
+using KustoUtils = Kusto.Cloud.Platform.Utils;
 
-namespace OpenTelemetry.Instrumentation.Kusto;
+namespace OpenTelemetry.Trace;
 
 /// <summary>
 /// Extension methods to simplify registering of Kusto instrumentation.
@@ -36,7 +38,9 @@ public static class TracerProviderBuilderExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(options);
 
-        // TODO: Implement actual instrumentation
+        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+        KustoUtils.TraceSourceManager.AddTraceListener(new KustoListener(), startupDone: true);
+
         return builder;
     }
 }
