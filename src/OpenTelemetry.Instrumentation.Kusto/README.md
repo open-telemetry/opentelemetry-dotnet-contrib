@@ -2,7 +2,7 @@
 
 | Status      |           |
 | ----------- | --------- |
-| Stability   | [Experimental](../../README.md#experimental) |
+| Stability   | [Alpha](../../README.md#alpha) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Kusto)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Kusto)
