@@ -24,17 +24,20 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [InlineData(".show version")]
-    [InlineData(".show databases")]
-    [InlineData("print number=42")]
-    public Task SuccessfulQueryTest(string query)
+    [InlineData(".show version", true)]
+    [InlineData(".show databases", true)]
+    [InlineData("print number=42", true)]
+    [InlineData(".show version", false)]
+    [InlineData(".show databases", false)]
+    [InlineData("print number=42", false)]
+    public Task SuccessfulQueryTest(string query, bool recordQueryText)
     {
         var activities = new List<Activity>();
         var exportedMetrics = new List<Metric>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddKustoInstrumentation()
+            .AddKustoInstrumentation(new KustoInstrumentationOptions { RecordQueryText = recordQueryText })
             .Build();
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -80,6 +83,6 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
             .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
             .UseDirectory("Snapshots")
-            .UseParameters(query);
+            .UseParameters(query, recordQueryText);
     }
 }
