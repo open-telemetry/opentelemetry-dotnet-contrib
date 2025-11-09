@@ -13,14 +13,14 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal sealed class KustoListener : KustoUtils.ITraceListener
 {
-    private const string InstrumentationName = "Kusto.Client";
+    internal const string ActivitySourceName = "Kusto.Client";
     private const string InstrumentationVersion = "1.0.0";
     private const string DbSystem = "kusto";
 
     private const string ClientRequestIdTagKey = "kusto.client_request_id";
 
-    private static readonly ActivitySource ActivitySource = new(InstrumentationName, InstrumentationVersion);
-    private static readonly Meter Meter = new(InstrumentationName, InstrumentationVersion);
+    private static readonly ActivitySource ActivitySource = new(ActivitySourceName, InstrumentationVersion);
+    private static readonly Meter Meter = new(ActivitySourceName, InstrumentationVersion);
 
     // Metrics following OpenTelemetry database semantic conventions
     private static readonly Histogram<double> OperationDurationHistogram = Meter.CreateHistogram(
