@@ -1,0 +1,23 @@
+﻿{
+  DisplayName: KD.RestClient.ExecuteQuery,
+  Tags: [
+    {
+      db.system.name: kusto
+    },
+    {
+      kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
+    },
+    {
+      db.operation.name: KD.RestClient.ExecuteQuery
+    },
+    {
+      url.full: http://{Hostname}:{Port}/v1/rest/query
+    },
+    {
+      server.address: {Hostname}:{Port}
+    },
+    {
+      http.response.status_code: OK
+    }
+  ]
+}
