@@ -33,6 +33,13 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
         "db.client.operation.count",
         description: "Number of database client operations");
 
+    private readonly KustoInstrumentationOptions options;
+
+    public KustoListener(KustoInstrumentationOptions options)
+    {
+        this.options = options;
+    }
+
     public override bool IsThreadSafe => true;
 
     public override void Flush()
@@ -48,7 +55,7 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
 
         if (record.IsRequestStart())
         {
-            HandleHttpRequestStart(record);
+            this.HandleHttpRequestStart(record);
         }
         else if (record.IsResponseStart())
         {
@@ -65,44 +72,6 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
         var activity = Activity.Current;
 
         activity?.SetStatus(ActivityStatusCode.Error, record.Message);
-    }
-
-    private static void HandleHttpRequestStart(KustoUtils.TraceRecord record)
-    {
-        var operationName = record.Activity.ActivityType;
-
-        var activity = ActivitySource.StartActivity(operationName, ActivityKind.Client);
-
-        if (activity?.IsAllDataRequested is true)
-        {
-            activity.SetTag(SemanticConventions.AttributeDbSystemName, DbSystem);
-            activity.SetTag(ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
-            activity.SetTag(SemanticConventions.AttributeDbOperationName, operationName);
-
-            var message = record.Message.AsSpan();
-
-            var uri = ExtractValueBetween(message, "Uri=", ",");
-            if (!uri.IsEmpty)
-            {
-                var uriString = uri.ToString();
-                activity.SetTag(SemanticConventions.AttributeUrlFull, uriString);
-                activity.SetTag(SemanticConventions.AttributeServerAddress, GetServerAddress(uri));
-
-                string? database = null; // TODO: Add parsing for database when availble
-                if (!string.IsNullOrEmpty(database))
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbNamespace, database);
-                }
-            }
-
-            // TODO: Consider making text optional
-            // TODO: Consider adding summary
-            var text = ExtractValueBetween(message, "text=", Environment.NewLine);
-            if (!text.IsEmpty)
-            {
-                activity.SetTag(SemanticConventions.AttributeDbQueryText, text.ToString());
-            }
-        }
     }
 
     private static void HandleHttpResponseReceived(KustoUtils.TraceRecord record)
@@ -191,5 +160,45 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
         var host = pathStart >= 0 ? remaining.Slice(0, pathStart) : remaining;
 
         return host.ToString();
+    }
+
+    private void HandleHttpRequestStart(KustoUtils.TraceRecord record)
+    {
+        var operationName = record.Activity.ActivityType;
+
+        var activity = ActivitySource.StartActivity(operationName, ActivityKind.Client);
+
+        if (activity?.IsAllDataRequested is true)
+        {
+            activity.SetTag(SemanticConventions.AttributeDbSystemName, DbSystem);
+            activity.SetTag(ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
+            activity.SetTag(SemanticConventions.AttributeDbOperationName, operationName);
+
+            var message = record.Message.AsSpan();
+
+            var uri = ExtractValueBetween(message, "Uri=", ",");
+            if (!uri.IsEmpty)
+            {
+                var uriString = uri.ToString();
+                activity.SetTag(SemanticConventions.AttributeUrlFull, uriString);
+                activity.SetTag(SemanticConventions.AttributeServerAddress, GetServerAddress(uri));
+
+                string? database = null; // TODO: Add parsing for database when availble
+                if (!string.IsNullOrEmpty(database))
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbNamespace, database);
+                }
+            }
+
+            // TODO: Consider adding summary
+            if (this.options.RecordQueryText)
+            {
+                var text = ExtractValueBetween(message, "text=", Environment.NewLine);
+                if (!text.IsEmpty)
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, text.ToString());
+                }
+            }
+        }
     }
 }

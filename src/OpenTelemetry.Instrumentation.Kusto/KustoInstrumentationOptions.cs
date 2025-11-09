@@ -8,7 +8,11 @@ namespace OpenTelemetry.Instrumentation.Kusto;
 /// </summary>
 public class KustoInstrumentationOptions
 {
-    // TODO: Add flag for query text tracing
+    /// <summary>
+    /// Gets or sets a value indicating whether the query text should be recorded as an attribute on the activity.
+    /// Default is false.
+    /// </summary>
+    public bool RecordQueryText { get; set; }
 
     // TODO: Add flag for query parameter tracing
 }
