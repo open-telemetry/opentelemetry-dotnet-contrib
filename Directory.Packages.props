@@ -76,7 +76,7 @@
   <ItemGroup Label="Production other packages">
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="[2.7.0,)" />
     <PackageVersion Include="Amazon.Lambda.ApplicationLoadBalancerEvents" Version="[2.2.0,)" />
-    <PackageVersion Include="Amazon.Lambda.Core" Version="[2.2.0,)" />
+    <PackageVersion Include="Amazon.Lambda.Core" Version="[2.8.0,)" />
     <PackageVersion Include="Amazon.Lambda.SNSEvents" Version="[2.1.0,)" />
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="[2.2.0,)" />
     <PackageVersion Include="CassandraCSharpDriver" Version="[3.17.0,)" />
@@ -91,12 +91,12 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.13.3" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.6" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.9" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.3" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.9.1" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.13.5" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.6.2" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7.2" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.9.2" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.5" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.11.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
@@ -106,7 +106,7 @@
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.71.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.76.0" />
-    <PackageVersion Include="Hangfire.Core" Version="1.8.21" />
+    <PackageVersion Include="Hangfire.Core" Version="1.8.22" />
     <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
     <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.10" />
     <PackageVersion Include="JunitXml.TestLogger" Version="7.0.2" />
@@ -122,7 +122,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.21" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.2.0" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
     <PackageVersion Include="MessagePack" Version="3.1.4" />
@@ -131,7 +131,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.3" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.ServiceModel.Http" Version="8.1.2" />
