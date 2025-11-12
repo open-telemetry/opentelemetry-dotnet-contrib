@@ -3,7 +3,7 @@
     {
       "args": [
         "build",
-        "${workspaceFolder}/opentelemetry-dotnet-contrib.sln",
+        "${workspaceFolder}/opentelemetry-dotnet-contrib.slnx",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -19,7 +19,7 @@
     {
       "args": [
         "test",
-        "${workspaceFolder}/opentelemetry-dotnet-contrib.sln",
+        "${workspaceFolder}/opentelemetry-dotnet-contrib.slnx",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
