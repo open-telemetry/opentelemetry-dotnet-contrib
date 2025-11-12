@@ -24,6 +24,12 @@
     <PackageReference Include="System.ServiceModel.NetTcp" />
   </ItemGroup>
 
+  <!-- Test compatibility with version that natively supports net10.0 -->
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">
+    <PackageReference Update="System.ServiceModel.Http" VersionOverride="10.0.652802" />
+    <PackageReference Update="System.ServiceModel.NetTcp" VersionOverride="10.0.652802" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
   </ItemGroup>

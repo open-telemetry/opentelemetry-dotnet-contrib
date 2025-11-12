@@ -258,12 +258,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void EntityFrameworkContextEventsInstrumentedTest()
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation().Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation()
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
 
             Assert.Equal(3, items.Count);
@@ -283,20 +284,21 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     {
         var exportedItems = new List<Activity>();
         var expectedDisplayName = "Text main";
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.EnrichWithIDbCommand = (activity1, command) =>
-                {
-                    var stateDisplayName = $"{command.CommandType} main";
-                    activity1.DisplayName = stateDisplayName;
-                    activity1.SetTag("db.name", stateDisplayName);
-                };
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                  {
+                      options.EnrichWithIDbCommand = (activity1, command) =>
+                      {
+                          var stateDisplayName = $"{command.CommandType} main";
+                          activity1.DisplayName = stateDisplayName;
+                          activity1.SetTag("db.name", stateDisplayName);
+                      };
+                  })
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
 
             Assert.Equal(3, items.Count);
@@ -316,21 +318,23 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     {
         var exportedItems = new List<Activity>();
         var expectedDisplayName = "Text main";
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.EnrichWithIDbCommand = (activity1, command) =>
-                {
-                    var stateDisplayName = $"{command.CommandType} main";
-                    activity1.DisplayName = stateDisplayName;
-                    activity1.SetTag("db.namespace", stateDisplayName);
-                };
-                options.EmitNewAttributes = true;
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                  {
+                      options.EnrichWithIDbCommand = (activity1, command) =>
+                      {
+                          var stateDisplayName = $"{command.CommandType} main";
+                          activity1.DisplayName = stateDisplayName;
+                          activity1.SetTag("db.namespace", stateDisplayName);
+                      };
+                      options.EmitNewAttributes = true;
+                  })
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
+
             var items = context.Set<Item>().OrderBy(e => e.Name).ToList();
 
             Assert.Equal(3, items.Count);
@@ -349,13 +353,14 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void EntityFrameworkContextExceptionEventsInstrumentedTest()
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation()
-            .Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation()
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
+
             try
             {
                 context.Database.ExecuteSqlRaw("select * from no_table");
@@ -376,15 +381,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByDbCommand()
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = (_, command) => !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, command) => !command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase))
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
@@ -395,15 +398,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByDbCommand()
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = (_, command) => command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase);
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (_, command) => command.CommandText.Contains("Item", StringComparison.OrdinalIgnoreCase))
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
@@ -437,15 +438,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldNotCollectTelemetryWhenFilterEvaluatesToFalseByProviderName(string provider)
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = (providerName, _) => providerName != null && providerName.Equals(provider, StringComparison.OrdinalIgnoreCase);
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (providerName, _) => providerName != null && providerName.Equals(provider, StringComparison.OrdinalIgnoreCase))
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
@@ -456,15 +455,13 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     public void ShouldCollectTelemetryWhenFilterEvaluatesToTrueByProviderName()
     {
         var exportedItems = new List<Activity>();
-        using var shutdownSignal = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(exportedItems)
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = (providerName, _) => providerName != null && providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase);
-            }).Build();
 
-        using (var context = new ItemsContext(this.contextOptions))
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options => options.Filter = (providerName, _) => providerName != null && providerName.Equals("Microsoft.EntityFrameworkCore.Sqlite", StringComparison.OrdinalIgnoreCase))
+                  .Build())
         {
+            using var context = new ItemsContext(this.contextOptions);
             _ = context.Set<Item>().OrderBy(e => e.Name).ToList();
         }
 
