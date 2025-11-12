@@ -42,10 +42,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         bool recordException = false,
         bool enableTransaction = false)
     {
-        if (commandText == GetContextInfoQuery)
-        {
-            Environment.SetEnvironmentVariable(SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar, "true");
-        }
+        using var scope = EnvironmentVariableScope.Create(
+            SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
+            commandText == GetContextInfoQuery ? "true" : null);
 
 #if NETFRAMEWORK
         // Disable things not available on netfx
@@ -323,21 +322,9 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
     private string GetConnectionString()
         => this.fixture.DatabaseContainer.GetConnectionString();
 
-    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    private static class SemanticConventionScope
     {
-        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
-
-        public static SemanticConventionScope Get(bool useNewConventions)
-        {
-            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
-
-            Environment.SetEnvironmentVariable(
-                ConventionsOptIn,
-                useNewConventions ? "database" : string.Empty);
-
-            return new SemanticConventionScope(previous);
-        }
-
-        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
+        public static IDisposable Get(bool useNewConventions)
+            => EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", useNewConventions ? "database" : string.Empty);
     }
 }

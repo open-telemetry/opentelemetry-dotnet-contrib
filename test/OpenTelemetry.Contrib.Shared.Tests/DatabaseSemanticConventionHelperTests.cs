@@ -52,20 +52,14 @@ public class DatabaseSemanticConventionHelperTests
     [MemberData(nameof(TestCases))]
     public void VerifyGetSemanticConventionOptIn_UsingEnvironmentVariable(string input, string expectedValue)
     {
-        try
+        using (EnvironmentVariableScope.Create(SemanticConventionOptInKeyName, input))
         {
-            Environment.SetEnvironmentVariable(SemanticConventionOptInKeyName, input);
-
 #if NET
             var expected = Enum.Parse<DatabaseSemanticConvention>(expectedValue);
 #else
             var expected = Enum.Parse(typeof(DatabaseSemanticConvention), expectedValue);
 #endif
             Assert.Equal(expected, GetSemanticConventionOptIn(new ConfigurationBuilder().AddEnvironmentVariables().Build()));
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(SemanticConventionOptInKeyName, null);
         }
     }
 
