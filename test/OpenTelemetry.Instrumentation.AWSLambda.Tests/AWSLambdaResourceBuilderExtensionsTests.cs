@@ -6,7 +6,7 @@ using Xunit;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda.Tests;
 
-public class AWSLambdaResourceBuilderExtensionsTests
+public class AWSLambdaResourceBuilderExtensionsTests : IDisposable
 {
     // Expected Semantic Conventions
     private const string AttributeCloudProvider = "cloud.provider";
@@ -16,15 +16,14 @@ public class AWSLambdaResourceBuilderExtensionsTests
     private const string AttributeFaasInstance = "faas.instance";
     private const string AttributeFaasMaxMemory = "faas.max_memory";
 
-    public AWSLambdaResourceBuilderExtensionsTests()
-    {
-        Environment.SetEnvironmentVariable("AWS_REGION", "us-east-1");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME", "testfunction");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_VERSION", "latest");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128");
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_LOG_STREAM_NAME",
-            "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374");
-    }
+    private readonly IDisposable environmentScope = EnvironmentVariableScope.Create(
+        ("AWS_REGION", "us-east-1"),
+        ("AWS_LAMBDA_FUNCTION_NAME", "testfunction"),
+        ("AWS_LAMBDA_FUNCTION_VERSION", "latest"),
+        ("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128"),
+        ("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374"));
+
+    public void Dispose() => this.environmentScope.Dispose();
 
     [Fact]
     public void AssertAttributes()
