@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetMinimumSupportedVersion);netstandard2.1;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>net10.0;$(NetMinimumSupportedVersion);netstandard2.1;$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that sends telemetry to Microsoft OneCollector.</Description>
@@ -19,11 +19,10 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry" />
-    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
   <ItemGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
-    <PackageReference Update="System.Text.Json" VersionOverride="[6.0.10,)" />
+    <PackageReference Include="System.Text.Json" VersionOverride="[6.0.10,)" />
   </ItemGroup>
 
   <ItemGroup>

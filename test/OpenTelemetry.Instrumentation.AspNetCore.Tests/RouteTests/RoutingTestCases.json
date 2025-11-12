@@ -136,6 +136,17 @@
     "expectedHttpRoute": "/Index"
   },
   {
+    "name": "Root path",
+    "testApplicationScenario": "RazorPages",
+    "minimumDotnetVersion": 10,
+    "httpMethod": "GET",
+    "path": "/",
+    "expectedStatusCode": 200,
+    "currentHttpRoute": "",
+    "expectedHttpRoute": "/Index",
+    "expectedMetricRoute": "/"
+  },
+  {
     "name": "Index page",
     "testApplicationScenario": "RazorPages",
     "httpMethod": "GET",

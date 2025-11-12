@@ -40,7 +40,7 @@ public static class ProcessAttributes
     /// <summary>
     /// Specifies whether the context switches for this data point were voluntary or involuntary.
     /// </summary>
-    public const string AttributeProcessContextSwitchType = "process.context_switch_type";
+    public const string AttributeProcessContextSwitchType = "process.context_switch.type";
 
     /// <summary>
     /// Deprecated, use <c>cpu.mode</c> instead.
@@ -133,8 +133,9 @@ public static class ProcessAttributes
     public const string AttributeProcessOwner = "process.owner";
 
     /// <summary>
-    /// The type of page fault for this data point. Type <c>major</c> is for major/hard page faults, and <c>minor</c> is for minor/soft page faults.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public const string AttributeProcessPagingFaultType = "process.paging.fault_type";
 
     /// <summary>
@@ -186,6 +187,11 @@ public static class ProcessAttributes
     /// The PID of the process's session leader. This is also the session ID (SID) of the process.
     /// </summary>
     public const string AttributeProcessSessionLeaderPid = "process.session_leader.pid";
+
+    /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public const string AttributeProcessState = "process.state";
 
     /// <summary>
     /// Process title (proctitle).
@@ -260,18 +266,47 @@ public static class ProcessAttributes
     }
 
     /// <summary>
-    /// The type of page fault for this data point. Type <c>major</c> is for major/hard page faults, and <c>minor</c> is for minor/soft page faults.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public static class ProcessPagingFaultTypeValues
     {
         /// <summary>
         /// major.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
+    }
+
+    /// <summary>
+    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// </summary>
+    public static class ProcessStateValues
+    {
+        /// <summary>
+        /// running.
+        /// </summary>
+        public const string Running = "running";
+
+        /// <summary>
+        /// sleeping.
+        /// </summary>
+        public const string Sleeping = "sleeping";
+
+        /// <summary>
+        /// stopped.
+        /// </summary>
+        public const string Stopped = "stopped";
+
+        /// <summary>
+        /// defunct.
+        /// </summary>
+        public const string Defunct = "defunct";
     }
 }

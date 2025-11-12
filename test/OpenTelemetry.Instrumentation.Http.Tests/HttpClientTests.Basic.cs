@@ -621,7 +621,13 @@ public partial class HttpClientTests : IDisposable
 
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
+
+#if NET10_0_OR_GREATER
+        // .NET 10 reports its own activity, but does not set the status description
+        Assert.Contains(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
+#else
         Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
+#endif
     }
 
     [Fact]

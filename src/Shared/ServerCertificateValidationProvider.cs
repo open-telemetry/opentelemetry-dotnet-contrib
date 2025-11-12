@@ -45,7 +45,12 @@ internal class ServerCertificateValidationProvider
     {
         try
         {
+#if NET10_0_OR_GREATER
+            collection.Add(X509CertificateLoader.LoadCertificateFromFile(certFileName));
+#else
             collection.Import(certFileName);
+#endif
+
             return true;
         }
         catch (Exception)

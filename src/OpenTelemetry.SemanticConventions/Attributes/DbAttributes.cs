@@ -151,7 +151,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.response.status_code</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.response.status_code</c>.")]
+    [Obsolete("Use <c>db.response.status_code</c> instead.")]
     public const string AttributeDbCosmosdbStatusCode = "db.cosmosdb.status_code";
 
     /// <summary>
@@ -275,14 +275,17 @@ public static class DbAttributes
     /// <c>db.query.parameter.<key></c> SHOULD match
     /// up with the parameterized placeholders present in <c>db.query.text</c>.
     /// <p>
+    /// It is RECOMMENDED to capture the value as provided by the application
+    /// without attempting to do any case normalization.
+    /// <p>
     /// <c>db.query.parameter.<key></c> SHOULD NOT be captured on batch operations.
     /// <p>
     /// Examples:
     /// <ul>
     ///   <li>For a query <c>SELECT * FROM users where username =  %s</c> with the parameter <c>"jdoe"</c>,
     /// the attribute <c>db.query.parameter.0</c> SHOULD be set to <c>"jdoe"</c>.</li>
-    ///   <li>For a query <c>"SELECT * FROM users WHERE username = %(username)s;</c> with parameter
-    /// <c>username = "jdoe"</c>, the attribute <c>db.query.parameter.username</c> SHOULD be set to <c>"jdoe"</c>.</li>
+    ///   <li>For a query <c>"SELECT * FROM users WHERE username = %(userName)s;</c> with parameter
+    /// <c>userName = "jdoe"</c>, the attribute <c>db.query.parameter.userName</c> SHOULD be set to <c>"jdoe"</c>.</li>
     /// </ul>
     /// </remarks>
     public const string AttributeDbQueryParameterTemplate = "db.query.parameter";
@@ -316,7 +319,7 @@ public static class DbAttributes
     /// <summary>
     /// Deprecated, use <c>db.namespace</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>db.namespace</c>.")]
+    [Obsolete("Uncategorized.")]
     public const string AttributeDbRedisDatabaseIndex = "db.redis.database_index";
 
     /// <summary>

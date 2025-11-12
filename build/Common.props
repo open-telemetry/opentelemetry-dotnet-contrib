@@ -8,6 +8,8 @@
     <NetFrameworkMinimumSupportedVersion>net462</NetFrameworkMinimumSupportedVersion>
     <NetMinimumSupportedVersion>net8.0</NetMinimumSupportedVersion>
     <NetStandardMinimumSupportedVersion>netstandard2.0</NetStandardMinimumSupportedVersion>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworksForLibraries>net10.0;$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworksForLibraries>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-all</AnalysisLevel>
     <Nullable>enable</Nullable>

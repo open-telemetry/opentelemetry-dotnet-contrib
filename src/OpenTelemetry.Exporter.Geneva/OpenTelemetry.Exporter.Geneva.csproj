@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS.</Description>
@@ -10,7 +9,7 @@
     <!-- Tweak style rules for Geneva: Allow underscores in constant names and allow regions inside code blocks -->
     <NoWarn>$(NoWarn);SA1123;SA1310</NoWarn>
     <MinVerTagPrefix>Exporter.Geneva-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.13.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.13.1</PackageValidationBaselineVersion>
     <AssemblyIsCLSCompliant>false</AssemblyIsCLSCompliant>
   </PropertyGroup>
 

@@ -127,7 +127,7 @@ public static class MessagingAttributes
     /// <summary>
     /// Deprecated, use <c>messaging.destination.partition.id</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>messaging.destination.partition.id</c>.")]
+    [Obsolete("Record string representation of the partition id in <c>messaging.destination.partition.id</c> attribute.")]
     public const string AttributeMessagingKafkaDestinationPartition = "messaging.kafka.destination.partition";
 
     /// <summary>

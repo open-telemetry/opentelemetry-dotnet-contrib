@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>ASP.NET Core instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNetCore</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNetCore-</MinVerTagPrefix>
@@ -31,7 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
+    <!-- TODO Revert version override for .NET 10 GA -->
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" VersionOverride="[$(OpenTelemetryCoreLatestPrereleaseVersion),2.0)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">

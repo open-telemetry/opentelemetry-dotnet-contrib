@@ -22,6 +22,7 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
     internal static readonly AssemblyName AssemblyName = typeof(HttpHandlerDiagnosticListener).Assembly.GetName();
     internal static readonly bool IsNet7OrGreater = Environment.Version.Major >= 7;
     internal static readonly bool IsNet9OrGreater = Environment.Version.Major >= 9;
+    internal static readonly bool IsNet10OrGreater = Environment.Version.Major >= 10;
 
     // https://github.com/dotnet/runtime/blob/7d034ddbbbe1f2f40c264b323b3ed3d6b3d45e9a/src/libraries/System.Net.Http/src/System/Net/Http/DiagnosticsHandler.cs#L19
     internal static readonly string ActivitySourceName = AssemblyName.Name + ".HttpClient";
@@ -178,7 +179,8 @@ internal sealed class HttpHandlerDiagnosticListener : ListenerHandler
             var requestTaskStatus = GetRequestStatus(payload);
 
             var currentStatusCode = activity.Status;
-            if (requestTaskStatus != TaskStatus.RanToCompletion)
+
+            if (!IsNet10OrGreater && requestTaskStatus != TaskStatus.RanToCompletion)
             {
                 if (requestTaskStatus == TaskStatus.Canceled)
                 {

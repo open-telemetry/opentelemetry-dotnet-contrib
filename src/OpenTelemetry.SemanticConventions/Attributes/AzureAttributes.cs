@@ -33,7 +33,7 @@ public static class AzureAttributes
     /// List of regions contacted during operation in the order that they were contacted. If there is more than one region listed, it indicates that the operation was performed on multiple regions i.e. cross-regional call.
     /// </summary>
     /// <remarks>
-    /// Region name matches the format of <c>displayName</c> in <a href="https://learn.microsoft.com/rest/api/subscription/subscriptions/list-locations?view=rest-subscription-2021-10-01&tabs=HTTP#location">Azure Location API</a>.
+    /// Region name matches the format of <c>displayName</c> in <a href="https://learn.microsoft.com/rest/api/resources/subscriptions/list-locations">Azure Location API</a>.
     /// </remarks>
     public const string AttributeAzureCosmosdbOperationContactedRegions = "azure.cosmosdb.operation.contacted_regions";
 

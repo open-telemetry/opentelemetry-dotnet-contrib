@@ -24,14 +24,14 @@ guidelines](./CONTRIBUTING.md).
 
 This repository is a collection of components maintained by different
 authors and groups. As such, components shipped from this repository (via
-[Nuget](https://www.nuget.org/)) may be at different stability/maturity levels.
+[NuGet](https://www.nuget.org/)) may be at different stability/maturity levels.
 The status for each individual component is mentioned in its respective
 `README.md` file and will fall into one of the following categories:
 
 ### Development
 
 Component is currently in development and is NOT available on
-[Nuget](https://www.nuget.org/).
+[NuGet](https://www.nuget.org/).
 
 ### Alpha
 
@@ -121,6 +121,43 @@ on how to become a
 [**Approver**](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver),
 and
 [**Maintainer**](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).
+
+## Releases
+
+For details about upcoming planned releases see:
+[Milestones](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/milestones).
+The dates and features described in issues and milestones are estimates and
+subject to change.
+
+For highlights and announcements for stable releases see the `CHANGELOG.md` file
+for individual NuGet packages under the [src](./src) directory.
+
+To access packages, source code, and/or view a list of changes for all
+components in a release see:
+[Releases](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/releases).
+
+Nightly builds from this repo are published to [MyGet](https://www.myget.org),
+and can be installed using the
+`https://www.myget.org/F/opentelemetry/api/v3/index.json` source.
+
+## Attestation
+
+Starting with the `1.14.*` releases the DLLs included in the packages pushed to
+NuGet are attested using [GitHub Artifact attestations](https://docs.github.com/actions/concepts/security/artifact-attestations).
+
+To verify the attestation of a DLL inside a NuGet package use the [GitHub CLI](https://cli.github.com/).
+
+For example:
+
+```bash
+gh attestation verify --owner open-telemetry .\OpenTelemetry.Instrumentation.Http.dll
+```
+
+> [!NOTE]
+> A successful verification outputs `Verification succeeded!`.
+
+For more verification options please refer to the [`gh attestation verify`
+documentation](https://cli.github.com/manual/gh_attestation_verify).
 
 ## Thanks to all the people who have contributed
 

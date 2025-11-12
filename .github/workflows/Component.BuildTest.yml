@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       tfm-list:
-        default: '[ "net462", "net8.0", "net9.0" ]'
+        default: '[ "net462", "net8.0", "net9.0", "net10.0" ]'
         required: false
         type: string
       test-case-filter:
@@ -172,7 +172,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Publish ${{ steps.resolve-project.outputs.name }} NuGet packages to Artifacts
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
       # Only publish packages from the first job, which should be net462 for Windows in most cases, which is preferred for .NET Framework support
       if: ${{ matrix.os == 'windows-latest' && inputs.pack && strategy.job-index == 0 }}
       with:
