@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>OpenTelemetry Quartz.NET Instrumentation.</Description>
     <PackageTags>$(PackageTags);distributed-tracing</PackageTags>
     <MinVerTagPrefix>Instrumentation.Quartz-</MinVerTagPrefix>
