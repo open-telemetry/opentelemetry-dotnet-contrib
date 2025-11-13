@@ -40,7 +40,7 @@ Released 2025-Oct-22
   * The default behavior (in the absence of one of these values) is to continue
   emitting the same database semantic conventions that were emitted in
   the previous version.
-  * Note: this option will be be removed after the new database
+  * Note: this option will be removed after the new database
   semantic conventions are marked stable. At which time this
   instrumentation can receive a stable release, and the old database
   semantic conventions will no longer be supported. Refer to the
