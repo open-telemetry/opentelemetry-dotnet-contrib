@@ -30,7 +30,7 @@ public class KustoTraceProviderBuilderTests
     public void AddKustoInstrumentation_WithNullOptions_ThrowsArgumentNullException()
     {
         var builder = Sdk.CreateTracerProviderBuilder();
-        KustoInstrumentationOptions options = null!;
+        Action<KustoInstrumentationOptions> options = null!;
 
         Assert.Throws<ArgumentNullException>(() => builder.AddKustoInstrumentation(options));
     }
@@ -39,9 +39,8 @@ public class KustoTraceProviderBuilderTests
     public void AddKustoInstrumentation_WithOptions_DoesNotThrow()
     {
         var builder = Sdk.CreateTracerProviderBuilder();
-        var options = new KustoInstrumentationOptions { RecordQueryText = true };
 
-        var actual = builder.AddKustoInstrumentation(options);
+        var actual = builder.AddKustoInstrumentation(options => options.RecordQueryText = true);
 
         Assert.Same(builder, actual);
     }
