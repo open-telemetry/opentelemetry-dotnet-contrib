@@ -20,9 +20,4 @@
     <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
   </ItemGroup>
 
-  <!-- TODO Remove once 1.14.* packages for contrib published -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="9.0.0" />
-  </ItemGroup>
-
 </Project>
