@@ -5,6 +5,9 @@
 * Add support for .NET 10.0.
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
 
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3425](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3425))
+
 ## 0.1.0-alpha.3
 
 Released 2025-Oct-23
