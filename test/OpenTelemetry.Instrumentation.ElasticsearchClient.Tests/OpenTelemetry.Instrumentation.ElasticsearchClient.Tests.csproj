@@ -24,4 +24,10 @@
     <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
   </ItemGroup>
 
+  <!-- TODO Remove once 1.14.* packages for contrib published -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" VersionOverride="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" VersionOverride="10.0.0" />
+  </ItemGroup>
+
 </Project>
