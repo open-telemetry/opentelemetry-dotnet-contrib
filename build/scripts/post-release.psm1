@@ -586,7 +586,7 @@ function UpdateCommonPropsVersion {
     (Get-Content Directory.Packages.props -Raw) `
       -replace "<$propertyDisplayName>.*<\/$propertyDisplayName>",
                "<$propertyDisplayName>$version</$propertyDisplayName>" |
-      Set-Content Directory.Packages.props
+      Set-Content Directory.Packages.props -NoNewline
 
     git add Directory.Packages.props 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
