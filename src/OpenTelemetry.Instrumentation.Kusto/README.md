@@ -29,10 +29,12 @@ dotnet add package OpenTelemetry.Instrumentation.Kusto
 
 Kusto instrumentation must be enabled at application startup.
 
-The following example demonstrates adding Kusto instrumentation to a
-console application. This example also sets up the OpenTelemetry Console
+#### Traces
+
+The following example demonstrates adding Kusto traces instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
 exporter, which requires adding the package
-[`OpenTelemetry.Exporter.Console`](https://www.nuget.org/packages/OpenTelemetry.Exporter.Console)
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
 to the application.
 
 ```csharp
@@ -50,7 +52,32 @@ public class Program
 }
 ```
 
+#### Metrics
+
+The following example demonstrates adding Kusto metrics instrumentation
+to a console application. This example also sets up the OpenTelemetry Console
+exporter, which requires adding the package
+[`OpenTelemetry.Exporter.Console`](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/src/OpenTelemetry.Exporter.Console/README.md)
+to the application.
+
+```csharp
+using OpenTelemetry.Metrics;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddKustoInstrumentation()
+            .AddConsoleExporter()
+            .Build();
+    }
+}
+```
+
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
+* [OpenTelemetry semantic conventions for database
+  calls](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md)
