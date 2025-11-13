@@ -9,7 +9,7 @@
     <OpenTelemetryCoreLatestVersion>1.14.0</OpenTelemetryCoreLatestVersion>
     <OpenTelemetryCoreUnstableLatestVersion>1.14.0-beta.1</OpenTelemetryCoreUnstableLatestVersion>
     <OpenTelemetryCoreLatestPrereleaseVersion>1.14.0-rc.1</OpenTelemetryCoreLatestPrereleaseVersion>
-    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.13.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
+    <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.14.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.13.0</OpenTelemetryInstrumentationHttpLatestStableVersion>
     <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.13.0</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
     <OpenTelemetryEnrichmentUnstableLatestVersion>1.13.0-beta.1</OpenTelemetryEnrichmentUnstableLatestVersion>
@@ -158,4 +158,5 @@
   </ItemGroup>
 
 </Project>
+
 
