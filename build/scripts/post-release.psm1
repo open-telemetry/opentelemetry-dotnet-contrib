@@ -586,7 +586,7 @@ function UpdateCommonPropsVersion {
     (Get-Content Directory.Packages.props -Raw) `
       -replace "<$propertyDisplayName>.*<\/$propertyDisplayName>",
                "<$propertyDisplayName>$version</$propertyDisplayName>" |
-      Set-Content Directory.Packages.props
+      Set-Content Directory.Packages.props -NoNewline
 
     git add Directory.Packages.props 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
@@ -594,7 +594,7 @@ function UpdateCommonPropsVersion {
         throw 'git add failure'
     }
 
-    git commit -m "Update $propertyDisplayName version in Common.props to $version." -s 2>&1 | % ToString
+    git commit -m "Update $propertyDisplayName version in Directory.Packages.props to $version." -s 2>&1 | % ToString
     if ($LASTEXITCODE -gt 0)
     {
         throw 'git commit failure'
