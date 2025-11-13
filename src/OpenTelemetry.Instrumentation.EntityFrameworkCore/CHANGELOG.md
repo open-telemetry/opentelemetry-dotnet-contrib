@@ -29,7 +29,7 @@ Released 2025-Oct-22
 
 * Fix `db.system.name` values to follow new database semantic conventions when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
-  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))V
+  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))
 
 * Add the `server.port` resource attribute when following the new database semantic
   conventions when opted into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment
