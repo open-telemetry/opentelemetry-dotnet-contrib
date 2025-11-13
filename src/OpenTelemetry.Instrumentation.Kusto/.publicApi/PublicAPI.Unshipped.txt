@@ -3,6 +3,9 @@ OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.KustoInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQueryText.get -> bool
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQueryText.set -> void
+OpenTelemetry.Metrics.KustoMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions
+static OpenTelemetry.Metrics.KustoMeterProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
 static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions! options) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddKustoInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions!>! configureKustoInstrumentationOptions) -> OpenTelemetry.Trace.TracerProviderBuilder!

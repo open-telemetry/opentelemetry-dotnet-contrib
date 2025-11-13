@@ -4,7 +4,6 @@
 using OpenTelemetry.Instrumentation.Kusto;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
 using OpenTelemetry.Internal;
-using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 namespace OpenTelemetry.Trace;
 
@@ -19,10 +18,23 @@ public static class TracerProviderBuilderExtensions
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
     public static TracerProviderBuilder AddKustoInstrumentation(this TracerProviderBuilder builder)
-    {
-        Guard.ThrowIfNull(builder);
+        => AddKustoInstrumentation(builder, new KustoInstrumentationOptions());
 
-        return builder.AddKustoInstrumentation(new KustoInstrumentationOptions());
+    /// <summary>
+    /// Enables Kusto instrumentation.
+    /// </summary>
+    /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
+    /// <param name="configureKustoInstrumentationOptions">Callback action for configuring <see cref="KustoInstrumentationOptions"/>.</param>
+    /// <returns>The instance of <see cref="TracerProviderBuilder"/> to chain the calls.</returns>
+    public static TracerProviderBuilder AddKustoInstrumentation(
+        this TracerProviderBuilder builder,
+        Action<KustoInstrumentationOptions> configureKustoInstrumentationOptions)
+    {
+        Guard.ThrowIfNull(configureKustoInstrumentationOptions);
+
+        var options = new KustoInstrumentationOptions();
+        configureKustoInstrumentationOptions(options);
+        return AddKustoInstrumentation(builder, options);
     }
 
     /// <summary>
@@ -38,10 +50,19 @@ public static class TracerProviderBuilderExtensions
         Guard.ThrowIfNull(builder);
         Guard.ThrowIfNull(options);
 
-        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
-        KustoUtils.TraceSourceManager.AddTraceListener(new KustoListener(options), startupDone: true);
+        builder.AddInstrumentation(() =>
+        {
+            if (options.RecordQueryText)
+            {
+                Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+            }
 
-        builder.AddSource(KustoListener.ActivitySourceName);
+            var listener = new KustoTraceListener(options);
+            var handle = new ListenerHandle(listener);
+            return handle;
+        });
+
+        builder.AddSource(KustoActivitySourceHelper.ActivitySourceName);
 
         return builder;
     }
