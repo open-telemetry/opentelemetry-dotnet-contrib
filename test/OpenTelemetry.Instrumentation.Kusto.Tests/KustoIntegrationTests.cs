@@ -33,16 +33,16 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     public Task SuccessfulQueryTest(string query, bool recordQueryText)
     {
         var activities = new List<Activity>();
-        var exportedMetrics = new List<Metric>();
+        var metrics = new List<Metric>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddKustoInstrumentation(new KustoInstrumentationOptions { RecordQueryText = recordQueryText })
+            .AddKustoInstrumentation(options => options.RecordQueryText = recordQueryText)
             .Build();
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddInMemoryExporter(exportedMetrics)
-            .AddMeter("Kusto.Client")
+            .AddInMemoryExporter(metrics)
+            .AddKustoInstrumentation()
             .Build();
 
         var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
@@ -55,6 +55,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
 
+        tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
         Assert.NotEmpty(activities);
@@ -72,11 +73,11 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             activity.Tags,
         };
 
-        Assert.NotEmpty(exportedMetrics);
-        var durationMetric = exportedMetrics.FirstOrDefault(m => m.Name == "db.client.operation.duration");
+        Assert.NotEmpty(metrics);
+        var durationMetric = metrics.FirstOrDefault(m => m.Name == "db.client.operation.duration");
         Assert.NotNull(durationMetric);
 
-        var countMetric = exportedMetrics.FirstOrDefault(m => m.Name == "db.client.operation.count");
+        var countMetric = metrics.FirstOrDefault(m => m.Name == "db.client.operation.count");
         Assert.NotNull(countMetric);
 
         return Verify(activitySnapshot)

@@ -2,40 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using OpenTelemetry.Trace;
 using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
-// TODO: Separate out metrics and add new extensions builder and update README.
-// TODO: Can I pare the dependency down to just KustoUtils?
-
-internal sealed class KustoListener : KustoUtils.ITraceListener
+internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 {
-    internal const string ActivitySourceName = "Kusto.Client";
-    private const string InstrumentationVersion = "1.0.0";
-    private const string DbSystem = "kusto";
-
-    private const string ClientRequestIdTagKey = "kusto.client_request_id";
-
-    private static readonly ActivitySource ActivitySource = new(ActivitySourceName, InstrumentationVersion);
-    private static readonly Meter Meter = new(ActivitySourceName, InstrumentationVersion);
-
-    // Metrics following OpenTelemetry database semantic conventions
-    private static readonly Histogram<double> OperationDurationHistogram = Meter.CreateHistogram(
-        SemanticConventions.AttributeDbClientOperationDuration,
-        unit: "s",
-        advice: new InstrumentAdvice<double>() { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] },
-        description: "Duration of database client operations");
-
-    private static readonly Counter<long> OperationCounter = Meter.CreateCounter<long>(
-        "db.client.operation.count",
-        description: "Number of database client operations");
-
     private readonly KustoInstrumentationOptions options;
 
-    public KustoListener(KustoInstrumentationOptions options)
+    public KustoTraceListener(KustoInstrumentationOptions options)
     {
         this.options = options;
     }
@@ -84,7 +60,7 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
         }
 
         var clientRequestId = record.Activity.ClientRequestId;
-        var activityClientRequestId = activity.GetTagItem(ClientRequestIdTagKey) as string;
+        var activityClientRequestId = activity.GetTagItem(KustoActivitySourceHelper.ClientRequestIdTagKey) as string;
 
         if (clientRequestId.Equals(activityClientRequestId, StringComparison.Ordinal))
         {
@@ -109,18 +85,6 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
                 activity.SetStatus(ActivityStatusCode.Error);
             }
         }
-
-        var duration = activity.Duration.TotalSeconds;
-
-        // Record metrics
-        var tags = new TagList
-        {
-            { SemanticConventions.AttributeDbSystemName, DbSystem },
-            { SemanticConventions.AttributeDbOperationName, activity.DisplayName },
-        };
-
-        OperationDurationHistogram.Record(duration, tags);
-        OperationCounter.Add(1, tags);
 
         activity.Stop();
     }
@@ -166,12 +130,12 @@ internal sealed class KustoListener : KustoUtils.ITraceListener
     {
         var operationName = record.Activity.ActivityType;
 
-        var activity = ActivitySource.StartActivity(operationName, ActivityKind.Client);
+        var activity = KustoActivitySourceHelper.ActivitySource.StartActivity(operationName, ActivityKind.Client);
 
         if (activity?.IsAllDataRequested is true)
         {
-            activity.SetTag(SemanticConventions.AttributeDbSystemName, DbSystem);
-            activity.SetTag(ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
+            activity.SetTag(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
+            activity.SetTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
             activity.SetTag(SemanticConventions.AttributeDbOperationName, operationName);
 
             var message = record.Message.AsSpan();

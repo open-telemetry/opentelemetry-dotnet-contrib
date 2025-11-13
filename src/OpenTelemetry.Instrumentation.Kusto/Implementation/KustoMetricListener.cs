@@ -1,0 +1,61 @@
+// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+using System.Diagnostics;
+using OpenTelemetry.Trace;
+using KustoUtils = Kusto.Cloud.Platform.Utils;
+
+namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
+
+internal sealed class KustoMetricListener : KustoUtils.ITraceListener
+{
+    private readonly KustoInstrumentationOptions options;
+    private AsyncLocal<long> beginTimestamp = new();
+
+    public KustoMetricListener(KustoInstrumentationOptions options)
+    {
+        this.options = options;
+    }
+
+    public override bool IsThreadSafe => true;
+
+    public override void Flush()
+    {
+    }
+
+    public override void Write(KustoUtils.TraceRecord record)
+    {
+        if (record?.Message is null)
+        {
+            return;
+        }
+
+        if (record.IsRequestStart())
+        {
+            this.HandleHttpRequestStart(record);
+        }
+        else if (record.IsResponseStart())
+        {
+            this.HandleHttpResponseReceived(record);
+        }
+    }
+
+    private static double GetElaspedTime(long start) => Stopwatch.GetTimestamp() - start;
+
+    private void HandleHttpResponseReceived(KustoUtils.TraceRecord record)
+    {
+        var operationName = record.Activity.ActivityType;
+        var duration = GetElaspedTime(this.beginTimestamp.Value);
+
+        var tags = new TagList
+        {
+            { SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem },
+            { SemanticConventions.AttributeDbOperationName, operationName },
+        };
+
+        KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, tags);
+        KustoActivitySourceHelper.OperationCounter.Add(1, tags);
+    }
+
+    private void HandleHttpRequestStart(KustoUtils.TraceRecord record) => this.beginTimestamp.Value = Stopwatch.GetTimestamp();
+}
