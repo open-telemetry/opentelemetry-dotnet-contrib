@@ -54,7 +54,7 @@ public class HttpClientInstrumentationBenchmarks
         Metrics = 2,
     }
 
-    [Params(0, 1, 2, 3)]
+    [Params(EnableInstrumentationOption.None, EnableInstrumentationOption.Traces, EnableInstrumentationOption.Metrics, EnableInstrumentationOption.Traces | EnableInstrumentationOption.Metrics)]
     public EnableInstrumentationOption EnableInstrumentation { get; set; }
 
     [GlobalSetup(Target = nameof(HttpClientRequest))]
