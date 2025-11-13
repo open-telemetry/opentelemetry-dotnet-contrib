@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added `net10.0` and `net8.0` target frameworks.
+  ([#3519](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3519))
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13
@@ -26,7 +29,7 @@ Released 2025-Oct-22
 
 * Fix `db.system.name` values to follow new database semantic conventions when opted
   into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable.
-  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))
+  ([#3004](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3004))V
 
 * Add the `server.port` resource attribute when following the new database semantic
   conventions when opted into using the `OTEL_SEMCONV_STABILITY_OPT_IN` environment
