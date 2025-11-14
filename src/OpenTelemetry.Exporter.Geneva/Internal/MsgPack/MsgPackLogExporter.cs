@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.Transports;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
 
@@ -33,16 +34,20 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
 #if NET
     private readonly FrozenSet<string>? customFields;
-    private readonly FrozenDictionary<string, object>? prepopulatedFields;
 #else
     private readonly HashSet<string>? customFields;
-    private readonly Dictionary<string, object>? prepopulatedFields;
 #endif
 
     private readonly ExceptionStackExportMode exportExceptionStack;
-    private readonly List<string>? prepopulatedFieldKeys;
     private readonly byte[] bufferEpilogue;
     private readonly IDataTransport dataTransport;
+    private readonly Func<Resource> resourceProvider;
+
+    // These are values that are always added to the body as dedicated fields
+    private readonly Dictionary<string, object> prepopulatedFields;
+
+    // These are values that are always added to env_properties
+    private readonly Dictionary<string, object> propertiesEntries;
     private readonly int stringFieldSizeLimitCharCount; // the maximum string size limit for MsgPack strings
 
     // This is used for Scopes
@@ -50,9 +55,12 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
     private bool isDisposed;
 
-    public MsgPackLogExporter(GenevaExporterOptions options)
+    public MsgPackLogExporter(GenevaExporterOptions options, Func<Resource> resourceProvider)
     {
         Guard.ThrowIfNull(options);
+        Guard.ThrowIfNull(resourceProvider);
+
+        this.resourceProvider = resourceProvider;
 
         this.tableNameSerializer = new(options, defaultTableName: "Log");
         this.exportExceptionStack = options.ExceptionStackExportMode;
@@ -88,21 +96,17 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         this.stringFieldSizeLimitCharCount = connectionStringBuilder.PrivatePreviewLogMessagePackStringSizeLimit;
+
+        this.propertiesEntries = [];
+
+        this.prepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
+
         if (options.PrepopulatedFields != null)
         {
-            this.prepopulatedFieldKeys = [];
-            var tempPrepopulatedFields = new Dictionary<string, object>(options.PrepopulatedFields.Count, StringComparer.Ordinal);
             foreach (var kv in options.PrepopulatedFields)
             {
-                tempPrepopulatedFields[kv.Key] = kv.Value;
-                this.prepopulatedFieldKeys.Add(kv.Key);
+                this.prepopulatedFields[kv.Key] = kv.Value;
             }
-
-#if NET
-            this.prepopulatedFields = tempPrepopulatedFields.ToFrozenDictionary(StringComparer.Ordinal);
-#else
-            this.prepopulatedFields = tempPrepopulatedFields;
-#endif
         }
 
         // TODO: Validate custom fields (reserved name? etc).
@@ -174,19 +178,59 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         this.isDisposed = true;
     }
 
+    internal void AddResourceAttributesToPrepopulated()
+    {
+        // This function needs to be idempotent
+
+        foreach (var entry in this.resourceProvider().Attributes)
+        {
+            string key = entry.Key;
+            bool isDedicatedField = false;
+            if (entry.Value is string)
+            {
+                switch (key)
+                {
+                    case "service.name":
+                        key = Schema.V40.PartA.Extensions.Cloud.Role;
+                        isDedicatedField = true;
+                        break;
+                    case "service.instanceId":
+                        key = Schema.V40.PartA.Extensions.Cloud.RoleInstance;
+                        isDedicatedField = true;
+                        break;
+                }
+            }
+
+            if (isDedicatedField || this.customFields == null || this.customFields.Contains(key))
+            {
+                if (!this.prepopulatedFields.ContainsKey(key))
+                {
+                    this.prepopulatedFields.Add(key, entry.Value);
+                }
+            }
+            else
+            {
+                if (!this.propertiesEntries.ContainsKey(key))
+                {
+                    this.propertiesEntries.Add(key, entry.Value);
+                }
+            }
+        }
+    }
+
     internal ArraySegment<byte> SerializeLogRecord(LogRecord logRecord)
     {
         // `LogRecord.State` and `LogRecord.StateValues` were marked Obsolete in https://github.com/open-telemetry/opentelemetry-dotnet/pull/4334
 #pragma warning disable 0618
-        IReadOnlyList<KeyValuePair<string, object?>>? listKvp;
+        IReadOnlyList<KeyValuePair<string, object?>>? logFields;
         if (logRecord.StateValues != null)
         {
-            listKvp = logRecord.StateValues;
+            logFields = logRecord.StateValues;
         }
         else
         {
             // Attempt to see if State could be ROL_KVP.
-            listKvp = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>>;
+            logFields = logRecord.State as IReadOnlyList<KeyValuePair<string, object?>> ?? [];
         }
 #pragma warning restore 0618
 
@@ -194,7 +238,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
 
         /* Fluentd Forward Mode:
         [
-            "Log",
+            "Log", // (or category name)
             [
                 [ <timestamp>, { "env_ver": "4.0", ... } ]
             ],
@@ -227,15 +271,20 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         ushort cntFields = 0;
         var idxMapSizePatch = cursor - 2;
 
-        if (this.prepopulatedFieldKeys != null)
+        this.AddResourceAttributesToPrepopulated();
+
+        foreach (var entry in this.prepopulatedFields)
         {
-            for (var i = 0; i < this.prepopulatedFieldKeys.Count; i++)
+            // A prepopulated entry should not be added if the same key exists in the log,
+            // and customFields configuration would make it a dedicated field.
+            if ((this.customFields == null || this.customFields.Contains(entry.Key))
+                && logFields.Any(kvp => kvp.Key == entry.Key))
             {
-                var key = this.prepopulatedFieldKeys[i];
-                var value = this.prepopulatedFields![key];
-                cursor = AddPartAField(buffer, cursor, key, value);
-                cntFields += 1;
+                continue;
             }
+
+            cursor = AddPartAField(buffer, cursor, entry.Key, entry.Value);
+            cntFields += 1;
         }
 
         // Part A - core envelope
@@ -295,10 +344,8 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         var hasEnvProperties = false;
         var bodyPopulated = false;
         var namePopulated = false;
-        for (var i = 0; i < listKvp?.Count; i++)
+        foreach (var entry in logFields)
         {
-            var entry = listKvp[i];
-
             // Iteration #1 - Get those fields which become dedicated columns
             // i.e all Part B fields and opt-in Part C fields.
             if (entry.Key == "{OriginalFormat}")
@@ -366,27 +413,44 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         cursor = dataForScopes.Cursor;
         cntFields = dataForScopes.FieldsCount;
 
-        if (hasEnvProperties)
+        if (hasEnvProperties || this.propertiesEntries.Count > 0)
         {
-            // Iteration #2 - Get all "other" fields and collapse them into single field
-            // named "env_properties".
+            // Anything that's not a dedicated field gets put into a part C field called "env_properties".
             ushort envPropertiesCount = 0;
             cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_properties");
             cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
             var idxMapSizeEnvPropertiesPatch = cursor - 2;
-            for (var i = 0; i < listKvp!.Count; i++)
+
+            if (hasEnvProperties)
             {
-                var entry = listKvp[i];
-                if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
+                foreach (var entry in logFields)
+                {
+                    if (entry.Key == "{OriginalFormat}" || this.customFields!.Contains(entry.Key))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                        envPropertiesCount += 1;
+                    }
+                }
+            }
+
+            foreach (var entry in this.propertiesEntries)
+            {
+                // A prepopulated env_properties entry should not be added if the same key exists in the log,
+                // and lack of customFields configuration would place it in env_properties.
+                if (this.customFields != null && !this.customFields.Contains(entry.Key)
+                    && logFields.Any(kvp => kvp.Key == entry.Key))
                 {
                     continue;
                 }
-                else
-                {
-                    cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key, this.stringFieldSizeLimitCharCount);
-                    cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
-                    envPropertiesCount += 1;
-                }
+
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, entry.Key);
+                cursor = MessagePackSerializer.Serialize(buffer, cursor, entry.Value);
+                envPropertiesCount += 1;
             }
 
             // Prepare state for scopes
