@@ -77,16 +77,16 @@ public class LogExporterBenchmarks
         this.batch = GenerateTestLogRecordBatch();
         this.exporter = new MsgPackLogExporter(
             new GenevaExporterOptions
+            {
+                ConnectionString = "EtwSession=OpenTelemetry",
+                PrepopulatedFields = new Dictionary<string, object>
                 {
-                    ConnectionString = "EtwSession=OpenTelemetry",
-                    PrepopulatedFields = new Dictionary<string, object>
-                    {
-                        ["cloud.role"] = "BusyWorker",
-                        ["cloud.roleInstance"] = "CY1SCH030021417",
-                        ["cloud.roleVer"] = "9.0.15289.2",
-                    },
+                    ["cloud.role"] = "BusyWorker",
+                    ["cloud.roleInstance"] = "CY1SCH030021417",
+                    ["cloud.roleVer"] = "9.0.15289.2",
                 },
-                () => Resource.Empty);
+            },
+            () => Resource.Empty);
     }
 
     [Benchmark]
