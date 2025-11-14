@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 using Xunit;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
@@ -110,7 +111,7 @@ public class LogSerializationTests
 
             configureGeneva?.Invoke(exporterOptions);
 
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
             _ = exporter.SerializeLogRecord(logRecordList[0]);
             var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 

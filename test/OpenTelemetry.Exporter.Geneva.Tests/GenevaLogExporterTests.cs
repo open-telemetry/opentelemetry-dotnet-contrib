@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
 using Xunit;
 
@@ -179,7 +180,7 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             ILogger logger;
             object fluentdData;
@@ -298,7 +299,7 @@ public class GenevaLogExporterTests
                 .AddFilter("*", LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             ILogger passThruTableMappingsLogger, userInitializedTableMappingsLogger;
             var m_buffer = MsgPackLogExporter.Buffer;
@@ -473,7 +474,7 @@ public class GenevaLogExporterTests
             Assert.Single(exportedItems);
             var logRecord = exportedItems[0];
 
-            this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
+            this.AssertFluentdForwardModeForLogRecord(exporterOptions, Resource.Empty, fluentdData, logRecord);
         }
         finally
         {
@@ -532,7 +533,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -666,8 +667,11 @@ public class GenevaLogExporterTests
                     ["cloud.role"] = "BusyWorker",
                     ["cloud.roleInstance"] = "CY1SCH030021417",
                     ["cloud.roleVer"] = "9.0.15289.2",
+                    ["prepopulated"] = "prepopulated field",
                 },
             };
+
+            var resource = ResourceBuilder.CreateEmpty().AddAttributes([new KeyValuePair<string, object>("resourceAttr", "from resource")]).Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -713,7 +717,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -764,7 +768,154 @@ public class GenevaLogExporterTests
             {
                 _ = exporter.SerializeLogRecord(logRecord);
                 var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
-                this.AssertFluentdForwardModeForLogRecord(exporterOptions, fluentdData, logRecord);
+                this.AssertFluentdForwardModeForLogRecord(exporterOptions, resource, fluentdData, logRecord);
+            }
+        }
+        finally
+        {
+            server?.Dispose();
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(false, true, true, false)]
+    [InlineData(false, true, true, true)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, false, true, true)]
+    [InlineData(true, true, false, false)]
+    [InlineData(true, true, false, true)]
+    [InlineData(true, true, true, false)]
+    [InlineData(true, true, true, true)]
+    public void SerializationTestWithDuplicateFields(bool conflictingPrepopulatedField, bool conflictingResourceAttribute, bool conflictingLogField, bool isCustomField)
+    {
+        var path = string.Empty;
+        Socket server = null;
+        var logRecordList = new List<LogRecord>();
+        try
+        {
+            var exporterOptions = new GenevaExporterOptions();
+            if (conflictingPrepopulatedField)
+            {
+                exporterOptions.PrepopulatedFields = new Dictionary<string, object>
+                {
+                    ["Conflict"] = "prepopulated field",
+                };
+            }
+
+            var resource = Resource.Empty;
+            if (conflictingResourceAttribute)
+            {
+                resource = ResourceBuilder.CreateEmpty().AddAttributes([new KeyValuePair<string, object>("Conflict", "resource attribute")]).Build();
+            }
+
+            exporterOptions.CustomFields = [];
+            if (isCustomField)
+            {
+                exporterOptions.CustomFields = ["Conflict"];
+            }
+
+            using var loggerFactory = LoggerFactory.Create(builder => builder
+                .AddOpenTelemetry(options => options.AddInMemoryExporter(logRecordList))
+                .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
+            var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
+
+            if (conflictingLogField)
+            {
+                logger.Log(LogLevel.Trace, 101, "Log a message with a {Conflict} with other fields", "log field");
+            }
+            else
+            {
+                logger.Log(LogLevel.Trace, 101, "Log a normal message without conflict");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                exporterOptions.ConnectionString = "EtwSession=OpenTelemetry";
+            }
+            else
+            {
+                path = GenerateTempFilePath();
+                exporterOptions.ConnectionString = "Endpoint=unix:" + path;
+                var endpoint = new UnixDomainSocketEndPoint(path);
+                server = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.IP);
+                server.Bind(endpoint);
+                server.Listen(1);
+            }
+
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => resource);
+            var m_buffer = MsgPackLogExporter.Buffer;
+            Assert.Single(logRecordList);
+            var serializedLog = exporter.SerializeLogRecord(logRecordList[0]);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var signal = (fluentdData as object[])[0] as string;
+            var TimeStampAndMappings = ((fluentdData as object[])[1] as object[])[0];
+            var timeStamp = (DateTime)(TimeStampAndMappings as object[])[0];
+            var mapping = (TimeStampAndMappings as object[])[1] as Dictionary<object, object>;
+            var env_properties = mapping.GetValueOrDefault("env_properties") as Dictionary<object, object> ?? [];
+
+            void AssertField(bool isDedicated, string fieldValue)
+            {
+                if (isDedicated)
+                {
+                    Assert.Contains("Conflict", mapping);
+                    Assert.Equal(fieldValue, mapping["Conflict"]);
+                }
+                else
+                {
+                    Assert.Contains("Conflict", env_properties);
+                    Assert.Equal(fieldValue, env_properties["Conflict"]);
+                }
+            }
+
+            if (isCustomField)
+            {
+                // If Conflict is marked as a custom field, it should never appear in env_properties
+                Assert.DoesNotContain("Conflict", env_properties);
+
+                // If Conflict is marked as a custom field,
+                // then the conflict will occur in a dedicated field.
+                // Log field has highest precedence, followed by prepopulated field
+                if (conflictingLogField)
+                {
+                    AssertField(true, "log field");
+                }
+                else if (conflictingPrepopulatedField)
+                {
+                    AssertField(true, "prepopulated field");
+                }
+
+                // no need to check resource attribute because it will never win a conflict
+            }
+            else
+            {
+                // Prepopulated fields are unaffected by not being marked as custom fields
+                if (conflictingPrepopulatedField)
+                {
+                    AssertField(true, "prepopulated field");
+                }
+                else
+                {
+                    Assert.DoesNotContain("Conflict", mapping);
+                }
+
+                // If Conflict is not marked as a custom field,
+                // log fields and resource attributes conflict in env_properties,
+                // and log fields have precedence
+                if (conflictingLogField)
+                {
+                    AssertField(false, "log field");
+                }
+                else if (conflictingResourceAttribute)
+                {
+                    AssertField(false, "resource attribute");
+                }
             }
         }
         finally
@@ -844,16 +995,18 @@ public class GenevaLogExporterTests
             serverSocket.ReceiveTimeout = 10000;
 
             // Create a test exporter to get MessagePack byte data for validation of the data received via Socket.
-            using var exporter = new MsgPackLogExporter(new GenevaExporterOptions
-            {
-                ConnectionString = "Endpoint=unix:" + path,
-                PrepopulatedFields = new Dictionary<string, object>
+            using var exporter = new MsgPackLogExporter(
+                new GenevaExporterOptions
                 {
-                    ["cloud.role"] = "BusyWorker",
-                    ["cloud.roleInstance"] = "CY1SCH030021417",
-                    ["cloud.roleVer"] = "9.0.15289.2",
+                    ConnectionString = "Endpoint=unix:" + path,
+                    PrepopulatedFields = new Dictionary<string, object>
+                    {
+                        ["cloud.role"] = "BusyWorker",
+                        ["cloud.roleInstance"] = "CY1SCH030021417",
+                        ["cloud.roleVer"] = "9.0.15289.2",
+                    },
                 },
-            });
+                () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of internal buffer for validation.
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -938,7 +1091,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1031,7 +1184,7 @@ public class GenevaLogExporterTests
                 }));
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1158,7 +1311,7 @@ public class GenevaLogExporterTests
                 }));
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1273,7 +1426,7 @@ public class GenevaLogExporterTests
                 .AddFilter(typeof(GenevaLogExporterTests).FullName, LogLevel.Trace)); // Enable all LogLevels
 
             // Create a test exporter to get MessagePack byte data to validate if the data was serialized correctly.
-            using var exporter = new MsgPackLogExporter(exporterOptions);
+            using var exporter = new MsgPackLogExporter(exporterOptions, () => Resource.Empty);
 
             // Emit a LogRecord and grab a copy of the LogRecord from the collection passed to InMemoryExporter
             var logger = loggerFactory.CreateLogger<GenevaLogExporterTests>();
@@ -1508,7 +1661,7 @@ public class GenevaLogExporterTests
         return mapping.TryGetValue(key, out var value) ? value : null;
     }
 
-    private void AssertFluentdForwardModeForLogRecord(GenevaExporterOptions exporterOptions, object fluentdData, LogRecord logRecord)
+    private void AssertFluentdForwardModeForLogRecord(GenevaExporterOptions exporterOptions, Resource resource, object fluentdData, LogRecord logRecord)
     {
         /* Fluentd Forward Mode:
         [
@@ -1559,7 +1712,7 @@ public class GenevaLogExporterTests
         foreach (var item in exporterOptions.PrepopulatedFields)
         {
             var partAValue = item.Value as string;
-            var partAKey = MsgPackExporter.V40_PART_A_MAPPING[item.Key];
+            var partAKey = MsgPackExporter.V40_PART_A_MAPPING.GetValueOrDefault(item.Key, item.Key);
             Assert.Equal(partAValue, mapping[partAKey]);
         }
 
@@ -1636,14 +1789,45 @@ public class GenevaLogExporterTests
                 }
                 else if (exporterOptions.CustomFields == null || exporterOptions.CustomFields.Contains(item.Key))
                 {
+                    // It should be found as a custom field
                     if (item.Value != null)
                     {
                         Assert.Equal(item.Value, mapping[item.Key]);
                     }
+
+                    if (envPropertiesMapping != null)
+                    {
+                        Assert.DoesNotContain(item.Key, envPropertiesMapping.Keys);
+                    }
                 }
                 else
                 {
+                    // It should be found in env_properties
                     Assert.Equal(item.Value, envPropertiesMapping[item.Key]);
+                    Assert.DoesNotContain(item.Key, mapping);
+                }
+            }
+
+            foreach (var item in resource.Attributes)
+            {
+                if (exporterOptions.CustomFields == null || exporterOptions.CustomFields.Contains(item.Key))
+                {
+                    // It should be found as a custom field
+                    if (item.Value != null)
+                    {
+                        Assert.Equal(item.Value, mapping[item.Key]);
+                    }
+
+                    if (envPropertiesMapping != null)
+                    {
+                        Assert.DoesNotContain(item.Key, envPropertiesMapping.Keys);
+                    }
+                }
+                else
+                {
+                    // It should be found in env_properties
+                    Assert.Equal(item.Value, envPropertiesMapping[item.Key]);
+                    Assert.DoesNotContain(item.Key, mapping);
                 }
             }
         }
@@ -1653,7 +1837,7 @@ public class GenevaLogExporterTests
             Assert.Equal(logRecord.EventId.Id, int.Parse(mapping["eventId"].ToString(), CultureInfo.InvariantCulture));
         }
 
-        // Epilouge
+        // Epilogue
         Assert.Equal("DateTime", timeFormat["TimeFormat"]);
     }
 
