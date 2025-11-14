@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Support for specifying resource attributes, including
+  `service.name`, `service.instanceId`, and custom attributes in log fields.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib))
+* Logs: Custom log fields take precedence over prepopulated fields,
+  preventing duplicate keys in exported logs.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib))
+
 ## 1.14.0
 
 Released 2025-Nov-13
