@@ -18,9 +18,6 @@
         },
         {
           server.address: {Hostname}:{Port}
-        },
-        {
-          http.response.status_code: OK
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,

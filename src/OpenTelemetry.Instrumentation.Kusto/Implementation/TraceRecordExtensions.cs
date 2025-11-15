@@ -12,13 +12,13 @@ internal static class TraceRecordExtensions
         return record.Message.StartsWith("$$HTTPREQUEST[", StringComparison.Ordinal);
     }
 
-    public static bool IsResponseStart(this KustoUtils.TraceRecord record)
-    {
-        return record.Message.StartsWith("$$HTTPREQUEST_RESPONSEHEADERRECEIVED[", StringComparison.Ordinal);
-    }
-
     public static bool IsException(this KustoUtils.TraceRecord record)
     {
         return record.TraceSourceName == "KD.Exceptions";
+    }
+
+    public static bool IsActivityComplete(this KustoUtils.TraceRecord record)
+    {
+        return record.Message.StartsWith("MonitoredActivityCompleted", StringComparison.Ordinal);
     }
 }
