@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using OpenTelemetry.Trace;
 using KustoUtils = Kusto.Cloud.Platform.Utils;
@@ -10,6 +11,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 {
     private readonly KustoInstrumentationOptions options;
+    private readonly ConcurrentDictionary<Guid, Activity> activities = new();
 
     public KustoTraceListener(KustoInstrumentationOptions options)
     {
@@ -35,60 +37,21 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
         {
             this.HandleHttpRequestStart(record);
         }
-        else if (record.IsResponseStart())
+        else if (record.IsActivityComplete())
         {
-            HandleHttpResponseReceived(record);
+            this.HandleActivityComplete(record);
         }
         else if (record.IsException())
         {
-            HandleException(record);
+            this.HandleException(record);
         }
     }
 
-    private static void HandleException(KustoUtils.TraceRecord record)
+    private void HandleException(KustoUtils.TraceRecord record)
     {
-        var activity = Activity.Current;
-
-        activity?.SetStatus(ActivityStatusCode.Error, record.Message);
-    }
-
-    private static void HandleHttpResponseReceived(KustoUtils.TraceRecord record)
-    {
-        var activity = Activity.Current;
-
-        if (activity is null)
-        {
-            return;
-        }
-
-        var clientRequestId = record.Activity.ClientRequestId;
-        var activityClientRequestId = activity.GetTagItem(KustoActivitySourceHelper.ClientRequestIdTagKey) as string;
-
-        if (clientRequestId.Equals(activityClientRequestId, StringComparison.Ordinal))
-        {
-            var message = record.Message.AsSpan();
-            var statusCode = ExtractValueBetween(message, "StatusCode=", Environment.NewLine);
-            CompleteHttpActivity(activity, statusCode);
-        }
-    }
-
-    // TODO: Revisit this
-    private static void CompleteHttpActivity(Activity activity, ReadOnlySpan<char> statusCode)
-    {
-        if (!statusCode.IsEmpty)
-        {
-            var statusCodeStr = statusCode.ToString();
-            activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, statusCodeStr);
-
-            // Set error status for non-2xx responses
-            if (!statusCodeStr.Equals("OK", StringComparison.OrdinalIgnoreCase) &&
-                !statusCodeStr.StartsWith('2'))
-            {
-                activity.SetStatus(ActivityStatusCode.Error);
-            }
-        }
-
-        activity.Stop();
+        var activity = this.GetActivity(record);
+        var message = ExtractValueBetween(record.Message.AsSpan(), "ErrorMessage=", Environment.NewLine);
+        activity?.SetStatus(ActivityStatusCode.Error, message.ToString());
     }
 
     private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> source, string start, string end)
@@ -133,6 +96,10 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
         var operationName = record.Activity.ActivityType;
 
         var activity = KustoActivitySourceHelper.ActivitySource.StartActivity(operationName, ActivityKind.Client);
+        if (activity is not null)
+        {
+            this.activities[record.Activity.ActivityId] = activity;
+        }
 
         if (activity?.IsAllDataRequested is true)
         {
@@ -166,5 +133,43 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
                 }
             }
         }
+    }
+
+    private void HandleActivityComplete(KustoUtils.TraceRecord record)
+    {
+        var activity = this.GetActivity(record);
+        if (activity is null)
+        {
+            return;
+        }
+
+        var clientRequestId = record.Activity.ClientRequestId;
+        var activityClientRequestId = activity.GetTagItem(KustoActivitySourceHelper.ClientRequestIdTagKey) as string;
+
+        if (clientRequestId.Equals(activityClientRequestId, StringComparison.Ordinal))
+        {
+            activity.Stop();
+        }
+
+#if NET
+        this.activities.Remove(record.Activity.ActivityId, out _);
+#else
+        ((IDictionary<Guid, Activity>)this.activities).Remove(record.Activity.ActivityId);
+#endif
+    }
+
+    private Activity? GetActivity(KustoUtils.TraceRecord record)
+    {
+        if (Activity.Current is not null)
+        {
+            return Activity.Current;
+        }
+
+        if (this.activities.TryGetValue(record.Activity.ActivityId, out var activity))
+        {
+            return activity;
+        }
+
+        return null;
     }
 }
