@@ -2,8 +2,7 @@
 
 ## Unreleased
 
-* Add metrics instrumentation following workflow semantic conventions.
-  ([#3258](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3258))
+* Add metrics instrumentation following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
 
 ## 1.13.0-beta.1
 
