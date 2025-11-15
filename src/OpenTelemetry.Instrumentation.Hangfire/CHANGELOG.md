@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add metrics instrumentation following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
+
 ## 1.14.0-beta.1
 
 Released 2025-Nov-13
