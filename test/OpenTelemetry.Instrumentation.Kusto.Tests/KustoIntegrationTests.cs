@@ -57,6 +57,12 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
 
+        while (reader.Read())
+        {
+        }
+
+        Debugger.Break();
+
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
@@ -89,6 +95,93 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             {
                 Activities = activitySnapshots,
                 Metrics = metricSnapshots,
+            })
+            .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
+            .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
+            .UseDirectory("Snapshots")
+            .UseParameters(query, recordQueryText);
+    }
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData("InvalidTable | take 10", true)]
+    [InlineData("InvalidTable | take 10", false)]
+    public async Task FailedQueryTest(string query, bool recordQueryText)
+    {
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddKustoInstrumentation(options => options.RecordQueryText = recordQueryText)
+            .Build();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddKustoInstrumentation()
+            .Build();
+
+        var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
+        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+        var crp = new ClientRequestProperties()
+        {
+            // Ensure a stable client ID for snapshots
+            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+        };
+
+        // Execute the query and expect an exception
+        var exception = await Assert.ThrowsAnyAsync<Exception>(async () =>
+        {
+            using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+
+            while (reader.Read())
+            {
+            }
+
+            Debugger.Break();
+
+            await Task.CompletedTask;
+        });
+
+        Debugger.Break();
+
+        tracerProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        var activitySnapshots = activities
+            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .Select(activity => new
+            {
+                activity.DisplayName,
+                activity.Source.Name,
+                activity.Status,
+                activity.StatusDescription,
+                activity.Tags,
+                activity.OperationName,
+                activity.IdFormat,
+            });
+
+        var metricSnapshots = metrics
+            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
+            .Select(metric => new
+            {
+                metric.Name,
+                metric.Description,
+                metric.MeterTags,
+                metric.Unit,
+                metric.Temporality,
+            });
+
+        await Verify(
+            new
+            {
+                Activities = activitySnapshots,
+                Metrics = metricSnapshots,
+                Exception = new
+                {
+                    Type = exception.GetType().Name,
+                    HasMessage = !string.IsNullOrEmpty(exception.Message),
+                },
             })
             .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
             .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
