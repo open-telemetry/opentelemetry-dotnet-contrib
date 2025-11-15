@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>AWS client instrumentation for OpenTelemetry .NET.</Description>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
@@ -15,7 +14,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageValidationBaselineVersion>1.12.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.14.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

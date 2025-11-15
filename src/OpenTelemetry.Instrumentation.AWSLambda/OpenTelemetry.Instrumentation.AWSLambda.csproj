@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <Description>AWS Lambda tracing wrapper for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);AWS Lambda</PackageTags>
     <MinVerTagPrefix>Instrumentation.AWS-</MinVerTagPrefix>
@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageValidationBaselineVersion>1.12.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.14.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>

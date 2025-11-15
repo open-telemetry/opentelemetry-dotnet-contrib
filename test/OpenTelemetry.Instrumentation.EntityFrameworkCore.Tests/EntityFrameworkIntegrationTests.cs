@@ -12,6 +12,7 @@ using OpenTelemetry.Instrumentation.SqlClient.Tests;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore.Tests;
 
@@ -32,14 +33,18 @@ public sealed class EntityFrameworkIntegrationTests :
     private readonly PostgresIntegrationTestsFixture postgresFixture;
     private readonly SqlClientIntegrationTestsFixture sqlServerFixture;
 
+    private readonly ITestOutputHelper outputHelper;
+
     public EntityFrameworkIntegrationTests(
         MySqlIntegrationTestsFixture mySqlFixture,
         PostgresIntegrationTestsFixture postgresFixture,
-        SqlClientIntegrationTestsFixture fixture)
+        SqlClientIntegrationTestsFixture fixture,
+        ITestOutputHelper outputHelper)
     {
         this.mySqlFixture = mySqlFixture;
         this.postgresFixture = postgresFixture;
         this.sqlServerFixture = fixture;
+        this.outputHelper = outputHelper;
     }
 
     public static TheoryData<string, string, bool, bool, Type, string, string, string, string?> RawSqlTestCases()
@@ -80,7 +85,7 @@ public sealed class EntityFrameworkIntegrationTests :
         return testCases;
     }
 
-    public static TheoryData<string, bool, bool, Type, string, string> DataContextTestCases()
+    public static TheoryData<string, bool, bool, Type, string, string> RelationalDataContextTestCases()
     {
         (string, Type, string, string)[] providers =
         [
@@ -159,28 +164,31 @@ public sealed class EntityFrameworkIntegrationTests :
             return true;
         }
 
-        using var scope = SemanticConventionScope.Get(useNewConventions);
-
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation()
-            .AddEntityFrameworkCoreInstrumentation(options => options.Filter = ActivityFilter)
-            .Build();
 
-        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
-
-        this.ConfigureProvider(provider, optionsBuilder);
-
-        await using var context = new ItemsContext(optionsBuilder.Options);
-
-        try
+        using (SemanticConventionScope.Get(useNewConventions))
         {
-            await context.Database.ExecuteSqlRawAsync(commandText);
-        }
-        catch
-        {
-            // Ignore
+            using (Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(activities)
+                .AddSqlClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation(options => options.Filter = ActivityFilter)
+                .Build())
+            {
+                var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+
+                this.ConfigureProvider(provider, optionsBuilder);
+
+                await using var context = new ItemsContext(optionsBuilder.Options);
+
+                try
+                {
+                    await context.Database.ExecuteSqlRawAsync(commandText);
+                }
+                catch
+                {
+                    // Ignore
+                }
+            }
         }
 
         Assert.NotEmpty(activities);
@@ -223,8 +231,8 @@ public sealed class EntityFrameworkIntegrationTests :
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [MemberData(nameof(DataContextTestCases))]
-    public async Task TracesDataContext(
+    [MemberData(nameof(RelationalDataContextTestCases))]
+    public async Task TracesDataContextRelational(
         string provider,
         bool shouldEnrich,
         bool useNewConventions,
@@ -255,36 +263,38 @@ public sealed class EntityFrameworkIntegrationTests :
             return true;
         }
 
-        using var scope = SemanticConventionScope.Get(useNewConventions);
-
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(activities)
-            .AddSqlClientInstrumentation()
-            .AddEntityFrameworkCoreInstrumentation(options =>
-            {
-                options.Filter = ActivityFilter;
-                if (shouldEnrich)
+
+        using (SemanticConventionScope.Get(useNewConventions))
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(activities)
+                .AddSqlClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation(options =>
                 {
-                    options.EnrichWithIDbCommand = ActivityEnrichment;
-                }
-            })
-            .Build();
+                    options.Filter = ActivityFilter;
+                    if (shouldEnrich)
+                    {
+                        options.EnrichWithIDbCommand = ActivityEnrichment;
+                    }
+                })
+                .Build();
 
-        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+            var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
 
-        this.ConfigureProvider(provider, optionsBuilder);
+            this.ConfigureProvider(provider, optionsBuilder);
 
-        await using var context = new ItemsContext(optionsBuilder.Options);
-        await context.Database.EnsureCreatedAsync();
+            await using var context = new ItemsContext(optionsBuilder.Options);
+            await context.Database.EnsureCreatedAsync();
 
-        // Clear activities from creating the database
-        activities.Clear();
+            // Clear activities from creating the database
+            activities.Clear();
 
-        var result = await context.Items.ToListAsync();
+            var result = await context.Items.ToListAsync();
 
-        Assert.NotNull(result);
-        Assert.Empty(result);
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
 
         // All activities should either be the root EFCore activity or a child of it.
         Assert.All(activities, activity => Assert.Equal(ActivitySourceName, (activity.Parent?.Source ?? activity.Source).Name));
@@ -309,29 +319,31 @@ public sealed class EntityFrameworkIntegrationTests :
     public async Task SuccessfulParameterizedQueryTest(string provider)
     {
         // Arrange
-        using var scope = SemanticConventionScope.Get(useNewConventions: true);
-
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(activities)
-            .AddEntityFrameworkCoreInstrumentation(options => options.SetDbQueryParameters = true)
-            .Build();
 
-        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+        using (SemanticConventionScope.Get(useNewConventions: true))
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(activities)
+                .AddEntityFrameworkCoreInstrumentation(options => options.SetDbQueryParameters = true)
+                .Build();
 
-        this.ConfigureProvider(provider, optionsBuilder);
+            var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
 
-        await using var context = new ItemsContext(optionsBuilder.Options);
-        await context.Database.EnsureCreatedAsync();
+            this.ConfigureProvider(provider, optionsBuilder);
 
-        // Clear activities from creating the database
-        activities.Clear();
+            await using var context = new ItemsContext(optionsBuilder.Options);
+            await context.Database.EnsureCreatedAsync();
 
-        // Act
-        await context.Database.ExecuteSqlRawAsync(
-            "SELECT @x + @y",
-            CreateParameter(provider, "@x", 42),
-            CreateParameter(provider, "@y", 37));
+            // Clear activities from creating the database
+            activities.Clear();
+
+            // Act
+            await context.Database.ExecuteSqlRawAsync(
+                "SELECT @x + @y",
+                CreateParameter(provider, "@x", 42),
+                CreateParameter(provider, "@y", 37));
+        }
 
         // Assert
         var activity = Assert.Single(activities);
@@ -351,27 +363,29 @@ public sealed class EntityFrameworkIntegrationTests :
         string? expectedCommandText,
         string? expectedQuerySummary)
     {
-        var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
-        using var scope = SemanticConventionScope.Get(useNewConventions);
-
         var activities = new List<Activity>();
-        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
-            .AddInMemoryExporter(activities)
-            .AddEntityFrameworkCoreInstrumentation()
-            .Build();
 
-        var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
+        var conventions = useNewConventions ? SemanticConvention.New : SemanticConvention.Old;
+        using (SemanticConventionScope.Get(useNewConventions))
+        {
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddInMemoryExporter(activities)
+                .AddEntityFrameworkCoreInstrumentation()
+                .Build();
 
-        this.ConfigureProvider(provider, optionsBuilder);
+            var optionsBuilder = new DbContextOptionsBuilder<ItemsContext>();
 
-        await using var context = new ItemsContext(optionsBuilder.Options);
-        await context.Database.EnsureCreatedAsync();
+            this.ConfigureProvider(provider, optionsBuilder);
 
-        // Clear activities from creating the database
-        activities.Clear();
+            await using var context = new ItemsContext(optionsBuilder.Options);
+            await context.Database.EnsureCreatedAsync();
 
-        // Act
-        await context.Database.ExecuteSqlRawAsync(commandText);
+            // Clear activities from creating the database
+            activities.Clear();
+
+            // Act
+            await context.Database.ExecuteSqlRawAsync(commandText);
+        }
 
         // Assert
         var activity = Assert.Single(activities);
@@ -441,6 +455,10 @@ public sealed class EntityFrameworkIntegrationTests :
 
     private void ConfigureProvider(string provider, DbContextOptionsBuilder<ItemsContext> builder)
     {
+        builder.LogTo(this.outputHelper.WriteLine, Microsoft.Extensions.Logging.LogLevel.Trace)
+               .EnableSensitiveDataLogging()
+               .EnableDetailedErrors();
+
         switch (provider)
         {
             case MySqlProvider:
@@ -505,21 +523,9 @@ public sealed class EntityFrameworkIntegrationTests :
         public required string System { get; init; }
     }
 
-    private sealed class SemanticConventionScope(string? previous) : IDisposable
+    private sealed class SemanticConventionScope
     {
-        private const string ConventionsOptIn = "OTEL_SEMCONV_STABILITY_OPT_IN";
-
-        public static SemanticConventionScope Get(bool useNewConventions)
-        {
-            var previous = Environment.GetEnvironmentVariable(ConventionsOptIn);
-
-            Environment.SetEnvironmentVariable(
-                ConventionsOptIn,
-                useNewConventions ? "database" : string.Empty);
-
-            return new SemanticConventionScope(previous);
-        }
-
-        public void Dispose() => Environment.SetEnvironmentVariable(ConventionsOptIn, previous);
+        public static IDisposable Get(bool useNewConventions)
+            => EnvironmentVariableScope.Create("OTEL_SEMCONV_STABILITY_OPT_IN", useNewConventions ? "database" : string.Empty);
     }
 }

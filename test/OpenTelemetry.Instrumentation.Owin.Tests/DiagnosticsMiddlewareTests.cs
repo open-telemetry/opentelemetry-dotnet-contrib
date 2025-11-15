@@ -287,13 +287,8 @@ public class DiagnosticsMiddlewareTests : IDisposable
         bool disableQueryRedactionUsingEnvVar,
         bool disableQueryRedactionUsingConfiguration)
     {
-        try
+        using (EnvironmentVariableScope.Create("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", disableQueryRedactionUsingEnvVar ? "true" : null))
         {
-            if (disableQueryRedactionUsingEnvVar)
-            {
-                Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
-            }
-
             List<Activity> stoppedActivities = [];
 
             var builder = Sdk.CreateTracerProviderBuilder()
@@ -347,10 +342,6 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
             Assert.Equal(expectedRequestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
             Assert.Equal(expectedRequestUri.Query.TrimStart('?'), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlQuery).Value);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", null);
         }
     }
 

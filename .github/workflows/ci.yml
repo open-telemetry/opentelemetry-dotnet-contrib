@@ -29,7 +29,7 @@ jobs:
     steps:
     - name: check out code
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      if: ${{ github.event_name == 'push' }}
+      if: github.event_name == 'push' || github.event_name == 'merge_group'
 
     - uses: AurorNZ/paths-filter@3b1f3abc3371cca888d8eb03dfa70bc8a9867629 # v4.0.0
       id: changes
@@ -229,7 +229,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net8.0", "net9.0" ]'
+      tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -241,7 +241,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AWS
       code-cov-name: Instrumentation.AWS
-      tfm-list: '[ "net472", "net8.0", "net9.0" ]'
+      tfm-list: '[ "net472", "net8.0", "net9.0", "net10.0" ]'
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -317,7 +317,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net8.0", "net9.0" ]'
+      tfm-list: '[ "net8.0", "net9.0", "net10.0" ]'
 
   build-test-instrumentation-grpccore:
     needs: detect-changes

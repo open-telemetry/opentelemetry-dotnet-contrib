@@ -9,8 +9,13 @@
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.AspNet)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.AspNet)
 
-The ASP.NET Telemetry HttpModule enables distributed tracing of incoming ASP.NET
-requests using the OpenTelemetry API.
+The ASP.NET Telemetry HttpModule is a skeleton to enable distributed tracing
+and metrics of incoming ASP.NET requests using the OpenTelemetry API.
+
+> [!NOTE]
+> This package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
+Until a [stable version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
+is released, there can be breaking changes.
 
 ## Usage
 
@@ -19,7 +24,7 @@ requests using the OpenTelemetry API.
 If you are using the traditional `packages.config` reference style, a
 `web.config` transform should run automatically and configure the
 `TelemetryHttpModule` for you. If you are using the more modern PackageReference
-style, this may be needed to be done manually. For more information, see:
+style, this may need to be done manually. For more information, see:
 [Migrate from packages.config to
 PackageReference](https://docs.microsoft.com/nuget/consume-packages/migrate-packages-config-to-package-reference).
 
@@ -37,64 +42,13 @@ To configure your `web.config` manually, add this:
 </system.webServer>
 ```
 
-### Step 2: Register a listener
+### Step 2: Register hooks
 
-`TelemetryHttpModule` registers an
-[ActivitySource](https://docs.microsoft.com/dotnet/api/system.diagnostics.activitysource)
-with the name `OpenTelemetry.Instrumentation.AspNet`. By default, .NET
-`ActivitySource` will not generate any `Activity` objects unless there is
-a registered listener.
+`TelemetryHttpModule` provides hooks to create and manage activities and metrics.
 
-To register a listener automatically using OpenTelemetry, please use the
-[OpenTelemetry.Instrumentation.AspNet](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet/)
+To automatically register the entire infrastructure using OpenTelemetry, please
+use the [OpenTelemetry.Instrumentation.AspNet](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet/)
 NuGet package.
-
-To register a listener manually, use code such as the following:
-
-```csharp
-using System.Diagnostics;
-using System.Web;
-using System.Web.Http;
-using System.Web.Mvc;
-using System.Web.Routing;
-using OpenTelemetry.Instrumentation.AspNet;
-
-namespace Examples.AspNet;
-
-public class WebApiApplication : HttpApplication
-{
-    private ActivityListener aspNetActivityListener;
-
-    protected void Application_Start()
-    {
-        this.aspNetActivityListener = new ActivityListener
-        {
-            ShouldListenTo = (activitySource) =>
-            {
-                // Only listen to TelemetryHttpModule's ActivitySource.
-                return activitySource.Name == "OpenTelemetry.Instrumentation.AspNet";
-            },
-            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
-            {
-                // Sample everything created by TelemetryHttpModule's ActivitySource.
-                return ActivitySamplingResult.AllDataAndRecorded;
-            },
-        };
-
-        ActivitySource.AddActivityListener(this.aspNetActivityListener);
-
-        GlobalConfiguration.Configure(WebApiConfig.Register);
-
-        AreaRegistration.RegisterAllAreas();
-        RouteConfig.RegisterRoutes(RouteTable.Routes);
-    }
-
-    protected void Application_End()
-    {
-        this.aspNetActivityListener?.Dispose();
-    }
-}
-```
 
 ## Options
 
@@ -105,7 +59,7 @@ public class WebApiApplication : HttpApplication
 ### TextMapPropagator
 
 `TextMapPropagator` controls how trace context will be extracted from incoming
-Http request messages. By default, [W3C Trace
+HTTP request messages. By default, [W3C Trace
 Context](https://www.w3.org/TR/trace-context/) is enabled.
 
 The OpenTelemetry API ships with a handful of [standard
@@ -134,10 +88,13 @@ default supports W3C Trace Context & Baggage.
 
 ### Events
 
-`OnRequestStartedCallback`, `OnRequestStoppedCallback`, & `OnExceptionCallback`
+`OnRequestStartedCallback`, `OnRequestStoppedCallback`, and `OnExceptionCallback`
 are provided on `TelemetryHttpModuleOptions` and will be fired by the
 `TelemetryHttpModule` as requests are processed.
 
-A typical use case for these events is to add information (tags, events, and/or
-links) to the created `Activity` based on the request, response, and/or
-exception event being fired.
+A typical use case for the `OnRequestStartedCallback` event is to create an activity
+based on the `HttpContextBase` and `ActivityContext`.
+
+`OnRequestStoppedCallback` and `OnExceptionCallback` are needed to add
+information (tags, events, and/or links) to the created `Activity` based on the
+request, response, and/or exception event being fired.

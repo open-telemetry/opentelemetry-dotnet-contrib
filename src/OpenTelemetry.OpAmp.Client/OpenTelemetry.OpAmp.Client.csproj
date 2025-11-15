@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0;$(NetMinimumSupportedVersion);$(NetStandardMinimumSupportedVersion);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <TargetFrameworks>$(TargetFrameworksForLibraries);$(NetFrameworkMinimumSupportedVersion);net9.0</TargetFrameworks>
     <Description>OpAMP Client for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;opamp;opamp-client</PackageTags>
     <MinVerTagPrefix>OpAmp.Client-</MinVerTagPrefix>

@@ -11,7 +11,7 @@ internal static class SemanticConventions
 {
     // The set of constants matches the specification as of this commit.
     // https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/trace/semantic_conventions
-    // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/exceptions.md
+    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public const string AttributeNetTransport = "net.transport";
     public const string AttributeNetPeerIp = "net.peer.ip";

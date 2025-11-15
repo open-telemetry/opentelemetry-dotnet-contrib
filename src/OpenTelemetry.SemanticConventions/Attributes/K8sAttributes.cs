@@ -421,6 +421,16 @@ public static class K8sAttributes
     public const string AttributeK8sPodName = "k8s.pod.name";
 
     /// <summary>
+    /// The phase for the pod. Corresponds to the <c>phase</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public const string AttributeK8sPodStatusPhase = "k8s.pod.status.phase";
+
+    /// <summary>
+    /// The reason for the pod state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public const string AttributeK8sPodStatusReason = "k8s.pod.status.reason";
+
+    /// <summary>
     /// The UID of the Pod.
     /// </summary>
     public const string AttributeK8sPodUid = "k8s.pod.uid";
@@ -482,7 +492,7 @@ public static class K8sAttributes
     /// The name of the K8s resource a resource quota defines.
     /// </summary>
     /// <remarks>
-    /// The value for this attribute can be either the full <c>count/<resource>[.<group>]</c> string (e.g., count/deployments.apps, count/pods), or, for certain core Kubernetes resources, just the resource name (e.g., pods, services, configmaps). Both forms are supported by Kubernetes for object count quotas. See <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/#object-count-quota">Kubernetes Resource Quotas documentation</a> for more details.
+    /// The value for this attribute can be either the full <c>count/<resource>[.<group>]</c> string (e.g., count/deployments.apps, count/pods), or, for certain core Kubernetes resources, just the resource name (e.g., pods, services, configmaps). Both forms are supported by Kubernetes for object count quotas. See <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/#quota-on-object-count">Kubernetes Resource Quotas documentation</a> for more details.
     /// </remarks>
     public const string AttributeK8sResourcequotaResourceName = "k8s.resourcequota.resource_name";
 
@@ -682,6 +692,68 @@ public static class K8sAttributes
         /// The network for the node is not correctly configured.
         /// </summary>
         public const string NetworkUnavailable = "NetworkUnavailable";
+    }
+
+    /// <summary>
+    /// The phase for the pod. Corresponds to the <c>phase</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public static class K8sPodStatusPhaseValues
+    {
+        /// <summary>
+        /// The pod has been accepted by the system, but one or more of the containers has not been started. This includes time before being bound to a node, as well as time spent pulling images onto the host.
+        /// </summary>
+        public const string Pending = "Pending";
+
+        /// <summary>
+        /// The pod has been bound to a node and all of the containers have been started. At least one container is still running or is in the process of being restarted.
+        /// </summary>
+        public const string Running = "Running";
+
+        /// <summary>
+        /// All containers in the pod have voluntarily terminated with a container exit code of 0, and the system is not going to restart any of these containers.
+        /// </summary>
+        public const string Succeeded = "Succeeded";
+
+        /// <summary>
+        /// All containers in the pod have terminated, and at least one container has terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+        /// </summary>
+        public const string Failed = "Failed";
+
+        /// <summary>
+        /// For some reason the state of the pod could not be obtained, typically due to an error in communicating with the host of the pod.
+        /// </summary>
+        public const string Unknown = "Unknown";
+    }
+
+    /// <summary>
+    /// The reason for the pod state. Corresponds to the <c>reason</c> field of the: <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#podstatus-v1-core">K8s PodStatus</a>.
+    /// </summary>
+    public static class K8sPodStatusReasonValues
+    {
+        /// <summary>
+        /// The pod is evicted.
+        /// </summary>
+        public const string Evicted = "Evicted";
+
+        /// <summary>
+        /// The pod is in a status because of its node affinity.
+        /// </summary>
+        public const string NodeAffinity = "NodeAffinity";
+
+        /// <summary>
+        /// The reason on a pod when its state cannot be confirmed as kubelet is unresponsive on the node it is (was) running.
+        /// </summary>
+        public const string NodeLost = "NodeLost";
+
+        /// <summary>
+        /// The node is shutdown.
+        /// </summary>
+        public const string Shutdown = "Shutdown";
+
+        /// <summary>
+        /// The pod was rejected admission to the node because of an error during admission that could not be categorized.
+        /// </summary>
+        public const string UnexpectedAdmissionError = "UnexpectedAdmissionError";
     }
 
     /// <summary>

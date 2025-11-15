@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.14.0
+
+Released 2025-Nov-13
+
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
+* Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+## 1.13.0
+
+Released 2025-Oct-29
+
 ## 1.12.1
 
 Released 2025-Sep-03

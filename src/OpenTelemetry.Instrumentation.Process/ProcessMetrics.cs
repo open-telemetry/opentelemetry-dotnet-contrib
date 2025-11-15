@@ -12,7 +12,7 @@ internal sealed class ProcessMetrics
 {
     internal static readonly Assembly Assembly = typeof(ProcessMetrics).Assembly;
     internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string MeterName = AssemblyName.Name;
+    internal static readonly string MeterName = AssemblyName.Name!;
 
     private static readonly Meter MeterInstance = new(MeterName, Assembly.GetPackageVersion());
 

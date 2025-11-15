@@ -17,6 +17,7 @@ public static class SystemAttributes
     /// <summary>
     /// Deprecated, use <c>cpu.logical_number</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>cpu.logical_number</c>.")]
     public const string AttributeSystemCpuLogicalNumber = "system.cpu.logical_number";
 
     /// <summary>
@@ -67,24 +68,31 @@ public static class SystemAttributes
     public const string AttributeSystemPagingDirection = "system.paging.direction";
 
     /// <summary>
+    /// The paging fault type.
+    /// </summary>
+    public const string AttributeSystemPagingFaultType = "system.paging.fault.type";
+
+    /// <summary>
     /// The memory paging state.
     /// </summary>
     public const string AttributeSystemPagingState = "system.paging.state";
 
     /// <summary>
-    /// The memory paging type.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public const string AttributeSystemPagingType = "system.paging.type";
 
     /// <summary>
-    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public const string AttributeSystemProcessStatus = "system.process.status";
 
     /// <summary>
-    /// Deprecated, use <c>system.process.status</c> instead.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>system.process.status</c>.")]
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public const string AttributeSystemProcessesStatus = "system.processes.status";
 
     /// <summary>
@@ -320,6 +328,22 @@ public static class SystemAttributes
     }
 
     /// <summary>
+    /// The paging fault type.
+    /// </summary>
+    public static class SystemPagingFaultTypeValues
+    {
+        /// <summary>
+        /// major.
+        /// </summary>
+        public const string Major = "major";
+
+        /// <summary>
+        /// minor.
+        /// </summary>
+        public const string Minor = "minor";
+    }
+
+    /// <summary>
     /// The memory paging state.
     /// </summary>
     public static class SystemPagingStateValues
@@ -336,75 +360,83 @@ public static class SystemAttributes
     }
 
     /// <summary>
-    /// The memory paging type.
+    /// Deprecated, use <c>system.paging.fault.type</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
     public static class SystemPagingTypeValues
     {
         /// <summary>
         /// major.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
+        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
     }
 
     /// <summary>
-    /// The process state, e.g., <a href="https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES">Linux Process State Codes</a>.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public static class SystemProcessStatusValues
     {
         /// <summary>
         /// running.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 
     /// <summary>
-    /// Deprecated, use <c>system.process.status</c> instead.
+    /// Deprecated, use <c>process.state</c> instead.
     /// </summary>
-    [Obsolete("Replaced by <c>system.process.status</c>.")]
+    [Obsolete("Replaced by <c>process.state</c>.")]
     public static class SystemProcessesStatusValues
     {
         /// <summary>
         /// running.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
-        [Obsolete("Replaced by <c>system.process.status</c>.")]
+        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 }

@@ -15,6 +15,7 @@ internal static class SqlProcessor
     private const char SanitizationPlaceholder = '?';
     private const char SpaceChar = ' ';
     private const char CommaChar = ',';
+    private const char OpenSquareBracketChar = '[';
     private const char OpenParenChar = '(';
     private const char CloseParenChar = ')';
     private const char DashChar = '-';
@@ -34,6 +35,13 @@ internal static class SqlProcessor
 #if NET
     private static readonly SearchValues<char> WhitespaceSearchValues = SearchValues.Create(WhitespaceChars);
 #endif
+
+    // This is not an exhaustive list but covers the majority of common reserved SQL keywords that may follow a FROM clause.
+    // This is used when determining if the previous token is a keyword in order to identify the end of a comma separated FROM clause.
+    // NOTE: These are ordered so that more likely keywords appear first to shorten the comparison loop.
+    private static readonly string[] FromClauseReservedKeywords = [
+        "WHERE", "BY", "AS", "JOIN", "WITH", "CROSS", "HAVING", "WINDOW", "LIMIT", "OFFSET", "TABLESAMPLE", "PIVOT", "UNPIVOT"
+    ];
 
     // We can extend this in the future to include more keywords if needed.
     // The keywords should be ordered by frequency of use to optimize performance.
@@ -148,9 +156,9 @@ internal static class SqlProcessor
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsAsciiIdentifierChar(char c) =>
 #if NET
-        char.IsAsciiLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
+        char.IsLetter(c) || char.IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #else
-        IsAsciiLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
+        char.IsLetter(c) || IsAsciiDigit(c) || c == UnderscoreChar || c == DotChar;
 #endif
 
     private static SqlStatementInfo SanitizeSql(ReadOnlySpan<char> sql)
@@ -371,6 +379,7 @@ internal static class SqlProcessor
                     state.ParsePosition += keywordLength;
                     state.PreviousTokenStartPosition = start;
                     state.PreviousTokenEndPosition = start + keywordLength;
+                    state.InFromClause = potentialKeywordInfo.SqlKeyword == SqlKeyword.From;
 
                     // No further parsing needed for this token
                     return;
@@ -401,14 +410,31 @@ internal static class SqlProcessor
             var length = i - start;
             if (length > 0)
             {
+                var tokenSpan = sql.Slice(start, length);
+
+                // Special handling: if we are in a FROM clause, check if this identifier is a reserved keyword
+                // that indicates the end of the FROM clause.
+                if (state.InFromClause)
+                {
+                    foreach (var reservedKeyword in FromClauseReservedKeywords)
+                    {
+                        if (IsCaseInsensitiveMatch(tokenSpan, reservedKeyword))
+                        {
+                            // We've matched a reserved keyword so are no longer in the FROM clause.
+                            state.InFromClause = false;
+                            break;
+                        }
+                    }
+                }
+
                 // Copy to sanitized buffer.
-                sql.Slice(start, length).CopyTo(buffer.Slice(state.SanitizedPosition));
+                tokenSpan.CopyTo(buffer.Slice(state.SanitizedPosition));
                 state.SanitizedPosition += length;
 
                 // Optionally copy to summary buffer.
                 if (state.CaptureNextTokenInSummary)
                 {
-                    sql.Slice(start, length).CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
+                    tokenSpan.CopyTo(state.SummaryBuffer.Slice(state.SummaryPosition));
                     state.SummaryPosition += length;
 
                     // Add a space after the identifier. The trailing space will be trimmed later.
@@ -423,15 +449,35 @@ internal static class SqlProcessor
         }
         else
         {
-            // Special case: if the token is a comma and follows a FROM keyword,
-            // we are in an old style implicit join and we want to capture the next valid identifier in the summary.
-            var prevKeyword = state.PreviousParsedKeyword?.SqlKeyword ?? SqlKeyword.Unknown;
-            state.CaptureNextTokenInSummary = prevKeyword == SqlKeyword.From && currentChar == CommaChar;
+            // If we are in a FROM clause, we want to capture the next identifier following a comma or open square bracket.
+            // Commas may occur when listing multiple tables in a FROM clause.
+            // Brackets may occur when using schema-qualified or delimited identifiers.
+            state.CaptureNextTokenInSummary = state.InFromClause && (currentChar == CommaChar || currentChar == OpenSquareBracketChar);
 
             buffer[state.SanitizedPosition++] = currentChar;
             state.ParsePosition++;
 
-            // We don't update previous token start/end positions for single-char tokens.
+            // NOTE: We don't update previous token start/end positions for single-char tokens.
+        }
+
+        static bool IsCaseInsensitiveMatch(ReadOnlySpan<char> tokenSpan, string reservedKeyword)
+        {
+            if (tokenSpan.Length != reservedKeyword.Length)
+            {
+                return false;
+            }
+
+            var reservedKeywordSpan = reservedKeyword.AsSpan();
+
+            for (var charPos = 0; charPos < tokenSpan.Length; charPos++)
+            {
+                if ((tokenSpan[charPos] | 0x20) != (reservedKeywordSpan[charPos] | 0x20))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 
@@ -724,6 +770,10 @@ internal static class SqlProcessor
         // Stored in state to avoid slicing repeatedly.
         public Span<char> SummaryBuffer;
 
+        /// <summary>
+        /// Will be set if a keyword has been matched by the parser.
+        /// Not all keywords are necessarily matched.
+        /// </summary>
         public SqlKeywordInfo? PreviousParsedKeyword; // 8 bytes (reference type)
 
         public SqlKeyword FirstSummaryKeyword; // 4 bytes (enum, underlying int)
@@ -739,7 +789,16 @@ internal static class SqlProcessor
         public int PreviousTokenStartPosition; // 4 bytes
         public int PreviousTokenEndPosition; // 4 bytes
 
+        // NOTE: If the number of bool fields increases significantly, consider combining into a bitfield.
+
         public bool CaptureNextTokenInSummary; // 1 byte
+
+        /// <summary>
+        /// Used to track if we are in a FROM clause for special handling of comma-separated table lists.
+        /// When set to <c>true</c>, subsequent unmatched tokens will be compared against reserved keywords.
+        /// As soon as we match a reserved keyword, we exit the FROM clause state.
+        /// </summary>
+        public bool InFromClause; // 1 byte
     }
 
     private sealed class SqlKeywordInfo

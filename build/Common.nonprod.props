@@ -21,7 +21,7 @@
 
   <PropertyGroup Label="Target frameworks used in by test projects">
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
-    <SupportedNetTargets>net9.0;net8.0</SupportedNetTargets>
+    <SupportedNetTargets>net10.0;net9.0;net8.0</SupportedNetTargets>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
@@ -41,7 +41,7 @@
     errors will be generated for projects which do not implement the requested
     target. In order to enable running tests for a given framework across a
     solution/project with mixed targets (eg: dotnet test
-    opentelemetry-dotnet-contrib.sln -f net462) we convert this into a skip
+    opentelemetry-dotnet-contrib.slnx -f net462) we convert this into a skip
     message only. -->
     <PropertyGroup Condition="$(TargetFrameworks.Contains($(TargetFramework))) != 'true'">
       <_SkipTests>true</_SkipTests>

@@ -2,15 +2,36 @@
 
 ## Unreleased
 
+## 1.14.0
+
+Released 2025-Nov-13
+
+* Add support for .NET 10.0.
+  ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
+
+* Update .NET 10.0 NuGet package versions from `10.0.0-rc.2.25502.107` to `10.0.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
+## 1.13.1
+
+Released 2025-Oct-29
+
+* Support for specifying resource attributes, including
+  `service.name`, `service.instanceId`, and custom attributes.
+  ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
+
+* Allow custom string size limit in custom fields.
+  ([#3360](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3360))
+
 ## 1.13.0
 
 Released 2025-Oct-13
 
 * Updated OpenTelemetry core component version(s) to `1.13.1`.
   ([#3218](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3218))
-* Support for specifying resource attributes, including
-  `service.name`, `service.instanceId`, and custom attributes.
-  ([#3214](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3214))
 
 ## 1.13.0-alpha.1
 
