@@ -17,6 +17,8 @@ internal sealed class KustoMetricListener : KustoUtils.ITraceListener
         this.options = options;
     }
 
+    public override string Name => nameof(KustoMetricListener);
+
     public override bool IsThreadSafe => true;
 
     public override void Flush()
@@ -40,7 +42,20 @@ internal sealed class KustoMetricListener : KustoUtils.ITraceListener
         }
     }
 
-    private static double GetElaspedTime(long start) => Stopwatch.GetTimestamp() - start;
+    private static double GetElaspedTime(long begin)
+    {
+#if NET
+        var duration = Stopwatch.GetElapsedTime(begin);
+#else
+        var end = Stopwatch.GetTimestamp();
+        var timestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
+        var delta = end - begin;
+        var ticks = (long)(timestampToTicks * delta);
+        var duration = new TimeSpan(ticks);
+#endif
+
+        return duration.TotalSeconds;
+    }
 
     private void HandleHttpResponseReceived(KustoUtils.TraceRecord record)
     {

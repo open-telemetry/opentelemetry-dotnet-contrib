@@ -6,6 +6,7 @@ using System.Text;
 using Kusto.Data;
 using Kusto.Data.Common;
 using Kusto.Data.Net.Client;
+using OpenTelemetry.Instrumentation.Kusto.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
@@ -30,7 +31,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     [InlineData(".show version", false)]
     [InlineData(".show databases", false)]
     [InlineData("print number=42", false)]
-    public Task SuccessfulQueryTest(string query, bool recordQueryText)
+    public async Task SuccessfulQueryTest(string query, bool recordQueryText)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
@@ -50,37 +51,45 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         var crp = new ClientRequestProperties()
         {
+            // Ensure a stable client ID for snapshots
             ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
         };
 
-        var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
-        Assert.NotEmpty(activities);
-        var activity = activities.FirstOrDefault(a =>
-            a.OperationName.Contains("Query") ||
-            a.OperationName.Contains("Management") ||
-            a.OperationName.Contains("ExecuteQuery"));
-        Assert.NotNull(activity);
+        var activitySnapshots = activities
+            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .Select(activity => new
+            {
+                activity.DisplayName,
+                activity.Source.Name,
+                activity.Status,
+                activity.StatusDescription,
+                activity.Tags,
+                activity.OperationName,
+                activity.IdFormat,
+            });
 
-        var activitySnapshot = new
-        {
-            activity.DisplayName,
-            activity.Status,
-            activity.StatusDescription,
-            activity.Tags,
-        };
+        var metricSnapshots = metrics
+            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
+            .Select(metric => new
+            {
+                metric.Name,
+                metric.Description,
+                metric.MeterTags,
+                metric.Unit,
+                metric.Temporality,
+            });
 
-        Assert.NotEmpty(metrics);
-        var durationMetric = metrics.FirstOrDefault(m => m.Name == "db.client.operation.duration");
-        Assert.NotNull(durationMetric);
-
-        var countMetric = metrics.FirstOrDefault(m => m.Name == "db.client.operation.count");
-        Assert.NotNull(countMetric);
-
-        return Verify(activitySnapshot)
+        await Verify(
+            new
+            {
+                Activities = activitySnapshots,
+                Metrics = metricSnapshots,
+            })
             .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
             .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
             .UseDirectory("Snapshots")
