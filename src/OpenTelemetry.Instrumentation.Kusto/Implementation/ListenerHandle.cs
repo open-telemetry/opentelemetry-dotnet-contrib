@@ -13,6 +13,12 @@ internal class ListenerHandle : IDisposable
     public ListenerHandle(ITraceListener listener)
     {
         this.listener = listener;
+
+        foreach (var l in TraceSourceManager.GetAllTraceListeners())
+        {
+            Console.WriteLine($"Existing listener: {l.Name} -- {l.GetType().FullName}");
+        }
+
         TraceSourceManager.AddTraceListener(listener, startupDone: true);
     }
 
@@ -30,6 +36,13 @@ internal class ListenerHandle : IDisposable
             if (disposing)
             {
                 TraceSourceManager.RemoveTraceListener(this.listener);
+
+                // TODO: Follow up as this seems like a bug
+                foreach (var id in TraceSourceManager.GetAllTraceSourceIDs())
+                {
+                    var ts = TraceSourceManager.TryGetTraceSource(id);
+                    ts?.RemoveTraceListener(this.listener);
+                }
             }
 
             this.isDisposed = true;

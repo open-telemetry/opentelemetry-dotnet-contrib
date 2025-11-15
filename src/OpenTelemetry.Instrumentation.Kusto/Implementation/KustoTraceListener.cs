@@ -16,6 +16,8 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
         this.options = options;
     }
 
+    public override string Name => nameof(KustoTraceListener);
+
     public override bool IsThreadSafe => true;
 
     public override void Flush()
