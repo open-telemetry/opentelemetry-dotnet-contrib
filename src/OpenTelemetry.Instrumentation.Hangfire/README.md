@@ -166,8 +166,8 @@ using var tracerProvider = Sdk
 
 ## Metrics
 
-This instrumentation library collects metrics following the OpenTelemetry
-[workflow semantic conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/workflow/workflow-metrics.md).
+This instrumentation library collects metrics following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688). 
+As those definitions evolve, changes including breaking ones will flow back to this implementation.
 
 In Hangfire, the workflow semantic conventions are applied as follows:
 - Each background job execution is modeled as a **workflow task execution**
