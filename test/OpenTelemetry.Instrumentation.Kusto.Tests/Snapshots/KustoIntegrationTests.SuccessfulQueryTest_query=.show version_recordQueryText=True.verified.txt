@@ -21,9 +21,6 @@
         },
         {
           db.query.text: .show version
-        },
-        {
-          http.response.status_code: OK
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,

@@ -36,9 +36,9 @@ internal sealed class KustoMetricListener : KustoUtils.ITraceListener
         {
             this.HandleHttpRequestStart(record);
         }
-        else if (record.IsResponseStart())
+        else if (record.IsActivityComplete())
         {
-            this.HandleHttpResponseReceived(record);
+            this.HangleActivityComplete(record);
         }
     }
 
@@ -57,7 +57,7 @@ internal sealed class KustoMetricListener : KustoUtils.ITraceListener
         return duration.TotalSeconds;
     }
 
-    private void HandleHttpResponseReceived(KustoUtils.TraceRecord record)
+    private void HangleActivityComplete(KustoUtils.TraceRecord record)
     {
         var operationName = record.Activity.ActivityType;
         var duration = GetElaspedTime(this.beginTimestamp.Value);
