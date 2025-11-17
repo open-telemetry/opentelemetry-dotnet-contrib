@@ -3,7 +3,6 @@
 
 using Hangfire.Common;
 using Hangfire.Server;
-using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 

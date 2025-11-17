@@ -18,6 +18,18 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         Unapplied,
     }
 
+    public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
+    {
+        RecordWorkflowStateChange(context, StateTransitionDirection.Applied);
+        RecordExecutionStateChange(context, StateTransitionDirection.Applied);
+    }
+
+    public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
+    {
+        RecordWorkflowStateChange(context, StateTransitionDirection.Unapplied);
+        RecordExecutionStateChange(context, StateTransitionDirection.Unapplied);
+    }
+
     private static string? GetErrorTypeFromNewState(IState state)
     {
         if (!string.Equals(state.Name, FailedState.StateName, StringComparison.Ordinal))
@@ -74,19 +86,7 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         }
     }
 
-    public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        this.RecordWorkflowStateChange(context, StateTransitionDirection.Applied);
-        this.RecordExecutionStateChange(context, StateTransitionDirection.Applied);
-    }
-
-    public void OnStateUnapplied(ApplyStateContext context, IWriteOnlyTransaction transaction)
-    {
-        this.RecordWorkflowStateChange(context, StateTransitionDirection.Unapplied);
-        this.RecordExecutionStateChange(context, StateTransitionDirection.Unapplied);
-    }
-
-    private void RecordWorkflowStateChange(
+    private static void RecordWorkflowStateChange(
         ApplyStateContext context,
         StateTransitionDirection direction)
     {
@@ -117,7 +117,7 @@ internal sealed class HangfireMetricsStateFilter : JobFilterAttribute, IApplySta
         HangfireMetrics.WorkflowStatus.Add(delta, tags);
     }
 
-    private void RecordExecutionStateChange(
+    private static void RecordExecutionStateChange(
         ApplyStateContext context,
         StateTransitionDirection direction)
     {

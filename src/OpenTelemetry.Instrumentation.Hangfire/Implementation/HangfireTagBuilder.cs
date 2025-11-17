@@ -57,7 +57,6 @@ internal static class HangfireTagBuilder
         return tags;
     }
 
-
     /// <summary>
     /// Creates a tag list with execution result tags following workflow semantic conventions.
     /// Includes required attributes (workflow.task.name, workflow.execution.result, workflow.execution.state),

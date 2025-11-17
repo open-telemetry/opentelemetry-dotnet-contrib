@@ -420,6 +420,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         if (executionStatusMetric != null)
         {
             var execPoints = executionStatusMetric.ToMetricPointList();
+
             // Should have no execution state metrics for scheduled jobs (not in execution pipeline)
             var execPendingPoint = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending);
             Assert.Null(execPendingPoint);
@@ -509,6 +510,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         AssertUtils.AssertHasMetricPoints(workflowStatusMetric);
 
         var workflowPoints = workflowStatusMetric!.ToMetricPointList();
+
         // After completion, states should balance to 0 (Completed state no longer exists)
         var workflowPendingSum = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Pending)?.GetSumLong() ?? 0;
         var workflowExecutingSum = workflowPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowState, WorkflowAttributes.WorkflowStateValues.Executing)?.GetSumLong() ?? 0;
@@ -520,6 +522,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
         AssertUtils.AssertHasMetricPoints(executionStatusMetric);
 
         var execPoints = executionStatusMetric!.ToMetricPointList();
+
         // After completion, states should balance to 0 (Completed state no longer exists)
         var execPendingSum = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Pending)?.GetSumLong() ?? 0;
         var execExecutingSum = execPoints.FindFirstWithTag(WorkflowAttributes.AttributeWorkflowExecutionState, WorkflowAttributes.WorkflowStateValues.Executing)?.GetSumLong() ?? 0;

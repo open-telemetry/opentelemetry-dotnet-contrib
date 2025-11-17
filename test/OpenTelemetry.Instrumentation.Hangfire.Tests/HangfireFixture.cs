@@ -28,7 +28,7 @@ public class HangfireFixture : IDisposable
         // Default is 15 seconds, which is too slow for test scenarios
         var options = new BackgroundJobServerOptions
         {
-            SchedulePollingInterval = TimeSpan.FromMilliseconds(100)
+            SchedulePollingInterval = TimeSpan.FromMilliseconds(100),
         };
 
         this.Server = new BackgroundJobServer(options);
@@ -54,7 +54,11 @@ public class HangfireFixture : IDisposable
 
         while (!cts.IsCancellationRequested)
         {
-            if (Completed()) return;
+            if (Completed())
+            {
+                return;
+            }
+
             await Task.Delay(50, cts.Token);
         }
 

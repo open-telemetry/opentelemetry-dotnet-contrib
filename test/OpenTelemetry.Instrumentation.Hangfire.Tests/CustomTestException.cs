@@ -8,7 +8,8 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
 /// </summary>
 internal class CustomTestException : Exception
 {
-    public CustomTestException(string message) : base(message)
+    public CustomTestException(string message)
+        : base(message)
     {
     }
 }

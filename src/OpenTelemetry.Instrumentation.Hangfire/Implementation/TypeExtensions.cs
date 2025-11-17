@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿// Copyright The OpenTelemetry Authors
+// SPDX-License-Identifier: Apache-2.0
+
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -35,8 +38,9 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
             }
 
             const int dotLength = 1;
+
             // ReSharper disable once PossibleNullReferenceException
-            return !String.IsNullOrEmpty(type.Namespace)
+            return !string.IsNullOrEmpty(type.Namespace)
                 ? type.FullName.Substring(type.Namespace.Length + dotLength)
                 : type.FullName;
         }
