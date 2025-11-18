@@ -254,11 +254,11 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         };
 
         // Act
-        using var instrumentation = new Implementation.HangfireMetricsInstrumentation(options);
+        using var instrumentation = new HangfireMetricsInstrumentation(options);
 
         // Verify no HangfirePendingDurationFilterAttribute is registered
         var pendingDurationFilterExists = GlobalJobFilters.Filters
-            .Any(f => f.Instance is Implementation.HangfirePendingDurationFilterAttribute);
+            .Any(f => f.Instance is HangfirePendingDurationFilterAttribute);
         Assert.False(pendingDurationFilterExists);
     }
 
@@ -272,11 +272,11 @@ public class HangfireQueueLatencyTests : IClassFixture<HangfireFixture>
         };
 
         // Act
-        using var instrumentation = new Implementation.HangfireMetricsInstrumentation(options);
+        using var instrumentation = new HangfireMetricsInstrumentation(options);
 
         // Verify HangfirePendingDurationFilterAttribute IS registered
         var pendingDurationFilterExists = GlobalJobFilters.Filters
-            .Any(f => f.Instance is Implementation.HangfirePendingDurationFilterAttribute);
+            .Any(f => f.Instance is HangfirePendingDurationFilterAttribute);
         Assert.True(pendingDurationFilterExists);
     }
 }
