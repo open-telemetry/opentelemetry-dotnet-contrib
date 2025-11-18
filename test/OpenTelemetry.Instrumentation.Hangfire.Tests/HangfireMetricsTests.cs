@@ -466,7 +466,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
             Assert.Equal(0, workflowExecutingPoint.Value.GetSumLong());
         }
 
-        // Assert - workflow.execution.status should also track lifecycle (enqueued → executing)
+        // Assert - workflow.execution.status should also track lifecycle (enqueued -> executing)
         // but NOT the scheduled phase
         var executionStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.ExecutionStatus);
         AssertUtils.AssertHasMetricPoints(executionStatusMetric);
