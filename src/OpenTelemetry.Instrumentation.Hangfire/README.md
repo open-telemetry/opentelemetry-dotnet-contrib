@@ -166,10 +166,11 @@ using var tracerProvider = Sdk
 
 ## Metrics
 
-This instrumentation library collects metrics following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688). 
+This instrumentation library collects metrics following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
 As those definitions evolve, changes including breaking ones will flow back to this implementation.
 
 In Hangfire, the workflow semantic conventions are applied as follows:
+
 - Each background job execution is modeled as a **workflow task execution**
 - Workflow-level metrics track the complete lifecycle (including scheduled jobs)
 - Execution-level metrics track the execution pipeline (enqueued jobs and later)
@@ -284,9 +285,9 @@ The number of task executions which have been initiated.
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
 | `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
 
-¹ Required if and only if the task execution failed.
+[1]: Required if and only if the task execution failed.
 
 #### workflow.execution.duration
 
@@ -313,9 +314,9 @@ execution phases:
 | `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.execution.state`    | string | The execution phase being measured            | Required                 | `pending`, `executing`  |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
 
-¹ Required if and only if the task execution failed.
+[1]: Required if and only if the task execution failed.
 
 #### workflow.execution.status
 
@@ -336,9 +337,9 @@ The number of actively running tasks grouped by task and the current state.
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`                     |
 | `workflow.execution.state`    | string | Current state of the execution                | Required                 | `pending`, `executing`, `completed`       |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name                       |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name                       |
 
-¹ Required if and only if the task execution failed.
+[1]: Required if and only if the task execution failed.
 
 **Hangfire State Mapping:**
 
@@ -383,7 +384,7 @@ individual job completions.
 | `workflow.result`             | string | The result of the workflow                    | Required                 | `success`, `failure`    |
 | `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule` |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
 
 [1]: Required if and only if the workflow execution failed.
 
@@ -480,5 +481,5 @@ The instrumentation distinguishes between **workflow-level** and **execution-lev
 
 ## References
 
-* [OpenTelemetry Project](https://opentelemetry.io/)
-* [Hangfire Project](https://www.hangfire.io/)
+- [OpenTelemetry Project](https://opentelemetry.io/)
+- [Hangfire Project](https://www.hangfire.io/)
