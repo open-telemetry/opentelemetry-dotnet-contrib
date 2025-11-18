@@ -252,6 +252,7 @@ execution time.
 The following metrics are emitted by this instrumentation:
 
 **Execution-level metrics** track jobs that have entered the execution pipeline:
+
 - `workflow.execution.outcome` - Counter for completed executions
 - `workflow.execution.duration` - Histogram for execution duration (pending and executing phases)
 - `workflow.execution.status` - UpDownCounter for current execution state
