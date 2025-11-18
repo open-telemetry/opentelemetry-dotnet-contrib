@@ -384,7 +384,7 @@ individual job completions.
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
 | `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name     |
 
-¹ Required if and only if the workflow execution failed.
+[1]: Required if and only if the workflow execution failed.
 
 #### workflow.status
 
