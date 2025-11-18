@@ -408,7 +408,7 @@ The number of actively running workflows grouped by definition and the current s
 | `workflow.state`              | string | Current state of the workflow                 | Required                 | `pending`, `executing`, `completed`       |
 | `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule`                 |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required¹  | Exception type name                       |
+| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1] | Exception type name                       |
 
 ¹ Required if and only if the workflow execution failed.
 
