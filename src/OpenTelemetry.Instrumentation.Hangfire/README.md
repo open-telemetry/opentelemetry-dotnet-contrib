@@ -468,6 +468,7 @@ The instrumentation distinguishes between **workflow-level** and **execution-lev
 - Provide visibility into all jobs regardless of execution status
 
 **Execution-level metrics** (`workflow.execution.*`):
+
 - Track only jobs that have entered the execution pipeline (enqueued or later)
 - Use `workflow.task.name` and `workflow.execution.state`
 - Do NOT include `workflow.trigger.type` (trigger is a workflow-level concept)
