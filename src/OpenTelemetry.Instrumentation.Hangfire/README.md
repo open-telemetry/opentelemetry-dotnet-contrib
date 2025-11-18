@@ -463,6 +463,7 @@ This instrumentation follows the OpenTelemetry semantic conventions for workflow
 The instrumentation distinguishes between **workflow-level** and **execution-level** metrics:
 
 **Workflow-level metrics** (`workflow.outcome`, `workflow.status`):
+
 - Track the complete lifecycle of jobs, including pre-execution states (e.g., scheduled)
 - Use `workflow.definition.name`, `workflow.state`, and `workflow.trigger.type`
 - Provide visibility into all jobs regardless of execution status
