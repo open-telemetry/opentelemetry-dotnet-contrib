@@ -290,6 +290,7 @@ The number of task executions which have been initiated.
 
 Duration of an execution grouped by task, state, and result. Records duration for different
 execution phases:
+
 - **state=pending**: Time spent waiting in queue (only when `RecordQueueLatency` is enabled)
 - **state=executing**: Time spent in actual execution
 
