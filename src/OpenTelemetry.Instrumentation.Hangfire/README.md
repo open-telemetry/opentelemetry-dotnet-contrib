@@ -258,6 +258,7 @@ The following metrics are emitted by this instrumentation:
 - `workflow.execution.errors` - Counter for execution errors
 
 **Workflow-level metrics** track the complete job lifecycle:
+
 - `workflow.outcome` - Counter for completed workflows
 - `workflow.status` - UpDownCounter for current workflow state (including scheduled jobs)
 
