@@ -445,7 +445,7 @@ public class HangfireMetricsTests : IClassFixture<HangfireFixture>
 
         meterProvider.ForceFlush();
 
-        // Assert - workflow.status should track full lifecycle (scheduled → enqueued → executing → completed)
+        // Assert - workflow.status should track full lifecycle (scheduled -> enqueued -> executing -> completed)
         var workflowStatusMetric = exportedItems.GetMetric(WorkflowMetricNames.WorkflowStatus);
         AssertUtils.AssertHasMetricPoints(workflowStatusMetric);
 
