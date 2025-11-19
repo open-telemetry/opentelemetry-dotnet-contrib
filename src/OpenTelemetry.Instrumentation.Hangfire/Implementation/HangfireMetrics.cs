@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.Metrics;
-using System.Reflection;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
@@ -77,14 +76,15 @@ internal static class HangfireMetrics
             unit: "{workflows}",
             description: "The number of actively running workflows grouped by definition and the current state.");
 
-    internal static readonly Assembly Assembly = typeof(HangfireMetrics).Assembly;
-    internal static readonly AssemblyName AssemblyName = Assembly.GetName();
-    internal static readonly string MeterName = AssemblyName.Name!;
+    /// <summary>
+    /// Returns Hangfire metric name.
+    /// </summary>
+    internal static readonly string MeterName = Meter.Name;
 
-    private static readonly string InstrumentationVersion = Assembly.GetPackageVersion();
+    private static Meter? meter;
 
     /// <summary>
-    /// The meter instance for all Hangfire metrics.
+    /// Gets the meter instance for all Hangfire metrics.
     /// </summary>
-    private static readonly Meter Meter = new(MeterName, InstrumentationVersion);
+    private static Meter Meter => meter ??= new(typeof(HangfireMetrics).Assembly.GetName().Name, typeof(HangfireMetrics).Assembly.GetPackageVersion());
 }

@@ -5,6 +5,7 @@
     <Description>OpenTelemetry Hangfire Instrumentation.</Description>
     <PackageTags>$(PackageTags);Hangfire</PackageTags>
     <MinVerTagPrefix>Instrumentation.Hangfire-</MinVerTagPrefix>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.
@@ -19,6 +20,11 @@
     <!-- Override version to avoid https://github.com/advisories/GHSA-5crp-9r3c-p9vr -->
     <PackageReference Include="Newtonsoft.Json" VersionOverride="[13.0.1,)" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Remove="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 
   <ItemGroup>
