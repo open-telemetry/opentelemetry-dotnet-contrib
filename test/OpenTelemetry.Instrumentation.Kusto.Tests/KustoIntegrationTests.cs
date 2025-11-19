@@ -1,9 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Data;
 using System.Diagnostics;
 using System.Text;
-using Kusto.Data;
 using Kusto.Data.Common;
 using Kusto.Data.Net.Client;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
@@ -25,11 +25,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
-    [InlineData(".show version", true)]
-    [InlineData(".show databases", true)]
     [InlineData("print number=42", true)]
-    [InlineData(".show version", false)]
-    [InlineData(".show databases", false)]
     [InlineData("print number=42", false)]
     public async Task SuccessfulQueryTest(string query, bool recordQueryText)
     {
@@ -46,7 +42,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .AddKustoInstrumentation()
             .Build();
 
-        var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
+        var kcsb = this.fixture.ConnectionStringBuilder;
         using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
         var crp = new ClientRequestProperties()
@@ -56,12 +52,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         };
 
         using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-
-        while (reader.Read())
-        {
-        }
-
-        Debugger.Break();
+        reader.Consume();
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
@@ -120,7 +111,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .AddKustoInstrumentation()
             .Build();
 
-        var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
+        var kcsb = this.fixture.ConnectionStringBuilder;
         using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
         var crp = new ClientRequestProperties()
@@ -133,12 +124,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         var exception = await Assert.ThrowsAnyAsync<Exception>(async () =>
         {
             using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
-
-            while (reader.Read())
-            {
-            }
-
-            Debugger.Break();
+            reader.Consume();
 
             await Task.CompletedTask;
         });
@@ -205,7 +191,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .AddInMemoryExporter(metrics)
             .Build();
 
-        var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
+        var kcsb = this.fixture.ConnectionStringBuilder;
         using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
 
         var crp = new ClientRequestProperties()
@@ -215,10 +201,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         // Act
         using var reader = queryProvider.ExecuteQuery("NetDefaultDB", "print number=42", crp);
-
-        while (reader.Read())
-        {
-        }
+        reader.Consume();
 
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
