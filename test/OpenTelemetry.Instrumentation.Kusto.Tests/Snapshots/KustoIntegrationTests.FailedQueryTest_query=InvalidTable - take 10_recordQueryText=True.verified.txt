@@ -20,6 +20,9 @@
         },
         {
           server.address: {Hostname}:{Port}
+        },
+        {
+          db.query.text: InvalidTable | take 10
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
