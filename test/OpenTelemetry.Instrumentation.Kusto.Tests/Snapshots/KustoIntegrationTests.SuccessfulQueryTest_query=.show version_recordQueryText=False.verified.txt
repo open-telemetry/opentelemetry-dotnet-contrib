@@ -3,6 +3,7 @@
     {
       DisplayName: KD.RestClient.ExecuteQuery,
       Name: Kusto.Client,
+      Status: Ok,
       Tags: [
         {
           db.system.name: kusto

@@ -10,12 +10,10 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 {
-    private readonly KustoInstrumentationOptions options;
     private readonly ConcurrentDictionary<Guid, Activity> activities = new();
 
-    public KustoTraceListener(KustoInstrumentationOptions options)
+    public KustoTraceListener()
     {
-        this.options = options;
     }
 
     public override string Name => nameof(KustoTraceListener);
@@ -29,6 +27,11 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
     public override void Write(KustoUtils.TraceRecord record)
     {
         if (record?.Message is null)
+        {
+            return;
+        }
+
+        if (!KustoInstrumentation.HandleManager.IsTracingActive())
         {
             return;
         }
@@ -47,14 +50,7 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
         }
     }
 
-    private void HandleException(KustoUtils.TraceRecord record)
-    {
-        var activity = this.GetActivity(record);
-        var message = ExtractValueBetween(record.Message.AsSpan(), "ErrorMessage=", Environment.NewLine);
-        activity?.SetStatus(ActivityStatusCode.Error, message.ToString());
-    }
-
-    private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> source, string start, string end)
+    private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> source, ReadOnlySpan<char> start, ReadOnlySpan<char> end)
     {
         var startIndex = source.IndexOf(start);
         if (startIndex < 0)
@@ -76,7 +72,7 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 
     private static string GetServerAddress(ReadOnlySpan<char> uri)
     {
-        var schemeEnd = uri.IndexOf("://");
+        var schemeEnd = uri.IndexOf("://".AsSpan());
         if (schemeEnd < 0)
         {
             return string.Empty;
@@ -89,6 +85,13 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
         var host = pathStart >= 0 ? remaining.Slice(0, pathStart) : remaining;
 
         return host.ToString();
+    }
+
+    private void HandleException(KustoUtils.TraceRecord record)
+    {
+        var activity = this.GetActivity(record);
+        var message = ExtractValueBetween(record.Message.AsSpan(), "ErrorMessage=".AsSpan(), Environment.NewLine.AsSpan());
+        activity?.SetStatus(ActivityStatusCode.Error, message.ToString());
     }
 
     private void HandleHttpRequestStart(KustoUtils.TraceRecord record)
@@ -109,14 +112,14 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 
             var message = record.Message.AsSpan();
 
-            var uri = ExtractValueBetween(message, "Uri=", ",");
+            var uri = ExtractValueBetween(message, "Uri=".AsSpan(), ",".AsSpan());
             if (!uri.IsEmpty)
             {
                 var uriString = uri.ToString();
                 activity.SetTag(SemanticConventions.AttributeUrlFull, uriString);
                 activity.SetTag(SemanticConventions.AttributeServerAddress, GetServerAddress(uri));
 
-                string? database = null; // TODO: Add parsing for database when availble
+                string? database = null; // TODO: Add parsing for database when available
                 if (!string.IsNullOrEmpty(database))
                 {
                     activity.SetTag(SemanticConventions.AttributeDbNamespace, database);
@@ -124,9 +127,9 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
             }
 
             // TODO: Consider adding summary
-            if (this.options.RecordQueryText)
+            if (KustoInstrumentation.TracingOptions.RecordQueryText)
             {
-                var text = ExtractValueBetween(message, "text=", Environment.NewLine);
+                var text = ExtractValueBetween(message, "text=".AsSpan(), Environment.NewLine.AsSpan());
                 if (!text.IsEmpty)
                 {
                     activity.SetTag(SemanticConventions.AttributeDbQueryText, text.ToString());
@@ -148,6 +151,12 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 
         if (clientRequestId.Equals(activityClientRequestId, StringComparison.Ordinal))
         {
+            var howEnded = ExtractValueBetween(record.Message.AsSpan(), "HowEnded=".AsSpan(), ",".AsSpan());
+            if (howEnded.Equals("Success".AsSpan(), StringComparison.Ordinal))
+            {
+                activity.SetStatus(ActivityStatusCode.Ok);
+            }
+
             activity.Stop();
         }
 
