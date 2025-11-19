@@ -9,12 +9,10 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal sealed class KustoMetricListener : KustoUtils.ITraceListener
 {
-    private readonly KustoInstrumentationOptions options;
     private AsyncLocal<long> beginTimestamp = new();
 
-    public KustoMetricListener(KustoInstrumentationOptions options)
+    public KustoMetricListener()
     {
-        this.options = options;
     }
 
     public override string Name => nameof(KustoMetricListener);
@@ -28,6 +26,11 @@ internal sealed class KustoMetricListener : KustoUtils.ITraceListener
     public override void Write(KustoUtils.TraceRecord record)
     {
         if (record?.Message is null)
+        {
+            return;
+        }
+
+        if (!KustoInstrumentation.HandleManager.IsMetricsActive())
         {
             return;
         }

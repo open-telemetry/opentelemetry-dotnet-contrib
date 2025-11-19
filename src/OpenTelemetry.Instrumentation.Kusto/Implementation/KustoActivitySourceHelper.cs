@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </summary>
 internal static class KustoActivitySourceHelper
 {
-    public const string DbSystem = "kusto";
+    public const string DbSystem = "azure.kusto";
     public const string ActivitySourceName = "Kusto.Client";
     public const string MeterName = "Kusto.Client";
     public const string ClientRequestIdTagKey = "kusto.client_request_id";
