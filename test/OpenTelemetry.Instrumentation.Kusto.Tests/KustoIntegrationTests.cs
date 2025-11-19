@@ -188,4 +188,51 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .UseDirectory("Snapshots")
             .UseParameters(query, recordQueryText);
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void NoInstrumentationRegistered_NoEventsEmitted()
+    {
+        // Arrange
+        var activities = new List<Activity>();
+        var metrics = new List<Metric>();
+
+        // Create providers WITHOUT Kusto instrumentation
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        var kcsb = new KustoConnectionStringBuilder(this.fixture.DatabaseContainer.GetConnectionString());
+        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+        var crp = new ClientRequestProperties()
+        {
+            ClientRequestId = "test-no-instrumentation",
+        };
+
+        // Act
+        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", "print number=42", crp);
+
+        while (reader.Read())
+        {
+        }
+
+        tracerProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        // Assert - No Kusto activities or metrics should be emitted
+        var kustoActivities = activities
+            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .ToList();
+
+        var kustoMetrics = metrics
+            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
+            .ToList();
+
+        Assert.Empty(kustoActivities);
+        Assert.Empty(kustoMetrics);
+    }
 }
