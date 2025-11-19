@@ -1,7 +1,7 @@
 {
   Activities: [
     {
-      DisplayName: KD.RestClient.ExecuteQuery,
+      DisplayName: print,
       Name: Kusto.Client,
       Status: Ok,
       Tags: [
@@ -21,7 +21,10 @@
           server.address: {Hostname}:{Port}
         },
         {
-          db.query.text: print number=42
+          db.query.text: print number=?
+        },
+        {
+          db.query.summary: print
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
