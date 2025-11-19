@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using Kusto.Data;
 using Testcontainers.Kusto;
 using Xunit;
 
@@ -11,6 +12,8 @@ public sealed class KustoIntegrationTestsFixture : IAsyncLifetime
     private static readonly string KustoImage = GetKustoImage();
 
     public KustoContainer DatabaseContainer { get; } = CreateKusto();
+
+    public KustoConnectionStringBuilder ConnectionStringBuilder => new(this.DatabaseContainer.GetConnectionString());
 
     public Task InitializeAsync() => this.DatabaseContainer.StartAsync();
 
