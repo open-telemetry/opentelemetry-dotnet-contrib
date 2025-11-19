@@ -126,14 +126,36 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
                 }
             }
 
-            // TODO: Consider adding summary
-            if (KustoInstrumentation.TracingOptions.RecordQueryText)
+            // Extract and parse query text
+            var text = ExtractValueBetween(message, "text=".AsSpan(), Environment.NewLine.AsSpan());
+
+            if (!text.IsEmpty)
             {
-                var text = ExtractValueBetween(message, "text=".AsSpan(), Environment.NewLine.AsSpan());
-                if (!text.IsEmpty)
+                var queryText = text.ToString();
+                var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: KustoInstrumentation.TracingOptions.RecordQueryText, queryText);
+
+                // Set sanitized query text if configured
+                if (KustoInstrumentation.TracingOptions.RecordQueryText)
                 {
-                    activity.SetTag(SemanticConventions.AttributeDbQueryText, text.ToString());
+                    activity.SetTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
                 }
+
+                // Set query summary and use it as display name per spec
+                if (!string.IsNullOrEmpty(info.Summarized))
+                {
+                    activity.SetTag(SemanticConventions.AttributeDbQuerySummary, info.Summarized);
+                    activity.DisplayName = info.Summarized!;
+                }
+                else
+                {
+                    // Fall back to operation name if no summary available
+                    activity.DisplayName = operationName;
+                }
+            }
+            else
+            {
+                // Fall back to operation name if no query text
+                activity.DisplayName = operationName;
             }
         }
     }

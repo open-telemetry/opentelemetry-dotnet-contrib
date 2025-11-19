@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <SignAssembly>false</SignAssembly>
+    <SkipStrongNameValidation>true</SkipStrongNameValidation>
   </PropertyGroup>
 
   <ItemGroup>

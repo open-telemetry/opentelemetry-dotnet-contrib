@@ -1,7 +1,7 @@
 {
   Activities: [
     {
-      DisplayName: KD.RestClient.ExecuteQuery,
+      DisplayName: InvalidTable | take,
       Name: Kusto.Client,
       Status: Error,
       StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
@@ -20,6 +20,9 @@
         },
         {
           server.address: {Hostname}:{Port}
+        },
+        {
+          db.query.summary: InvalidTable | take
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
