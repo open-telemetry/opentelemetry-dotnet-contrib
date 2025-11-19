@@ -10,7 +10,7 @@ public class KustoInstrumentationOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the query text should be recorded as an attribute on the activity.
-    /// Default is false.
+    /// Default is <see langword="false"/>.
     /// </summary>
     public bool RecordQueryText { get; set; }
 

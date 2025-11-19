@@ -1,4 +1,4 @@
-﻿{
+{
   Activities: [
     {
       DisplayName: KD.RestClient.ExecuteQuery,
@@ -6,7 +6,7 @@
       Status: Ok,
       Tags: [
         {
-          db.system.name: kusto
+          db.system.name: azure.kusto
         },
         {
           kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
