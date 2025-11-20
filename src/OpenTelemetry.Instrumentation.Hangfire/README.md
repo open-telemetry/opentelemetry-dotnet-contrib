@@ -431,7 +431,7 @@ The number of actively running workflows grouped by definition and the current s
 Hangfire job states are mapped to workflow semantic convention states as follows:
 
 | Hangfire State                     | Workflow State | Workflow Trigger Type           |
-|------------------------------------|----------------|---------------------------------|
+| ---------------------------------- | -------------- | ------------------------------- |
 | Scheduled                          | `pending`      | `schedule`                      |
 | Enqueued, Awaiting (from cron)     | `pending`      | `cron`                          |
 | Enqueued, Awaiting (fire-and-forget)| `pending`     | `api`                           |
