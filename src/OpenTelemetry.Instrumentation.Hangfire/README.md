@@ -358,7 +358,7 @@ The number of actively running tasks grouped by task and the current state.
 Hangfire job states are mapped to workflow semantic convention states as follows:
 
 | Hangfire State                     | Workflow State |
-|------------------------------------|----------------|
+| ---------------------------------- | -------------- |
 | Scheduled, Enqueued, Awaiting      | `pending`      |
 | Processing                         | `executing`    |
 | Succeeded, Failed, Deleted         | `completed`    |
