@@ -1,8 +1,8 @@
 # AWS Resource Detectors
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@srprash](https://github.com/srprash), [@normj](https://github.com/normj), [@lukeina2z](https://github.com/lukeina2z) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.AWS)](https://www.nuget.org/packages/OpenTelemetry.Resources.AWS)

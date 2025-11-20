@@ -1,8 +1,8 @@
 # Runtime Instrumentation for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#beta) |
 | Code Owners | [@twenzel](https://github.com/twenzel), [@xiang17](https://github.com/xiang17) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
@@ -286,7 +286,7 @@ The number of work items that are currently queued to be processed
 by the thread pool.
 
 | Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-| --------- | ----------------------- | ---------- | ---------------- | ---------------- |
+| --- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**

@@ -1,8 +1,8 @@
 # HttpClient and HttpWebRequest instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Http.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Http)

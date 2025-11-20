@@ -1,8 +1,8 @@
 # SqlClient Instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.SqlClient.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.SqlClient)
@@ -101,7 +101,7 @@ conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0
 Currently, the instrumentation supports the following metric.
 
 | Name | Instrument Type | Unit | Description |
-| ----- | --------------- | ---- | ----------- |
+| ---- | --------------- | ---- | ----------- |
 | `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. |
 
 #### ASP.NET Core

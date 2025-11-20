@@ -1,8 +1,8 @@
 # ASP.NET Core Instrumentation for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNetCore.svg)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNetCore)

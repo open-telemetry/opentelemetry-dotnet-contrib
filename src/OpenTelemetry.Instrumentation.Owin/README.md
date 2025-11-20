@@ -1,8 +1,8 @@
 # OWIN Instrumentation for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Owin)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Owin)
@@ -99,7 +99,7 @@ conventions](https://github.com/open-telemetry/semantic-conventions/blob/main/do
 Currently, the instrumentation supports the following metric.
 
 | Name | Instrument Type | Unit | Description |
-| ----- | --------------- | ---- | ----------- |
+| ---- | --------------- | ---- | ----------- |
 | `http.server.request.duration` | Histogram | `s` | Duration of HTTP server requests. |
 
 ## Customize OWIN span names

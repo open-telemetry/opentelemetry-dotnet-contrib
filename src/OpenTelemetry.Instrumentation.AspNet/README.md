@@ -1,8 +1,8 @@
 # ASP.NET Instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Release candidate](../../README.md#release-candidate) |
+| Status | |
+| ------ | --- |
+| Stability | [Release candidate](../../README.md#release-candidate) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
@@ -123,7 +123,7 @@ conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0
 Currently, the instrumentation supports the following metric.
 
 | Name | Instrument Type | Unit | Description |
-| ----- | --------------- | ---- | ----------- |
+| ---- | --------------- | ---- | ----------- |
 | `http.server.request.duration` | Histogram | `s` | Duration of HTTP server requests. |
 
 ## Advanced trace configuration
