@@ -20,6 +20,8 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
     private static readonly Action<LogRecordScope, EventHeaderLogExporter> ProcessScopeForIndividualColumnsAction = OnProcessScopeForIndividualColumns;
 
     private readonly ValueTuple<byte[], byte[]>? repeatedPartAFields;
+    private readonly bool includeSeverityText;
+    private readonly bool includeSeverityNumber;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed: logsTracepoint is a local reference set in the ctor. It's lifecycle is managed by UnixUserEventsDataTransport and is disposed in EventHeaderDynamicProvider.Dispose
     private readonly EventHeaderDynamicTracepoint logsTracepoint;
@@ -31,6 +33,9 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
         Guard.ThrowIfNull(options);
 
         this.logsTracepoint = UnixUserEventsDataTransport.Instance.RegisterUserEventProviderForLogs();
+
+        this.includeSeverityText = options.IncludeSeverityText;
+        this.includeSeverityNumber = options.IncludeSeverityNumber;
 
         if (options.PrepopulatedFields != null)
         {
@@ -206,7 +211,7 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
 
         // Part B
 
-        byte partBFieldsCount = 4; // We at least have three fields in Part B: _typeName, severityText, severityNumber, name
+        byte partBFieldsCount = 2; // We at least have two fields in Part B: _typeName, name
         eb.AddStructWithMetadataPosition("PartB", out var partBFieldsCountMetadataPosition);
         eb.AddString16("_typeName", "Log");
 
@@ -215,8 +220,17 @@ internal class EventHeaderLogExporter : TldLogCommon, IDisposable
         var logLevel = logRecord.LogLevel;
 #pragma warning restore 0618
 
-        eb.AddString16("severityText", LogLevels[(int)logLevel]);
-        eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
+        if (this.includeSeverityText)
+        {
+            eb.AddString16("severityText", LogLevels[(int)logLevel]);
+            partBFieldsCount++;
+        }
+
+        if (this.includeSeverityNumber)
+        {
+            eb.AddUInt8("severityNumber", GetSeverityNumber(logLevel));
+            partBFieldsCount++;
+        }
 
         var eventId = logRecord.EventId;
         if (eventId != default)

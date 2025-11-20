@@ -1,0 +1,4 @@
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeSeverityNumber.get -> bool
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeSeverityNumber.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeSeverityText.get -> bool
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.IncludeSeverityText.set -> void
