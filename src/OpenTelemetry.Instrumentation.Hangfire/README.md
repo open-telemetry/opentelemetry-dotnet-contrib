@@ -290,7 +290,7 @@ The number of task executions which have been initiated.
 **Attributes:**
 
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
 | `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
