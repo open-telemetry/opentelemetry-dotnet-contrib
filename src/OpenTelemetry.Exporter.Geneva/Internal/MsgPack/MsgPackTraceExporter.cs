@@ -351,7 +351,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 }
             }
 
-            if (this.WithResourceAttributes != null && !this.WithResourceAttributes.Contains(entry.Key))
+            if (this.WithResourceAttributes == null || !this.WithResourceAttributes.Contains(entry.Key))
             {
                 continue;
             }

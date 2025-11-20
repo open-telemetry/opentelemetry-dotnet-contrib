@@ -123,7 +123,7 @@ A list of fields which should be stored as individual table columns.
 
 A list of resource attribute keys which should be sent to Geneva.
 
-* If null, all resource attributes will be stored.
+* If null, no resource attributes will be stored.
 * If non-null, only those resource attributes named in the list will be stored.
 
 #### `PrepopulatedFields` (optional)

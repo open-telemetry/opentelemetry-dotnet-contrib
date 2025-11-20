@@ -39,7 +39,7 @@ public class GenevaExporterOptions
     /// WithResourceAttributes specifies which resource attribute fields should be sent to Geneva.
     ///
     /// Any resource attributes not in WithResourceAttributes are ignored.
-    /// If WithResourceAttributes is not provided, all resource attributes will be sent to Geneva.
+    /// If WithResourceAttributes is not provided, no resource attributes will be sent to Geneva.
     /// </summary>
     public IEnumerable<string>? WithResourceAttributes { get; set; }
 
