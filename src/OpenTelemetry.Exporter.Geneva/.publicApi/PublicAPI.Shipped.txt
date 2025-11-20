@@ -13,8 +13,8 @@ OpenTelemetry.Exporter.Geneva.GenevaExporterHelperExtensions
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.get -> string?
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.ConnectionString.set -> void
-OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.WantedResourceAttributes.get -> System.Collections.Generic.IEnumerable<string!>?
-OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.WantedResourceAttributes.set -> void
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.WithResourceAttributes.get -> System.Collections.Generic.IEnumerable<string!>?
+OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.WithResourceAttributes.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.get -> System.Collections.Generic.IEnumerable<string!>?
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.CustomFields.set -> void
 OpenTelemetry.Exporter.Geneva.GenevaExporterOptions.EventNameExportMode.get -> OpenTelemetry.Exporter.Geneva.EventNameExportMode
