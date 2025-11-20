@@ -477,6 +477,7 @@ public class GenevaTraceExporterTests : IDisposable
                 {
                     ["unaffected prepopulated"] = "should be present",
                 },
+
                 // WithResourceAttributes not set
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
