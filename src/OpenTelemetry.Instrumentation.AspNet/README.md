@@ -122,8 +122,8 @@ The instrumentation is implemented based on [metrics semantic
 conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/http/http-metrics.md#metric-httpserverrequestduration).
 Currently, the instrumentation supports the following metric.
 
-| Name  | Instrument Type | Unit | Description |
-|-------|-----------------|------|-------------|
+| Name | Instrument Type | Unit | Description |
+| ----- | --------------- | ---- | ----------- |
 | `http.server.request.duration` | Histogram | `s` | Duration of HTTP server requests. |
 
 ## Advanced trace configuration

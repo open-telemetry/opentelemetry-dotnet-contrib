@@ -100,8 +100,8 @@ The instrumentation is implemented based on [metrics semantic
 conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md#database-operation).
 Currently, the instrumentation supports the following metric.
 
-| Name  | Instrument Type | Unit | Description |
-|-------|-----------------|------|-------------|
+| Name | Instrument Type | Unit | Description |
+| ----- | --------------- | ---- | ----------- |
 | `db.client.operation.duration` | Histogram | `s` | Duration of database client operations. |
 
 #### ASP.NET Core

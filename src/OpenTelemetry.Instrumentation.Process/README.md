@@ -76,7 +76,7 @@ import a Grafana dashboard by uploading the JSON template file.
 The amount of physical memory allocated for this process.
 
 | Units | Instrument Type         | Value Type |
-|-------|-------------------------|------------|
+| ----- | ----------------------- | ---------- |
 | `By`  | ObservableUpDownCounter | `Double`   |
 
 The API used to retrieve the value is:
@@ -93,7 +93,7 @@ access violation; this includes memory backed solely by RAM, by a
 swapfile/pagefile and by other mapped files on disk.
 
 | Units | Instrument Type         | Value Type |
-|-------|-------------------------|------------|
+| ----- | ----------------------- | ---------- |
 |  `By` | ObservableUpDownCounter | `Double`   |
 
 The API used to retrieve the value is:
@@ -107,7 +107,7 @@ process.
 Total CPU seconds broken down by states.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s)  | Attribute Values |
-|-------|-------------------|------------|-------------------|------------------|
+| ----- | ----------------- | ---------- | ----------------- | ---------------- |
 |  `s`  | ObservableCounter | `Double`   | process.cpu.state | user, system     |
 
 The APIs used to retrieve the values are:
@@ -123,7 +123,7 @@ Gets the privileged processor time for this process.
 The number of processors (CPU cores) available to the current process.
 
 | Units         | Instrument Type         | Value Type |
-|---------------|-------------------------|------------|
+| ------------- | ----------------------- | ---------- |
 | `{processors}`| ObservableUpDownCounter | `Int32`    |
 
 The API used to retrieve the value is
@@ -141,7 +141,7 @@ at this time.
 Process threads count.
 
 | Units      | Instrument Type         | Value Type |
-|------------|-------------------------|------------|
+| ---------- | ----------------------- | ---------- |
 | `{thread}` | ObservableUpDownCounter | `Int32`    |
 
 The API used to retrieve the value is:

@@ -59,7 +59,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Kubernetes Engine
 
 | Attribute               | Value                 |
-|-------------------------|-----------------------|
+| ----------------------- | --------------------- |
 | cloud.provider          | gcp                   |
 | cloud.platform          | gcp_kubernetes_engine |
 | cloud.account.id        | auto                  |
@@ -72,7 +72,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google App Engine
 
 | Attribute               | Value          |
-|-------------------------|----------------|
+| ----------------------- | -------------- |
 | cloud.provider          | gcp            |
 | cloud.platform          | gcp_app_engine |
 | cloud.account.id        | auto           |
@@ -80,7 +80,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Cloud Run
 
 | Attribute               | Value         |
-|-------------------------|---------------|
+| ----------------------- | ------------- |
 | cloud.provider          | gcp           |
 | cloud.platform          | gcp_cloud_run |
 | cloud.account.id        | auto          |
@@ -90,7 +90,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Compute Engine
 
 | Attribute               | Value              |
-|-------------------------|--------------------|
+| ----------------------- | ------------------ |
 | cloud.provider          | gcp                |
 | cloud.platform          | gcp_compute_engine |
 | cloud.account.id        | auto               |

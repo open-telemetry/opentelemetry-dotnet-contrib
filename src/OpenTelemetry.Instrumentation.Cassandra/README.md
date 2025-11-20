@@ -87,8 +87,8 @@ var cluster = new Builder()
 
 ## List of metrics produced
 
-| Name  | Instrument Type | Unit | Description |
-|-------|-----------------|------|-------------|
+| Name | Instrument Type | Unit | Description |
+| ----- | --------------- | ---- | ----------- |
 | `cassandra.cql-requests` | Histogram | `ms` | Measures the duration of Cassandra CQL requests from the client's perspective. |
 | `cassandra.bytes-sent` | Histogram | `bytes` | Measures the amount of bytes sent by the client to Cassandra. |
 | `cassandra.bytes-received` | Histogram | `bytes` | Measures the amount of bytes received by the client from Cassandra. |

@@ -144,7 +144,7 @@ When the application targets `NETFRAMEWORK`, `.NET6.0` or `.NET7.0`, the
 instrumentation emits the following metric:
 
 | Name                              | Details                                                                                                                                                 |
-|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `http.client.request.duration`    | [Specification](https://github.com/open-telemetry/semantic-conventions/blob/release/v1.23.x/docs/http/http-metrics.md#metric-httpclientrequestduration) |
 
 Starting from `.NET8.0`, metrics instrumentation is natively implemented, and
