@@ -385,7 +385,7 @@ The number of workflow instances which have been initiated. In Hangfire, this tr
 individual job completions.
 
 | Units          | Instrument Type | Value Type |
-|----------------|-----------------|------------|
+| -------------- | --------------- | ---------- |
 | `{workflows}`  | Counter         | `Int64`    |
 
 **Attributes:**
