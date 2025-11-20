@@ -1,8 +1,8 @@
 # Runtime Instrumentation for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#beta) |
 | Code Owners | [@twenzel](https://github.com/twenzel), [@xiang17](https://github.com/xiang17) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Runtime)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Runtime)
@@ -72,7 +72,7 @@ count respectively the number of gen0, gen1, and gen2 collections which have
 occurred since the process started.
 
 | Units           | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-----------------|-------------------|------------|------------------|------------------|
+| --------------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `{collections}` | ObservableCounter | `Int64`    | generation       | gen0, gen1, gen2 |
 
 The metric can be computed using the [GC.CollectionCount](https://docs.microsoft.com/dotnet/api/system.gc.collectioncount)
@@ -97,7 +97,7 @@ Fragmentation and other GC committed memory pools are excluded.
 The value is available even before first garbage collection has occurred.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s)  | Attribute Values |
-|---------|-------------------------|------------|-------------------|------------------|
+| ------- | ----------------------- | ---------- | ----------------- | ---------------- |
 | `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes     | N/A              |
 
 The API used to retrieve the value is:
@@ -118,7 +118,7 @@ such as C/C++ do not use this heap.
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-------------------|------------|------------------|------------------|
+| ------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `bytes` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
@@ -140,7 +140,7 @@ garbage collection has occurred.
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-------------------------|------------|------------------|------------------|
+| ------- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `bytes` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
@@ -158,7 +158,7 @@ garbage collection has occurred.
 > This metric is only available when targeting .NET 6 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-------------------------|------------|------------------|----------------------------|
+| ------- | ----------------------- | ---------- | ---------------- | -------------------------- |
 | `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
@@ -180,7 +180,7 @@ The value will be unavailable until at least one garbage collection has occurred
 > This metric is only available when targeting .NET 7 or later.
 
 | Units   | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values           |
-|---------|-------------------------|------------|------------------|----------------------------|
+| ------- | ----------------------- | ---------- | ---------------- | -------------------------- |
 | `bytes` | ObservableUpDownCounter | `Int64`    | generation       | gen0, gen1, gen2, loh, poh |
 
 The API used to retrieve the value is:
@@ -196,7 +196,7 @@ The total amount of time paused in GC since the process start.
 > This metric is only available when targeting .NET 7 or later.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------|-------------------|------------|------------------|------------------|
+| ----- | ----------------- | ---------- | ---------------- | ---------------- |
 | `ns`  | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
@@ -214,7 +214,7 @@ Count of bytes of intermediate language that have been compiled since
 the process start.
 
 | Units   | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|---------|-------------------|------------|------------------|------------------|
+| ------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `bytes` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**jit.methods_compiled.count**
@@ -225,7 +225,7 @@ with different generic parameters, or because tiered compilation requested diffe
 optimization settings.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
+| ----------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `{methods}` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**jit.compilation_time**
@@ -234,7 +234,7 @@ The amount of time the JIT compiler has spent compiling methods since
 the process start.
 
 | Units | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------|-------------------|------------|------------------|------------------|
+| ----- | ----------------- | ---------- | ---------------- | ---------------- |
 | `ns`  | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 The APIs used to retrieve the values are:
@@ -260,7 +260,7 @@ monitor lock since the process start. Monitor locks are commonly acquired by usi
 the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 
 | Units                      | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|----------------------------|-------------------|------------|------------------|------------------|
+| -------------------------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `{contended_acquisitions}` | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.threads.count**
@@ -268,7 +268,7 @@ the lock keyword in C#, or by calling Monitor.Enter() and Monitor.TryEnter().
 The number of thread pool threads that currently exist.
 
 | Units       | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------------|------------|------------------|------------------|
+| ----------- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{threads}` | ObservableUpDownCounter | `Int32`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.completed_items.count**
@@ -277,7 +277,7 @@ The number of work items that have been processed by the thread pool
 since the process start.
 
 | Units       | Instrument Type   | Value Type | Attribute Key(s) | Attribute Values |
-|-------------|-------------------|------------|------------------|------------------|
+| ----------- | ----------------- | ---------- | ---------------- | ---------------- |
 | `{items}`   | ObservableCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**thread_pool.queue.length**
@@ -286,7 +286,7 @@ The number of work items that are currently queued to be processed
 by the thread pool.
 
 | Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-|-----------|-------------------------|------------|------------------|------------------|
+| --- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**
@@ -297,7 +297,7 @@ timeout in a CancellationSource. An active timer is registered to tick at some
 point in the future and has not yet been canceled.
 
 | Units      | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-|------------|-------------------------|------------|------------------|------------------|
+| ---------- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{timers}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The APIs used to retrieve the values are:
@@ -322,7 +322,7 @@ The APIs used to retrieve the values are:
 The number of .NET assemblies that are currently loaded.
 
 | Units          | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-|----------------|-------------------------|------------|------------------|------------------|
+| -------------- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{assemblies}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 The API used to retrieve the value is:
@@ -346,7 +346,7 @@ initialized, so the value will be unavailable until an exception has been
 thrown after the initialization.
 
 | Units          | Instrument Type | Value Type | Attribute Key(s) | Attribute Values |
-|----------------|-----------------|------------|------------------|------------------|
+| -------------- | --------------- | ---------- | ---------------- | ---------------- |
 | `{exceptions}` | Counter         | `Int64`    | No Attributes    | N/A              |
 
 Relevant API:

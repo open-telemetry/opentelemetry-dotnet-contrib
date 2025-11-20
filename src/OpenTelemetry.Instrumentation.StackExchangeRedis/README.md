@@ -1,8 +1,8 @@
 # StackExchange.Redis Instrumentation for OpenTelemetry
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@matt-hensley](https://github.com/matt-hensley) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.StackExchangeRedis)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.StackExchangeRedis)
