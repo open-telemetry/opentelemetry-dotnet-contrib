@@ -308,7 +308,7 @@ for different execution phases:
 - **state=executing**: Time spent in actual execution
 
 | Units | Instrument Type | Value Type |
-|-------|-----------------|------------|
+| ----- | --------------- | ---------- |
 | `s`   | Histogram       | `Double`   |
 
 > [!NOTE]
