@@ -461,11 +461,11 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     /// <summary>
-    /// The purpose of this test is to make sure that when WantedResourceAttributes is set,
+    /// The purpose of this test is to make sure that when WithResourceAttributes is set,
     /// that only resource attributes specified make it to Geneva.
     /// </summary>
     [Fact]
-    public void GenevaTraceExporter_WantedResourceAttributes()
+    public void GenevaTraceExporter_WithResourceAttributes()
     {
         var path = string.Empty;
         Socket server = null;
@@ -477,7 +477,7 @@ public class GenevaTraceExporterTests : IDisposable
                 {
                     ["unaffected prepopulated"] = "should be present",
                 },
-                WantedResourceAttributes = new HashSet<string>
+                WithResourceAttributes = new HashSet<string>
                 {
                     "wanted",
                 },
