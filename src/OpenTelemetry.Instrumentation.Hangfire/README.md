@@ -280,7 +280,7 @@ pipeline:
 The number of task executions which have been initiated.
 
 | Units          | Instrument Type | Value Type |
-|----------------|-----------------|------------|
+| -------------- | --------------- | ---------- |
 | `{executions}` | Counter         | `Int64`    |
 
 > [!NOTE]
