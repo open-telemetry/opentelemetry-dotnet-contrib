@@ -62,6 +62,22 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSBedrockGuardrailId => "aws.bedrock.guardrail.id";
         public override string AttributeAWSBedrockKnowledgeBaseId => "aws.bedrock.knowledge_base.id";
         public override string AttributeAWSBedrock => "aws_bedrock";
+        public override string AttributeAwsRequestId => "aws.request_id";
+        public override string AttributeAWSSQSQueueName => "aws.sqs.queue_name";
+        public override string AttributeAwsS3Bucket => "aws.s3.bucket";
+        public override string AttributeAwsKinesisStreamName => "aws.kinesis.stream_name";
+        public override string AttributeAwsLambdaResourceMappingId => "aws.lambda.resource_mapping.id";
+        public override string AttributeAWSLambdaFunctionName => "aws.lambda.function.name";
+        public override string AttributeAWSKinesisStreamArn => "aws.kinesis.stream.arn";
+        public override string AttributeAWSDynamoTableArn => "aws.dynamodb.table.arn";
+        public override string AttributeAWSBedrockGuardrailArn => "aws.bedrock.guardrail.arn";
+        public override string AttributeAWSAuthRegion => "aws.auth.region";
+        public override string AttributeAWSAuthAccessKey => "aws.auth.account.access_key";
+        public override string AttributeAWSLambdaFunctionArn => "aws.lambda.function.arn";
+        public override string AttributeAwsSecretsmanagerSecretArn => "aws.secretsmanager.secret.arn";
+        public override string AttributeAwsSnsTopicArn => "aws.sns.topic.arn";
+        public override string AttributeAwsStepFunctionsActivityArn => "aws.stepfunctions.activity.arn";
+        public override string AttributeAwsStepFunctionsStateMachineArn => "aws.stepfunctions.state_machine.arn";
 
         // FAAS Attributes
         public override string AttributeFaasID => "faas.id";
@@ -76,6 +92,12 @@ internal partial class AWSSemanticConventions
         // GEN AI Attributes
         public override string AttributeGenAiModelId => "gen_ai.request.model";
         public override string AttributeGenAiSystem => "gen_ai.system";
+        public override string AttributeGenAiTopP => "gen_ai.request.top_p";
+        public override string AttributeGenAiTemperature => "gen_ai.request.temperature";
+        public override string AttributeGenAiMaxTokens => "gen_ai.request.max_tokens";
+        public override string AttributeGenAiInputTokens => "gen_ai.usage.input_tokens";
+        public override string AttributeGenAiOutputTokens => "gen_ai.usage.output_tokens";
+        public override string AttributeGenAiFinishReasons => "gen_ai.response.finish_reasons";
 
         // HOST Attributes
         public override string AttributeHostID => "host.id";
@@ -91,6 +113,9 @@ internal partial class AWSSemanticConventions
         public override string AttributeHttpTarget => "http.target";
         [Obsolete("Replaced by <c>http.request.method</c>.")]
         public override string AttributeHttpMethod => "http.method";
+        [Obsolete("Replaced by <c>http.response.header.content-length</c>.")]
+        public override string AttributeHttpResponseContentLength => "http.response_content_length";
+        public override string AttributeHttpResponseHeaderContentLength => "http.response.header.content-length";
 
         // NET Attributes
         [Obsolete("Replaced by <c>server.address</c>.")]
