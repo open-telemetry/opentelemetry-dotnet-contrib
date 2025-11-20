@@ -206,6 +206,7 @@ public class GenevaTraceExporterTests : IDisposable
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["resourceAndPrepopulated"] = "comes from prepopulated",
                 },
+                WithResourceAttributes = ["resourceAttribute", "resourceAndPrepopulated"],
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
