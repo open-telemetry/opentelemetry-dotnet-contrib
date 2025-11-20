@@ -391,7 +391,7 @@ individual job completions.
 **Attributes:**
 
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
 | `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`   |
 | `workflow.result`             | string | The result of the workflow                    | Required                 | `success`, `failure`    |
 | `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule` |
