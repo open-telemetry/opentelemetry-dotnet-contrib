@@ -405,7 +405,7 @@ individual job completions.
 The number of actively running workflows grouped by definition and the current state.
 
 | Units          | Instrument Type  | Value Type |
-|----------------|------------------|------------|
+| -------------- | ---------------- | ---------- |
 | `{workflows}`  | UpDownCounter    | `Int64`    |
 
 > [!NOTE]
