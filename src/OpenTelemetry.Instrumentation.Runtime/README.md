@@ -286,7 +286,7 @@ The number of work items that are currently queued to be processed
 by the thread pool.
 
 | Units     | Instrument Type         | Value Type | Attribute Key(s) | Attribute Values |
-| --- | ----------------------- | ---------- | ---------------- | ---------------- |
+| --------- | ----------------------- | ---------- | ---------------- | ---------------- |
 | `{items}` | ObservableUpDownCounter | `Int64`    | No Attributes    | N/A              |
 
 #### process.runtime.dotnet.**timer.count**
