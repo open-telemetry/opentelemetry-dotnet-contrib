@@ -166,8 +166,11 @@ using var tracerProvider = Sdk
 
 ## Metrics
 
-This instrumentation library collects metrics following a POC/draft definition of workflow metrics defined as part of [semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
-As those definitions evolve, changes including breaking ones will flow back to this implementation.
+This instrumentation library collects metrics following a POC/draft definition
+of workflow metrics defined as part of
+[semantic-conventions/#1688](https://github.com/open-telemetry/semantic-conventions/issues/1688).
+As those definitions evolve, changes including breaking ones will flow back
+to this implementation.
 
 In Hangfire, the workflow semantic conventions are applied as follows:
 
@@ -175,8 +178,8 @@ In Hangfire, the workflow semantic conventions are applied as follows:
 - Workflow-level metrics track the complete lifecycle (including scheduled jobs)
 - Execution-level metrics track the execution pipeline (enqueued jobs and later)
 
-This approach provides comprehensive visibility into both job creation/scheduling and
-actual execution performance.
+This approach provides comprehensive visibility into both job
+creation/scheduling and actual execution performance.
 
 ### Enabling Metrics
 
@@ -217,14 +220,16 @@ builder.Services.AddOpenTelemetry()
 
 ### Metrics Configuration
 
-Metrics behavior is configured through the `HangfireMetricsInstrumentationOptions` class
-in the `OpenTelemetry.Metrics` namespace.
+Metrics behavior is configured through the
+`HangfireMetricsInstrumentationOptions` class in the
+`OpenTelemetry.Metrics` namespace.
 
 #### RecordQueueLatency
 
-By default, the instrumentation records only the execution phase duration (time spent
-actually running the job). To also track the pending phase duration (time spent waiting
-in the queue before execution), enable the `RecordQueueLatency` option:
+By default, the instrumentation records only the execution phase duration
+(time spent actually running the job). To also track the pending phase
+duration (time spent waiting in the queue before execution), enable the
+`RecordQueueLatency` option:
 
 ```csharp
 var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -236,33 +241,37 @@ var meterProvider = Sdk.CreateMeterProviderBuilder()
     .Build();
 ```
 
-When enabled, `workflow.execution.duration` is recorded with `workflow.execution.state="pending"`
-representing queue wait time, in addition to `workflow.execution.state="executing"` for actual
-execution time.
+When enabled, `workflow.execution.duration` is recorded with
+`workflow.execution.state="pending"` representing queue wait time, in addition
+to `workflow.execution.state="executing"` for actual execution time.
 
 > [!WARNING]
-> Enabling `RecordQueueLatency` requires an additional database query per job execution
-> to retrieve the enqueue timestamp. In high-throughput scenarios, this may impact
-> performance.
-
+> Enabling `RecordQueueLatency` requires an additional database query per job
+> execution to retrieve the enqueue timestamp. In high-throughput scenarios,
+> this may impact performance.
+>
 > [!NOTE]
-> Add `using OpenTelemetry.Metrics;` to access `HangfireMetricsInstrumentationOptions`.
+> Add `using OpenTelemetry.Metrics;` to access
+> `HangfireMetricsInstrumentationOptions`.
 
 ### Available Metrics
 
 The following metrics are emitted by this instrumentation:
 
-**Execution-level metrics** track jobs that have entered the execution pipeline:
+**Execution-level metrics** track jobs that have entered the execution
+pipeline:
 
 - `workflow.execution.outcome` - Counter for completed executions
-- `workflow.execution.duration` - Histogram for execution duration (pending and executing phases)
+- `workflow.execution.duration` - Histogram for execution duration (pending
+  and executing phases)
 - `workflow.execution.status` - UpDownCounter for current execution state
 - `workflow.execution.errors` - Counter for execution errors
 
 **Workflow-level metrics** track the complete job lifecycle:
 
 - `workflow.outcome` - Counter for completed workflows
-- `workflow.status` - UpDownCounter for current workflow state (including scheduled jobs)
+- `workflow.status` - UpDownCounter for current workflow state (including
+  scheduled jobs)
 
 ---
 
@@ -275,8 +284,8 @@ The number of task executions which have been initiated.
 | `{executions}` | Counter         | `Int64`    |
 
 > [!NOTE]
-> This metric does NOT include the `workflow.execution.state` attribute, as state differentiation
-> is not needed for counting completed executions.
+> This metric does NOT include the `workflow.execution.state` attribute, as
+> state differentiation is not needed for counting completed executions.
 
 **Attributes:**
 
@@ -291,10 +300,11 @@ The number of task executions which have been initiated.
 
 #### workflow.execution.duration
 
-Duration of an execution grouped by task, state, and result. Records duration for different
-execution phases:
+Duration of an execution grouped by task, state, and result. Records duration
+for different execution phases:
 
-- **state=pending**: Time spent waiting in queue (only when `RecordQueueLatency` is enabled)
+- **state=pending**: Time spent waiting in queue (only when
+  `RecordQueueLatency` is enabled)
 - **state=executing**: Time spent in actual execution
 
 | Units | Instrument Type | Value Type |
@@ -302,9 +312,10 @@ execution phases:
 | `s`   | Histogram       | `Double`   |
 
 > [!NOTE]
-> The `workflow.execution.state` attribute is an extension to the current semantic conventions
-> to support measuring different execution phases (pending vs executing). This attribute is
-> being proposed for inclusion in the official semantic conventions.
+> The `workflow.execution.state` attribute is an extension to the current
+> semantic conventions to support measuring different execution phases
+> (pending vs executing). This attribute is being proposed for inclusion in
+> the official semantic conventions.
 
 **Attributes:**
 
@@ -327,8 +338,9 @@ The number of actively running tasks grouped by task and the current state.
 | `{executions}` | UpDownCounter    | `Int64`    |
 
 > [!NOTE]
-> This metric tracks the current state of job executions. When a job transitions
-> to a new state, the previous state is decremented and the new state is incremented.
+> This metric tracks the current state of job executions. When a job
+> transitions to a new state, the previous state is decremented and the new
+> state is incremented.
 
 **Attributes:**
 
@@ -397,9 +409,10 @@ The number of actively running workflows grouped by definition and the current s
 | `{workflows}`  | UpDownCounter    | `Int64`    |
 
 > [!NOTE]
-> This metric tracks the workflow lifecycle including jobs that haven't entered the execution
-> pipeline yet (e.g., scheduled jobs waiting for their trigger time). When a workflow transitions
-> to a new state, the previous state is decremented and the new state is incremented.
+> This metric tracks the workflow lifecycle including jobs that haven't
+> entered the execution pipeline yet (e.g., scheduled jobs waiting for their
+> trigger time). When a workflow transitions to a new state, the previous
+> state is decremented and the new state is incremented.
 
 **Attributes:**
 
@@ -428,16 +441,18 @@ Hangfire job states are mapped to workflow semantic convention states as follows
 > [!IMPORTANT]
 > **Difference between `workflow.status` and `workflow.execution.status`:**
 >
-> - **`workflow.status`**: Tracks the complete workflow lifecycle, including jobs that haven't
->   started execution yet (e.g., scheduled jobs waiting for their trigger time). This provides
->   visibility into jobs across all states.
+> - **`workflow.status`**: Tracks the complete workflow lifecycle, including
+>   jobs that haven't started execution yet (e.g., scheduled jobs waiting for
+>   their trigger time). This provides visibility into jobs across all states.
 >
-> - **`workflow.execution.status`**: Tracks only jobs that have entered the execution pipeline
->   (enqueued or later). Scheduled jobs do NOT appear here until they become enqueued.
+> - **`workflow.execution.status`**: Tracks only jobs that have entered the
+>   execution pipeline (enqueued or later). Scheduled jobs do NOT appear here
+>   until they become enqueued.
 >
-> For example, a scheduled job appears in `workflow.status{state=pending, trigger.type=schedule}`
-> but NOT in `workflow.execution.status` until it becomes enqueued. Once enqueued, it appears
-> in both metrics.
+> For example, a scheduled job appears in
+> `workflow.status{state=pending, trigger.type=schedule}` but NOT in
+> `workflow.execution.status` until it becomes enqueued. Once enqueued, it
+> appears in both metrics.
 
 ### Semantic Conventions
 
@@ -446,30 +461,41 @@ This instrumentation follows the OpenTelemetry semantic conventions for workflow
 #### Attribute Usage
 
 - **workflow.platform.name**: Always set to `"hangfire"`
-- **workflow.task.name** / **workflow.definition.name**: Derived from the Hangfire job method (e.g., `ClassName.MethodName`)
-  - `workflow.task.name` is used for execution-level metrics (`workflow.execution.*`)
-  - `workflow.definition.name` is used for workflow-level metrics (`workflow.outcome`, `workflow.status`)
+- **workflow.task.name** / **workflow.definition.name**: Derived from the
+  Hangfire job method (e.g., `ClassName.MethodName`)
+  - `workflow.task.name` is used for execution-level metrics
+    (`workflow.execution.*`)
+  - `workflow.definition.name` is used for workflow-level metrics
+    (`workflow.outcome`, `workflow.status`)
 - **workflow.trigger.type**: Identifies how the job was initiated
   - `"cron"` for recurring jobs
   - `"schedule"` for delayed jobs (scheduled for future execution)
   - `"api"` for fire-and-forget and continuation jobs
-  - Only included on workflow-level metrics (`workflow.outcome`, `workflow.status`), not on execution-level metrics (`workflow.execution.*`)
-- **workflow.execution.result** / **workflow.result**: Set to `"success"` when jobs complete without errors,
-  `"failure"` when an exception is thrown
-- **workflow.execution.state** / **workflow.state**: Maps Hangfire states to semantic convention states
-  - `workflow.execution.state` tracks execution pipeline states (used in `workflow.execution.status`, `workflow.execution.duration`)
-  - `workflow.state` tracks complete workflow lifecycle (used in `workflow.status`)
+  - Only included on workflow-level metrics (`workflow.outcome`,
+    `workflow.status`), not on execution-level metrics
+    (`workflow.execution.*`)
+- **workflow.execution.result** / **workflow.result**: Set to `"success"` when
+  jobs complete without errors, `"failure"` when an exception is thrown
+- **workflow.execution.state** / **workflow.state**: Maps Hangfire states to
+  semantic convention states
+  - `workflow.execution.state` tracks execution pipeline states (used in
+    `workflow.execution.status`, `workflow.execution.duration`)
+  - `workflow.state` tracks complete workflow lifecycle (used in
+    `workflow.status`)
   - See state mapping tables above for details
 - **error.type**: Set to the full type name of the exception when a job fails
 
 #### Workflow vs Execution Metrics
 
-The instrumentation distinguishes between **workflow-level** and **execution-level** metrics:
+The instrumentation distinguishes between **workflow-level** and
+**execution-level** metrics:
 
 **Workflow-level metrics** (`workflow.outcome`, `workflow.status`):
 
-- Track the complete lifecycle of jobs, including pre-execution states (e.g., scheduled)
-- Use `workflow.definition.name`, `workflow.state`, and `workflow.trigger.type`
+- Track the complete lifecycle of jobs, including pre-execution states (e.g.,
+  scheduled)
+- Use `workflow.definition.name`, `workflow.state`, and
+  `workflow.trigger.type`
 - Provide visibility into all jobs regardless of execution status
 
 **Execution-level metrics** (`workflow.execution.*`):
