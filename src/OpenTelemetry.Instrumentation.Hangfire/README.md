@@ -320,7 +320,7 @@ for different execution phases:
 **Attributes:**
 
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------|
+| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
 | `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
 | `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
 | `workflow.execution.state`    | string | The execution phase being measured            | Required                 | `pending`, `executing`  |
