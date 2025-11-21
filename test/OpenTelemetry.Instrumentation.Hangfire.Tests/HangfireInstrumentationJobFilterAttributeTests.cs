@@ -32,7 +32,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
@@ -53,7 +53,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
@@ -77,7 +77,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
@@ -101,7 +101,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.ThrowException());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
@@ -126,7 +126,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
@@ -162,7 +162,7 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.Single(processedItems);
@@ -187,38 +187,10 @@ public class HangfireInstrumentationJobFilterAttributeTests : IClassFixture<Hang
 
         // Act
         var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
-        await this.WaitJobProcessedAsync(jobId, 5);
+        await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
         Assert.All(listener.Messages, args => Assert.NotEqual("FailedToInjectActivityContext", args.EventName));
-    }
-
-    private async Task WaitJobProcessedAsync(string jobId, int timeToWaitInSeconds)
-    {
-        var timeout = TimeSpan.FromSeconds(timeToWaitInSeconds);
-        using var cts = new CancellationTokenSource(timeout);
-
-        string[] states = ["Enqueued", "Processing"];
-
-        while (!Completed() && !cts.IsCancellationRequested)
-        {
-            await Task.Delay(500);
-        }
-
-        bool Completed()
-        {
-            var jobDetails = this.hangfireFixture.MonitoringApi.JobDetails(jobId);
-
-            if (jobDetails == null)
-            {
-                return false;
-            }
-
-            // Copy the history to an array to avoid exception if the collection is modified while iterating
-            var history = jobDetails.History.ToArray();
-
-            return !history.All(h => states.Contains(h.StateName));
-        }
     }
 
     private class OpenTelemetryEventListener : EventListener
