@@ -91,17 +91,17 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.13.6" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.14" />
     <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.6.3" />
     <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7.3" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.9.3" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.10" />
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.6" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.11.2" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.11.3" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="Google.Api.Gax" Version="4.12.1" />
-    <PackageVersion Include="Google.Protobuf" Version="3.33.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.33.1" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
     <PackageVersion Include="Grpc.AspNetCore.Server" Version="2.71.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
@@ -140,7 +140,7 @@
     <PackageVersion Include="Testcontainers.MsSql" Version="4.8.1" />
     <PackageVersion Include="Testcontainers.MySql" Version="4.8.1" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.8.1" />
-    <PackageVersion Include="Wiremock.Net" Version="1.15.0" />
+    <PackageVersion Include="Wiremock.Net" Version="1.16.0" />
     <!-- Microsoft.AspNetCore.Server.Kestrel.Core is transitive dependency for Wiremock.Net. It is here to fix https://github.com/advisories/GHSA-5rrx-jjjq-q2r5 -->
     <PackageVersion Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.6" />
     <PackageVersion Include="xunit" Version="2.9.3" />

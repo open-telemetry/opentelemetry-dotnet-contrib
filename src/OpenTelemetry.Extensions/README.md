@@ -1,8 +1,8 @@
 # OpenTelemetry .NET SDK preview features and extensions
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@mikegoldsmith](https://github.com/mikegoldsmith) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions)](https://www.nuget.org/packages/OpenTelemetry.Extensions)

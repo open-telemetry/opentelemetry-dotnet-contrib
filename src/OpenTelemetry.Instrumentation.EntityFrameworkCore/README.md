@@ -1,8 +1,8 @@
 # EntityFrameworkCore Instrumentation for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@martincostello](https://github.com/martincostello), [@matt-hensley](https://github.com/matt-hensley) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.EntityFrameworkCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.EntityFrameworkCore)

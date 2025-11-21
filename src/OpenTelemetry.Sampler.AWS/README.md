@@ -1,8 +1,8 @@
 # AWS X-Ray Remote Sampler
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Alpha](../../README.md#alpha) |
+| Status | |
+| ------ | --- |
+| Stability | [Alpha](../../README.md#alpha) |
 | Code Owners | [@srprash](https://github.com/srprash), [@normj](https://github.com/normj), [@lukeina2z](https://github.com/lukeina2z) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Sampler.AWS)](https://www.nuget.org/packages/OpenTelemetry.Sampler.AWS)
