@@ -289,12 +289,12 @@ The number of task executions which have been initiated.
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
-| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
+| Attribute                   | Type   | Description                            | Requirement Level         | Values                |
+| --------------------------- | ------ | -------------------------------------- | ------------------------- | --------------------- |
+| `workflow.task.name`        | string | Name of the task (Hangfire job method) | Required                  | e.g., `MyJob.Execute` |
+| `workflow.execution.result` | string | The result of executing the task       | Required                  | `success`, `failure`  |
+| `workflow.platform.name`    | string | The workflow platform being used       | Recommended               | `hangfire`            |
+| `error.type`                | string | The type of error that occurred        | Conditionally Required[1] | Exception type name   |
 
 [1]: Required if and only if the task execution failed.
 
@@ -319,13 +319,13 @@ for different execution phases:
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
-| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.execution.result`   | string | The result of executing the task              | Required                 | `success`, `failure`    |
-| `workflow.execution.state`    | string | The execution phase being measured            | Required                 | `pending`, `executing`  |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
+| Attribute                   | Type   | Description                            | Requirement Level         | Values                 |
+| --------------------------- | ------ | -------------------------------------- | ------------------------- | ---------------------- |
+| `workflow.task.name`        | string | Name of the task (Hangfire job method) | Required                  | e.g., `MyJob.Execute`  |
+| `workflow.execution.result` | string | The result of executing the task       | Required                  | `success`, `failure`   |
+| `workflow.execution.state`  | string | The execution phase being measured     | Required                  | `pending`, `executing` |
+| `workflow.platform.name`    | string | The workflow platform being used       | Recommended               | `hangfire`             |
+| `error.type`                | string | The type of error that occurred        | Conditionally Required[1] | Exception type name    |
 
 [1]: Required if and only if the task execution failed.
 
@@ -333,9 +333,9 @@ for different execution phases:
 
 The number of actively running tasks grouped by task and the current state.
 
-| Units          | Instrument Type  | Value Type |
-|----------------|------------------|------------|
-| `{executions}` | UpDownCounter    | `Int64`    |
+| Units          | Instrument Type | Value Type |
+| -------------- | --------------- | ---------- |
+| `{executions}` | UpDownCounter   | `Int64`    |
 
 > [!NOTE]
 > This metric tracks the current state of job executions. When a job
@@ -344,12 +344,12 @@ The number of actively running tasks grouped by task and the current state.
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level        | Values                                    |
-|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------------------------|
-| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required                 | e.g., `MyJob.Execute`                     |
-| `workflow.execution.state`    | string | Current state of the execution                | Required                 | `pending`, `executing`, `completed`       |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name                       |
+| Attribute                  | Type   | Description                            | Requirement Level         | Values                              |
+| -------------------------- | ------ | -------------------------------------- | ------------------------- | ----------------------------------- |
+| `workflow.task.name`       | string | Name of the task (Hangfire job method) | Required                  | e.g., `MyJob.Execute`               |
+| `workflow.execution.state` | string | Current state of the execution         | Required                  | `pending`, `executing`, `completed` |
+| `workflow.platform.name`   | string | The workflow platform being used       | Recommended               | `hangfire`                          |
+| `error.type`               | string | The type of error that occurred        | Conditionally Required[1] | Exception type name                 |
 
 [1]: Required if and only if the task execution failed.
 
@@ -357,11 +357,11 @@ The number of actively running tasks grouped by task and the current state.
 
 Hangfire job states are mapped to workflow semantic convention states as follows:
 
-| Hangfire State                     | Workflow State |
-| ---------------------------------- | -------------- |
-| Scheduled, Enqueued, Awaiting      | `pending`      |
-| Processing                         | `executing`    |
-| Succeeded, Failed, Deleted         | `completed`    |
+| Hangfire State                | Workflow State |
+| ----------------------------- | -------------- |
+| Scheduled, Enqueued, Awaiting | `pending`      |
+| Processing                    | `executing`    |
+| Succeeded, Failed, Deleted    | `completed`    |
 
 #### workflow.execution.errors
 
@@ -373,30 +373,30 @@ The number of errors encountered in task executions.
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level | Values                  |
-|-------------------------------|--------|-----------------------------------------------|-------------------|-------------------------|
-| `error.type`                  | string | The type of error that occurred               | Required          | Exception type name     |
-| `workflow.task.name`          | string | Name of the task (Hangfire job method)        | Required          | e.g., `MyJob.Execute`   |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended       | `hangfire`              |
+| Attribute                | Type   | Description                            | Requirement Level | Values                |
+| ------------------------ | ------ | -------------------------------------- | ----------------- | --------------------- |
+| `error.type`             | string | The type of error that occurred        | Required          | Exception type name   |
+| `workflow.task.name`     | string | Name of the task (Hangfire job method) | Required          | e.g., `MyJob.Execute` |
+| `workflow.platform.name` | string | The workflow platform being used       | Recommended       | `hangfire`            |
 
 #### workflow.outcome
 
 The number of workflow instances which have been initiated. In Hangfire, this tracks
 individual job completions.
 
-| Units          | Instrument Type | Value Type |
-| -------------- | --------------- | ---------- |
-| `{workflows}`  | Counter         | `Int64`    |
+| Units         | Instrument Type | Value Type |
+| ------------- | --------------- | ---------- |
+| `{workflows}` | Counter         | `Int64`    |
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level        | Values                  |
-| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------- |
-| `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`   |
-| `workflow.result`             | string | The result of the workflow                    | Required                 | `success`, `failure`    |
-| `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule` |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`              |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1]  | Exception type name     |
+| Attribute                  | Type   | Description                                 | Requirement Level         | Values                    |
+| -------------------------- | ------ | ------------------------------------------- | ------------------------- | ------------------------- |
+| `workflow.definition.name` | string | Name of the workflow (Hangfire job method)  | Required                  | e.g., `MyJob.Execute`     |
+| `workflow.result`          | string | The result of the workflow                  | Required                  | `success`, `failure`      |
+| `workflow.trigger.type`    | string | Type of trigger that initiated the workflow | Required                  | `api`, `cron`, `schedule` |
+| `workflow.platform.name`   | string | The workflow platform being used            | Recommended               | `hangfire`                |
+| `error.type`               | string | The type of error that occurred             | Conditionally Required[1] | Exception type name       |
 
 [1]: Required if and only if the workflow execution failed.
 
@@ -404,9 +404,9 @@ individual job completions.
 
 The number of actively running workflows grouped by definition and the current state.
 
-| Units          | Instrument Type  | Value Type |
-| -------------- | ---------------- | ---------- |
-| `{workflows}`  | UpDownCounter    | `Int64`    |
+| Units         | Instrument Type | Value Type |
+| ------------- | --------------- | ---------- |
+| `{workflows}` | UpDownCounter   | `Int64`    |
 
 > [!NOTE]
 > This metric tracks the workflow lifecycle including jobs that haven't
@@ -416,13 +416,13 @@ The number of actively running workflows grouped by definition and the current s
 
 **Attributes:**
 
-| Attribute                     | Type   | Description                                   | Requirement Level        | Values                                    |
-| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------------------------- |
-| `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`                     |
-| `workflow.state`              | string | Current state of the workflow                 | Required                 | `pending`, `executing`, `completed`       |
-| `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule`                 |
-| `workflow.platform.name`      | string | The workflow platform being used              | Recommended              | `hangfire`                                |
-| `error.type`                  | string | The type of error that occurred               | Conditionally Required[1] | Exception type name                       |
+| Attribute                  | Type   | Description                                 | Requirement Level         | Values                              |
+| -------------------------- | ------ | ------------------------------------------- | ------------------------- | ----------------------------------- |
+| `workflow.definition.name` | string | Name of the workflow (Hangfire job method)  | Required                  | e.g., `MyJob.Execute`               |
+| `workflow.state`           | string | Current state of the workflow               | Required                  | `pending`, `executing`, `completed` |
+| `workflow.trigger.type`    | string | Type of trigger that initiated the workflow | Required                  | `api`, `cron`, `schedule`           |
+| `workflow.platform.name`   | string | The workflow platform being used            | Recommended               | `hangfire`                          |
+| `error.type`               | string | The type of error that occurred             | Conditionally Required[1] | Exception type name                 |
 
 [1]: Required if and only if the workflow execution failed.
 
@@ -430,13 +430,13 @@ The number of actively running workflows grouped by definition and the current s
 
 Hangfire job states are mapped to workflow semantic convention states as follows:
 
-| Hangfire State                     | Workflow State | Workflow Trigger Type           |
-| ---------------------------------- | -------------- | ------------------------------- |
-| Scheduled                          | `pending`      | `schedule`                      |
-| Enqueued, Awaiting (from cron)     | `pending`      | `cron`                          |
-| Enqueued, Awaiting (fire-and-forget)| `pending`     | `api`                           |
-| Processing                         | `executing`    | (inherited from previous state) |
-| Succeeded, Failed, Deleted         | `completed`    | (inherited from previous state) |
+| Hangfire State                       | Workflow State | Workflow Trigger Type           |
+| ------------------------------------ | -------------- | ------------------------------- |
+| Scheduled                            | `pending`      | `schedule`                      |
+| Enqueued, Awaiting (from cron)       | `pending`      | `cron`                          |
+| Enqueued, Awaiting (fire-and-forget) | `pending`      | `api`                           |
+| Processing                           | `executing`    | (inherited from previous state) |
+| Succeeded, Failed, Deleted           | `completed`    | (inherited from previous state) |
 
 > [!IMPORTANT]
 > **Difference between `workflow.status` and `workflow.execution.status`:**
