@@ -49,6 +49,16 @@ public class GenevaExporterOptions
     public bool IncludeTraceStateForSpan { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not to include severity text in logs.
+    /// </summary>
+    public bool IncludeSeverityText { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to include severity number in logs.
+    /// </summary>
+    public bool IncludeSeverityNumber { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets table name mappings.
     /// </summary>
     public IReadOnlyDictionary<string, string>? TableNameMappings
