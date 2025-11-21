@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
   </ItemGroup>
 
   <!-- Do not run Package Baseline Validation as this package has never released a stable version.

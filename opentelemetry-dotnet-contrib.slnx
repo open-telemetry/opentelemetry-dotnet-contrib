@@ -268,6 +268,7 @@
     <Project Path="test/OpenTelemetry.Instrumentation.Hangfire.Tests/OpenTelemetry.Instrumentation.Hangfire.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Http.Benchmarks/OpenTelemetry.Instrumentation.Http.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Http.Tests/OpenTelemetry.Instrumentation.Http.Tests.csproj" />
+    <Project Path="test/OpenTelemetry.Instrumentation.Kusto.Benchmarks/OpenTelemetry.Instrumentation.Kusto.Benchmarks.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Kusto.Tests/OpenTelemetry.Instrumentation.Kusto.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Owin.Tests/OpenTelemetry.Instrumentation.Owin.Tests.csproj" />
     <Project Path="test/OpenTelemetry.Instrumentation.Process.Tests/OpenTelemetry.Instrumentation.Process.Tests.csproj" />
