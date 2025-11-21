@@ -417,7 +417,7 @@ The number of actively running workflows grouped by definition and the current s
 **Attributes:**
 
 | Attribute                     | Type   | Description                                   | Requirement Level        | Values                                    |
-|-------------------------------|--------|-----------------------------------------------|--------------------------|-------------------------------------------|
+| ----------------------------- | ------ | --------------------------------------------- | ------------------------ | ----------------------------------------- |
 | `workflow.definition.name`    | string | Name of the workflow (Hangfire job method)    | Required                 | e.g., `MyJob.Execute`                     |
 | `workflow.state`              | string | Current state of the workflow                 | Required                 | `pending`, `executing`, `completed`       |
 | `workflow.trigger.type`       | string | Type of trigger that initiated the workflow   | Required                 | `api`, `cron`, `schedule`                 |
