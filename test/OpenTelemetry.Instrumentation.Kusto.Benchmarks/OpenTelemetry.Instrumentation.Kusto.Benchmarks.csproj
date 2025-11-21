@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
+    <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <SignAssembly>false</SignAssembly>
+    <SkipStrongNameValidation>true</SkipStrongNameValidation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Kusto\OpenTelemetry.Instrumentation.Kusto.csproj" />
+    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" VersionOverride="18.3.36714.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);DISABLE_PROFILER_AGENT_CONFIG</DefineConstants>
+  </PropertyGroup>
+
+</Project>
