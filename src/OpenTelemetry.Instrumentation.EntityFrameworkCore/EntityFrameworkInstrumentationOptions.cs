@@ -14,8 +14,6 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 /// </summary>
 public class EntityFrameworkInstrumentationOptions
 {
-    internal const string DbStatementSanitizerEnabledEnvVar = "OTEL_INSTRUMENTATION_COMMON_DB_STATEMENT_SANITIZER_ENABLED";
-
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityFrameworkInstrumentationOptions"/> class.
     /// </summary>
@@ -34,14 +32,6 @@ public class EntityFrameworkInstrumentationOptions
             bool.TryParse(value, out var setDbQueryParameters))
         {
             this.SetDbQueryParameters = setDbQueryParameters;
-        }
-
-        if (configuration!.TryGetBoolValue(
-            EntityFrameworkInstrumentationEventSource.Log,
-            DbStatementSanitizerEnabledEnvVar,
-            out var dbStatementSanitizerEnabled))
-        {
-            this.DbStatementSanitizerEnabled = dbStatementSanitizerEnabled;
         }
     }
 
