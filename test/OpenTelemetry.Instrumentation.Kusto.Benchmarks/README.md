@@ -18,6 +18,8 @@ option number from the list of options shown on the Console window.
 
 ## Results
 
+// TODO: Includes private fixes in Kusto-Query-Langugage
+
 ```
 
 BenchmarkDotNet v0.15.6, Windows 11 (10.0.26100.7092/24H2/2024Update/HudsonValley)
@@ -28,8 +30,8 @@ Intel Core i9-10940X CPU 3.30GHz (Max: 3.31GHz), 1 CPU, 28 logical and 14 physic
 
 
 ```
-| Method                      | Mean     | Error    | StdDev   | Median   | Gen0   | Gen1   | Allocated |
-|---------------------------- |---------:|---------:|---------:|---------:|-------:|-------:|----------:|
-| ProcessSummarizeAndSanitize | 31.85 μs | 0.941 μs | 2.686 μs | 30.64 μs | 4.8828 | 0.0610 |  48.38 KB |
-| ProcessSummarizeOnly        | 26.73 μs | 0.531 μs | 1.311 μs | 26.47 μs | 4.7607 | 0.4272 |  47.25 KB |
-| ProcessSanitizeOnly         | 25.91 μs | 0.509 μs | 0.778 μs | 25.75 μs | 4.8523 |      - |  47.74 KB |
+| Method                      | Mean     | Error    | StdDev   | Gen0   | Gen1   | Allocated |
+|---------------------------- |---------:|---------:|---------:|-------:|-------:|----------:|
+| ProcessSummarizeAndSanitize | 25.24 μs | 0.490 μs | 0.459 μs | 2.8381 |      - |  27.94 KB |
+| ProcessSummarizeOnly        | 22.30 μs | 0.436 μs | 0.408 μs | 2.7161 | 0.2136 |  26.81 KB |
+| ProcessSanitizeOnly         | 23.91 μs | 0.417 μs | 0.528 μs | 2.8076 | 0.1526 |  27.73 KB |
