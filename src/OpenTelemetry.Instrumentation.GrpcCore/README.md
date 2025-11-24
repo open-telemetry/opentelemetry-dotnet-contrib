@@ -1,8 +1,8 @@
 # gRPC Core-based Client and Server Interceptors for OpenTelemetry .NET
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@IliaBrahinets](https://github.com/IliaBrahinets), [@pcwiese](https://github.com/pcwiese) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.GrpcCore)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.GrpcCore)

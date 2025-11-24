@@ -1,8 +1,8 @@
 # AWS OTel .NET SDK for Lambda
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Stable](../../README.md#stable) |
+| Status | |
+| ------ | --- |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@rypdal](https://github.com/rypdal), [@Oberon00](https://github.com/Oberon00), [@normj](https://github.com/normj), [@lukeina2z](https://github.com/lukeina2z) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AWSLambda)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AWSLambda)
@@ -58,7 +58,7 @@ The sequence of the parent extraction:
 The parent extraction is supported for the input types listed in the table below:
 
 | Type | Parent extraction source |
-|------|--------------------------|
+| ---- | ------------------------ |
 | `APIGatewayProxyRequest, APIGatewayHttpApiV2ProxyRequest`, `ApplicationLoadBalancerRequest` | HTTP headers of the request |
 | `SQSEvent` | Attributes of the last `SQSMessage` (if `SetParentFromMessageBatch` is `true`) |
 | `SNSEvent` | Attributes of the last `SNSRecord` |

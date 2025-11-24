@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.14.0-beta.2
+
+Released 2025-Nov-14
+
+* Added `net10.0` and `net8.0` target frameworks.
+  ([#3519](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3519))
+
+## 1.14.0-beta.1
+
+Released 2025-Nov-13
+
+* Updated OpenTelemetry core component version(s) to `1.14.0`.
+  ([#3403](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3403))
+
 ## 1.13.0-beta.2
 
 Released 2025-Nov-03
@@ -112,7 +126,7 @@ Released 2024-Dec-09
   * The default behavior (in the absence of one of these values) is to continue
   emitting the same database semantic conventions that were emitted in
   the previous version.
-  * Note: this option will be be removed after the new database
+  * Note: this option will be removed after the new database
   semantic conventions is marked stable. At which time this
   instrumentation can receive a stable release, and the old database
   semantic conventions will no longer be supported. Refer to the

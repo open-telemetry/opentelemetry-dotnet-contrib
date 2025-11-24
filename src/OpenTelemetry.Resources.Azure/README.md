@@ -1,8 +1,8 @@
 # Resource Detectors for Azure cloud environments
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Beta](../../README.md#beta) |
+| Status | |
+| ------ | --- |
+| Stability | [Beta](../../README.md#beta) |
 | Code Owners | [@rajkumar-rangaraj](https://github.com/rajkumar-rangaraj) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Azure)](https://www.nuget.org/packages/OpenTelemetry.Resources.Azure)
@@ -49,7 +49,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
 ```
 
 | Attribute                   | Description                                                                                                                                                                                               |
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | azure.app.service.stamp     | The specific "stamp" cluster within Azure where the App Service is running, e.g., "waws-prod-sn1-001".                                                                                                    |
 | cloud.platform              | The cloud platform. Here, it's always "azure_app_service".                                                                                                                                                |
 | cloud.provider              | The cloud service provider. In this context, it's always "azure".                                                                                                                                         |
@@ -82,7 +82,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 | Attribute              | Description                                                                                                                                                                                                                         |
-|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | azure.vm.scaleset.name | The name of the Virtual Machine Scale Set if the VM is part of one.                                                                                                                                                                 |
 | cloud.platform         | The cloud platform, which is always set to "azure_vm" in this context.                                                                                                                                                              |
 | cloud.provider         | The cloud service provider, which is always set to "azure" in this context.                                                                                                                                                         |
@@ -117,7 +117,7 @@ using var meterProvider = Sdk.CreateMeterProviderBuilder()
 ```
 
 | Attribute           | Description                                                                                                                 |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | cloud.platform      | The cloud platform. Here, it's always "azure_container_apps".                                                               |
 | cloud.provider      | The cloud service provider. In this context, it's always "azure".                                                           |
 | service.instance.id | Represents the specific instance ID of Azure Container Apps, useful in scaled-out configurations.                           |
