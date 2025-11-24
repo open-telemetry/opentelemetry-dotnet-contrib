@@ -3,15 +3,4 @@
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
-internal readonly struct KustoStatementInfo
-{
-    public KustoStatementInfo(string? summarized, string? sanitized)
-    {
-        this.Summarized = summarized;
-        this.Sanitized = sanitized;
-    }
-
-    public string? Summarized { get; }
-
-    public string? Sanitized { get; }
-}
+internal readonly record struct KustoStatementInfo(string? Summarized, string? Sanitized);
