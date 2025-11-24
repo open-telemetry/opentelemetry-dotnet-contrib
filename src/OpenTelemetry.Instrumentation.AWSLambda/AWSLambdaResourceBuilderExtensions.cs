@@ -5,6 +5,7 @@ using OpenTelemetry.AWS;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.AWSLambda;
 
@@ -14,7 +15,7 @@ namespace OpenTelemetry.Instrumentation.AWSLambda;
 public static class AWSLambdaResourceBuilderExtensions
 {
     /// <summary>
-    /// Enables AWS Lambda resource detector.
+    /// Enables AWS Lambda resource detector. Do not call this method while also calling <see cref="TracerProviderBuilderExtensions.AddAWSLambdaConfigurations(TracerProviderBuilder)" /> or <see cref="TracerProviderBuilderExtensions.AddAWSLambdaConfigurations(TracerProviderBuilder, System.Action{AWSLambdaInstrumentationOptions})" />.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
     /// <param name="configure">Optional callback action for configuring <see cref="AWSLambdaInstrumentationOptions"/>.</param>
