@@ -168,7 +168,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                                         activity,
                                         commandText,
                                         options.EmitOldAttributes,
-                                        options.EmitNewAttributes);
+                                        options.EmitNewAttributes,
+                                        options.DbStatementSanitizerEnabled);
                                     break;
 
                                 case CommandType.TableDirect:

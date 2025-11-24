@@ -175,7 +175,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
                                 case CommandType.Text:
                                     // Only SQL-like providers support sanitization as we are not
                                     // able to sanitize arbitrary commands for other query dialects.
-                                    bool sanitizeQuery = IsSqlLikeProvider(providerName);
+                                    bool sanitizeQuery = IsSqlLikeProvider(providerName) && this.options.DbStatementSanitizerEnabled;
 
                                     DatabaseSemanticConventionHelper.ApplyConventionsForQueryText(
                                         activity,

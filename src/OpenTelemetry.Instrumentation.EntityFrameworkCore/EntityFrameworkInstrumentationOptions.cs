@@ -4,6 +4,7 @@
 using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore.Implementation;
 using static OpenTelemetry.Internal.DatabaseSemanticConventionHelper;
 
 namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
@@ -13,6 +14,8 @@ namespace OpenTelemetry.Instrumentation.EntityFrameworkCore;
 /// </summary>
 public class EntityFrameworkInstrumentationOptions
 {
+    internal const string DbStatementSanitizerEnabledEnvVar = "OTEL_INSTRUMENTATION_COMMON_DB_STATEMENT_SANITIZER_ENABLED";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="EntityFrameworkInstrumentationOptions"/> class.
     /// </summary>
@@ -31,6 +34,14 @@ public class EntityFrameworkInstrumentationOptions
             bool.TryParse(value, out var setDbQueryParameters))
         {
             this.SetDbQueryParameters = setDbQueryParameters;
+        }
+
+        if (configuration!.TryGetBoolValue(
+            EntityFrameworkInstrumentationEventSource.Log,
+            DbStatementSanitizerEnabledEnvVar,
+            out var dbStatementSanitizerEnabled))
+        {
+            this.DbStatementSanitizerEnabled = dbStatementSanitizerEnabled;
         }
     }
 
@@ -63,6 +74,25 @@ public class EntityFrameworkInstrumentationOptions
     /// </list>
     /// </remarks>
     public Func<string?, IDbCommand, bool>? Filter { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether SQL statements should be sanitized
+    /// before being recorded on activities. Default value: <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When enabled, SQL text is processed to remove literal values and comments
+    /// before it is stored in attributes such as <c>db.statement</c>.
+    /// </para>
+    /// <para>
+    /// <b>WARNING:</b> Disabling SQL statement sanitization may result in sensitive
+    /// data being recorded in telemetry.
+    /// </para>
+    /// <para>
+    /// <b>DbStatementSanitizerEnabled is only supported on .NET runtimes.</b>
+    /// </para>
+    /// </remarks>
+    public bool DbStatementSanitizerEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not the <see cref="EntityFrameworkInstrumentation"/>

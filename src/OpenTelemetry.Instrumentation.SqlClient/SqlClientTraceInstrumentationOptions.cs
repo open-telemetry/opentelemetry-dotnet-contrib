@@ -22,6 +22,7 @@ public class SqlClientTraceInstrumentationOptions
 {
     internal const string ContextPropagationLevelEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_CONTEXT_PROPAGATION";
     internal const string SetDbQueryParametersEnvVar = "OTEL_DOTNET_EXPERIMENTAL_SQLCLIENT_ENABLE_TRACE_DB_QUERY_PARAMETERS";
+    internal const string DbStatementSanitizerEnabledEnvVar = "OTEL_INSTRUMENTATION_COMMON_DB_STATEMENT_SANITIZER_ENABLED";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlClientTraceInstrumentationOptions"/> class.
@@ -54,6 +55,14 @@ public class SqlClientTraceInstrumentationOptions
                 out var setDbQueryParameters))
         {
             this.SetDbQueryParameters = setDbQueryParameters;
+        }
+
+        if (configuration!.TryGetBoolValue(
+                SqlClientInstrumentationEventSource.Log,
+                DbStatementSanitizerEnabledEnvVar,
+                out var dbStatementSanitizerEnabled))
+        {
+            this.DbStatementSanitizerEnabled = dbStatementSanitizerEnabled;
         }
 #endif
     }
@@ -106,6 +115,25 @@ public class SqlClientTraceInstrumentationOptions
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.</para>
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether SQL statements should be sanitized
+    /// before being recorded on activities. Default value: <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When enabled, SQL text is processed to remove literal values and comments
+    /// before it is stored in attributes such as <c>db.statement</c>.
+    /// </para>
+    /// <para>
+    /// <b>WARNING:</b> Disabling SQL statement sanitization may result in sensitive
+    /// data being recorded in telemetry.
+    /// </para>
+    /// <para>
+    /// <b>DbStatementSanitizerEnabled is only supported on .NET runtimes.</b>
+    /// </para>
+    /// </remarks>
+    public bool DbStatementSanitizerEnabled { get; set; } = true;
 #endif
 
 #if !NETFRAMEWORK

@@ -1,5 +1,7 @@
 #nullable enable
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions
+OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.DbStatementSanitizerEnabled.get -> bool
+OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.DbStatementSanitizerEnabled.set -> void
 OpenTelemetry.Instrumentation.SqlClient.SqlClientTraceInstrumentationOptions.SqlClientTraceInstrumentationOptions() -> void
 OpenTelemetry.Metrics.SqlClientMeterProviderBuilderExtensions
 OpenTelemetry.Trace.TracerProviderBuilderExtensions

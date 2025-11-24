@@ -32,6 +32,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
 #if NET
     [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, false)]
     [InlineData(CommandType.Text, GetContextInfoQuery, GetContextInfoQuery, false, false, true)]
+    [InlineData(CommandType.Text, "select 1/0", "select 1/0", true, true, false, false)]
 #endif
     [InlineData(CommandType.StoredProcedure, "sp_who", "sp_who")]
     public void SuccessfulCommandTest(
@@ -40,7 +41,8 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
         string? sanitizedCommandText,
         bool isFailure = false,
         bool recordException = false,
-        bool enableTransaction = false)
+        bool enableTransaction = false,
+        bool dbStatementSanitizerEnabled = true)
     {
         using var scope = EnvironmentVariableScope.Create(
             SqlClientTraceInstrumentationOptions.ContextPropagationLevelEnvVar,
@@ -60,6 +62,7 @@ public sealed class SqlClientIntegrationTests : IClassFixture<SqlClientIntegrati
             {
 #if NET
                 options.RecordException = recordException;
+                options.DbStatementSanitizerEnabled = dbStatementSanitizerEnabled;
 #endif
             })
             .Build();
