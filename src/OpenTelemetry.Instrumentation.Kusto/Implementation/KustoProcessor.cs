@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Text;
 using Kusto.Language;
 using Kusto.Language.Editor;
 using Kusto.Language.Symbols;
@@ -11,6 +10,8 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal static class KustoProcessor
 {
+    private static readonly GlobalState KustoParserGlobalState = GlobalState.Default.WithCache();
+
     private enum ReplacementKind
     {
         Placeholder,
@@ -19,7 +20,7 @@ internal static class KustoProcessor
 
     public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
     {
-        var code = KustoCode.ParseAndAnalyze(query);
+        var code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
 
         string? summarized = null;
         string? sanitized = null;
@@ -43,21 +44,8 @@ internal static class KustoProcessor
         var collector = new SanitizerVisitor();
         code.Syntax.Accept(collector);
 
-        // Build edits
-        var edits = new List<TextEdit>();
-        foreach (var replacement in collector.Replacements)
-        {
-            var edit = replacement.Kind switch
-            {
-                ReplacementKind.Placeholder => TextEdit.Replacement(replacement.Element.TextStart, replacement.Element.Width, "?"),
-                ReplacementKind.Remove => TextEdit.Deletion(replacement.Element.TextStart, replacement.Element.Width),
-                _ => throw new NotSupportedException($"Unexpected replacement kind: {replacement.Kind}"),
-            };
-
-            edits.Add(edit);
-        }
-
         // Apply edits to text
+        var edits = collector.Edits;
         var text = new EditString(code.Text);
         if (edits.Count == 0 || !text.CanApplyAll(edits))
         {
@@ -69,43 +57,26 @@ internal static class KustoProcessor
 
     private static string Summarize(KustoCode code)
     {
-        var walker = new SummarizerVisitor();
+        using var walker = new SummarizerVisitor();
         code.Syntax.Accept(walker);
-
-        var sb = new StringBuilder();
-        foreach (var segment in walker.Builder)
-        {
-            sb.Append(segment).Append(' ');
-        }
-
-        sb.TrimEnd();
-        return sb.ToString(0, Math.Min(255, sb.Length));
+        return walker.GetSummary();
     }
 
-    private readonly struct Replacement
-    {
-        public Replacement(SyntaxElement element, ReplacementKind kind)
-        {
-            this.Element = element;
-            this.Kind = kind;
-        }
+    private static TextEdit CreatePlaceholder(SyntaxElement node) => TextEdit.Replacement(node.TextStart, node.Width, "?");
 
-        public SyntaxElement Element { get; }
-
-        public ReplacementKind Kind { get; }
-    }
+    private static TextEdit CreateRemoval(SyntaxElement node) => TextEdit.Deletion(node.TextStart, node.Width);
 
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
-        public readonly List<Replacement> Replacements = [];
+        public readonly List<TextEdit> Edits = [];
 
-        public override void VisitLiteralExpression(LiteralExpression node) => this.Replacements.Add(new Replacement(node, ReplacementKind.Placeholder));
+        public override void VisitLiteralExpression(LiteralExpression node) => this.Edits.Add(CreatePlaceholder(node));
 
-        public override void VisitDynamicExpression(DynamicExpression node) => this.Replacements.Add(new Replacement(node, ReplacementKind.Placeholder));
+        public override void VisitDynamicExpression(DynamicExpression node) => this.Edits.Add(CreatePlaceholder(node));
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
-            this.Replacements.Add(new Replacement(node.Operator, ReplacementKind.Remove));
+            this.Edits.Add(CreateRemoval(node.Operator));
             base.VisitPrefixUnaryExpression(node);
         }
 
@@ -126,15 +97,16 @@ internal static class KustoProcessor
         }
     }
 
-    private sealed class SummarizerVisitor : DefaultSyntaxVisitor
+    private sealed class SummarizerVisitor : DefaultSyntaxVisitor, IDisposable
     {
-        public readonly List<string> Builder = [];
+        private readonly TruncatingStringBuilder builder = new();
 
         public override void VisitPipeExpression(PipeExpression node)
         {
             node.Expression.Accept(this);
 
-            this.Builder.Add(node.Bar.Text);
+            this.builder.Append(node.Bar.Text);
+            this.builder.Append(' ');
 
             node.Operator.Accept(this);
         }
@@ -143,11 +115,13 @@ internal static class KustoProcessor
         {
             if (node.ResultType is TableSymbol ts)
             {
-                this.Builder.Add(ts.Name);
+                this.builder.Append(ts.Name);
+                this.builder.Append(' ');
             }
             else if (node.ResultType is ErrorSymbol)
             {
-                this.Builder.Add(node.ToString(IncludeTrivia.SingleLine));
+                this.builder.Append(node.ToString(IncludeTrivia.SingleLine));
+                this.builder.Append(' ');
             }
         }
 
@@ -155,13 +129,31 @@ internal static class KustoProcessor
         {
             if (node.Name.SimpleName == "materialized_view")
             {
-                this.Builder.Add(node.ToString(IncludeTrivia.SingleLine));
+                this.builder.Append(node.ToString(IncludeTrivia.SingleLine));
+                this.builder.Append(' ');
             }
         }
 
-        public override void VisitDataTableExpression(DataTableExpression node) => this.Builder.Add(node.DataTableKeyword.Text);
+        public override void VisitDataTableExpression(DataTableExpression node)
+        {
+            this.builder.Append(node.DataTableKeyword.Text);
+            this.builder.Append(' ');
+        }
 
-        public override void VisitCustomCommand(CustomCommand node) => this.Builder.Add(node.DotToken + node.Custom.GetFirstToken().ToString(IncludeTrivia.SingleLine));
+        public override void VisitCustomCommand(CustomCommand node)
+        {
+            this.builder.Append(node.DotToken.Text);
+            this.builder.Append(node.Custom.GetFirstToken().Text);
+            this.builder.Append(' ');
+        }
+
+        public string GetSummary()
+        {
+            this.builder.TrimEnd();
+            return this.builder.ToString();
+        }
+
+        public void Dispose() => this.builder.Dispose();
 
         protected override void DefaultVisit(SyntaxNode node)
         {
@@ -182,7 +174,8 @@ internal static class KustoProcessor
                 return;
             }
 
-            this.Builder.Add(node.GetFirstToken().ToString(IncludeTrivia.SingleLine));
+            this.builder.Append(node.GetFirstToken().ToString(IncludeTrivia.SingleLine));
+            this.builder.Append(' ');
 
             this.VisitChildren(node);
         }
