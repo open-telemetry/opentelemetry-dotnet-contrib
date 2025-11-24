@@ -15,6 +15,16 @@ which instruments
 [Hangfire](https://www.nuget.org/packages/Hangfire/)
 and collects telemetry about BackgroundJob.
 
+<!--
+  Following statement is required by the CNCF Governing Board.
+  See https://github.com/cncf/foundation/issues/1065#issuecomment-3563771634
+  for details.
+-->
+> [!IMPORTANT]
+> Please note that installing the OpenTelemetry Hangfire instrumentation
+> will retrieve from NuGet and install Hangfire.Core, which is provided
+> by its licensor under a choice of LGPL-3.0 or a commercial license.
+
 ## Steps to enable OpenTelemetry.Instrumentation.Hangfire
 
 ### Step 1: Install and configure Hangfire
