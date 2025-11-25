@@ -22,16 +22,16 @@ option number from the list of options shown on the Console window.
 
 ```
 
-BenchmarkDotNet v0.15.6, Windows 11 (10.0.26100.7092/24H2/2024Update/HudsonValley)
-Intel Core i9-10940X CPU 3.30GHz (Max: 3.31GHz), 1 CPU, 28 logical and 14 physical cores
-.NET SDK 10.0.100
-  [Host]     : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v4
-  DefaultJob : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v4
+BenchmarkDotNet v0.15.6, Windows 11 (10.0.26200.7093)
+Intel Core Ultra 7 165H 3.80GHz, 1 CPU, 22 logical and 16 physical cores
+.NET SDK 10.0.100-rc.2.25502.107
+  [Host]     : .NET 10.0.0 (10.0.0-rc.2.25502.107, 10.0.25.50307), X64 RyuJIT x86-64-v3
+  DefaultJob : .NET 10.0.0 (10.0.0-rc.2.25502.107, 10.0.25.50307), X64 RyuJIT x86-64-v3
 
 
 ```
 | Method                      | Mean     | Error    | StdDev   | Gen0   | Gen1   | Allocated |
 |---------------------------- |---------:|---------:|---------:|-------:|-------:|----------:|
-| ProcessSummarizeAndSanitize | 25.24 μs | 0.490 μs | 0.459 μs | 2.8381 |      - |  27.94 KB |
-| ProcessSummarizeOnly        | 22.30 μs | 0.436 μs | 0.408 μs | 2.7161 | 0.2136 |  26.81 KB |
-| ProcessSanitizeOnly         | 23.91 μs | 0.417 μs | 0.528 μs | 2.8076 | 0.1526 |  27.73 KB |
+| ProcessSummarizeAndSanitize | 14.98 μs | 0.333 μs | 0.954 μs | 1.2512 | 0.0305 |  15.55 KB |
+| ProcessSummarizeOnly        | 11.24 μs | 0.271 μs | 0.781 μs | 1.1749 | 0.0305 |  14.49 KB |
+| ProcessSanitizeOnly         | 11.25 μs | 0.216 μs | 0.231 μs | 1.2512 | 0.0305 |  15.38 KB |
