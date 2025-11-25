@@ -42,21 +42,8 @@ internal static class KustoProcessor
         var collector = new SanitizerVisitor();
         code.Syntax.Accept(collector);
 
-        // Build edits
-        var edits = new List<TextEdit>();
-        foreach (var replacement in collector.Replacements)
-        {
-            var edit = replacement.Kind switch
-            {
-                ReplacementKind.Placeholder => TextEdit.Replacement(replacement.Element.TextStart, replacement.Element.Width, "?"),
-                ReplacementKind.Remove => TextEdit.Deletion(replacement.Element.TextStart, replacement.Element.Width),
-                _ => throw new NotSupportedException($"Unexpected replacement kind: {replacement.Kind}"),
-            };
-
-            edits.Add(edit);
-        }
-
         // Apply edits to text
+        var edits = collector.Edits;
         var text = new EditString(code.Text);
         if (edits.Count == 0 || !text.CanApplyAll(edits))
         {
@@ -74,30 +61,21 @@ internal static class KustoProcessor
         return walker.GetSummary();
     }
 
-    private readonly struct Replacement
-    {
-        public Replacement(SyntaxElement element, ReplacementKind kind)
-        {
-            this.Element = element;
-            this.Kind = kind;
-        }
+    private static TextEdit CreatePlaceholder(SyntaxElement node) => TextEdit.Replacement(node.TextStart, node.Width, "?");
 
-        public SyntaxElement Element { get; }
-
-        public ReplacementKind Kind { get; }
-    }
+    private static TextEdit CreateRemoval(SyntaxElement node) => TextEdit.Deletion(node.TextStart, node.Width);
 
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
-        public readonly List<Replacement> Replacements = [];
+        public readonly List<TextEdit> Edits = [];
 
-        public override void VisitLiteralExpression(LiteralExpression node) => this.Replacements.Add(new Replacement(node, ReplacementKind.Placeholder));
+        public override void VisitLiteralExpression(LiteralExpression node) => this.Edits.Add(CreatePlaceholder(node));
 
-        public override void VisitDynamicExpression(DynamicExpression node) => this.Replacements.Add(new Replacement(node, ReplacementKind.Placeholder));
+        public override void VisitDynamicExpression(DynamicExpression node) => this.Edits.Add(CreatePlaceholder(node));
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
-            this.Replacements.Add(new Replacement(node.Operator, ReplacementKind.Remove));
+            this.Edits.Add(CreateRemoval(node.Operator));
             base.VisitPrefixUnaryExpression(node);
         }
 
