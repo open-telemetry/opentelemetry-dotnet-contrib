@@ -1,6 +1,8 @@
 #nullable enable
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.KustoInstrumentationOptions() -> void
+OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQuerySummary.get -> bool
+OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQuerySummary.set -> void
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQueryText.get -> bool
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQueryText.set -> void
 OpenTelemetry.Metrics.MeterProviderBuilderExtensions

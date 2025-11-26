@@ -27,14 +27,18 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("print number=42", true)]
     [InlineData("print number=42", false)]
-    public async Task SuccessfulQueryTest(string query, bool recordQueryText)
+    public async Task SuccessfulQueryTest(string query, bool processQuery)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddKustoInstrumentation(options => options.RecordQueryText = recordQueryText)
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = processQuery;
+                options.RecordQuerySummary = processQuery;
+            })
             .Build();
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -90,20 +94,24 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
             .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
             .UseDirectory("Snapshots")
-            .UseParameters(query, recordQueryText);
+            .UseParameters(query, processQuery);
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
     [InlineData("InvalidTable | take 10", true)]
     [InlineData("InvalidTable | take 10", false)]
-    public async Task FailedQueryTest(string query, bool recordQueryText)
+    public async Task FailedQueryTest(string query, bool processQuery)
     {
         var activities = new List<Activity>();
         var metrics = new List<Metric>();
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddKustoInstrumentation(options => options.RecordQueryText = recordQueryText)
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = processQuery;
+                options.RecordQuerySummary = processQuery;
+            })
             .Build();
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
@@ -172,7 +180,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
             .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
             .UseDirectory("Snapshots")
-            .UseParameters(query, recordQueryText);
+            .UseParameters(query, processQuery);
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]

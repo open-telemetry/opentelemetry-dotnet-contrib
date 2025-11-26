@@ -20,4 +20,7 @@ public class KustoProcessorBenchmarks
 
     [Benchmark]
     public void ProcessSanitizeOnly() => KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, this.Query);
+
+    [Benchmark]
+    public void ProcessNeither() => KustoProcessor.Process(shouldSummarize: false, shouldSanitize: false, this.Query);
 }
