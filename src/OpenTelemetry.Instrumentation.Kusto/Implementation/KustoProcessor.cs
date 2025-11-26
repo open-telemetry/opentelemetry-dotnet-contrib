@@ -18,20 +18,23 @@ internal static class KustoProcessor
         Remove,
     }
 
-    public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
+    public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, ReadOnlySpan<char> query)
     {
-        var code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
-
         string? summarized = null;
         string? sanitized = null;
 
+        KustoCode? code = null;
+
+        // Note that order matters here as summarization requires semantic analysis, but we want to avoid parsing twice if both are requested.
         if (shouldSummarize)
         {
+            code ??= KustoCode.ParseAndAnalyze(query.ToString(), KustoParserGlobalState);
             summarized = Summarize(code);
         }
 
         if (shouldSanitize)
         {
+            code ??= KustoCode.Parse(query.ToString(), KustoParserGlobalState);
             sanitized = Sanitize(code);
         }
 
