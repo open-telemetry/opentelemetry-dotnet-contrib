@@ -1,8 +1,8 @@
 # Resource Detectors for Google Cloud Platform environments
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Development](../../README.md#development) |
+| Status | |
+| ------ | --- |
+| Stability | [Development](../../README.md#development) |
 | Code Owners | [@matt-hensley](https://github.com/matt-hensley) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Resources.Gcp)](https://www.nuget.org/packages/OpenTelemetry.Resources.Gcp)
@@ -59,7 +59,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Kubernetes Engine
 
 | Attribute               | Value                 |
-|-------------------------|-----------------------|
+| ----------------------- | --------------------- |
 | cloud.provider          | gcp                   |
 | cloud.platform          | gcp_kubernetes_engine |
 | cloud.account.id        | auto                  |
@@ -72,7 +72,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google App Engine
 
 | Attribute               | Value          |
-|-------------------------|----------------|
+| ----------------------- | -------------- |
 | cloud.provider          | gcp            |
 | cloud.platform          | gcp_app_engine |
 | cloud.account.id        | auto           |
@@ -80,7 +80,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Cloud Run
 
 | Attribute               | Value         |
-|-------------------------|---------------|
+| ----------------------- | ------------- |
 | cloud.provider          | gcp           |
 | cloud.platform          | gcp_cloud_run |
 | cloud.account.id        | auto          |
@@ -90,7 +90,7 @@ which Google Cloud Platform environment an application is running in.
 ### Google Compute Engine
 
 | Attribute               | Value              |
-|-------------------------|--------------------|
+| ----------------------- | ------------------ |
 | cloud.provider          | gcp                |
 | cloud.platform          | gcp_compute_engine |
 | cloud.account.id        | auto               |

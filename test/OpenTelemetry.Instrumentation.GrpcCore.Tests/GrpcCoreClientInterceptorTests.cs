@@ -296,7 +296,7 @@ public class GrpcCoreClientInterceptorTests
         Assert.NotNull(activity);
         Assert.NotNull(activity.Tags);
 
-        Assert.True(activity.IsStopped);
+        Assert.True(activity.IsStopped, "The activity has not been stopped.");
 
         // TagObjects contain non string values
         // Tags contains only string values
@@ -421,6 +421,7 @@ public class GrpcCoreClientInterceptorTests
             Assert.NotEmpty(capturedCarrier);
 
             ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+
             Assert.Equal(default, activity.ParentSpanId);
         }
 
@@ -446,7 +447,9 @@ public class GrpcCoreClientInterceptorTests
             Assert.NotEqual(default, capturedPropagationContext.ActivityContext.SpanId);
 
             var activity = activityListener.Activity;
+
             ValidateCommonActivityTags(activity, StatusCode.OK, interceptorOptions.RecordMessageEvents);
+
             Assert.NotNull(activity);
             Assert.Equal(parentActivity.Id, activity.ParentId);
         }
@@ -468,21 +471,26 @@ public class GrpcCoreClientInterceptorTests
         bool validateErrorDescription = true,
         string? serverUriString = null)
     {
-        using var server = FoobarService.Start();
         var testTags = new TestActivityTags();
         var interceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags, RecordException = true };
-        var client = FoobarService.ConstructRpcClient(
-            serverUriString ?? server.UriString,
-            new ClientTracingInterceptor(interceptorOptions),
-            [
-                new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
-                new(FoobarService.RequestHeaderErrorDescription, "fubar")
-            ]);
 
         using var activityListener = new InterceptorActivityListener(testTags);
-        await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));
+
+        using (var server = FoobarService.Start())
+        {
+            var client = FoobarService.ConstructRpcClient(
+                serverUriString ?? server.UriString,
+                new ClientTracingInterceptor(interceptorOptions),
+                [
+                    new(FoobarService.RequestHeaderFailWithStatusCode, statusCode.ToString()),
+                    new(FoobarService.RequestHeaderErrorDescription, "fubar")
+                ]);
+
+            await Assert.ThrowsAsync<RpcException>(() => clientRequestFunc(client, null));
+        }
 
         var activity = activityListener.Activity;
+
         ValidateCommonActivityTags(activity, statusCode, interceptorOptions.RecordMessageEvents, interceptorOptions.RecordException);
 
         if (validateErrorDescription)
@@ -498,14 +506,16 @@ public class GrpcCoreClientInterceptorTests
     /// <param name="clientRequestAction">The client request action.</param>
     private void TestActivityIsCancelledWhenHandlerDisposed(Action<Foobar.FoobarClient> clientRequestAction)
     {
-        using var server = FoobarService.Start();
         var testTags = new TestActivityTags();
-        var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags };
         using var activityListener = new InterceptorActivityListener(testTags);
-        var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
-        clientRequestAction(client);
 
-        var activity = activityListener.Activity;
-        ValidateCommonActivityTags(activity, StatusCode.Cancelled, false);
+        using (var server = FoobarService.Start())
+        {
+            var clientInterceptorOptions = new ClientTracingInterceptorOptions { Propagator = new TraceContextPropagator(), AdditionalTags = testTags.Tags };
+            var client = FoobarService.ConstructRpcClient(server.UriString, new ClientTracingInterceptor(clientInterceptorOptions));
+            clientRequestAction(client);
+        }
+
+        ValidateCommonActivityTags(activityListener.Activity, StatusCode.Cancelled, false);
     }
 }

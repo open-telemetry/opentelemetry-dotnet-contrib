@@ -28,6 +28,7 @@
     <Compile Include="$(RepoRoot)\src\Shared\SqlParameterProcessor.cs" Link="Includes\SqlParameterProcessor.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlProcessor.cs" Link="Includes\SqlProcessor.cs" />
     <Compile Include="$(RepoRoot)\src\Shared\SqlStatementInfo.cs" Link="Includes\SqlStatementInfo.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnvironmentVariableScope.cs" Link="Includes\EnvironmentVariableScope.cs" />
   </ItemGroup>
 
   <ItemGroup>

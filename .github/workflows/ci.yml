@@ -28,10 +28,10 @@ jobs:
       changes: ${{ steps.changes.outputs.changes }}
     steps:
     - name: check out code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       if: github.event_name == 'push' || github.event_name == 'merge_group'
 
-    - uses: AurorNZ/paths-filter@3b1f3abc3371cca888d8eb03dfa70bc8a9867629 # v4.0.0
+    - uses: AurorNZ/paths-filter@c9dd42e99db87803313ff6f4b1150cc9f6c836af # v5.0.0
       id: changes
       with:
         filters: |

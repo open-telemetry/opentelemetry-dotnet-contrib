@@ -20,4 +20,9 @@
     <Reference Include="System.Net.Http" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETFramework'" />
   </ItemGroup>
 
+  <!-- Resolve version conflict caused by OneCollector not targeting net9.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" VersionOverride="9.0.11" />
+  </ItemGroup>
+
 </Project>
