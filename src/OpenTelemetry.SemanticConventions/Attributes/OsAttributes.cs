@@ -97,6 +97,7 @@ public static class OsAttributes
         /// <summary>
         /// Deprecated. Use <c>zos</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>zos</c>.")]
         public const string ZOs = "z_os";
 
         /// <summary>

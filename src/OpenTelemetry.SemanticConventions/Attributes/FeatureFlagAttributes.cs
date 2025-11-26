@@ -94,55 +94,46 @@ public static class FeatureFlagAttributes
         /// <summary>
         /// The resolved value is static (no dynamic evaluation).
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Static = "static";
 
         /// <summary>
         /// The resolved value fell back to a pre-configured value (no dynamic evaluation occurred or dynamic evaluation yielded no result).
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Default = "default";
 
         /// <summary>
         /// The resolved value was the result of a dynamic evaluation, such as a rule or specific user-targeting.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string TargetingMatch = "targeting_match";
 
         /// <summary>
         /// The resolved value was the result of pseudorandom assignment.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Split = "split";
 
         /// <summary>
         /// The resolved value was retrieved from cache.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Cached = "cached";
 
         /// <summary>
         /// The resolved value was the result of the flag being disabled in the management system.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Disabled = "disabled";
 
         /// <summary>
         /// The reason for the resolved value could not be determined.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Unknown = "unknown";
 
         /// <summary>
         /// The resolved value is non-authoritative or possibly out of date.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Stale = "stale";
 
         /// <summary>
         /// The resolved value was the result of an error.
         /// </summary>
-        [Obsolete("Replaced by <c>feature_flag.result.reason</c>.")]
         public const string Error = "error";
     }
 
