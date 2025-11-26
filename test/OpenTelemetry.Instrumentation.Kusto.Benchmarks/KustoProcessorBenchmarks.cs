@@ -12,7 +12,7 @@ public class KustoProcessorBenchmarks
 {
     public string Query { get; set; } = "StormEvents | join kind=inner (PopulationData) on State | project State, EventType, Population";
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public object ProcessSummarizeAndSanitize() => KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, this.Query);
 
     [Benchmark]
@@ -20,4 +20,7 @@ public class KustoProcessorBenchmarks
 
     [Benchmark]
     public object ProcessSanitizeOnly() => KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, this.Query);
+
+    [Benchmark(Baseline = true)]
+    public object ProcessNeither() => KustoProcessor.Process(shouldSummarize: false, shouldSanitize: false, this.Query);
 }
