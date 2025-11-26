@@ -94,6 +94,13 @@ public class KustoQueryParserTests
             "let x = ?; let y = ?; StormEvents | take x"
         },
 
+        // Parameterized queries
+        {
+            "declare query_parameters(maxInjured:long = 90);\nStormEvents\n| where InjuriesDirect + InjuriesIndirect > maxInjured\n| where EventType = 1\n| project EpisodeId, EventType, totalInjuries = InjuriesDirect + InjuriesIndirect",
+            "StormEvents | where | where | project",
+            "declare query_parameters(maxInjured:long = 90);\nStormEvents\n| where InjuriesDirect + InjuriesIndirect > maxInjured\n| where EventType = 1\n| project EpisodeId, EventType, totalInjuries = InjuriesDirect + InjuriesIndirect"
+        },
+
         // Nested queries
         {
             "StormEvents | union OtherEvents",

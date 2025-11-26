@@ -131,8 +131,7 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 
             if (!text.IsEmpty)
             {
-                var queryText = text.ToString();
-                var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: KustoInstrumentation.TracingOptions.RecordQueryText, queryText);
+                var info = KustoProcessor.Process(shouldSummarize: KustoInstrumentation.TracingOptions.RecordQuerySummary, shouldSanitize: KustoInstrumentation.TracingOptions.RecordQueryText, text);
 
                 // Set sanitized query text if configured
                 if (KustoInstrumentation.TracingOptions.RecordQueryText)

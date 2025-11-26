@@ -18,20 +18,23 @@ internal static class KustoProcessor
         Remove,
     }
 
-    public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
+    public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, ReadOnlySpan<char> query)
     {
-        var code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
-
         string? summarized = null;
         string? sanitized = null;
 
+        KustoCode? code = null;
+
+        // Note that order matters here as summarization requires semantic analysis, but we want to avoid parsing twice if both are requested.
         if (shouldSummarize)
         {
+            code ??= KustoCode.ParseAndAnalyze(query.ToString(), KustoParserGlobalState);
             summarized = Summarize(code);
         }
 
         if (shouldSanitize)
         {
+            code ??= KustoCode.Parse(query.ToString(), KustoParserGlobalState);
             sanitized = Sanitize(code);
         }
 
@@ -43,6 +46,11 @@ internal static class KustoProcessor
         // Collect nodes that need replacements
         var collector = new SanitizerVisitor();
         code.Syntax.Accept(collector);
+
+        if (!collector.ShouldSanitize)
+        {
+            return code.Text;
+        }
 
         // Apply edits to text
         var edits = collector.Edits;
@@ -68,17 +76,30 @@ internal static class KustoProcessor
 
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
-        public readonly List<TextEdit> Edits = [];
+        private readonly List<TextEdit> edits = [];
 
-        public override void VisitLiteralExpression(LiteralExpression node) => this.Edits.Add(CreatePlaceholder(node));
+        public IReadOnlyList<TextEdit> Edits => this.edits;
 
-        public override void VisitDynamicExpression(DynamicExpression node) => this.Edits.Add(CreatePlaceholder(node));
+        /// <summary>
+        /// Gets a value indicating whether the query should be sanitized.
+        /// </summary>
+        /// <remarks>
+        /// If the query is parameterized, we should skip sanitization.
+        /// https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sanitization-of-dbquerytext.
+        /// </remarks>
+        public bool ShouldSanitize { get; private set; } = true;
+
+        public override void VisitLiteralExpression(LiteralExpression node) => this.edits.Add(CreatePlaceholder(node));
+
+        public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
-            this.Edits.Add(CreateRemoval(node.Operator));
+            this.edits.Add(CreateRemoval(node.Operator));
             base.VisitPrefixUnaryExpression(node);
         }
+
+        public override void VisitQueryParametersStatement(QueryParametersStatement node) => this.ShouldSanitize = false;
 
         protected override void DefaultVisit(SyntaxNode node) => this.VisitChildren(node);
 

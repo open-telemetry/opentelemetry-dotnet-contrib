@@ -30,8 +30,9 @@ Intel Core Ultra 7 165H 3.80GHz, 1 CPU, 22 logical and 16 physical cores
 
 
 ```
-| Method                      | Mean      | Error     | StdDev    | Median    | Gen0   | Gen1   | Allocated |
-|---------------------------- |----------:|----------:|----------:|----------:|-------:|-------:|----------:|
-| ProcessSummarizeAndSanitize | 11.976 μs | 0.3156 μs | 0.8952 μs | 11.705 μs | 1.0681 | 0.0153 |  13.11 KB |
-| ProcessSummarizeOnly        |  9.203 μs | 0.1820 μs | 0.4429 μs |  9.125 μs | 0.9918 | 0.0153 |  12.23 KB |
-| ProcessSanitizeOnly         |  9.388 μs | 0.1870 μs | 0.4992 μs |  9.325 μs | 1.0529 | 0.0153 |  12.95 KB |
+| Method                      | Mean      | Error     | StdDev    | Gen0   | Gen1   | Allocated |
+|---------------------------- |----------:|----------:|----------:|-------:|-------:|----------:|
+| ProcessSummarizeAndSanitize | 10.141 μs | 0.1926 μs | 0.2436 μs | 1.0834 | 0.0153 |  13.36 KB |
+| ProcessSummarizeOnly        |  9.549 μs | 0.1772 μs | 0.1571 μs | 1.0071 | 0.0153 |  12.48 KB |
+| ProcessSanitizeOnly         |  4.154 μs | 0.0827 μs | 0.1832 μs | 0.5798 | 0.0038 |   7.13 KB |
+| ProcessNeither              | 0.0566 ns | 0.0259 ns | 0.0610 ns |      - |      - |         - |

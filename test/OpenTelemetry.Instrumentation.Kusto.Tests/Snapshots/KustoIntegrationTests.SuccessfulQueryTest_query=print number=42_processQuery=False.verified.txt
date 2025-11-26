@@ -1,16 +1,15 @@
 {
   Activities: [
     {
-      DisplayName: InvalidTable | take,
+      DisplayName: KD.RestClient.ExecuteQuery,
       Name: Kusto.Client,
-      Status: Error,
-      StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
+      Status: Ok,
       Tags: [
         {
           db.system.name: azure.kusto
         },
         {
-          kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
+          kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
         },
         {
           db.operation.name: KD.RestClient.ExecuteQuery
@@ -20,9 +19,6 @@
         },
         {
           server.address: {Hostname}:{Port}
-        },
-        {
-          db.query.summary: InvalidTable | take
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
@@ -42,9 +38,5 @@
       Unit: ,
       Temporality: Cumulative
     }
-  ],
-  Exception: {
-    Type: SemanticException,
-    HasMessage: true
-  }
+  ]
 }
