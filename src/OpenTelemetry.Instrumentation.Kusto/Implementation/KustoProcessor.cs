@@ -10,6 +10,8 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal static class KustoProcessor
 {
+    private static readonly GlobalState KustoParserGlobalState = GlobalState.Default.WithCache();
+
     private enum ReplacementKind
     {
         Placeholder,
@@ -18,7 +20,7 @@ internal static class KustoProcessor
 
     public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
     {
-        var code = KustoCode.ParseAndAnalyze(query);
+        var code = KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
 
         string? summarized = null;
         string? sanitized = null;
