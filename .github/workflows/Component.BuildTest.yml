@@ -102,13 +102,13 @@ jobs:
         echo "BUILD_COMPONENT=$component" >> $env:GITHUB_ENV
 
     - name: Setup previous .NET runtimes
-      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+      uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
       with:
         dotnet-version: |
           8.0.x
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+      uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
 
     - name: dotnet restore ${{ steps.resolve-project.outputs.title }}
       run: dotnet restore ${{ steps.resolve-project.outputs.project }} -p:EnablePackageValidation=true
