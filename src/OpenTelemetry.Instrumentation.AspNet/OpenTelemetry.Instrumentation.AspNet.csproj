@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- OmniSharp/VS Code requires TargetFrameworks to be in descending order for IntelliSense and analysis. -->
@@ -9,10 +9,8 @@
     <MinVerTagPrefix>Instrumentation.AspNet-</MinVerTagPrefix>
   </PropertyGroup>
 
-  <!-- Do not run Package Baseline Validation as this package has never released a stable version.
-  Remove this property once we have released a stable version and add PackageValidationBaselineVersion property. -->
   <PropertyGroup>
-    <DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>
+    <PackageValidationBaselineVersion>1.14.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
