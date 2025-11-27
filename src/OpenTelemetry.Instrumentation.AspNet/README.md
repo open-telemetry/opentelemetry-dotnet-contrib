@@ -2,7 +2,7 @@
 
 | Status | |
 | ------ | --- |
-| Stability | [Release candidate](../../README.md#release-candidate) |
+| Stability | [Stable](../../README.md#stable) |
 | Code Owners | [@open-telemetry/dotnet-contrib-maintainers](https://github.com/orgs/open-telemetry/teams/dotnet-contrib-maintainers) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.AspNet)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet)
@@ -13,11 +13,6 @@ This is an [Instrumentation
 Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [ASP.NET](https://docs.microsoft.com/aspnet/overview) and
 collects metrics and traces about incoming web requests.
-
-> [!NOTE]
-> This package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/blob/main/VERSIONING.md#pre-releases).
-Until a [stable version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
-is released, there can be breaking changes.
 
 ## Steps to enable OpenTelemetry.Instrumentation.AspNet
 
