@@ -33,6 +33,8 @@ dotnet add package OpenTelemetry.Instrumentation.AspNet
 
 ### Step 2: Modify Web.config
 
+#### Include HttpModule
+
 `OpenTelemetry.Instrumentation.AspNet` requires adding an additional HttpModule
 to your web server. This additional HttpModule is shipped as part of
 [`OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule`](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.AspNet.TelemetryHttpModule/)
@@ -50,6 +52,41 @@ following shows the changes required to your `Web.config` when using IIS web ser
     </modules>
 </system.webServer>
 ```
+
+#### Configure assembly binding
+
+When adding `OpenTelemetry.Instrumentation.AspNet` and its dependencies to a
+.NET Framework project, you may encounter assembly version conflicts. Visual
+Studio will typically warn you about these conflicts during build. To resolve
+them, add binding redirects to the `<runtime>` section of your `Web.config` file.
+
+The specific binding redirects needed will vary depending on your project's other
+dependencies. Examples of assemblies that may require binding redirects include:
+
+```xml
+<runtime>
+  <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+    <dependentAssembly>
+      <assemblyIdentity name="System.Buffers" culture="neutral" publicKeyToken="cc7b13ffcd2ddd51" />
+      <bindingRedirect oldVersion="0.0.0.0-4.0.5.0" newVersion="4.0.5.0" />
+    </dependentAssembly>
+    <dependentAssembly>
+      <assemblyIdentity name="System.Memory" culture="neutral" publicKeyToken="cc7b13ffcd2ddd51" />
+      <bindingRedirect oldVersion="0.0.0.0-4.0.5.0" newVersion="4.0.5.0" />
+    </dependentAssembly>
+    <dependentAssembly>
+      <assemblyIdentity name="System.Threading.Tasks.Extensions" culture="neutral" publicKeyToken="cc7b13ffcd2ddd51" />
+      <bindingRedirect oldVersion="0.0.0.0-4.2.4.0" newVersion="4.2.4.0" />
+    </dependentAssembly>
+  </assemblyBinding>
+</runtime>
+```
+
+> [!NOTE]
+> Always follow the specific binding redirect suggestions provided by Visual Studio's
+> build warnings or errors for your project. You can double-click the warning in Visual
+> Studio to automatically add the required binding redirects. The assembly versions and
+> redirects needed may differ from the examples above.
 
 ### Step 3: Enable ASP.NET Instrumentation at application startup
 
