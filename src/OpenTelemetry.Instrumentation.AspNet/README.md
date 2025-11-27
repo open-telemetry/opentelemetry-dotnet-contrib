@@ -84,9 +84,9 @@ dependencies. Examples of assemblies that may require binding redirects include:
 
 > [!NOTE]
 > Always follow the specific binding redirect suggestions provided by Visual Studio's
-> build warnings or errors for your project. You can double-click the warning in Visual
-> Studio to automatically add the required binding redirects. The assembly versions and
-> redirects needed may differ from the examples above.
+> build warnings or errors for your project. You can double-click the warning in
+> Visual Studio to automatically add the required binding redirects.
+> The assembly versions and redirects needed may differ from the examples above.
 
 ### Step 3: Enable ASP.NET Instrumentation at application startup
 
