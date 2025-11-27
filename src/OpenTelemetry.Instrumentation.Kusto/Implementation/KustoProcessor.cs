@@ -47,6 +47,11 @@ internal static class KustoProcessor
         var collector = new SanitizerVisitor();
         code.Syntax.Accept(collector);
 
+        if (!collector.ShouldSanitize)
+        {
+            return code.Text;
+        }
+
         // Apply edits to text
         var edits = collector.Edits;
         var text = new EditString(code.Text);
@@ -72,17 +77,30 @@ internal static class KustoProcessor
 
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
-        public readonly List<TextEdit> Edits = [];
+        private readonly List<TextEdit> edits = [];
 
-        public override void VisitLiteralExpression(LiteralExpression node) => this.Edits.Add(CreatePlaceholder(node));
+        public IReadOnlyList<TextEdit> Edits => this.edits;
 
-        public override void VisitDynamicExpression(DynamicExpression node) => this.Edits.Add(CreatePlaceholder(node));
+        /// <summary>
+        /// Gets a value indicating whether the query should be sanitized.
+        /// </summary>
+        /// <remarks>
+        /// If the query is parameterized, we should skip sanitization.
+        /// https://opentelemetry.io/docs/specs/semconv/database/database-spans/#sanitization-of-dbquerytext.
+        /// </remarks>
+        public bool ShouldSanitize { get; private set; } = true;
+
+        public override void VisitLiteralExpression(LiteralExpression node) => this.edits.Add(CreatePlaceholder(node));
+
+        public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
-            this.Edits.Add(CreateRemoval(node.Operator));
+            this.edits.Add(CreateRemoval(node.Operator));
             base.VisitPrefixUnaryExpression(node);
         }
+
+        public override void VisitQueryParametersStatement(QueryParametersStatement node) => this.ShouldSanitize = false;
 
         protected override void DefaultVisit(SyntaxNode node) => this.VisitChildren(node);
 
