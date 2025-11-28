@@ -63,19 +63,16 @@ public static class AndroidAttributes
         /// <summary>
         /// Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
         /// </summary>
-        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Created = "created";
 
         /// <summary>
         /// Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
         /// </summary>
-        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Background = "background";
 
         /// <summary>
         /// Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
         /// </summary>
-        [Obsolete("Replaced by <c>android.app.state</c>.")]
         public const string Foreground = "foreground";
     }
 }

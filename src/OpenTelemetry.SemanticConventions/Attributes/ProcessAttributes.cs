@@ -249,19 +249,16 @@ public static class ProcessAttributes
         /// <summary>
         /// system.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string System = "system";
 
         /// <summary>
         /// user.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string User = "user";
 
         /// <summary>
         /// wait.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Wait = "wait";
     }
 
@@ -274,13 +271,11 @@ public static class ProcessAttributes
         /// <summary>
         /// major.
         /// </summary>
-        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
-        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
     }
 
