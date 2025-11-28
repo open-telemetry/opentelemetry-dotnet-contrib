@@ -106,6 +106,25 @@ public class SqlClientTraceInstrumentationOptions
     /// href="https://github.com/open-telemetry/semantic-conventions/blob/main/docs/exceptions/exceptions-spans.md"/>.</para>
     /// </remarks>
     public bool RecordException { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether SQL statements should be sanitized
+    /// before being recorded on activities. Default value: <see langword="true"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When enabled, SQL text is processed to remove literal values and comments
+    /// before it is stored in attributes such as <c>db.statement</c>.
+    /// </para>
+    /// <para>
+    /// <b>WARNING:</b> Disabling SQL statement sanitization may result in sensitive
+    /// data being recorded in telemetry.
+    /// </para>
+    /// <para>
+    /// <b>DbStatementSanitizerEnabled is only supported on .NET runtimes.</b>
+    /// </para>
+    /// </remarks>
+    public bool DbStatementSanitizerEnabled { get; set; } = true;
 #endif
 
 #if !NETFRAMEWORK
