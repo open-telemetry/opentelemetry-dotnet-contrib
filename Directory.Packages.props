@@ -83,7 +83,7 @@
     <PackageVersion Include="Confluent.Kafka" Version="[2.4.0,)" />
     <PackageVersion Include="Grpc.Core.Api" Version="[2.46.6,)" />
     <PackageVersion Include="InfluxDB.Client" Version="[4.18.0,)" />
-    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="[14.0.2,)" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Cloud.Platform" Version="[14.0.3,)" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Language" Version="[12.3.1,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Actors" Version="[7.1.2448,)" />
     <PackageVersion Include="Microsoft.ServiceFabric.Services.Remoting" Version="[7.1.2448,)" />
@@ -119,6 +119,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.22" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.22" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.22" />
+    <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.22" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
