@@ -9,11 +9,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal sealed class KustoMetricListener : KustoUtils.ITraceListener
 {
-    private AsyncLocal<long> beginTimestamp = new();
-
-    public KustoMetricListener()
-    {
-    }
+    private readonly AsyncLocal<long> beginTimestamp = new();
 
     public override string Name => nameof(KustoMetricListener);
 

@@ -226,4 +226,80 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         Assert.Empty(kustoActivities);
         Assert.Empty(kustoMetrics);
     }
+
+    [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
+    public void EnrichCallbackTest()
+    {
+        // Arrange
+        var activities = new List<Activity>();
+
+        // Query with comment for custom summary
+        const string key = "otel-custom-summary=";
+        const string summary = "MyOperation";
+        var query = $"// {key}{summary}\nprint number=42";
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddKustoInstrumentation(options =>
+            {
+                // Disable automatic summarization
+                options.RecordQuerySummary = false;
+
+                // Extract the comment from the query text and set the summary attribute manually
+                options.Enrich = (activity, record) =>
+                {
+                    var message = record.Message.AsSpan();
+                    var begin = message.IndexOf(key, StringComparison.Ordinal);
+
+                    if (begin < 0)
+                    {
+                        return;
+                    }
+
+                    var summary = message.Slice(begin + key.Length);
+                    var end = summary.IndexOfAny('\r', '\n');
+                    if (end < 0)
+                    {
+                        end = summary.Length;
+                    }
+
+                    summary = summary.Slice(0, end).Trim();
+                    var summaryString = summary.ToString();
+
+                    activity.SetTag(SemanticConventions.AttributeDbQuerySummary, summaryString);
+                    activity.DisplayName = summaryString;
+                };
+            })
+            .Build();
+
+        var kcsb = this.fixture.ConnectionStringBuilder;
+        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+        var crp = new ClientRequestProperties()
+        {
+            ClientRequestId = "test-enrich-callback",
+        };
+
+        // Act
+        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+        reader.Consume();
+
+        tracerProvider.ForceFlush();
+
+        // Assert
+        var kustoActivities = activities
+            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .ToList();
+
+        Assert.Single(kustoActivities);
+        var activity = kustoActivities[0];
+
+        // Verify the custom summary was set by the Enrich callback
+        var querySummaryTag = activity.Tags.SingleOrDefault(t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+        Assert.NotNull(querySummaryTag.Key);
+        Assert.Equal(summary, querySummaryTag.Value);
+
+        // Verify the display name was set to the custom summary
+        Assert.Equal(summary, activity.DisplayName);
+    }
 }

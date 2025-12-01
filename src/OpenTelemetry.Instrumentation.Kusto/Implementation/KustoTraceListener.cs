@@ -90,7 +90,6 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
             {
                 var info = KustoProcessor.Process(shouldSummarize: KustoInstrumentation.TracingOptions.RecordQuerySummary, shouldSanitize: KustoInstrumentation.TracingOptions.RecordQueryText, result.QueryText.ToString());
 
-                // Set sanitized query text if configured
                 if (KustoInstrumentation.TracingOptions.RecordQueryText)
                 {
                     activity.SetTag(SemanticConventions.AttributeDbQueryText, info.Sanitized);
@@ -112,6 +111,15 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
             {
                 // Fall back to operation name if no query text
                 activity.DisplayName = operationName;
+            }
+
+            try
+            {
+                KustoInstrumentation.TracingOptions.Enrich?.Invoke(activity, record);
+            }
+            catch (Exception ex)
+            {
+                KustoInstrumentationEventSource.Log.EnrichmentException(ex);
             }
         }
     }
