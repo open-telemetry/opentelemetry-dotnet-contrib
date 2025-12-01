@@ -1,2 +1,2 @@
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaResourceBuilderExtensions
-static OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaResourceBuilderExtensions.AddAWSLambdaDetector(this OpenTelemetry.Resources.ResourceBuilder! builder, System.Action<OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions!>? configure = null) -> OpenTelemetry.Resources.ResourceBuilder!
+static OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaResourceBuilderExtensions.AddAWSLambdaDetector(this OpenTelemetry.Resources.ResourceBuilder! builder) -> OpenTelemetry.Resources.ResourceBuilder!
