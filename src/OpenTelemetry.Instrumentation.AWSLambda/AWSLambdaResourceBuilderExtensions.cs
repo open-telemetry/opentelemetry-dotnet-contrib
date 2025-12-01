@@ -18,17 +18,12 @@ public static class AWSLambdaResourceBuilderExtensions
     /// Enables AWS Lambda resource detector. Do not call this method while also calling <see cref="TracerProviderBuilderExtensions.AddAWSLambdaConfigurations(TracerProviderBuilder)" /> or <see cref="TracerProviderBuilderExtensions.AddAWSLambdaConfigurations(TracerProviderBuilder, System.Action{AWSLambdaInstrumentationOptions})" />.
     /// </summary>
     /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
-    /// <param name="configure">Optional callback action for configuring <see cref="AWSLambdaInstrumentationOptions"/>.</param>
     /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
-    public static ResourceBuilder AddAWSLambdaDetector(this ResourceBuilder builder, Action<AWSLambdaInstrumentationOptions>? configure = null)
+    public static ResourceBuilder AddAWSLambdaDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
 
-        var options = new AWSLambdaInstrumentationOptions();
-        configure?.Invoke(options);
-
-        var semanticConventionBuilder = new AWSSemanticConventions(options.SemanticConventionVersion);
-
+        var semanticConventionBuilder = new AWSSemanticConventions();
         return builder.AddDetector(new AWSLambdaResourceDetector(semanticConventionBuilder));
     }
 }
