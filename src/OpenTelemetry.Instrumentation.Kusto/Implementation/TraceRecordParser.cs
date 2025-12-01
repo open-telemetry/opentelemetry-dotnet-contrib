@@ -17,15 +17,15 @@ internal class TraceRecordParser
 
     public static ParsedRequestStart ParseRequestStart(ReadOnlySpan<char> message)
     {
-        var uri = ExtractValueBetween(message, "Uri=");
-        var host = GetServerAddress(uri);
+        var uri = ExtractValueBetween(message, "Uri=").ToString();
+        Uri.TryCreate(uri, UriKind.Absolute, out Uri? parsed);
         var database = ExtractValueBetween(message, "DatabaseName=");
 
         // Query text may have embedded delimiters, however it is always the last field in the message
         // so we can just take everything after "text="
         var queryText = message.SliceAfter("text=");
 
-        return new ParsedRequestStart(uri, host, database, queryText);
+        return new ParsedRequestStart(uri, parsed?.Host, parsed?.Port, database, queryText);
     }
 
     public static ParsedActivityComplete ParseActivityComplete(ReadOnlySpan<char> message)
@@ -56,25 +56,19 @@ internal class TraceRecordParser
         return result;
     }
 
-    private static ReadOnlySpan<char> GetServerAddress(ReadOnlySpan<char> uri)
-    {
-        var result = uri.SliceAfter("://");
-        result = result.SliceBefore(['/']);
-
-        return result;
-    }
-
     internal readonly ref struct ParsedRequestStart
     {
-        public readonly ReadOnlySpan<char> Uri;
-        public readonly ReadOnlySpan<char> Host;
+        public readonly string Uri;
+        public readonly string? ServerAddress;
+        public readonly int? ServerPort;
         public readonly ReadOnlySpan<char> Database;
         public readonly ReadOnlySpan<char> QueryText;
 
-        public ParsedRequestStart(ReadOnlySpan<char> uri, ReadOnlySpan<char> host, ReadOnlySpan<char> database, ReadOnlySpan<char> queryText)
+        public ParsedRequestStart(string uri, string? serverAddress, int? serverPort, ReadOnlySpan<char> database, ReadOnlySpan<char> queryText)
         {
             this.Uri = uri;
-            this.Host = host;
+            this.ServerAddress = serverAddress;
+            this.ServerPort = serverPort;
             this.Database = database;
             this.QueryText = queryText;
         }

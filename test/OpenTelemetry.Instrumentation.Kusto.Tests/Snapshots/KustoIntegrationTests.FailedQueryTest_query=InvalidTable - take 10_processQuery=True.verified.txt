@@ -5,7 +5,7 @@
       Name: Kusto.Client,
       Status: Error,
       StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
-      Tags: [
+      TagObjects: [
         {
           db.system.name: azure.kusto
         },
@@ -16,10 +16,13 @@
           db.operation.name: KD.RestClient.ExecuteQuery
         },
         {
-          url.full: http://{Hostname}:{Port}/v1/rest/query
+          url.full: http://Scrubbed:Scrubbed/v1/rest/query
         },
         {
-          server.address: {Hostname}:{Port}
+          server.address: Scrubbed
+        },
+        {
+          server.port: Scrubbed
         },
         {
           db.namespace: NetDefaultDB

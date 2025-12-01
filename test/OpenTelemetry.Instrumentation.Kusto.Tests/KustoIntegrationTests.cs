@@ -69,7 +69,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                 activity.Source.Name,
                 activity.Status,
                 activity.StatusDescription,
-                activity.Tags,
+                activity.TagObjects,
                 activity.OperationName,
                 activity.IdFormat,
             });
@@ -91,8 +91,8 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                 Activities = activitySnapshots,
                 Metrics = metricSnapshots,
             })
-            .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
-            .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
+            .ScrubHostname(kcsb.Hostname)
+            .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
             .UseDirectory("Snapshots")
             .UseParameters(query, processQuery);
     }
@@ -137,8 +137,6 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             await Task.CompletedTask;
         });
 
-        Debugger.Break();
-
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
@@ -150,7 +148,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                 activity.Source.Name,
                 activity.Status,
                 activity.StatusDescription,
-                activity.Tags,
+                activity.TagObjects,
                 activity.OperationName,
                 activity.IdFormat,
             });
@@ -177,8 +175,8 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                     HasMessage = !string.IsNullOrEmpty(exception.Message),
                 },
             })
-            .ScrubLinesWithReplace(line => line.Replace(kcsb.Hostname, "{Hostname}"))
-            .ScrubLinesWithReplace(line => line.Replace(this.fixture.DatabaseContainer.GetMappedPublicPort().ToString(), "{Port}"))
+            .ScrubHostname(kcsb.Hostname)
+            .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
             .UseDirectory("Snapshots")
             .UseParameters(query, processQuery);
     }
