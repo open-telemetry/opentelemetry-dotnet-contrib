@@ -19,7 +19,10 @@ internal class TraceRecordParser
     {
         var uri = ExtractValueBetween(message, "Uri=");
         var host = GetServerAddress(uri);
-        var queryText = ExtractValueBetween(message, "text=");
+
+        // Query text may have embedded delimiters, however it is always the last field in the message
+        // so we can just take everything after "text="
+        var queryText = message.SliceAfter("text=");
 
         return new ParsedRequestStart(uri, host, queryText);
     }
@@ -38,14 +41,7 @@ internal class TraceRecordParser
 
     private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle)
     {
-        var startIndex = haystack.IndexOf(needle);
-        if (startIndex < 0)
-        {
-            return ReadOnlySpan<char>.Empty;
-        }
-
-        startIndex += needle.Length;
-        var remaining = haystack.Slice(startIndex);
+        var remaining = haystack.SliceAfter(needle);
 
         var endIndex = remaining.IndexOfAny(Delimiters);
         if (endIndex < 0)
@@ -61,19 +57,10 @@ internal class TraceRecordParser
 
     private static ReadOnlySpan<char> GetServerAddress(ReadOnlySpan<char> uri)
     {
-        var schemeEnd = uri.IndexOf("://".AsSpan());
-        if (schemeEnd < 0)
-        {
-            return ReadOnlySpan<char>.Empty;
-        }
+        var result = uri.SliceAfter("://");
+        result = result.SliceBefore(['/']);
 
-        var hostStart = schemeEnd + 3;
-        var remaining = uri.Slice(hostStart);
-
-        var pathStart = remaining.IndexOf('/');
-        var host = pathStart >= 0 ? remaining.Slice(0, pathStart) : remaining;
-
-        return host;
+        return result;
     }
 
     internal readonly ref struct ParsedRequestStart
