@@ -1,6 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
+using KustoUtils = Kusto.Cloud.Platform.Utils;
+
 namespace OpenTelemetry.Instrumentation.Kusto;
 
 /// <summary>
@@ -19,6 +22,11 @@ public class KustoInstrumentationOptions
     /// Default is <see langword="true"/>.
     /// </summary>
     public bool RecordQuerySummary { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets an action to enrich the Activity with additional information from the TraceRecord.
+    /// </summary>
+    public Action<Activity, KustoUtils.TraceRecord>? Enrich { get; set; }
 
     // TODO: Add flag for query parameter tracing
 }
