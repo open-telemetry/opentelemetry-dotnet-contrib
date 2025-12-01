@@ -19,12 +19,13 @@ internal class TraceRecordParser
     {
         var uri = ExtractValueBetween(message, "Uri=");
         var host = GetServerAddress(uri);
+        var database = ExtractValueBetween(message, "DatabaseName=");
 
         // Query text may have embedded delimiters, however it is always the last field in the message
         // so we can just take everything after "text="
         var queryText = message.SliceAfter("text=");
 
-        return new ParsedRequestStart(uri, host, queryText);
+        return new ParsedRequestStart(uri, host, database, queryText);
     }
 
     public static ParsedActivityComplete ParseActivityComplete(ReadOnlySpan<char> message)
@@ -67,12 +68,14 @@ internal class TraceRecordParser
     {
         public readonly ReadOnlySpan<char> Uri;
         public readonly ReadOnlySpan<char> Host;
+        public readonly ReadOnlySpan<char> Database;
         public readonly ReadOnlySpan<char> QueryText;
 
-        public ParsedRequestStart(ReadOnlySpan<char> uri, ReadOnlySpan<char> host, ReadOnlySpan<char> queryText)
+        public ParsedRequestStart(ReadOnlySpan<char> uri, ReadOnlySpan<char> host, ReadOnlySpan<char> database, ReadOnlySpan<char> queryText)
         {
             this.Uri = uri;
             this.Host = host;
+            this.Database = database;
             this.QueryText = queryText;
         }
     }

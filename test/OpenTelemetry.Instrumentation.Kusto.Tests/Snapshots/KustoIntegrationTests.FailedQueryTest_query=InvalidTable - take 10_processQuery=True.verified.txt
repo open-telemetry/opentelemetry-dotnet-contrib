@@ -22,6 +22,9 @@
           server.address: {Hostname}:{Port}
         },
         {
+          db.namespace: NetDefaultDB
+        },
+        {
           db.query.text: InvalidTable | take ?
         },
         {
