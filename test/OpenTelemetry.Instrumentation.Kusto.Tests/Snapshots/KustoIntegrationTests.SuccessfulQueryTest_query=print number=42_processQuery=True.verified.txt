@@ -21,6 +21,9 @@
           server.address: {Hostname}:{Port}
         },
         {
+          db.namespace: NetDefaultDB
+        },
+        {
           db.query.text: print number=?
         },
         {

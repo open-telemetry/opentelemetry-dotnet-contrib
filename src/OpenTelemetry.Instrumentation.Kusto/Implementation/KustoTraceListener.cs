@@ -74,13 +74,16 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
             if (!result.Uri.IsEmpty)
             {
                 activity.SetTag(SemanticConventions.AttributeUrlFull, result.Uri.ToString());
-                activity.SetTag(SemanticConventions.AttributeServerAddress, result.Host.ToString());
+            }
 
-                string? database = null; // TODO: Add parsing for database when available
-                if (!string.IsNullOrEmpty(database))
-                {
-                    activity.SetTag(SemanticConventions.AttributeDbNamespace, database);
-                }
+            if (!result.Host.IsEmpty)
+            {
+                activity.SetTag(SemanticConventions.AttributeServerAddress, result.Host.ToString());
+            }
+
+            if (!result.Database.IsEmpty)
+            {
+                activity.SetTag(SemanticConventions.AttributeDbNamespace, result.Database.ToString());
             }
 
             if (!result.QueryText.IsEmpty)
