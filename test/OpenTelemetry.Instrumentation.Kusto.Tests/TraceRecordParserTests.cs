@@ -11,10 +11,12 @@ public class TraceRecordParserTests
     [Fact]
     public void ParseRequestStart()
     {
-        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
+        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, DatabaseName=NetDefaultDB, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
         var result = TraceRecordParser.ParseRequestStart(message);
 
         Assert.Equal("http://127.0.0.1:49902/v1/rest/message", result.Uri.ToString());
+        Assert.Equal("127.0.0.1:49902", result.Host.ToString());
+        Assert.Equal("NetDefaultDB", result.Database.ToString());
         Assert.Equal("InvalidTable | take 10 | where Col1=7 | summarize by Date, Time", result.QueryText.ToString());
     }
 
