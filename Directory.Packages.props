@@ -91,15 +91,15 @@
 
   <!-- Non-production packages are kept up-to-date by dependency automation -->
   <ItemGroup Label="Non-production packages, such as for examples and tests">
-    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.14" />
-    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.6.3" />
-    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7.3" />
-    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.10" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.9.6" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.11.3" />
+    <PackageVersion Include="AWSSDK.Bedrock" Version="4.0.15" />
+    <PackageVersion Include="AWSSDK.BedrockAgent" Version="4.0.6.5" />
+    <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.0.7.5" />
+    <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.0.12" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.10.1" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.13.1" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.6" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
+    <PackageVersion Include="GitHubActionsTestLogger" Version="3.0.1" />
     <PackageVersion Include="Google.Api.Gax" Version="4.12.1" />
     <PackageVersion Include="Google.Protobuf" Version="3.33.1" />
     <PackageVersion Include="Grpc" Version="2.46.6" />
@@ -130,16 +130,16 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
     <PackageVersion Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.3" />
+    <PackageVersion Include="ServiceFabric.Mocks" Version="8.0.5" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.0.1" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <!-- These WCF dependencies are pinned until we drop support for net8.0 and net9.0 -->
     <PackageVersion Include="System.ServiceModel.Http" Version="[8.1.2,)" />
     <PackageVersion Include="System.ServiceModel.NetTcp" Version="[8.1.2,)" />
-    <PackageVersion Include="Testcontainers.MsSql" Version="4.8.1" />
-    <PackageVersion Include="Testcontainers.MySql" Version="4.8.1" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.8.1" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.MySql" Version="4.9.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.9.0" />
     <PackageVersion Include="Wiremock.Net" Version="1.16.0" />
     <!-- Microsoft.AspNetCore.Server.Kestrel.Core is transitive dependency for Wiremock.Net. It is here to fix https://github.com/advisories/GHSA-5rrx-jjjq-q2r5 -->
     <PackageVersion Include="Microsoft.AspNetCore.Server.Kestrel.Core" Version="2.3.6" />

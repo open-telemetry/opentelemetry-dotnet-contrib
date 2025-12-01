@@ -44,8 +44,8 @@ public static class {{my_class_name}}
     {
         {% for member in attribute.type.members %}
         {{ [member.brief or (member.id ~ '.')] | comment(indent=8) }}
-        {% if attribute is deprecated %}
-        [Obsolete("{{ attribute.deprecated.note | replace("\"", "") | comment(header="", footer="", prefix="", indent=0) }}")]
+        {% if member is deprecated %}
+        [Obsolete("{{ member.deprecated.note | replace("\"", "") | comment(header="", footer="", prefix="", indent=0) }}")]
         {% endif %}
         public const {{ attribute_resolved_type | map_text("csharp_type") }} {{ member.id | pascal_case }} = {{ member.value | print_member_value }};
         {% if not loop.last %}{{"\n"}}{% endif %}

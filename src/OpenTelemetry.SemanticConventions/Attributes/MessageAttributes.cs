@@ -47,13 +47,11 @@ public static class MessageAttributes
         /// <summary>
         /// sent.
         /// </summary>
-        [Obsolete("Replaced by <c>rpc.message.type</c>.")]
         public const string Sent = "SENT";
 
         /// <summary>
         /// received.
         /// </summary>
-        [Obsolete("Replaced by <c>rpc.message.type</c>.")]
         public const string Received = "RECEIVED";
     }
 }

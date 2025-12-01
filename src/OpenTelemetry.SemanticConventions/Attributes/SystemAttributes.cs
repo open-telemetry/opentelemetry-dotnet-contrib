@@ -104,43 +104,36 @@ public static class SystemAttributes
         /// <summary>
         /// user.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string User = "user";
 
         /// <summary>
         /// system.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string System = "system";
 
         /// <summary>
         /// nice.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Nice = "nice";
 
         /// <summary>
         /// idle.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Idle = "idle";
 
         /// <summary>
         /// iowait.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Iowait = "iowait";
 
         /// <summary>
         /// interrupt.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Interrupt = "interrupt";
 
         /// <summary>
         /// steal.
         /// </summary>
-        [Obsolete("Replaced by <c>cpu.mode</c>.")]
         public const string Steal = "steal";
     }
 
@@ -219,6 +212,7 @@ public static class SystemAttributes
         /// <summary>
         /// shared.
         /// </summary>
+        [Obsolete("Removed, report shared memory usage with <c>metric.system.memory.shared</c> metric.")]
         public const string Shared = "shared";
 
         /// <summary>
@@ -241,73 +235,61 @@ public static class SystemAttributes
         /// <summary>
         /// close.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Close = "close";
 
         /// <summary>
         /// close_wait.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string CloseWait = "close_wait";
 
         /// <summary>
         /// closing.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Closing = "closing";
 
         /// <summary>
         /// delete.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Delete = "delete";
 
         /// <summary>
         /// established.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Established = "established";
 
         /// <summary>
         /// fin_wait_1.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait1 = "fin_wait_1";
 
         /// <summary>
         /// fin_wait_2.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string FinWait2 = "fin_wait_2";
 
         /// <summary>
         /// last_ack.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string LastAck = "last_ack";
 
         /// <summary>
         /// listen.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string Listen = "listen";
 
         /// <summary>
         /// syn_recv.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynRecv = "syn_recv";
 
         /// <summary>
         /// syn_sent.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string SynSent = "syn_sent";
 
         /// <summary>
         /// time_wait.
         /// </summary>
-        [Obsolete("Replaced by <c>network.connection.state</c>.")]
         public const string TimeWait = "time_wait";
     }
 
@@ -368,13 +350,11 @@ public static class SystemAttributes
         /// <summary>
         /// major.
         /// </summary>
-        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Major = "major";
 
         /// <summary>
         /// minor.
         /// </summary>
-        [Obsolete("Replaced by <c>system.paging.fault.type</c>.")]
         public const string Minor = "minor";
     }
 
@@ -387,25 +367,21 @@ public static class SystemAttributes
         /// <summary>
         /// running.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 
@@ -418,25 +394,21 @@ public static class SystemAttributes
         /// <summary>
         /// running.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Running = "running";
 
         /// <summary>
         /// sleeping.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Sleeping = "sleeping";
 
         /// <summary>
         /// stopped.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Stopped = "stopped";
 
         /// <summary>
         /// defunct.
         /// </summary>
-        [Obsolete("Replaced by <c>process.state</c>.")]
         public const string Defunct = "defunct";
     }
 }

@@ -415,19 +415,16 @@ public static class GenAiAttributes
         /// <summary>
         /// Text response format.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string Text = "text";
 
         /// <summary>
         /// JSON object response format.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string JsonObject = "json_object";
 
         /// <summary>
         /// JSON schema response format.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.output.type</c>.")]
         public const string JsonSchema = "json_schema";
     }
 
@@ -440,13 +437,11 @@ public static class GenAiAttributes
         /// <summary>
         /// The system will utilize scale tier credits until they are exhausted.
         /// </summary>
-        [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
         public const string Auto = "auto";
 
         /// <summary>
         /// The system will utilize the default scale tier.
         /// </summary>
-        [Obsolete("Replaced by <c>openai.request.service_tier</c>.")]
         public const string Default = "default";
     }
 
@@ -607,115 +602,100 @@ public static class GenAiAttributes
         /// <summary>
         /// OpenAI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Openai = "openai";
 
         /// <summary>
         /// Any Google generative AI endpoint.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string GcpGenAi = "gcp.gen_ai";
 
         /// <summary>
         /// Vertex AI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string GcpVertexAi = "gcp.vertex_ai";
 
         /// <summary>
         /// Gemini.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string GcpGemini = "gcp.gemini";
 
         /// <summary>
         /// Vertex AI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        [Obsolete("Replaced by <c>gcp.vertex_ai</c>.")]
         public const string VertexAi = "vertex_ai";
 
         /// <summary>
         /// Gemini.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        [Obsolete("Replaced by <c>gcp.gemini</c>.")]
         public const string Gemini = "gemini";
 
         /// <summary>
         /// Anthropic.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Anthropic = "anthropic";
 
         /// <summary>
         /// Cohere.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Cohere = "cohere";
 
         /// <summary>
         /// Azure AI Inference.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        [Obsolete("Replaced by <c>azure.ai.inference</c>.")]
         public const string AzAiInference = "az.ai.inference";
 
         /// <summary>
         /// Azure OpenAI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
+        [Obsolete("Replaced by <c>azure.ai.openai</c>.")]
         public const string AzAiOpenai = "az.ai.openai";
 
         /// <summary>
         /// Azure AI Inference.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AzureAiInference = "azure.ai.inference";
 
         /// <summary>
         /// Azure OpenAI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AzureAiOpenai = "azure.ai.openai";
 
         /// <summary>
         /// IBM Watsonx AI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string IbmWatsonxAi = "ibm.watsonx.ai";
 
         /// <summary>
         /// AWS Bedrock.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string AwsBedrock = "aws.bedrock";
 
         /// <summary>
         /// Perplexity.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Perplexity = "perplexity";
 
         /// <summary>
         /// xAI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Xai = "xai";
 
         /// <summary>
         /// DeepSeek.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Deepseek = "deepseek";
 
         /// <summary>
         /// Groq.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string Groq = "groq";
 
         /// <summary>
         /// Mistral AI.
         /// </summary>
-        [Obsolete("Replaced by <c>gen_ai.provider.name</c>.")]
         public const string MistralAi = "mistral_ai";
     }
 
@@ -732,6 +712,7 @@ public static class GenAiAttributes
         /// <summary>
         /// Output tokens (completion, response, etc.).
         /// </summary>
+        [Obsolete("Replaced by <c>output</c>.")]
         public const string Completion = "output";
 
         /// <summary>

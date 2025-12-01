@@ -319,11 +319,13 @@ public static class MessagingAttributes
         /// <summary>
         /// Deprecated. Use <c>process</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>process</c>.")]
         public const string Deliver = "deliver";
 
         /// <summary>
         /// Deprecated. Use <c>send</c> instead.
         /// </summary>
+        [Obsolete("Replaced by <c>send</c>.")]
         public const string Publish = "publish";
     }
 

@@ -113,19 +113,16 @@ public static class NetAttributes
         /// <summary>
         /// IPv4 address.
         /// </summary>
-        [Obsolete("Split to <c>network.transport</c> and <c>network.type</c>.")]
         public const string Inet = "inet";
 
         /// <summary>
         /// IPv6 address.
         /// </summary>
-        [Obsolete("Split to <c>network.transport</c> and <c>network.type</c>.")]
         public const string Inet6 = "inet6";
 
         /// <summary>
         /// Unix domain socket path.
         /// </summary>
-        [Obsolete("Split to <c>network.transport</c> and <c>network.type</c>.")]
         public const string Unix = "unix";
     }
 
@@ -138,31 +135,26 @@ public static class NetAttributes
         /// <summary>
         /// ip_tcp.
         /// </summary>
-        [Obsolete("Replaced by <c>network.transport</c>.")]
         public const string IpTcp = "ip_tcp";
 
         /// <summary>
         /// ip_udp.
         /// </summary>
-        [Obsolete("Replaced by <c>network.transport</c>.")]
         public const string IpUdp = "ip_udp";
 
         /// <summary>
         /// Named or anonymous pipe.
         /// </summary>
-        [Obsolete("Replaced by <c>network.transport</c>.")]
         public const string Pipe = "pipe";
 
         /// <summary>
         /// In-process communication.
         /// </summary>
-        [Obsolete("Replaced by <c>network.transport</c>.")]
         public const string Inproc = "inproc";
 
         /// <summary>
         /// Something else (non IP-based).
         /// </summary>
-        [Obsolete("Replaced by <c>network.transport</c>.")]
         public const string Other = "other";
     }
 }
