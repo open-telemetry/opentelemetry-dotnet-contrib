@@ -14,8 +14,8 @@ public class TraceRecordParserTests
         const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, DatabaseName=NetDefaultDB, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
         var result = TraceRecordParser.ParseRequestStart(message);
 
-        Assert.Equal("http://127.0.0.1:49902/v1/rest/message", result.Uri.ToString());
-        Assert.Equal("127.0.0.1", result.ServerAddress.ToString());
+        Assert.Equal("http://127.0.0.1:49902/v1/rest/message", result.Uri);
+        Assert.Equal("127.0.0.1", result.ServerAddress);
         Assert.Equal("49902", result.ServerPort.ToString());
         Assert.Equal("NetDefaultDB", result.Database.ToString());
         Assert.Equal("InvalidTable | take 10 | where Col1=7 | summarize by Date, Time", result.QueryText.ToString());
@@ -27,30 +27,22 @@ public class TraceRecordParserTests
         const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://";
         var result = TraceRecordParser.ParseRequestStart(message);
 
-        Assert.Equal("http://", result.Uri.ToString());
-        Assert.Equal(string.Empty, result.ServerAddress.ToString());
+        Assert.Equal("http://", result.Uri);
+        Assert.Null(result.ServerAddress);
         Assert.Equal(string.Empty, result.ServerPort.ToString());
         Assert.Equal(string.Empty, result.Database.ToString());
         Assert.Equal(string.Empty, result.QueryText.ToString());
     }
 
     [Theory]
-    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, text=print 1", "localhost", null)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, text=print 1", "localhost", 80)]
     [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]:8080/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", 8080)]
-    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", null)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", 443)]
     public void ParseRequestStartServerAddressAndPort(string message, string expectedAddress, int? expectedPort)
     {
         var result = TraceRecordParser.ParseRequestStart(message);
-        Assert.Equal(expectedAddress, result.ServerAddress.ToString());
-
-        if (expectedPort.HasValue)
-        {
-            Assert.Equal(expectedPort.Value, result.ServerPort);
-        }
-        else
-        {
-            Assert.Null(result.ServerPort);
-        }
+        Assert.Equal(expectedAddress, result.ServerAddress);
+        Assert.Equal(expectedPort, result.ServerPort);
     }
 
     [Fact]
