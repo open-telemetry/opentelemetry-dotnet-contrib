@@ -22,7 +22,7 @@ public static class TracerProviderBuilderExtensions
         AddAWSLambdaConfigurations(builder, configure: null);
 
     /// <summary>
-    /// Add AWS Lambda configurations. Do not call this method while also calling <see cref="AWSLambdaResourceBuilderExtensions.AddAWSLambdaDetector" />.
+    /// Add AWS Lambda configurations. Do not call this method if also calling <see cref="AWSLambdaResourceBuilderExtensions.AddAWSLambdaDetector" /> as it already adds the detector.
     /// </summary>
     /// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
     /// <param name="configure">AWS lambda instrumentation options.</param>
