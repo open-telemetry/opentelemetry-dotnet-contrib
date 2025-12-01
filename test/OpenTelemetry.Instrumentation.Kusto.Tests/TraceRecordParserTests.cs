@@ -15,7 +15,8 @@ public class TraceRecordParserTests
         var result = TraceRecordParser.ParseRequestStart(message);
 
         Assert.Equal("http://127.0.0.1:49902/v1/rest/message", result.Uri.ToString());
-        Assert.Equal("127.0.0.1:49902", result.Host.ToString());
+        Assert.Equal("127.0.0.1", result.ServerAddress.ToString());
+        Assert.Equal("49902", result.ServerPort.ToString());
         Assert.Equal("NetDefaultDB", result.Database.ToString());
         Assert.Equal("InvalidTable | take 10 | where Col1=7 | summarize by Date, Time", result.QueryText.ToString());
     }
@@ -27,9 +28,29 @@ public class TraceRecordParserTests
         var result = TraceRecordParser.ParseRequestStart(message);
 
         Assert.Equal("http://", result.Uri.ToString());
-        Assert.Equal(string.Empty, result.Host.ToString());
+        Assert.Equal(string.Empty, result.ServerAddress.ToString());
+        Assert.Equal(string.Empty, result.ServerPort.ToString());
         Assert.Equal(string.Empty, result.Database.ToString());
         Assert.Equal(string.Empty, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, text=print 1", "localhost", null)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]:8080/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", 8080)]
+    [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "[2001:db8::1]", null)]
+    public void ParseRequestStartServerAddressAndPort(string message, string expectedAddress, int? expectedPort)
+    {
+        var result = TraceRecordParser.ParseRequestStart(message);
+        Assert.Equal(expectedAddress, result.ServerAddress.ToString());
+
+        if (expectedPort.HasValue)
+        {
+            Assert.Equal(expectedPort.Value, result.ServerPort);
+        }
+        else
+        {
+            Assert.Null(result.ServerPort);
+        }
     }
 
     [Fact]

@@ -76,9 +76,14 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
                 activity.SetTag(SemanticConventions.AttributeUrlFull, result.Uri.ToString());
             }
 
-            if (!result.Host.IsEmpty)
+            if (!result.ServerAddress.IsEmpty)
             {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, result.Host.ToString());
+                activity.SetTag(SemanticConventions.AttributeServerAddress, result.ServerAddress.ToString());
+            }
+
+            if (result.ServerPort is not null)
+            {
+                activity.SetTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
             }
 
             if (!result.Database.IsEmpty)
