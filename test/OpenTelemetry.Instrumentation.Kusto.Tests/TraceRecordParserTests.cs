@@ -9,13 +9,27 @@ namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 public class TraceRecordParserTests
 {
     [Fact]
-    public void ParseRequestStart()
+    public void ParseRequestStartSuccess()
     {
-        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
+        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, DatabaseName=NetDefaultDB, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
         var result = TraceRecordParser.ParseRequestStart(message);
 
         Assert.Equal("http://127.0.0.1:49902/v1/rest/message", result.Uri.ToString());
+        Assert.Equal("127.0.0.1:49902", result.Host.ToString());
+        Assert.Equal("NetDefaultDB", result.Database.ToString());
         Assert.Equal("InvalidTable | take 10 | where Col1=7 | summarize by Date, Time", result.QueryText.ToString());
+    }
+
+    [Fact]
+    public void ParseRequestStartFailure()
+    {
+        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://";
+        var result = TraceRecordParser.ParseRequestStart(message);
+
+        Assert.Equal("http://", result.Uri.ToString());
+        Assert.Equal(string.Empty, result.Host.ToString());
+        Assert.Equal(string.Empty, result.Database.ToString());
+        Assert.Equal(string.Empty, result.QueryText.ToString());
     }
 
     [Fact]
@@ -25,6 +39,15 @@ public class TraceRecordParserTests
         var result = TraceRecordParser.ParseActivityComplete(message);
 
         Assert.Equal("Success", result.HowEnded.ToString());
+    }
+
+    [Fact]
+    public void ParseActivityCompleteFailure()
+    {
+        const string message = "MonitoredActivityCompletedSuccessfully: ActivityType=KD.RestClient.ExecuteQuery, Timestamp=2025-12-01T02:30:30.0211167Z, ParentActivityId=52707aa6-de7f-42dd-adb9-bc3e6d976fa6, Duration=4316.802 [ms]";
+        var result = TraceRecordParser.ParseActivityComplete(message);
+
+        Assert.Equal(string.Empty, result.HowEnded.ToString());
     }
 
     [Fact]
@@ -123,5 +146,14 @@ public class TraceRecordParserTests
         var result = TraceRecordParser.ParseException(message);
 
         Assert.Equal("'take' operator: Failed to resolve table or column expression named 'InvalidTable'", result.ErrorMessage.ToString());
+    }
+
+    [Fact]
+    public void ParseExceptionFailure()
+    {
+        const string message = "Exception object created: Kusto.Data.Exceptions.SemanticException Timestamp=2025-12-01T02:39:36.3878585Z";
+        var result = TraceRecordParser.ParseException(message);
+
+        Assert.Equal(string.Empty, result.ErrorMessage.ToString());
     }
 }

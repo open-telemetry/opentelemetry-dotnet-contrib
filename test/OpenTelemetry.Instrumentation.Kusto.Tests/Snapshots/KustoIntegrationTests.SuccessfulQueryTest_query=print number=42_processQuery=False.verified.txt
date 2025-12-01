@@ -19,6 +19,9 @@
         },
         {
           server.address: {Hostname}:{Port}
+        },
+        {
+          db.namespace: NetDefaultDB
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
