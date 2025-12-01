@@ -71,14 +71,19 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
 
-            if (!result.Uri.IsEmpty)
+            if (!string.IsNullOrEmpty(result.Uri))
             {
-                activity.SetTag(SemanticConventions.AttributeUrlFull, result.Uri.ToString());
+                activity.SetTag(SemanticConventions.AttributeUrlFull, result.Uri);
             }
 
-            if (!result.Host.IsEmpty)
+            if (!string.IsNullOrEmpty(result.ServerAddress))
             {
-                activity.SetTag(SemanticConventions.AttributeServerAddress, result.Host.ToString());
+                activity.SetTag(SemanticConventions.AttributeServerAddress, result.ServerAddress);
+            }
+
+            if (result.ServerPort is not null)
+            {
+                activity.SetTag(SemanticConventions.AttributeServerPort, result.ServerPort.Value);
             }
 
             if (!result.Database.IsEmpty)
