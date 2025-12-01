@@ -1,5 +1,7 @@
 #nullable enable
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions
+OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.Enrich.get -> System.Action<System.Diagnostics.Activity!, Kusto.Cloud.Platform.Utils.TraceRecord!>?
+OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.Enrich.set -> void
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.KustoInstrumentationOptions() -> void
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQuerySummary.get -> bool
 OpenTelemetry.Instrumentation.Kusto.KustoInstrumentationOptions.RecordQuerySummary.set -> void
