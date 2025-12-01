@@ -4,7 +4,7 @@
       DisplayName: print,
       Name: Kusto.Client,
       Status: Ok,
-      Tags: [
+      TagObjects: [
         {
           db.system.name: azure.kusto
         },
@@ -15,10 +15,13 @@
           db.operation.name: KD.RestClient.ExecuteQuery
         },
         {
-          url.full: http://{Hostname}:{Port}/v1/rest/query
+          url.full: http://Scrubbed:Scrubbed/v1/rest/query
         },
         {
-          server.address: {Hostname}:{Port}
+          server.address: Scrubbed
+        },
+        {
+          server.port: Scrubbed
         },
         {
           db.namespace: NetDefaultDB
