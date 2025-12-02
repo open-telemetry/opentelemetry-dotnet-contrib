@@ -75,6 +75,17 @@ public class Program
 }
 ```
 
+##### List of metrics produced
+
+The instrumentation is implemented based on [metrics semantic
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md#database-operation).
+Currently, the instrumentation supports the following metrics.
+
+| Name                           | Instrument Type | Unit          | Description                             |
+|--------------------------------|-----------------|---------------|-----------------------------------------|
+| `db.client.operation.duration` | Histogram       | `s`           | Duration of database client operations. |
+| `db.client.operation.count`    | Counter         | `{operation}` | Number of database client operations.   |
+
 ## Advanced configuration
 
 This instrumentation can be configured to change the default behavior by using
