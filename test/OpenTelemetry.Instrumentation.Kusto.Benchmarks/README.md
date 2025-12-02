@@ -18,7 +18,29 @@ option number from the list of options shown on the Console window.
 
 ## Results
 
-// TODO: Includes private fixes in Kusto-Query-Langugage
+### Full instrumentation
+
+```
+
+BenchmarkDotNet v0.15.6, Windows 11 (10.0.26100.7092/24H2/2024Update/HudsonValley)
+Intel Core i9-10940X CPU 3.30GHz (Max: 3.31GHz), 1 CPU, 28 logical and 14 physical cores
+.NET SDK 10.0.100
+  [Host]     : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v4
+  DefaultJob : .NET 10.0.0 (10.0.0, 10.0.25.52411), X64 RyuJIT x86-64-v4
+
+
+```
+| Method             | Mean         | Error      | StdDev     | Gen0   | Gen1   | Allocated |
+|------------------- |-------------:|-----------:|-----------:|-------:|-------:|----------:|
+| SuccessfulQuery    | 12,866.04 ns | 252.865 ns | 378.477 ns | 1.1597 | 0.0153 |   11792 B |
+| FailedQuery        | 13,736.88 ns | 271.636 ns | 453.842 ns | 1.1902 | 0.0153 |   11984 B |
+| TraceListenerOnly  | 13,281.18 ns | 261.834 ns | 311.695 ns | 1.1444 | 0.0153 |   11592 B |
+| MetricListenerOnly |     88.40 ns |   1.783 ns |   2.318 ns | 0.0095 |      - |      96 B |
+
+### Summarization and sanitization processing
+
+Summarization and sanitization are the most expensive parts of instrumentation, so there are benchmarks to measure their
+specific cost.
 
 ```
 
