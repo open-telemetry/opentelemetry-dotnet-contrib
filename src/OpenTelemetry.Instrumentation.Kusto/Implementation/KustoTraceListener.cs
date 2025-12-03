@@ -49,8 +49,21 @@ internal sealed class KustoTraceListener : KustoUtils.ITraceListener
     private void HandleException(KustoUtils.TraceRecord record)
     {
         var activity = this.GetActivity(record);
+
+        if (activity is null)
+        {
+            return;
+        }
+
         var result = TraceRecordParser.ParseException(record.Message.AsSpan());
-        activity?.SetStatus(ActivityStatusCode.Error, result.ErrorMessage.ToString());
+
+        if (!result.ErrorType.IsEmpty)
+        {
+            activity.AddTag(SemanticConventions.AttributeErrorType, result.ErrorType.ToString());
+        }
+
+        var description = result.ErrorMessage.IsEmpty ? null : result.ErrorMessage.ToString();
+        activity.SetStatus(ActivityStatusCode.Error, description);
     }
 
     private void HandleHttpRequestStart(KustoUtils.TraceRecord record)

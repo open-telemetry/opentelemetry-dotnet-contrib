@@ -159,14 +159,16 @@ public class TraceRecordParserTests
         var result = TraceRecordParser.ParseException(message);
 
         Assert.Equal("'take' operator: Failed to resolve table or column expression named 'InvalidTable'", result.ErrorMessage.ToString());
+        Assert.Equal("Kusto.Data.Exceptions.SemanticException", result.ErrorType.ToString());
     }
 
     [Fact]
     public void ParseExceptionFailure()
     {
-        const string message = "Exception object created: Kusto.Data.Exceptions.SemanticException Timestamp=2025-12-01T02:39:36.3878585Z";
+        const string message = "ProcessName=testhost Timestamp=2025-12-01T02:39:36.3878585Z";
         var result = TraceRecordParser.ParseException(message);
 
         Assert.Equal(string.Empty, result.ErrorMessage.ToString());
+        Assert.Equal(string.Empty, result.ErrorType.ToString());
     }
 }

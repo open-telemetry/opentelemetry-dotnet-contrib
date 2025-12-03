@@ -37,7 +37,8 @@ internal class TraceRecordParser
     public static ParsedException ParseException(ReadOnlySpan<char> message)
     {
         var errorMessage = ExtractValueBetween(message, "ErrorMessage=");
-        return new ParsedException(errorMessage);
+        var errorType = ExtractValueBetween(message, "Exception object created: ");
+        return new ParsedException(errorMessage, errorType);
     }
 
     private static ReadOnlySpan<char> ExtractValueBetween(ReadOnlySpan<char> haystack, ReadOnlySpan<char> needle)
@@ -87,10 +88,12 @@ internal class TraceRecordParser
     internal readonly ref struct ParsedException
     {
         public readonly ReadOnlySpan<char> ErrorMessage;
+        public readonly ReadOnlySpan<char> ErrorType;
 
-        public ParsedException(ReadOnlySpan<char> errorMessage)
+        public ParsedException(ReadOnlySpan<char> errorMessage, ReadOnlySpan<char> errorType)
         {
             this.ErrorMessage = errorMessage;
+            this.ErrorType = errorType;
         }
     }
 }
