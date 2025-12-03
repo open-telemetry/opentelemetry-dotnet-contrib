@@ -171,7 +171,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
                 Metrics = metricSnapshots,
                 Exception = new
                 {
-                    Type = exception.GetType().Name,
+                    Type = exception.GetType().FullName,
                     HasMessage = !string.IsNullOrEmpty(exception.Message),
                 },
             })
