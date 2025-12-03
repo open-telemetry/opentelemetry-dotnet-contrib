@@ -32,6 +32,9 @@
         },
         {
           db.query.summary: InvalidTable | take
+        },
+        {
+          error.type: Kusto.Data.Exceptions.SemanticException
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
@@ -53,7 +56,7 @@
     }
   ],
   Exception: {
-    Type: SemanticException,
+    Type: Kusto.Data.Exceptions.SemanticException,
     HasMessage: true
   }
 }
