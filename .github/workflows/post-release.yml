@@ -34,7 +34,7 @@ jobs:
         app-id: ${{ vars.OTELBOT_DOTNET_CONTRIB_APP_ID }}
         private-key: ${{ secrets.OTELBOT_DOTNET_CONTRIB_PRIVATE_KEY }}
 
-    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       with:
         # Note: By default GitHub only fetches 1 commit. We need all the tags
         # for this work.
