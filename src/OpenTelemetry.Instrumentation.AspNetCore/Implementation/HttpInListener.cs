@@ -244,12 +244,12 @@ internal class HttpInListener : ListenerHandler
             var response = context.Response;
 
 #if !NETSTANDARD
-            var routePattern = (context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint ??
-                    context.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText;
-            if (!string.IsNullOrEmpty(routePattern))
+            var endpoint = context.Features.Get<IExceptionHandlerPathFeature>()?.Endpoint as RouteEndpoint
+                ?? context.GetEndpoint() as RouteEndpoint;
+
+            if (endpoint != null)
             {
-                TelemetryHelper.RequestDataHelper.SetActivityDisplayName(activity, context.Request.Method, routePattern);
-                activity.SetTag(SemanticConventions.AttributeHttpRoute, routePattern);
+                activity.SetRouteAttributeTag(endpoint, context.Request);
             }
 #endif
 
