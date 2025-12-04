@@ -155,6 +155,12 @@ public class GenevaExporterOptions
                         throw new ArgumentException($"Type `{entry.Value.GetType()}` (key = `{entry.Key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
                 }
 
+                if (entry.Key == Schema.V40.PartA.Ver)
+                {
+                    // This key is now set by the exporters, and is only accepted for legacy reasons.
+                    continue;
+                }
+
                 copy[entry.Key] = val; // shallow copy
             }
 
