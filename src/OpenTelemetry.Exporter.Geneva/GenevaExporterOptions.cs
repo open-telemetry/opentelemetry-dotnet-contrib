@@ -31,14 +31,14 @@ public class GenevaExporterOptions
     public IEnumerable<string>? CustomFields { get; set; }
 
     /// <summary>
-    /// Gets or sets ResourceFieldNames.
+    /// Gets ResourceFieldNames.
     ///
     /// ResourceFieldNames specifies which resource attribute fields should be sent to Geneva.
     ///
     /// Any resource attributes not in ResourceFieldNames are ignored.
     /// If ResourceFieldNames is not provided, no resource attributes will be sent to Geneva.
     /// </summary>
-    public IEnumerable<string>? ResourceFieldNames { get; set; }
+    public IEnumerable<string>? ResourceFieldNames { get; init; }
 
     /// <summary>
     /// Gets or sets the exception stack trace export mode.
