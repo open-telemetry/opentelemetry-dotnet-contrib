@@ -87,6 +87,8 @@ $content
       --draft
   }
 
+  # Move the release out of draft once it has been created and all artifacts uploaded
+  # as immutable releases cannot have assets added to them after they are published.
   gh release edit $tag --draft=false
 }
 
