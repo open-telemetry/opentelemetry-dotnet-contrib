@@ -11,7 +11,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaExporterOptions
 {
-    private IReadOnlyDictionary<string, object> fields = new Dictionary<string, object>();
+    private IReadOnlyDictionary<string, object> prepopulatedFields = new Dictionary<string, object>();
 
     private IReadOnlyDictionary<string, string>? tableNameMappings;
 
@@ -31,14 +31,14 @@ public class GenevaExporterOptions
     public IEnumerable<string>? CustomFields { get; set; }
 
     /// <summary>
-    /// Gets or sets WithResourceAttributes.
+    /// Gets or sets ResourceFieldNames.
     ///
-    /// WithResourceAttributes specifies which resource attribute fields should be sent to Geneva.
+    /// ResourceFieldNames specifies which resource attribute fields should be sent to Geneva.
     ///
-    /// Any resource attributes not in WithResourceAttributes are ignored.
-    /// If WithResourceAttributes is not provided, no resource attributes will be sent to Geneva.
+    /// Any resource attributes not in ResourceFieldNames are ignored.
+    /// If ResourceFieldNames is not provided, no resource attributes will be sent to Geneva.
     /// </summary>
-    public IEnumerable<string>? WithResourceAttributes { get; set; }
+    public IEnumerable<string>? ResourceFieldNames { get; set; }
 
     /// <summary>
     /// Gets or sets the exception stack trace export mode.
@@ -110,7 +110,7 @@ public class GenevaExporterOptions
     /// </summary>
     public IReadOnlyDictionary<string, object> PrepopulatedFields
     {
-        get => this.fields;
+        get => this.prepopulatedFields;
         set
         {
             Guard.ThrowIfNull(value);
@@ -158,7 +158,7 @@ public class GenevaExporterOptions
                 copy[entry.Key] = val; // shallow copy
             }
 
-            this.fields = copy;
+            this.prepopulatedFields = copy;
         }
     }
 }

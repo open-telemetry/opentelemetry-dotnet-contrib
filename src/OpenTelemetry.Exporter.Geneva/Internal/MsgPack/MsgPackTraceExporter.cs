@@ -73,7 +73,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
     // this is a reference to the eponymous options field.
     // It would make more sense as a HashSet/FrozenSet, but it's only used once,
     // so constructing a whole new data structure for it is overkill.
-    private readonly IEnumerable<string>? withResourceAttributes;
+    private readonly IEnumerable<string>? resourceFieldNames;
     private readonly bool shouldIncludeTraceState;
     private readonly string partAName;
     private readonly Func<Resource> resourceProvider;
@@ -131,6 +131,17 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
+        if (options.ResourceFieldNames != null)
+        {
+            foreach (var wantedResourceAttribute in options.ResourceFieldNames)
+            {
+                if (PART_A_MAPPING_DICTIONARY.Values.Contains(wantedResourceAttribute))
+                {
+                    throw new ArgumentException($"'{wantedResourceAttribute}' cannot be specified through a resource attribute. Remove it from ResourceFieldNames");
+                }
+            }
+        }
+
         // TODO: Validate custom fields (reserved name? etc).
         if (options.CustomFields != null)
         {
@@ -180,7 +191,7 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             this.prepopulatedFields.Add(entry.Key, entry.Value);
         }
 
-        this.withResourceAttributes = options.WithResourceAttributes;
+        this.resourceFieldNames = options.ResourceFieldNames;
         this.shouldIncludeTraceState = options.IncludeTraceStateForSpan;
     }
 
@@ -322,9 +333,9 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
 
         var resourceAttributes = this.resourceProvider().Attributes;
 
-        if (this.withResourceAttributes != null)
+        if (this.resourceFieldNames != null)
         {
-            // if withResourceAttributes is set, it overrides the existing prepopulated fields setting.
+            // if ResourceFieldNames is set, it overrides the existing prepopulated fields setting.
             this.prepopulatedFields = [];
         }
 
@@ -334,13 +345,34 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             var value = resourceAttribute.Value;
 
             var isWantedAttribute = false;
-            if (this.withResourceAttributes != null)
+            if (this.resourceFieldNames != null)
             {
                 // this might seem inefficient, but it's only run once and I don't expect there to be many resource attributes
-                foreach (var wantedAttribute in this.withResourceAttributes!)
+                foreach (var wantedAttribute in this.resourceFieldNames!)
                 {
                     if (wantedAttribute == key)
                     {
+                        switch (value)
+                        {
+                            case bool:
+                            case byte:
+                            case sbyte:
+                            case short:
+                            case ushort:
+                            case int:
+                            case uint:
+                            case long:
+                            case ulong:
+                            case float:
+                            case double:
+                            case string:
+                                break;
+                            case null:
+                                throw new ArgumentNullException(key, "Resource attribute must not have a null value.");
+                            default:
+                                throw new ArgumentException($"Type `{value.GetType()}` (resource attribute key = `{key}`) is not allowed. Only bool, byte, sbyte, short, ushort, int, uint, long, ulong, float, double, and string are supported.");
+                        }
+
                         isWantedAttribute = true;
                         break;
                     }

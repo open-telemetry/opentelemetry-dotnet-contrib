@@ -257,6 +257,7 @@ internal sealed class MsgPackLogExporter : MsgPackExporter, IDisposable
         }
 
         cursor = AddPartAField(buffer, cursor, Schema.V40.PartA.Ver, "4.0");
+        cntFields += 1;
 
         cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "env_time");
         cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, timestamp); // LogRecord.Timestamp should already be converted to UTC format in the SDK
