@@ -119,7 +119,7 @@ A list of fields which should be stored as individual table columns.
 * If non-null, only those fields named in the list will be stored as individual
   columns.
 
-#### `WithResourceAttributes` (optional)
+#### `ResourceFieldNames` (optional)
 
 A list of resource attribute keys which should be sent to Geneva.
 

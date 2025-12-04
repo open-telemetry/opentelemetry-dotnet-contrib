@@ -207,7 +207,7 @@ public class GenevaTraceExporterTests : IDisposable
                     ["cloud.roleVer"] = "9.0.15289.2",
                     ["resourceAndPrepopulated"] = "comes from prepopulated",
                 },
-                WithResourceAttributes = ["resourceAttribute", "resourceAndPrepopulated"],
+                ResourceFieldNames = ["resourceAttribute", "resourceAndPrepopulated"],
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -445,7 +445,7 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     /// <summary>
-    /// The purpose of this test is to make sure that when WithResourceAttributes is not set,
+    /// The purpose of this test is to make sure that when ResourceFieldNames is not set,
     /// that no resource attributes make it to Geneva.
     /// </summary>
     [Fact]
@@ -462,7 +462,7 @@ public class GenevaTraceExporterTests : IDisposable
                     ["unaffected prepopulated"] = "should be present",
                 },
 
-                // WithResourceAttributes not set
+                // ResourceFieldNames not set
             };
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -532,11 +532,11 @@ public class GenevaTraceExporterTests : IDisposable
     }
 
     /// <summary>
-    /// The purpose of this test is to make sure that when WithResourceAttributes is set,
+    /// The purpose of this test is to make sure that when ResourceFieldNames is set,
     /// that only resource attributes specified make it to Geneva.
     /// </summary>
     [Fact]
-    public void GenevaTraceExporter_WithResourceAttributes()
+    public void GenevaTraceExporter_ResourceFieldNames()
     {
         var path = string.Empty;
         Socket server = null;
@@ -548,7 +548,7 @@ public class GenevaTraceExporterTests : IDisposable
                 {
                     ["overridden prepopulated"] = "should not be present",
                 },
-                WithResourceAttributes = new HashSet<string>
+                ResourceFieldNames = new HashSet<string>
                 {
                     "wanted",
                 },
@@ -1066,7 +1066,7 @@ public class GenevaTraceExporterTests : IDisposable
         var verKey = MsgPackExporter.V40_PART_A_MAPPING[Schema.V40.PartA.Ver];
         this.AssertMappingEntry(mapping, verKey, partAVer);
 
-        if (exporterOptions.WithResourceAttributes == null)
+        if (exporterOptions.ResourceFieldNames == null)
         {
             foreach (var item in exporterOptions.PrepopulatedFields)
             {
@@ -1081,7 +1081,7 @@ public class GenevaTraceExporterTests : IDisposable
         }
         else
         {
-            foreach (var item in exporterOptions.WithResourceAttributes)
+            foreach (var item in exporterOptions.ResourceFieldNames)
             {
                 if (resourceAttributes.TryGetValue(item, out var val))
                 {
