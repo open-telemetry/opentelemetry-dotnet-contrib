@@ -6,42 +6,41 @@ using Xunit;
 
 namespace OpenTelemetry.Resources.Azure.Tests;
 
-public class AzureResourceDetectorTests : IDisposable
+public class AzureResourceDetectorTests
 {
     [Fact]
     public void AppServiceResourceDetectorReturnsResourceWithAttributes()
     {
-        try
-        {
-            foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
-            {
-                if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
-                {
-                    continue;
-                }
-
-                Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
-            }
-
-            // Special case for service.name and resource uri attribute
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceSiteNameEnvVar, "sitename");
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceResourceGroupEnvVar, "testResourceGroup");
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AppServiceOwnerNameEnvVar, "testtestSubscriptionId+testResourceGroup-websiteOwnerName");
-        }
-        catch
-        {
-        }
-
-        var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
-        Assert.NotNull(resource);
-
-        var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+        var environment = new Dictionary<string, string?>();
 
         foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
         {
-            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+            if (kvp.Value == ResourceAttributeConstants.AppServiceSiteNameEnvVar)
+            {
+                continue;
+            }
+
+            environment[kvp.Value] = kvp.Key;
+        }
+
+        // Special case for service.name and resource uri attribute
+        environment[ResourceAttributeConstants.AppServiceSiteNameEnvVar] = "sitename";
+        environment[ResourceAttributeConstants.AppServiceResourceGroupEnvVar] = "testResourceGroup";
+        environment[ResourceAttributeConstants.AppServiceOwnerNameEnvVar] = "testtestSubscriptionId+testResourceGroup-websiteOwnerName";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureAppServiceDetector().Build();
+            Assert.NotNull(resource);
+
+            var expectedResourceUri = "/subscriptions/testtestSubscriptionId/resourceGroups/testResourceGroup/providers/Microsoft.Web/sites/sitename";
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeCloudResourceId, expectedResourceUri), resource.Attributes);
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "sitename"), resource.Attributes);
+
+            foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
+            {
+                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+            }
         }
     }
 
@@ -94,75 +93,52 @@ public class AzureResourceDetectorTests : IDisposable
     [Fact]
     public void AzureContainerAppsResourceDetectorReturnsResourceWithAttributes()
     {
-        try
-        {
-            foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
-            {
-                Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
-            }
-
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, "containerAppName");
-        }
-        catch
-        {
-        }
-
-        var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
-        Assert.NotNull(resource);
-
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+        var environment = new Dictionary<string, string?>();
 
         foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
         {
-            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+            environment[kvp.Value] = kvp.Key;
+        }
+
+        environment[ResourceAttributeConstants.AzureContainerAppsNameEnvVar] = "containerAppName";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+            Assert.NotNull(resource);
+
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppName"), resource.Attributes);
+
+            foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
+            {
+                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
+            }
         }
     }
 
     [Fact]
     public void AzureContainerAppsJobResourceDetectorReturnsResourceWithAttributes()
     {
-        try
+        var environment = new Dictionary<string, string?>();
+
+        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
         {
+            environment[kvp.Value] = kvp.Key;
+        }
+
+        environment[ResourceAttributeConstants.AzureContainerAppJobNameEnvVar] = "containerAppJobName";
+
+        using (EnvironmentVariableScope.Create(environment))
+        {
+            var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
+            Assert.NotNull(resource);
+
+            Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
+
             foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
             {
-                Environment.SetEnvironmentVariable(kvp.Value, kvp.Key);
+                Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
             }
-
-            Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, "containerAppJobName");
         }
-        catch
-        {
-        }
-
-        var resource = ResourceBuilder.CreateEmpty().AddAzureContainerAppsDetector().Build();
-        Assert.NotNull(resource);
-
-        Assert.Contains(new KeyValuePair<string, object>(ResourceSemanticConventions.AttributeServiceName, "containerAppJobName"), resource.Attributes);
-
-        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
-        {
-            Assert.Contains(new KeyValuePair<string, object>(kvp.Key, kvp.Key), resource.Attributes);
-        }
-    }
-
-    public void Dispose()
-    {
-        foreach (var kvp in AppServiceResourceDetector.AppServiceResourceAttributes)
-        {
-            Environment.SetEnvironmentVariable(kvp.Value, null);
-        }
-
-        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppResourceAttributes)
-        {
-            Environment.SetEnvironmentVariable(kvp.Value, null);
-        }
-
-        foreach (var kvp in AzureContainerAppsResourceDetector.AzureContainerAppJobResourceAttributes)
-        {
-            Environment.SetEnvironmentVariable(kvp.Value, null);
-        }
-
-        Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppsNameEnvVar, null);
-        Environment.SetEnvironmentVariable(ResourceAttributeConstants.AzureContainerAppJobNameEnvVar, null);
     }
 }

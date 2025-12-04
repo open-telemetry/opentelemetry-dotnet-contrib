@@ -1,8 +1,8 @@
 # OpenTelemetry .NET SDK HTTP telemetry enrichment
 
-| Status      |           |
-| ----------- | --------- |
-| Stability   | [Development](../../README.md#development) |
+| Status | |
+| ------ | --- |
+| Stability | [Development](../../README.md#development) |
 | Code Owners | [@evgenyfedorov2](https://github.com/evgenyfedorov2), [@dariusclay](https://github.com/dariusclay) |
 
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Extensions.Enrichment.Http)](https://www.nuget.org/packages/OpenTelemetry.Extensions.Enrichment.Http)

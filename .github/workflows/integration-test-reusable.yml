@@ -40,26 +40,31 @@ on:
 jobs:
   build-and-test:
     runs-on: ${{ inputs.os }}
+    env:
+      BUILD_COMPONENT: ${{ inputs.component }}
     steps:
     # Security: When called from pull_request_target with untrusted PR code,
     # this checkout requires prior approval via the 'authorize' job environment.
     # The workflow has limited permissions (contents: read) and uses persist-credentials: false
     # to prevent credential theft.
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
       with:
         persist-credentials: false
         ref: ${{ inputs.checkout-ref }}
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
+    - name: Setup .NET
+      uses: actions/setup-dotnet@2016bd2012dba4e32de620c46fe006a3ac9f0602 # v5.0.1
 
     - name: dotnet restore Component.proj
-      run: dotnet restore build/Projects/Component.proj -p:BUILD_COMPONENT=${{ inputs.component }}
+      run: dotnet restore build/Projects/Component.proj
 
     - name: dotnet build Component.proj
-      run: dotnet build build/Projects/Component.proj --configuration Release --no-restore -p:BUILD_COMPONENT=${{ inputs.component }}
+      run: dotnet build build/Projects/Component.proj --configuration Release --no-restore
 
     - name: dotnet test Component.proj
-      run: dotnet test build/Projects/Component.proj --filter CategoryName=${{ inputs.test-filter }} --framework ${{ inputs.version }} --configuration Release --no-restore --no-build -p:BUILD_COMPONENT=${{ inputs.component }} --logger:"console;verbosity=detailed"
+      run: dotnet test build/Projects/Component.proj --filter "CategoryName=${env:TEST_FILTER}" --framework ${env:FRAMEWORK_VERSION} --configuration Release --no-restore --no-build --logger:"console;verbosity=detailed"
+      shell: pwsh
       env:
+        FRAMEWORK_VERSION: ${{ inputs.version }}
+        TEST_FILTER: ${{ inputs.test-filter }}
         ${{ inputs.env-var-name }}: ${{ secrets.instrumentation-key }}

@@ -5,7 +5,7 @@
     <Description>ASP.NET Core instrumentation for OpenTelemetry .NET</Description>
     <PackageTags>$(PackageTags);distributed-tracing;AspNetCore</PackageTags>
     <MinVerTagPrefix>Instrumentation.AspNetCore-</MinVerTagPrefix>
-    <PackageValidationBaselineVersion>1.13.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.14.0</PackageValidationBaselineVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,8 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- TODO Revert version override for .NET 10 GA -->
-    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" VersionOverride="[$(OpenTelemetryCoreLatestPrereleaseVersion),2.0)" />
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 
   <ItemGroup Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' == '.NETStandard'">

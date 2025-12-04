@@ -39,11 +39,10 @@ internal sealed class ProcessDetector : IResourceDetector
         };
         try
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? DateTime.Now.ToString("O")));
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O")));
         }
         catch (Win32Exception)
         {
-            attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, DateTime.Now.ToString("O")));
         }
 
         if (currentProcess.MainModule is not null)

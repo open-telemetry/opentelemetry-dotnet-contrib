@@ -41,7 +41,7 @@
     errors will be generated for projects which do not implement the requested
     target. In order to enable running tests for a given framework across a
     solution/project with mixed targets (eg: dotnet test
-    opentelemetry-dotnet-contrib.sln -f net462) we convert this into a skip
+    opentelemetry-dotnet-contrib.slnx -f net462) we convert this into a skip
     message only. -->
     <PropertyGroup Condition="$(TargetFrameworks.Contains($(TargetFramework))) != 'true'">
       <_SkipTests>true</_SkipTests>

@@ -19,7 +19,7 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
     internal const string EntityFrameworkCoreCommandError = "Microsoft.EntityFrameworkCore.Database.Command.CommandError";
 
     internal static readonly Assembly Assembly = typeof(EntityFrameworkDiagnosticListener).Assembly;
-    internal static readonly string ActivitySourceName = Assembly.GetName().Name;
+    internal static readonly string ActivitySourceName = Assembly.GetName().Name!;
     internal static readonly string ActivityName = ActivitySourceName + ".Execute";
     internal static readonly ActivitySource EntityFrameworkActivitySource = new(ActivitySourceName, Assembly.GetPackageVersion());
 

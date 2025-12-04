@@ -5,7 +5,7 @@ using Xunit;
 
 namespace OpenTelemetry.Internal.Tests;
 
-public class RequestDataHelperTests : IDisposable
+public class RequestDataHelperTests
 {
     public static IEnumerable<object[]> MappingVersionProtocolToVersionData =>
         [
@@ -50,19 +50,23 @@ public class RequestDataHelperTests : IDisposable
     [InlineData("invalid", "_OTHER")]
     public void MethodMappingWorksForEnvironmentVariables(string method, string expected)
     {
-        Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
-        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: true);
-        var actual = requestHelper.GetNormalizedHttpMethod(method);
-        Assert.Equal(expected, actual);
+        using (EnvironmentVariableScope.Create("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST"))
+        {
+            var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: true);
+            var actual = requestHelper.GetNormalizedHttpMethod(method);
+            Assert.Equal(expected, actual);
+        }
     }
 
     [Fact]
     public void MethodMappingWorksIfEnvironmentalVariableConfigurationIsDisabled()
     {
-        Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST");
-        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
-        var actual = requestHelper.GetNormalizedHttpMethod("CONNECT");
-        Assert.Equal("CONNECT", actual);
+        using (EnvironmentVariableScope.Create("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", "GET,POST"))
+        {
+            var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+            var actual = requestHelper.GetNormalizedHttpMethod("CONNECT");
+            Assert.Equal("CONNECT", actual);
+        }
     }
 
     [Theory]
@@ -82,11 +86,5 @@ public class RequestDataHelperTests : IDisposable
     {
         var actual = RequestDataHelper.GetHttpProtocolVersion(protocolVersion);
         Assert.Equal(expected, actual);
-    }
-
-    public void Dispose()
-    {
-        // Clean up after tests that set environment variables.
-        Environment.SetEnvironmentVariable("OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS", null);
     }
 }
