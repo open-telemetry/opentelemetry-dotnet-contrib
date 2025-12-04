@@ -11,10 +11,7 @@ namespace OpenTelemetry.Exporter.Geneva;
 /// </summary>
 public class GenevaExporterOptions
 {
-    private IReadOnlyDictionary<string, object> fields = new Dictionary<string, object>(1)
-    {
-        [Schema.V40.PartA.Ver] = "4.0",
-    };
+    private IReadOnlyDictionary<string, object> fields = new Dictionary<string, object>();
 
     private IReadOnlyDictionary<string, string>? tableNameMappings;
 
@@ -118,16 +115,9 @@ public class GenevaExporterOptions
         {
             Guard.ThrowIfNull(value);
 
-            var schemaVersion = "4.0";
-
-            if (value.ContainsKey(Schema.V40.PartA.Ver))
+            if (value.ContainsKey(Schema.V40.PartA.Ver) && value[Schema.V40.PartA.Ver] as string is not "4.0")
             {
-                schemaVersion = value[Schema.V40.PartA.Ver] as string;
-            }
-
-            if (schemaVersion is not "2.1" and not "4.0")
-            {
-                throw new ArgumentException("Unsupported schema version, only 2.1 and 4.0 are supported.");
+                throw new ArgumentException("Unsupported schema version, only 4.0 is supported.");
             }
 
             if (value.ContainsKey(Schema.V40.PartA.Name))
@@ -140,7 +130,7 @@ public class GenevaExporterOptions
                 throw new ArgumentException("Event timestamp cannot be pre-populated.");
             }
 
-            var copy = new Dictionary<string, object>(value.Count + 1) { [Schema.V40.PartA.Ver] = schemaVersion };
+            var copy = new Dictionary<string, object>(value.Count + 1);
             foreach (var entry in value)
             {
                 var val = entry.Value;
