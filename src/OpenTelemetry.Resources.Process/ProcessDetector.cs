@@ -23,24 +23,20 @@ internal sealed class ProcessDetector : IResourceDetector
             return Resource.Empty;
         }
 
+        bool isInteractive = Environment.UserInteractive &&
+                             !Console.IsOutputRedirected &&
+                             !Console.IsInputRedirected;
+
         var attributes = new List<KeyValuePair<string, object>>(9)
         {
             new(ProcessSemanticConventions.AttributeProcessOwner, Environment.UserName),
             new(ProcessSemanticConventions.AttributeProcessArgsCount, Environment.GetCommandLineArgs().Length),
-            new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.MainWindowTitle),
+            new(ProcessSemanticConventions.AttributeProcessTitle, currentProcess.ProcessName),
             new(ProcessSemanticConventions.AttributeProcessWorkingDir, Environment.CurrentDirectory),
 
-            new(ProcessSemanticConventions.AttributeProcessExecName, currentProcess.ProcessName),
-            new(ProcessSemanticConventions.AttributeProcessInteractive, Environment.UserInteractive),
-#if NET
-            new(ProcessSemanticConventions.AttributeProcessPid, Environment.ProcessId),
-            new(ProcessSemanticConventions.AttributeProcessExecPath, Environment.ProcessPath ?? string.Empty),
-        };
-#else
+            new(ProcessSemanticConventions.AttributeProcessInteractive, isInteractive),
             new(ProcessSemanticConventions.AttributeProcessPid, currentProcess.Id),
         };
-#endif
-
         try
         {
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, currentProcess.StartTime.ToString("O") ?? DateTime.Now.ToString("O")));
@@ -48,6 +44,14 @@ internal sealed class ProcessDetector : IResourceDetector
         catch (Win32Exception)
         {
             attributes.Add(new(ProcessSemanticConventions.AttributeProcessStartTime, DateTime.Now.ToString("O")));
+        }
+
+        if (currentProcess.MainModule is not null)
+        {
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecName, currentProcess.MainModule.ModuleName));
+
+            var fileInfo = new FileInfo(currentProcess.MainModule.FileName);
+            attributes.Add(new(ProcessSemanticConventions.AttributeProcessExecPath, fileInfo.DirectoryName ?? string.Empty));
         }
 
         return new Resource(attributes);

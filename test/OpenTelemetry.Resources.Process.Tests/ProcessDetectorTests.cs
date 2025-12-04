@@ -13,17 +13,12 @@ public class ProcessDetectorTests
         var resource = ResourceBuilder.CreateEmpty().AddProcessDetector().Build();
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
-#if NET
+
         Assert.Equal(9, resourceAttributes.Count);
-#else
-        Assert.Equal(8, resourceAttributes.Count);
-#endif
 
         Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessArgsCount]);
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessExecName]);
-#if NET
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessExecPath]);
-#endif
         Assert.IsType<bool>(resourceAttributes[ProcessSemanticConventions.AttributeProcessInteractive]);
         Assert.IsType<string>(resourceAttributes[ProcessSemanticConventions.AttributeProcessOwner]);
         Assert.IsType<long>(resourceAttributes[ProcessSemanticConventions.AttributeProcessPid]);

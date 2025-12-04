@@ -3,10 +3,10 @@
 ## Unreleased
 
 * Extended `ProcessDetector` to include `process.executable.path`,
-`process.working_directory`, `process.args_count`,`process.creation.time`,
-`process.executable.name`, `process.interactive` as well as `process.title`
-as per the latest OpenTelemetry Semantic Convention resource/entity definition.
- ([#2971](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3347))
+  `process.working_directory`, `process.args_count`,`process.creation.time`,
+  `process.executable.name`, `process.interactive` as well as `process.title`
+  as per the latest OpenTelemetry Semantic Convention resource/entity definition.
+  ([#2971](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3347))
 
 * Add support for .NET 10.0.
   ([#2822](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2822))
