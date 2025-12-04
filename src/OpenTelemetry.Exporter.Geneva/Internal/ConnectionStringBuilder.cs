@@ -82,9 +82,6 @@ internal sealed class ConnectionStringBuilder
     public bool PrivatePreviewEnableAFDCorrelationIdEnrichment => this.parts.TryGetValue(nameof(this.PrivatePreviewEnableAFDCorrelationIdEnrichment), out var value)
                 && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
 
-    public bool HonorResourceAttributes => this.parts.TryGetValue(nameof(this.HonorResourceAttributes), out var value)
-                && bool.TrueString.Equals(value, StringComparison.OrdinalIgnoreCase);
-
     public int PrivatePreviewLogMessagePackStringSizeLimit
     {
         get
