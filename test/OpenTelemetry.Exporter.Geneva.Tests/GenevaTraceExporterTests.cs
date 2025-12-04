@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
 using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Tests;
