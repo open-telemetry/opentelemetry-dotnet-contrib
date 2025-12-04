@@ -125,12 +125,13 @@ A list of resource attribute keys which should be sent to Geneva.
 
 * If null, no resource attributes will be stored.
 * If non-null, only those resource attributes named in the list will be stored.
+  This will disable PrepopulatedFields (see below).
 
 #### `PrepopulatedFields` (optional)
 
 This is a collection of fields that will be applied to all the Logs and Traces
-sent through this exporter. If a field is present in both PrepopulatedFields and
-resource attributes, the field in PrepopulatedFields takes precedence.
+sent through this exporter. If ResourceFieldNames is also specified,
+PrepopulatedFields has no effect.
 
 #### `IncludeTraceStateForSpan` (optional)
 
