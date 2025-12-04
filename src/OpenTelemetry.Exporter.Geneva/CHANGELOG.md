@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Support for serializing `ActivityEvent`s.
 
 ## 1.14.0
 

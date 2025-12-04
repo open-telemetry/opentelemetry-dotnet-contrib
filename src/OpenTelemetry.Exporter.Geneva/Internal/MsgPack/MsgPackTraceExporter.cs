@@ -473,6 +473,55 @@ internal sealed class MsgPackTraceExporter : MsgPackExporter, IDisposable
             cntFields += 1;
         }
 
+        var eventEnumerator = activity.EnumerateEvents();
+        if (eventEnumerator.MoveNext())
+        {
+            cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "events");
+            cursor = MessagePackSerializer.WriteArrayHeader(buffer, cursor, ushort.MaxValue);
+            var idxEventPatch = cursor - 2;
+
+            ushort cntEvent = 0;
+            do
+            {
+                ref readonly var evt = ref eventEnumerator.Current;
+
+                var eventTagEnumerator = evt.EnumerateTagObjects();
+                var hasTags = eventTagEnumerator.MoveNext();
+                var eventFieldCount = hasTags ? 3 : 2;
+
+                cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, (byte)eventFieldCount);
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "name");
+                cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, evt.Name);
+                cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "time");
+                cursor = MessagePackSerializer.SerializeUtcDateTime(buffer, cursor, evt.Timestamp.UtcDateTime);
+
+                if (hasTags)
+                {
+                    cursor = MessagePackSerializer.SerializeAsciiString(buffer, cursor, "properties");
+                    cursor = MessagePackSerializer.WriteMapHeader(buffer, cursor, ushort.MaxValue);
+                    var idxEventAttributesPatch = cursor - 2;
+
+                    ushort cntEventAttributes = 0;
+                    do
+                    {
+                        ref readonly var tag = ref eventTagEnumerator.Current;
+                        cursor = MessagePackSerializer.SerializeUnicodeString(buffer, cursor, tag.Key);
+                        cursor = MessagePackSerializer.Serialize(buffer, cursor, tag.Value);
+                        cntEventAttributes += 1;
+                    }
+                    while (eventTagEnumerator.MoveNext());
+
+                    MessagePackSerializer.WriteUInt16(buffer, idxEventAttributesPatch, cntEventAttributes);
+                }
+
+                cntEvent += 1;
+            }
+            while (eventEnumerator.MoveNext());
+
+            MessagePackSerializer.WriteUInt16(buffer, idxEventPatch, cntEvent);
+            cntFields += 1;
+        }
+
         // TODO: The current approach is to iterate twice over TagObjects so that all
         // env_properties can be added the very end. This avoids speculating the size
         // and preallocating a separate buffer for it.

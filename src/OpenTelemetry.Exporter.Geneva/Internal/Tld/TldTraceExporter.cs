@@ -227,6 +227,28 @@ internal sealed class TldTraceExporter : IDisposable
             partBFieldsCount++;
         }
 
+        var eventEnumerator = activity.EnumerateEvents();
+        if (eventEnumerator.MoveNext())
+        {
+            var keyValuePairsForEvents = KeyValuePairs.Value ??= [];
+            keyValuePairsForEvents.Clear();
+
+            do
+            {
+                ref readonly var evt = ref eventEnumerator.Current;
+
+                keyValuePairsForEvents.Add(new("name", evt.Name));
+                keyValuePairsForEvents.Add(new("time", evt.Timestamp.UtcDateTime));
+                keyValuePairsForEvents.Add(new("properties", evt.Tags));
+            }
+            while (eventEnumerator.MoveNext());
+
+            var serializedEventsStringAsBytes = JsonSerializer.SerializeKeyValuePairsListAsBytes(keyValuePairsForEvents, out var count);
+            eb.AddCountedAnsiString("events", serializedEventsStringAsBytes, 0, count);
+
+            partBFieldsCount++;
+        }
+
         byte hasEnvProperties = 0;
         byte isStatusSuccess = 1;
         var statusDescription = string.Empty;
