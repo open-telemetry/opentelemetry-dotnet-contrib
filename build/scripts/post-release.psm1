@@ -74,7 +74,8 @@ $content
       --title $tag `
       --verify-tag `
       --notes $notes `
-      --prerelease
+      --prerelease `
+      --draft
   }
   else
   {
@@ -82,8 +83,11 @@ $content
       --title $tag `
       --verify-tag `
       --notes $notes `
-      --latest
+      --latest `
+      --draft
   }
+
+  gh release edit $tag --draft=false
 }
 
 Export-ModuleMember -Function CreateRelease
