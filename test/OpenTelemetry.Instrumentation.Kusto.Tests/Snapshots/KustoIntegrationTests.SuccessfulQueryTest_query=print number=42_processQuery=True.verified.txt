@@ -6,16 +6,13 @@
       Status: Ok,
       TagObjects: [
         {
-          db.system.name: azure.kusto
-        },
-        {
           kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
         },
         {
-          db.operation.name: KD.RestClient.ExecuteQuery
+          db.system.name: azure.kusto
         },
         {
-          url.full: http://Scrubbed:Scrubbed/v1/rest/query
+          db.operation.name: KD.RestClient.ExecuteQuery
         },
         {
           server.address: Scrubbed

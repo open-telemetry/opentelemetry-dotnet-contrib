@@ -115,17 +115,12 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         if (ShouldComputeTags(activity))
         {
             activity?.DisplayName = operationName;
+            activity?.AddTag(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
 
             tagList.Add(SemanticConventions.AttributeDbSystemName, KustoActivitySourceHelper.DbSystem);
-            tagList.Add(KustoActivitySourceHelper.ClientRequestIdTagKey, record.Activity.ClientRequestId.ToString());
             tagList.Add(SemanticConventions.AttributeDbOperationName, operationName);
 
             var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
-
-            if (!string.IsNullOrEmpty(result.Uri))
-            {
-                tagList.Add(SemanticConventions.AttributeUrlFull, result.Uri);
-            }
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {
