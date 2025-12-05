@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
 using OpenTelemetry.Internal;
-using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
@@ -25,7 +24,7 @@ internal static class KustoActivitySourceHelper
     public static readonly Meter Meter = new(MeterName, PackageVersion);
 
     public static readonly Histogram<double> OperationDurationHistogram = Meter.CreateHistogram(
-        SemanticConventions.AttributeDbClientOperationDuration,
+        "db.client.operation.duration",
         unit: "s",
         advice: new InstrumentAdvice<double>() { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] },
         description: "Duration of database client operations");
