@@ -17,13 +17,9 @@ internal static class KustoInstrumentation
         return listener;
     });
 
-    public static KustoInstrumentationOptions TracingOptions { get; set; } = new KustoInstrumentationOptions();
-
-    public static KustoInstrumentationOptions MetricOptions { get; set; } = new KustoInstrumentationOptions();
+    public static KustoInstrumentationOptions Options { get; } = new KustoInstrumentationOptions();
 
     public static InstrumentationHandleManager HandleManager { get; } = new InstrumentationHandleManager();
 
-    public static void InitializeTracing() => _ = Listener.Value;
-
-    public static void InitializeMetrics() => _ = Listener.Value;
+    public static void Initialize() => _ = Listener.Value;
 }
