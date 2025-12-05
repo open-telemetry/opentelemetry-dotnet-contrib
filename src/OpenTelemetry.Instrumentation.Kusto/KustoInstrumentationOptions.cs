@@ -27,6 +27,4 @@ public class KustoInstrumentationOptions
     /// Gets or sets an action to enrich the Activity with additional information from the TraceRecord.
     /// </summary>
     public Action<Activity, KustoUtils.TraceRecord>? Enrich { get; set; }
-
-    // TODO: Add flag for query parameter tracing
 }
