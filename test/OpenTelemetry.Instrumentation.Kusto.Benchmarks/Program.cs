@@ -12,8 +12,9 @@ internal class Program
     {
         if (Debugger.IsAttached)
         {
-            var benchmarks = new KustoProcessorProfilingBenchmarks();
-            benchmarks.ProcessSummarizeAndSanitize();
+            var benchmarks = new InstrumentationBenchmarks();
+            benchmarks.Setup();
+            benchmarks.FailedQuery();
         }
         else
         {
