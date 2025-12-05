@@ -24,8 +24,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Kusto.Cloud.Platform" />
     <PackageReference Include="Microsoft.Azure.Kusto.Language" />
-    <PackageReference Include="Microsoft.Extensions.Options" />
-    <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
   </ItemGroup>
 

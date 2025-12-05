@@ -73,7 +73,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             var activity = this.GetContext(record)?.Activity;
             if (activity is not null && activity.IsAllDataRequested)
             {
-                KustoInstrumentation.TracingOptions.Enrich?.Invoke(activity, record);
+                KustoInstrumentation.Options.Enrich?.Invoke(activity, record);
             }
         }
         catch (Exception ex)
@@ -139,9 +139,9 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
             if (!result.QueryText.IsEmpty)
             {
-                var info = KustoProcessor.Process(shouldSummarize: KustoInstrumentation.TracingOptions.RecordQuerySummary, shouldSanitize: KustoInstrumentation.TracingOptions.RecordQueryText, result.QueryText.ToString());
+                var info = KustoProcessor.Process(shouldSummarize: KustoInstrumentation.Options.RecordQuerySummary, shouldSanitize: KustoInstrumentation.Options.RecordQueryText, result.QueryText.ToString());
 
-                if (KustoInstrumentation.TracingOptions.RecordQueryText)
+                if (KustoInstrumentation.Options.RecordQueryText)
                 {
                     tagList.Add(SemanticConventions.AttributeDbQueryText, info.Sanitized);
                 }
