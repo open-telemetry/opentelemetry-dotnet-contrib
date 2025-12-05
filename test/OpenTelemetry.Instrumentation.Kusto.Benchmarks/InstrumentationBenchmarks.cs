@@ -16,8 +16,6 @@ namespace OpenTelemetry.Instrumentation.Kusto.Benchmarks;
 [MemoryDiagnoser]
 public class InstrumentationBenchmarks
 {
-    private static readonly KustoUtils.ActivityType TestActivityType = new FakeActivtyType();
-
     private readonly Guid activityId = Guid.NewGuid();
     private readonly string clientRequestId = "SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==";
 
@@ -114,7 +112,9 @@ public class InstrumentationBenchmarks
     private static KustoUtils.TraceRecord CreateRequestStartRecord(Guid activityId, string clientRequestId, string queryText)
     {
         var message = $$"""$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/query, DatabaseName=NetDefaultDB, App=testhost, User=REDMOND\\benchmarkuser, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId={{clientRequestId}}, text={{queryText}}""";
-        using var context = KustoUtils.Context.PushNewActivityContext(TestActivityType, clientRequestId);
+
+        var activity = CreateActivity(activityId, clientRequestId);
+        using var context = KustoUtils.Context.PushActivityContext(activity);
 
         return KustoUtils.TraceRecord.Create("Kusto.Data", KustoUtils.TraceVerbosity.Verbose, message);
     }
@@ -122,7 +122,9 @@ public class InstrumentationBenchmarks
     private static KustoUtils.TraceRecord CreateActivityCompleteRecord(Guid activityId, string clientRequestId)
     {
         const string message = "MonitoredActivityCompletedSuccessfully: TestActivityType=KD.RestClient.ExecuteQuery, Timestamp=2025-12-01T02:30:30.0211167Z, ParentActivityId={0}, Duration=4316.802 [ms], HowEnded=Success";
-        using var context = KustoUtils.Context.PushNewActivityContext(TestActivityType, clientRequestId);
+
+        var activity = CreateActivity(activityId, clientRequestId);
+        using var context = KustoUtils.Context.PushActivityContext(activity);
 
         return KustoUtils.TraceRecord.Create("Kusto.Data", KustoUtils.TraceVerbosity.Verbose, message);
     }
@@ -143,16 +145,16 @@ public class InstrumentationBenchmarks
             DataSource=http://127.0.0.1:62413/v1/rest/query
             DatabaseName=NetDefaultDB
             """;
-        using var context = KustoUtils.Context.PushNewActivityContext(TestActivityType, clientRequestId);
+
+        var activity = CreateActivity(activityId, clientRequestId);
+        using var context = KustoUtils.Context.PushActivityContext(activity);
 
         return KustoUtils.TraceRecord.Create("KD.Exceptions", KustoUtils.TraceVerbosity.Error, message);
     }
 
-    private class FakeActivtyType : KustoUtils.ActivityType
+    private static KustoUtils.Activity CreateActivity(Guid activityId, string clientRequestId)
     {
-        public FakeActivtyType()
-            : base("FakeActivity", "A fake activity", KustoUtils.TraceVerbosity.Info, KustoUtils.TraceVerbosity.Info, KustoUtils.TraceVerbosity.Info)
-        {
-        }
+        var sub = Guid.NewGuid();
+        return KustoUtils.Activity.CreateImportActivity(activityId, sub, sub, clientRequestId, "FakeActivity");
     }
 }
