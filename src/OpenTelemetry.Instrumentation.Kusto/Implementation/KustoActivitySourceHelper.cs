@@ -28,8 +28,4 @@ internal static class KustoActivitySourceHelper
         unit: "s",
         advice: new InstrumentAdvice<double>() { HistogramBucketBoundaries = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5, 10] },
         description: "Duration of database client operations");
-
-    public static readonly Counter<long> OperationCounter = Meter.CreateCounter<long>(
-        "db.client.operation.count",
-        description: "Number of database client operations");
 }

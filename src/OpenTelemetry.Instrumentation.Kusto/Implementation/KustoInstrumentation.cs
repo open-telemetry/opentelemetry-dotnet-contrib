@@ -7,21 +7,11 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 internal static class KustoInstrumentation
 {
-    private static readonly Lazy<ITraceListener> TraceListener = new(() =>
+    private static readonly Lazy<ITraceListener> Listener = new(() =>
     {
         Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
 
-        var listener = new KustoTraceListener();
-        TraceSourceManager.AddTraceListener(listener, startupDone: true);
-
-        return listener;
-    });
-
-    private static readonly Lazy<ITraceListener> MetricListener = new(() =>
-    {
-        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
-
-        var listener = new KustoMetricListener();
+        var listener = new KustoTraceRecordListener();
         TraceSourceManager.AddTraceListener(listener, startupDone: true);
 
         return listener;
@@ -33,13 +23,7 @@ internal static class KustoInstrumentation
 
     public static InstrumentationHandleManager HandleManager { get; } = new InstrumentationHandleManager();
 
-    public static void InitializeTracing()
-    {
-        _ = TraceListener.Value;
-    }
+    public static void InitializeTracing() => _ = Listener.Value;
 
-    public static void InitializeMetrics()
-    {
-        _ = MetricListener.Value;
-    }
+    public static void InitializeMetrics() => _ = Listener.Value;
 }

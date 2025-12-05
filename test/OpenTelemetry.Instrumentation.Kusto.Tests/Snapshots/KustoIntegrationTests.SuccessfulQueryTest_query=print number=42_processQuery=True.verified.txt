@@ -43,12 +43,6 @@
       Description: Duration of database client operations,
       Unit: s,
       Temporality: Cumulative
-    },
-    {
-      Name: db.client.operation.count,
-      Description: Number of database client operations,
-      Unit: ,
-      Temporality: Cumulative
     }
   ]
 }

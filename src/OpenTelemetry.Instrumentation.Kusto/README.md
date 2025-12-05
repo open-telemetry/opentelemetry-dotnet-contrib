@@ -78,13 +78,15 @@ public class Program
 ##### List of metrics produced
 
 The instrumentation is implemented based on [metrics semantic
-conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.29.0/docs/database/database-metrics.md#database-operation).
-Currently, the instrumentation supports the following metrics.
+conventions](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-metrics.md).
+Currently, the instrumentation supports the following metric:
 
-| Name                           | Instrument Type | Unit          | Description                             |
-|--------------------------------|-----------------|---------------|-----------------------------------------|
-| `db.client.operation.duration` | Histogram       | `s`           | Duration of database client operations. |
-| `db.client.operation.count`    | Counter         | `{operation}` | Number of database client operations.   |
+| Name                           | Instrument Type | Unit | Description                             | Attributes |
+|--------------------------------|-----------------|------|-----------------------------------------|------------|
+| `db.client.operation.duration` | Histogram       | `s`  | Duration of database client operations. | `db.system`, `db.operation.name`, `db.namespace`, `db.query.summary`¹, `server.address`, `server.port`, `error.type`² |
+
+¹ `db.query.summary` is only included when `RecordQuerySummary` is enabled (default: `true`)
+² `error.type` is only included when an error occurs
 
 ## Advanced configuration
 
@@ -135,7 +137,6 @@ The following code snippet shows how to add additional tags using `Enrich`.
 
 ```csharp
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
-using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddKustoInstrumentation(opt => opt.Enrich = (activity, record) =>
@@ -159,7 +160,6 @@ For example, you can extract summary information from query comments:
 
 ```csharp
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
-using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddKustoInstrumentation(opt =>
@@ -189,7 +189,7 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             summary = summary.Slice(0, end).Trim();
             var summaryString = summary.ToString();
 
-            activity.SetTag(SemanticConventions.AttributeDbQuerySummary, summaryString);
+            activity.SetTag("db.query.summary", summaryString);
             activity.DisplayName = summaryString;
         };
     })
@@ -205,12 +205,11 @@ Users
 | take 100
 ```
 
-Would result in an activity with the summary set to `"Get active users"`
-and the activity display name set to the same value.
+Would result in an activity with the summary and display name set to `"Get active users"`.
 
 ## References
 
 * [OpenTelemetry Project](https://opentelemetry.io/)
 * [Azure Data Explorer (Kusto)](https://docs.microsoft.com/azure/data-explorer/)
-* [OpenTelemetry semantic conventions for database
-  calls](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/database/database-spans.md)
+* [OpenTelemetry semantic conventions for database spans](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-spans.md)
+* [OpenTelemetry semantic conventions for database metrics](https://github.com/open-telemetry/semantic-conventions/blob/v1.36.0/docs/database/database-metrics.md)
