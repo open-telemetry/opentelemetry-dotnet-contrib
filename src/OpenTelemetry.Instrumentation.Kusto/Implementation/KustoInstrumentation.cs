@@ -5,41 +5,30 @@ using Kusto.Cloud.Platform.Utils;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
+/// <summary>
+/// Class to hold the singleton instances used for Kusto instrumentation.
+/// </summary>
 internal static class KustoInstrumentation
 {
-    private static readonly Lazy<ITraceListener> TraceListener = new(() =>
+    private static readonly Lazy<ITraceListener> Listener = new(() =>
     {
         Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
 
-        var listener = new KustoTraceListener();
+        var listener = new KustoTraceRecordListener();
         TraceSourceManager.AddTraceListener(listener, startupDone: true);
 
         return listener;
     });
 
-    private static readonly Lazy<ITraceListener> MetricListener = new(() =>
-    {
-        Environment.SetEnvironmentVariable("KUSTO_DATA_TRACE_REQUEST_BODY", "1");
+    /// <summary>
+    /// Gets the post-configured options for Kusto instrumentation.
+    /// </summary>
+    public static KustoInstrumentationOptions Options { get; } = new KustoInstrumentationOptions();
 
-        var listener = new KustoMetricListener();
-        TraceSourceManager.AddTraceListener(listener, startupDone: true);
-
-        return listener;
-    });
-
-    public static KustoInstrumentationOptions TracingOptions { get; set; } = new KustoInstrumentationOptions();
-
-    public static KustoInstrumentationOptions MetricOptions { get; set; } = new KustoInstrumentationOptions();
-
+    /// <summary>
+    /// Gets the <see cref="InstrumentationHandleManager"/> that tracks if there are any active listeners for <see cref="KustoTraceRecordListener"/>.
+    /// </summary>
     public static InstrumentationHandleManager HandleManager { get; } = new InstrumentationHandleManager();
 
-    public static void InitializeTracing()
-    {
-        _ = TraceListener.Value;
-    }
-
-    public static void InitializeMetrics()
-    {
-        _ = MetricListener.Value;
-    }
+    public static void Initialize() => _ = Listener.Value;
 }

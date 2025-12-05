@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Kusto\OpenTelemetry.Instrumentation.Kusto.csproj" />
-    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" VersionOverride="18.3.36714.1" />
+    <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
   </ItemGroup>
 
   <PropertyGroup>
