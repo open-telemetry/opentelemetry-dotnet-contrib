@@ -7,19 +7,16 @@
       StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
       TagObjects: [
         {
+          kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
+        },
+        {
           error.type: Kusto.Data.Exceptions.SemanticException
         },
         {
           db.system.name: azure.kusto
         },
         {
-          kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
-        },
-        {
           db.operation.name: KD.RestClient.ExecuteQuery
-        },
-        {
-          url.full: http://Scrubbed:Scrubbed/v1/rest/query
         },
         {
           server.address: Scrubbed
