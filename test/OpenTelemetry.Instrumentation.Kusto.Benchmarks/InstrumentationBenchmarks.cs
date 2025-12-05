@@ -21,8 +21,7 @@ public class InstrumentationBenchmarks
     private readonly Guid activityId = Guid.NewGuid();
     private readonly string clientRequestId = "SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==";
 
-    private KustoTraceListener? traceListener;
-    private KustoMetricListener? metricListener;
+    private KustoTraceRecordListener? listener;
     private KustoUtils.TraceRecord requestStartRecord = null!;
     private KustoUtils.TraceRecord activityCompleteRecord = null!;
     private KustoUtils.TraceRecord exceptionRecord = null!;
@@ -48,9 +47,8 @@ public class InstrumentationBenchmarks
         this.tracingHandle = KustoInstrumentation.HandleManager.AddTracingHandle();
         this.metricHandle = KustoInstrumentation.HandleManager.AddMetricHandle();
 
-        // Create listeners
-        this.traceListener = new KustoTraceListener();
-        this.metricListener = new KustoMetricListener();
+        // Create single listener for both traces and metrics
+        this.listener = new KustoTraceRecordListener();
 
         // Create TraceRecord instances that simulate a query execution flow
         this.requestStartRecord = CreateRequestStartRecord(
@@ -80,40 +78,37 @@ public class InstrumentationBenchmarks
     public void SuccessfulQuery()
     {
         // Simulate a successful query execution
-        this.traceListener!.Write(this.requestStartRecord);
-        this.metricListener!.Write(this.requestStartRecord);
-
-        this.traceListener.Write(this.activityCompleteRecord);
-        this.metricListener.Write(this.activityCompleteRecord);
+        this.listener!.Write(this.requestStartRecord);
+        this.listener.Write(this.activityCompleteRecord);
     }
 
     [Benchmark]
     public void FailedQuery()
     {
         // Simulate a failed query execution
-        this.traceListener!.Write(this.requestStartRecord);
-        this.metricListener!.Write(this.requestStartRecord);
-
-        this.traceListener.Write(this.exceptionRecord);
-
-        this.traceListener.Write(this.activityCompleteRecord);
-        this.metricListener.Write(this.activityCompleteRecord);
+        this.listener!.Write(this.requestStartRecord);
+        this.listener.Write(this.exceptionRecord);
+        this.listener.Write(this.activityCompleteRecord);
     }
 
     [Benchmark]
     public void TraceListenerOnly()
     {
-        // Benchmark just the trace listener
-        this.traceListener!.Write(this.requestStartRecord);
-        this.traceListener.Write(this.activityCompleteRecord);
+        // Benchmark just the trace listener (metrics disabled)
+        this.metricHandle?.Dispose();
+        this.listener!.Write(this.requestStartRecord);
+        this.listener.Write(this.activityCompleteRecord);
+        this.metricHandle = KustoInstrumentation.HandleManager.AddMetricHandle();
     }
 
     [Benchmark]
     public void MetricListenerOnly()
     {
-        // Benchmark just the metric listener
-        this.metricListener!.Write(this.requestStartRecord);
-        this.metricListener.Write(this.activityCompleteRecord);
+        // Benchmark just the metric listener (tracing disabled)
+        this.tracingHandle?.Dispose();
+        this.listener!.Write(this.requestStartRecord);
+        this.listener.Write(this.activityCompleteRecord);
+        this.tracingHandle = KustoInstrumentation.HandleManager.AddTracingHandle();
     }
 
     private static KustoUtils.TraceRecord CreateRequestStartRecord(Guid activityId, string clientRequestId, string queryText)

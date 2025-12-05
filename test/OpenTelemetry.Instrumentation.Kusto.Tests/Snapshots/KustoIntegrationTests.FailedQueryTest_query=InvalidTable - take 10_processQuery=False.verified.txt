@@ -7,6 +7,9 @@
       StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
       TagObjects: [
         {
+          error.type: Kusto.Data.Exceptions.SemanticException
+        },
+        {
           db.system.name: azure.kusto
         },
         {
@@ -26,9 +29,6 @@
         },
         {
           db.namespace: NetDefaultDB
-        },
-        {
-          error.type: Kusto.Data.Exceptions.SemanticException
         }
       ],
       OperationName: KD.RestClient.ExecuteQuery,
@@ -40,12 +40,6 @@
       Name: db.client.operation.duration,
       Description: Duration of database client operations,
       Unit: s,
-      Temporality: Cumulative
-    },
-    {
-      Name: db.client.operation.count,
-      Description: Number of database client operations,
-      Unit: ,
       Temporality: Cumulative
     }
   ],
