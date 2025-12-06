@@ -7,6 +7,9 @@ using System.Buffers;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
+/// <summary>
+/// Class that parses the delimited messages in <see cref="global::Kusto.Cloud.Platform.Utils.TraceRecord"/> instances.
+/// </summary>
 internal class TraceRecordParser
 {
 #if NET9_0_OR_GREATER
@@ -25,7 +28,7 @@ internal class TraceRecordParser
         // so we can just take everything after "text="
         var queryText = message.SliceAfter("text=");
 
-        return new ParsedRequestStart(uri, parsed?.Host, parsed?.Port, database, queryText);
+        return new ParsedRequestStart(parsed?.Host, parsed?.Port, database, queryText);
     }
 
     public static ParsedActivityComplete ParseActivityComplete(ReadOnlySpan<char> message)
@@ -59,15 +62,13 @@ internal class TraceRecordParser
 
     internal readonly ref struct ParsedRequestStart
     {
-        public readonly string Uri;
         public readonly string? ServerAddress;
         public readonly int? ServerPort;
         public readonly ReadOnlySpan<char> Database;
         public readonly ReadOnlySpan<char> QueryText;
 
-        public ParsedRequestStart(string uri, string? serverAddress, int? serverPort, ReadOnlySpan<char> database, ReadOnlySpan<char> queryText)
+        public ParsedRequestStart(string? serverAddress, int? serverPort, ReadOnlySpan<char> database, ReadOnlySpan<char> queryText)
         {
-            this.Uri = uri;
             this.ServerAddress = serverAddress;
             this.ServerPort = serverPort;
             this.Database = database;

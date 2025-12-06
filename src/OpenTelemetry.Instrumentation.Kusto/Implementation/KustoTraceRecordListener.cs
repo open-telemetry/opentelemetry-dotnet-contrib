@@ -8,6 +8,13 @@ using KustoUtils = Kusto.Cloud.Platform.Utils;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
+/// <summary>
+/// Class that is registered with the Kusto client library to receive trace records.
+/// </summary>
+/// <remarks>
+/// The Kusto client library uses its own tracing infrastructure. Many types share names with common diagnostic types
+/// (e.g. Activity, ITraceListener, etc.) but in the Kusto.Cloud.Platform.Utils namespace.
+/// </remarks>
 internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 {
     // The client's async machinery may not call us back using the same AsyncLocal context, so we must manually track
