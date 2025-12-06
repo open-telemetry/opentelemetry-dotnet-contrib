@@ -1,0 +1,10 @@
+﻿{
+  Metrics: [
+    {
+      Name: db.client.operation.duration,
+      Description: Duration of database client operations,
+      Unit: s,
+      Temporality: Cumulative
+    }
+  ]
+}
