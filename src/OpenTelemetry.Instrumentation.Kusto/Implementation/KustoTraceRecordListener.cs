@@ -33,6 +33,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     {
         if (record?.Message is null)
         {
+            KustoInstrumentationEventSource.Log.NullPayload();
             return;
         }
 
@@ -41,17 +42,24 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             return;
         }
 
-        if (record.IsRequestStart())
+        try
         {
-            this.HandleHttpRequestStart(record);
+            if (record.IsRequestStart())
+            {
+                this.HandleHttpRequestStart(record);
+            }
+            else if (record.IsActivityComplete())
+            {
+                this.HandleActivityComplete(record);
+            }
+            else if (record.IsException())
+            {
+                this.HandleException(record);
+            }
         }
-        else if (record.IsActivityComplete())
+        catch (Exception ex)
         {
-            this.HandleActivityComplete(record);
-        }
-        else if (record.IsException())
-        {
-            this.HandleException(record);
+            KustoInstrumentationEventSource.Log.UnknownErrorProcessingTraceRecord(ex);
         }
     }
 
@@ -200,6 +208,7 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             return context;
         }
 
+        KustoInstrumentationEventSource.Log.ContextNotFound(record.Activity.ActivityId.ToString());
         return null;
     }
 
