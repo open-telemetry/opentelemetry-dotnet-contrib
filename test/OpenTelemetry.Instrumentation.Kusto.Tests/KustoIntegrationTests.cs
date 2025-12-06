@@ -61,40 +61,88 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
-        var activitySnapshots = activities
-            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
-            .Select(activity => new
-            {
-                activity.DisplayName,
-                activity.Source.Name,
-                activity.Status,
-                activity.StatusDescription,
-                activity.TagObjects,
-                activity.OperationName,
-                activity.IdFormat,
-            });
-
-        var metricSnapshots = metrics
-            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
-            .Select(metric => new
-            {
-                metric.Name,
-                metric.Description,
-                metric.MeterTags,
-                metric.Unit,
-                metric.Temporality,
-            });
-
         await Verify(
             new
             {
-                Activities = activitySnapshots,
-                Metrics = metricSnapshots,
+                Activities = FilterActivites(activities),
+                Metrics = FilterMetrics(metrics),
             })
             .ScrubHostname(kcsb.Hostname)
             .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
             .UseDirectory("Snapshots")
             .UseParameters(query, processQuery);
+    }
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData("print number=42")]
+    public async Task TraceOnlyTest(string query)
+    {
+        var activities = new List<Activity>();
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddInMemoryExporter(activities)
+            .AddKustoInstrumentation()
+            .Build();
+
+        var kcsb = this.fixture.ConnectionStringBuilder;
+        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+        var crp = new ClientRequestProperties()
+        {
+            // Ensure a stable client ID for snapshots
+            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+        };
+
+        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+        reader.Consume();
+
+        tracerProvider.ForceFlush();
+
+        await Verify(
+            new
+            {
+                Activities = FilterActivites(activities),
+            })
+            .ScrubHostname(kcsb.Hostname)
+            .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
+            .UseDirectory("Snapshots")
+            .UseParameters(query);
+    }
+
+    [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
+    [InlineData("print number=42")]
+    public async Task MetricsOnlyTest(string query)
+    {
+        var metrics = new List<Metric>();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddInMemoryExporter(metrics)
+            .AddKustoInstrumentation()
+            .Build();
+
+        var kcsb = this.fixture.ConnectionStringBuilder;
+        using var queryProvider = KustoClientFactory.CreateCslQueryProvider(kcsb);
+
+        var crp = new ClientRequestProperties()
+        {
+            // Ensure a stable client ID for snapshots
+            ClientRequestId = Convert.ToBase64String(Encoding.UTF8.GetBytes(query)),
+        };
+
+        using var reader = queryProvider.ExecuteQuery("NetDefaultDB", query, crp);
+        reader.Consume();
+
+        meterProvider.ForceFlush();
+
+        await Verify(
+            new
+            {
+                Metrics = FilterMetrics(metrics),
+            })
+            .ScrubHostname(kcsb.Hostname)
+            .ScrubPort(this.fixture.DatabaseContainer.GetMappedPublicPort())
+            .UseDirectory("Snapshots")
+            .UseParameters(query);
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]
@@ -140,35 +188,11 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
-        var activitySnapshots = activities
-            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
-            .Select(activity => new
-            {
-                activity.DisplayName,
-                activity.Source.Name,
-                activity.Status,
-                activity.StatusDescription,
-                activity.TagObjects,
-                activity.OperationName,
-                activity.IdFormat,
-            });
-
-        var metricSnapshots = metrics
-            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
-            .Select(metric => new
-            {
-                metric.Name,
-                metric.Description,
-                metric.MeterTags,
-                metric.Unit,
-                metric.Temporality,
-            });
-
         await Verify(
             new
             {
-                Activities = activitySnapshots,
-                Metrics = metricSnapshots,
+                Activities = FilterActivites(activities),
+                Metrics = FilterMetrics(metrics),
                 Exception = new
                 {
                     Type = exception.GetType().FullName,
@@ -212,17 +236,8 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         tracerProvider.ForceFlush();
         meterProvider.ForceFlush();
 
-        // Assert - No Kusto activities or metrics should be emitted
-        var kustoActivities = activities
-            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
-            .ToList();
-
-        var kustoMetrics = metrics
-            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
-            .ToList();
-
-        Assert.Empty(kustoActivities);
-        Assert.Empty(kustoMetrics);
+        Assert.Empty(FilterActivites(activities));
+        Assert.Empty(FilterMetrics(metrics));
     }
 
     [EnabledOnDockerPlatformFact(DockerPlatform.Linux)]
@@ -293,11 +308,37 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
         var activity = kustoActivities[0];
 
         // Verify the custom summary was set by the Enrich callback
-        var querySummaryTag = activity.Tags.SingleOrDefault(t => t.Key == SemanticConventions.AttributeDbQuerySummary);
+        var querySummaryTag = activity.TagObjects.SingleOrDefault(t => t.Key == SemanticConventions.AttributeDbQuerySummary);
         Assert.NotNull(querySummaryTag.Key);
         Assert.Equal(summary, querySummaryTag.Value);
 
         // Verify the display name was set to the custom summary
         Assert.Equal(summary, activity.DisplayName);
     }
+
+    private static dynamic FilterActivites(IEnumerable<Activity> activities) =>
+        activities
+            .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
+            .Select(activity => new
+            {
+                activity.DisplayName,
+                activity.Source.Name,
+                activity.Status,
+                activity.StatusDescription,
+                activity.TagObjects,
+                activity.OperationName,
+                activity.IdFormat,
+            });
+
+    private static dynamic FilterMetrics(IEnumerable<Metric> metrics) =>
+        metrics
+            .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
+            .Select(metric => new
+            {
+                metric.Name,
+                metric.Description,
+                metric.MeterTags,
+                metric.Unit,
+                metric.Temporality,
+            });
 }
