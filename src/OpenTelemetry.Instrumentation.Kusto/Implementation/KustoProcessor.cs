@@ -8,8 +8,12 @@ using Kusto.Language.Syntax;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 
+/// <summary>
+/// Use the Kusto query language services to process Kusto queries for summarization and sanitization.
+/// </summary>
 internal static class KustoProcessor
 {
+    // Because we're not doing full semantic analysis for queries, we can reuse the default global state (which includes all built-in functions and types)
     private static readonly GlobalState KustoParserGlobalState = GlobalState.Default.WithCache();
 
     private enum ReplacementKind
@@ -18,6 +22,30 @@ internal static class KustoProcessor
         Remove,
     }
 
+    /// <summary>
+    /// Processes the specified Kusto query and optionally generates a summary and/or a sanitized version based on the
+    /// provided options.
+    /// </summary>
+    /// <remarks>
+    /// If both summarization and sanitization are requested, the query is parsed only once for
+    /// efficiency. The returned <see cref="KustoStatementInfo"/> will have null values for summary or sanitized output
+    /// if the corresponding option is not enabled.
+    /// </remarks>
+    /// <param name="shouldSummarize">
+    /// Indicates whether to generate a summary of the query. If <see langword="true"/>, the returned object will
+    /// include a summarized representation.
+    /// </param>
+    /// <param name="shouldSanitize">
+    /// Indicates whether to generate a sanitized version of the query. If <see langword="true"/>, the returned object
+    /// will include a sanitized representation.
+    /// </param>
+    /// <param name="query">
+    /// The Kusto query to process.
+    /// </param>
+    /// <returns>
+    /// A <see cref="KustoStatementInfo"/> containing the summary and/or sanitized version of the query, depending on
+    /// the options specified.
+    /// </returns>
     public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
     {
         string? summarized = null;
@@ -25,7 +53,8 @@ internal static class KustoProcessor
 
         KustoCode? code = null;
 
-        // Note that order matters here as summarization requires semantic analysis, but we want to avoid parsing twice if both are requested.
+        // Note that order matters here as summarization requires semantic analysis to find potential table references,
+        // but we want to avoid parsing twice if both are requested.
         if (shouldSummarize)
         {
             code ??= KustoCode.ParseAndAnalyze(query, KustoParserGlobalState);
@@ -75,6 +104,9 @@ internal static class KustoProcessor
 
     private static TextEdit CreateRemoval(SyntaxElement node) => TextEdit.Deletion(node.TextStart, node.Width);
 
+    /// <summary>
+    /// Visitor that traverses the KQL looking for literal values to replace with the PLACEHOLDER value.
+    /// </summary>
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
         private readonly List<TextEdit> edits = [];
@@ -119,6 +151,9 @@ internal static class KustoProcessor
         }
     }
 
+    /// <summary>
+    /// Visitor that traverses the KQL to produce a summarized representation of the query.
+    /// </summary>
     private sealed class SummarizerVisitor : DefaultSyntaxVisitor, IDisposable
     {
         private readonly TruncatingStringBuilder builder = new();
