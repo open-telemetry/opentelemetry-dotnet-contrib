@@ -35,9 +35,11 @@ public static class TracerProviderBuilderExtensions
 
         configureKustoInstrumentationOptions(KustoInstrumentation.Options);
 
+        // Be sure to eagerly initialize the instrumentation, as we must set environment variables before any clients are created.
+        KustoInstrumentation.Initialize();
+
         builder.AddInstrumentation(sp =>
         {
-            KustoInstrumentation.Initialize();
             return KustoInstrumentation.HandleManager.AddTracingHandle();
         });
 
