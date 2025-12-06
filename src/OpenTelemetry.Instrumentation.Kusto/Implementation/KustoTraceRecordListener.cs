@@ -180,12 +180,12 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         var result = TraceRecordParser.ParseActivityComplete(record.Message.AsSpan());
         if (result.HowEnded.Equals("Success".AsSpan(), StringComparison.Ordinal))
         {
-            activity.SetStatus(ActivityStatusCode.Ok);
+            activity?.SetStatus(ActivityStatusCode.Ok);
         }
 
-        activity.AddTags(context.Value.Tags);
+        activity?.AddTags(context.Value.Tags);
         this.CallEnrichment(record);
-        activity.Stop();
+        activity?.Stop();
 
         var duration = activity?.Duration.TotalSeconds ?? GetElapsedTime(context.Value.BeginTimestamp);
         KustoActivitySourceHelper.OperationDurationHistogram.Record(duration, context.Value.Tags);
@@ -203,6 +203,9 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         return null;
     }
 
+    /// <summary>
+    /// Holds context data for an ongoing operation.
+    /// </summary>
     private readonly struct ContextData
     {
         public ContextData(long beginTimestamp, TagList tags, Activity activity)
@@ -212,10 +215,23 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             this.Activity = activity;
         }
 
+        /// <summary>
+        /// Gets the timestamp when the operation began. Used to compute duration if the <see cref="Activity"/>
+        /// is not available (i.e. in a metrics-only scenario).
+        /// </summary>
         public long BeginTimestamp { get; }
 
+        /// <summary>
+        /// Gets the collection of tags associated with the operation that should be shared between the span and metrics.
+        /// </summary>
         public TagList Tags { get; }
 
-        public Activity Activity { get; }
+        /// <summary>
+        /// Gets the current activity associated with the instance, if any.
+        /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> in a metrics-only scenario.
+        /// </remarks>
+        public Activity? Activity { get; }
     }
 }
