@@ -1,12 +1,12 @@
 {
   Activities: [
     {
+      ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
       DisplayName: print,
-      Name: Kusto.Client,
       Status: Ok,
       TagObjects: [
         {
-          kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
+          azure.kusto.client_request_id: cHJpbnQgbnVtYmVyPTQy
         },
         {
           db.system.name: azure.kusto
@@ -36,6 +36,7 @@
   ],
   Metrics: [
     {
+      MeterName: OpenTelemetry.Instrumentation.Kusto,
       Name: db.client.operation.duration,
       Description: Duration of database client operations,
       Unit: s,

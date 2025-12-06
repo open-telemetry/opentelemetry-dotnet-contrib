@@ -1,13 +1,13 @@
 {
   Activities: [
     {
+      ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
       DisplayName: KD.RestClient.ExecuteQuery,
-      Name: Kusto.Client,
       Status: Error,
       StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
       TagObjects: [
         {
-          kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
+          azure.kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==
         },
         {
           error.type: Kusto.Data.Exceptions.SemanticException
@@ -34,6 +34,7 @@
   ],
   Metrics: [
     {
+      MeterName: OpenTelemetry.Instrumentation.Kusto,
       Name: db.client.operation.duration,
       Description: Duration of database client operations,
       Unit: s,

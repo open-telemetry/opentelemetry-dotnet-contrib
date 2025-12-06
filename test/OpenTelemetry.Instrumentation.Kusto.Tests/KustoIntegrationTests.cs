@@ -321,8 +321,8 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .Where(activity => activity.Source == KustoActivitySourceHelper.ActivitySource)
             .Select(activity => new
             {
+                ActivitySourceName = activity.Source.Name,
                 activity.DisplayName,
-                activity.Source.Name,
                 activity.Status,
                 activity.StatusDescription,
                 activity.TagObjects,
@@ -335,6 +335,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .Where(metric => metric.MeterName == KustoActivitySourceHelper.MeterName)
             .Select(metric => new
             {
+                metric.MeterName,
                 metric.Name,
                 metric.Description,
                 metric.MeterTags,
