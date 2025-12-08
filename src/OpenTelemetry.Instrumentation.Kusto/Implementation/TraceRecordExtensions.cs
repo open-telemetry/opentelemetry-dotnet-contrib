@@ -14,7 +14,7 @@ internal static class TraceRecordExtensions
 
     public static bool IsException(this KustoUtils.TraceRecord record)
     {
-        return record.TraceSourceName == "KD.Exceptions";
+        return record.SourceId == "EXC_CTOR";
     }
 
     public static bool IsActivityComplete(this KustoUtils.TraceRecord record)
