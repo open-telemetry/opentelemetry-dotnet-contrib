@@ -43,7 +43,11 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddInMemoryExporter(metrics)
-            .AddKustoInstrumentation()
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = processQuery;
+                options.RecordQuerySummary = processQuery;
+            })
             .Build();
 
         var kcsb = this.fixture.ConnectionStringBuilder;
@@ -81,7 +85,11 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddInMemoryExporter(activities)
-            .AddKustoInstrumentation()
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = true;
+                options.RecordQuerySummary = false;
+            })
             .Build();
 
         var kcsb = this.fixture.ConnectionStringBuilder;
@@ -164,7 +172,11 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddInMemoryExporter(metrics)
-            .AddKustoInstrumentation()
+            .AddKustoInstrumentation(options =>
+            {
+                options.RecordQueryText = processQuery;
+                options.RecordQuerySummary = processQuery;
+            })
             .Build();
 
         var kcsb = this.fixture.ConnectionStringBuilder;
