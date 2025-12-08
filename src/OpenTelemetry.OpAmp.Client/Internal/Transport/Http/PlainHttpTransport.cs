@@ -8,6 +8,7 @@ using System.Net.Http;
 using Google.Protobuf;
 using OpenTelemetry.Internal;
 using OpenTelemetry.OpAmp.Client.Internal.Utils;
+using OpenTelemetry.OpAmp.Client.Settings;
 
 namespace OpenTelemetry.OpAmp.Client.Internal.Transport.Http;
 
@@ -15,23 +16,16 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 {
     private readonly Uri uri;
     private readonly HttpClient httpClient;
-    private readonly HttpClientHandler handler;
     private readonly FrameProcessor processor;
 
-    public PlainHttpTransport(Uri serverUrl, FrameProcessor processor)
+    public PlainHttpTransport(OpAmpClientSettings settings, FrameProcessor processor)
     {
-        Guard.ThrowIfNull(serverUrl, nameof(serverUrl));
+        Guard.ThrowIfNull(settings, nameof(settings));
         Guard.ThrowIfNull(processor, nameof(processor));
 
-        this.uri = serverUrl;
+        this.uri = settings.ServerUrl;
         this.processor = processor;
-        this.handler = new HttpClientHandler
-        {
-            // Trust all certificates
-            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true,
-        };
-
-        this.httpClient = new HttpClient(this.handler);
+        this.httpClient = settings.HttpClientFactory.Invoke();
     }
 
     public async Task SendAsync<T>(T message, CancellationToken token)
@@ -62,6 +56,5 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
     public void Dispose()
     {
         this.httpClient?.Dispose();
-        this.handler?.Dispose();
     }
 }

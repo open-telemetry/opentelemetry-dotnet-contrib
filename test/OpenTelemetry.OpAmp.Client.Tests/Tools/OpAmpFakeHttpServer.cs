@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using System.Net;
 using OpAmp.Proto.V1;
 using OpenTelemetry.Tests;
@@ -12,6 +13,7 @@ internal class OpAmpFakeHttpServer : IDisposable
 {
     private readonly IDisposable httpServer;
     private readonly BlockingCollection<AgentToServer> frames = [];
+    private readonly List<NameValueCollection> receivedHeaders = [];
 
     public OpAmpFakeHttpServer(bool useSmallPackets)
     {
@@ -20,6 +22,14 @@ internal class OpAmpFakeHttpServer : IDisposable
             {
                 var frame = ProcessReceive(context.Request);
                 this.frames.Add(frame);
+
+                var headersCopy = new NameValueCollection();
+                foreach (var key in context.Request.Headers.AllKeys)
+                {
+                    headersCopy.Add(key, context.Request.Headers[key]);
+                }
+
+                this.receivedHeaders.Add(headersCopy);
 
                 var response = GenerateResponse(frame, useSmallPackets);
 
@@ -38,6 +48,11 @@ internal class OpAmpFakeHttpServer : IDisposable
     public IReadOnlyCollection<AgentToServer> GetFrames()
     {
         return this.frames.ToArray();
+    }
+
+    public IReadOnlyList<NameValueCollection> GetHeaders()
+    {
+        return this.receivedHeaders.AsReadOnly();
     }
 
     public void Dispose()

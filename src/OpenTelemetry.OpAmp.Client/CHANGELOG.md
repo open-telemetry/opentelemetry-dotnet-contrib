@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add setting to configure the factory used to create HttpClient instances used for
+* the OpAMP Plain HTTP transport.
+  (TODO LINK)
+
 ## 0.1.0-alpha.3
 
 Released 2025-Nov-13
