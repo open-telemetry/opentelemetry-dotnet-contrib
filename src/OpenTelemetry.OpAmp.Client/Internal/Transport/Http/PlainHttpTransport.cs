@@ -25,7 +25,7 @@ internal sealed class PlainHttpTransport : IOpAmpTransport, IDisposable
 
         this.uri = settings.ServerUrl;
         this.processor = processor;
-        this.httpClient = settings.HttpClientFactory.Invoke();
+        this.httpClient = settings.HttpClientFactory();
     }
 
     public async Task SendAsync<T>(T message, CancellationToken token)
